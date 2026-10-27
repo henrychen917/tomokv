@@ -33,6 +33,8 @@
 #   --candidate-binary bypasses only the release build; instrumented source builds still run.
 #   Such external binaries remain valid perf/iteration diagnostics but cannot earn a source receipt.
 #   GATE_ONLY_JOBS='debug-0 debug-1' selects whole jobs plus build prerequisites.
+#   GATE_NET_IO=epoll selects the engine for ordinary boots, including ASAN;
+#   explicitly parameterized engine-matrix legs retain their own selection.
 #   GATE_DIFFER_ORACLE_CORES reserves an explicit oracle CPU mask (default: slot servers).
 #   With one slot, unused selected server cores remain available to prerequisite builds.
 #   Commas are accepted too. Output is a separate PARTIAL ledger, never counted
@@ -349,8 +351,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # wave4 (compat2 +3, moverfix +8, clockcut +3, notifyorder +2, all collected before the
 # quick exit): DQ=+16, DF=+16 over 8656f9fa9's 669/686, so required counts are 685/702.
 # The constants below read 672/689 from the maintainer's compat2 commit a7e318a14.
-EXPECT_QUICK=798
-EXPECT_FULL=815                 # ABBA reports only; self-test remains counted.
+EXPECT_QUICK=807
+EXPECT_FULL=824                 # ABBA reports only; self-test remains counted.
 # txnfix/txnfix2: four txniso, four txn_nx, two txngroup rows before the quick exit:
 # DQ=10, DF=10; maintainer update required: 625+10=635 quick, 642+10=652 full.
 # txnorder: four rows before the quick exit, DQ=4, DF=4; cumulative +14/+14.
@@ -527,9 +529,14 @@ row_begin(){
     # exhaustive 64-cell/two-arm argv test takes only 1.68s. Allow the measured
     # landing runtime +40%, rounded up to a minute, for all suites. The wave-6
     # landing measured 1128.59s and the wave-7 landing exhausted the old 1200s,
-    # so the basis is now the wave-6 landing: 1128.59s x 1.4, rounded up = 1620s.
-    # Timing receipts and per-test breakdown: docs/wave4c/timing/README.md.
-    ROW_TIMEOUT=1620; ROW_BASIS=abba-selftest-wave6-landing-1128.59s-plus-40pct-rounded
+    # so the basis became the wave-6 landing: 1128.59s x 1.4, rounded up = 1620s.
+    # wave7b then removed the contention pathologies (fingerprint path filtering,
+    # bounded scheduler fixtures) and the wave-7 landing measured 442.80s
+    # (cx-final build/gate-ledger-iteration.txt, 2026-10-26). Same rule, newest
+    # landing: 442.80s x 1.4 = 619.92s, rounded up to a minute = 660s.
+    # Timing receipts and per-test breakdown: docs/wave4c/timing/README.md and
+    # MEASURE-REQUEST-harness5.md (harness5 before/after, landing-like geometry).
+    ROW_TIMEOUT=660; ROW_BASIS=abba-selftest-wave7-landing-442.80s-plus-40pct-rounded
   fi
   ROW_MARKER="$TMPDIR/row-timeout-$BASHPID.json"
   rm -f "$ROW_MARKER"
@@ -796,6 +803,11 @@ settle(){ # after a server is gone: wait for $PORT to stop accepting, then a sho
 }
 launch(){ # logtag binary args... -> pid in $SRV, log in $SRVLOG; waits up to 30 s for the port
   local tag=$1 bin=$2 arg; shift 2
+  local engine_args=()
+  if [ -n "${GATE_NET_IO:-}" ]; then
+    case "$GATE_NET_IO" in epoll|uring) engine_args=(--net-io "$GATE_NET_IO");;
+      *) echo 'GATE_NET_IO must be epoll or uring' >&2; return 2;; esac
+  fi
   # Preserve the DB0 battery; explicit multi-DB rows own their image.
   local database_args=(--databases 1)
   for arg in "$@"; do
@@ -811,7 +823,12 @@ launch(){ # logtag binary args... -> pid in $SRV, log in $SRVLOG; waits up to 30
   local boot_dir
   boot_dir=$(mktemp -d "$TMPDIR/gate-data-$tag.XXXXXX") || return 1
   # Persistence batteries may override this later; cleanup must not replace a tested BGSAVE cut.
-  taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --dir "$boot_dir" --save '' "${database_args[@]}" "$@" > "$SRVLOG" 2>&1 &
+  local proof_engine=()
+  if [ -n "${GATE_PROOF_NET_IO:-}" ]; then
+    case "$GATE_PROOF_NET_IO" in uring|epoll) proof_engine=(--net-io "$GATE_PROOF_NET_IO");;
+      *) echo 'GATE_PROOF_NET_IO must be uring or epoll' >&2; return 2;; esac
+  fi
+  taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --dir "$boot_dir" --save '' "${database_args[@]}" "${engine_args[@]}" "${proof_engine[@]}" "$@" > "$SRVLOG" 2>&1 &
   SRV=$!
   # 30s, not 10s: the AOF replay boot replays its file BEFORE it listens, and on a box shared
   # with other lanes that overran a 10s deadline and turned six AOF rows red with no defect behind
@@ -970,6 +987,7 @@ job_label(){
 job_body(){
   local name=$1 label; label=$(job_label "$name")
   case "$name" in
+    iofix-deferred) job_iofix_deferred "$name";;
     iofix-hz) job_iofix_hz "$name";;
     iofix-sleep) job_iofix_sleep "$name";;
     iofix-signal) job_iofix_signal "$name";;
@@ -1110,7 +1128,7 @@ plan_jobs(){
   JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build)
   [ "$TIER" != full ] || JOB_NAMES+=(rldbg)
   JOB_NAMES+=(datafix1_randscan datafix1_hexpire datafix1_bitfield datafix1_locale datafix1_lists datafix1_spop datafix1_geo config_unit flip_unit filter_unit ring_unit storage_units
-              production_units acl_metadata cmd_metadata abba_selftest bugs5)
+              production_units source_identity acl_metadata cmd_metadata abba_selftest redis_tcl bugs5)
   # Start long waits and whole boot families early; short jobs occupy the slots they release.
   if [ "$TIER" = full ]; then
     # Each target already rebooted between atomic modes. Those four independent lifetimes can
@@ -1133,13 +1151,13 @@ plan_jobs(){
     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
   done
   JOB_NAMES+=(blockfix_structure blockfix_registry blockfix_mkstream persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
-              iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
+              iofix-deferred iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               atomfix5_watch atomfix5_accounting core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat boot_grammar dbdefault wait_units readonly
-              release_batteries atomic_batteries moverfix hexpread compat2 compat3 datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_watch datafix2_idle dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus rlfix3_zc rlfix3_info acl_recheck aclfix sort script_bounds scriptfix
-              efficiency dump_restore auth authfix serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
+              release_batteries atomic_batteries moverfix hexpread compat2 compat3 datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_watch datafix2_idle dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus rlfix3_zc rlfix3_info acl_recheck aclfix sort script_bounds scriptfix lualibs
+              efficiency dump_restore auth authfix latencyfix_grammar latencyfix_shape latencyfix_off wave8b_off serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
-              execfair txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
+              execfair txnorder_index txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
   for FM in 1s 2s; do
     for FR in 0 1; do for FC in 0 1; do for FQ in 0 1; do for FF in 0 1; do
@@ -1365,8 +1383,26 @@ fi
 pausable taskset -c "$BUILD_CORES" tests/parbuild.sh $ASAN "$PWD/build/gate-cache/obj-asan" \
     "-std=c++20 -O1 -g -fsanitize=address -march=native -pthread -I." \
     "-luring -pthread -lssl -lcrypto" \
-    src/main.cc src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc 2>$TMPDIR/gate-asan-build.txt \
+    src/main.cc src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc third_party/lua/helpers/*.c 2>$TMPDIR/gate-asan-build.txt \
     && ok "ASAN build" || bad "ASAN build" "see $TMPDIR/gate-asan-build.txt"
+}
+
+# readability-a0: one row collected before quick exit (DQ=+1, DF=+1).
+# EXPECT constants remain maintainer-owned.
+job_source_identity(){
+  local label="production source identity + stable assertion ids"
+  row_begin "$label"
+  if pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" \
+      ASSERT_LINT_JOBS="$BUILD_JOBS" source-identity-check \
+      >"$TMPDIR/source-identity-build.log" 2>&1 && \
+      pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" build/tomo-assert-fail \
+      >>"$TMPDIR/source-identity-build.log" 2>&1 && \
+      taskset -c "$CORES" python3 tests/tomo_assert_checks.py \
+      >"$TMPDIR/source-identity-checks.log" 2>&1; then
+    ok "$label"
+  else
+    bad "$label" "see $TMPDIR/source-identity-build.log and $TMPDIR/source-identity-checks.log"
+  fi
 }
 
 job_config_unit(){
@@ -1667,8 +1703,16 @@ job_compat2(){
   for case in autharity expire_notify ktls_lifetime; do
     row_begin "compat2 $case"
     failed=0
-    local extra=()
+    local extra=() detail="see $TMPDIR/compat2-$case-*.log"
     if [ "$case" = autharity ]; then
+      # The private Tcl job is a prerequisite of this existing compatibility
+      # verdict. Missing/failed/unreached subsets cannot disappear from the gate.
+      # Its two private rows are never collected, so show them here on failure.
+      if [ ! -f "$RUN_DIR/unit-ready/redis-tcl" ]; then
+        failed=1
+        detail="Redis 7.4.10 Tcl passing subset did not pass; see $RUN_DIR/jobs/redis_tcl and $detail"
+        cat "$RUN_DIR/jobs/redis_tcl/output.log" 2>/dev/null || :
+      fi
       extra=(--oracle "$REDIS74_ROOT/src/redis-server" --oracle-cores "$GATE_DIFFER_ORACLE_CORES")
     elif [ "$case" = expire_notify ]; then
       unit_ready expire-notify-unit && taskset -c "$CORES" build/expire-notify-unit \
@@ -1689,7 +1733,7 @@ job_compat2(){
           >"$TMPDIR/compat2-$case-$mode-$engine.log" 2>&1 || failed=1
     done; done
     if [ "$failed" = 0 ]; then ok "compat2 $case";
-    else bad "compat2 $case" "see $TMPDIR/compat2-$case-*.log"; fi
+    else bad "compat2 $case" "$detail"; fi
   done
 }
 
@@ -1861,6 +1905,11 @@ iofix_legs(){
         >"$TMPDIR/$feature-$mode-$engine.log" 2>&1 || failed=1
   done; done
   [ "$failed" = 0 ] && ok "$label" || bad "$label" "see $TMPDIR/$feature-*.log"
+}
+
+job_iofix_deferred(){
+  row_begin "iofix WB4.1 deferred IO parks"
+  iofix_legs deferred "iofix WB4.1 deferred IO parks"
 }
 
 job_iofix_hz(){
@@ -2486,12 +2535,23 @@ job_moverfix(){
 job_atomic_batteries(){
 # Explicit ON boot plus the non-vacuous epoch-MVCC gates. atomic_torn includes its own OFF control,
 # predecessor/promotion counters, overlapping writers, window liveness, and live CONFIG flips.
+local ryow_args=()
+case "${GATE_PROOF_NO_RATES:-0}" in
+  0) ;;
+  1)
+    # A lane may be authorized for correctness but not performance measurement.
+    # Only partial diagnostic jobs can omit the battery's existing rate check;
+    # full gate/receipt semantics remain unchanged, and the driver prints SKIP.
+    [ "${GATE_PARTIAL:-0}" = 1 ] || { echo 'GATE_PROOF_NO_RATES requires selected partial jobs' >&2; return 1; }
+    ryow_args=(--no-rate-assertions);;
+  *) echo 'GATE_PROOF_NO_RATES must be 0 or 1' >&2; return 1;;
+esac
 txn_proof_boot "$CANDIDATE_BINARY" --atomic 1 --enable-debug-command yes || bad "atomic release boot"
 row_begin "atomic torn/window battery"
 py tests/atomic_torn.py 127.0.0.1 $PORT --release-build >$TMPDIR/gate-atomic-torn.txt 2>&1 \
     && ok "atomic torn/window battery" || bad "atomic torn/window battery" "see $TMPDIR/gate-atomic-torn.txt"
 row_begin "atomic RYOW/mixed-write battery"
-py tests/atomic_ryow.py 127.0.0.1 $PORT >$TMPDIR/gate-atomic-ryow.txt 2>&1 \
+py tests/atomic_ryow.py 127.0.0.1 $PORT "${ryow_args[@]}" >$TMPDIR/gate-atomic-ryow.txt 2>&1 \
     && ok "atomic RYOW/mixed-write battery" || bad "atomic RYOW/mixed-write battery" "see $TMPDIR/gate-atomic-ryow.txt"
 row_begin "atomic owner-local hazard battery"
 py tests/atomic_hazards.py 127.0.0.1 $PORT >$TMPDIR/gate-atomic-hazards.txt 2>&1 \
@@ -2998,11 +3058,37 @@ job_execfair(){
           --output "$log.json" >"$log.log" 2>&1 || passed=0
       py tests/wave6_exec.py "$PORT" >"$log-wave6.log" 2>&1 || passed=0
       py tests/wave7.py "$PORT" >"$log-wave7.log" 2>&1 || passed=0
+      py tests/wave8.py "$PORT" >"$log-wave8.log" 2>&1 || passed=0
+      py tests/wave8b.py "$PORT" >"$log-wave8b.log" 2>&1 || passed=0
     else passed=0; fi
     stop
     shutdown_clean || passed=0
   done; done; done
   [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/execfair-*"
+}
+
+# execindex: two aggregate rows collected before the quick-tier exit, DQ=DF=+2.
+# EXPECT_QUICK/FULL remain maintainer-owned: 798/815 -> 800/817.
+job_txnorder_index(){
+  local case_name label passed mode atomic engine unit log
+  for case_name in oracle complexity; do
+    label="txnorder index $case_name"
+    row_begin "$label"
+    passed=1
+    for unit in txnorder-index-unit txnorder-index-db0-unit; do
+      if ! unit_ready "$unit"; then passed=0; continue; fi
+      for mode in 1s 2s; do for atomic in 0 1; do for engine in uring epoll; do
+        log="$TMPDIR/$case_name-$unit-$mode-$atomic-$engine.log"
+        taskset -c "$CORES" "./build/$unit" "$case_name" "$mode" "$atomic" \
+            10000000 14764691927 "$engine" >"$log" 2>&1 || passed=0
+      done; done; done
+    done
+    if [ "$case_name" = complexity ]; then
+      unit_ready txnorder-retry-unit && taskset -c "$CORES" ./build/txnorder-retry-unit \
+          >"$TMPDIR/retry.log" 2>&1 || passed=0
+    fi
+    [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/$case_name-* and retry.log"
+  done
 }
 
 job_txnorder_wake(){
@@ -3094,6 +3180,14 @@ for XS_MODE in limit window; do
              "see $TMPDIR/gate-xscript-$XS_MODE.txt"
   stop
 done
+}
+
+# CC4.7: one row, all compat3 mode/engine/database/atomic/read-local legs.
+# Collected before the quick-tier exit: DQ=DF=+1; EXPECT is maintainer-owned.
+job_lualibs(){
+  row_begin "lualibs CC4.7 vs Redis 7.4"
+  compat3_case lualibs all && ok "lualibs CC4.7 vs Redis 7.4" \
+      || bad "lualibs CC4.7 vs Redis 7.4" "see $TMPDIR/all-*.log"
 }
 
 job_scriptfix(){
@@ -3189,6 +3283,47 @@ job_serverfix_scalar(){
       --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/serverfix-scalar" \
       >"$TMPDIR/serverfix-scalar.log" 2>&1 \
       && ok "$label" || bad "$label" "see $TMPDIR/serverfix-scalar.log"
+}
+
+# LAT-HIST-1: three rows, each both modes / both engines plus the Redis oracle.
+# Collected before the quick exit; DQ=DF=+3. EXPECT values remain owner-owned.
+job_latencyfix_grammar(){
+  local label="latencyfix LAT-HIST-1 knob grammar"
+  row_begin "$label"
+  py tests/latencyfix.py --case grammar --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
+      --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/latencyfix-grammar" \
+      >"$TMPDIR/latencyfix-grammar.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/latencyfix-grammar.log"
+}
+job_latencyfix_shape(){
+  local label="latencyfix LAT-HIST-1 histogram and latencystats"
+  row_begin "$label"
+  py tests/latencyfix.py --case shape --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
+      --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/latencyfix-shape" \
+      >"$TMPDIR/latencyfix-shape.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/latencyfix-shape.log"
+}
+job_latencyfix_off(){
+  local label="latencyfix LAT-HIST-1 zero allocations off"
+  row_begin "$label"
+  py tests/latencyfix.py --case off --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
+      --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/latencyfix-off" \
+      >"$TMPDIR/latencyfix-off.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/latencyfix-off.log"
+}
+
+# wave8b: one serverless witness row, collected before the quick-tier exit.
+# DQ=DF=+1. Landing totals belong to the maintainer: 807/824.
+job_wave8b_off(){
+  local label="wave8b tracking-off EXEC scans and transitions" passed=1 unit
+  row_begin "$label"
+  pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" -f Makefile -f tools/wave8b.mk \
+      build/wave8b-latency-unit build/wave8b-latency-db0-unit >"$TMPDIR/build.log" 2>&1 || passed=0
+  for unit in wave8b-latency-unit wave8b-latency-db0-unit; do
+    make -q -f Makefile -f tools/wave8b.mk "build/$unit" && \
+      taskset -c "$CORES" "./build/$unit" >"$TMPDIR/$unit.log" 2>&1 || passed=0
+  done
+  [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/build.log and unit logs"
 }
 
 job_serverfix_config(){
@@ -4899,6 +5034,7 @@ py tests/gate_history.py self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || con
 py tests/gate_process_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
 py tests/gates_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
 py tests/gate_subset_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
+py tests/redis_tcl_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
 py tests/wb_policy.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
 py tests/lb_stationary.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
 py tests/netio.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
@@ -4906,6 +5042,27 @@ py tests/gateprod.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || contr
 py tests/tailgen_stall.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
 [ "$controls_ok" = 1 ] && ok "ABBA comparison + saturation negative controls" \
     || bad "ABBA comparison + saturation negative controls" "see $TMPDIR/gate-abbagate-unit.txt"
+}
+
+job_redis_tcl(){
+  local mode passed=1 label
+  for mode in 2s 1s; do
+    label="Redis 7.4.10 Tcl passing subset ($mode)"
+    row_begin "$label"
+    if py tests/redis_tcl.py --redis-root "$REDIS74_ROOT" --binary "$CANDIDATE_BINARY" \
+        --mode "$mode" --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --controller-port "$((PORT+1))" \
+        --baseport "$((PORT+2))" --manifest tests/redis_tcl_passing.json \
+        --output "$TMPDIR/redis-tcl-$mode" >"$TMPDIR/redis-tcl-$mode.log" 2>&1; then
+      say "$label" ok; ledger ok "$label" 0
+    else
+      passed=0; say "$label" FAIL; ledger FAIL "$label" 0
+    fi
+  done
+  # Private rows retain independent timings and raw evidence. compat2 autharity
+  # owns their public verdict; no public row is added (DQ=0, DF=0).
+  if [ "$passed" = 1 ] && [ "$FAIL" = 0 ]; then
+    mkdir -p "$RUN_DIR/unit-ready"; touch "$RUN_DIR/unit-ready/redis-tcl"
+  fi
 }
 
 job_asan_batteries(){
@@ -5012,7 +5169,7 @@ row_begin "read-local ownership-invariant build"
 pausable taskset -c "$BUILD_CORES" tests/parbuild.sh $RLDBG "$PWD/build/gate-cache/obj-rlcachedbg" \
     "-std=c++20 -O2 -g -march=native -pthread -DTOMO_JEMALLOC -DTOMO_RL_CACHE_DEBUG -I." \
     "-ljemalloc -luring -pthread -lssl -lcrypto -lm" \
-    src/main.cc src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc 2>$TMPDIR/gate-rlcachedbg-build.txt \
+    src/main.cc src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc third_party/lua/helpers/*.c 2>$TMPDIR/gate-rlcachedbg-build.txt \
     && ok "read-local ownership-invariant build" \
     || bad "read-local ownership-invariant build" "see $TMPDIR/gate-rlcachedbg-build.txt"
 }
@@ -5083,7 +5240,7 @@ job_core_tsan_build(){
   # Match the core unit's Makefile dependencies: reorder's fused boot selector
   # references run_fused_server in genthread.cc even in this serverless binary.
   local source sources=()
-  for source in src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc; do
+  for source in src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc third_party/lua/helpers/*.c; do
     # Match Makefile's SERVER_ONLY_SRC exclusion; this binary has its own main.
     [ "$source" = src/core/version.cc ] || sources+=("$source")
   done
@@ -5179,14 +5336,14 @@ job_production_units(){
   local target
   mkdir -p "$RUN_DIR/unit-ready"
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
-      build/expire-notify-unit build/ktls-lifetime-unit build/moverfix-unit build/moverfix-db0-unit build/publishfix-unit build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/txnorder-wake-unit build/txnorder-episodes build/txnorder-episodes-debug build/txnorder-watch-unit build/txnorder-watch-db0-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
+      build/expire-notify-unit build/ktls-lifetime-unit build/moverfix-unit build/moverfix-db0-unit build/publishfix-unit build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/txnorder-index-unit build/txnorder-index-db0-unit build/txnorder-retry-unit build/txnorder-wake-unit build/txnorder-episodes build/txnorder-episodes-debug build/txnorder-watch-unit build/txnorder-watch-db0-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit build/storesize-unit build/respresume-unit build/respresume-migration \
       build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 build/racefix-climon build/aoforder-scheduled >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
   make -q build/respresume-unit && : > "$RUN_DIR/unit-ready/respresume-unit"
   make -q build/respresume-migration && : > "$RUN_DIR/unit-ready/respresume-migration"
-  for target in expire-notify-unit ktls-lifetime-unit moverfix-unit moverfix-db0-unit publishfix-unit at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit txnorder-wake-unit txnorder-episodes txnorder-episodes-debug txnorder-watch-unit txnorder-watch-db0-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon aoforder-scheduled; do
+  for target in expire-notify-unit ktls-lifetime-unit moverfix-unit moverfix-db0-unit publishfix-unit at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit txnorder-index-unit txnorder-index-db0-unit txnorder-retry-unit txnorder-wake-unit txnorder-episodes txnorder-episodes-debug txnorder-watch-unit txnorder-watch-db0-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon aoforder-scheduled; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -5273,10 +5430,11 @@ job_dependencies(){
     core_units|flipfix_units) echo 'production_units core_tsan_build';;
     racefix_counters) echo racefix_tsan_build;;
     racefix_climon) echo production_units;;
-    tls|compat2|blockfix_registry) echo 'release production_units';;
+    compat2) echo 'release production_units redis_tcl';;
+    tls|blockfix_registry) echo 'release production_units';;
     respresume-*) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
-    debug-*|fused-*|txn_group_*|txnorder2|txnorder_wake|txnorder-*|aof_frame|aoforder|moverfix) echo 'release production_units';;
+    debug-*|fused-*|txn_group_*|txnorder_index|txnorder2|txnorder_wake|txnorder-*|aof_frame|aoforder|moverfix) echo 'release production_units';;
     lbplanner_units|climonfix|persistfix_units|exbatch_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
@@ -5341,8 +5499,10 @@ collect_job release
 
 collect_job asan
 collect_job config_unit
+collect_job source_identity
 # iofix rows are collected before the quick-tier exit; EXPECT remains owner-maintained.
-# wave5b: WB4.1 reopened; removed one row before quick exit (DQ=-1, DF=-1).
+# iofix3: restore WB4.1 before quick exit (DQ=+1, DF=+1).
+collect_job iofix-deferred
 collect_job iofix-hz
 collect_job iofix-sleep
 collect_job iofix-signal
@@ -5507,12 +5667,14 @@ collect_job datafix1_hexpire
 for AT in 0 1; do collect_job "debug-$AT"; done
 collect_job txn_group_split
 collect_job execfair
+collect_job txnorder_index
 collect_job txnorder2
 collect_job txnorder_wake
 for TM in fused split; do for AT in 0 1; do collect_job "txnorder-$TM-$AT"; done; done
 
 collect_job script_bounds
 collect_job scriptfix
+collect_job lualibs
 
 collect_job efficiency
 
@@ -5522,6 +5684,10 @@ collect_job auth
 collect_job authfix
 collect_job serverfix_lines
 collect_job serverfix_scalar
+collect_job latencyfix_grammar
+collect_job latencyfix_shape
+collect_job latencyfix_off
+collect_job wave8b_off
 collect_job serverfix_config
 collect_job serverfix_hello
 collect_job serverfix_waitaof
@@ -5858,7 +6024,7 @@ if [ "$RECEIPT_REQUIRED" = 1 ]; then
     # override. Re-reading a mutable default could certify or reject against another control.
     python3 tests/gate_receipt.py finish --start "$RECEIPT_START" --gate-result "$RUN_DIR/gate-result.json" \
         --ledger "$LEDGER" --observations "$ROW_HISTORY/row-observations.jsonl" \
-        --abba-result "$ABBA_OUTPUT/results.json" \
+        --abba-result "$ABBA_OUTPUT/results.json" --product-result "$ABBA_OUTPUT/product.json" \
         --null-result "$ABBA_OUTPUT/null-control.json" || RECEIPT_RC=1
   else
     echo "GATE RECEIPT WITHHELD: start/binding evidence was unavailable; full gate work has completed; see $RUN_DIR/receipt-begin.log" >&2

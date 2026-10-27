@@ -1,0 +1,22 @@
+Full compressed GDB trace: /home/user/Projects/cx-execindex/build/execindex/instruction-logs/initial/post-db0-INCR-1s-1-1--1.log.gz
+SHA-256 (gzip): 0772e4f9f63cbbf31d818df6faca6e45df9a2455c6b67ca4f7417316e263289b
+PASS bounded production command scope
+ed<false> (this=0x7ffff6183208, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2349
+2349	    }
+0x00005555558acee8	2349	    }
+0x00005555558acef1	2349	    }
+0x00005555558acef7	2349	    }
+0x00005555558acefb	2349	    }
+0x00005555558acefc	2349	    }
+0x00005555558acefe	2349	    }
+0x00005555558acf00	2349	    }
+0x00005555558acf02	2349	    }
+0x00005555558acf04	2349	    }
+0x00005555558acf05	2349	    }
+0x0000555555d5f0f4 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-execindex/tests/txnorder_command_scope.cc:72
+72	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-execindex/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 554030) exited normally]
+COUNT 1324

@@ -1,0 +1,32 @@
+_GLOBAL__sub_I__ZN4tomo17geo_prepare_routeERNS_2OpERNS_8GeoRouteE
+--- headline
+
++++ post
+
+@@ -4,12 +4,12 @@
+
+ CLONE 0 000f [ 6] je <+0x1ad>
+ CLONE 0 0015 [ 7] lea <rip>(%rip),%rax # <literal-string-47454f41444400>
+ CLONE 0 001c [ 7] lea <rip>(%rip),%rcx # <tomo::(anonymous namespace)::cmd_geopos_clean(tomo::Shard&, tomo::Op&)>
+-CLONE 0 0023 [ 7] mov <rip>(%rip),%rdx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6f8>
++CLONE 0 0023 [ 7] mov <rip>(%rip),%rdx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x148>
+ CLONE 0 002a [ 7] lea <rip>(%rip),%rsi # <void tomo::notify_handler<&tomo::(anonymous namespace)::cmd_geoadd_armed>(tomo::Shard&, tomo::Op&)>
+ CLONE 0 0031 [ 7] mov %rax,<rip>(%rip) # <tomo::(anonymous namespace)::kTable>
+ CLONE 0 0038 [ 7] mov %rcx,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0x48>
+-CLONE 0 003f [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x750>
+-CLONE 0 0046 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x810>
++CLONE 0 003f [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x1a0>
++CLONE 0 0046 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x260>
+ CLONE 0 004d [ 7] lea <rip>(%rip),%rdi # <literal-string-47454f504f5300>
+ CLONE 0 0054 [ 7] mov %rsi,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0x28>
+ CLONE 0 005b [ 7] lea <rip>(%rip),%rsi # <void tomo::notify_handler<&tomo::(anonymous namespace)::cmd_geopos_armed>(tomo::Shard&, tomo::Op&)>
+@@ -48,7 +48,7 @@
+
+ CLONE 0 0151 [ 7] mov %rdx,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0xa8>
+ CLONE 0 0158 [ 7] mov %rcx,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0xb8>
+ CLONE 0 015f [ 7] mov %rsi,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0xc0>
+-CLONE 0 0166 [ 7] mov <rip>(%rip),%rdx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x818>
++CLONE 0 0166 [ 7] mov <rip>(%rip),%rdx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x268>
+ CLONE 0 016d [ 7] lea <rip>(%rip),%rdi # <tomo::(anonymous namespace)::cmd_geosearch_clean(tomo::Shard&, tomo::Op&)>
+ CLONE 0 0174 [ 7] mov %rax,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0xe0>
+ CLONE 0 017b [ 7] lea <rip>(%rip),%rax # <void tomo::notify_handler<&tomo::(anonymous namespace)::cmd_geosearch_armed>(tomo::Shard&, tomo::Op&)>

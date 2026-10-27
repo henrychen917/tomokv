@@ -1,0 +1,13 @@
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [96,97,98,99,100,101,102,103]
+tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0
+  thread t0: role=ifid cpu=96 L3=0 shards=0
+  thread t1: role=ifid cpu=97 L3=0 shards=0
+  thread t2: role=ifid cpu=98 L3=0 shards=0
+  thread t3: role=ifid cpu=99 L3=0 shards=0
+  thread t4: role=ifid cpu=100 L3=0 shards=0
+  thread t5: role=ifid cpu=101 L3=0 shards=0
+  thread t6: role=ex cpu=102 L3=0 shards=8
+  thread t7: role=ex cpu=103 L3=0 shards=8
+bind: Address already in use

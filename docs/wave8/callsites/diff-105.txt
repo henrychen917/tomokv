@@ -1,0 +1,25 @@
+luaopen_math
+--- headline
+
++++ post
+
+@@ -6,7 +6,7 @@
+
+ CLONE 0 0011 [ 7] lea <rip>(%rip),%rsi # <literal-string-6d61746800>
+ CLONE 0 0018 [ 5] call <luaL_openlib>
+ CLONE 0 001d [ 4] mov 0x10(%rbx),%rax
+-CLONE 0 0021 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x7f8>
++CLONE 0 0021 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x248>
+ CLONE 0 0028 [ 3] mov %rbx,%rdi
+ CLONE 0 002b [ 7] lea <rip>(%rip),%rdx # <literal-string-706900>
+ CLONE 0 0032 [ 5] mov $0xfffffffe,%esi
+@@ -16,7 +16,7 @@
+
+ CLONE 0 0045 [ 4] mov %rax,0x10(%rbx)
+ CLONE 0 0049 [ 5] call <lua_setfield>
+ CLONE 0 004e [ 4] mov 0x10(%rbx),%rax
+-CLONE 0 0052 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6c0>
++CLONE 0 0052 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xf8>
+ CLONE 0 0059 [ 3] mov %rbx,%rdi
+ CLONE 0 005c [ 7] lea <rip>(%rip),%rdx # <literal-string-6875676500>
+ CLONE 0 0063 [ 5] mov $0xfffffffe,%esi

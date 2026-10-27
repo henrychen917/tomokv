@@ -284,7 +284,7 @@ row_begin "$FIXTURE_LABEL" "$FIXTURE_CONTEXT"
                                                ('no-history-conservative-default', 900, 900)):
                     with self.subTest(label=label, context=context, basis=basis):
                         if label == 'ABBA comparison + saturation negative controls':
-                            expected = 1620
+                            expected = 660
                         plan = dict(schema=1, defaults=dict(fallback_seconds=900), rows={label: dict(
                             timeout_seconds=limit, median_seconds=114, basis=basis)})
                         (Path(tmp) / 'plan.json').write_text(json.dumps(plan))
@@ -294,7 +294,7 @@ row_begin "$FIXTURE_LABEL" "$FIXTURE_CONTEXT"
                         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                         self.assertIn(f'WATCH\t{expected}\t', result.stdout)
                         if label == 'ABBA comparison + saturation negative controls':
-                            self.assertIn('WATCH\t1620\tabba-selftest-wave6-landing-1128.59s-plus-40pct-rounded',
+                            self.assertIn('WATCH\t660\tabba-selftest-wave7-landing-442.80s-plus-40pct-rounded',
                                           result.stdout)
 
 
@@ -303,6 +303,7 @@ class LedgerWiring(unittest.TestCase):
                           'tests/gate_receipt.py', 'tests/abba_instrument.py',
                           'tests/background_environment_test.py', 'tests/gate_history.py',
                           'tests/gate_process_test.py', 'tests/gates_test.py', 'tests/gate_subset_test.py',
+                          'tests/redis_tcl_test.py',
                           'tests/wb_policy.py', 'tests/lb_stationary.py', 'tests/netio.py',
                           'tests/gateprod.py', 'tests/tailgen_stall.py')
 
@@ -347,7 +348,7 @@ py(){
   # New control helpers must not accidentally inherit the feature-cell verdict.
   case "$1" in
     tests/feature_gate.py) return "$WIRE_RC";;
-    tests/abbagate.py|tests/gate_quiet.py|tests/gate_measurements.py|tests/gate_receipt.py|tests/abba_instrument.py|tests/background_environment_test.py|tests/gate_history.py|tests/gate_process_test.py|tests/gates_test.py|tests/gate_subset_test.py|tests/wb_policy.py|tests/lb_stationary.py|tests/netio.py|tests/gateprod.py|tests/tailgen_stall.py)
+    tests/abbagate.py|tests/gate_quiet.py|tests/gate_measurements.py|tests/gate_receipt.py|tests/abba_instrument.py|tests/background_environment_test.py|tests/gate_history.py|tests/gate_process_test.py|tests/gates_test.py|tests/gate_subset_test.py|tests/redis_tcl_test.py|tests/wb_policy.py|tests/lb_stationary.py|tests/netio.py|tests/gateprod.py|tests/tailgen_stall.py)
       printf '%s\\n' "$1" >> "$WIRE_CONTROLS"
       if [ -z "$WIRE_ABBA_HELPER" ] || [ "$1" = "$WIRE_ABBA_HELPER" ]; then
         return "$WIRE_ABBA_RC"
@@ -850,7 +851,7 @@ probe
 
 
 class SchedulerWiring(unittest.TestCase):
-    helper_jobs = frozenset(('production_units', 'core_tsan_build', 'waits_tsan_build', 'racefix_tsan_build', 'tailgen_build'))
+    helper_jobs = frozenset(('production_units', 'core_tsan_build', 'waits_tsan_build', 'racefix_tsan_build', 'tailgen_build', 'redis_tcl'))
 
     # Enumerate the real collector loops, not a hand-maintained approximation of their inventory.
     # This invokes only collect_job stubs: no compiler, server, battery or benchmark is started.
@@ -1032,7 +1033,7 @@ __SCHEDULER_AFFINITY_PROBE__
     : > "$RUN_DIR/atomic-boot-reached"
   fi
   case "$current" in
-    production_units|core_tsan_build|waits_tsan_build|racefix_tsan_build|tailgen_build)
+    production_units|core_tsan_build|waits_tsan_build|racefix_tsan_build|tailgen_build|redis_tcl)
       : > "$RUN_DIR/completed/$current"
       return 0;;
   esac
@@ -1418,13 +1419,13 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
         result = self.run_scheduler(slots=2, ordered=False, failure='release', behavior='crash')
         self.assertEqual(result['counts'], (len(self.canonical) - 1, 1), result['output'])
         self.assertIn(b'FAIL\tcorrectness family release\n', result['ledger'])
-        self.assertEqual(result['helpers'], {'production_units', 'core_tsan_build', 'waits_tsan_build', 'racefix_tsan_build', 'tailgen_build'})
+        self.assertEqual(result['helpers'], {'production_units', 'core_tsan_build', 'waits_tsan_build', 'racefix_tsan_build', 'tailgen_build', 'redis_tcl'})
         self.assertCountEqual(result['completion'], [name for name in self.canonical if name != 'release'])
 
     def test_release_boots_do_not_wait_for_independent_asan_build(self):
         result = self.run_scheduler(slots=2, ordered=False, dependency_probe=True)
         self.assertEqual(result['counts'], (len(self.canonical), 0), result['output'])
-        self.assertEqual(result['helpers'], {'production_units', 'core_tsan_build', 'waits_tsan_build', 'racefix_tsan_build', 'tailgen_build'})
+        self.assertEqual(result['helpers'], {'production_units', 'core_tsan_build', 'waits_tsan_build', 'racefix_tsan_build', 'tailgen_build', 'redis_tcl'})
         self.assertCountEqual(result['completion'], self.canonical)
         self.assertTrue(result['dependency_reached'], result['output'])
         self.assertTrue(result['dependency_handshake'], result['output'])
@@ -1764,7 +1765,9 @@ timeout(){
         for line in makefile.splitlines():
             if line.startswith('SRC '):
                 production.update(line.split('=', 1)[1].split())
-        expected = production - {'src/main.cc'} | {'tests/core_concurrency_unit.cc'}
+        helpers = {str(p.relative_to(root)) for p in (root / 'third_party/lua/helpers').glob('*.c')}
+        self.assertEqual(len(helpers), 6, 'all Lua helper C units are instrumented')
+        expected = production - {'src/main.cc'} | {'tests/core_concurrency_unit.cc'} | helpers
         with tempfile.TemporaryDirectory(dir=root / 'build') as temporary:
             directory = Path(temporary)
             stub = r'''set -u
@@ -1787,6 +1790,29 @@ pausable(){ printf '%s\0' "$@" > "$RUN_DIR/argv"; return "$BUILD_RC"; }
                 self.assertNotIn('-fsanitize=address', flags)
                 self.assertEqual(set(args[index + 5:]), expected)
                 self.assertFalse(any(arg.endswith('.o') for arg in args))
+
+    def test_parallel_build_c_linkage_and_lua_header_cache_invalidation(self):
+        root = Path(__file__).resolve().parent.parent
+        with tempfile.TemporaryDirectory(dir=root / 'build') as temporary:
+            directory = Path(temporary)
+            for folder in ('src', 'tests', 'third_party/lua/helpers'):
+                (directory / folder).mkdir(parents=True, exist_ok=True)
+            header = directory / 'third_party/lua/helpers/value.h'
+            header.write_text('#define VALUE 17\n')
+            (directory / 'third_party/lua/helpers/value.c').write_text(
+                '#include "value.h"\nint helper(void) { return VALUE; }\n')
+            (directory / 'src/probe.cc').write_text(
+                '#include <cstdio>\nextern "C" int helper(void);\n'
+                'int main() { std::printf("%d\\n", helper()); }\n')
+            argv = ['bash', str(root / 'tests/parbuild.sh'), str(directory / 'probe'),
+                    str(directory / 'objects'), '-std=c++20 -O0', '',
+                    'src/probe.cc', 'third_party/lua/helpers/value.c']
+            for value in (17, 23):
+                header.write_text(f'#define VALUE {value}\n')
+                built = subprocess.run(argv, cwd=directory, capture_output=True, text=True, timeout=15)
+                self.assertEqual(built.returncode, 0, built.stderr)
+                result = subprocess.check_output([str(directory / 'probe')], text=True)
+                self.assertEqual(result, f'{value}\n')
 
 
 class CompleteTierDispatch(unittest.TestCase):

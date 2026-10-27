@@ -1,0 +1,49 @@
+tomo::(anonymous namespace)::cmd_debug_impl(tomo::Shard&, tomo::Op&)
+--- headline
+
++++ post
+
+@@ -69,7 +69,7 @@
+
+ CLONE 0 013a [ 7] mov 0xcc(%rbx),%r14d
+ CLONE 0 0141 [ 4] cmp $0x2,%r14d
+ CLONE 0 0145 [ 2] jne <+0x187>
+-CLONE 0 0147 [ 9] mov %fs:0xffffffffffffff98,%rax
++CLONE 0 0147 [ 9] mov %fs:0xffffffffffffff90,%rax
+ CLONE 0 0150 [ 3] test %rax,%rax
+ CLONE 0 0153 [ 6] je <+0xd30>
+ CLONE 0 0159 [ 6] mov 0x788(%rax),%esi
+@@ -198,10 +198,10 @@
+
+ CLONE 0 03b8 [ 7] mov <rip>(%rip),%rdi # <tomo::(anonymous namespace)::g_server>
+ CLONE 0 03bf [ 3] test %rdi,%rdi
+ CLONE 0 03c2 [ 6] je <+0x1120>
+-CLONE 0 03c8 [ 9] mov %fs:0xffffffffffffff90,%rax
++CLONE 0 03c8 [ 9] mov %fs:0xffffffffffffff88,%rax
+ CLONE 0 03d1 [ 3] test %rax,%rax
+ CLONE 0 03d4 [ 6] je <+0x1120>
+-CLONE 0 03da [10] cmpq $0x0,%fs:0xffffffffffffff98
++CLONE 0 03da [10] cmpq $0x0,%fs:0xffffffffffffff90
+ CLONE 0 03e4 [ 6] je <+0x1120>
+ CLONE 0 03ea [ 8] lea 0x260(%rsp),%rdx
+ CLONE 0 03f2 [ 8] movb $0x0,0x260(%rsp)
+@@ -1245,7 +1245,7 @@
+
+ CLONE 0 17be [ 6] je <+0x194b>
+ CLONE 0 17c4 [ 7] cmpl $0x3,0xcc(%rbx)
+ CLONE 0 17cb [ 6] jne <+0x13e8>
+-CLONE 0 17d1 [ 7] mov <rip>(%rip),%r14 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8f8>
++CLONE 0 17d1 [ 7] mov <rip>(%rip),%r14 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x340>
+ CLONE 0 17d8 [ 7] lea <rip>(%rip),%rax # <literal-string-3000>
+ CLONE 0 17df [ 5] mov %rax,0x20(%rsp)
+ CLONE 0 17e4 [ 5] mov %r14,0x28(%rsp)
+@@ -1438,7 +1438,7 @@
+
+ CLONE 0 1b66 [ 4] cmpb $0x0,0x1e(%rbx)
+ CLONE 0 1b6a [ 6] jne <+0x7d0>
+ CLONE 0 1b70 [ 5] jmp <+0x7f0>
+-CLONE 0 1b75 [ 9] mov %fs:0xffffffffffffff98,%rdi
++CLONE 0 1b75 [ 9] mov %fs:0xffffffffffffff90,%rdi
+ CLONE 0 1b7e [ 2] xor %esi,%esi
+ CLONE 0 1b80 [ 3] test %rdi,%rdi
+ CLONE 0 1b83 [ 2] je <+0x1b8c>

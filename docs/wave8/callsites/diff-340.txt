@@ -1,0 +1,23 @@
+tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)
+--- headline
+
++++ post
+
+@@ -37,14 +37,14 @@
+
+ CLONE 0 0081 [ 2] cmp $0x3,%al
+ CLONE 0 0083 [ 2] ja <+0x4b>
+ CLONE 0 0085 [ 3] movzbl %al,%eax
+-CLONE 0 0088 [ 7] lea <rip>(%rip),%rdx # <CSWTCH.7635>
++CLONE 0 0088 [ 7] lea <rip>(%rip),%rdx # <CSWTCH.7711>
+ CLONE 0 008f [ 4] movzbl (%rdx,%rax,1),%edx
+ CLONE 0 0093 [ 4] add $0x8,%rsp
+ CLONE 0 0097 [ 2] mov %edx,%eax
+ CLONE 0 0099 [ 1] ret
+ CLONE 0 009a [ 6] nopw 0x0(%rax,%rax,1)
+ CLONE 0 00a0 [ 3] movzbl %al,%eax
+-CLONE 0 00a3 [ 7] lea <rip>(%rip),%rdx # <CSWTCH.7635>
++CLONE 0 00a3 [ 7] lea <rip>(%rip),%rdx # <CSWTCH.7711>
+ CLONE 0 00aa [ 4] movzbl (%rdx,%rax,1),%edx
+ CLONE 0 00ae [ 4] add $0x8,%rsp
+ CLONE 0 00b2 [ 2] mov %edx,%eax

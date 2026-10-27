@@ -1,0 +1,18 @@
+{"bound_only_ports": [48840, 48841, 48842], "command": ["python3", "build/iofix3/run_gate_matrix.py"]}
+START pad-a-idle-final
+END pad-a-idle-final 1
+START post4-wb-epoll-rerun
+END post4-wb-epoll-rerun 0
+START post8-wb-epoll-rerun
+END post8-wb-epoll-rerun 0
+START post2-correctness-epoll-rerun
+END post2-correctness-epoll-rerun 0
+START post2-fused-uring-rerun
+END post2-fused-uring-rerun 0
+START post2-fused-epoll-rerun
+END post2-fused-epoll-rerun 0
+START post2-differ-uring-rerun
+END post2-differ-uring-rerun 0
+START post2-differ-epoll-rerun
+END post2-differ-epoll-rerun 1
+COMPLETE gate matrix; inspect every exit and ledger

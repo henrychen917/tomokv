@@ -1,0 +1,15 @@
+luaV_execute
+--- execindex
+
++++ post
+
+@@ -183,7 +183,7 @@
+
+ CLONE 0 02de [ 4] lea (%r8,%r12,1),%rdx
+ CLONE 0 02e2 [ 6] jne <+0x13f0>
+ CLONE 0 02e8 [ 4] vmovsd (%rdx),%xmm0
+-CLONE 0 02ec [ 8] vxorpd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5b8>
++CLONE 0 02ec [ 8] vxorpd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5f8>
+ CLONE 0 02f4 [ 8] movl $0x3,0x8(%r10)
+ CLONE 0 02fc [ 5] vmovsd %xmm0,(%r10)
+ CLONE 0 0301 [11] data16 cs nopw 0x0(%rax,%rax,1)

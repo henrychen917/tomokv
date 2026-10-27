@@ -1,0 +1,563 @@
+{
+  "tls_workbench_offsets": {
+    "headline": {
+      "tomo_db0": -456,
+      "tomo": -200
+    },
+    "post": {
+      "tomo_db0": -472,
+      "tomo": -208
+    }
+  },
+  "bodies": {
+    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": {
+      "changes": [
+        {
+          "index": 786,
+          "kind": "TLS",
+          "field": -56,
+          "headline": -256,
+          "post": -264
+        },
+        {
+          "index": 790,
+          "kind": "TLS",
+          "field": 0,
+          "headline": -200,
+          "post": -208
+        },
+        {
+          "index": 792,
+          "kind": "TLS",
+          "field": -56,
+          "headline": -256,
+          "post": -264
+        },
+        {
+          "index": 794,
+          "kind": "TLS",
+          "field": 8,
+          "headline": -192,
+          "post": -200
+        },
+        {
+          "index": 796,
+          "kind": "TLS",
+          "field": 0,
+          "headline": -200,
+          "post": -208
+        },
+        {
+          "index": 1296,
+          "kind": "TLS",
+          "field": -56,
+          "headline": -256,
+          "post": -264
+        },
+        {
+          "index": 1297,
+          "kind": "TLS",
+          "field": 0,
+          "headline": -200,
+          "post": -208
+        },
+        {
+          "index": 3622,
+          "kind": "TLS",
+          "field": -56,
+          "headline": -256,
+          "post": -264
+        },
+        {
+          "index": 3623,
+          "kind": "TLS",
+          "field": 0,
+          "headline": -200,
+          "post": -208
+        },
+        {
+          "index": 3781,
+          "kind": "readonly",
+          "headline": {
+            "target": "0x81e408",
+            "size": 8,
+            "bytes": "ffffffff00000000"
+          },
+          "post": {
+            "target": "0x8456d8",
+            "size": 8,
+            "bytes": "ffffffff00000000"
+          }
+        },
+        {
+          "index": 3843,
+          "kind": "TLS",
+          "field": -56,
+          "headline": -256,
+          "post": -264
+        },
+        {
+          "index": 3845,
+          "kind": "TLS",
+          "field": 0,
+          "headline": -200,
+          "post": -208
+        },
+        {
+          "index": 3846,
+          "kind": "TLS",
+          "field": 8,
+          "headline": -192,
+          "post": -200
+        },
+        {
+          "index": 3847,
+          "kind": "TLS",
+          "field": 0,
+          "headline": -200,
+          "post": -208
+        },
+        {
+          "index": 4091,
+          "kind": "TLS",
+          "field": -56,
+          "headline": -256,
+          "post": -264
+        },
+        {
+          "index": 4092,
+          "kind": "TLS",
+          "field": 0,
+          "headline": -200,
+          "post": -208
+        }
+      ],
+      "changed_opcode_rejected": true
+    },
+    "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": {
+      "changes": [
+        {
+          "index": 694,
+          "kind": "TLS",
+          "field": -56,
+          "headline": -512,
+          "post": -528
+        },
+        {
+          "index": 698,
+          "kind": "TLS",
+          "field": 0,
+          "headline": -456,
+          "post": -472
+        },
+        {
+          "index": 700,
+          "kind": "TLS",
+          "field": -56,
+          "headline": -512,
+          "post": -528
+        },
+        {
+          "index": 702,
+          "kind": "TLS",
+          "field": 8,
+          "headline": -448,
+          "post": -464
+        },
+        {
+          "index": 704,
+          "kind": "TLS",
+          "field": 0,
+          "headline": -456,
+          "post": -472
+        },
+        {
+          "index": 1329,
+          "kind": "TLS",
+          "field": -56,
+          "headline": -512,
+          "post": -528
+        },
+        {
+          "index": 1330,
+          "kind": "TLS",
+          "field": 0,
+          "headline": -456,
+          "post": -472
+        },
+        {
+          "index": 3897,
+          "kind": "TLS",
+          "field": -56,
+          "headline": -512,
+          "post": -528
+        },
+        {
+          "index": 3898,
+          "kind": "TLS",
+          "field": 0,
+          "headline": -456,
+          "post": -472
+        },
+        {
+          "index": 4039,
+          "kind": "readonly",
+          "headline": {
+            "target": "0x81e408",
+            "size": 8,
+            "bytes": "ffffffff00000000"
+          },
+          "post": {
+            "target": "0x8456d8",
+            "size": 8,
+            "bytes": "ffffffff00000000"
+          }
+        },
+        {
+          "index": 4101,
+          "kind": "TLS",
+          "field": -56,
+          "headline": -512,
+          "post": -528
+        },
+        {
+          "index": 4103,
+          "kind": "TLS",
+          "field": 0,
+          "headline": -456,
+          "post": -472
+        },
+        {
+          "index": 4104,
+          "kind": "TLS",
+          "field": 8,
+          "headline": -448,
+          "post": -464
+        },
+        {
+          "index": 4105,
+          "kind": "TLS",
+          "field": 0,
+          "headline": -456,
+          "post": -472
+        },
+        {
+          "index": 4450,
+          "kind": "TLS",
+          "field": -56,
+          "headline": -512,
+          "post": -528
+        },
+        {
+          "index": 4451,
+          "kind": "TLS",
+          "field": 0,
+          "headline": -456,
+          "post": -472
+        }
+      ],
+      "changed_opcode_rejected": true
+    },
+    "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)": {
+      "changes": [
+        {
+          "index": 258,
+          "kind": "readonly",
+          "headline": {
+            "target": "0x827570",
+            "size": 4,
+            "bytes": "00040605"
+          },
+          "post": {
+            "target": "0x84ef70",
+            "size": 4,
+            "bytes": "00040605"
+          }
+        },
+        {
+          "index": 1057,
+          "kind": "readonly",
+          "headline": {
+            "target": "0x81e470",
+            "size": 8,
+            "bytes": "0200000001000000"
+          },
+          "post": {
+            "target": "0x8457a8",
+            "size": 8,
+            "bytes": "0200000001000000"
+          }
+        },
+        {
+          "index": 1244,
+          "kind": "readonly",
+          "headline": {
+            "target": "0x81e478",
+            "size": 8,
+            "bytes": "0100000002000000"
+          },
+          "post": {
+            "target": "0x8457b0",
+            "size": 8,
+            "bytes": "0100000002000000"
+          }
+        },
+        {
+          "index": 2204,
+          "kind": "readonly",
+          "headline": {
+            "target": "0x827570",
+            "size": 4,
+            "bytes": "00040605"
+          },
+          "post": {
+            "target": "0x84ef70",
+            "size": 4,
+            "bytes": "00040605"
+          }
+        },
+        {
+          "index": 2628,
+          "kind": "readonly",
+          "headline": {
+            "target": "0x81e478",
+            "size": 8,
+            "bytes": "0100000002000000"
+          },
+          "post": {
+            "target": "0x8457b0",
+            "size": 8,
+            "bytes": "0100000002000000"
+          }
+        }
+      ],
+      "changed_opcode_rejected": true
+    },
+    "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)": {
+      "changes": [
+        {
+          "index": 300,
+          "kind": "readonly",
+          "headline": {
+            "target": "0x827570",
+            "size": 4,
+            "bytes": "00040605"
+          },
+          "post": {
+            "target": "0x84ef70",
+            "size": 4,
+            "bytes": "00040605"
+          }
+        },
+        {
+          "index": 1134,
+          "kind": "readonly",
+          "headline": {
+            "target": "0x81e470",
+            "size": 8,
+            "bytes": "0200000001000000"
+          },
+          "post": {
+            "target": "0x8457a8",
+            "size": 8,
+            "bytes": "0200000001000000"
+          }
+        },
+        {
+          "index": 1298,
+          "kind": "readonly",
+          "headline": {
+            "target": "0x81e478",
+            "size": 8,
+            "bytes": "0100000002000000"
+          },
+          "post": {
+            "target": "0x8457b0",
+            "size": 8,
+            "bytes": "0100000002000000"
+          }
+        },
+        {
+          "index": 2439,
+          "kind": "readonly",
+          "headline": {
+            "target": "0x827570",
+            "size": 4,
+            "bytes": "00040605"
+          },
+          "post": {
+            "target": "0x84ef70",
+            "size": 4,
+            "bytes": "00040605"
+          }
+        },
+        {
+          "index": 2847,
+          "kind": "readonly",
+          "headline": {
+            "target": "0x81e478",
+            "size": 8,
+            "bytes": "0100000002000000"
+          },
+          "post": {
+            "target": "0x8457b0",
+            "size": 8,
+            "bytes": "0100000002000000"
+          }
+        }
+      ],
+      "changed_opcode_rejected": true
+    },
+    "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)": {
+      "changes": [
+        {
+          "index": 260,
+          "kind": "readonly",
+          "headline": {
+            "target": "0x81f6b0",
+            "size": 4,
+            "bytes": "00040605"
+          },
+          "post": {
+            "target": "0x847030",
+            "size": 4,
+            "bytes": "00040605"
+          }
+        },
+        {
+          "index": 1061,
+          "kind": "readonly",
+          "headline": {
+            "target": "0x81e470",
+            "size": 8,
+            "bytes": "0200000001000000"
+          },
+          "post": {
+            "target": "0x8457a8",
+            "size": 8,
+            "bytes": "0200000001000000"
+          }
+        },
+        {
+          "index": 1246,
+          "kind": "readonly",
+          "headline": {
+            "target": "0x81e478",
+            "size": 8,
+            "bytes": "0100000002000000"
+          },
+          "post": {
+            "target": "0x8457b0",
+            "size": 8,
+            "bytes": "0100000002000000"
+          }
+        },
+        {
+          "index": 2214,
+          "kind": "readonly",
+          "headline": {
+            "target": "0x81f6b0",
+            "size": 4,
+            "bytes": "00040605"
+          },
+          "post": {
+            "target": "0x847030",
+            "size": 4,
+            "bytes": "00040605"
+          }
+        },
+        {
+          "index": 2595,
+          "kind": "readonly",
+          "headline": {
+            "target": "0x81e478",
+            "size": 8,
+            "bytes": "0100000002000000"
+          },
+          "post": {
+            "target": "0x8457b0",
+            "size": 8,
+            "bytes": "0100000002000000"
+          }
+        }
+      ],
+      "changed_opcode_rejected": true
+    },
+    "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)": {
+      "changes": [
+        {
+          "index": 306,
+          "kind": "readonly",
+          "headline": {
+            "target": "0x81f6b0",
+            "size": 4,
+            "bytes": "00040605"
+          },
+          "post": {
+            "target": "0x847030",
+            "size": 4,
+            "bytes": "00040605"
+          }
+        },
+        {
+          "index": 1151,
+          "kind": "readonly",
+          "headline": {
+            "target": "0x81e470",
+            "size": 8,
+            "bytes": "0200000001000000"
+          },
+          "post": {
+            "target": "0x8457a8",
+            "size": 8,
+            "bytes": "0200000001000000"
+          }
+        },
+        {
+          "index": 1396,
+          "kind": "readonly",
+          "headline": {
+            "target": "0x81e478",
+            "size": 8,
+            "bytes": "0100000002000000"
+          },
+          "post": {
+            "target": "0x8457b0",
+            "size": 8,
+            "bytes": "0100000002000000"
+          }
+        },
+        {
+          "index": 2459,
+          "kind": "readonly",
+          "headline": {
+            "target": "0x81f6b0",
+            "size": 4,
+            "bytes": "00040605"
+          },
+          "post": {
+            "target": "0x847030",
+            "size": 4,
+            "bytes": "00040605"
+          }
+        },
+        {
+          "index": 2886,
+          "kind": "readonly",
+          "headline": {
+            "target": "0x81e478",
+            "size": 8,
+            "bytes": "0100000002000000"
+          },
+          "post": {
+            "target": "0x8457b0",
+            "size": 8,
+            "bytes": "0100000002000000"
+          }
+        }
+      ],
+      "changed_opcode_rejected": true
+    }
+  },
+  "scope": "Supplemental operand proof only; the strict identity inventory remains unchanged."
+}

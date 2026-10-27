@@ -1,0 +1,12 @@
+== KIND=xadd-one-key
+2s n=1000: queue 0.003s exec 0.203s (1000 ids); n=2000: queue 0.006s exec 0.821s (2000 ids); n=4000: queue 0.012s exec 3.388s (4000 ids)
+1s n=1000: queue 0.003s exec 0.203s (1000 ids); n=2000: queue 0.006s exec 0.831s (2000 ids); n=4000: queue 0.012s exec 3.391s (4000 ids)
+redis n=1000: queue 0.003s exec 0.002s (1000 ids); n=2000: queue 0.006s exec 0.006s (2000 ids); n=4000: queue 0.012s exec 0.013s (4000 ids)
+== KIND=rpush-one-key
+2s n=1000: queue 0.003s exec 0.054s (1000 ids); n=2000: queue 0.005s exec 0.218s (2000 ids); n=4000: queue 0.011s exec 0.963s (4000 ids)
+1s n=1000: queue 0.003s exec 0.054s (1000 ids); n=2000: queue 0.005s exec 0.218s (2000 ids); n=4000: queue 0.011s exec 0.970s (4000 ids)
+redis n=1000: queue 0.003s exec 0.001s (1000 ids); n=2000: queue 0.005s exec 0.002s (2000 ids); n=4000: queue 0.011s exec 0.005s (4000 ids)
+== KIND=set-distinct-keys
+2s n=1000: queue 0.003s exec 0.002s (1000 ids); n=2000: queue 0.005s exec 0.005s (2000 ids); n=4000: queue 0.011s exec 0.011s (4000 ids)
+1s n=1000: queue 0.003s exec 0.002s (1000 ids); n=2000: queue 0.005s exec 0.004s (2000 ids); n=4000: queue 0.011s exec 0.009s (4000 ids)
+redis n=1000: queue 0.003s exec 0.001s (1000 ids); n=2000: queue 0.005s exec 0.002s (2000 ids); n=4000: queue 0.011s exec 0.006s (4000 ids)

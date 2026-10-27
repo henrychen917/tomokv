@@ -1,0 +1,75 @@
+tomo_db0::FlipController::decide_placement(tomo_db0::Server&, unsigned int, unsigned long, double)
+--- headline
+
++++ post
+
+@@ -641,7 +641,7 @@
+
+ CLONE 0 0d5b [ 4] vdivsd %xmm0,%xmm12,%xmm0
+ CLONE 0 0d5f [10] vcvtusi2sdl 0x4d0(%rbx),%xmm5,%xmm1
+ CLONE 0 0d69 [ 4] vmulsd %xmm0,%xmm8,%xmm8
+-CLONE 0 0d6d [ 8] vaddsd <rip>(%rip),%xmm1,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x898>
++CLONE 0 0d6d [ 8] vaddsd <rip>(%rip),%xmm1,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x2e0>
+ CLONE 0 0d75 [10] vcvtusi2sdl 0x4d4(%rbx),%xmm5,%xmm0
+ CLONE 0 0d7f [ 8] vmovsd 0x4e8(%rbx),%xmm6
+ CLONE 0 0d87 [ 4] vaddsd %xmm4,%xmm0,%xmm0
+@@ -761,7 +761,7 @@
+
+ CLONE 0 0fd0 [ 8] vmovsd 0x4c8(%rbx),%xmm0
+ CLONE 0 0fd8 [ 4] vdivsd %xmm1,%xmm0,%xmm0
+ CLONE 0 0fdc [ 4] vxorpd %xmm1,%xmm1,%xmm1
+-CLONE 0 0fe0 [ 8] vaddsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6d8>
++CLONE 0 0fe0 [ 8] vaddsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x110>
+ CLONE 0 0fe8 [ 4] vaddsd %xmm1,%xmm0,%xmm11
+ CLONE 0 0fec [ 5] jmp <+0xcc3>
+ CLONE 0 0ff1 [ 6] mov -0xd8(%rbp),%eax
+@@ -879,7 +879,7 @@
+
+ CLONE 0 1240 [10] vcvtusi2sdl 0x4d4(%rbx),%xmm5,%xmm0
+ CLONE 0 124a [10] vcvtusi2sdl 0x4d0(%rbx),%xmm5,%xmm1
+ CLONE 0 1254 [ 4] vaddsd %xmm4,%xmm0,%xmm0
+-CLONE 0 1258 [ 8] vaddsd <rip>(%rip),%xmm1,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x898>
++CLONE 0 1258 [ 8] vaddsd <rip>(%rip),%xmm1,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x2e0>
+ CLONE 0 1260 [ 8] vmovsd 0x4e8(%rbx),%xmm6
+ CLONE 0 1268 [ 4] vdivsd %xmm1,%xmm0,%xmm1
+ CLONE 0 126c [ 8] vmovd 0x3b8(%rbx),%xmm3
+@@ -959,7 +959,7 @@
+
+ CLONE 0 13e5 [ 6] vcvtusi2sd %rsi,%xmm5,%xmm1
+ CLONE 0 13eb [ 8] vmovsd 0x4c8(%rbx),%xmm0
+ CLONE 0 13f3 [ 4] vdivsd %xmm1,%xmm0,%xmm0
+-CLONE 0 13f7 [ 8] vaddsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6d8>
++CLONE 0 13f7 [ 8] vaddsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x110>
+ CLONE 0 13ff [ 2] dec %eax
+ CLONE 0 1401 [ 6] vcvtusi2sd %eax,%xmm5,%xmm1
+ CLONE 0 1407 [ 4] vaddsd %xmm0,%xmm1,%xmm11
+@@ -1012,7 +1012,7 @@
+
+ CLONE 0 14fc [ 3] mov %r13,%rsi
+ CLONE 0 14ff [ 3] sub %rax,%rsi
+ CLONE 0 1502 [ 6] vcvtusi2sd %rsi,%xmm5,%xmm9
+-CLONE 0 1508 [ 8] vdivsd <rip>(%rip),%xmm9,%xmm9 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6b8>
++CLONE 0 1508 [ 8] vdivsd <rip>(%rip),%xmm9,%xmm9 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xf0>
+ CLONE 0 1510 [ 5] jmp <+0xcdd>
+ CLONE 0 1515 [ 8] vmovsd <rip>(%rip),%xmm2 # <literal-load-000000000000f07f>
+ CLONE 0 151d [ 5] jmp <+0x12b1>
+@@ -1121,7 +1121,7 @@
+
+ CLONE 0 171f [ 6] vcvtusi2sd %rsi,%xmm5,%xmm1
+ CLONE 0 1725 [ 8] vmovsd 0x4c8(%rbx),%xmm0
+ CLONE 0 172d [ 4] vdivsd %xmm1,%xmm0,%xmm0
+-CLONE 0 1731 [ 8] vaddsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6d8>
++CLONE 0 1731 [ 8] vaddsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x110>
+ CLONE 0 1739 [ 4] vaddsd %xmm6,%xmm0,%xmm11
+ CLONE 0 173d [ 5] jmp <+0xcc3>
+ CLONE 0 1742 [ 2] test %eax,%eax
+@@ -1241,7 +1241,7 @@
+
+ CLONE 0 1973 [ 6] vcvtusi2sd %rsi,%xmm5,%xmm1
+ CLONE 0 1979 [ 8] vmovsd 0x4c8(%rbx),%xmm0
+ CLONE 0 1981 [ 4] vdivsd %xmm1,%xmm0,%xmm0
+-CLONE 0 1985 [ 8] vaddsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6d8>
++CLONE 0 1985 [ 8] vaddsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x110>
+ CLONE 0 198d [ 2] test %eax,%eax
+ CLONE 0 198f [ 6] jne <+0x13ff>
+ CLONE 0 1995 [ 4] vxorpd %xmm1,%xmm1,%xmm1

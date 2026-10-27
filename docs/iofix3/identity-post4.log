@@ -1,0 +1,9 @@
+{
+  "pre_sha256": "661117595196c46fc72d9c613b10d60b96336b6fe1cc65c56b7d32477cb42193",
+  "post_sha256": "09a015c68f19291db9ba70eb4023232676373fee5e085ae752336a7e6583b890",
+  "normalizer": "tests/reorder_noop.py Binary(literal_pools=True), unchanged",
+  "linked_groups": 9427,
+  "changed": 131,
+  "hot_compared": 142,
+  "hot_changed": []
+}

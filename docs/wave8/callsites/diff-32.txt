@@ -1,0 +1,15 @@
+b_pack
+--- lualibs
+
++++ post
+
+@@ -21,7 +21,7 @@
+
+ CLONE 0 0054 [ 3] mov %r15,%rdi
+ CLONE 0 0057 [ 3] mov %rax,%rbx
+ CLONE 0 005a [ 5] mov %rax,0x38(%rsp)
+-CLONE 0 005f [ 7] mov <rip>(%rip),%rax # <tomo_db0::kNoThread+0x614>
++CLONE 0 005f [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8>
+ CLONE 0 0066 [ 5] mov %rax,0x40(%rsp)
+ CLONE 0 006b [ 5] call <lua_pushnil>
+ CLONE 0 0070 [ 5] lea 0x50(%rsp),%rax

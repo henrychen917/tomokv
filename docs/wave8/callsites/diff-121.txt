@@ -1,0 +1,30 @@
+std::_Rb_tree<tomo::Op const*, std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > >, std::_Select1st<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > >, std::less<tomo::Op const*>, std::allocator<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > > >::_M_erase_aux(std::_Rb_tree_const_iterator<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > >)
+--- headline
+
++++ post
+
+@@ -0,0 +1,23 @@
+
++CLONE 0 0000 [ 4] endbr64
++CLONE 0 0004 [ 1] push %rbp
++CLONE 0 0005 [ 1] push %rbx
++CLONE 0 0006 [ 3] mov %rdi,%rbx
++CLONE 0 0009 [ 3] mov %rsi,%rdi
++CLONE 0 000c [ 4] sub $0x8,%rsp
++CLONE 0 0010 [ 4] lea 0x8(%rbx),%rsi
++CLONE 0 0014 [ 5] call <_ZSt28_Rb_tree_rebalance_for_erasePSt18_Rb_tree_node_baseRS_@plt>
++CLONE 0 0019 [ 4] mov 0x28(%rax),%rdi
++CLONE 0 001d [ 3] mov %rax,%rbp
++CLONE 0 0020 [ 3] test %rdi,%rdi
++CLONE 0 0023 [ 2] je <+0x31>
++CLONE 0 0025 [ 4] mov 0x38(%rax),%rsi
++CLONE 0 0029 [ 3] sub %rdi,%rsi
++CLONE 0 002c [ 5] call <_ZdlPvm@plt>
++CLONE 0 0031 [ 3] mov %rbp,%rdi
++CLONE 0 0034 [ 5] mov $0x40,%esi
++CLONE 0 0039 [ 5] call <_ZdlPvm@plt>
++CLONE 0 003e [ 4] decq 0x28(%rbx)
++CLONE 0 0042 [ 4] add $0x8,%rsp
++CLONE 0 0046 [ 1] pop %rbx
++CLONE 0 0047 [ 1] pop %rbp
++CLONE 0 0048 [ 1] ret

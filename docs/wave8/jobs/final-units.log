@@ -1,0 +1,217 @@
+GATE(full): 32 physical cores; 1 correctness slots = min(8/8 server, 24/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 24 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-wave8/build/gate-run.t6X36d
+PARTIAL jobs (including prerequisites): release core_tsan_build waits_tsan_build production_units blockfix_structure blockfix_registry blockfix_mkstream netio-1s netio-2s reorder_sync reorder_engagement atomfix5_watch core_units exbatch_units wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units wait_units moverfix compat3 datafix2_watch rlfix3_info scriptfix serverfix_waitaof serverfix_slowlog
+PARTIAL jobs (including prerequisites): release core_tsan_build waits_tsan_build production_units blockfix_structure blockfix_registry blockfix_mkstream netio-1s netio-2s reorder_sync reorder_engagement atomfix5_watch core_units exbatch_units wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units wait_units moverfix compat3 datafix2_watch rlfix3_info scriptfix serverfix_waitaof serverfix_slowlog
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=45.7s; correctness-plan-fallback; blockfix CC4.19 XINFO structural counts vs Redis 7.4
+  blockfix CC4.19 XINFO structural counts vs Redis 7.4 ok
+  row budget: 900s; median=37.88s; correctness-plan-fallback; blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4
+  blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4 ok
+  row budget: 900s; median=46.12s; correctness-plan-fallback; blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4
+  blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4  ok
+  row budget: 900s; median=2.95s; correctness-plan-fallback; epoll directed correctness (1s)
+  epoll directed correctness (1s)                      ok
+  row budget: 900s; median=2.94s; correctness-plan-fallback; epoll directed correctness (2s)
+  epoll directed correctness (2s)                      ok
+  row budget: 900s; median=0.95s; correctness-plan-fallback; R7 generated envelope parity
+  R7 generated envelope parity                         ok
+  row budget: 900s; median=14.57s; correctness-plan-fallback; R7 production engagement (both database runtimes)
+  R7 production engagement (both database runtimes)    ok
+  row budget: 900s; median=2.09s; correctness-plan-fallback; atomfix5 WATCH key count (both modes, both engines, atomic 0/1)
+  atomfix5 WATCH key count (both modes, both engines, atomic 0/1) ok
+  row budget: 900s; median=-s; correctness-plan-fallback; core concurrency watch
+  core concurrency watch                               ok
+  row budget: 900s; median=-s; correctness-plan-fallback; core concurrency lifetime
+  core concurrency lifetime                            ok
+  row budget: 900s; median=-s; correctness-plan-fallback; core concurrency drain
+  core concurrency drain                               ok
+  row budget: 900s; median=-s; correctness-plan-fallback; core concurrency route
+  core concurrency route                               ok
+  row budget: 900s; median=-s; correctness-plan-fallback; core concurrency snapshot
+  core concurrency snapshot                            ok
+  row budget: 900s; median=-s; correctness-plan-fallback; core concurrency config
+  core concurrency config                              ok
+  row budget: 900s; median=-s; correctness-plan-fallback; core concurrency notify
+  core concurrency notify                              ok
+  row budget: 900s; median=0.87s; correctness-plan-fallback; read-local topology demotion (1s)
+  read-local topology demotion (1s)                    ok
+  row budget: 900s; median=0.62s; correctness-plan-fallback; read-local topology demotion (2s)
+  read-local topology demotion (2s)                    ok
+  row budget: 900s; median=16.1s; correctness-plan-fallback; exbatch publication unit + negative controls
+  exbatch publication unit + negative controls         ok
+  row budget: 900s; median=-s; correctness-plan-fallback; exbatch watch unit + negative controls
+  exbatch watch unit + negative controls               FAIL (see /home/user/Projects/cx-wave8/build/gate-run.t6X36d/jobs/exbatch_units/exbatch-watch.log)
+  row budget: 900s; median=17.6s; correctness-plan-fallback; exbatch metadata unit + negative controls
+  exbatch metadata unit + negative controls            ok
+  row budget: 900s; median=0.27s; correctness-plan-fallback; writeback c12 policy witnesses + negative controls
+  writeback c12 policy witnesses + negative controls   ok
+  row budget: 900s; median=6.41s; correctness-plan-fallback; writeback c12 phase witnesses + negative controls
+  writeback c12 phase witnesses + negative controls    ok
+  row budget: 900s; median=2.49s; correctness-plan-fallback; writeback c12 stages witnesses + negative controls
+  writeback c12 stages witnesses + negative controls   ok
+  row budget: 900s; median=7.17s; correctness-plan-fallback; writeback c12 split-phase witnesses + negative controls
+  writeback c12 split-phase witnesses + negative controls ok
+  row budget: 900s; median=6.3s; correctness-plan-fallback; writeback policy clauses witnesses + negative controls
+  writeback policy clauses witnesses + negative controls ok
+  row budget: 900s; median=1.99s; correctness-plan-fallback; writeback policy paths witnesses + negative controls
+  writeback policy paths witnesses + negative controls ok
+  row budget: 900s; median=0.93s; correctness-plan-fallback; splitlocal template forwarding + old-argument controls
+  splitlocal template forwarding + old-argument controls ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; atomic commit publication catches up at quiescence
+  atomic commit publication catches up at quiescence   ok
+  row budget: 900s; median=2.33s; correctness-plan-fallback; flushfix flush witnesses
+  flushfix flush witnesses                             ok
+  row budget: 900s; median=0.4s; correctness-plan-fallback; flushfix headers witnesses
+  flushfix headers witnesses                           ok
+  row budget: 900s; median=4.85s; correctness-plan-fallback; multidb serverless owners
+  multidb serverless owners                            ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; multidb global namespace boundary
+  multidb global namespace boundary                    ok
+  row budget: 900s; median=12.43s; correctness-plan-fallback; storesize published monitoring
+  storesize published monitoring                       ok
+  row budget: 900s; median=0.22s; correctness-plan-fallback; MULTI admin command replies
+  MULTI admin command replies                          ok
+  row budget: 900s; median=0.09s; correctness-plan-fallback; EXECABORT releases WATCH reservation
+  EXECABORT releases WATCH reservation                 ok
+  row budget: 900s; median=0s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); atomic survivors unit build
+  atomic survivors unit build                          ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic survivor: admission
+  atomic survivor: admission                           ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: closure
+  atomic survivor: closure                             ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: script_keys
+  atomic survivor: script_keys                         ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: rename_overlay
+  atomic survivor: rename_overlay                      ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: write_latest
+  atomic survivor: write_latest                        ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: script_apply
+  atomic survivor: script_apply                        ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: post_apply_probe
+  atomic survivor: post_apply_probe                    ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: lua_conversion
+  atomic survivor: lua_conversion                      ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: watch_parent
+  atomic survivor: watch_parent                        ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: watch_cycle
+  atomic survivor: watch_cycle                         ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: mset_arity
+  atomic survivor: mset_arity                          ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: watch_oom
+  atomic survivor: watch_oom                           ok
+  row budget: 900s; median=0s; correctness-plan-fallback; atomic survivor: lua_lines
+  atomic survivor: lua_lines                           ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: library_limit
+  atomic survivor: library_limit                       ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic survivor: stage_flag
+  atomic survivor: stage_flag                          ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: instruction_limit
+  atomic survivor: instruction_limit                   ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; armed resize retirement: atomic-growth
+  armed resize retirement: atomic-growth               ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; armed resize retirement: flush-prepared
+  armed resize retirement: flush-prepared              ok
+  row budget: 900s; median=0s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); netcmd regression build
+  netcmd regression build                              ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; netcmd streams regression
+  netcmd streams regression                            ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd zpop regression
+  netcmd zpop regression                               ok
+  row budget: 900s; median=0s; correctness-plan-fallback; netcmd notify-oom regression
+  netcmd notify-oom regression                         ok
+  row budget: 900s; median=0s; correctness-plan-fallback; netcmd notify-retry regression
+  netcmd notify-retry regression                       ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd flush regression
+  netcmd flush regression                              ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd output regression
+  netcmd output regression                             ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd pubsub regression
+  netcmd pubsub regression                             ok
+  row budget: 900s; median=0s; correctness-plan-fallback; netcmd receive regression
+  netcmd receive regression                            ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; netcmd config regression
+  netcmd config regression                             ok
+  row budget: 900s; median=0s; correctness-plan-fallback; netcmd wb-small-pipe regression
+  netcmd wb-small-pipe regression                      ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd wb-complete-visits regression
+  netcmd wb-complete-visits regression                 ok
+  row budget: 900s; median=0s; correctness-plan-fallback; netcmd hexpire-oom regression
+  netcmd hexpire-oom regression                        ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; encodingfix knob
+  encodingfix knob                                     ok
+  row budget: 900s; median=0s; correctness-plan-fallback; encodingfix precedence
+  encodingfix precedence                               ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; NET1 serverless bounds + scan + reclamation
+  NET1 serverless bounds + scan + reclamation          ok
+  row budget: 900s; median=0.11s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); waits config publication + admission unit
+  waits config publication + admission unit            ok
+  row budget: 900s; median=1.01s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); reads never wait for retirement quiescence
+  reads never wait for retirement quiescence           ok
+  row budget: 900s; median=2.73s; correctness-plan-fallback; moverfix conservation (1s, uring, databases 1, atomic 0)
+  moverfix conservation (1s, uring, databases 1, atomic 0) ok
+  row budget: 900s; median=2.69s; correctness-plan-fallback; moverfix conservation (1s, uring, databases 16, atomic 0)
+  moverfix conservation (1s, uring, databases 16, atomic 0) ok
+  row budget: 900s; median=2.7s; correctness-plan-fallback; moverfix conservation (1s, epoll, databases 1, atomic 0)
+  moverfix conservation (1s, epoll, databases 1, atomic 0) ok
+  row budget: 900s; median=2.91s; correctness-plan-fallback; moverfix conservation (1s, epoll, databases 16, atomic 0)
+  moverfix conservation (1s, epoll, databases 16, atomic 0) ok
+  row budget: 900s; median=2.91s; correctness-plan-fallback; moverfix conservation (2s, uring, databases 1, atomic 0)
+  moverfix conservation (2s, uring, databases 1, atomic 0) ok
+  row budget: 900s; median=2.79s; correctness-plan-fallback; moverfix conservation (2s, uring, databases 16, atomic 0)
+  moverfix conservation (2s, uring, databases 16, atomic 0) ok
+  row budget: 900s; median=2.9s; correctness-plan-fallback; moverfix conservation (2s, epoll, databases 1, atomic 0)
+  moverfix conservation (2s, epoll, databases 1, atomic 0) ok
+  row budget: 900s; median=2.88s; correctness-plan-fallback; moverfix conservation (2s, epoll, databases 16, atomic 0)
+  moverfix conservation (2s, epoll, databases 16, atomic 0) ok
+  row budget: 900s; median=32.81s; correctness-plan-fallback; compat3 CC4.12 pubsub vs Redis 7.4
+  compat3 CC4.12 pubsub vs Redis 7.4                   ok
+  row budget: 900s; median=33.01s; correctness-plan-fallback; compat3 CC4.13 pending vs Redis 7.4
+  compat3 CC4.13 pending vs Redis 7.4                  ok
+  row budget: 900s; median=33.25s; correctness-plan-fallback; compat3 CC4.14 history vs Redis 7.4
+  compat3 CC4.14 history vs Redis 7.4                  ok
+  row budget: 900s; median=32.65s; correctness-plan-fallback; compat3 CC4.16 grammar vs Redis 7.4
+  compat3 CC4.16 grammar vs Redis 7.4                  ok
+  row budget: 900s; median=32.8s; correctness-plan-fallback; compat3 CC4.5 glob vs Redis 7.4
+  compat3 CC4.5 glob vs Redis 7.4                      ok
+  row budget: 900s; median=33.08s; correctness-plan-fallback; compat3 CC4.17 flags vs Redis 7.4
+  compat3 CC4.17 flags vs Redis 7.4                    ok
+  row budget: 900s; median=111.64s; correctness-plan-fallback; datafix2 CD4.9 write WATCH table vs Redis 7.4
+  datafix2 CD4.9 write WATCH table vs Redis 7.4        ok
+  row budget: 900s; median=0.77s; correctness-plan-fallback; INFO selective collection (1s, epoll, read-local 0)
+  INFO selective collection (1s, epoll, read-local 0)  ok
+  row budget: 900s; median=0.77s; correctness-plan-fallback; INFO selective collection (1s, epoll, read-local 1)
+  INFO selective collection (1s, epoll, read-local 1)  ok
+  row budget: 900s; median=0.76s; correctness-plan-fallback; INFO selective collection (1s, uring, read-local 0)
+  INFO selective collection (1s, uring, read-local 0)  ok
+  row budget: 900s; median=0.78s; correctness-plan-fallback; INFO selective collection (1s, uring, read-local 1)
+  INFO selective collection (1s, uring, read-local 1)  ok
+  row budget: 900s; median=0.78s; correctness-plan-fallback; INFO selective collection (2s, epoll, read-local 0)
+  INFO selective collection (2s, epoll, read-local 0)  ok
+  row budget: 900s; median=0.78s; correctness-plan-fallback; INFO selective collection (2s, epoll, read-local 1)
+  INFO selective collection (2s, epoll, read-local 1)  ok
+  row budget: 900s; median=0.77s; correctness-plan-fallback; INFO selective collection (2s, uring, read-local 0)
+  INFO selective collection (2s, uring, read-local 0)  ok
+  row budget: 900s; median=0.78s; correctness-plan-fallback; INFO selective collection (2s, uring, read-local 1)
+  INFO selective collection (2s, uring, read-local 1)  ok
+  row budget: 900s; median=0.11s; correctness-plan-fallback; scriptfix sandbox (1s)
+  scriptfix sandbox (1s)                               ok
+  row budget: 900s; median=0.11s; correctness-plan-fallback; scriptfix functions (1s)
+  scriptfix functions (1s)                             ok
+  row budget: 900s; median=0.7s; correctness-plan-fallback; scriptfix replies (1s)
+  scriptfix replies (1s)                               ok
+  row budget: 900s; median=0.92s; correctness-plan-fallback; scriptfix dump (1s)
+  scriptfix dump (1s)                                  ok
+  row budget: 900s; median=0.12s; correctness-plan-fallback; scriptfix sandbox (2s)
+  scriptfix sandbox (2s)                               ok
+  row budget: 900s; median=0.12s; correctness-plan-fallback; scriptfix functions (2s)
+  scriptfix functions (2s)                             ok
+  row budget: 900s; median=0.7s; correctness-plan-fallback; scriptfix replies (2s)
+  scriptfix replies (2s)                               ok
+  row budget: 900s; median=0.92s; correctness-plan-fallback; scriptfix dump (2s)
+  scriptfix dump (2s)                                  ok
+  row budget: 900s; median=6.89s; correctness-plan-fallback; serverfix SV4.5 WAITAOF wait lifecycle
+  serverfix SV4.5 WAITAOF wait lifecycle               ok
+  row budget: 900s; median=13.19s; correctness-plan-fallback; serverfix SV4.14 disabled slowlog allocation
+  serverfix SV4.14 disabled slowlog allocation         ok
+GATE(PARTIAL): 105 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-units.tsv.partial

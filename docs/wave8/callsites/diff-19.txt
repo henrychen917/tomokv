@@ -1,0 +1,812 @@
+_GLOBAL__sub_I__ZN8tomo_db016debug_sleep_execERNS_6ServerERNS_5ShardERSt6atomicIxEj
+--- headline
+
++++ post
+
+@@ -6,17 +6,17 @@
+
+ CLONE 0 000b [ 7] lea <rip>(%rip),%rbx # <__dso_handle>
+ CLONE 0 0012 [ 4] and $0xffffffffffffffc0,%rsp
+ CLONE 0 0016 [ 7] cmpb $0x0,<rip>(%rip) # <guard variable for tomo_db0::atomic_tripwire_detail::state>
+-CLONE 0 001d [ 6] je <+0xc1c>
++CLONE 0 001d [ 6] je <+0xc32>
+ CLONE 0 0023 [ 7] cmpb $0x0,<rip>(%rip) # <guard variable for tomo_db0::SnapshotManager::database_map_>
+ CLONE 0 002a [ 6] jne <+0xe6>
+-CLONE 0 0030 [10] vmovdqa32 <rip>(%rip),%zmm3 # <tomo_db0::(anonymous namespace)::acl_hex_hash(std::array<unsigned long, 4ul> const&)::hex+0x600>
+-CLONE 0 003a [10] vmovdqa64 <rip>(%rip),%zmm4 # <tomo_db0::(anonymous namespace)::acl_hex_hash(std::array<unsigned long, 4ul> const&)::hex+0x640>
++CLONE 0 0030 [10] vmovdqa32 <rip>(%rip),%zmm3 # <tomo_db0::(anonymous namespace)::acl_hex_hash(std::array<unsigned long, 4ul> const&)::hex+0x5c0>
++CLONE 0 003a [10] vmovdqa64 <rip>(%rip),%zmm4 # <tomo_db0::(anonymous namespace)::acl_hex_hash(std::array<unsigned long, 4ul> const&)::hex+0x600>
+ CLONE 0 0044 [ 5] mov $0x40,%edx
+ CLONE 0 0049 [ 2] xor %eax,%eax
+ CLONE 0 004b [ 6] mov %eax,<rip>(%rip) # <tomo_db0::SnapshotManager::database_map_+0x100>
+ CLONE 0 0051 [ 7] lea <rip>(%rip),%rax # <tomo_db0::SnapshotManager::database_map_>
+ CLONE 0 0058 [ 7] movb $0x1,<rip>(%rip) # <guard variable for tomo_db0::SnapshotManager::database_map_>
+-CLONE 0 005f [10] vmovdqa64 <rip>(%rip),%zmm9 # <tomo_db0::(anonymous namespace)::acl_hex_hash(std::array<unsigned long, 4ul> const&)::hex+0x680>
++CLONE 0 005f [10] vmovdqa64 <rip>(%rip),%zmm9 # <tomo_db0::(anonymous namespace)::acl_hex_hash(std::array<unsigned long, 4ul> const&)::hex+0x640>
+ CLONE 0 0069 [ 7] lea 0x100(%rax),%rcx
+ CLONE 0 0070 [ 6] vpbroadcastd %edx,%zmm8
+ CLONE 0 0076 [ 5] mov $0x10,%edx
+@@ -41,393 +41,397 @@
+
+ CLONE 0 00e1 [ 2] jne <+0x97>
+ CLONE 0 00e3 [ 3] vzeroupper
+ CLONE 0 00e6 [ 7] cmpb $0x0,<rip>(%rip) # <guard variable for tomo_db0::Server::databases_>
+-CLONE 0 00ed [ 6] je <+0xc3e>
++CLONE 0 00ed [ 6] je <+0xc54>
+ CLONE 0 00f3 [ 3] mov %rbx,%rdx
+ CLONE 0 00f6 [ 7] lea <rip>(%rip),%rsi # <tomo_db0::(anonymous namespace)::g_config>
+ CLONE 0 00fd [ 7] lea <rip>(%rip),%rdi # <std::vector<tomo_db0::(anonymous namespace)::ConfigValue, std::allocator<tomo_db0::(anonymous namespace)::ConfigValue> >::~vector()>
+ CLONE 0 0104 [ 5] call <__cxa_atexit@plt>
+-CLONE 0 0109 [ 7] lea <rip>(%rip),%rdi # <tomo_db0::(anonymous namespace)::StatBaseline::~StatBaseline()>
+-CLONE 0 0110 [ 3] mov %rbx,%rdx
+-CLONE 0 0113 [ 7] lea <rip>(%rip),%rsi # <tomo_db0::(anonymous namespace)::g_stat_baseline>
++CLONE 0 0109 [ 3] mov %rbx,%rdx
++CLONE 0 010c [ 7] lea <rip>(%rip),%rsi # <tomo_db0::(anonymous namespace)::g_latency_percentiles>
++CLONE 0 0113 [ 7] lea <rip>(%rip),%rdi # <std::vector<double, std::allocator<double> >::~vector()>
+ CLONE 0 011a [ 5] call <__cxa_atexit@plt>
+-CLONE 0 011f [ 7] lea <rip>(%rip),%rax # <literal-string-50494e4700>
+-CLONE 0 0126 [ 7] mov <rip>(%rip),%rdi # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6b0>
+-CLONE 0 012d [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6f8>
+-CLONE 0 0134 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable>
+-CLONE 0 013b [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_ping(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 0142 [10] movl $0x8,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x10>
+-CLONE 0 014c [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x14>
+-CLONE 0 0153 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x18>
+-CLONE 0 015a [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x28>
+-CLONE 0 0161 [ 7] lea <rip>(%rip),%rax # <literal-string-41434c00>
+-CLONE 0 0168 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x20>
+-CLONE 0 0173 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x30>
+-CLONE 0 017a [ 7] lea <rip>(%rip),%rax # <tomo_db0::cmd_acl(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 0181 [10] movl $0x8,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x40>
+-CLONE 0 018b [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x44>
+-CLONE 0 0192 [ 7] cmp <rip>(%rip),%rax # <_GLOBAL_OFFSET_TABLE_+0xa88>
+-CLONE 0 0199 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x50>
+-CLONE 0 01a4 [ 7] mov %rdi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x8>
+-CLONE 0 01ab [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x38>
+-CLONE 0 01b2 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x48>
+-CLONE 0 01b9 [ 6] je <+0xc6b>
+-CLONE 0 01bf [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x58>
+-CLONE 0 01c6 [ 7] lea <rip>(%rip),%rax # <literal-string-5341564500>
+-CLONE 0 01cd [ 7] mov <rip>(%rip),%rdx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x610>
+-CLONE 0 01d4 [ 7] mov <rip>(%rip),%rsi # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x700>
+-CLONE 0 01db [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x60>
+-CLONE 0 01e2 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_save(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 01e9 [10] movl $0xc,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x70>
+-CLONE 0 01f3 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x74>
+-CLONE 0 01fa [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x78>
+-CLONE 0 0201 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x88>
+-CLONE 0 0208 [ 7] lea <rip>(%rip),%rax # <literal-string-42475341564500>
+-CLONE 0 020f [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x80>
+-CLONE 0 021a [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x90>
+-CLONE 0 0221 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_bgsave(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 0228 [10] movl $0xc,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xa0>
+-CLONE 0 0232 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xa4>
+-CLONE 0 0239 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xa8>
+-CLONE 0 0240 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xb8>
+-CLONE 0 0247 [ 7] lea <rip>(%rip),%rax # <literal-string-424752455752495445414f4600>
+-CLONE 0 024e [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xb0>
+-CLONE 0 0259 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xc0>
+-CLONE 0 0260 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_bgrewriteaof(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 0267 [ 7] mov %rdx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x68>
+-CLONE 0 026e [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x98>
+-CLONE 0 0275 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xd8>
+-CLONE 0 027c [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xe8>
+-CLONE 0 0283 [ 7] lea <rip>(%rip),%rax # <literal-string-4c4153545341564500>
+-CLONE 0 028a [ 7] mov %rdx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xc8>
+-CLONE 0 0291 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xf0>
+-CLONE 0 0298 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_lastsave(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 029f [ 7] mov %rdx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xf8>
+-CLONE 0 02a6 [10] movl $0xc,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xd0>
+-CLONE 0 02b0 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x108>
+-CLONE 0 02b7 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x118>
+-CLONE 0 02be [ 7] lea <rip>(%rip),%rax # <literal-string-4543484f00>
+-CLONE 0 02c5 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xd4>
+-CLONE 0 02cc [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x120>
+-CLONE 0 02d3 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_echo(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 02da [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xe0>
+-CLONE 0 02e5 [10] movl $0xc,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x100>
+-CLONE 0 02ef [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x104>
+-CLONE 0 02f6 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x110>
+-CLONE 0 0301 [ 7] mov <rip>(%rip),%r9 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x708>
+-CLONE 0 0308 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x138>
+-CLONE 0 030f [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x148>
+-CLONE 0 0316 [ 7] lea <rip>(%rip),%rax # <literal-string-4155544800>
+-CLONE 0 031d [ 7] lea <rip>(%rip),%r10 # <literal-string-554e53554253435249424500>
+-CLONE 0 0324 [ 7] lea <rip>(%rip),%r11 # <literal-string-5053554253435249424500>
+-CLONE 0 032b [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x150>
+-CLONE 0 0332 [ 7] mov <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::acl_hex_hash(std::array<unsigned long, 4ul> const&)::hex+0x608>
+-CLONE 0 0339 [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x188>
+-CLONE 0 0340 [ 7] mov %rdx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1b8>
+-CLONE 0 0347 [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1e8>
+-CLONE 0 034e [10] movl $0x8,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x130>
+-CLONE 0 0358 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x134>
+-CLONE 0 035f [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x140>
+-CLONE 0 036a [10] movl $0x8008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x160>
+-CLONE 0 0374 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x164>
+-CLONE 0 037b [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x170>
+-CLONE 0 0386 [10] movl $0x8008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x190>
+-CLONE 0 0390 [ 7] mov %r9,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x128>
+-CLONE 0 0397 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x194>
+-CLONE 0 039e [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1a0>
+-CLONE 0 03a9 [10] movl $0x88008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1c0>
+-CLONE 0 03b3 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1c4>
+-CLONE 0 03ba [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1d0>
+-CLONE 0 03c5 [10] movl $0x8008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1f0>
+-CLONE 0 03cf [ 7] lea <rip>(%rip),%r8 # <literal-string-53554e53554253435249424500>
+-CLONE 0 03d6 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x158>
+-CLONE 0 03dd [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_auth(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 03e4 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x168>
+-CLONE 0 03eb [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x178>
+-CLONE 0 03f2 [ 7] lea <rip>(%rip),%rax # <literal-string-48454c4c4f00>
+-CLONE 0 03f9 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x180>
+-CLONE 0 0400 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_hello(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 0407 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x198>
+-CLONE 0 040e [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1a8>
+-CLONE 0 0415 [ 7] lea <rip>(%rip),%rax # <literal-string-524553455400>
+-CLONE 0 041c [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1b0>
+-CLONE 0 0423 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_reset(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 042a [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1c8>
+-CLONE 0 0431 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1d8>
+-CLONE 0 0438 [ 7] lea <rip>(%rip),%rax # <literal-string-5155495400>
+-CLONE 0 043f [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1e0>
+-CLONE 0 0446 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_quit(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 044d [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1f4>
+-CLONE 0 0454 [ 7] mov %r10,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x240>
+-CLONE 0 045b [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1f8>
+-CLONE 0 0462 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x208>
+-CLONE 0 0469 [ 7] lea <rip>(%rip),%rax # <literal-string-53554253435249424500>
+-CLONE 0 0470 [ 7] lea <rip>(%rip),%r10 # <literal-string-50554e53554253435249424500>
+-CLONE 0 0477 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x210>
+-CLONE 0 047e [ 7] mov %r11,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x270>
+-CLONE 0 0485 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_pubsub_only(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 048c [ 7] lea <rip>(%rip),%r11 # <literal-string-5353554253435249424500>
+-CLONE 0 0493 [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x218>
+-CLONE 0 049a [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x228>
+-CLONE 0 04a1 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x238>
+-CLONE 0 04a8 [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x248>
+-CLONE 0 04af [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x258>
+-CLONE 0 04b6 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x268>
+-CLONE 0 04bd [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x278>
+-CLONE 0 04c4 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x288>
+-CLONE 0 04cb [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x298>
+-CLONE 0 04d2 [ 7] mov %r10,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2a0>
+-CLONE 0 04d9 [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2a8>
+-CLONE 0 04e0 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2b8>
+-CLONE 0 04e7 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2c8>
+-CLONE 0 04ee [ 7] mov %r11,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2d0>
+-CLONE 0 04f5 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x200>
+-CLONE 0 0500 [10] movl $0x1008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x220>
+-CLONE 0 050a [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x224>
+-CLONE 0 0511 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x230>
+-CLONE 0 051c [10] movl $0x1008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x250>
+-CLONE 0 0526 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x254>
+-CLONE 0 052d [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x260>
+-CLONE 0 0538 [10] movl $0x1008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x280>
+-CLONE 0 0542 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x284>
+-CLONE 0 0549 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x290>
+-CLONE 0 0554 [10] movl $0x1008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2b0>
+-CLONE 0 055e [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2b4>
+-CLONE 0 0565 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2c0>
+-CLONE 0 0570 [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2d8>
+-CLONE 0 0577 [ 7] mov %r8,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x300>
+-CLONE 0 057e [ 7] mov <rip>(%rip),%r8 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x710>
+-CLONE 0 0585 [ 7] lea <rip>(%rip),%r10 # <literal-string-5055424c49534800>
+-CLONE 0 058c [ 7] lea <rip>(%rip),%r11 # <literal-string-535055424c49534800>
+-CLONE 0 0593 [ 7] mov %r10,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x330>
+-CLONE 0 059a [ 7] lea <rip>(%rip),%r10 # <literal-string-50554253554200>
+-CLONE 0 05a1 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2e8>
+-CLONE 0 05a8 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2f8>
+-CLONE 0 05af [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x308>
+-CLONE 0 05b6 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x318>
+-CLONE 0 05bd [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x328>
+-CLONE 0 05c4 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x348>
+-CLONE 0 05cb [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x358>
+-CLONE 0 05d2 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x378>
+-CLONE 0 05d9 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x388>
+-CLONE 0 05e0 [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x398>
+-CLONE 0 05e7 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3a8>
+-CLONE 0 05ee [10] movl $0x1008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2e0>
+-CLONE 0 05f8 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2e4>
+-CLONE 0 05ff [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2f0>
+-CLONE 0 060a [10] movl $0x1008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x310>
+-CLONE 0 0614 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x314>
+-CLONE 0 061b [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x320>
+-CLONE 0 0626 [ 7] mov %r8,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x338>
+-CLONE 0 062d [10] movl $0x1008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x340>
+-CLONE 0 0637 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x344>
+-CLONE 0 063e [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x350>
+-CLONE 0 0649 [ 7] mov %r11,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x360>
+-CLONE 0 0650 [ 7] mov %r8,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x368>
+-CLONE 0 0657 [10] movl $0x1008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x370>
+-CLONE 0 0661 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x374>
+-CLONE 0 0668 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x380>
+-CLONE 0 0673 [ 7] mov %r10,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x390>
+-CLONE 0 067a [10] movl $0x100c,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3a0>
+-CLONE 0 0684 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3a4>
+-CLONE 0 068b [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3b0>
+-CLONE 0 0696 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3b8>
+-CLONE 0 069d [ 7] lea <rip>(%rip),%rax # <literal-string-434c49454e5400>
+-CLONE 0 06a4 [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3c8>
+-CLONE 0 06ab [ 7] mov %rdx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3f8>
+-CLONE 0 06b2 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3c0>
+-CLONE 0 06b9 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_client(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 06c0 [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x428>
+-CLONE 0 06c7 [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x458>
+-CLONE 0 06ce [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3d8>
+-CLONE 0 06d5 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3e8>
+-CLONE 0 06dc [ 7] lea <rip>(%rip),%rax # <literal-string-4d4f4e49544f5200>
+-CLONE 0 06e3 [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x488>
+-CLONE 0 06ea [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3f0>
+-CLONE 0 06f1 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_monitor(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 06f8 [10] movl $0x8100c,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3d0>
+-CLONE 0 0702 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3d4>
+-CLONE 0 0709 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x408>
+-CLONE 0 0710 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x418>
+-CLONE 0 0717 [ 7] lea <rip>(%rip),%rax # <literal-string-434f4d4d414e4400>
+-CLONE 0 071e [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3e0>
+-CLONE 0 0729 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x420>
+-CLONE 0 0730 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_command(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 0737 [10] movl $0x8100c,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x400>
+-CLONE 0 0741 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x404>
+-CLONE 0 0748 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x438>
+-CLONE 0 074f [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x448>
+-CLONE 0 0756 [ 7] lea <rip>(%rip),%rax # <literal-string-434f4e46494700>
+-CLONE 0 075d [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x410>
+-CLONE 0 0768 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x450>
+-CLONE 0 076f [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 0776 [10] movl $0xc,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x430>
+-CLONE 0 0780 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x434>
+-CLONE 0 0787 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x468>
+-CLONE 0 078e [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x478>
+-CLONE 0 0795 [ 7] lea <rip>(%rip),%rax # <literal-string-444542554700>
+-CLONE 0 079c [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x440>
+-CLONE 0 07a7 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x480>
+-CLONE 0 07ae [ 7] lea <rip>(%rip),%rax # <tomo_db0::cmd_debug(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 07b5 [10] movl $0x84,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x460>
+-CLONE 0 07bf [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x464>
+-CLONE 0 07c6 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x470>
+-CLONE 0 07d1 [10] movl $0x8000084,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x490>
+-CLONE 0 07db [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x494>
+-CLONE 0 07e2 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x498>
+-CLONE 0 07e9 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4a8>
+-CLONE 0 07f0 [ 7] lea <rip>(%rip),%rax # <literal-string-464c495000>
+-CLONE 0 07f7 [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4e8>
+-CLONE 0 07fe [ 7] lea <rip>(%rip),%rsi # <literal-string-444253495a4500>
+-CLONE 0 0805 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4b0>
+-CLONE 0 080c [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x718>
+-CLONE 0 0813 [ 7] mov %r9,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x518>
+-CLONE 0 081a [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4a0>
+-CLONE 0 0825 [10] movl $0x3c4000d,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4c0>
+-CLONE 0 082f [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4c4>
+-CLONE 0 0836 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4d0>
+-CLONE 0 0841 [10] movl $0x84,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4f0>
+-CLONE 0 084b [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4f4>
+-CLONE 0 0852 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x500>
+-CLONE 0 085d [10] movl $0x8,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x520>
+-CLONE 0 0867 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x524>
+-CLONE 0 086e [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x530>
+-CLONE 0 0879 [ 7] mov %r8,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x578>
+-CLONE 0 0880 [10] movl $0x15,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x580>
+-CLONE 0 088a [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x584>
+-CLONE 0 0891 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x590>
+-CLONE 0 089c [ 7] lea <rip>(%rip),%r9 # <literal-string-464c555348444200>
+-CLONE 0 08a3 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4b8>
+-CLONE 0 08aa [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_flip(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 08b1 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4c8>
+-CLONE 0 08b8 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4d8>
+-CLONE 0 08bf [ 7] lea <rip>(%rip),%rax # <literal-string-494e464f00>
+-CLONE 0 08c6 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4e0>
+-CLONE 0 08cd [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 08d4 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4f8>
+-CLONE 0 08db [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x508>
+-CLONE 0 08e2 [ 7] lea <rip>(%rip),%rax # <literal-string-53454c45435400>
+-CLONE 0 08e9 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x510>
+-CLONE 0 08f0 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_select(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 08f7 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x528>
+-CLONE 0 08fe [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x538>
+-CLONE 0 0905 [ 7] lea <rip>(%rip),%rax # <literal-string-53574150444200>
+-CLONE 0 090c [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x570>
+-CLONE 0 0913 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_transaction_control(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 091a [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x588>
+-CLONE 0 0921 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x598>
+-CLONE 0 0928 [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5a0>
+-CLONE 0 092f [ 7] lea <rip>(%rip),%rsi # <tomo_db0::(anonymous namespace)::cmd_dbsize(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 0936 [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5b8>
+-CLONE 0 093d [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5c8>
+-CLONE 0 0944 [ 7] lea <rip>(%rip),%rsi # <literal-string-464c555348414c4c00>
+-CLONE 0 094b [ 7] mov %rdi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5a8>
+-CLONE 0 0952 [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5d0>
+-CLONE 0 0959 [ 7] mov %rdi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5d8>
+-CLONE 0 0960 [ 7] lea <rip>(%rip),%rsi # <tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 0967 [ 7] mov %rdi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x608>
+-CLONE 0 096e [ 7] lea <rip>(%rip),%rdi # <literal-string-52414e444f4d4b455900>
+-CLONE 0 0975 [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5e8>
+-CLONE 0 097c [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5f8>
+-CLONE 0 0983 [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x618>
+-CLONE 0 098a [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x628>
+-CLONE 0 0991 [ 7] mov %rdi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x630>
+-CLONE 0 0998 [ 7] lea <rip>(%rip),%rsi # <tomo_db0::(anonymous namespace)::cmd_randomkey(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 099f [ 7] lea <rip>(%rip),%rdi # <literal-string-5343414e00>
+-CLONE 0 09a6 [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x648>
+-CLONE 0 09ad [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x658>
+-CLONE 0 09b4 [ 7] mov %rdi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x660>
+-CLONE 0 09bb [ 7] lea <rip>(%rip),%rsi # <tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 09c2 [ 7] lea <rip>(%rip),%rdi # <literal-string-4d554c544900>
+-CLONE 0 09c9 [ 7] mov %rdx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x638>
+-CLONE 0 09d0 [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x668>
+-CLONE 0 09d7 [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x678>
+-CLONE 0 09de [10] movl $0x84,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5b0>
+-CLONE 0 09e8 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5b4>
+-CLONE 0 09ef [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5c0>
+-CLONE 0 09fa [10] movl $0x15,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5e0>
+-CLONE 0 0a04 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5e4>
+-CLONE 0 0a0b [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5f0>
+-CLONE 0 0a16 [ 7] mov %r9,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x600>
+-CLONE 0 0a1d [10] movl $0x15,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x610>
+-CLONE 0 0a27 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x614>
+-CLONE 0 0a2e [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x620>
+-CLONE 0 0a39 [10] movl $0x12,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x640>
+-CLONE 0 0a43 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x644>
+-CLONE 0 0a4a [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x650>
+-CLONE 0 0a55 [10] movl $0x42,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x670>
+-CLONE 0 0a5f [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x674>
+-CLONE 0 0a66 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x680>
+-CLONE 0 0a71 [ 7] mov %rdi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x6f0>
+-CLONE 0 0a78 [ 7] lea <rip>(%rip),%rdi # <literal-string-4558454300>
+-CLONE 0 0a7f [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x788>
+-CLONE 0 0a86 [10] movabs $0x1ffff0001,%rcx
+-CLONE 0 0a90 [ 7] mov %rdi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x720>
+-CLONE 0 0a97 [ 7] lea <rip>(%rip),%rdi # <literal-string-4449534341524400>
+-CLONE 0 0a9e [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x7a0>
+-CLONE 0 0aa5 [ 7] lea <rip>(%rip),%rcx # <literal-string-554e574154434800>
+-CLONE 0 0aac [ 7] mov %rdi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x750>
+-CLONE 0 0ab3 [ 7] lea <rip>(%rip),%rdi # <literal-string-574154434800>
+-CLONE 0 0aba [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x688>
+-CLONE 0 0ac1 [ 7] mov %rdx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x6f8>
+-CLONE 0 0ac8 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x708>
+-CLONE 0 0acf [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x718>
+-CLONE 0 0ad6 [ 7] mov %rdx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x728>
+-CLONE 0 0add [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x738>
+-CLONE 0 0ae4 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x748>
+-CLONE 0 0aeb [ 7] mov %rdx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x758>
+-CLONE 0 0af2 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x768>
+-CLONE 0 0af9 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x778>
+-CLONE 0 0b00 [ 7] mov %rdi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x780>
+-CLONE 0 0b07 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x798>
+-CLONE 0 0b0e [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x7a8>
+-CLONE 0 0b15 [ 7] mov %rdx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x7b8>
+-CLONE 0 0b1c [10] movl $0x4008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x700>
+-CLONE 0 0b26 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x704>
+-CLONE 0 0b2d [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x710>
+-CLONE 0 0b38 [10] movl $0x4008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x730>
+-CLONE 0 0b42 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x734>
+-CLONE 0 0b49 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x740>
+-CLONE 0 0b54 [10] movl $0x4008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x760>
+-CLONE 0 0b5e [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x764>
+-CLONE 0 0b65 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x770>
+-CLONE 0 0b70 [10] movl $0x4008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x790>
+-CLONE 0 0b7a [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x794>
+-CLONE 0 0b81 [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x7b0>
+-CLONE 0 0b88 [10] movl $0x4008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x7c0>
+-CLONE 0 0b92 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x7c4>
+-CLONE 0 0b99 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x7c8>
+-CLONE 0 0ba0 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x7d8>
+-CLONE 0 0ba7 [ 7] lea <rip>(%rip),%rax # <tomo_db0::g_client_dir+0x30>
+-CLONE 0 0bae [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x7d0>
+-CLONE 0 0bb9 [11] movq $0x1,<rip>(%rip) # <tomo_db0::g_client_dir+0x8>
+-CLONE 0 0bc4 [11] movq $0x0,<rip>(%rip) # <tomo_db0::g_client_dir+0x10>
+-CLONE 0 0bcf [ 7] mov %rax,<rip>(%rip) # <tomo_db0::g_client_dir>
+-CLONE 0 0bd6 [11] movq $0x0,<rip>(%rip) # <tomo_db0::g_client_dir+0x18>
+-CLONE 0 0be1 [10] movl $0x3f800000,<rip>(%rip) # <tomo_db0::g_client_dir+0x20>
+-CLONE 0 0beb [11] movq $0x0,<rip>(%rip) # <tomo_db0::g_client_dir+0x28>
+-CLONE 0 0bf6 [11] movq $0x0,<rip>(%rip) # <tomo_db0::g_client_dir+0x30>
+-CLONE 0 0c01 [ 4] lea -0x10(%rbp),%rsp
+-CLONE 0 0c05 [ 3] mov %rbx,%rdx
+-CLONE 0 0c08 [ 4] lea -0x30(%rax),%rsi
+-CLONE 0 0c0c [ 1] pop %rbx
+-CLONE 0 0c0d [ 2] pop %r12
+-CLONE 0 0c0f [ 1] pop %rbp
+-CLONE 0 0c10 [ 7] lea <rip>(%rip),%rdi # <std::unordered_map<unsigned long, tomo_db0::Client*, std::hash<unsigned long>, std::equal_to<unsigned long>, std::allocator<std::pair<unsigned long const, tomo_db0::Client*> > >::~unordered_map()>
+-CLONE 0 0c17 [ 5] jmp <__cxa_atexit@plt>
+-CLONE 0 0c1c [ 3] mov %rbx,%rdx
+-CLONE 0 0c1f [ 7] lea <rip>(%rip),%rsi # <tomo_db0::atomic_tripwire_detail::state>
+-CLONE 0 0c26 [ 7] lea <rip>(%rip),%rdi # <std::unique_ptr<tomo_db0::atomic_tripwire_detail::State, std::default_delete<tomo_db0::atomic_tripwire_detail::State> >::~unique_ptr()>
+-CLONE 0 0c2d [ 7] movb $0x1,<rip>(%rip) # <guard variable for tomo_db0::atomic_tripwire_detail::state>
+-CLONE 0 0c34 [ 5] call <__cxa_atexit@plt>
+-CLONE 0 0c39 [ 5] jmp <+0x23>
+-CLONE 0 0c3e [ 7] lea <rip>(%rip),%r12 # <tomo_db0::Server::databases_>
+-CLONE 0 0c45 [ 7] movb $0x1,<rip>(%rip) # <guard variable for tomo_db0::Server::databases_>
+-CLONE 0 0c4c [ 3] mov %r12,%rdi
+-CLONE 0 0c4f [ 5] call <tomo_db0::DatabaseMap::DatabaseMap()>
+-CLONE 0 0c54 [ 7] lea <rip>(%rip),%rdi # <tomo_db0::DatabaseMap::~DatabaseMap()>
+-CLONE 0 0c5b [ 3] mov %rbx,%rdx
+-CLONE 0 0c5e [ 3] mov %r12,%rsi
+-CLONE 0 0c61 [ 5] call <__cxa_atexit@plt>
+-CLONE 0 0c66 [ 5] jmp <+0xf3>
+-CLONE 0 0c6b [ 7] lea <rip>(%rip),%rax # <tomo_db0::cmd_xshard_only_notify(tomo_db0::Shard&, tomo_db0::Op&)>
+-CLONE 0 0c72 [ 5] jmp <+0x1bf>
++CLONE 0 011f [ 7] lea <rip>(%rip),%rdi # <tomo_db0::(anonymous namespace)::StatBaseline::~StatBaseline()>
++CLONE 0 0126 [ 3] mov %rbx,%rdx
++CLONE 0 0129 [ 7] lea <rip>(%rip),%rsi # <tomo_db0::(anonymous namespace)::g_stat_baseline>
++CLONE 0 0130 [ 5] call <__cxa_atexit@plt>
++CLONE 0 0135 [ 7] lea <rip>(%rip),%rax # <literal-string-50494e4700>
++CLONE 0 013c [ 7] mov <rip>(%rip),%rdi # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xe8>
++CLONE 0 0143 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x148>
++CLONE 0 014a [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable>
++CLONE 0 0151 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_ping(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 0158 [10] movl $0x8,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x10>
++CLONE 0 0162 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x14>
++CLONE 0 0169 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x18>
++CLONE 0 0170 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x28>
++CLONE 0 0177 [ 7] lea <rip>(%rip),%rax # <literal-string-41434c00>
++CLONE 0 017e [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x20>
++CLONE 0 0189 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x30>
++CLONE 0 0190 [ 7] lea <rip>(%rip),%rax # <tomo_db0::cmd_acl(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 0197 [10] movl $0x8,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x40>
++CLONE 0 01a1 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x44>
++CLONE 0 01a8 [ 7] cmp <rip>(%rip),%rax # <_GLOBAL_OFFSET_TABLE_+0xaa8>
++CLONE 0 01af [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x50>
++CLONE 0 01ba [ 7] mov %rdi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x8>
++CLONE 0 01c1 [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x38>
++CLONE 0 01c8 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x48>
++CLONE 0 01cf [ 6] je <+0xc81>
++CLONE 0 01d5 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x58>
++CLONE 0 01dc [ 7] lea <rip>(%rip),%rax # <literal-string-5341564500>
++CLONE 0 01e3 [ 7] mov <rip>(%rip),%rdx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8>
++CLONE 0 01ea [ 7] mov <rip>(%rip),%rsi # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x150>
++CLONE 0 01f1 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x60>
++CLONE 0 01f8 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_save(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 01ff [10] movl $0xc,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x70>
++CLONE 0 0209 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x74>
++CLONE 0 0210 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x78>
++CLONE 0 0217 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x88>
++CLONE 0 021e [ 7] lea <rip>(%rip),%rax # <literal-string-42475341564500>
++CLONE 0 0225 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x80>
++CLONE 0 0230 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x90>
++CLONE 0 0237 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_bgsave(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 023e [10] movl $0xc,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xa0>
++CLONE 0 0248 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xa4>
++CLONE 0 024f [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xa8>
++CLONE 0 0256 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xb8>
++CLONE 0 025d [ 7] lea <rip>(%rip),%rax # <literal-string-424752455752495445414f4600>
++CLONE 0 0264 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xb0>
++CLONE 0 026f [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xc0>
++CLONE 0 0276 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_bgrewriteaof(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 027d [ 7] mov %rdx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x68>
++CLONE 0 0284 [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x98>
++CLONE 0 028b [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xd8>
++CLONE 0 0292 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xe8>
++CLONE 0 0299 [ 7] lea <rip>(%rip),%rax # <literal-string-4c4153545341564500>
++CLONE 0 02a0 [ 7] mov %rdx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xc8>
++CLONE 0 02a7 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xf0>
++CLONE 0 02ae [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_lastsave(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 02b5 [ 7] mov %rdx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xf8>
++CLONE 0 02bc [10] movl $0xc,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xd0>
++CLONE 0 02c6 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x108>
++CLONE 0 02cd [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x118>
++CLONE 0 02d4 [ 7] lea <rip>(%rip),%rax # <literal-string-4543484f00>
++CLONE 0 02db [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xd4>
++CLONE 0 02e2 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x120>
++CLONE 0 02e9 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_echo(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 02f0 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0xe0>
++CLONE 0 02fb [10] movl $0xc,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x100>
++CLONE 0 0305 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x104>
++CLONE 0 030c [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x110>
++CLONE 0 0317 [ 7] mov <rip>(%rip),%r9 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x158>
++CLONE 0 031e [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x138>
++CLONE 0 0325 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x148>
++CLONE 0 032c [ 7] lea <rip>(%rip),%rax # <literal-string-4155544800>
++CLONE 0 0333 [ 7] lea <rip>(%rip),%r10 # <literal-string-554e53554253435249424500>
++CLONE 0 033a [ 7] lea <rip>(%rip),%r11 # <literal-string-5053554253435249424500>
++CLONE 0 0341 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x150>
++CLONE 0 0348 [ 7] mov <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::acl_hex_hash(std::array<unsigned long, 4ul> const&)::hex+0x5c8>
++CLONE 0 034f [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x188>
++CLONE 0 0356 [ 7] mov %rdx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1b8>
++CLONE 0 035d [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1e8>
++CLONE 0 0364 [10] movl $0x8,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x130>
++CLONE 0 036e [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x134>
++CLONE 0 0375 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x140>
++CLONE 0 0380 [10] movl $0x8008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x160>
++CLONE 0 038a [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x164>
++CLONE 0 0391 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x170>
++CLONE 0 039c [10] movl $0x8008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x190>
++CLONE 0 03a6 [ 7] mov %r9,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x128>
++CLONE 0 03ad [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x194>
++CLONE 0 03b4 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1a0>
++CLONE 0 03bf [10] movl $0x88008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1c0>
++CLONE 0 03c9 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1c4>
++CLONE 0 03d0 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1d0>
++CLONE 0 03db [10] movl $0x8008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1f0>
++CLONE 0 03e5 [ 7] lea <rip>(%rip),%r8 # <literal-string-53554e53554253435249424500>
++CLONE 0 03ec [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x158>
++CLONE 0 03f3 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_auth(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 03fa [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x168>
++CLONE 0 0401 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x178>
++CLONE 0 0408 [ 7] lea <rip>(%rip),%rax # <literal-string-48454c4c4f00>
++CLONE 0 040f [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x180>
++CLONE 0 0416 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_hello(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 041d [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x198>
++CLONE 0 0424 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1a8>
++CLONE 0 042b [ 7] lea <rip>(%rip),%rax # <literal-string-524553455400>
++CLONE 0 0432 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1b0>
++CLONE 0 0439 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_reset(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 0440 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1c8>
++CLONE 0 0447 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1d8>
++CLONE 0 044e [ 7] lea <rip>(%rip),%rax # <literal-string-5155495400>
++CLONE 0 0455 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1e0>
++CLONE 0 045c [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_quit(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 0463 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1f4>
++CLONE 0 046a [ 7] mov %r10,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x240>
++CLONE 0 0471 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x1f8>
++CLONE 0 0478 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x208>
++CLONE 0 047f [ 7] lea <rip>(%rip),%rax # <literal-string-53554253435249424500>
++CLONE 0 0486 [ 7] lea <rip>(%rip),%r10 # <literal-string-50554e53554253435249424500>
++CLONE 0 048d [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x210>
++CLONE 0 0494 [ 7] mov %r11,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x270>
++CLONE 0 049b [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_pubsub_only(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 04a2 [ 7] lea <rip>(%rip),%r11 # <literal-string-5353554253435249424500>
++CLONE 0 04a9 [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x218>
++CLONE 0 04b0 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x228>
++CLONE 0 04b7 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x238>
++CLONE 0 04be [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x248>
++CLONE 0 04c5 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x258>
++CLONE 0 04cc [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x268>
++CLONE 0 04d3 [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x278>
++CLONE 0 04da [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x288>
++CLONE 0 04e1 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x298>
++CLONE 0 04e8 [ 7] mov %r10,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2a0>
++CLONE 0 04ef [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2a8>
++CLONE 0 04f6 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2b8>
++CLONE 0 04fd [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2c8>
++CLONE 0 0504 [ 7] mov %r11,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2d0>
++CLONE 0 050b [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x200>
++CLONE 0 0516 [10] movl $0x1008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x220>
++CLONE 0 0520 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x224>
++CLONE 0 0527 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x230>
++CLONE 0 0532 [10] movl $0x1008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x250>
++CLONE 0 053c [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x254>
++CLONE 0 0543 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x260>
++CLONE 0 054e [10] movl $0x1008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x280>
++CLONE 0 0558 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x284>
++CLONE 0 055f [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x290>
++CLONE 0 056a [10] movl $0x1008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2b0>
++CLONE 0 0574 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2b4>
++CLONE 0 057b [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2c0>
++CLONE 0 0586 [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2d8>
++CLONE 0 058d [ 7] mov %r8,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x300>
++CLONE 0 0594 [ 7] mov <rip>(%rip),%r8 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x160>
++CLONE 0 059b [ 7] lea <rip>(%rip),%r10 # <literal-string-5055424c49534800>
++CLONE 0 05a2 [ 7] lea <rip>(%rip),%r11 # <literal-string-535055424c49534800>
++CLONE 0 05a9 [ 7] mov %r10,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x330>
++CLONE 0 05b0 [ 7] lea <rip>(%rip),%r10 # <literal-string-50554253554200>
++CLONE 0 05b7 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2e8>
++CLONE 0 05be [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2f8>
++CLONE 0 05c5 [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x308>
++CLONE 0 05cc [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x318>
++CLONE 0 05d3 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x328>
++CLONE 0 05da [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x348>
++CLONE 0 05e1 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x358>
++CLONE 0 05e8 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x378>
++CLONE 0 05ef [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x388>
++CLONE 0 05f6 [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x398>
++CLONE 0 05fd [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3a8>
++CLONE 0 0604 [10] movl $0x1008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2e0>
++CLONE 0 060e [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2e4>
++CLONE 0 0615 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x2f0>
++CLONE 0 0620 [10] movl $0x1008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x310>
++CLONE 0 062a [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x314>
++CLONE 0 0631 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x320>
++CLONE 0 063c [ 7] mov %r8,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x338>
++CLONE 0 0643 [10] movl $0x1008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x340>
++CLONE 0 064d [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x344>
++CLONE 0 0654 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x350>
++CLONE 0 065f [ 7] mov %r11,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x360>
++CLONE 0 0666 [ 7] mov %r8,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x368>
++CLONE 0 066d [10] movl $0x1008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x370>
++CLONE 0 0677 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x374>
++CLONE 0 067e [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x380>
++CLONE 0 0689 [ 7] mov %r10,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x390>
++CLONE 0 0690 [10] movl $0x100c,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3a0>
++CLONE 0 069a [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3a4>
++CLONE 0 06a1 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3b0>
++CLONE 0 06ac [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3b8>
++CLONE 0 06b3 [ 7] lea <rip>(%rip),%rax # <literal-string-434c49454e5400>
++CLONE 0 06ba [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3c8>
++CLONE 0 06c1 [ 7] mov %rdx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3f8>
++CLONE 0 06c8 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3c0>
++CLONE 0 06cf [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_client(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 06d6 [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x428>
++CLONE 0 06dd [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x458>
++CLONE 0 06e4 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3d8>
++CLONE 0 06eb [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3e8>
++CLONE 0 06f2 [ 7] lea <rip>(%rip),%rax # <literal-string-4d4f4e49544f5200>
++CLONE 0 06f9 [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x488>
++CLONE 0 0700 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3f0>
++CLONE 0 0707 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_monitor(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 070e [10] movl $0x8100c,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3d0>
++CLONE 0 0718 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3d4>
++CLONE 0 071f [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x408>
++CLONE 0 0726 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x418>
++CLONE 0 072d [ 7] lea <rip>(%rip),%rax # <literal-string-434f4d4d414e4400>
++CLONE 0 0734 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x3e0>
++CLONE 0 073f [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x420>
++CLONE 0 0746 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_command(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 074d [10] movl $0x8100c,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x400>
++CLONE 0 0757 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x404>
++CLONE 0 075e [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x438>
++CLONE 0 0765 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x448>
++CLONE 0 076c [ 7] lea <rip>(%rip),%rax # <literal-string-434f4e46494700>
++CLONE 0 0773 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x410>
++CLONE 0 077e [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x450>
++CLONE 0 0785 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 078c [10] movl $0xc,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x430>
++CLONE 0 0796 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x434>
++CLONE 0 079d [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x468>
++CLONE 0 07a4 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x478>
++CLONE 0 07ab [ 7] lea <rip>(%rip),%rax # <literal-string-444542554700>
++CLONE 0 07b2 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x440>
++CLONE 0 07bd [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x480>
++CLONE 0 07c4 [ 7] lea <rip>(%rip),%rax # <tomo_db0::cmd_debug(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 07cb [10] movl $0x84,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x460>
++CLONE 0 07d5 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x464>
++CLONE 0 07dc [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x470>
++CLONE 0 07e7 [10] movl $0x8000084,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x490>
++CLONE 0 07f1 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x494>
++CLONE 0 07f8 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x498>
++CLONE 0 07ff [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4a8>
++CLONE 0 0806 [ 7] lea <rip>(%rip),%rax # <literal-string-464c495000>
++CLONE 0 080d [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4e8>
++CLONE 0 0814 [ 7] lea <rip>(%rip),%rsi # <literal-string-444253495a4500>
++CLONE 0 081b [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4b0>
++CLONE 0 0822 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x168>
++CLONE 0 0829 [ 7] mov %r9,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x518>
++CLONE 0 0830 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4a0>
++CLONE 0 083b [10] movl $0x3c4000d,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4c0>
++CLONE 0 0845 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4c4>
++CLONE 0 084c [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4d0>
++CLONE 0 0857 [10] movl $0x84,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4f0>
++CLONE 0 0861 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4f4>
++CLONE 0 0868 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x500>
++CLONE 0 0873 [10] movl $0x8,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x520>
++CLONE 0 087d [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x524>
++CLONE 0 0884 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x530>
++CLONE 0 088f [ 7] mov %r8,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x578>
++CLONE 0 0896 [10] movl $0x15,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x580>
++CLONE 0 08a0 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x584>
++CLONE 0 08a7 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x590>
++CLONE 0 08b2 [ 7] lea <rip>(%rip),%r9 # <literal-string-464c555348444200>
++CLONE 0 08b9 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4b8>
++CLONE 0 08c0 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_flip(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 08c7 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4c8>
++CLONE 0 08ce [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4d8>
++CLONE 0 08d5 [ 7] lea <rip>(%rip),%rax # <literal-string-494e464f00>
++CLONE 0 08dc [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4e0>
++CLONE 0 08e3 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 08ea [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x4f8>
++CLONE 0 08f1 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x508>
++CLONE 0 08f8 [ 7] lea <rip>(%rip),%rax # <literal-string-53454c45435400>
++CLONE 0 08ff [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x510>
++CLONE 0 0906 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_select(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 090d [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x528>
++CLONE 0 0914 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x538>
++CLONE 0 091b [ 7] lea <rip>(%rip),%rax # <literal-string-53574150444200>
++CLONE 0 0922 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x570>
++CLONE 0 0929 [ 7] lea <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::cmd_transaction_control(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 0930 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x588>
++CLONE 0 0937 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x598>
++CLONE 0 093e [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5a0>
++CLONE 0 0945 [ 7] lea <rip>(%rip),%rsi # <tomo_db0::(anonymous namespace)::cmd_dbsize(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 094c [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5b8>
++CLONE 0 0953 [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5c8>
++CLONE 0 095a [ 7] lea <rip>(%rip),%rsi # <literal-string-464c555348414c4c00>
++CLONE 0 0961 [ 7] mov %rdi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5a8>
++CLONE 0 0968 [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5d0>
++CLONE 0 096f [ 7] mov %rdi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5d8>
++CLONE 0 0976 [ 7] lea <rip>(%rip),%rsi # <tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 097d [ 7] mov %rdi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x608>
++CLONE 0 0984 [ 7] lea <rip>(%rip),%rdi # <literal-string-52414e444f4d4b455900>
++CLONE 0 098b [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5e8>
++CLONE 0 0992 [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5f8>
++CLONE 0 0999 [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x618>
++CLONE 0 09a0 [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x628>
++CLONE 0 09a7 [ 7] mov %rdi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x630>
++CLONE 0 09ae [ 7] lea <rip>(%rip),%rsi # <tomo_db0::(anonymous namespace)::cmd_randomkey(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 09b5 [ 7] lea <rip>(%rip),%rdi # <literal-string-5343414e00>
++CLONE 0 09bc [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x648>
++CLONE 0 09c3 [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x658>
++CLONE 0 09ca [ 7] mov %rdi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x660>
++CLONE 0 09d1 [ 7] lea <rip>(%rip),%rsi # <tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 09d8 [ 7] lea <rip>(%rip),%rdi # <literal-string-4d554c544900>
++CLONE 0 09df [ 7] mov %rdx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x638>
++CLONE 0 09e6 [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x668>
++CLONE 0 09ed [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x678>
++CLONE 0 09f4 [10] movl $0x84,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5b0>
++CLONE 0 09fe [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5b4>
++CLONE 0 0a05 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5c0>
++CLONE 0 0a10 [10] movl $0x15,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5e0>
++CLONE 0 0a1a [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5e4>
++CLONE 0 0a21 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x5f0>
++CLONE 0 0a2c [ 7] mov %r9,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x600>
++CLONE 0 0a33 [10] movl $0x15,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x610>
++CLONE 0 0a3d [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x614>
++CLONE 0 0a44 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x620>
++CLONE 0 0a4f [10] movl $0x12,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x640>
++CLONE 0 0a59 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x644>
++CLONE 0 0a60 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x650>
++CLONE 0 0a6b [10] movl $0x42,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x670>
++CLONE 0 0a75 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x674>
++CLONE 0 0a7c [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x680>
++CLONE 0 0a87 [ 7] mov %rdi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x6f0>
++CLONE 0 0a8e [ 7] lea <rip>(%rip),%rdi # <literal-string-4558454300>
++CLONE 0 0a95 [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x788>
++CLONE 0 0a9c [10] movabs $0x1ffff0001,%rcx
++CLONE 0 0aa6 [ 7] mov %rdi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x720>
++CLONE 0 0aad [ 7] lea <rip>(%rip),%rdi # <literal-string-4449534341524400>
++CLONE 0 0ab4 [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x7a0>
++CLONE 0 0abb [ 7] lea <rip>(%rip),%rcx # <literal-string-554e574154434800>
++CLONE 0 0ac2 [ 7] mov %rdi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x750>
++CLONE 0 0ac9 [ 7] lea <rip>(%rip),%rdi # <literal-string-574154434800>
++CLONE 0 0ad0 [ 7] mov %rsi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x688>
++CLONE 0 0ad7 [ 7] mov %rdx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x6f8>
++CLONE 0 0ade [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x708>
++CLONE 0 0ae5 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x718>
++CLONE 0 0aec [ 7] mov %rdx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x728>
++CLONE 0 0af3 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x738>
++CLONE 0 0afa [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x748>
++CLONE 0 0b01 [ 7] mov %rdx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x758>
++CLONE 0 0b08 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x768>
++CLONE 0 0b0f [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x778>
++CLONE 0 0b16 [ 7] mov %rdi,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x780>
++CLONE 0 0b1d [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x798>
++CLONE 0 0b24 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x7a8>
++CLONE 0 0b2b [ 7] mov %rdx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x7b8>
++CLONE 0 0b32 [10] movl $0x4008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x700>
++CLONE 0 0b3c [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x704>
++CLONE 0 0b43 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x710>
++CLONE 0 0b4e [10] movl $0x4008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x730>
++CLONE 0 0b58 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x734>
++CLONE 0 0b5f [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x740>
++CLONE 0 0b6a [10] movl $0x4008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x760>
++CLONE 0 0b74 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x764>
++CLONE 0 0b7b [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x770>
++CLONE 0 0b86 [10] movl $0x4008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x790>
++CLONE 0 0b90 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x794>
++CLONE 0 0b97 [ 7] mov %rcx,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x7b0>
++CLONE 0 0b9e [10] movl $0x4008,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x7c0>
++CLONE 0 0ba8 [ 7] movb $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x7c4>
++CLONE 0 0baf [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x7c8>
++CLONE 0 0bb6 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x7d8>
++CLONE 0 0bbd [ 7] lea <rip>(%rip),%rax # <tomo_db0::g_client_dir+0x30>
++CLONE 0 0bc4 [11] movq $0x0,<rip>(%rip) # <tomo_db0::(anonymous namespace)::kTable+0x7d0>
++CLONE 0 0bcf [11] movq $0x1,<rip>(%rip) # <tomo_db0::g_client_dir+0x8>
++CLONE 0 0bda [11] movq $0x0,<rip>(%rip) # <tomo_db0::g_client_dir+0x10>
++CLONE 0 0be5 [ 7] mov %rax,<rip>(%rip) # <tomo_db0::g_client_dir>
++CLONE 0 0bec [11] movq $0x0,<rip>(%rip) # <tomo_db0::g_client_dir+0x18>
++CLONE 0 0bf7 [10] movl $0x3f800000,<rip>(%rip) # <tomo_db0::g_client_dir+0x20>
++CLONE 0 0c01 [11] movq $0x0,<rip>(%rip) # <tomo_db0::g_client_dir+0x28>
++CLONE 0 0c0c [11] movq $0x0,<rip>(%rip) # <tomo_db0::g_client_dir+0x30>
++CLONE 0 0c17 [ 4] lea -0x10(%rbp),%rsp
++CLONE 0 0c1b [ 3] mov %rbx,%rdx
++CLONE 0 0c1e [ 4] lea -0x30(%rax),%rsi
++CLONE 0 0c22 [ 1] pop %rbx
++CLONE 0 0c23 [ 2] pop %r12
++CLONE 0 0c25 [ 1] pop %rbp
++CLONE 0 0c26 [ 7] lea <rip>(%rip),%rdi # <std::unordered_map<unsigned long, tomo_db0::Client*, std::hash<unsigned long>, std::equal_to<unsigned long>, std::allocator<std::pair<unsigned long const, tomo_db0::Client*> > >::~unordered_map()>
++CLONE 0 0c2d [ 5] jmp <__cxa_atexit@plt>
++CLONE 0 0c32 [ 3] mov %rbx,%rdx
++CLONE 0 0c35 [ 7] lea <rip>(%rip),%rsi # <tomo_db0::atomic_tripwire_detail::state>
++CLONE 0 0c3c [ 7] lea <rip>(%rip),%rdi # <std::unique_ptr<tomo_db0::atomic_tripwire_detail::State, std::default_delete<tomo_db0::atomic_tripwire_detail::State> >::~unique_ptr()>
++CLONE 0 0c43 [ 7] movb $0x1,<rip>(%rip) # <guard variable for tomo_db0::atomic_tripwire_detail::state>
++CLONE 0 0c4a [ 5] call <__cxa_atexit@plt>
++CLONE 0 0c4f [ 5] jmp <+0x23>
++CLONE 0 0c54 [ 7] lea <rip>(%rip),%r12 # <tomo_db0::Server::databases_>
++CLONE 0 0c5b [ 7] movb $0x1,<rip>(%rip) # <guard variable for tomo_db0::Server::databases_>
++CLONE 0 0c62 [ 3] mov %r12,%rdi
++CLONE 0 0c65 [ 5] call <tomo_db0::DatabaseMap::DatabaseMap()>
++CLONE 0 0c6a [ 7] lea <rip>(%rip),%rdi # <tomo_db0::DatabaseMap::~DatabaseMap()>
++CLONE 0 0c71 [ 3] mov %rbx,%rdx
++CLONE 0 0c74 [ 3] mov %r12,%rsi
++CLONE 0 0c77 [ 5] call <__cxa_atexit@plt>
++CLONE 0 0c7c [ 5] jmp <+0xf3>
++CLONE 0 0c81 [ 7] lea <rip>(%rip),%rax # <tomo_db0::cmd_xshard_only_notify(tomo_db0::Shard&, tomo_db0::Op&)>
++CLONE 0 0c88 [ 5] jmp <+0x1d5>

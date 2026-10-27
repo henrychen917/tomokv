@@ -1,0 +1,15 @@
+json_process_value
+--- lualibs
+
++++ post
+
+@@ -14,7 +14,7 @@
+
+ CLONE 0 0027 [ 3] cmpl $0x7,(%rdx)
+ CLONE 0 002a [ 2] ja <+0x70>
+ CLONE 0 002c [ 2] mov (%rdx),%eax
+-CLONE 0 002e [ 7] lea <rip>(%rip),%rdx # <tomo::IoLoop::shutdown_clients_after_join()::no_limits+0x10>
++CLONE 0 002e [ 7] lea <rip>(%rip),%rdx # <tomo::IoLoop::shutdown_clients_after_join()::no_limits+0x4>
+ CLONE 0 0035 [ 4] movslq (%rdx,%rax,4),%rax
+ CLONE 0 0039 [ 3] add %rdx,%rax
+ CLONE 0 003c [ 3] notrack jmp *%rax

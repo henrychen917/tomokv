@@ -1,0 +1,25 @@
+tomo::(anonymous namespace)::sha256_password(tomo::Slice) [clone .isra.0]
+--- headline
+
++++ post
+
+@@ -60,7 +60,7 @@
+
+ CLONE 0 00ef [ 5] call <tomo::(anonymous namespace)::sha256_transform(unsigned int*, unsigned char const*)>
+ CLONE 0 00f4 [ 7] cmp $0x80,%r12d
+ CLONE 0 00fb [ 6] je <+0x4c0>
+-CLONE 0 0101 [ 8] vmovq <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x660>
++CLONE 0 0101 [ 8] vmovq <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xa0>
+ CLONE 0 0109 [ 6] vmovq 0x20(%rsp),%xmm0
+ CLONE 0 010f [ 6] vmovq 0x28(%rsp),%xmm8
+ CLONE 0 0115 [ 6] vmovq 0x38(%rsp),%xmm7
+@@ -76,7 +76,7 @@
+
+ CLONE 0 0147 [ 4] vpand %xmm2,%xmm1,%xmm2
+ CLONE 0 014b [ 6] vpsrld $0x10,%xmm8,%xmm6
+ CLONE 0 0151 [ 5] vpackusdw %xmm5,%xmm2,%xmm2
+-CLONE 0 0156 [ 8] vmovq <rip>(%rip),%xmm5 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x668>
++CLONE 0 0156 [ 8] vmovq <rip>(%rip),%xmm5 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xa8>
+ CLONE 0 015e [ 5] vpshufd $0x8,%xmm3,%xmm3
+ CLONE 0 0163 [ 4] vpand %xmm6,%xmm1,%xmm6
+ CLONE 0 0167 [ 5] vpshufd $0x8,%xmm2,%xmm2

@@ -1,0 +1,17 @@
+{
+  "baseline": "3700b51d7fb3074f32330dd81f138efbf1ddd980",
+  "cores": "64-79",
+  "server_cores": "64-71",
+  "load_cores": "72-79",
+  "ports": "48800-48899",
+  "build_jobs": 16,
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "oracle": "/tmp/claude-1000/redis74/src/redis-server",
+  "oracle_version": "Redis server v=7.4.10 sha=f103d127:0 malloc=jemalloc-5.3.0 bits=64 build=f39586913084a746",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "changed_production_files": [
+    "src/core/io_loop.h",
+    "src/core/reorder.cc",
+    "src/core/wb_rule.h"
+  ]
+}

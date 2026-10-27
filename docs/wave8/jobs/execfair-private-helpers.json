@@ -1,0 +1,40 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-71",
+    "--load-cores",
+    "72-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "20040-20049",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave8/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave8",
+  "env": {
+    "LANG": "en_US.UTF-8",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "execfair",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_ZC_NET_IO": "uring",
+    "GATE_SHUTDOWN_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TEST_PORT": "20098",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave8/docs/wave8/jobs/execfair-private-helpers.tsv"
+  },
+  "binary_sha256": "e27b6547096c304c026042fb606a2ae6c89c69e2f0248f797d2c281b851d47b8",
+  "started": 1793030862.9650383,
+  "exit": 1,
+  "seconds": 23.723153114318848,
+  "artifacts": "/home/user/Projects/cx-wave8/build/gate-run.xxZMDW",
+  "summary": [
+    "GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/execfair-private-helpers.tsv.partial"
+  ],
+  "binary_unchanged": true
+}

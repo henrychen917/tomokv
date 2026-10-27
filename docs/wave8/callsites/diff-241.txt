@@ -1,0 +1,17 @@
+tomo::Op::Sink::advance(unsigned long) [clone .isra.0]
+--- latencyfix
+
++++ post
+
+@@ -124,3 +124,10 @@
+
+ CLONE 17 000c [ 4] nopl 0x0(%rax)
+ CLONE 17 0010 [ 4] add %rdx,0x28(%rdi)
+ CLONE 17 0014 [ 1] ret
++CLONE 18 0000 [ 3] test %sil,%sil
++CLONE 18 0003 [ 2] je <+0x10>
++CLONE 18 0005 [ 6] add %edx,0xa4(%rdi)
++CLONE 18 000b [ 1] ret
++CLONE 18 000c [ 4] nopl 0x0(%rax)
++CLONE 18 0010 [ 4] add %rdx,0x28(%rdi)
++CLONE 18 0014 [ 1] ret

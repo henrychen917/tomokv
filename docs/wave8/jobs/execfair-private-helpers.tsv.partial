@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=execfair; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+FAIL	22.030000	EXEC fast-lane polls

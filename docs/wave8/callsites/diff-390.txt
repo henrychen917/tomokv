@@ -1,0 +1,21 @@
+tomo_db0::HashFieldMap::Node::Node(unsigned long, tomo_db0::Slice, tomo_db0::Slice)
+--- headline
+
++++ post
+
+@@ -81,12 +81,12 @@
+
+ CLONE 0 0117 [ 4] mov 0x28(%rbx),%rdi
+ CLONE 0 011b [ 5] jmp <+0x81>
+ CLONE 0 0120 [ 4] lea 0x18(%rdi),%rax
+-CLONE 0 0124 [ 7] lea <rip>(%rip),%r14 # <_IO_stdin_used+0x126c8>
++CLONE 0 0124 [ 7] lea <rip>(%rip),%r14 # <_IO_stdin_used+0x788>
+ CLONE 0 012b [ 4] mov %rax,0x8(%rdi)
+ CLONE 0 012f [ 5] jmp <+0x37>
+ CLONE 0 0134 [11] data16 cs nopw 0x0(%rax,%rax,1)
+ CLONE 0 013f [ 1] nop
+-CLONE 0 0140 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x126c8>
++CLONE 0 0140 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x788>
+ CLONE 0 0147 [ 5] jmp <+0x68>
+ CLONE 0 014c [ 4] endbr64
+ CLONE 0 0150 [ 3] mov %rax,%rbp

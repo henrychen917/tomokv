@@ -1,0 +1,15 @@
+luaU_dump
+--- headline
+
++++ post
+
+@@ -12,7 +12,7 @@
+
+ CLONE 0 002d [ 5] mov %rax,0x8(%rsp)
+ CLONE 0 0032 [ 8] movl $0x0,0x1c(%rsp)
+ CLONE 0 003a [ 8] movl $0x61754c1b,0x28(%rsp)
+-CLONE 0 0042 [ 7] mov <rip>(%rip),%rdx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x900>
++CLONE 0 0042 [ 7] mov <rip>(%rip),%rdx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x348>
+ CLONE 0 0049 [ 5] lea 0x28(%rsp),%rsi
+ CLONE 0 004e [ 5] mov %rdx,0x2c(%rsp)
+ CLONE 0 0053 [ 5] mov $0xc,%edx

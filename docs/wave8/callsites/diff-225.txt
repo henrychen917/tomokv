@@ -1,0 +1,15 @@
+tomo::HashFieldTtl::erase(tomo::Slice)
+--- headline
+
++++ post
+
+@@ -146,7 +146,7 @@
+
+ CLONE 0 024e [ 4] lea 0x1(%rax),%rsi
+ CLONE 0 0252 [ 5] call <_ZdlPvm@plt>
+ CLONE 0 0257 [ 4] movb $0x2,0x30(%rbx)
+-CLONE 0 025b [ 8] vmovq <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x740>
++CLONE 0 025b [ 8] vmovq <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x190>
+ CLONE 0 0263 [ 6] vmovq 0x18(%r13),%xmm0
+ CLONE 0 0269 [ 8] movq $0x0,0x20(%rbx)
+ CLONE 0 0271 [ 4] vpaddd %xmm1,%xmm0,%xmm0

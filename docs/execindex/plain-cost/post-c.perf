@@ -1,0 +1,11 @@
+# started on Mon Oct 26 09:45:25 2026
+
+
+ Performance counter stats for '/home/user/Projects/cx-execindex/build/execindex/post-plain-cost c 10000000':
+
+        6655589629      instructions:u
+
+       1.015895960 seconds time elapsed
+
+       0.503616000 seconds user
+       0.002962000 seconds sys

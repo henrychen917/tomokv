@@ -1,0 +1,15 @@
+Arith
+--- execindex
+
++++ post
+
+@@ -129,7 +129,7 @@
+
+ CLONE 0 022c [ 5] vmovsd %xmm0,(%r14)
+ CLONE 0 0231 [ 5] jmp <+0xf8>
+ CLONE 0 0236 [10] cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 0240 [ 8] vxorpd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5b8>
++CLONE 0 0240 [ 8] vxorpd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5f8>
+ CLONE 0 0248 [ 8] movl $0x3,0x8(%r14)
+ CLONE 0 0250 [ 5] vmovsd %xmm0,(%r14)
+ CLONE 0 0255 [ 5] jmp <+0xf8>

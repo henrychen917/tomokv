@@ -1,0 +1,33 @@
+{
+  "release_arms": [
+    "pre",
+    "post2",
+    "post4",
+    "post8",
+    "pad-a"
+  ],
+  "all_post_arms": [
+    "iofix-deferred: 1s/2s x epoll/uring x policy 0/S16/D3 and policy 1/S16/D3,S0/D3,S16/D0",
+    "wb_policy: 1s/2s x epoll/uring x policy 0/1, 22 fixtures per boot",
+    "normalized GET/SET/MGET/MSET linked identity to PRE"
+  ],
+  "post2_full_scope": [
+    "wb_rule_units: policy,phase,stages,split-phase; positive and negative controls",
+    "wbland_units: clauses,paths; positive and negative controls",
+    "iofix-sleep,iofix-signal: all four mode/engine legs",
+    "flip,flip_saturated,flipctl: ordinary boot on both engines; flip job retains its own close/churn/signal/registration legs",
+    "fliplisten,flip_unit,flipfix_units: entire job",
+    "debug-0,debug-1,release_batteries,replyoff,zc,asan_batteries,auth: 1s/2s x epoll/uring",
+    "climonfix: command/SIGTERM/SIGINT in 1s/2s, both engines",
+    "persistfix2_shutdown,persistfix_units: entire job",
+    "snapshot-uring,snapshot-epoll,aof-uring,aof-epoll: split/fused ordinary boot and every internally owned leg",
+    "differ-split,differ-armed: all five standard partitions and equivalence, both engines, permanent+rotating seeds",
+    "abba_selftest: gates_test.py 72/72 passed; aggregate inventory guard fails protected EXPECT mismatch",
+    "fused-0,fused-1,tls,netcmd_units,atomic_units,splitlocal_units,reorder_sync,reorder_engagement,reorder_identity: additional checks"
+  ],
+  "not_requested_or_not_run": [
+    "merit throughput measurements, ABBA/NIC performance and full iteration: maintainer only",
+    "broad POST2 correctness matrix is not repeated on multiplier 4 or 8; those arms run every WB4.1 and live writeback policy leg"
+  ],
+  "production_freshness": "make all, all 42 ordinary production unit targets, both mdbqsbr live arms, and blockfix cost/hash prerequisites; 46 make -q checks"
+}

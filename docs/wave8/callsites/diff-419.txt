@@ -1,0 +1,15 @@
+tomo_db0::SetMemberTable::erase_at(unsigned int, unsigned int&)
+--- headline
+
++++ post
+
+@@ -56,7 +56,7 @@
+
+ CLONE 0 00e5 [ 4] mov 0x20(%rbx),%rdx
+ CLONE 0 00e9 [ 4] mov 0x18(%rbx),%rdi
+ CLONE 0 00ed [ 4] mov 0x28(%rbp),%r8d
+-CLONE 0 00f1 [ 8] vmovq <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x740>
++CLONE 0 00f1 [ 8] vmovq <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x190>
+ CLONE 0 00f9 [ 3] mov -0x4(%rdx),%eax
+ CLONE 0 00fc [ 4] sub $0x4,%rdx
+ CLONE 0 0100 [ 4] mov %eax,(%rdi,%r8,4)

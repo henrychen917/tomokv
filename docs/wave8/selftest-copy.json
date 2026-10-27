@@ -1,0 +1,15 @@
+{
+  "source_commit": "83fcbf63678c27207c4a2543620e027966ab3158",
+  "root": "/home/user/Projects/cx-wave8/build/wave8/selftest",
+  "count_changes": {
+    "EXPECT_QUICK": [
+      798,
+      806
+    ],
+    "EXPECT_FULL": [
+      815,
+      823
+    ]
+  },
+  "fixture": "committed 823-row fixture"
+}

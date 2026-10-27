@@ -1,0 +1,45 @@
+{
+  "time": 1792911263.9523563,
+  "checked_at_commit": "0bdf1826adcec9c015a58ec6d6fffeb9efab5900",
+  "production_commit": "1909358b1",
+  "source_manifest_matches": {
+    "Makefile": true,
+    "src/cmd/scripting.cc": true,
+    "src/cmd/scripting.h": true,
+    "src/cmd/functions.cc": true,
+    "tests/compat3_lualibs.py": true,
+    "tests/gate.sh": true,
+    "tools/lualibs_artifacts.py": true,
+    "tests/lualibs_memory.cc": true,
+    "third_party/lua/helpers/fpconv.c": true,
+    "third_party/lua/helpers/fpconv.h": true,
+    "third_party/lua/helpers/lua_bit.c": true,
+    "third_party/lua/helpers/lua_cjson.c": true,
+    "third_party/lua/helpers/lua_cmsgpack.c": true,
+    "third_party/lua/helpers/lua_struct.c": true,
+    "third_party/lua/helpers/strbuf.c": true,
+    "third_party/lua/helpers/strbuf.h": true
+  },
+  "binaries": {
+    "build/tomokv-lualibs-pre": "36ebe01e5b2689ce4a7218aa6e99af93b90b82a033bbb3be0c319e7a4355355a",
+    "build/tomokv": "cf8cddadec95ade45d73c37bac6b635a9313106c45de99c74d09f7e1c17a3eb5",
+    "build/tomokv-lualibs-pad-a": "b76624ca330e80b2fded1ba5464da1f6f1c31ac42c94267574bd3d4676151ad4",
+    "/home/user/Projects/redis/src/redis-server": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "/tmp/claude-1000/redis74/src/redis-server": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b"
+  },
+  "required_layout_sizes": {
+    "Op": 336,
+    "Client": 1984,
+    "ThreadCtx": 1408,
+    "Shard": 1440,
+    "FlatStore": 944,
+    "Rob<64>": 192,
+    "AtomicEntry": 144,
+    "Config": 624
+  },
+  "production_freshness_receipt_entries": 45,
+  "expect_unchanged": {
+    "quick": 768,
+    "full": 785
+  }
+}

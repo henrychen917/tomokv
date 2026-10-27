@@ -17,6 +17,7 @@ struct LiveConfigSnapshot {
     uint32_t latency_monitor_threshold;
     bool save_armed;
     bool tracking_armed;
+    bool latency_tracking;
     uint64_t proto_max_bulk_len;
     uint64_t client_query_buffer_limit;
 };

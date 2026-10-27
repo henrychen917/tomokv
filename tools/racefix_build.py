@@ -15,6 +15,8 @@ def main():
     output.mkdir(parents=True, exist_ok=True)
     for directory in ('src', 'third_party'):
         shutil.copytree(root / directory, output / directory, dirs_exist_ok=True)
+    (output / 'tools').mkdir(exist_ok=True)
+    shutil.copy2(root / 'tools/assert_map.py', output / 'tools/assert_map.py')
     (output / 'tests').mkdir(exist_ok=True)
     shutil.copy2(root / 'tests/racefix_hook.h', output / 'tests/racefix_hook.h')
     shutil.copy2(root / 'Makefile', output / 'Makefile')

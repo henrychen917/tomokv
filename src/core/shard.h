@@ -25,7 +25,7 @@
 // home_domain() and store().resident_estimate() exist so it can be priced instead of guessed.
 #pragma once
 #include <atomic>
-#include <cassert>
+#include "../base/tomo_assert.h"
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -36,6 +36,7 @@
 #include "../base/exbatch_control.h"
 #include "../store/flatstore.h"
 #include "../cmd/notify.h"
+#include "../cmd/txn_key_queue.h"
 
 namespace tomo {
 
@@ -64,7 +65,7 @@ public:
 
     void init(Server* server, int32_t id, uint32_t bucket_begin, uint32_t bucket_end, uint32_t zc_min,
               const TypeLimits& type_limits, const StreamLimits& stream_limits) {
-        assert(bucket_begin <= bucket_end && bucket_end <= kNumBuckets);
+        TOMO_ASSERT(bucket_begin <= bucket_end && bucket_end <= kNumBuckets);
         server_ = server;
         id_ = id;
         bucket_begin_ = bucket_begin;
@@ -255,36 +256,7 @@ public:
         // transition needs the deadline the key carried when the client armed the WATCH.
         int64_t expire_at_ms = -1;
     };
-    struct WatchReservation {
-        const void* token = nullptr;
-        std::atomic<uint64_t>* epoch = nullptr;
-        std::atomic<bool>* aborted = nullptr;
-        std::atomic<uint32_t>* refs = nullptr;
-        Client* writer = nullptr;
-        uint64_t writer_generation = 0;
-        bool mutates = false;
-        // Does this reservation make another unit WAIT?
-        //
-        // A reservation from the EXEC validate path carries an ORDERING claim: the transaction has
-        // validated its WATCH on this key, so no foreign write may commit ahead of its decision.
-        // A writer therefore has to wait for it, and that wait is bounded because the transaction
-        // is already fanned out and decides on its own.
-        //
-        // A reservation from the atomic-group WRITE path carries no such claim. It exists only to
-        // defer THIS group's watcher-dirtying to its own commit decision. Making it exclusive --
-        // one slot per key, everybody else waits -- turned it into a cross-shard lock taken in
-        // arbitrary order, and two groups that each hold a key the other needs is a wait-for cycle
-        // with no timeout and no detector: tests/watchlive.py wedged 6/6 on it. Group reservations
-        // now coexist on a key (the map holds a list) and block nobody.
-        bool blocking = false;
-        uint8_t unit_kind = 0; // 1 EXEC, 2 read-dependent group
-        uint8_t unit_mode = 0; // TxnClaimMode
-        uint8_t entry_kind = 0; // 0 validation/dirty deferral, 1 claim, 2 writer, 3 waiter
-        // A swap-containing EXEC can write the same physical key while it names
-        // different logical databases. Keep the identities at each write, not
-        // the mapping at reservation retirement. WATCH state is cold/heap-owned.
-        std::array<uint64_t, 4> dirty_databases{};
-    };
+    using WatchReservation = TxnReservation;
     __attribute__((always_inline)) bool has_watches() const {
         TOMO_EXBATCH_TWIN(legacy, 3);
         return has_watches_;
@@ -326,7 +298,9 @@ public:
     bool watch_all_write_ready(const void* token = nullptr);
     bool watch_flush(int physical_db = -1);
     bool watch_finalize_reservation(const std::string& key);
-    bool watch_append_reservation(const std::string& key, const WatchReservation& reservation);
+    bool watch_finalize_queue(const std::string& key, TxnKeyQueue& queue);
+    bool watch_append_reservation(const std::string& key, const WatchReservation& reservation,
+                                   TxnWaiter* handle = nullptr);
     void watch_prune_stale(const std::string& key);
 
     // ---- locality --------------------------------------------------------------------------------
@@ -517,6 +491,8 @@ private:
     }
 
     friend struct ShardLayoutLock;
+    friend struct TxnLinearOracle; // test-only frozen registry, TOMO_TXN_ORACLE
+    friend struct TxnIndexTest;
     int32_t   id_ = -1;
     // Both endpoints include at most kNumBuckets (16384). Packing the route
     // endpoints leaves the WATCH gate in the hot header without moving zc_min,
@@ -546,7 +522,7 @@ private:
     StreamLimits stream_limits_;
     std::unordered_map<std::string, std::vector<WatchEntry>> watchers_;
     // One key can carry several undecided reservations at once -- see WatchReservation::blocking.
-    std::unordered_map<std::string, std::vector<WatchReservation>> watch_reservations_;
+    std::unordered_map<std::string, TxnKeyQueue> watch_reservations_;
     // Notification state is deliberately appended after every pre-existing field. In particular,
     // server_ must never return to offset 8: doing so shifted the entire hot shard header in v1.
     Server* server_ = nullptr;

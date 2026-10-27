@@ -1,0 +1,4 @@
+PARTIAL	0	GATE_ONLY_JOBS=latencyfix_shape latencyfix_off; NOT A RECEIPT
+ok	5.430000	release build (+footprint locks)
+FAIL	1.760000	latencyfix LAT-HIST-1 histogram and latencystats
+ok	12.880000	latencyfix LAT-HIST-1 zero allocations off

@@ -48,17 +48,33 @@ SRC      += src/cmd/objectpread.cc src/cmd/hexpread.cc
 SRC      += src/cmd/autharity.cc
 SRC      += src/core/fliplisten.cc
 SRC      += src/core/shutdown.cc
+SRC      += src/cmd/latency_tracking.cc
 # The entry wrapper belongs only to server links using --wrap=main.
 SERVER_ONLY_SRC := src/core/version.cc
 LDLIBS   += -lssl -lcrypto
 BUILD_ROOT ?= build
 BIN      := $(BUILD_ROOT)/tomokv
 OBJ      := $(SRC:%.cc=$(BUILD_ROOT)/%.o)
+# Redis 7.4's permissively licensed helpers share the existing Lua VM between
+# the two database variants. Compile as C, including the caller's sanitizer flags.
+LUA_HELPER_SRC := $(addprefix third_party/lua/helpers/,lua_cjson.c lua_cmsgpack.c lua_bit.c lua_struct.c strbuf.c fpconv.c)
+OBJ      += $(LUA_HELPER_SRC:%.c=$(BUILD_ROOT)/%.o)
 DB0_OBJ  := $(SRC:%.cc=$(BUILD_ROOT)/db0/%.o)
 SERVER_ONLY_OBJ := $(SERVER_ONLY_SRC:%.cc=$(BUILD_ROOT)/%.o)
 DB0_SERVER_ONLY_OBJ := $(SERVER_ONLY_SRC:%.cc=$(BUILD_ROOT)/db0/%.o)
 
-all: $(BIN)
+ASSERT_MAP := $(BUILD_ROOT)/tomokv.asserts.tsv
+ASSERT_SOURCES := $(shell find src third_party/lua/helpers -type f \( -name '*.h' -o -name '*.cc' -o -name '*.inc' -o -name '*.c' -o -name '*.def' \))
+
+ASSERT_DIRS := $(shell find src third_party/lua/helpers -type d)
+
+all: $(BIN) $(ASSERT_MAP)
+
+# The source map is a build artifact: duplicate ids or a Python/C++ hash mismatch
+# fail make all. Its mtime also participates in make -q freshness checks.
+$(ASSERT_MAP): tools/assert_map.py $(ASSERT_SOURCES) $(ASSERT_DIRS) Makefile
+	python3 tools/assert_map.py --output $@ --cxx "$(CXX)"
+
 
 # Wave 7: compile-only per-unit trials in docs/wave7/budgets and
 # docs/wave7/budgets-dispatch preserve headline or lane POST hot bodies where
@@ -67,7 +83,7 @@ all: $(BIN)
 
 # Opt-in lottery observation arm. Production sources and default objects remain
 # untouched; the copied tree adds only DEBUG-armed counters, never pause points.
-build/lottery/tomokv: tools/lottery_build.py tests/lottery_hooks.h $(SRC) $(SERVER_ONLY_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+build/lottery/tomokv: tools/lottery_build.py tools/assert_map.py tests/lottery_hooks.h $(SRC) $(SERVER_ONLY_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	python3 tools/lottery_build.py build/lottery/source
 	$(MAKE) -C build/lottery/source BUILD_ROOT=$(abspath build/lottery/objects) all
 	cp build/lottery/objects/tomokv $@
@@ -89,7 +105,7 @@ build/aoforder-scheduled: tools/aoforder_schedule.py $(BIN)
 
 # SV4.10: the DEBUG parser and pre-store hook exist only in this copied test
 # tree. Default production objects never contain a hook, branch or test state.
-build/racefix-climon: tools/racefix_build.py tests/racefix_hook.h $(SRC) $(SERVER_ONLY_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+build/racefix-climon: tools/racefix_build.py tools/assert_map.py tests/racefix_hook.h $(SRC) $(SERVER_ONLY_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	python3 tools/racefix_build.py build/racefix-climon-source
 	$(MAKE) -C build/racefix-climon-source BUILD_ROOT=$(abspath build/racefix-climon-objects) all
 	cp build/racefix-climon-objects/tomokv $@
@@ -244,10 +260,16 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # notifycompat: source-accurate IPA deltas are +2531/+2526. Bounded per-unit
 # trials (docs/notifycompat/budgets-final) reduce unrelated compiler spillover;
 # db0 prepare and shared execution deltas remain inventoried for merit review.
-$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=147163
+# Wave 8: 58 IPA surveys and 103 compile-only trials across all 29 pinned units.
+# Selected budgets and full reference scores: docs/wave8/budgets/selected.json.
+# wave8b: compile-only re-derivation of every affected pinned IO/scatter unit;
+# Final trials/scores: docs/wave8b/budgets-exact/selected.json, including
+# exact callback starts and WAIT slices. Identity is a proxy; merit is pending.
+# Instruction scopes and the maintainer merit still decide, not body identity.
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=148585
 # AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
 # perfex2: compensate the inline cold clear reset; every other emitted body is PRE-identical.
-$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=145970
+$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=147391
 # ACL key extraction is isolated from the IO templates. Keep the merged baseline's
 # ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
 # aclfix grows the unit by 749/765 insns (+739/+750 here): the shared reply helpers this
@@ -256,7 +278,7 @@ $(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-gro
 # + flipfix); scans 35360-35500 / 35300-35420: only the two weak-copy differences every value shows
 # (no vector<Client*>::push_back copy; flipfix's close_client) at 35369 (35367-35370) / 35324 (= 35326).
 $(BUILD_ROOT)/src/cmd/acl.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=35758
-$(BUILD_ROOT)/db0/src/cmd/acl.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=35697
+$(BUILD_ROOT)/db0/src/cmd/acl.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=35705
 # The isolated prebuild TU reuses the string parser text without emitting its public handlers.
 $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 
@@ -337,7 +359,7 @@ $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 # compat2b: 29 reference recompiles and merged compile-only trials select the
 # per-unit budgets in docs/compat2b/selected.json. Preserve headline or compat2
 # hot bodies; composed C1/N3/N4 dispatchers remain explicit merit inputs.
-$(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=147428
+$(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=147838
 # txnorder2: compile-only trials retained in docs/txnorder2/budgets; remaining spillover is explicit.
 # RL4.3/RL4.4 add only cold miss/delete work. Preserve the PRE hot-body inlining
 # choices; docs/rlfix records the complete byte inventory and compile-only trials.
@@ -346,8 +368,8 @@ $(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inli
 # body spillover; the remaining differences are reported for merit review.
 # wave4 merge (provisional, additive lane deltas over 8656f9fa9): genthread compat2 +29 and
 # clockcut +128; rl2s clockcut +256. The wave-4 budget commit re-derives these values.
-$(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=132454
-$(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=165831
+$(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=131218
+$(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=164621
 # wave3: see the note above $(BUILD_ROOT)/src/main.o (first override of this object).
 # wave3 R7 round (7fa5cb0e0 regenerates rlfix's RL4.4 into the R7 envelope): units +82 / +80
 # (src / db0). Compile-only scans 147770-147970 / 148760-148949 (docs/wave3/identity/
@@ -355,23 +377,27 @@ $(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0
 # then fewest changed bodies. src 147778 (147776-147779) and db0 148779 (148777-148780) change only
 # r7_ReadLocalDemotionPlan::prepare, its new read_local_commands_overlap .part.0 clone and
 # discarded COMDAT copies (the non-R7 demotion plan and FlatStore helpers; genthread.o's are linked).
-$(BUILD_ROOT)/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=150313
+$(BUILD_ROOT)/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=149103
 # CC18/ST3 composition: smallest current hot-body delta; ccfix4 retains the search.
-$(BUILD_ROOT)/db0/src/main.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=147449 --param max-inline-insns-auto=18
+$(BUILD_ROOT)/db0/src/main.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146080 --param max-inline-insns-auto=18
 # RL1: retain the measured ALT spelling and its fused GET placement controls.
 # docs/rlfence2/alt.patch and MEASURE-REQUEST-rlfence3.md record the byte proofs.
 # txnorder2: compile-only trials retained in docs/txnorder2/budgets; remaining spillover is explicit.
 # wave4 merge (provisional, additive lane deltas over 8656f9fa9): db0 genthread compat2 +27
 # and clockcut +64; db0 reorder compat2 +39 and clockcut +128. Re-derived by the budget commit.
-$(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=133256 -Wa,--defsym,tomo_rlfence_text_pad=16
-$(BUILD_ROOT)/db0/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=164323
+$(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=132012 -Wa,--defsym,tomo_rlfence_text_pad=16
+$(BUILD_ROOT)/db0/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=167496
 # Keep PRE's first (rather than second) tombstone-compaction call inlined in the
 # R7 fused sweep; the cold miss body otherwise changes GCC's tied call ordering.
-$(BUILD_ROOT)/db0/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=151302 --param max-inline-insns-auto=14
+$(BUILD_ROOT)/db0/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=150092 --param max-inline-insns-auto=14
 $(BUILD_ROOT)/db0/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 
 # Separate C++ namespaces prevent accidental cross-variant inline/COMDAT binding.
 # The only shared code is third-party Lua; all database state is variant-private.
+$(BUILD_ROOT)/third_party/lua/helpers/%.o: third_party/lua/helpers/%.c $(wildcard third_party/lua/*.h) $(wildcard third_party/lua/helpers/*.h) src/base/tomo_assert_c.h Makefile
+	@mkdir -p $(dir $@)
+	$(CC) $(filter-out -std=c++20,$(CXXFLAGS)) -std=c11 -DENABLE_CJSON_GLOBAL -Ithird_party/lua -c $< -o $@
+
 $(BUILD_ROOT)/db0/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) $(wildcard third_party/lua/*) Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c $< -o $@
@@ -477,6 +503,14 @@ unit: build/reorder-unit build/r7shadow-unit build/config-parser-test build/flip
 # Deterministic core regressions: the test TU instantiates the real executor/IO methods
 # with ASAN/UBSAN and test-only interleaving hooks. No server or ring is started.
 CORE_TEST_OBJ := $(filter-out build/src/main.o,$(OBJ))
+build/tomo-assert-fail: tests/tomo_assert_fail.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+
+ASSERT_LINT_JOBS ?= 1
+.PHONY: source-identity-check
+source-identity-check:
+	python3 tools/source_identity.py --cxx "$(CXX)" --cc "$(CC)" --flags "$(CXXFLAGS) $(JEFLAGS)" --jobs $(ASSERT_LINT_JOBS) --sources $(SRC) $(SERVER_ONLY_SRC) --c-sources $(LUA_HELPER_SRC)
+
 build/rlfix3-info-unit: build/tests/rlfix3_info_unit.o $(CORE_TEST_OBJ)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=clock_gettime,--wrap=getpid,--wrap=getrandom,--wrap=realpath,--wrap=mallctl,--wrap=time
@@ -595,6 +629,8 @@ build/multidb-unit: build/tests/multidb_unit.o build/tests/mdbstamp_checks.o bui
 MDBQSBR_SRC := $(filter-out src/main.cc,$(SRC))
 MDBQSBR_ASAN_OBJ := $(MDBQSBR_SRC:%.cc=build/mdbqsbr-asan/%.o)
 MDBQSBR_TSAN_OBJ := $(MDBQSBR_SRC:%.cc=build/mdbqsbr-tsan/%.o)
+MDBQSBR_ASAN_OBJ += $(LUA_HELPER_SRC:%.c=build/mdbqsbr-asan/%.o)
+MDBQSBR_TSAN_OBJ += $(LUA_HELPER_SRC:%.c=build/mdbqsbr-tsan/%.o)
 MDBQSBR_FLAGS := -std=c++20 -O1 -g -Wall -Wextra -march=native -pthread \
   -fno-omit-frame-pointer -no-pie -DTOMO_MDBQSBR_TEST -DTOMO_CORE_CONCURRENCY_TEST -I.
 MDBQSBR_WRAP := -Wl,--wrap=_ZN4tomo11AofProducer19record_database_mapEPKh
@@ -604,6 +640,12 @@ build/mdbqsbr-asan/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makef
 build/mdbqsbr-tsan/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(MDBQSBR_FLAGS) -fsanitize=thread -c $< -o $@
+build/mdbqsbr-asan/third_party/lua/helpers/%.o: third_party/lua/helpers/%.c $(wildcard third_party/lua/*.h) $(wildcard third_party/lua/helpers/*.h) src/base/tomo_assert_c.h Makefile
+	@mkdir -p $(dir $@)
+	$(CC) $(filter-out -std=c++20,$(MDBQSBR_FLAGS)) -std=c11 -DENABLE_CJSON_GLOBAL -Ithird_party/lua -fsanitize=address,undefined -c $< -o $@
+build/mdbqsbr-tsan/third_party/lua/helpers/%.o: third_party/lua/helpers/%.c $(wildcard third_party/lua/*.h) $(wildcard third_party/lua/helpers/*.h) src/base/tomo_assert_c.h Makefile
+	@mkdir -p $(dir $@)
+	$(CC) $(filter-out -std=c++20,$(MDBQSBR_FLAGS)) -std=c11 -DENABLE_CJSON_GLOBAL -Ithird_party/lua -fsanitize=thread -c $< -o $@
 build/mdbqsbr-asan/src/cmd/l4prebuild.o build/mdbqsbr-tsan/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 build/mdbqsbr-unit: build/mdbqsbr-asan/tests/mdbqsbr_unit.o $(MDBQSBR_ASAN_OBJ)
 	@mkdir -p $(dir $@)
@@ -662,6 +704,8 @@ build/core-concurrency-unit: build/core-concurrency-mdbqsbr-asan
 # Keep ALL COMDAT copies of the hook-bearing inline publisher identical. Never
 # link these objects into a production server or mix them with release objects.
 PUBLISHFIX_OBJ := $(patsubst %.cc,$(BUILD_ROOT)/publishfix-unit-objects/%.o,$(filter-out src/main.cc,$(SRC)))
+# Helpers contain no TOMO_PUBLISHFIX_TEST code; use the same C objects as release.
+PUBLISHFIX_OBJ += $(LUA_HELPER_SRC:%.c=$(BUILD_ROOT)/%.o)
 $(BUILD_ROOT)/publishfix-unit-objects/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 $(BUILD_ROOT)/publishfix-unit-objects/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	@mkdir -p $(dir $@)
@@ -690,6 +734,15 @@ build/txnorder-watch-unit: tests/txnorder_watch_unit.cc $(TXNORDER_UNIT_DEPS) $(
 
 build/txnorder-watch-db0-unit: tests/txnorder_watch_unit.cc $(TXNORDER_UNIT_DEPS) $(filter-out build/db0/src/main.o build/db0/src/cmd/xshard.o,$(DB0_OBJ)) $(filter-out build/src/main.o,$(OBJ))
 	$(CXX) $(filter-out -O3,$(CXXFLAGS)) -O0 $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< $(filter-out build/db0/src/main.o build/db0/src/cmd/xshard.o,$(DB0_OBJ)) $(filter-out build/src/main.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+
+build/txnorder-retry-unit: tests/txnorder_retry_unit.cc $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< -o $@ $(JELIBS) $(LDLIBS)
+
+# execindex uses independent frozen linear owner code in both physical namespaces.
+build/txnorder-index-unit: tests/txnorder_index_unit.cc tests/txnorder_linear_oracle.inc $(TXNORDER_UNIT_DEPS) $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ))
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_TXN_ORACLE -DTOMO_TXNORDER_DEBUG -I. $< $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/txnorder-index-db0-unit: tests/txnorder_index_unit.cc tests/txnorder_linear_oracle.inc $(TXNORDER_UNIT_DEPS) $(filter-out build/db0/src/main.o build/db0/src/cmd/xshard.o,$(DB0_OBJ)) $(filter-out build/src/main.o,$(OBJ))
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_TXN_ORACLE -DTOMO_TXNORDER_DEBUG -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< $(filter-out build/db0/src/main.o build/db0/src/cmd/xshard.o,$(DB0_OBJ)) $(filter-out build/src/main.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
 
 # Inspect real record/header allocation arenas on pinned owner threads, including abort cleanup
 # and quiesced shard handoff. JE=1 is required; no server or io_uring instance is started.

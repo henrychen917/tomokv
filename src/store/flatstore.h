@@ -62,7 +62,7 @@
 #pragma once
 #include <algorithm>
 #include <atomic>
-#include <cassert>
+#include "../base/tomo_assert.h"
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -95,12 +95,11 @@ struct StoreSizeState {
     std::atomic<uint64_t> avg_deadline{0};
     std::atomic<bool> field_ttl_attention{false};
 };
-#line 92
 
 // Fault injection for the cold table-allocation paths. It is compiled in whenever NDEBUG is not
 // defined -- which is every build the Makefile produces, release included -- and costs one relaxed
 // load per table allocation, never anything on the request path. Defining NDEBUG removes this
-// surface (and every assert() in the tree) as a build-system decision.
+// surface and disables runtime assertions as a build-system decision.
 #ifndef NDEBUG
 inline std::atomic<uint32_t> g_flatstore_table_alloc_failures{0};
 
@@ -885,71 +884,6 @@ public:
     // The existing captured hook below witnesses the later topology-check window.
     inline static void (*test_read_local_capture_entered)(const FlatStore&) = nullptr;
 #endif
-
-    // TTL selector removal also preserves the later assertion line below.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // Preserve the source span through the capture entry: pack()'s release assert
-    // embeds __LINE__. Removing this space changes executable assertion arguments.
-
-
-
-
-
-
-
-
-
 
     bool read_local_validate(uint64_t state) const {
         return read_local_enabled_ && read_local_state_eligible(state) &&
@@ -1863,7 +1797,6 @@ public:
             state->sample_cursor = 0;
             state->avg_deadline.store(0, std::memory_order_relaxed);
         } else storesize_clear();
-#line 1775
         if (__builtin_expect(read_local_enabled_, false)) {
             clear_read_local();
             return;
@@ -1905,7 +1838,6 @@ public:
             state->sample_cursor = 0;
             state->avg_deadline.store(0, std::memory_order_relaxed);
         } else storesize_clear();
-#line 1810
         if (__builtin_expect(read_local_enabled_, false)) {
             clear_during_snapshot_read_local();
             return;
@@ -2376,7 +2308,7 @@ private:
     static KvObj*   ptr_of(uint64_t w)      { return reinterpret_cast<KvObj*>(w & kPtrMask); }
     static uint64_t make_word(uint16_t tag, KvObj* o) {
         const uint64_t pointer = reinterpret_cast<uint64_t>(o);
-        assert((pointer & ~kPtrMask) == 0 && "KvObj pointer exceeds FlatStore's 48-bit encoding");
+        TOMO_ASSERT((pointer & ~kPtrMask) == 0 && "KvObj pointer exceeds FlatStore's 48-bit encoding");
         return (static_cast<uint64_t>(tag) << 49) | pointer;
     }
     uint32_t slot_start(int t, uint64_t h) const { return static_cast<uint32_t>(mix64(h)) & mask_[t]; }

@@ -1,0 +1,2697 @@
+{
+  "function_groups": 9868,
+  "unchanged": 8151,
+  "changed": 1717,
+  "lane_equal": 1102,
+  "residual": 615,
+  "hot_groups": 925,
+  "hot_headline": 529,
+  "hot_lane": 253,
+  "command_hot_groups": 78,
+  "command_hot_headline": 64,
+  "command_hot_lane": 8,
+  "hot_residual": [
+    {
+      "name": "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3868
+      ],
+      "post_sizes": [
+        4234
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo::ExLoopT<false>::execute_latency<false, false>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        2807
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo::ExLoopT<false>::execute_timed<false, false>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2734
+      ],
+      "post_sizes": [
+        2852
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3564
+      ],
+      "post_sizes": [
+        3824
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3416
+      ],
+      "post_sizes": [
+        3657
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute<true, false>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        3824
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute<true, true>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        3657
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute_latency<false, false>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        3292
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute_latency<false, true>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        3109
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute_latency<true, false>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        3292
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute_latency<true, true>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        3109
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2709
+      ],
+      "post_sizes": [
+        3325
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute_timed<false, true>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2544
+      ],
+      "post_sizes": [
+        3146
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute_timed<true, false>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        3325
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute_timed<true, true>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        3146
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3867
+      ],
+      "post_sizes": [
+        4233
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<false>::execute_latency<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        2806
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<false>::execute_timed<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2733
+      ],
+      "post_sizes": [
+        2851
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3563
+      ],
+      "post_sizes": [
+        3823
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3415
+      ],
+      "post_sizes": [
+        3656
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute<true, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        3823
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute<true, true>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        3656
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_latency<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        3291
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_latency<false, true>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        3108
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_latency<true, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        3291
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_latency<true, true>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        3108
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_timed<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2708
+      ],
+      "post_sizes": [
+        3324
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_timed<false, true>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2543
+      ],
+      "post_sizes": [
+        3145
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_timed<true, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        3324
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_timed<true, true>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        3145
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        929
+      ],
+      "post_sizes": [
+        945
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "lualibs",
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of lualibs, latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        181
+      ],
+      "post_sizes": [
+        181
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::ExLoopT<false>::execute_latency<false, false>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        333
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::execute<true, false>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        307
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::execute<true, true>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        307
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::execute_latency<false, false>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        333
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::execute_latency<false, true>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        333
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::execute_latency<true, false>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        333
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::execute_latency<true, true>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        333
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::execute_timed<true, false>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        307
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::execute_timed<true, true>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        307
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2249
+      ],
+      "post_sizes": [
+        2249
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "lualibs",
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of lualibs, latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        12904
+      ],
+      "post_sizes": [
+        12898
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18814
+      ],
+      "post_sizes": [
+        19386
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21091
+      ],
+      "post_sizes": [
+        20112
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        12925
+      ],
+      "post_sizes": [
+        12962
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::Op::Sink::advance(unsigned long) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21
+      ],
+      "post_sizes": [
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        86,
+        86,
+        86,
+        86,
+        86,
+        86,
+        86,
+        86,
+        86,
+        86,
+        86,
+        86,
+        86,
+        86,
+        86
+      ],
+      "post_sizes": [
+        86,
+        86,
+        86,
+        86,
+        86,
+        86,
+        86,
+        86,
+        86,
+        86,
+        86,
+        86,
+        86,
+        86,
+        86,
+        86
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        21794
+      ],
+      "post_sizes": [
+        21794
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        947
+      ],
+      "post_sizes": [
+        977
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "lualibs",
+        "execindex"
+      ],
+      "reason": "Composition of lualibs, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        181
+      ],
+      "post_sizes": [
+        181
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<false>::execute_latency<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        333
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::execute<true, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        307
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::execute<true, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        307
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::execute_latency<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        333
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::execute_latency<false, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        333
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::execute_latency<true, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        333
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::execute_latency<true, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        333
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::execute_timed<true, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        307
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::execute_timed<true, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        307
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21326
+      ],
+      "post_sizes": [
+        21478
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        276
+      ],
+      "post_sizes": [
+        272
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21808
+      ],
+      "post_sizes": [
+        21921
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        9815,
+        12327,
+        9879,
+        10859
+      ],
+      "post_sizes": [
+        10386,
+        12516,
+        10410,
+        11419
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        166,
+        248,
+        166,
+        248
+      ],
+      "post_sizes": [
+        166,
+        248,
+        166,
+        248
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21448,
+        19230
+      ],
+      "post_sizes": [
+        21594,
+        19663
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        293,
+        293
+      ],
+      "post_sizes": [
+        286,
+        283
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21649
+      ],
+      "post_sizes": [
+        21915
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1606
+      ],
+      "post_sizes": [
+        1606
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "readability-a0",
+        "lualibs",
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of readability-a0, lualibs, latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::kvobj_free_with_capacity(tomo_db0::KvObj*, unsigned long)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        772
+      ],
+      "post_sizes": [
+        772
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "readability-a0",
+        "lualibs",
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of readability-a0, lualibs, latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        23675
+      ],
+      "post_sizes": [
+        23675
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "lualibs",
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of lualibs, latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3668
+      ],
+      "post_sizes": [
+        3129
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2334
+      ],
+      "post_sizes": [
+        2286
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, false, true>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2318
+      ],
+      "post_sizes": [
+        2238
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2334
+      ],
+      "post_sizes": [
+        2286
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, true, true>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2318
+      ],
+      "post_sizes": [
+        2238
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2608
+      ],
+      "post_sizes": [
+        2529
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2576
+      ],
+      "post_sizes": [
+        2497
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2608
+      ],
+      "post_sizes": [
+        2529
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, true>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2576
+      ],
+      "post_sizes": [
+        2574
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3014
+      ],
+      "post_sizes": [
+        2918
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, true>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2998
+      ],
+      "post_sizes": [
+        2886
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3014
+      ],
+      "post_sizes": [
+        2918
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, true>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2998
+      ],
+      "post_sizes": [
+        2886
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3521
+      ],
+      "post_sizes": [
+        3415
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, true>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3489
+      ],
+      "post_sizes": [
+        3383
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3521
+      ],
+      "post_sizes": [
+        3415
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, true>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3489
+      ],
+      "post_sizes": [
+        3383
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3078
+      ],
+      "post_sizes": [
+        3030
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3094
+      ],
+      "post_sizes": [
+        3030
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3078
+      ],
+      "post_sizes": [
+        3030
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3094
+      ],
+      "post_sizes": [
+        3030
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3521
+      ],
+      "post_sizes": [
+        3511
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3521
+      ],
+      "post_sizes": [
+        3511
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3521
+      ],
+      "post_sizes": [
+        3511
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3521
+      ],
+      "post_sizes": [
+        3511
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3742
+      ],
+      "post_sizes": [
+        3718
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix"
+      ],
+      "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2302
+      ],
+      "post_sizes": [
+        2254
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, true>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2286
+      ],
+      "post_sizes": [
+        2206
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2302
+      ],
+      "post_sizes": [
+        2254
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, true>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2286
+      ],
+      "post_sizes": [
+        2206
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3046
+      ],
+      "post_sizes": [
+        2934
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, true>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3030
+      ],
+      "post_sizes": [
+        2902
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3046
+      ],
+      "post_sizes": [
+        2934
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, true>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3030
+      ],
+      "post_sizes": [
+        2902
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3489
+      ],
+      "post_sizes": [
+        3415
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, true>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3457
+      ],
+      "post_sizes": [
+        3399
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3489
+      ],
+      "post_sizes": [
+        3415
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, true>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3457
+      ],
+      "post_sizes": [
+        3399
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, false, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2437
+      ],
+      "post_sizes": [
+        2318
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, false, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2453
+      ],
+      "post_sizes": [
+        2318
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, true, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2437
+      ],
+      "post_sizes": [
+        2318
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, true, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2453
+      ],
+      "post_sizes": [
+        2318
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, false, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2764
+      ],
+      "post_sizes": [
+        2740
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, false, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2780
+      ],
+      "post_sizes": [
+        2740
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, true, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2764
+      ],
+      "post_sizes": [
+        2740
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, true, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2780
+      ],
+      "post_sizes": [
+        2740
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, false, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3120
+      ],
+      "post_sizes": [
+        3062
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, false, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3136
+      ],
+      "post_sizes": [
+        3062
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, true, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3120
+      ],
+      "post_sizes": [
+        3062
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, true, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3136
+      ],
+      "post_sizes": [
+        3062
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, false, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3547
+      ],
+      "post_sizes": [
+        3559
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, false, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3547
+      ],
+      "post_sizes": [
+        3559
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, true, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3547
+      ],
+      "post_sizes": [
+        3559
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, true, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3547
+      ],
+      "post_sizes": [
+        3559
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, false, false, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5489
+      ],
+      "post_sizes": [
+        5769
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, false, true, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5491
+      ],
+      "post_sizes": [
+        5818
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, true, false, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5531
+      ],
+      "post_sizes": [
+        5807
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, true, true, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5491
+      ],
+      "post_sizes": [
+        5818
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, false, false, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5610
+      ],
+      "post_sizes": [
+        5856
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, false, true, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5534
+      ],
+      "post_sizes": [
+        5835
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, true, false, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5654
+      ],
+      "post_sizes": [
+        5897
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, true, true, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5534
+      ],
+      "post_sizes": [
+        5835
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        15966
+      ],
+      "post_sizes": [
+        15966
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "lualibs",
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of lualibs, latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        17131
+      ],
+      "post_sizes": [
+        17131
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "lualibs",
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of lualibs, latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, false, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5178
+      ],
+      "post_sizes": [
+        5487
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, true, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5228
+      ],
+      "post_sizes": [
+        5510
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, false, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5250
+      ],
+      "post_sizes": [
+        5526
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, true, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5228
+      ],
+      "post_sizes": [
+        5510
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, false, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5310
+      ],
+      "post_sizes": [
+        5578
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, true, false, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5333
+      ],
+      "post_sizes": [
+        5605
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "latencyfix",
+        "iofix3"
+      ],
+      "reason": "Composition of latencyfix, iofix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        15887
+      ],
+      "post_sizes": [
+        15887
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "lualibs",
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of lualibs, latencyfix, execindex; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        17185
+      ],
+      "post_sizes": [
+        17185
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "lualibs",
+        "latencyfix",
+        "execindex"
+      ],
+      "reason": "Composition of lualibs, latencyfix, execindex; residual instructions/layout require merit review."
+    }
+  ],
+  "references": {
+    "headline": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-3700b51d7",
+      "sha256": "56ec64d13cf87d97d75ad955311a44c77ffc87a6798b548d5c4330b6713cd97c"
+    },
+    "readability-a0": {
+      "path": "/home/user/Projects/bins/readability-a0-post-423ba683",
+      "sha256": "423ba683d71492ab638d325ae6ea95069678716beb799fec826f7f7b1dcd8144"
+    },
+    "lualibs": {
+      "path": "/home/user/Projects/bins/lualibs-post-cf8cddad",
+      "sha256": "cf8cddadec95ade45d73c37bac6b635a9313106c45de99c74d09f7e1c17a3eb5"
+    },
+    "latencyfix": {
+      "path": "/home/user/Projects/bins/latencyfix-post-257d6ee6",
+      "sha256": "257d6ee619d33eeaffbb6fa55cd30b9880a37fc873f01d467c9469519dbf36d0"
+    },
+    "iofix3": {
+      "path": "/home/user/Projects/bins/iofix3-post2-dd1699ed",
+      "sha256": "dd1699ed4dc953cac8f24e9d47c8c5e43ef4b280e158f278c496c5193ab871d4"
+    },
+    "execindex": {
+      "path": "/home/user/Projects/bins/execindex-post-aee04885",
+      "sha256": "aee048859f6f8d84d5aa4e0b30767ad1e8dac4595d383ff634a8226027d1566a"
+    },
+    "baseline_lualibs": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-05a5e01a9",
+      "sha256": "ff538ad1bebb30a7272e5396ef7daca90df14f2a84db3dd6f3cfc2acc8c1acd8"
+    }
+  },
+  "post": {
+    "path": "/home/user/Projects/cx-wave8/build/tomokv",
+    "sha256": "f94fbd1d57873ff32bdf279b796139e0dd94e8cd7f613d9a7f17832ef86af359"
+  }
+}

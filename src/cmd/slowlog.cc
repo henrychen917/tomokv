@@ -21,6 +21,7 @@
 // occurrence is logged exactly. Redis times every command individually and has no such window.
 // The trade buys the default-on hot path back.
 #include "slowlog.h"
+#include "latency_tracking.h"
 
 #include "command.h"
 #include "multidb.h"
@@ -405,10 +406,7 @@ void cmd_latency(Shard&, Op& op) {
                                          sizeof(kLatencySubcommands[0]))) return;
     const Slice sub = op.arg(1);
     if (eq_icase(sub, "HISTOGRAM")) {
-        // The batch/escalation recorder does not collect per-command latency
-        // histograms. Redis returns an empty map when no histograms exist;
-        // do not invent a distribution from the sampled slow-log entries.
-        reply_map_header(op.sink(), 0, op.resp3());
+        latency_tracking_histogram(op);
         return;
     }
     if (eq_icase(sub, "HELP") && op.argc() == 2) {
@@ -603,8 +601,8 @@ __attribute__((noinline, cold)) void slowlog_complete(const Op& op) {
     const uint64_t elapsed = now_ns() - timing.started;
     // slowlog_record tests the measured duration before copying argv or taking
     // the directory reference. The caller still owns the unpublished operation.
-    slowlog_record(timing.thread_id, timing.client_id, op, elapsed,
-                   timing.now_ms, timing.arm, true);
+    slowlog_recorder(timing.thread_id, timing.client_id, op, elapsed,
+                   timing.now_ms, timing.arm, true, timing.started);
 }
 
 std::shared_ptr<const SlowlogIdentity> slowlog_capture(
@@ -637,7 +635,7 @@ std::shared_ptr<const SlowlogIdentity> slowlog_capture(
 // The connection-local path. Safe to read argv directly: the IO loop stores Done only AFTER this
 // returns, so the op cannot have retired.
 void slowlog_record(uint32_t thread_id, uint64_t client_id, const Op& op, uint64_t duration_ns,
-                    int64_t now_ms, const SlowlogArm& arm, bool exact) {
+                    int64_t now_ms, const SlowlogArm& arm, bool exact, uint64_t /*started*/) {
     const uint64_t duration_us = duration_ns / 1000;
     // Skip the capture entirely unless this op will actually be logged.
     const bool wants_entry = arm.slowlog_us >= 0 &&

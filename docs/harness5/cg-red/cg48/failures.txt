@@ -1,0 +1,2 @@
+      1 ERROR: test_full_product_retains_and_replays_both_passes
+      1 FAIL: test_aggregate_zero_without_product_cannot_issue_receipt

@@ -40,6 +40,10 @@ def main():
     for name in ('src', 'third_party'):
         shutil.copytree(a.source / name, source / name)
     shutil.copy2(a.source / 'Makefile', source / 'Makefile')
+    map_tool = a.source / 'tools/assert_map.py'
+    if map_tool.exists():  # Historical source trees predate assertion maps.
+        (source / 'tools').mkdir()
+        shutil.copy2(map_tool, source / 'tools/assert_map.py')
     header = source / 'src/core/server.h'
     text = header.read_text()
     anchor = '        const uint64_t drawn = commit_seq_.load(std::memory_order_seq_cst);'

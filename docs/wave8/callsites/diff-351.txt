@@ -1,0 +1,15 @@
+tomo_db0::AofManager::reply_write_error(tomo_db0::Op&, bool) const
+--- headline
+
++++ post
+
+@@ -19,7 +19,7 @@
+
+ CLONE 0 003f [ 5] call <strerror@plt>
+ CLONE 0 0044 [ 2] test %bl,%bl
+ CLONE 0 0046 [ 7] lea <rip>(%rip),%rdx # <literal-string-4558454341424f5254205472616e73616374696f6e206469736361726465642062656361757365206f663a2000>
+-CLONE 0 004d [ 7] lea <rip>(%rip),%r9 # <_IO_stdin_used+0x126c8>
++CLONE 0 004d [ 7] lea <rip>(%rip),%r9 # <_IO_stdin_used+0x788>
+ CLONE 0 0054 [ 4] cmovne %rdx,%r9
+ CLONE 0 0058 [ 4] sub $0x8,%rsp
+ CLONE 0 005c [ 5] mov $0x200,%ecx

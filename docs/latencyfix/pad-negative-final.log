@@ -1,0 +1,13 @@
+GATE(quick): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-latencyfix/build/gate-run.24WijA
+PARTIAL jobs (including prerequisites): release latencyfix_grammar latencyfix_shape latencyfix_off
+PARTIAL jobs (including prerequisites): release latencyfix_grammar latencyfix_shape latencyfix_off
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=6.26s; correctness-plan-fallback; latencyfix LAT-HIST-1 knob grammar
+  latencyfix LAT-HIST-1 knob grammar                   FAIL (see /home/user/Projects/cx-latencyfix/build/gate-run.24WijA/jobs/latencyfix_grammar/latencyfix-grammar.log)
+  row budget: 900s; median=1.77s; correctness-plan-fallback; latencyfix LAT-HIST-1 histogram and latencystats
+  latencyfix LAT-HIST-1 histogram and latencystats     FAIL (see /home/user/Projects/cx-latencyfix/build/gate-run.24WijA/jobs/latencyfix_shape/latencyfix-shape.log)
+  row budget: 900s; median=12.93s; correctness-plan-fallback; latencyfix LAT-HIST-1 zero allocations off
+  latencyfix LAT-HIST-1 zero allocations off           FAIL (see /home/user/Projects/cx-latencyfix/build/gate-run.24WijA/jobs/latencyfix_off/latencyfix-off.log)
+GATE(PARTIAL): 1 ok, 3 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-latencyfix/docs/latencyfix/pad-negative-final.tsv.partial

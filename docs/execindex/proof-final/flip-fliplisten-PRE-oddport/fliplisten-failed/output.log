@@ -1,0 +1,8 @@
+  row budget: 900s; median=-s; correctness-plan-fallback; FLIP listener conservation (io-ex, complete)
+  FLIP listener conservation (io-ex, complete)         FAIL (see /home/user/Projects/cx-execindex/build/gate-run.C4WVsf/jobs/fliplisten/gate-fliplisten-io-ex-complete.txt)
+  row budget: 900s; median=27.82s; correctness-plan-fallback; FLIP listener conservation (io-ex, rollback)
+  FLIP listener conservation (io-ex, rollback)         ok
+  row budget: 900s; median=27.825s; correctness-plan-fallback; FLIP listener conservation (ex-io, complete)
+  FLIP listener conservation (ex-io, complete)         ok
+  row budget: 900s; median=27.53s; correctness-plan-fallback; FLIP listener conservation (ex-io, rollback)
+  FLIP listener conservation (ex-io, rollback)         ok

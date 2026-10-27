@@ -1,0 +1,1550 @@
+{
+  "post_sha256": "f94fbd1d57873ff32bdf279b796139e0dd94e8cd7f613d9a7f17832ef86af359",
+  "bindings": [
+    {
+      "job": "source_identity",
+      "receipts": [
+        "final-lanes"
+      ],
+      "passing_receipts": [
+        "final-lanes"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "lualibs",
+      "receipts": [
+        "final-lanes"
+      ],
+      "passing_receipts": [
+        "final-lanes"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "latencyfix_grammar",
+      "receipts": [
+        "final-lanes"
+      ],
+      "passing_receipts": [
+        "final-lanes"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "latencyfix_shape",
+      "receipts": [
+        "final-lanes"
+      ],
+      "passing_receipts": [
+        "final-lanes"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "latencyfix_off",
+      "receipts": [
+        "final-lanes"
+      ],
+      "passing_receipts": [
+        "final-lanes"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "iofix-deferred",
+      "receipts": [
+        "final-lanes"
+      ],
+      "passing_receipts": [
+        "final-lanes"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "iofix-hz",
+      "receipts": [
+        "final-lanes"
+      ],
+      "passing_receipts": [
+        "final-lanes"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "iofix-sleep",
+      "receipts": [
+        "final-lanes"
+      ],
+      "passing_receipts": [
+        "final-lanes"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "iofix-signal",
+      "receipts": [
+        "final-lanes"
+      ],
+      "passing_receipts": [
+        "final-lanes"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "execfair",
+      "receipts": [
+        "final-lanes"
+      ],
+      "passing_receipts": [
+        "final-lanes"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "txnorder_index",
+      "receipts": [
+        "final-lanes"
+      ],
+      "passing_receipts": [
+        "final-lanes"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "txnorder2",
+      "receipts": [
+        "final-lanes"
+      ],
+      "passing_receipts": [
+        "final-lanes"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "txnorder_wake",
+      "receipts": [
+        "final-lanes"
+      ],
+      "passing_receipts": [
+        "final-lanes"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "reorder_identity",
+      "receipts": [
+        "final-lanes"
+      ],
+      "passing_receipts": [
+        "final-lanes"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "reorder_sync",
+      "receipts": [
+        "final-units"
+      ],
+      "passing_receipts": [
+        "final-units"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "reorder_engagement",
+      "receipts": [
+        "final-units"
+      ],
+      "passing_receipts": [
+        "final-units"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "wb_rule_units",
+      "receipts": [
+        "final-units"
+      ],
+      "passing_receipts": [
+        "final-units"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "wbland_units",
+      "receipts": [
+        "final-units"
+      ],
+      "passing_receipts": [
+        "final-units"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "scriptfix",
+      "receipts": [
+        "final-units"
+      ],
+      "passing_receipts": [
+        "final-units"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "atomfix5_watch",
+      "receipts": [
+        "final-units"
+      ],
+      "passing_receipts": [
+        "final-units"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "datafix2_watch",
+      "receipts": [
+        "final-units"
+      ],
+      "passing_receipts": [
+        "final-units"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "blockfix_structure",
+      "receipts": [
+        "final-units"
+      ],
+      "passing_receipts": [
+        "final-units"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "blockfix_registry",
+      "receipts": [
+        "final-units"
+      ],
+      "passing_receipts": [
+        "final-units"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "blockfix_mkstream",
+      "receipts": [
+        "final-units"
+      ],
+      "passing_receipts": [
+        "final-units"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "serverfix_slowlog",
+      "receipts": [
+        "final-units"
+      ],
+      "passing_receipts": [
+        "final-units"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "rlfix3_info",
+      "receipts": [
+        "final-units"
+      ],
+      "passing_receipts": [
+        "final-units"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "compat3",
+      "receipts": [
+        "final-units"
+      ],
+      "passing_receipts": [
+        "final-units"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "netcmd_units",
+      "receipts": [
+        "final-units"
+      ],
+      "passing_receipts": [
+        "final-units"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "atomic_units",
+      "receipts": [
+        "final-units"
+      ],
+      "passing_receipts": [
+        "final-units"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "splitlocal_units",
+      "receipts": [
+        "final-units"
+      ],
+      "passing_receipts": [
+        "final-units"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "exbatch_units",
+      "receipts": [
+        "final-units",
+        "final-exbatch-repaired"
+      ],
+      "passing_receipts": [
+        "final-exbatch-repaired"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "moverfix",
+      "receipts": [
+        "final-units"
+      ],
+      "passing_receipts": [
+        "final-units"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "core_units",
+      "receipts": [
+        "final-units"
+      ],
+      "passing_receipts": [
+        "final-units"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "wait_units",
+      "receipts": [
+        "final-units"
+      ],
+      "passing_receipts": [
+        "final-units"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "serverfix_waitaof",
+      "receipts": [
+        "final-units"
+      ],
+      "passing_receipts": [
+        "final-units"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "netio-1s",
+      "receipts": [
+        "final-units"
+      ],
+      "passing_receipts": [
+        "final-units"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "netio-2s",
+      "receipts": [
+        "final-units"
+      ],
+      "passing_receipts": [
+        "final-units"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "asan",
+      "receipts": [
+        "final-supplemental-jobs",
+        "final-supplemental"
+      ],
+      "passing_receipts": [
+        "final-supplemental-jobs"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "rldbg",
+      "receipts": [
+        "final-supplemental-jobs",
+        "final-supplemental"
+      ],
+      "passing_receipts": [
+        "final-supplemental-jobs"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "netfix_query_stats",
+      "receipts": [
+        "final-supplemental-jobs",
+        "final-supplemental"
+      ],
+      "passing_receipts": [
+        "final-supplemental-jobs"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "ntfix_input",
+      "receipts": [
+        "final-supplemental-jobs",
+        "final-supplemental"
+      ],
+      "passing_receipts": [
+        "final-supplemental-jobs"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "persistfix2_lastsave",
+      "receipts": [
+        "final-supplemental-jobs",
+        "final-supplemental"
+      ],
+      "passing_receipts": [
+        "final-supplemental-jobs"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "racefix_counters",
+      "receipts": [
+        "final-supplemental-jobs",
+        "final-supplemental"
+      ],
+      "passing_receipts": [
+        "final-supplemental-jobs"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "notify_aof",
+      "receipts": [
+        "final-supplemental-jobs",
+        "final-supplemental"
+      ],
+      "passing_receipts": [
+        "final-supplemental-jobs"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "notify_order",
+      "receipts": [
+        "final-supplemental-jobs",
+        "final-supplemental"
+      ],
+      "passing_receipts": [
+        "final-supplemental-jobs"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "notifycompat",
+      "receipts": [
+        "final-supplemental-jobs",
+        "final-supplemental"
+      ],
+      "passing_receipts": [
+        "final-supplemental-jobs"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "exbatch_live",
+      "receipts": [
+        "final-supplemental-jobs",
+        "final-supplemental"
+      ],
+      "passing_receipts": [
+        "final-supplemental-jobs"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "atomfix5_accounting",
+      "receipts": [
+        "final-supplemental-jobs",
+        "final-supplemental"
+      ],
+      "passing_receipts": [
+        "final-supplemental-jobs"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "acl_recheck",
+      "receipts": [
+        "final-supplemental-jobs",
+        "final-supplemental"
+      ],
+      "passing_receipts": [
+        "final-supplemental-jobs"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "aclfix",
+      "receipts": [
+        "final-supplemental-jobs",
+        "final-supplemental"
+      ],
+      "passing_receipts": [
+        "final-supplemental-jobs"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "authfix",
+      "receipts": [
+        "final-supplemental-jobs",
+        "final-supplemental"
+      ],
+      "passing_receipts": [
+        "final-supplemental-jobs"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "bugs5",
+      "receipts": [
+        "final-supplemental-jobs",
+        "final-supplemental"
+      ],
+      "passing_receipts": [
+        "final-supplemental-jobs"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "rlcache",
+      "receipts": [
+        "final-supplemental-jobs",
+        "final-supplemental"
+      ],
+      "passing_receipts": [
+        "final-supplemental-jobs"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "compat2",
+      "receipts": [
+        "final-tcl"
+      ],
+      "passing_receipts": [
+        "final-tcl"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "feature-split-0",
+      "engine": "uring",
+      "receipts": [
+        "final-engine-uring"
+      ],
+      "passing_receipts": [
+        "final-engine-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "feature-split-1",
+      "engine": "uring",
+      "receipts": [
+        "final-engine-uring"
+      ],
+      "passing_receipts": [
+        "final-engine-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "feature-armed-0",
+      "engine": "uring",
+      "receipts": [
+        "final-engine-uring"
+      ],
+      "passing_receipts": [
+        "final-engine-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "feature-armed-1",
+      "engine": "uring",
+      "receipts": [
+        "final-engine-uring"
+      ],
+      "passing_receipts": [
+        "final-engine-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "fused-0",
+      "engine": "uring",
+      "receipts": [
+        "final-engine-uring"
+      ],
+      "passing_receipts": [
+        "final-engine-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "fused-1",
+      "engine": "uring",
+      "receipts": [
+        "final-engine-uring"
+      ],
+      "passing_receipts": [
+        "final-engine-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "txn_group_fused",
+      "engine": "uring",
+      "receipts": [
+        "final-engine-uring"
+      ],
+      "passing_receipts": [
+        "final-engine-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "txn_group_split",
+      "engine": "uring",
+      "receipts": [
+        "final-engine-uring"
+      ],
+      "passing_receipts": [
+        "final-engine-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "txnorder-fused-0",
+      "engine": "uring",
+      "receipts": [
+        "final-engine-uring"
+      ],
+      "passing_receipts": [
+        "final-engine-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "txnorder-fused-1",
+      "engine": "uring",
+      "receipts": [
+        "final-engine-uring"
+      ],
+      "passing_receipts": [
+        "final-engine-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "txnorder-split-0",
+      "engine": "uring",
+      "receipts": [
+        "final-engine-uring"
+      ],
+      "passing_receipts": [
+        "final-engine-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "txnorder-split-1",
+      "engine": "uring",
+      "receipts": [
+        "final-engine-uring"
+      ],
+      "passing_receipts": [
+        "final-engine-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "replyoff",
+      "engine": "uring",
+      "receipts": [
+        "final-engine-uring"
+      ],
+      "passing_receipts": [
+        "final-engine-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "wb_policy",
+      "engine": "uring",
+      "receipts": [
+        "final-engine-uring"
+      ],
+      "passing_receipts": [
+        "final-engine-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "multidb-1s-0-0",
+      "engine": "uring",
+      "receipts": [
+        "final-engine-uring"
+      ],
+      "passing_receipts": [
+        "final-engine-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "multidb-1s-0-1",
+      "engine": "uring",
+      "receipts": [
+        "final-engine-uring"
+      ],
+      "passing_receipts": [
+        "final-engine-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "multidb-1s-1-0",
+      "engine": "uring",
+      "receipts": [
+        "final-engine-uring"
+      ],
+      "passing_receipts": [
+        "final-engine-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "multidb-1s-1-1",
+      "engine": "uring",
+      "receipts": [
+        "final-engine-uring"
+      ],
+      "passing_receipts": [
+        "final-engine-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "multidb-2s-0-0",
+      "engine": "uring",
+      "receipts": [
+        "final-engine-uring"
+      ],
+      "passing_receipts": [
+        "final-engine-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "multidb-2s-0-1",
+      "engine": "uring",
+      "receipts": [
+        "final-engine-uring"
+      ],
+      "passing_receipts": [
+        "final-engine-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "multidb-2s-1-0",
+      "engine": "uring",
+      "receipts": [
+        "final-engine-uring"
+      ],
+      "passing_receipts": [
+        "final-engine-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "multidb-2s-1-1",
+      "engine": "uring",
+      "receipts": [
+        "final-engine-uring"
+      ],
+      "passing_receipts": [
+        "final-engine-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "differ-split",
+      "engine": "uring",
+      "receipts": [
+        "final-differ-uring"
+      ],
+      "passing_receipts": [
+        "final-differ-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "differ-armed",
+      "engine": "uring",
+      "receipts": [
+        "final-differ-uring"
+      ],
+      "passing_receipts": [
+        "final-differ-uring"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "debug-0",
+      "engine": "uring",
+      "mode": "1s",
+      "receipts": [
+        "final-debug-uring-1s"
+      ],
+      "passing_receipts": [
+        "final-debug-uring-1s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "debug-1",
+      "engine": "uring",
+      "mode": "1s",
+      "receipts": [
+        "final-debug-uring-1s"
+      ],
+      "passing_receipts": [
+        "final-debug-uring-1s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "script_bounds",
+      "engine": "uring",
+      "mode": "1s",
+      "receipts": [
+        "final-debug-uring-1s"
+      ],
+      "passing_receipts": [
+        "final-debug-uring-1s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "notify",
+      "engine": "uring",
+      "mode": "1s",
+      "receipts": [
+        "final-debug-uring-1s"
+      ],
+      "passing_receipts": [
+        "final-debug-uring-1s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "asan_batteries",
+      "engine": "uring",
+      "mode": "1s",
+      "receipts": [
+        "final-debug-uring-1s"
+      ],
+      "passing_receipts": [
+        "final-debug-uring-1s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "debug-0",
+      "engine": "uring",
+      "mode": "2s",
+      "receipts": [
+        "final-debug-uring-2s"
+      ],
+      "passing_receipts": [
+        "final-debug-uring-2s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "debug-1",
+      "engine": "uring",
+      "mode": "2s",
+      "receipts": [
+        "final-debug-uring-2s"
+      ],
+      "passing_receipts": [
+        "final-debug-uring-2s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "script_bounds",
+      "engine": "uring",
+      "mode": "2s",
+      "receipts": [
+        "final-debug-uring-2s"
+      ],
+      "passing_receipts": [
+        "final-debug-uring-2s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "notify",
+      "engine": "uring",
+      "mode": "2s",
+      "receipts": [
+        "final-debug-uring-2s"
+      ],
+      "passing_receipts": [
+        "final-debug-uring-2s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "asan_batteries",
+      "engine": "uring",
+      "mode": "2s",
+      "receipts": [
+        "final-debug-uring-2s"
+      ],
+      "passing_receipts": [
+        "final-debug-uring-2s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "feature-split-0",
+      "engine": "epoll",
+      "receipts": [
+        "final-engine-epoll"
+      ],
+      "passing_receipts": [
+        "final-engine-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "feature-split-1",
+      "engine": "epoll",
+      "receipts": [
+        "final-engine-epoll"
+      ],
+      "passing_receipts": [
+        "final-engine-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "feature-armed-0",
+      "engine": "epoll",
+      "receipts": [
+        "final-engine-epoll"
+      ],
+      "passing_receipts": [
+        "final-engine-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "feature-armed-1",
+      "engine": "epoll",
+      "receipts": [
+        "final-engine-epoll"
+      ],
+      "passing_receipts": [
+        "final-engine-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "fused-0",
+      "engine": "epoll",
+      "receipts": [
+        "final-engine-epoll"
+      ],
+      "passing_receipts": [
+        "final-engine-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "fused-1",
+      "engine": "epoll",
+      "receipts": [
+        "final-engine-epoll"
+      ],
+      "passing_receipts": [
+        "final-engine-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "txn_group_fused",
+      "engine": "epoll",
+      "receipts": [
+        "final-engine-epoll"
+      ],
+      "passing_receipts": [
+        "final-engine-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "txn_group_split",
+      "engine": "epoll",
+      "receipts": [
+        "final-engine-epoll"
+      ],
+      "passing_receipts": [
+        "final-engine-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "txnorder-fused-0",
+      "engine": "epoll",
+      "receipts": [
+        "final-engine-epoll"
+      ],
+      "passing_receipts": [
+        "final-engine-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "txnorder-fused-1",
+      "engine": "epoll",
+      "receipts": [
+        "final-engine-epoll"
+      ],
+      "passing_receipts": [
+        "final-engine-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "txnorder-split-0",
+      "engine": "epoll",
+      "receipts": [
+        "final-engine-epoll"
+      ],
+      "passing_receipts": [
+        "final-engine-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "txnorder-split-1",
+      "engine": "epoll",
+      "receipts": [
+        "final-engine-epoll"
+      ],
+      "passing_receipts": [
+        "final-engine-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "replyoff",
+      "engine": "epoll",
+      "receipts": [
+        "final-engine-epoll"
+      ],
+      "passing_receipts": [
+        "final-engine-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "wb_policy",
+      "engine": "epoll",
+      "receipts": [
+        "final-engine-epoll"
+      ],
+      "passing_receipts": [
+        "final-engine-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "multidb-1s-0-0",
+      "engine": "epoll",
+      "receipts": [
+        "final-engine-epoll"
+      ],
+      "passing_receipts": [
+        "final-engine-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "multidb-1s-0-1",
+      "engine": "epoll",
+      "receipts": [
+        "final-engine-epoll"
+      ],
+      "passing_receipts": [
+        "final-engine-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "multidb-1s-1-0",
+      "engine": "epoll",
+      "receipts": [
+        "final-engine-epoll"
+      ],
+      "passing_receipts": [
+        "final-engine-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "multidb-1s-1-1",
+      "engine": "epoll",
+      "receipts": [
+        "final-engine-epoll"
+      ],
+      "passing_receipts": [
+        "final-engine-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "multidb-2s-0-0",
+      "engine": "epoll",
+      "receipts": [
+        "final-engine-epoll"
+      ],
+      "passing_receipts": [
+        "final-engine-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "multidb-2s-0-1",
+      "engine": "epoll",
+      "receipts": [
+        "final-engine-epoll"
+      ],
+      "passing_receipts": [
+        "final-engine-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "multidb-2s-1-0",
+      "engine": "epoll",
+      "receipts": [
+        "final-engine-epoll"
+      ],
+      "passing_receipts": [
+        "final-engine-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "multidb-2s-1-1",
+      "engine": "epoll",
+      "receipts": [
+        "final-engine-epoll"
+      ],
+      "passing_receipts": [
+        "final-engine-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "differ-split",
+      "engine": "epoll",
+      "receipts": [
+        "final-differ-epoll"
+      ],
+      "passing_receipts": [
+        "final-differ-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "differ-armed",
+      "engine": "epoll",
+      "receipts": [
+        "final-differ-epoll"
+      ],
+      "passing_receipts": [
+        "final-differ-epoll"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "debug-0",
+      "engine": "epoll",
+      "mode": "1s",
+      "receipts": [
+        "final-debug-epoll-1s"
+      ],
+      "passing_receipts": [
+        "final-debug-epoll-1s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "debug-1",
+      "engine": "epoll",
+      "mode": "1s",
+      "receipts": [
+        "final-debug-epoll-1s"
+      ],
+      "passing_receipts": [
+        "final-debug-epoll-1s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "script_bounds",
+      "engine": "epoll",
+      "mode": "1s",
+      "receipts": [
+        "final-debug-epoll-1s"
+      ],
+      "passing_receipts": [
+        "final-debug-epoll-1s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "notify",
+      "engine": "epoll",
+      "mode": "1s",
+      "receipts": [
+        "final-debug-epoll-1s"
+      ],
+      "passing_receipts": [
+        "final-debug-epoll-1s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "asan_batteries",
+      "engine": "epoll",
+      "mode": "1s",
+      "receipts": [
+        "final-debug-epoll-1s"
+      ],
+      "passing_receipts": [
+        "final-debug-epoll-1s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "debug-0",
+      "engine": "epoll",
+      "mode": "2s",
+      "receipts": [
+        "final-debug-epoll-2s"
+      ],
+      "passing_receipts": [
+        "final-debug-epoll-2s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "debug-1",
+      "engine": "epoll",
+      "mode": "2s",
+      "receipts": [
+        "final-debug-epoll-2s"
+      ],
+      "passing_receipts": [
+        "final-debug-epoll-2s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "script_bounds",
+      "engine": "epoll",
+      "mode": "2s",
+      "receipts": [
+        "final-debug-epoll-2s"
+      ],
+      "passing_receipts": [
+        "final-debug-epoll-2s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "notify",
+      "engine": "epoll",
+      "mode": "2s",
+      "receipts": [
+        "final-debug-epoll-2s"
+      ],
+      "passing_receipts": [
+        "final-debug-epoll-2s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "asan_batteries",
+      "engine": "epoll",
+      "mode": "2s",
+      "receipts": [
+        "final-debug-epoll-2s"
+      ],
+      "passing_receipts": [
+        "final-debug-epoll-2s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "aof-epoll",
+      "mode": "1s",
+      "receipts": [
+        "final-persistence-1s"
+      ],
+      "passing_receipts": [
+        "final-persistence-1s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "aof-uring",
+      "mode": "1s",
+      "receipts": [
+        "final-persistence-1s"
+      ],
+      "passing_receipts": [
+        "final-persistence-1s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "snapshot-epoll",
+      "mode": "1s",
+      "receipts": [
+        "final-persistence-1s"
+      ],
+      "passing_receipts": [
+        "final-persistence-1s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "snapshot-uring",
+      "mode": "1s",
+      "receipts": [
+        "final-persistence-1s"
+      ],
+      "passing_receipts": [
+        "final-persistence-1s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "aof-epoll",
+      "mode": "2s",
+      "receipts": [
+        "final-persistence-2s"
+      ],
+      "passing_receipts": [
+        "final-persistence-2s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "aof-uring",
+      "mode": "2s",
+      "receipts": [
+        "final-persistence-2s"
+      ],
+      "passing_receipts": [
+        "final-persistence-2s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "snapshot-epoll",
+      "mode": "2s",
+      "receipts": [
+        "final-persistence-2s"
+      ],
+      "passing_receipts": [
+        "final-persistence-2s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "snapshot-uring",
+      "mode": "2s",
+      "receipts": [
+        "final-persistence-2s"
+      ],
+      "passing_receipts": [
+        "final-persistence-2s"
+      ],
+      "status": "PASS"
+    },
+    {
+      "job": "abba_selftest",
+      "receipts": [
+        "final-abba-selftest"
+      ],
+      "passing_receipts": [
+        "final-abba-selftest"
+      ],
+      "status": "PASS"
+    }
+  ],
+  "complete": true,
+  "all_bindings_have_passing_receipt": true,
+  "note": "Every failed attempt remains in the batch history; a job passes only with its own completed zero-failure receipt. This is selected-job coverage, not a full gate receipt.",
+  "batches": {
+    "final-engine-uring": {
+      "exit": 0,
+      "seconds": 908.9814357757568,
+      "summary": [
+        "GATE(PARTIAL): 190 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-engine-uring.tsv.partial"
+      ]
+    },
+    "final-abba-selftest": {
+      "exit": 0,
+      "seconds": 342.6941261291504,
+      "summary": [
+        "GATE(PARTIAL): 1 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-abba-selftest.tsv.partial"
+      ]
+    },
+    "final-debug-epoll-1s": {
+      "exit": 0,
+      "seconds": 272.33241415023804,
+      "summary": [
+        "GATE(PARTIAL): 47 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-debug-epoll-1s.tsv.partial"
+      ]
+    },
+    "final-debug-uring-2s": {
+      "exit": 0,
+      "seconds": 271.13268399238586,
+      "summary": [
+        "GATE(PARTIAL): 47 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-debug-uring-2s.tsv.partial"
+      ]
+    },
+    "final-tcl": {
+      "exit": 0,
+      "seconds": 478.60680866241455,
+      "summary": [
+        "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-tcl.tsv.partial"
+      ]
+    },
+    "final-differ-uring": {
+      "exit": 0,
+      "seconds": 2154.2015240192413,
+      "summary": [
+        "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-differ-uring.tsv.partial"
+      ]
+    },
+    "final-persistence-1s": {
+      "exit": 0,
+      "seconds": 192.11237955093384,
+      "summary": [
+        "GATE(PARTIAL): 141 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-persistence-1s.tsv.partial"
+      ]
+    },
+    "final-differ-epoll": {
+      "exit": 0,
+      "seconds": 2136.1799290180206,
+      "summary": [
+        "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-differ-epoll.tsv.partial"
+      ]
+    },
+    "final-debug-epoll-2s": {
+      "exit": 0,
+      "seconds": 274.519894361496,
+      "summary": [
+        "GATE(PARTIAL): 47 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-debug-epoll-2s.tsv.partial"
+      ]
+    },
+    "final-engine-epoll": {
+      "exit": 0,
+      "seconds": 897.622834444046,
+      "summary": [
+        "GATE(PARTIAL): 190 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-engine-epoll.tsv.partial"
+      ]
+    },
+    "final-persistence-2s": {
+      "exit": 0,
+      "seconds": 187.62864804267883,
+      "summary": [
+        "GATE(PARTIAL): 141 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-persistence-2s.tsv.partial"
+      ]
+    },
+    "final-supplemental-jobs": {
+      "exit": 0,
+      "seconds": 831.1134178638458,
+      "summary": [
+        "GATE(PARTIAL): 43 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-supplemental-jobs.tsv.partial"
+      ]
+    },
+    "final-lanes": {
+      "exit": 0,
+      "seconds": 668.854457616806,
+      "summary": [
+        "GATE(PARTIAL): 31 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-lanes.tsv.partial"
+      ]
+    },
+    "final-units": {
+      "exit": 1,
+      "seconds": 684.7104606628418,
+      "summary": [
+        "GATE(PARTIAL): 105 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-units.tsv.partial"
+      ]
+    },
+    "final-supplemental": {
+      "exit": 2,
+      "seconds": 0.3920934200286865,
+      "summary": []
+    },
+    "final-debug-uring-1s": {
+      "exit": 0,
+      "seconds": 275.25635385513306,
+      "summary": [
+        "GATE(PARTIAL): 47 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-debug-uring-1s.tsv.partial"
+      ]
+    },
+    "final-exbatch-repaired": {
+      "exit": 0,
+      "seconds": 77.80429077148438,
+      "summary": [
+        "GATE(PARTIAL): 4 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-exbatch-repaired.tsv.partial"
+      ]
+    }
+  }
+}

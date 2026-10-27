@@ -217,6 +217,7 @@ struct CoreConcurrencyTest {
         io.srv_ = &f.server;
         io.self_ = &f.server.thread(mode == ThreadMode::Fused ? f.owner : 0);
         if constexpr (ReadLocal) io.fused_executor_ = &f.loop;
+        io.refresh_notify_config(); // Match the production pass before parsing.
         Client client(-1), dead(-1);
         f.client(client, 1);
         const std::string key = f.key();
@@ -294,6 +295,7 @@ struct CoreConcurrencyTest {
         io.srv_ = &f.server;
         io.self_ = &f.server.thread(mode == ThreadMode::Fused ? f.owner : 0);
         if constexpr (ReadLocal) io.fused_executor_ = &f.loop;
+        io.refresh_notify_config(); // Match the production pass before parsing.
         // Writes exercise the owner scheduler with read-local armed as well. Clean
         // GETs may legitimately take the read-local lane outside these queues.
         CommandSpec short_op = *command_lookup(Slice("SET"));
@@ -500,6 +502,7 @@ struct CoreConcurrencyTest {
         io.srv_ = &f.server;
         io.self_ = &f.server.thread(mode == ThreadMode::Fused ? f.owner : 0);
         io.fused_executor_ = &f.loop;
+        io.refresh_notify_config(); // Adopt the armed read-local admission flag.
         const std::string key = f.key();
         const std::string read_key = f.key(); // Disjoint from the owner-queued BITCOUNT key.
         Client a(-1), b(-1);

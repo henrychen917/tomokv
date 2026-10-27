@@ -1,0 +1,150 @@
+PARTIAL	0	GATE_ONLY_JOBS=source_identity lualibs latencyfix_grammar latencyfix_shape latencyfix_off iofix-deferred iofix-hz iofix-sleep iofix-signal execfair txnorder_index txnorder2 txnorder_wake reorder_identity reorder_sync reorder_engagement wb_rule_units wbland_units scriptfix atomfix5_watch datafix2_watch blockfix_structure blockfix_registry blockfix_mkstream serverfix_slowlog rlfix3_info compat3 netcmd_units atomic_units splitlocal_units exbatch_units moverfix core_units wait_units serverfix_waitaof netio-1s netio-2s wave8b_off authfix bugs5 ntfix_input netfix_query_stats persistfix2_lastsave racefix_counters; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	125.510000	production source identity + stable assertion ids
+ok	44.170000	bugs5 scancompact (both modes, both engines, atomic 0/1)
+ok	33.740000	bugs5 slowlog_identity (both modes, both engines, atomic 0/1)
+ok	27.220000	bugs5 read_local_lfu (both modes, both engines, atomic 0/1)
+ok	47.020000	blockfix CC4.19 XINFO structural counts vs Redis 7.4
+ok	39.010000	blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4
+ok	47.420000	blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4
+ok	8.110000	persistfix2 LASTSAVE and rewrite INFO
+ok	26.930000	iofix WB4.1 deferred IO parks
+ok	39.820000	iofix IO4.9 Redis hz cron
+ok	31.720000	iofix IO4.10 global DEBUG SLEEP
+ok	18.490000	iofix IO4.17 immediate signal shutdown
+ok	2.930000	epoll directed correctness (1s)
+ok	2.950000	epoll directed correctness (2s)
+FAIL	0.170000	R7 generated envelope parity
+ok	13.940000	R7 production engagement (both database runtimes)
+ok	114.590000	R7 FIFO twin off-path identity + negative controls
+ok	2.140000	atomfix5 WATCH key count (both modes, both engines, atomic 0/1)
+ok	0.120000	core concurrency watch
+ok	0.350000	core concurrency lifetime
+ok	0.110000	core concurrency drain
+ok	7.520000	core concurrency route
+ok	0.120000	core concurrency snapshot
+ok	0.180000	core concurrency config
+ok	0.170000	core concurrency notify
+ok	0.600000	read-local topology demotion (1s)
+ok	0.580000	read-local topology demotion (2s)
+ok	1.450000	INFO command/socket counters (TSan, both modes)
+ok	15.890000	exbatch publication unit + negative controls
+ok	41.090000	exbatch watch unit + negative controls
+ok	17.140000	exbatch metadata unit + negative controls
+ok	0.110000	writeback c12 policy witnesses + negative controls
+ok	5.040000	writeback c12 phase witnesses + negative controls
+ok	1.980000	writeback c12 stages witnesses + negative controls
+ok	5.470000	writeback c12 split-phase witnesses + negative controls
+FAIL	2.040000	writeback policy clauses witnesses + negative controls
+ok	2.020000	writeback policy paths witnesses + negative controls
+FAIL	0.260000	splitlocal template forwarding + old-argument controls
+ok	0.010000	atomic commit publication catches up at quiescence
+ok	2.140000	flushfix flush witnesses
+ok	0.050000	flushfix headers witnesses
+ok	3.480000	multidb serverless owners
+ok	0.050000	multidb global namespace boundary
+ok	12.230000	storesize published monitoring
+ok	0.220000	MULTI admin command replies
+ok	0.070000	EXECABORT releases WATCH reservation
+ok	0.000000	atomic survivors unit build
+ok	0.010000	atomic survivor: admission
+ok	0.010000	atomic survivor: closure
+ok	0.010000	atomic survivor: script_keys
+ok	0.010000	atomic survivor: rename_overlay
+ok	0.000000	atomic survivor: write_latest
+ok	0.010000	atomic survivor: script_apply
+ok	0.010000	atomic survivor: post_apply_probe
+ok	0.010000	atomic survivor: lua_conversion
+ok	0.010000	atomic survivor: watch_parent
+ok	0.010000	atomic survivor: watch_cycle
+ok	0.010000	atomic survivor: mset_arity
+ok	0.010000	atomic survivor: watch_oom
+ok	0.010000	atomic survivor: lua_lines
+ok	0.010000	atomic survivor: library_limit
+ok	0.020000	atomic survivor: stage_flag
+ok	0.010000	atomic survivor: instruction_limit
+ok	0.010000	armed resize retirement: atomic-growth
+ok	0.010000	armed resize retirement: flush-prepared
+ok	0.000000	netcmd regression build
+ok	0.010000	netcmd streams regression
+ok	0.010000	netcmd zpop regression
+ok	0.000000	netcmd notify-oom regression
+ok	0.000000	netcmd notify-retry regression
+ok	0.000000	netcmd flush regression
+ok	0.010000	netcmd output regression
+ok	0.010000	netcmd pubsub regression
+ok	0.000000	netcmd receive regression
+ok	0.040000	netcmd config regression
+ok	0.000000	netcmd wb-small-pipe regression
+ok	0.010000	netcmd wb-complete-visits regression
+ok	0.010000	netcmd hexpire-oom regression
+ok	0.000000	encodingfix knob
+ok	0.010000	encodingfix precedence
+ok	0.020000	NET1 serverless bounds + scan + reclamation
+ok	2.040000	netfix NT4.6 query-limit INFO parity
+ok	0.050000	waits config publication + admission unit
+ok	1.010000	reads never wait for retirement quiescence
+ok	2.520000	moverfix conservation (1s, uring, databases 1, atomic 0)
+ok	2.520000	moverfix conservation (1s, uring, databases 16, atomic 0)
+ok	2.520000	moverfix conservation (1s, epoll, databases 1, atomic 0)
+ok	2.500000	moverfix conservation (1s, epoll, databases 16, atomic 0)
+ok	2.540000	moverfix conservation (2s, uring, databases 1, atomic 0)
+ok	2.520000	moverfix conservation (2s, uring, databases 16, atomic 0)
+ok	2.530000	moverfix conservation (2s, epoll, databases 1, atomic 0)
+ok	2.520000	moverfix conservation (2s, epoll, databases 16, atomic 0)
+ok	33.540000	compat3 CC4.12 pubsub vs Redis 7.4
+ok	33.520000	compat3 CC4.13 pending vs Redis 7.4
+ok	33.630000	compat3 CC4.14 history vs Redis 7.4
+ok	33.700000	compat3 CC4.16 grammar vs Redis 7.4
+ok	33.820000	compat3 CC4.5 glob vs Redis 7.4
+ok	33.870000	compat3 CC4.17 flags vs Redis 7.4
+ok	112.680000	datafix2 CD4.9 write WATCH table vs Redis 7.4
+ok	0.800000	INFO selective collection (1s, epoll, read-local 0)
+ok	0.760000	INFO selective collection (1s, epoll, read-local 1)
+ok	0.750000	INFO selective collection (1s, uring, read-local 0)
+ok	0.740000	INFO selective collection (1s, uring, read-local 1)
+ok	0.760000	INFO selective collection (2s, epoll, read-local 0)
+ok	0.770000	INFO selective collection (2s, epoll, read-local 1)
+ok	0.760000	INFO selective collection (2s, uring, read-local 0)
+ok	0.760000	INFO selective collection (2s, uring, read-local 1)
+ok	0.120000	scriptfix sandbox (1s)
+ok	0.110000	scriptfix functions (1s)
+ok	0.710000	scriptfix replies (1s)
+ok	0.930000	scriptfix dump (1s)
+ok	0.120000	scriptfix sandbox (2s)
+ok	0.120000	scriptfix functions (2s)
+ok	0.700000	scriptfix replies (2s)
+ok	0.940000	scriptfix dump (2s)
+ok	38.150000	lualibs CC4.7 vs Redis 7.4
+ok	0.890000	authfix CG4.1 binary config requirepass
+ok	3.460000	authfix CG4.2 missing config value refuses boot
+ok	0.900000	authfix SV4.2 binary requirepass rewrite restart
+ok	0.300000	authfix SV4.1 slowlog credential redaction (1s)
+ok	0.290000	authfix SV4.1 slowlog credential redaction (2s)
+ok	6.280000	latencyfix LAT-HIST-1 knob grammar
+ok	1.760000	latencyfix LAT-HIST-1 histogram and latencystats
+ok	12.740000	latencyfix LAT-HIST-1 zero allocations off
+ok	0.130000	wave8b tracking-off EXEC scans and transitions
+ok	6.880000	serverfix SV4.5 WAITAOF wait lifecycle
+ok	12.830000	serverfix SV4.14 disabled slowlog allocation
+ok	5.510000	INFO received bytes exact (ntfix N1)
+ok	42.440000	EXEC fast-lane polls
+ok	103.560000	txnorder index oracle
+ok	2.690000	txnorder index complexity
+ok	0.030000	txnorder2 writer episode R1
+ok	0.020000	txnorder2 writer episode R2
+ok	0.020000	txnorder2 writer episode R3
+ok	0.030000	txnorder2 writer episode R4
+ok	0.030000	txnorder2 writer episode R5
+ok	0.020000	txnorder2 writer episode R6
+ok	0.020000	txnorder2 writer episode R7
+ok	0.070000	txnorder2 writer episode R8
+ok	0.020000	txnorder2 writer episode R9
+ok	0.020000	txnorder2 writer episode R10
+ok	0.030000	txnorder2 writer episode R11
+ok	4.550000	txnorder2 writer episode R12
+ok	0.050000	txnorder2 direct RENAME owner join
+ok	22.590000	txnorder2 WATCH serve
+ok	30.300000	txnorder2 WATCH flush
+ok	27.050000	txnorder2 WATCH readonly
+ok	0.000000	txnorder2 busy owner inbox wake

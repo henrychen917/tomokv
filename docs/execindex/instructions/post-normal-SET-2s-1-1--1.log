@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-execindex/build/execindex/commands/post-normal-SET-2s-1-1--1.log
+SHA-256: 2438b777e75499c68e51a5ca3227e6b445f1ed9a2892c3fbb5869b45593c9e81
+Exit: 0
+2349	    }
+0x00005555559efda8	2349	    }
+0x00005555559efdb1	2349	    }
+0x00005555559efdb7	2349	    }
+0x00005555559efdbb	2349	    }
+0x00005555559efdbc	2349	    }
+0x00005555559efdbe	2349	    }
+0x00005555559efdc0	2349	    }
+0x00005555559efdc2	2349	    }
+0x00005555559efdc4	2349	    }
+0x00005555559efdc5	2349	    }
+0x0000555555d60b24 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@eTomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+ntry=-1) at /home/user/Projects/cx-execindex/tests/txnorder_command_scope.cc:72
+72	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-execindex/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 878635) exited normally]
+COUNT 1704

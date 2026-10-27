@@ -1,0 +1,25 @@
+b_unpack
+--- lualibs
+
++++ post
+
+@@ -27,7 +27,7 @@
+
+ CLONE 0 0062 [ 3] mov %rax,%r12
+ CLONE 0 0065 [ 3] test %rax,%rax
+ CLONE 0 0068 [ 6] je <+0x4a0>
+-CLONE 0 006e [ 7] mov <rip>(%rip),%rax # <tomo_db0::kNoThread+0x614>
++CLONE 0 006e [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8>
+ CLONE 0 0075 [ 4] movsbq (%rbx),%r14
+ CLONE 0 0079 [ 5] lea -0x1(%r12),%r15
+ CLONE 0 007e [ 5] mov %rax,0x28(%rsp)
+@@ -181,7 +181,7 @@
+
+ CLONE 0 02bb [ 5] cmpl $0x1,0x28(%rsp)
+ CLONE 0 02c0 [ 2] je <+0x2d7>
+ CLONE 0 02c2 [ 6] vmovd 0x40(%rsp),%xmm0
+-CLONE 0 02c8 [ 9] vpshufb <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::kNoThread+0x5cc>
++CLONE 0 02c8 [ 9] vpshufb <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x988>
+ CLONE 0 02d1 [ 6] vmovd %xmm0,0x40(%rsp)
+ CLONE 0 02d7 [ 4] vxorpd %xmm3,%xmm3,%xmm3
+ CLONE 0 02db [ 6] vcvtss2sd 0x40(%rsp),%xmm3,%xmm0

@@ -1,0 +1,37 @@
+void tomo_db0::(anonymous namespace)::cmd_geoadd<false>(tomo_db0::Shard&, tomo_db0::Op&)
+--- headline
+
++++ post
+
+@@ -132,17 +132,17 @@
+
+ CLONE 0 0241 [ 2] test %al,%al
+ CLONE 0 0243 [ 6] je <+0xb96>
+ CLONE 0 0249 [ 8] vmovsd -0x98(%rbp),%xmm5
+-CLONE 0 0251 [ 8] vandpd <rip>(%rip),%xmm5,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x258>
++CLONE 0 0251 [ 8] vandpd <rip>(%rip),%xmm5,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418>
+ CLONE 0 0259 [ 8] vmovsd -0x90(%rbp),%xmm3
+ CLONE 0 0261 [ 8] vmovsd <rip>(%rip),%xmm2 # <literal-load-ffffffffffffef7f>
+ CLONE 0 0269 [ 8] vmovsd %xmm3,-0xb0(%rbp)
+ CLONE 0 0271 [ 8] vmovsd %xmm5,-0xb8(%rbp)
+ CLONE 0 0279 [ 4] vucomisd %xmm0,%xmm2
+ CLONE 0 027d [ 2] jb <+0x2b0>
+-CLONE 0 027f [ 8] vandpd <rip>(%rip),%xmm3,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x258>
++CLONE 0 027f [ 8] vandpd <rip>(%rip),%xmm3,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418>
+ CLONE 0 0287 [ 4] vucomisd %xmm0,%xmm2
+ CLONE 0 028b [ 2] jb <+0x2b0>
+-CLONE 0 028d [ 8] vcomisd <rip>(%rip),%xmm5 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x7a8>
++CLONE 0 028d [ 8] vcomisd <rip>(%rip),%xmm5 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x1f8>
+ CLONE 0 0295 [ 2] jb <+0x2b0>
+ CLONE 0 0297 [ 8] vmovsd <rip>(%rip),%xmm0 # <literal-load-0000000000806640>
+ CLONE 0 029f [ 4] vcomisd %xmm5,%xmm0
+@@ -175,7 +175,7 @@
+
+ CLONE 0 033b [ 4] shl $0x4,%rdx
+ CLONE 0 033f [ 3] add %rdx,%rax
+ CLONE 0 0342 [ 5] jmp <+0x22b>
+-CLONE 0 0347 [ 8] vcomisd <rip>(%rip),%xmm3 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x7b0>
++CLONE 0 0347 [ 8] vcomisd <rip>(%rip),%xmm3 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x200>
+ CLONE 0 034f [ 6] jb <+0x2b0>
+ CLONE 0 0355 [ 8] vmovsd <rip>(%rip),%xmm0 # <literal-load-007fa5b145435540>
+ CLONE 0 035d [ 4] vcomisd %xmm3,%xmm0

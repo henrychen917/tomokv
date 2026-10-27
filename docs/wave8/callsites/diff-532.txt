@@ -1,0 +1,788 @@
+unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, true, false, false>()
+--- headline
+
++++ post
+
+@@ -19,25 +19,25 @@
+
+ CLONE 0 003a [ 6] mov %al,0x544(%rdi)
+ CLONE 0 0040 [ 6] mov %edx,0x540(%rdi)
+ CLONE 0 0046 [ 7] mov 0x1960(%rdi),%rdx
+-CLONE 0 004d [ 7] cmp %rdx,0x1968(%rdi)
+-CLONE 0 0054 [ 6] je <+0x470>
++CLONE 0 004d [ 7] cmp 0x1968(%rdi),%rdx
++CLONE 0 0054 [ 6] je <+0x450>
+ CLONE 0 005a [ 2] xor %ebp,%ebp
+ CLONE 0 005c [ 3] xor %r12d,%r12d
+ CLONE 0 005f [ 7] lea 0x2e8(%rdi),%r13
+-CLONE 0 0066 [ 8] movl $0x0,0x8(%rsp)
+-CLONE 0 006e [ 2] xchg %ax,%ax
++CLONE 0 0066 [ 7] movl $0x0,(%rsp)
++CLONE 0 006d [ 3] nopl (%rax)
+ CLONE 0 0070 [ 4] mov (%rdx,%r12,1),%rbx
+ CLONE 0 0074 [ 2] test %al,%al
+ CLONE 0 0076 [ 2] je <+0x82>
+ CLONE 0 0078 [ 4] cmpb $0x0,0x30(%rbx)
+-CLONE 0 007c [ 6] je <+0x360>
++CLONE 0 007c [ 6] je <+0x350>
+ CLONE 0 0082 [ 4] movzbl 0x34(%rbx),%eax
+ CLONE 0 0086 [ 2] test %al,%al
+ CLONE 0 0088 [ 2] je <+0xb3>
+ CLONE 0 008a [ 4] cmpb $0x0,0x37(%rbx)
+-CLONE 0 008e [ 6] js <+0x3f0>
++CLONE 0 008e [ 6] js <+0x3e0>
+ CLONE 0 0094 [ 2] test %al,%al
+-CLONE 0 0096 [ 6] js <+0x433>
++CLONE 0 0096 [ 6] js <+0x422>
+ CLONE 0 009c [ 7] mov 0xc0(%rbx),%rdx
+ CLONE 0 00a3 [ 7] mov 0x100(%rbx),%rax
+ CLONE 0 00aa [ 3] cmp %rax,%rdx
+@@ -53,7 +53,7 @@
+
+ CLONE 0 00d5 [ 3] cmp %rax,%rdx
+ CLONE 0 00d8 [ 2] jne <+0xe4>
+ CLONE 0 00da [ 4] cmpb $0x0,0x29(%rbx)
+-CLONE 0 00de [ 6] je <+0x3a0>
++CLONE 0 00de [ 6] je <+0x390>
+ CLONE 0 00e4 [ 3] xor %r15d,%r15d
+ CLONE 0 00e7 [ 4] cmpb $0x0,0x32(%rbx)
+ CLONE 0 00eb [ 2] jne <+0x140>
+@@ -62,11 +62,11 @@
+
+ CLONE 0 00f3 [ 2] jae <+0x140>
+ CLONE 0 00f5 [ 5] movzbl 0x34(%rbx),%r15d
+ CLONE 0 00fa [ 3] test %r15b,%r15b
+-CLONE 0 00fd [ 6] jne <+0x460>
++CLONE 0 00fd [ 6] jne <+0x440>
+ CLONE 0 0103 [ 4] cmpb $0x0,0x35(%rbx)
+ CLONE 0 0107 [ 2] jne <+0x140>
+ CLONE 0 0109 [ 8] testb $0x4,0x1b40(%r14)
+-CLONE 0 0111 [ 6] jne <+0x865>
++CLONE 0 0111 [ 6] jne <+0x852>
+ CLONE 0 0117 [ 3] mov %rbx,%rsi
+ CLONE 0 011a [ 3] mov %r14,%rdi
+ CLONE 0 011d [ 5] call <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)>
+@@ -74,9 +74,9 @@
+
+ CLONE 0 0125 [ 2] xor %eax,%eax
+ CLONE 0 0127 [ 4] cmp $0x1,%r15b
+ CLONE 0 012b [ 3] setne %al
+-CLONE 0 012e [ 4] add %eax,0x8(%rsp)
+-CLONE 0 0132 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 013d [ 3] nopl (%rax)
++CLONE 0 012e [ 3] add %eax,(%rsp)
++CLONE 0 0131 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 013c [ 4] nopl 0x0(%rax)
+ CLONE 0 0140 [ 3] mov %rbx,%rsi
+ CLONE 0 0143 [ 3] mov %r14,%rdi
+ CLONE 0 0146 [ 5] call <void tomo_db0::IoLoop::arm_recv<false>(tomo_db0::Client*)>
+@@ -100,7 +100,7 @@
+
+ CLONE 0 018f [ 3] sub %rdx,%rax
+ CLONE 0 0192 [ 4] sar $0x3,%rax
+ CLONE 0 0196 [ 3] cmp %rax,%rbp
+-CLONE 0 0199 [ 6] jae <+0x480>
++CLONE 0 0199 [ 6] jae <+0x460>
+ CLONE 0 019f [ 4] lea (%rdx,%r12,1),%rsi
+ CLONE 0 01a3 [ 3] cmp (%rsi),%rbx
+ CLONE 0 01a6 [ 6] je <+0x2f0>
+@@ -137,7 +137,7 @@
+
+ CLONE 0 0237 [ 7] mov 0x100(%rbx),%rdx
+ CLONE 0 023e [ 2] sub %edx,%eax
+ CLONE 0 0240 [ 3] cmp $0x3f,%eax
+-CLONE 0 0243 [ 6] ja <+0x3d0>
++CLONE 0 0243 [ 6] ja <+0x3c0>
+ CLONE 0 0249 [ 3] mov 0x4(%rbx),%eax
+ CLONE 0 024c [ 3] mov 0x8(%rbx),%edx
+ CLONE 0 024f [ 5] jmp <+0x159>
+@@ -181,355 +181,337 @@
+
+ CLONE 0 02e9 [ 7] nopl 0x0(%rax)
+ CLONE 0 02f0 [ 4] movzbl 0x32(%rbx),%edi
+ CLONE 0 02f4 [ 3] test %r8b,%r8b
+-CLONE 0 02f7 [ 2] je <+0x350>
++CLONE 0 02f7 [ 2] je <+0x330>
+ CLONE 0 02f9 [ 3] test %dil,%dil
+-CLONE 0 02fc [ 6] je <+0x7e0>
+-CLONE 0 0302 [ 7] mov 0xc0(%rbx),%rdx
+-CLONE 0 0309 [ 7] mov 0x100(%rbx),%rax
+-CLONE 0 0310 [ 3] cmp %rax,%rdx
+-CLONE 0 0313 [ 6] je <+0x630>
+-CLONE 0 0319 [ 7] mov 0x1960(%r14),%rdx
+-CLONE 0 0320 [ 7] mov 0x1968(%r14),%rax
+-CLONE 0 0327 [ 3] sub %rdx,%rax
+-CLONE 0 032a [ 4] sar $0x3,%rax
+-CLONE 0 032e [ 3] inc %rbp
+-CLONE 0 0331 [ 3] cmp %rax,%rbp
+-CLONE 0 0334 [ 6] jae <+0x480>
+-CLONE 0 033a [ 8] lea 0x0(,%rbp,8),%r12
+-CLONE 0 0342 [ 5] jmp <+0x1ac>
+-CLONE 0 0347 [ 9] nopw 0x0(%rax,%rax,1)
+-CLONE 0 0350 [ 3] test %dil,%dil
+-CLONE 0 0353 [ 2] je <+0x32e>
+-CLONE 0 0355 [ 2] jmp <+0x302>
+-CLONE 0 0357 [ 9] nopw 0x0(%rax,%rax,1)
+-CLONE 0 0360 [ 7] mov 0x1d8(%r14),%rcx
+-CLONE 0 0367 [ 7] mov 0x1c8(%r14),%rax
+-CLONE 0 036e [ 5] mov %rbx,0x20(%rsp)
+-CLONE 0 0373 [ 4] movb $0x1,0x30(%rbx)
+-CLONE 0 0377 [ 4] lea -0x8(%rcx),%rdx
+-CLONE 0 037b [ 3] cmp %rdx,%rax
+-CLONE 0 037e [ 6] je <+0x830>
+-CLONE 0 0384 [ 3] mov %rbx,(%rax)
+-CLONE 0 0387 [ 4] add $0x8,%rax
+-CLONE 0 038b [ 7] mov %rax,0x1c8(%r14)
+-CLONE 0 0392 [ 5] jmp <+0x82>
+-CLONE 0 0397 [ 9] nopw 0x0(%rax,%rax,1)
+-CLONE 0 03a0 [ 3] mov 0x8(%rbx),%eax
+-CLONE 0 03a3 [ 4] mov 0x4(%rbx),%r15d
+-CLONE 0 03a7 [ 3] sub %eax,%r15d
+-CLONE 0 03aa [ 2] test %eax,%eax
+-CLONE 0 03ac [ 2] je <+0x3b7>
+-CLONE 0 03ae [ 3] test %r15d,%r15d
+-CLONE 0 03b1 [ 6] jne <+0x850>
+-CLONE 0 03b7 [ 4] mov %r15d,0x4(%rbx)
+-CLONE 0 03bb [ 7] movl $0x0,0x8(%rbx)
+-CLONE 0 03c2 [ 5] jmp <+0xe4>
+-CLONE 0 03c7 [ 9] nopw 0x0(%rax,%rax,1)
+-CLONE 0 03d0 [ 7] mov 0xc0(%rbx),%rax
+-CLONE 0 03d7 [ 7] mov 0x100(%rbx),%rax
+-CLONE 0 03de [ 5] jmp <+0x17b>
+-CLONE 0 03e3 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 03ee [ 2] xchg %ax,%ax
+-CLONE 0 03f0 [ 7] mov 0x190(%r14),%rsi
+-CLONE 0 03f7 [ 7] mov 0x188(%r14),%rdi
+-CLONE 0 03fe [ 7] lea 0xac8(%r14),%rdx
+-CLONE 0 0405 [ 3] mov %r13,%r8
+-CLONE 0 0408 [ 3] mov %rbx,%rcx
+-CLONE 0 040b [ 5] call <tomo_db0::blocking_resume_move(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client&, tomo_db0::ScatterArenaPool&)>
+-CLONE 0 0410 [ 2] test %al,%al
+-CLONE 0 0412 [ 2] je <+0x427>
+-CLONE 0 0414 [ 4] cmpb $0x0,0x30(%rbx)
+-CLONE 0 0418 [ 5] mov %rbx,0x20(%rsp)
+-CLONE 0 041d [ 6] je <+0x6a0>
+-CLONE 0 0423 [ 4] incl 0x8(%rsp)
+-CLONE 0 0427 [ 4] movzbl 0x34(%rbx),%eax
+-CLONE 0 042b [ 2] test %al,%al
+-CLONE 0 042d [ 6] jns <+0x9c>
+-CLONE 0 0433 [ 7] mov 0x188(%r14),%rax
+-CLONE 0 043a [ 6] mov 0x16ba4(%rax),%eax
+-CLONE 0 0440 [ 2] test %eax,%eax
+-CLONE 0 0442 [ 6] jne <+0x9c>
+-CLONE 0 0448 [ 4] andb $0x7f,0x34(%rbx)
+-CLONE 0 044c [ 5] jmp <+0x9c>
+-CLONE 0 0451 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 045c [ 4] nopl 0x0(%rax)
+-CLONE 0 0460 [ 3] xor %r15d,%r15d
+-CLONE 0 0463 [ 5] jmp <+0x140>
+-CLONE 0 0468 [ 8] nopl 0x0(%rax,%rax,1)
+-CLONE 0 0470 [ 8] movl $0x0,0x8(%rsp)
+-CLONE 0 0478 [ 8] nopl 0x0(%rax,%rax,1)
+-CLONE 0 0480 [ 7] mov 0x1ba0(%r14),%rdi
+-CLONE 0 0487 [ 3] mov (%rdi),%rax
+-CLONE 0 048a [ 7] cmpb $0x0,0x10a(%rax)
+-CLONE 0 0491 [ 6] je <+0x810>
+-CLONE 0 0497 [ 8] cmpq $0x0,0x16d8(%rdi)
+-CLONE 0 049f [ 6] je <+0x6e0>
+-CLONE 0 04a5 [ 5] call <unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()>
+-CLONE 0 04aa [ 3] mov %eax,%r13d
+-CLONE 0 04ad [ 2] xor %esi,%esi
+-CLONE 0 04af [ 3] mov %r14,%rdi
+-CLONE 0 04b2 [ 5] call <unsigned int tomo_db0::IoLoop::collect_retire_work<true, false>(bool)>
+-CLONE 0 04b7 [ 3] add %eax,%r13d
+-CLONE 0 04ba [ 4] mov 0x8(%rsp),%eax
+-CLONE 0 04be [ 3] add %r13d,%eax
+-CLONE 0 04c1 [ 8] cmpb $0x0,0x178(%r14)
+-CLONE 0 04c9 [ 4] mov %eax,0x14(%rsp)
+-CLONE 0 04cd [ 6] jne <+0x8b0>
+-CLONE 0 04d3 [ 7] mov 0x1c8(%r14),%rsi
+-CLONE 0 04da [ 7] mov 0x1a8(%r14),%rax
+-CLONE 0 04e1 [ 3] cmp %rax,%rsi
+-CLONE 0 04e4 [ 2] je <+0x4fa>
+-CLONE 0 04e6 [ 7] mov 0x188(%r14),%rdx
+-CLONE 0 04ed [ 7] cmpb $0x0,0x10380(%rdx)
+-CLONE 0 04f4 [ 6] jne <+0x8c1>
+-CLONE 0 04fa [ 7] mov 0x1e0(%r14),%rdx
+-CLONE 0 0501 [ 7] lea 0x198(%r14),%rcx
+-CLONE 0 0508 [11] movq $0x0,0x1958(%r14)
+-CLONE 0 0513 [ 5] mov %rcx,0x18(%rsp)
+-CLONE 0 0518 [ 7] lea 0x545(%r14),%rcx
+-CLONE 0 051f [ 5] mov %rcx,0x8(%rsp)
+-CLONE 0 0524 [ 3] mov %rdx,%rbp
+-CLONE 0 0527 [ 7] sub 0x1c0(%r14),%rbp
+-CLONE 0 052e [ 4] sar $0x3,%rbp
+-CLONE 0 0532 [ 4] cmp $0x1,%rdx
+-CLONE 0 0536 [ 3] mov %rsi,%rdx
+-CLONE 0 0539 [ 4] adc $0xffffffffffffffff,%rbp
+-CLONE 0 053d [ 7] sub 0x1d0(%r14),%rdx
+-CLONE 0 0544 [ 2] xor %ebx,%ebx
+-CLONE 0 0546 [ 3] xor %r12d,%r12d
+-CLONE 0 0549 [ 3] xor %r15d,%r15d
+-CLONE 0 054c [ 4] shl $0x6,%rbp
+-CLONE 0 0550 [ 4] sar $0x3,%rdx
+-CLONE 0 0554 [ 3] add %rdx,%rbp
+-CLONE 0 0557 [ 7] mov 0x1b8(%r14),%rdx
+-CLONE 0 055e [ 3] sub %rax,%rdx
+-CLONE 0 0561 [ 4] sar $0x3,%rdx
+-CLONE 0 0565 [ 3] add %rdx,%rbp
+-CLONE 0 0568 [ 2] jne <+0x59a>
+-CLONE 0 056a [ 5] jmp <+0x773>
+-CLONE 0 056f [ 1] nop
+-CLONE 0 0570 [ 5] movb $0x0,0x48(%r13)
+-CLONE 0 0575 [ 5] movb $0x0,0x30(%r13)
+-CLONE 0 057a [ 7] mov 0x1c8(%r14),%rsi
+-CLONE 0 0581 [ 2] mov %ebx,%edx
+-CLONE 0 0583 [ 7] mov 0x1a8(%r14),%rax
+-CLONE 0 058a [ 3] cmp %r15,%rdx
+-CLONE 0 058d [ 4] cmovb %r15,%rdx
+-CLONE 0 0591 [ 3] cmp %rbp,%rdx
+-CLONE 0 0594 [ 6] jae <+0x770>
+-CLONE 0 059a [ 3] cmp %rax,%rsi
+-CLONE 0 059d [ 6] je <+0x820>
+-CLONE 0 05a3 [ 7] mov 0x1b8(%r14),%rcx
+-CLONE 0 05aa [ 3] mov (%rax),%r13
+-CLONE 0 05ad [ 4] lea -0x8(%rcx),%rsi
+-CLONE 0 05b1 [ 5] mov %r13,0x20(%rsp)
+-CLONE 0 05b6 [ 3] cmp %rsi,%rax
+-CLONE 0 05b9 [ 6] je <+0x6f0>
+-CLONE 0 05bf [ 4] add $0x8,%rax
+-CLONE 0 05c3 [ 3] inc %r15
+-CLONE 0 05c6 [ 5] cmpb $0x0,0x33(%r13)
+-CLONE 0 05cb [ 7] mov %rax,0x1a8(%r14)
+-CLONE 0 05d2 [ 2] jne <+0x570>
+-CLONE 0 05d4 [ 5] mov 0x8(%rsp),%rsi
+-CLONE 0 05d9 [ 3] mov %r13,%rdi
+-CLONE 0 05dc [ 5] call <bool tomo_db0::wb_rule::defer<tomo_db0::Client>(tomo_db0::Client&, tomo_db0::wb_rule::Settings const&)>
+-CLONE 0 05e1 [ 2] test %al,%al
+-CLONE 0 05e3 [ 6] jne <+0x740>
+-CLONE 0 05e9 [ 5] cmpb $0x0,0x33(%r13)
+-CLONE 0 05ee [ 5] movb $0x0,0x48(%r13)
+-CLONE 0 05f3 [ 5] movb $0x0,0x30(%r13)
+-CLONE 0 05f8 [ 2] jne <+0x57a>
+-CLONE 0 05fa [ 2] inc %ebx
+-CLONE 0 05fc [ 8] testb $0xa,0x1b40(%r14)
+-CLONE 0 0604 [ 6] jne <+0x7b0>
+-CLONE 0 060a [ 3] mov %r13,%rsi
+-CLONE 0 060d [ 7] lea 0x1838(%r14),%rdi
+-CLONE 0 0614 [ 5] call <bool tomo_db0::WbEngine::serve<false, false, true>(tomo_db0::Client&)>
+-CLONE 0 0619 [ 7] mov 0x1c8(%r14),%rsi
+-CLONE 0 0620 [ 2] cmp $0x1,%al
+-CLONE 0 0622 [ 4] sbb $0xffffffff,%r12d
+-CLONE 0 0626 [ 5] jmp <+0x581>
+-CLONE 0 062b [ 5] nopl 0x0(%rax,%rax,1)
+-CLONE 0 0630 [ 4] cmpb $0x0,0x29(%rbx)
+-CLONE 0 0634 [ 6] jne <+0x319>
+-CLONE 0 063a [ 4] cmpb $0x0,0x2a(%rbx)
+-CLONE 0 063e [ 6] jne <+0x319>
+-CLONE 0 0644 [ 7] movzbl 0x780(%rbx),%eax
+-CLONE 0 064b [ 2] test %al,%al
+-CLONE 0 064d [ 6] jne <+0x319>
+-CLONE 0 0653 [ 6] mov 0x7a0(%rbx),%eax
+-CLONE 0 0659 [ 2] test %eax,%eax
+-CLONE 0 065b [ 6] jne <+0x319>
+-CLONE 0 0661 [ 3] mov %rbx,%rsi
+-CLONE 0 0664 [ 3] mov %r14,%rdi
+-CLONE 0 0667 [ 5] call <tomo_db0::IoLoop::pubsub_disconnect_ready(tomo_db0::Client*)>
+-CLONE 0 066c [ 2] test %al,%al
+-CLONE 0 066e [ 6] jne <+0x907>
+-CLONE 0 0674 [ 7] mov 0x1960(%r14),%rdx
+-CLONE 0 067b [ 7] mov 0x1968(%r14),%rax
+-CLONE 0 0682 [ 3] inc %rbp
+-CLONE 0 0685 [ 3] sub %rdx,%rax
+-CLONE 0 0688 [ 4] sar $0x3,%rax
+-CLONE 0 068c [ 5] jmp <+0x331>
+-CLONE 0 0691 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 069c [ 4] nopl 0x0(%rax)
+-CLONE 0 06a0 [ 7] mov 0x1d8(%r14),%rcx
+-CLONE 0 06a7 [ 7] mov 0x1c8(%r14),%rax
+-CLONE 0 06ae [ 4] movb $0x1,0x30(%rbx)
+-CLONE 0 06b2 [ 4] lea -0x8(%rcx),%rdx
+-CLONE 0 06b6 [ 3] cmp %rdx,%rax
+-CLONE 0 06b9 [ 6] je <+0x954>
+-CLONE 0 06bf [ 3] mov %rbx,(%rax)
+-CLONE 0 06c2 [ 4] add $0x8,%rax
+-CLONE 0 06c6 [ 7] mov %rax,0x1c8(%r14)
+-CLONE 0 06cd [ 5] jmp <+0x423>
+-CLONE 0 06d2 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 06dd [ 3] nopl (%rax)
+-CLONE 0 06e0 [ 5] call <unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()>
+-CLONE 0 06e5 [ 3] mov %eax,%r13d
+-CLONE 0 06e8 [ 5] jmp <+0x4ad>
+-CLONE 0 06ed [ 3] nopl (%rax)
+-CLONE 0 06f0 [ 7] mov 0x1b0(%r14),%rdi
+-CLONE 0 06f7 [ 5] mov $0x200,%esi
+-CLONE 0 06fc [ 5] call <_ZdlPvm@plt>
+-CLONE 0 0701 [ 7] mov 0x1c0(%r14),%rax
+-CLONE 0 0708 [ 4] lea 0x8(%rax),%rsi
+-CLONE 0 070c [ 4] mov 0x8(%rax),%rax
+-CLONE 0 0710 [ 7] mov %rsi,0x1c0(%r14)
+-CLONE 0 0717 [ 5] vmovq %rax,%xmm1
+-CLONE 0 071c [ 7] lea 0x200(%rax),%rsi
+-CLONE 0 0723 [ 6] vpinsrq $0x1,%rsi,%xmm1,%xmm0
+-CLONE 0 0729 [ 9] vmovdqu %xmm0,0x1b0(%r14)
+-CLONE 0 0732 [ 5] jmp <+0x5c3>
+-CLONE 0 0737 [ 9] nopw 0x0(%rax,%rax,1)
+-CLONE 0 0740 [ 7] mov 0x1d8(%r14),%rax
+-CLONE 0 0747 [ 7] mov 0x1c8(%r14),%rsi
+-CLONE 0 074e [ 4] sub $0x8,%rax
+-CLONE 0 0752 [ 3] cmp %rax,%rsi
+-CLONE 0 0755 [ 6] je <+0x890>
+-CLONE 0 075b [ 3] mov %r13,(%rsi)
+-CLONE 0 075e [ 4] add $0x8,%rsi
+-CLONE 0 0762 [ 7] mov %rsi,0x1c8(%r14)
+-CLONE 0 0769 [ 5] jmp <+0x581>
+-CLONE 0 076e [ 2] xchg %ax,%ax
+-CLONE 0 0770 [ 3] add %ebx,%r12d
+-CLONE 0 0773 [ 3] cmp %rax,%rsi
+-CLONE 0 0776 [ 3] setne %al
+-CLONE 0 0779 [ 3] movzbl %al,%eax
+-CLONE 0 077c [ 3] add %eax,%r12d
+-CLONE 0 077f [ 5] add %r12d,0x14(%rsp)
+-CLONE 0 0784 [ 5] mov 0x28(%rsp),%rax
+-CLONE 0 0789 [ 9] sub %fs:0x28,%rax
+-CLONE 0 0792 [ 6] jne <+0x980>
+-CLONE 0 0798 [ 4] mov 0x14(%rsp),%eax
+-CLONE 0 079c [ 4] add $0x38,%rsp
+-CLONE 0 07a0 [ 1] pop %rbx
+-CLONE 0 07a1 [ 1] pop %rbp
+-CLONE 0 07a2 [ 2] pop %r12
+-CLONE 0 07a4 [ 2] pop %r13
+-CLONE 0 07a6 [ 2] pop %r14
+-CLONE 0 07a8 [ 2] pop %r15
+-CLONE 0 07aa [ 1] ret
+-CLONE 0 07ab [ 5] nopl 0x0(%rax,%rax,1)
+-CLONE 0 07b0 [ 3] mov %r13,%rsi
+-CLONE 0 07b3 [ 3] mov %r14,%rdi
+-CLONE 0 07b6 [ 5] call <tomo_db0::IoLoop::climon_reply_suppressed(tomo_db0::Client*)>
+-CLONE 0 07bb [ 2] test %al,%al
+-CLONE 0 07bd [ 6] je <+0x60a>
+-CLONE 0 07c3 [ 3] mov %r13,%rsi
+-CLONE 0 07c6 [ 3] mov %r14,%rdi
+-CLONE 0 07c9 [ 5] call <tomo_db0::IoLoop::climon_serve_suppressed(tomo_db0::Client*)>
+-CLONE 0 07ce [ 7] mov 0x1c8(%r14),%rsi
+-CLONE 0 07d5 [ 3] add %eax,%r12d
+-CLONE 0 07d8 [ 5] jmp <+0x581>
+-CLONE 0 07dd [ 3] nopl (%rax)
+-CLONE 0 07e0 [ 4] mov -0x8(%rcx),%rax
+-CLONE 0 07e4 [ 4] movb $0x0,0x31(%rbx)
+-CLONE 0 07e8 [ 3] mov %rax,(%rsi)
+-CLONE 0 07eb [ 4] lea -0x8(%rcx),%rax
+-CLONE 0 07ef [ 7] mov %rax,0x1968(%r14)
+-CLONE 0 07f6 [ 3] sub %rdx,%rax
+-CLONE 0 07f9 [ 4] sar $0x3,%rax
+-CLONE 0 07fd [ 5] jmp <+0x331>
+-CLONE 0 0802 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 080d [ 3] nopl (%rax)
+-CLONE 0 0810 [ 5] call <tomo_db0::ExLoopT<true>::split_read_local_pass()>
+-CLONE 0 0815 [ 3] mov %eax,%r13d
+-CLONE 0 0818 [ 5] jmp <+0x4ad>
+-CLONE 0 081d [ 3] nopl (%rax)
+-CLONE 0 0820 [ 3] add %ebx,%r12d
+-CLONE 0 0823 [ 5] jmp <+0x77f>
+-CLONE 0 0828 [ 8] nopl 0x0(%rax,%rax,1)
+-CLONE 0 0830 [ 5] lea 0x20(%rsp),%rsi
+-CLONE 0 0835 [ 7] lea 0x198(%r14),%rdi
+-CLONE 0 083c [ 5] call <void std::deque<tomo_db0::Client*, std::allocator<tomo_db0::Client*> >::_M_push_back_aux<tomo_db0::Client* const&>(tomo_db0::Client* const&)>
+-CLONE 0 0841 [ 5] jmp <+0x82>
+-CLONE 0 0846 [10] cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 0850 [ 4] mov 0x10(%rbx),%rdi
+-CLONE 0 0854 [ 3] mov %r15d,%edx
+-CLONE 0 0857 [ 4] lea (%rdi,%rax,1),%rsi
+-CLONE 0 085b [ 5] call <memmove@plt>
+-CLONE 0 0860 [ 5] jmp <+0x3b7>
+-CLONE 0 0865 [ 3] mov %rbx,%rsi
+-CLONE 0 0868 [ 3] mov %r14,%rdi
+-CLONE 0 086b [ 4] mov %edx,0x14(%rsp)
+-CLONE 0 086f [ 5] call <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)>
+-CLONE 0 0874 [ 4] mov 0x14(%rsp),%edx
+-CLONE 0 0878 [ 3] mov %eax,%r15d
+-CLONE 0 087b [ 3] cmp 0x8(%rbx),%edx
+-CLONE 0 087e [ 6] je <+0x140>
+-CLONE 0 0884 [ 4] incl 0x8(%rsp)
+-CLONE 0 0888 [ 5] jmp <+0x140>
+-CLONE 0 088d [ 3] nopl (%rax)
+-CLONE 0 0890 [ 5] mov 0x18(%rsp),%rdi
+-CLONE 0 0895 [ 5] lea 0x20(%rsp),%rsi
+-CLONE 0 089a [ 5] call <void std::deque<tomo_db0::Client*, std::allocator<tomo_db0::Client*> >::_M_push_back_aux<tomo_db0::Client* const&>(tomo_db0::Client* const&)>
+-CLONE 0 089f [ 7] mov 0x1c8(%r14),%rsi
+-CLONE 0 08a6 [ 5] jmp <+0x581>
+-CLONE 0 08ab [ 5] nopl 0x0(%rax,%rax,1)
+-CLONE 0 08b0 [ 3] mov %r14,%rdi
+-CLONE 0 08b3 [ 5] call <tomo_db0::IoLoop::pubsub_pass_flush()>
+-CLONE 0 08b8 [ 4] add %eax,0x14(%rsp)
+-CLONE 0 08bc [ 5] jmp <+0x4d3>
+-CLONE 0 08c1 [ 7] mov 0x1958(%r14),%rsi
+-CLONE 0 08c8 [ 3] test %rsi,%rsi
+-CLONE 0 08cb [ 2] je <+0x8f7>
+-CLONE 0 08cd [ 7] lea 0x10380(%rdx),%rbx
+-CLONE 0 08d4 [ 3] mov %rbx,%rdi
+-CLONE 0 08d7 [ 5] call <tomo_db0::AofManager::reply_gate_ready(unsigned long) const>
+-CLONE 0 08dc [ 2] test %al,%al
+-CLONE 0 08de [ 6] je <+0x96a>
+-CLONE 0 08e4 [ 7] mov 0x1c8(%r14),%rsi
+-CLONE 0 08eb [ 7] mov 0x1a8(%r14),%rax
+-CLONE 0 08f2 [ 5] jmp <+0x4fa>
+-CLONE 0 08f7 [ 7] mov 0x103d0(%rdx),%rsi
+-CLONE 0 08fe [ 7] mov %rsi,0x1958(%r14)
+-CLONE 0 0905 [ 2] jmp <+0x8cd>
+-CLONE 0 0907 [ 3] mov %rbx,%rsi
+-CLONE 0 090a [ 3] mov %r14,%rdi
+-CLONE 0 090d [ 5] call <tomo_db0::IoLoop::client_executor_quiesced(tomo_db0::Client*) const>
+-CLONE 0 0912 [ 2] test %al,%al
+-CLONE 0 0914 [ 6] je <+0x674>
+-CLONE 0 091a [ 7] lea 0x1960(%r14),%rdi
+-CLONE 0 0921 [ 3] mov %rbp,%rsi
+-CLONE 0 0924 [ 4] movb $0x0,0x31(%rbx)
+-CLONE 0 0928 [ 5] call <tomo_db0::IoLoop::PtrSet::erase_at(unsigned long)>
+-CLONE 0 092d [ 2] xor %edx,%edx
+-CLONE 0 092f [ 3] mov %rbx,%rsi
+-CLONE 0 0932 [ 3] mov %r14,%rdi
+-CLONE 0 0935 [ 5] call <tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)>
+-CLONE 0 093a [ 7] mov 0x1960(%r14),%rdx
+-CLONE 0 0941 [ 7] mov 0x1968(%r14),%rax
+-CLONE 0 0948 [ 3] sub %rdx,%rax
+-CLONE 0 094b [ 4] sar $0x3,%rax
+-CLONE 0 094f [ 5] jmp <+0x331>
+-CLONE 0 0954 [ 5] lea 0x20(%rsp),%rsi
+-CLONE 0 0959 [ 7] lea 0x198(%r14),%rdi
+-CLONE 0 0960 [ 5] call <void std::deque<tomo_db0::Client*, std::allocator<tomo_db0::Client*> >::_M_push_back_aux<tomo_db0::Client* const&>(tomo_db0::Client* const&)>
+-CLONE 0 0965 [ 5] jmp <+0x423>
+-CLONE 0 096a [ 7] mov 0x190(%r14),%rax
+-CLONE 0 0971 [ 3] mov %rbx,%rdi
+-CLONE 0 0974 [ 2] mov (%rax),%esi
+-CLONE 0 0976 [ 5] call <tomo_db0::AofManager::register_send_gate_wait(unsigned int)>
+-CLONE 0 097b [ 5] jmp <+0x784>
+-CLONE 0 0980 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 02fc [ 6] je <+0x780>
++CLONE 0 0302 [ 3] mov %rbx,%rdi
++CLONE 0 0305 [ 5] call <tomo_db0::Client::safe_to_release()>
++CLONE 0 030a [ 2] test %al,%al
++CLONE 0 030c [ 6] jne <+0x650>
++CLONE 0 0312 [ 7] mov 0x1960(%r14),%rdx
++CLONE 0 0319 [ 7] mov 0x1968(%r14),%rax
++CLONE 0 0320 [ 3] sub %rdx,%rax
++CLONE 0 0323 [ 4] sar $0x3,%rax
++CLONE 0 0327 [ 2] jmp <+0x335>
++CLONE 0 0329 [ 7] nopl 0x0(%rax)
++CLONE 0 0330 [ 3] test %dil,%dil
++CLONE 0 0333 [ 2] jne <+0x302>
++CLONE 0 0335 [ 3] inc %rbp
++CLONE 0 0338 [ 3] cmp %rax,%rbp
++CLONE 0 033b [ 6] jae <+0x460>
++CLONE 0 0341 [ 8] lea 0x0(,%rbp,8),%r12
++CLONE 0 0349 [ 5] jmp <+0x1ac>
++CLONE 0 034e [ 2] xchg %ax,%ax
++CLONE 0 0350 [ 7] mov 0x1d8(%r14),%rdi
++CLONE 0 0357 [ 7] mov 0x1c8(%r14),%rax
++CLONE 0 035e [ 5] mov %rbx,0x20(%rsp)
++CLONE 0 0363 [ 4] movb $0x1,0x30(%rbx)
++CLONE 0 0367 [ 4] lea -0x8(%rdi),%rdx
++CLONE 0 036b [ 3] cmp %rdx,%rax
++CLONE 0 036e [ 6] je <+0x7d0>
++CLONE 0 0374 [ 3] mov %rbx,(%rax)
++CLONE 0 0377 [ 4] add $0x8,%rax
++CLONE 0 037b [ 7] mov %rax,0x1c8(%r14)
++CLONE 0 0382 [ 5] jmp <+0x82>
++CLONE 0 0387 [ 9] nopw 0x0(%rax,%rax,1)
++CLONE 0 0390 [ 3] mov 0x8(%rbx),%eax
++CLONE 0 0393 [ 4] mov 0x4(%rbx),%r15d
++CLONE 0 0397 [ 3] sub %eax,%r15d
++CLONE 0 039a [ 2] test %eax,%eax
++CLONE 0 039c [ 2] je <+0x3a7>
++CLONE 0 039e [ 3] test %r15d,%r15d
++CLONE 0 03a1 [ 6] jne <+0x7f0>
++CLONE 0 03a7 [ 4] mov %r15d,0x4(%rbx)
++CLONE 0 03ab [ 7] movl $0x0,0x8(%rbx)
++CLONE 0 03b2 [ 5] jmp <+0xe4>
++CLONE 0 03b7 [ 9] nopw 0x0(%rax,%rax,1)
++CLONE 0 03c0 [ 7] mov 0xc0(%rbx),%rax
++CLONE 0 03c7 [ 7] mov 0x100(%rbx),%rax
++CLONE 0 03ce [ 5] jmp <+0x17b>
++CLONE 0 03d3 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 03de [ 2] xchg %ax,%ax
++CLONE 0 03e0 [ 7] mov 0x190(%r14),%rsi
++CLONE 0 03e7 [ 7] mov 0x188(%r14),%rdi
++CLONE 0 03ee [ 7] lea 0xac8(%r14),%rdx
++CLONE 0 03f5 [ 3] mov %r13,%r8
++CLONE 0 03f8 [ 3] mov %rbx,%rcx
++CLONE 0 03fb [ 5] call <tomo_db0::blocking_resume_move(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client&, tomo_db0::ScatterArenaPool&)>
++CLONE 0 0400 [ 2] test %al,%al
++CLONE 0 0402 [ 2] je <+0x416>
++CLONE 0 0404 [ 4] cmpb $0x0,0x30(%rbx)
++CLONE 0 0408 [ 5] mov %rbx,0x20(%rsp)
++CLONE 0 040d [ 6] je <+0x630>
++CLONE 0 0413 [ 3] incl (%rsp)
++CLONE 0 0416 [ 4] movzbl 0x34(%rbx),%eax
++CLONE 0 041a [ 2] test %al,%al
++CLONE 0 041c [ 6] jns <+0x9c>
++CLONE 0 0422 [ 7] mov 0x188(%r14),%rax
++CLONE 0 0429 [ 6] mov 0x16ba4(%rax),%eax
++CLONE 0 042f [ 2] test %eax,%eax
++CLONE 0 0431 [ 6] jne <+0x9c>
++CLONE 0 0437 [ 4] andb $0x7f,0x34(%rbx)
++CLONE 0 043b [ 5] jmp <+0x9c>
++CLONE 0 0440 [ 3] xor %r15d,%r15d
++CLONE 0 0443 [ 5] jmp <+0x140>
++CLONE 0 0448 [ 8] nopl 0x0(%rax,%rax,1)
++CLONE 0 0450 [ 7] movl $0x0,(%rsp)
++CLONE 0 0457 [ 9] nopw 0x0(%rax,%rax,1)
++CLONE 0 0460 [ 7] mov 0x1ba0(%r14),%rdi
++CLONE 0 0467 [ 3] mov (%rdi),%rax
++CLONE 0 046a [ 7] cmpb $0x0,0x10a(%rax)
++CLONE 0 0471 [ 6] je <+0x7b0>
++CLONE 0 0477 [ 8] cmpq $0x0,0x16d8(%rdi)
++CLONE 0 047f [ 6] je <+0x680>
++CLONE 0 0485 [ 5] call <unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()>
++CLONE 0 048a [ 3] mov %eax,%r13d
++CLONE 0 048d [ 2] xor %esi,%esi
++CLONE 0 048f [ 3] mov %r14,%rdi
++CLONE 0 0492 [ 5] call <unsigned int tomo_db0::IoLoop::collect_retire_work<true, false>(bool)>
++CLONE 0 0497 [ 3] add %eax,%r13d
++CLONE 0 049a [ 3] mov (%rsp),%eax
++CLONE 0 049d [ 3] add %r13d,%eax
++CLONE 0 04a0 [ 8] cmpb $0x0,0x178(%r14)
++CLONE 0 04a8 [ 4] mov %eax,0x18(%rsp)
++CLONE 0 04ac [ 6] jne <+0x8a0>
++CLONE 0 04b2 [ 7] mov 0x1c8(%r14),%rdx
++CLONE 0 04b9 [ 7] mov 0x1a8(%r14),%rax
++CLONE 0 04c0 [ 3] cmp %rax,%rdx
++CLONE 0 04c3 [ 2] je <+0x4d9>
++CLONE 0 04c5 [ 7] mov 0x188(%r14),%rcx
++CLONE 0 04cc [ 7] cmpb $0x0,0x10380(%rcx)
++CLONE 0 04d3 [ 6] jne <+0x8b1>
++CLONE 0 04d9 [ 7] mov 0x1e0(%r14),%rcx
++CLONE 0 04e0 [ 7] mov 0x1b8(%r14),%rsi
++CLONE 0 04e7 [ 7] lea 0x198(%r14),%rdi
++CLONE 0 04ee [11] movq $0x0,0x1958(%r14)
++CLONE 0 04f9 [ 5] mov %rdi,0x10(%rsp)
++CLONE 0 04fe [ 7] lea 0x545(%r14),%rdi
++CLONE 0 0505 [ 5] mov %rdi,0x8(%rsp)
++CLONE 0 050a [ 3] mov %rcx,%rbp
++CLONE 0 050d [ 7] sub 0x1c0(%r14),%rbp
++CLONE 0 0514 [ 4] sar $0x3,%rbp
++CLONE 0 0518 [ 4] cmp $0x1,%rcx
++CLONE 0 051c [ 3] mov %rdx,%rcx
++CLONE 0 051f [ 4] adc $0xffffffffffffffff,%rbp
++CLONE 0 0523 [ 7] sub 0x1d0(%r14),%rcx
++CLONE 0 052a [ 3] sub %rax,%rsi
++CLONE 0 052d [ 3] xor %r12d,%r12d
++CLONE 0 0530 [ 2] xor %ebx,%ebx
++CLONE 0 0532 [ 3] xor %r15d,%r15d
++CLONE 0 0535 [ 4] shl $0x6,%rbp
++CLONE 0 0539 [ 4] sar $0x3,%rsi
++CLONE 0 053d [ 4] sar $0x3,%rcx
++CLONE 0 0541 [ 3] add %rcx,%rbp
++CLONE 0 0544 [ 3] add %rbp,%rsi
++CLONE 0 0547 [ 4] mov %rsi,(%rsp)
++CLONE 0 054b [ 2] jne <+0x58e>
++CLONE 0 054d [ 5] jmp <+0x6e8>
++CLONE 0 0552 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 055d [ 3] nopl (%rax)
++CLONE 0 0560 [ 5] movb $0x0,0x48(%r13)
++CLONE 0 0565 [ 5] movb $0x0,0x30(%r13)
++CLONE 0 056a [ 4] mov (%rsp),%rcx
++CLONE 0 056e [ 2] mov %ebx,%eax
++CLONE 0 0570 [ 3] cmp %r15,%rax
++CLONE 0 0573 [ 4] cmovb %r15,%rax
++CLONE 0 0577 [ 3] cmp %rcx,%rax
++CLONE 0 057a [ 6] jae <+0x6e0>
++CLONE 0 0580 [ 7] mov 0x1c8(%r14),%rdx
++CLONE 0 0587 [ 7] mov 0x1a8(%r14),%rax
++CLONE 0 058e [ 3] cmp %rax,%rdx
++CLONE 0 0591 [ 6] je <+0x7c0>
++CLONE 0 0597 [ 7] mov 0x1b8(%r14),%rcx
++CLONE 0 059e [ 3] mov (%rax),%r13
++CLONE 0 05a1 [ 4] lea -0x8(%rcx),%rsi
++CLONE 0 05a5 [ 5] mov %r13,0x20(%rsp)
++CLONE 0 05aa [ 3] cmp %rsi,%rax
++CLONE 0 05ad [ 6] je <+0x690>
++CLONE 0 05b3 [ 4] add $0x8,%rax
++CLONE 0 05b7 [ 3] inc %r15
++CLONE 0 05ba [ 5] cmpb $0x0,0x33(%r13)
++CLONE 0 05bf [ 7] mov %rax,0x1a8(%r14)
++CLONE 0 05c6 [ 5] movzbl 0x48(%r13),%ebp
++CLONE 0 05cb [ 2] jne <+0x560>
++CLONE 0 05cd [ 5] mov 0x8(%rsp),%rsi
++CLONE 0 05d2 [ 3] mov %r13,%rdi
++CLONE 0 05d5 [ 5] call <bool tomo_db0::wb_rule::defer<tomo_db0::Client>(tomo_db0::Client&, tomo_db0::wb_rule::Settings const&)>
++CLONE 0 05da [ 2] test %al,%al
++CLONE 0 05dc [ 6] jne <+0x710>
++CLONE 0 05e2 [ 5] cmpb $0x0,0x33(%r13)
++CLONE 0 05e7 [ 5] movb $0x0,0x48(%r13)
++CLONE 0 05ec [ 5] movb $0x0,0x30(%r13)
++CLONE 0 05f1 [ 6] jne <+0x56a>
++CLONE 0 05f7 [ 2] inc %ebx
++CLONE 0 05f9 [ 8] testb $0xa,0x1b40(%r14)
++CLONE 0 0601 [ 6] jne <+0x750>
++CLONE 0 0607 [ 7] lea 0x1838(%r14),%rdi
++CLONE 0 060e [ 3] mov %r13,%rsi
++CLONE 0 0611 [ 5] call <bool tomo_db0::WbEngine::serve<false, false, true>(tomo_db0::Client&)>
++CLONE 0 0616 [ 2] cmp $0x1,%al
++CLONE 0 0618 [ 4] sbb $0xffffffff,%r12d
++CLONE 0 061c [ 5] jmp <+0x56a>
++CLONE 0 0621 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 062c [ 4] nopl 0x0(%rax)
++CLONE 0 0630 [ 5] lea 0x20(%rsp),%rsi
++CLONE 0 0635 [ 7] lea 0x198(%r14),%rdi
++CLONE 0 063c [ 4] movb $0x1,0x30(%rbx)
++CLONE 0 0640 [ 5] call <std::deque<tomo_db0::Client*, std::allocator<tomo_db0::Client*> >::push_back(tomo_db0::Client* const&)>
++CLONE 0 0645 [ 5] jmp <+0x413>
++CLONE 0 064a [ 6] nopw 0x0(%rax,%rax,1)
++CLONE 0 0650 [ 3] mov %rbx,%rsi
++CLONE 0 0653 [ 3] mov %r14,%rdi
++CLONE 0 0656 [ 5] call <tomo_db0::IoLoop::pubsub_disconnect_ready(tomo_db0::Client*)>
++CLONE 0 065b [ 2] test %al,%al
++CLONE 0 065d [ 6] jne <+0x805>
++CLONE 0 0663 [ 7] mov 0x1960(%r14),%rdx
++CLONE 0 066a [ 7] mov 0x1968(%r14),%rax
++CLONE 0 0671 [ 3] inc %rbp
++CLONE 0 0674 [ 3] sub %rdx,%rax
++CLONE 0 0677 [ 4] sar $0x3,%rax
++CLONE 0 067b [ 5] jmp <+0x338>
++CLONE 0 0680 [ 5] call <unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()>
++CLONE 0 0685 [ 3] mov %eax,%r13d
++CLONE 0 0688 [ 5] jmp <+0x48d>
++CLONE 0 068d [ 3] nopl (%rax)
++CLONE 0 0690 [ 7] mov 0x1b0(%r14),%rdi
++CLONE 0 0697 [ 5] mov $0x200,%esi
++CLONE 0 069c [ 5] call <_ZdlPvm@plt>
++CLONE 0 06a1 [ 7] mov 0x1c0(%r14),%rax
++CLONE 0 06a8 [ 4] lea 0x8(%rax),%rsi
++CLONE 0 06ac [ 4] mov 0x8(%rax),%rax
++CLONE 0 06b0 [ 7] mov %rsi,0x1c0(%r14)
++CLONE 0 06b7 [ 5] vmovq %rax,%xmm1
++CLONE 0 06bc [ 7] lea 0x200(%rax),%rsi
++CLONE 0 06c3 [ 6] vpinsrq $0x1,%rsi,%xmm1,%xmm0
++CLONE 0 06c9 [ 9] vmovdqu %xmm0,0x1b0(%r14)
++CLONE 0 06d2 [ 5] jmp <+0x5b7>
++CLONE 0 06d7 [ 9] nopw 0x0(%rax,%rax,1)
++CLONE 0 06e0 [ 3] add %ebx,%r12d
++CLONE 0 06e3 [ 5] add %r12d,0x18(%rsp)
++CLONE 0 06e8 [ 5] mov 0x28(%rsp),%rax
++CLONE 0 06ed [ 9] sub %fs:0x28,%rax
++CLONE 0 06f6 [ 6] jne <+0x909>
++CLONE 0 06fc [ 4] mov 0x18(%rsp),%eax
++CLONE 0 0700 [ 4] add $0x38,%rsp
++CLONE 0 0704 [ 1] pop %rbx
++CLONE 0 0705 [ 1] pop %rbp
++CLONE 0 0706 [ 2] pop %r12
++CLONE 0 0708 [ 2] pop %r13
++CLONE 0 070a [ 2] pop %r14
++CLONE 0 070c [ 2] pop %r15
++CLONE 0 070e [ 1] ret
++CLONE 0 070f [ 1] nop
++CLONE 0 0710 [ 7] mov 0x1d8(%r14),%rdi
++CLONE 0 0717 [ 7] mov 0x1c8(%r14),%rax
++CLONE 0 071e [ 5] movzbl 0x48(%r13),%r10d
++CLONE 0 0723 [ 4] lea -0x8(%rdi),%rsi
++CLONE 0 0727 [ 3] cmp %rsi,%rax
++CLONE 0 072a [ 6] je <+0x880>
++CLONE 0 0730 [ 3] mov %r13,(%rax)
++CLONE 0 0733 [ 4] add $0x8,%rax
++CLONE 0 0737 [ 7] mov %rax,0x1c8(%r14)
++CLONE 0 073e [ 2] xor %eax,%eax
++CLONE 0 0740 [ 3] cmp %r10b,%bpl
++CLONE 0 0743 [ 3] setne %al
++CLONE 0 0746 [ 3] add %eax,%r12d
++CLONE 0 0749 [ 5] jmp <+0x56a>
++CLONE 0 074e [ 2] xchg %ax,%ax
++CLONE 0 0750 [ 3] mov %r13,%rsi
++CLONE 0 0753 [ 3] mov %r14,%rdi
++CLONE 0 0756 [ 5] call <tomo_db0::IoLoop::climon_reply_suppressed(tomo_db0::Client*)>
++CLONE 0 075b [ 2] test %al,%al
++CLONE 0 075d [ 6] je <+0x607>
++CLONE 0 0763 [ 3] mov %r13,%rsi
++CLONE 0 0766 [ 3] mov %r14,%rdi
++CLONE 0 0769 [ 5] call <tomo_db0::IoLoop::climon_serve_suppressed(tomo_db0::Client*)>
++CLONE 0 076e [ 3] add %eax,%r12d
++CLONE 0 0771 [ 5] jmp <+0x56a>
++CLONE 0 0776 [10] cs nopw 0x0(%rax,%rax,1)
++CLONE 0 0780 [ 4] mov -0x8(%rcx),%rax
++CLONE 0 0784 [ 4] movb $0x0,0x31(%rbx)
++CLONE 0 0788 [ 3] mov %rax,(%rsi)
++CLONE 0 078b [ 4] lea -0x8(%rcx),%rax
++CLONE 0 078f [ 7] mov %rax,0x1968(%r14)
++CLONE 0 0796 [ 3] sub %rdx,%rax
++CLONE 0 0799 [ 4] sar $0x3,%rax
++CLONE 0 079d [ 5] jmp <+0x338>
++CLONE 0 07a2 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 07ad [ 3] nopl (%rax)
++CLONE 0 07b0 [ 5] call <tomo_db0::ExLoopT<true>::split_read_local_pass()>
++CLONE 0 07b5 [ 3] mov %eax,%r13d
++CLONE 0 07b8 [ 5] jmp <+0x48d>
++CLONE 0 07bd [ 3] nopl (%rax)
++CLONE 0 07c0 [ 3] add %r12d,%ebx
++CLONE 0 07c3 [ 4] add %ebx,0x18(%rsp)
++CLONE 0 07c7 [ 5] jmp <+0x6e8>
++CLONE 0 07cc [ 4] nopl 0x0(%rax)
++CLONE 0 07d0 [ 5] lea 0x20(%rsp),%rsi
++CLONE 0 07d5 [ 7] lea 0x198(%r14),%rdi
++CLONE 0 07dc [ 5] call <void std::deque<tomo_db0::Client*, std::allocator<tomo_db0::Client*> >::_M_push_back_aux<tomo_db0::Client* const&>(tomo_db0::Client* const&)>
++CLONE 0 07e1 [ 5] jmp <+0x82>
++CLONE 0 07e6 [10] cs nopw 0x0(%rax,%rax,1)
++CLONE 0 07f0 [ 4] mov 0x10(%rbx),%rdi
++CLONE 0 07f4 [ 3] mov %r15d,%edx
++CLONE 0 07f7 [ 4] lea (%rdi,%rax,1),%rsi
++CLONE 0 07fb [ 5] call <memmove@plt>
++CLONE 0 0800 [ 5] jmp <+0x3a7>
++CLONE 0 0805 [ 3] mov %rbx,%rsi
++CLONE 0 0808 [ 3] mov %r14,%rdi
++CLONE 0 080b [ 5] call <tomo_db0::IoLoop::client_executor_quiesced(tomo_db0::Client*) const>
++CLONE 0 0810 [ 2] test %al,%al
++CLONE 0 0812 [ 6] je <+0x663>
++CLONE 0 0818 [ 7] lea 0x1960(%r14),%rdi
++CLONE 0 081f [ 3] mov %rbp,%rsi
++CLONE 0 0822 [ 4] movb $0x0,0x31(%rbx)
++CLONE 0 0826 [ 5] call <tomo_db0::IoLoop::PtrSet::erase_at(unsigned long)>
++CLONE 0 082b [ 2] xor %edx,%edx
++CLONE 0 082d [ 3] mov %rbx,%rsi
++CLONE 0 0830 [ 3] mov %r14,%rdi
++CLONE 0 0833 [ 5] call <tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)>
++CLONE 0 0838 [ 7] mov 0x1960(%r14),%rdx
++CLONE 0 083f [ 7] mov 0x1968(%r14),%rax
++CLONE 0 0846 [ 3] sub %rdx,%rax
++CLONE 0 0849 [ 4] sar $0x3,%rax
++CLONE 0 084d [ 5] jmp <+0x338>
++CLONE 0 0852 [ 3] mov %rbx,%rsi
++CLONE 0 0855 [ 3] mov %r14,%rdi
++CLONE 0 0858 [ 4] mov %edx,0x8(%rsp)
++CLONE 0 085c [ 5] call <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)>
++CLONE 0 0861 [ 4] mov 0x8(%rsp),%edx
++CLONE 0 0865 [ 3] mov %eax,%r15d
++CLONE 0 0868 [ 3] cmp 0x8(%rbx),%edx
++CLONE 0 086b [ 6] je <+0x140>
++CLONE 0 0871 [ 3] incl (%rsp)
++CLONE 0 0874 [ 5] jmp <+0x140>
++CLONE 0 0879 [ 7] nopl 0x0(%rax)
++CLONE 0 0880 [ 5] mov 0x10(%rsp),%rdi
++CLONE 0 0885 [ 5] lea 0x20(%rsp),%rsi
++CLONE 0 088a [ 5] mov %r10b,0x1f(%rsp)
++CLONE 0 088f [ 5] call <void std::deque<tomo_db0::Client*, std::allocator<tomo_db0::Client*> >::_M_push_back_aux<tomo_db0::Client* const&>(tomo_db0::Client* const&)>
++CLONE 0 0894 [ 6] movzbl 0x1f(%rsp),%r10d
++CLONE 0 089a [ 5] jmp <+0x73e>
++CLONE 0 089f [ 1] nop
++CLONE 0 08a0 [ 3] mov %r14,%rdi
++CLONE 0 08a3 [ 5] call <tomo_db0::IoLoop::pubsub_pass_flush()>
++CLONE 0 08a8 [ 4] add %eax,0x18(%rsp)
++CLONE 0 08ac [ 5] jmp <+0x4b2>
++CLONE 0 08b1 [ 7] mov 0x1958(%r14),%rsi
++CLONE 0 08b8 [ 3] test %rsi,%rsi
++CLONE 0 08bb [ 2] je <+0x8e3>
++CLONE 0 08bd [ 7] lea 0x10380(%rcx),%rbx
++CLONE 0 08c4 [ 3] mov %rbx,%rdi
++CLONE 0 08c7 [ 5] call <tomo_db0::AofManager::reply_gate_ready(unsigned long) const>
++CLONE 0 08cc [ 2] test %al,%al
++CLONE 0 08ce [ 2] je <+0x8f3>
++CLONE 0 08d0 [ 7] mov 0x1c8(%r14),%rdx
++CLONE 0 08d7 [ 7] mov 0x1a8(%r14),%rax
++CLONE 0 08de [ 5] jmp <+0x4d9>
++CLONE 0 08e3 [ 7] mov 0x103d0(%rcx),%rsi
++CLONE 0 08ea [ 7] mov %rsi,0x1958(%r14)
++CLONE 0 08f1 [ 2] jmp <+0x8bd>
++CLONE 0 08f3 [ 7] mov 0x190(%r14),%rax
++CLONE 0 08fa [ 3] mov %rbx,%rdi
++CLONE 0 08fd [ 2] mov (%rax),%esi
++CLONE 0 08ff [ 5] call <tomo_db0::AofManager::register_send_gate_wait(unsigned int)>
++CLONE 0 0904 [ 5] jmp <+0x6e8>
++CLONE 0 0909 [ 5] call <__stack_chk_fail@plt>

@@ -1,0 +1,25 @@
+_GLOBAL__sub_I_luaA_pushobject
+--- headline
+
++++ post
+
+@@ -23,7 +23,7 @@
+
+ CLONE 0 0095 [ 3] vzeroupper
+ CLONE 0 0098 [ 5] call <__cxa_atexit@plt>
+ CLONE 0 009d [ 7] lea <rip>(%rip),%rax # <literal-string-4556414c00>
+-CLONE 0 00a4 [ 7] mov <rip>(%rip),%rdx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x720>
++CLONE 0 00a4 [ 7] mov <rip>(%rip),%rdx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x170>
+ CLONE 0 00ab [ 7] lea <rip>(%rip),%rcx # <void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_eval<true, false, false>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)>
+ CLONE 0 00b2 [ 7] lea <rip>(%rip),%rbx # <void tomo::(anonymous namespace)::cmd_eval<false, true, false>(tomo::Shard&, tomo::Op&)>
+ CLONE 0 00b9 [ 7] mov %rax,<rip>(%rip) # <tomo::(anonymous namespace)::kTable>
+@@ -47,7 +47,7 @@
+
+ CLONE 0 013a [ 7] lea <rip>(%rip),%rbx # <void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_eval<true, false, true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)>
+ CLONE 0 0141 [ 7] mov %rdi,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0x60>
+ CLONE 0 0148 [ 7] mov %rax,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0xc0>
+-CLONE 0 014f [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6f8>
++CLONE 0 014f [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x148>
+ CLONE 0 0156 [ 7] lea <rip>(%rip),%rcx # <void tomo::(anonymous namespace)::cmd_eval<false, false, true>(tomo::Shard&, tomo::Op&)>
+ CLONE 0 015d [ 7] lea <rip>(%rip),%rsi # <literal-string-4556414c5348415f524f00>
+ CLONE 0 0164 [ 7] lea <rip>(%rip),%rdi # <void tomo::(anonymous namespace)::cmd_eval<false, true, true>(tomo::Shard&, tomo::Op&)>

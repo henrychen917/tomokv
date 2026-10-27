@@ -1,0 +1,1 @@
+pid 3260404 idle 1s target tid=1 role=io: baseline {tid=1 role=io iterations=20 spins=0 wakes=0/0}; partial {tid=1 role=io iterations=30 spins=0 wakes=0/0}; extra iterations=+10 spins=+0 wakes=+0/+0; frame completion -> b'OK'; owner after=1 (stable)

@@ -1,0 +1,7 @@
+PARTIAL	0	GATE_ONLY_JOBS=latencyfix_grammar latencyfix_shape latencyfix_off config_unit; NOT A RECEIPT
+ok	34.460000	release build (+footprint locks)
+ok	0.390000	configuration docs match parser
+ok	5.290000	Redis config quoting + mid-value #
+ok	6.260000	latencyfix LAT-HIST-1 knob grammar
+ok	1.740000	latencyfix LAT-HIST-1 histogram and latencystats
+ok	12.710000	latencyfix LAT-HIST-1 zero allocations off

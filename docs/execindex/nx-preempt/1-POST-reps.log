@@ -1,0 +1,212 @@
+===== block 1 POST rep 0 (1-POST-rep0.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[10, 2], [10, 2], [3, 3]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 1 (1-POST-rep1.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[13, 5], [13, 5], [3, 3]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 2 (1-POST-rep2.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[1, 1], [1, 1], [8, 0]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 3 (1-POST-rep3.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[5, 5], [5, 5], [2, 2]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 4 (1-POST-rep4.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[15, 7], [15, 7], [12, 4]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 5 (1-POST-rep5.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[1, 1], [1, 1], [5, 5]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 6 (1-POST-rep6.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[6, 6], [6, 6], [13, 5]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 7 (1-POST-rep7.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[13, 5], [13, 5], [1, 1]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 8 (1-POST-rep8.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[7, 7], [7, 7], [2, 2]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 9 (1-POST-rep9.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[1, 1], [1, 1], [10, 2]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 10 (1-POST-rep10.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[10, 2], [10, 2], [1, 1]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 11 (1-POST-rep11.log) exit=1
+atomic=1
+FAIL {'iteration': 4170, 'replies': [RespError(b'ERR no such key'), 1], 'values': [b'winner-a', None, b'winner-b']}
+{"transactional": false, "geometry": [[14, 6], [14, 6], [0, 0]], "rounds": 8192, "completed": 8192, "failures": 1, "examples": [{"iteration": 4170, "replies": ["RespError(b'ERR no such key')", 1], "values": ["b'winner-a'", null, "b'winner-b'"]}], "errors": [], "threads_alive": false}
+===== block 1 POST rep 12 (1-POST-rep12.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[13, 5], [13, 5], [12, 4]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 13 (1-POST-rep13.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[8, 0], [8, 0], [6, 6]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 14 (1-POST-rep14.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[13, 5], [13, 5], [8, 0]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 15 (1-POST-rep15.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[11, 3], [11, 3], [7, 7]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 16 (1-POST-rep16.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[7, 7], [7, 7], [10, 2]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 17 (1-POST-rep17.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[4, 4], [4, 4], [15, 7]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 18 (1-POST-rep18.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[10, 2], [10, 2], [6, 6]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 19 (1-POST-rep19.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[1, 1], [1, 1], [0, 0]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 20 (1-POST-rep20.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[0, 0], [0, 0], [6, 6]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 21 (1-POST-rep21.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[10, 2], [10, 2], [3, 3]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 22 (1-POST-rep22.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[7, 7], [7, 7], [1, 1]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 23 (1-POST-rep23.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[2, 2], [2, 2], [3, 3]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 24 (1-POST-rep24.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[4, 4], [4, 4], [6, 6]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 25 (1-POST-rep25.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[12, 4], [12, 4], [15, 7]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 26 (1-POST-rep26.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[9, 1], [9, 1], [10, 2]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 27 (1-POST-rep27.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[6, 6], [6, 6], [5, 5]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 28 (1-POST-rep28.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[10, 2], [10, 2], [7, 7]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 29 (1-POST-rep29.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[4, 4], [4, 4], [9, 1]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 30 (1-POST-rep30.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[5, 5], [5, 5], [10, 2]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 31 (1-POST-rep31.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[14, 6], [14, 6], [4, 4]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 32 (1-POST-rep32.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[11, 3], [11, 3], [7, 7]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 33 (1-POST-rep33.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[3, 3], [3, 3], [1, 1]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 34 (1-POST-rep34.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[13, 5], [13, 5], [7, 7]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 35 (1-POST-rep35.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[0, 0], [0, 0], [13, 5]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 36 (1-POST-rep36.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[12, 4], [12, 4], [1, 1]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 37 (1-POST-rep37.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[6, 6], [6, 6], [13, 5]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 38 (1-POST-rep38.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[4, 4], [4, 4], [9, 1]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 39 (1-POST-rep39.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[15, 7], [15, 7], [12, 4]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 40 (1-POST-rep40.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[4, 4], [4, 4], [14, 6]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 41 (1-POST-rep41.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[8, 0], [8, 0], [4, 4]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 42 (1-POST-rep42.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[5, 5], [5, 5], [1, 1]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 43 (1-POST-rep43.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[3, 3], [3, 3], [13, 5]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 44 (1-POST-rep44.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[4, 4], [4, 4], [13, 5]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 45 (1-POST-rep45.log) exit=1
+atomic=1
+FAIL {'iteration': 5352, 'replies': [1, RespError(b'ERR no such key')], 'values': [None, b'winner-b', b'winner-a']}
+{"transactional": false, "geometry": [[1, 1], [1, 1], [13, 5]], "rounds": 8192, "completed": 8192, "failures": 1, "examples": [{"iteration": 5352, "replies": [1, "RespError(b'ERR no such key')"], "values": [null, "b'winner-b'", "b'winner-a'"]}], "errors": [], "threads_alive": false}
+===== block 1 POST rep 46 (1-POST-rep46.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[10, 2], [10, 2], [11, 3]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 47 (1-POST-rep47.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[9, 1], [9, 1], [13, 5]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 48 (1-POST-rep48.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[12, 4], [12, 4], [9, 1]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 49 (1-POST-rep49.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[8, 0], [8, 0], [13, 5]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 50 (1-POST-rep50.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[3, 3], [3, 3], [13, 5]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 51 (1-POST-rep51.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[13, 5], [13, 5], [2, 2]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 52 (1-POST-rep52.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[7, 7], [7, 7], [5, 5]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 53 (1-POST-rep53.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[10, 2], [10, 2], [15, 7]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 54 (1-POST-rep54.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[4, 4], [4, 4], [1, 1]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 55 (1-POST-rep55.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[3, 3], [3, 3], [13, 5]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 56 (1-POST-rep56.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[0, 0], [0, 0], [11, 3]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 57 (1-POST-rep57.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[2, 2], [2, 2], [0, 0]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 58 (1-POST-rep58.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[3, 3], [3, 3], [2, 2]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 59 (1-POST-rep59.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[5, 5], [5, 5], [6, 6]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 60 (1-POST-rep60.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[0, 0], [0, 0], [11, 3]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 61 (1-POST-rep61.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[0, 0], [0, 0], [7, 7]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 62 (1-POST-rep62.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[0, 0], [0, 0], [5, 5]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 63 (1-POST-rep63.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[14, 6], [14, 6], [15, 7]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 64 (1-POST-rep64.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[0, 0], [0, 0], [13, 5]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 65 (1-POST-rep65.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[13, 5], [13, 5], [8, 0]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 66 (1-POST-rep66.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[1, 1], [1, 1], [13, 5]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 67 (1-POST-rep67.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[13, 5], [13, 5], [15, 7]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 68 (1-POST-rep68.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[12, 4], [12, 4], [10, 2]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 1 POST rep 69 (1-POST-rep69.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[1, 1], [1, 1], [15, 7]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}

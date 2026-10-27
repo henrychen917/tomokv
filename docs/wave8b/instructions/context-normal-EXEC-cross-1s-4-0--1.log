@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/context-normal-EXEC-cross-1s-4-0--1.log
+SHA-256: b93aecd579040a102dad8d65f3599c86a589872647ab11e2965c95d314831924
+Exit: 0
+0x0000555555a7c42b	2866	}
+0x0000555555a7c42f	2866	}
+0x0000555555a7c432	2866	}
+0x0000555555a7c433	2866	}
+0x0000555555a7c434	2866	}
+0x0000555555a7c436	2866	}
+0x0000555555a7c438	2866	}
+tomo::CoreConcurrencyTest::need (v=true) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:38
+38	 static void need(bool v){if(!v)std::abort();}
+0x0000555555d8c9f4	38	 static void need(bool v){if(!v)std::abort();}
+0x0000555555d8c9fb	38	 static void need(bool v){if(!v)std::abort();}
+0x0000555555d8ca01 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=4, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:115
+115	   scope_end();
+
+BreaTomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+kpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
+30	[[gnu::noinline]] void scope_end(){
+[Inferior 1 (process 3103369) exited normally]
+COUNT 42547

@@ -1,0 +1,15 @@
+codearith
+--- execindex
+
++++ post
+
+@@ -116,7 +116,7 @@
+
+ CLONE 0 01c5 [ 5] jmp <+0x2d>
+ CLONE 0 01ca [ 4] vucomisd %xmm2,%xmm2
+ CLONE 0 01ce [ 2] jp <+0x1c2>
+-CLONE 0 01d0 [ 8] vxorpd <rip>(%rip),%xmm2,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5b8>
++CLONE 0 01d0 [ 8] vxorpd <rip>(%rip),%xmm2,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5f8>
+ CLONE 0 01d8 [ 5] vmovsd %xmm1,0x8(%rbx)
+ CLONE 0 01dd [ 5] jmp <+0x7a>
+ CLONE 0 01e2 [ 4] vaddsd %xmm1,%xmm2,%xmm1

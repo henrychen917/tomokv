@@ -1,0 +1,85 @@
+tomo_db0::FlipListenerState::admit(tomo_db0::IoLoop&, int, tomo_db0::UrKind) [clone .isra.0]
+--- headline
+
++++ post
+
+@@ -97,7 +97,7 @@
+
+ CLONE 0 0262 [ 5] mov $0x4000,%edi
+ CLONE 0 0267 [ 9] movb $0x0,0x780(%r12)
+ CLONE 0 0270 [ 8] mov %rax,0x630(%r12)
+-CLONE 0 0278 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x640>
++CLONE 0 0278 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x10>
+ CLONE 0 027f [12] movq $0x0,0x790(%r12)
+ CLONE 0 028b [12] movq $0x0,0x798(%r12)
+ CLONE 0 0297 [12] movl $0x0,0x7a0(%r12)
+@@ -108,7 +108,7 @@
+
+ CLONE 0 02cf [10] vmovdqu %xmm0,0x638(%r12)
+ CLONE 0 02d9 [ 4] vpxor %xmm0,%xmm0,%xmm0
+ CLONE 0 02dd [ 8] mov %rax,0x784(%r12)
+-CLONE 0 02e5 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x650>
++CLONE 0 02e5 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x90>
+ CLONE 0 02ec [11] vmovdqu8 %zmm0,0x648(%r12)
+ CLONE 0 02f7 [11] vmovdqu8 %zmm0,0x688(%r12)
+ CLONE 0 0302 [11] vmovdqu8 %zmm0,0x6c8(%r12)
+@@ -233,7 +233,7 @@
+
+ CLONE 0 0602 [ 5] mov $0x4000,%edi
+ CLONE 0 0607 [ 9] movb $0x0,0x780(%r12)
+ CLONE 0 0610 [ 8] mov %rax,0x630(%r12)
+-CLONE 0 0618 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x640>
++CLONE 0 0618 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x10>
+ CLONE 0 061f [12] movq $0x0,0x790(%r12)
+ CLONE 0 062b [12] movq $0x0,0x798(%r12)
+ CLONE 0 0637 [12] movl $0x0,0x7a0(%r12)
+@@ -244,7 +244,7 @@
+
+ CLONE 0 066f [10] vmovdqu %xmm0,0x638(%r12)
+ CLONE 0 0679 [ 4] vpxor %xmm0,%xmm0,%xmm0
+ CLONE 0 067d [ 8] mov %rax,0x784(%r12)
+-CLONE 0 0685 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x650>
++CLONE 0 0685 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x90>
+ CLONE 0 068c [11] vmovdqu8 %zmm0,0x648(%r12)
+ CLONE 0 0697 [11] vmovdqu8 %zmm0,0x688(%r12)
+ CLONE 0 06a2 [11] vmovdqu8 %zmm0,0x6c8(%r12)
+@@ -371,7 +371,7 @@
+
+ CLONE 0 09a2 [ 5] mov $0x4000,%edi
+ CLONE 0 09a7 [ 9] movb $0x0,0x780(%r12)
+ CLONE 0 09b0 [ 8] mov %rax,0x630(%r12)
+-CLONE 0 09b8 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x640>
++CLONE 0 09b8 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x10>
+ CLONE 0 09bf [12] movq $0x0,0x790(%r12)
+ CLONE 0 09cb [12] movq $0x0,0x798(%r12)
+ CLONE 0 09d7 [12] movl $0x0,0x7a0(%r12)
+@@ -382,7 +382,7 @@
+
+ CLONE 0 0a0f [10] vmovdqu %xmm0,0x638(%r12)
+ CLONE 0 0a19 [ 4] vpxor %xmm0,%xmm0,%xmm0
+ CLONE 0 0a1d [ 8] mov %rax,0x784(%r12)
+-CLONE 0 0a25 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x650>
++CLONE 0 0a25 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x90>
+ CLONE 0 0a2c [11] vmovdqu8 %zmm0,0x648(%r12)
+ CLONE 0 0a37 [11] vmovdqu8 %zmm0,0x688(%r12)
+ CLONE 0 0a42 [11] vmovdqu8 %zmm0,0x6c8(%r12)
+@@ -507,7 +507,7 @@
+
+ CLONE 0 0d42 [ 5] mov $0x4000,%edi
+ CLONE 0 0d47 [ 9] movb $0x0,0x780(%r12)
+ CLONE 0 0d50 [ 8] mov %rax,0x630(%r12)
+-CLONE 0 0d58 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x640>
++CLONE 0 0d58 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x10>
+ CLONE 0 0d5f [12] movq $0x0,0x790(%r12)
+ CLONE 0 0d6b [12] movq $0x0,0x798(%r12)
+ CLONE 0 0d77 [12] movl $0x0,0x7a0(%r12)
+@@ -518,7 +518,7 @@
+
+ CLONE 0 0daf [10] vmovdqu %xmm0,0x638(%r12)
+ CLONE 0 0db9 [ 4] vpxor %xmm0,%xmm0,%xmm0
+ CLONE 0 0dbd [ 8] mov %rax,0x784(%r12)
+-CLONE 0 0dc5 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x650>
++CLONE 0 0dc5 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x90>
+ CLONE 0 0dcc [11] vmovdqu8 %zmm0,0x648(%r12)
+ CLONE 0 0dd7 [11] vmovdqu8 %zmm0,0x688(%r12)
+ CLONE 0 0de2 [11] vmovdqu8 %zmm0,0x6c8(%r12)

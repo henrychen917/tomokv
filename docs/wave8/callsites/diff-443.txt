@@ -1,0 +1,15 @@
+tomo_db0::kvobj_free_with_capacity(tomo_db0::KvObj*, unsigned long)
+--- headline
+
++++ post
+
+@@ -38,7 +38,7 @@
+
+ CLONE 0 006e [ 5] mov 0x8(%rdx,%rax,1),%r12
+ CLONE 0 0073 [ 2] ja <+0x18>
+ CLONE 0 0075 [ 3] movzbl (%rbx),%eax
+-CLONE 0 0078 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x17ac0>
++CLONE 0 0078 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x183e8>
+ CLONE 0 007f [ 4] movslq (%rdx,%rax,4),%rax
+ CLONE 0 0083 [ 3] add %rdx,%rax
+ CLONE 0 0086 [ 3] notrack jmp *%rax

@@ -1,0 +1,4 @@
+ok	0.000000	release build (+footprint locks)
+ok	15.610000	exbatch publication unit + negative controls
+ok	40.740000	exbatch watch unit + negative controls
+ok	17.460000	exbatch metadata unit + negative controls

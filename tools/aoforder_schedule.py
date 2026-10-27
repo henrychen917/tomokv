@@ -59,8 +59,10 @@ def main():
     anchor = '    // ONE EXPIRY CUT FOR THE WHOLE FAN-OUT.'
     assert text.count(anchor) == 1
     path.write_text(text.replace(anchor, HOOK + anchor))
+    # This minimal copy needs only compile/link commands, not make all's
+    # generated source maps or other sidecars. Ask for the executable itself.
     dry = subprocess.check_output(prefix + ['make', '-n', '-B',
-        f'BUILD_ROOT={objects}', 'all'], cwd=source, text=True)
+        f'BUILD_ROOT={objects}', str(objects / 'tomokv')], cwd=source, text=True)
     commands = [shlex.split(line) for line in dry.splitlines()
                 if line.startswith(('g++ ', 'c++ ', 'clang++ '))]
     compiles = [cmd for cmd in commands if '-c' in cmd and 'src/cmd/xshard.cc' in cmd]

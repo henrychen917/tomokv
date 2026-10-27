@@ -1,0 +1,12 @@
+tomo::latency_tracking_retire(unsigned int, tomo::Op const&) [clone .cold]
+--- headline
+
++++ post
+
+@@ -0,0 +1,5 @@
+
++CLONE 0 0000 [ 3] mov %rbp,%rdi
++CLONE 0 0003 [ 3] vzeroupper
++CLONE 0 0006 [ 5] call <pthread_mutex_unlock@plt>
++CLONE 0 000b [ 3] mov %rbx,%rdi
++CLONE 0 000e [ 5] call <_Unwind_Resume@plt>

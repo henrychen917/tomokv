@@ -1,0 +1,25 @@
+tomo::(anonymous namespace)::ZsetMemberMap::erase(tomo::Slice) [clone .constprop.0] [clone .isra.0]
+--- headline
+
++++ post
+
+@@ -77,7 +77,7 @@
+
+ CLONE 0 011d [ 2] test %eax,%eax
+ CLONE 0 011f [ 2] jne <+0xb0>
+ CLONE 0 0121 [ 7] vmovq 0x10(%r12),%xmm0
+-CLONE 0 0128 [ 8] vmovq <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x740>
++CLONE 0 0128 [ 8] vmovq <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x190>
+ CLONE 0 0130 [ 7] movq $0x1,(%r14)
+ CLONE 0 0137 [ 4] vpaddd %xmm1,%xmm0,%xmm0
+ CLONE 0 013b [ 7] vmovq %xmm0,0x10(%r12)
+@@ -132,7 +132,7 @@
+
+ CLONE 0 01ea [ 2] test %eax,%eax
+ CLONE 0 01ec [ 2] jne <+0x190>
+ CLONE 0 01ee [ 7] vmovq 0x28(%r12),%xmm0
+-CLONE 0 01f5 [ 8] vmovq <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x740>
++CLONE 0 01f5 [ 8] vmovq <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x190>
+ CLONE 0 01fd [ 7] movq $0x1,(%r14)
+ CLONE 0 0204 [ 4] vpaddd %xmm1,%xmm0,%xmm0
+ CLONE 0 0208 [ 7] vmovq %xmm0,0x28(%r12)

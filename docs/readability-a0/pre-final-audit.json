@@ -1,0 +1,98 @@
+{
+  "allocated_layout_identical": true,
+  "instruction_addresses_identical": true,
+  "instruction_lengths_identical": true,
+  "failure_calls_identical": true,
+  "failure_blocks": 41,
+  "changed_instructions": 15867,
+  "changed_failure_arguments": 146,
+  "changed_outside_failure_blocks": 15721,
+  "changed_mnemonics": {
+    "lea": 13657,
+    "vmovsd": 490,
+    "vmovdqa": 630,
+    "mov": 399,
+    "vmovdqa64": 200,
+    "vmovdqa32": 32,
+    "vmovapd": 2,
+    "vdivsd": 32,
+    "vmulsd": 117,
+    "vcomisd": 46,
+    "vpxor": 28,
+    "vfmadd132sd": 21,
+    "vaddsd": 31,
+    "vmovq": 40,
+    "vandpd": 43,
+    "vucomisd": 18,
+    "fldt": 28,
+    "vxorpd": 17,
+    "vcmpnltsd": 2,
+    "vbroadcastsd": 4,
+    "vmulpd": 4,
+    "vfnmadd231sd": 2,
+    "vfmadd132pd": 2,
+    "vsubsd": 10,
+    "vfmadd231sd": 10,
+    "vmaxsd": 2
+  },
+  "differing_sections": [
+    ".rela.dyn",
+    ".text",
+    ".rodata",
+    ".data.rel.ro",
+    ".data"
+  ],
+  "outside_examples": [
+    {
+      "address": "0x1fa64",
+      "pre": "lea    0x7f757d(%rip),%rdi        # 816fe8 <_IO_stdin_used+0x11fe8>",
+      "post": "lea    0x7e563b(%rip),%rdi        # 8050a6 <_IO_stdin_used+0xa6>"
+    },
+    {
+      "address": "0x200c0",
+      "pre": "lea    0x7f6fe1(%rip),%rdi        # 8170a8 <_IO_stdin_used+0x120a8>",
+      "post": "lea    0x7e509f(%rip),%rdi        # 805166 <_IO_stdin_used+0x166>"
+    },
+    {
+      "address": "0x20345",
+      "pre": "lea    0x7e4f9c(%rip),%rdx        # 8052e8 <_IO_stdin_used+0x2e8>",
+      "post": "lea    0x7ea9d4(%rip),%rdx        # 80ad20 <_IO_stdin_used+0x5d20>"
+    },
+    {
+      "address": "0x209f5",
+      "pre": "lea    0x7f6e05(%rip),%rdi        # 817801 <_IO_stdin_used+0x12801>",
+      "post": "lea    0x7e4ec3(%rip),%rdi        # 8058bf <_IO_stdin_used+0x8bf>"
+    },
+    {
+      "address": "0x20a5c",
+      "pre": "lea    0x7f6536(%rip),%rcx        # 816f99 <_IO_stdin_used+0x11f99>",
+      "post": "lea    0x7e45f4(%rip),%rcx        # 805057 <_IO_stdin_used+0x57>"
+    },
+    {
+      "address": "0x20bf4",
+      "pre": "lea    0x7f64fc(%rip),%rdi        # 8170f7 <_IO_stdin_used+0x120f7>",
+      "post": "lea    0x7e45ba(%rip),%rdi        # 8051b5 <_IO_stdin_used+0x1b5>"
+    },
+    {
+      "address": "0x20cea",
+      "pre": "lea    0x7f63e9(%rip),%rdx        # 8170da <_IO_stdin_used+0x120da>",
+      "post": "lea    0x7e44a7(%rip),%rdx        # 805198 <_IO_stdin_used+0x198>"
+    },
+    {
+      "address": "0x20f15",
+      "pre": "lea    0x7f61d7(%rip),%rdx        # 8170f3 <_IO_stdin_used+0x120f3>",
+      "post": "lea    0x7e4295(%rip),%rdx        # 8051b1 <_IO_stdin_used+0x1b1>"
+    },
+    {
+      "address": "0x210b7",
+      "pre": "lea    0x7f5edb(%rip),%rcx        # 816f99 <_IO_stdin_used+0x11f99>",
+      "post": "lea    0x7e3f99(%rip),%rcx        # 805057 <_IO_stdin_used+0x57>"
+    },
+    {
+      "address": "0x2165d",
+      "pre": "lea    0x7e3fbc(%rip),%rdx        # 805620 <_IO_stdin_used+0x620>",
+      "post": "lea    0x7e99f4(%rip),%rdx        # 80b058 <_IO_stdin_used+0x6058>"
+    }
+  ],
+  "narrow_diff_proof": false
+}

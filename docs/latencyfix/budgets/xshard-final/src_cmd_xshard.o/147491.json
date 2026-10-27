@@ -1,0 +1,344 @@
+{
+  "value": 147491,
+  "unit": "src/cmd/xshard.o",
+  "command": [
+    "taskset",
+    "-c",
+    "80-95",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=147491",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/cmd/xshard.cc",
+    "-o",
+    "/home/user/Projects/cx-latencyfix/build/latencyfix/budgets/xshard-final/src_cmd_xshard.o/147491.o",
+    "-fdump-ipa-inline=/home/user/Projects/cx-latencyfix/build/latencyfix/budgets/xshard-final/src_cmd_xshard.o/147491.inline"
+  ],
+  "source_root": "/home/user/Projects/cx-latencyfix",
+  "seconds": 25.949174246750772,
+  "total": 1065,
+  "hot": 14,
+  "changed": 34,
+  "hot_changed": 0,
+  "hot_differing_bytes": 0,
+  "rows": [
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_113classify_keysERKNS_2OpENS0_4KindERKNS0_14XshardKeyHintsERNS0_13XshardKeyPlanE",
+      "name": "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)",
+      "hot": false,
+      "pre_size": 929,
+      "post_size": 945,
+      "differing_bytes": 585,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_113finish_phase1ERNS_12ScatterStateERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&)",
+      "hot": false,
+      "pre_size": 9724,
+      "post_size": 9788,
+      "differing_bytes": 8147,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_113finish_phase1ERNS_12ScatterStateERNS_2OpE.cold",
+      "name": "tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&) [clone .cold]",
+      "hot": false,
+      "pre_size": 1090,
+      "post_size": 1075,
+      "differing_bytes": 253,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_116BlockingRegistry7serviceERNS_5ShardERNS0_13BlockingQueueElRNS_9ThreadCtxERNS_4RingE.isra.0",
+      "name": "tomo::(anonymous namespace)::BlockingRegistry::service(tomo::Shard&, tomo::(anonymous namespace)::BlockingQueue&, long, tomo::ThreadCtx&, tomo::Ring&) [clone .isra.0]",
+      "hot": false,
+      "pre_size": 759,
+      "post_size": 759,
+      "differing_bytes": 32,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_118blocking_task_doneERNS_13BlockingStateERNS_9ThreadCtxERNS_4RingE",
+      "name": "tomo::(anonymous namespace)::blocking_task_done(tomo::BlockingState&, tomo::ThreadCtx&, tomo::Ring&)",
+      "hot": false,
+      "pre_size": 21,
+      "post_size": 296,
+      "differing_bytes": 296,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_118blocking_task_doneERNS_13BlockingStateERNS_9ThreadCtxERNS_4RingE.part.0",
+      "name": "tomo::(anonymous namespace)::blocking_task_done(tomo::BlockingState&, tomo::ThreadCtx&, tomo::Ring&) [clone .part.0]",
+      "hot": false,
+      "pre_size": 257,
+      "post_size": 0,
+      "differing_bytes": 257,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_119blocking_run_directERNS_13BlockingStateERNS_5ShardERNS_9ThreadCtxERNS_4RingE",
+      "name": "tomo::(anonymous namespace)::blocking_run_direct(tomo::BlockingState&, tomo::Shard&, tomo::ThreadCtx&, tomo::Ring&)",
+      "hot": false,
+      "pre_size": 2909,
+      "post_size": 2860,
+      "differing_bytes": 2719,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_119blocking_run_directERNS_13BlockingStateERNS_5ShardERNS_9ThreadCtxERNS_4RingE.cold",
+      "name": "tomo::(anonymous namespace)::blocking_run_direct(tomo::BlockingState&, tomo::Shard&, tomo::ThreadCtx&, tomo::Ring&) [clone .cold]",
+      "hot": false,
+      "pre_size": 51,
+      "post_size": 67,
+      "differing_bytes": 64,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_119destroy_multi_stateEPNS_14MultiExecStateE.part.0",
+      "name": "tomo::(anonymous namespace)::destroy_multi_state(tomo::MultiExecState*) [clone .part.0]",
+      "hot": false,
+      "pre_size": 327,
+      "post_size": 359,
+      "differing_bytes": 263,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_121blocking_request_moveERNS_13BlockingStateERNS_9ThreadCtxERNS_4RingE",
+      "name": "tomo::(anonymous namespace)::blocking_request_move(tomo::BlockingState&, tomo::ThreadCtx&, tomo::Ring&)",
+      "hot": false,
+      "pre_size": 37,
+      "post_size": 13,
+      "differing_bytes": 35,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_126blocking_dispatch_selectedILb0EEEbRNS_13BlockingStateERNS_5ShardERNS_9ThreadCtxERNS_4RingE",
+      "name": "bool tomo::(anonymous namespace)::blocking_dispatch_selected<false>(tomo::BlockingState&, tomo::Shard&, tomo::ThreadCtx&, tomo::Ring&)",
+      "hot": false,
+      "pre_size": 203,
+      "post_size": 187,
+      "differing_bytes": 83,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_126blocking_dispatch_selectedILb1EEEbRNS_13BlockingStateERNS_5ShardERNS_9ThreadCtxERNS_4RingE",
+      "name": "bool tomo::(anonymous namespace)::blocking_dispatch_selected<true>(tomo::BlockingState&, tomo::Shard&, tomo::ThreadCtx&, tomo::Ring&)",
+      "hot": false,
+      "pre_size": 203,
+      "post_size": 187,
+      "differing_bytes": 83,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_127blocking_publish_completionERNS_13BlockingStateERNS_9ThreadCtxERNS_4RingE",
+      "name": "tomo::(anonymous namespace)::blocking_publish_completion(tomo::BlockingState&, tomo::ThreadCtx&, tomo::Ring&)",
+      "hot": false,
+      "pre_size": 173,
+      "post_size": 208,
+      "differing_bytes": 203,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12multi_retireERNS_6ClientERNS_2OpERSt6vectorIPNS_14MultiExecStateESaIS6_EE",
+      "name": "tomo::multi_retire(tomo::Client&, tomo::Op&, std::vector<tomo::MultiExecState*, std::allocator<tomo::MultiExecState*> >&)",
+      "hot": false,
+      "pre_size": 1861,
+      "post_size": 1873,
+      "differing_bytes": 1479,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12multi_retireERNS_6ClientERNS_2OpERSt6vectorIPNS_14MultiExecStateESaIS6_EE.cold",
+      "name": "tomo::multi_retire(tomo::Client&, tomo::Op&, std::vector<tomo::MultiExecState*, std::allocator<tomo::MultiExecState*> >&) [clone .cold]",
+      "hot": false,
+      "pre_size": 90,
+      "post_size": 140,
+      "differing_bytes": 129,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo15multi_handle_ioERNS_6ServerERNS_6ClientERNS_2OpEjRPNS_14MultiExecStateE",
+      "name": "tomo::multi_handle_io(tomo::Server&, tomo::Client&, tomo::Op&, unsigned int, tomo::MultiExecState*&)",
+      "hot": false,
+      "pre_size": 9354,
+      "post_size": 9767,
+      "differing_bytes": 8061,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo15multi_handle_ioERNS_6ServerERNS_6ClientERNS_2OpEjRPNS_14MultiExecStateE.cold",
+      "name": "tomo::multi_handle_io(tomo::Server&, tomo::Client&, tomo::Op&, unsigned int, tomo::MultiExecState*&) [clone .cold]",
+      "hot": false,
+      "pre_size": 863,
+      "post_size": 864,
+      "differing_bytes": 740,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo16blocking_executeERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_5ShardERNS_2OpE",
+      "name": "tomo::blocking_execute(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Shard&, tomo::Op&)",
+      "hot": false,
+      "pre_size": 2329,
+      "post_size": 2430,
+      "differing_bytes": 2263,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo16blocking_executeERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_5ShardERNS_2OpE.cold",
+      "name": "tomo::blocking_execute(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Shard&, tomo::Op&) [clone .cold]",
+      "hot": false,
+      "pre_size": 45,
+      "post_size": 55,
+      "differing_bytes": 49,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo16reply_map_headerINS_2Op4SinkEEEvOT_mb",
+      "name": "void tomo::reply_map_header<tomo::Op::Sink>(tomo::Op::Sink&&, unsigned long, bool)",
+      "hot": false,
+      "pre_size": 381,
+      "post_size": 593,
+      "differing_bytes": 579,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo16reply_set_headerINS_2Op4SinkEEEvOT_mb",
+      "name": "void tomo::reply_set_header<tomo::Op::Sink>(tomo::Op::Sink&&, unsigned long, bool)",
+      "hot": false,
+      "pre_size": 365,
+      "post_size": 593,
+      "differing_bytes": 580,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo18multi_execute_taskERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextEPKNS_18MultiRetryPromoterE",
+      "name": "tomo::multi_execute_task(tomo::Server&, tomo::Task const&, tomo::Shard&, unsigned int, unsigned int, tomo::AofOwnerContext*, tomo::MultiRetryPromoter const*)",
+      "hot": false,
+      "pre_size": 11921,
+      "post_size": 12170,
+      "differing_bytes": 11397,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo18multi_execute_taskERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextEPKNS_18MultiRetryPromoterE.cold",
+      "name": "tomo::multi_execute_task(tomo::Server&, tomo::Task const&, tomo::Shard&, unsigned int, unsigned int, tomo::AofOwnerContext*, tomo::MultiRetryPromoter const*) [clone .cold]",
+      "hot": false,
+      "pre_size": 245,
+      "post_size": 278,
+      "differing_bytes": 239,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo20notify_ex_pass_entryERNS_6ServerERNS_5ShardEjRNS_9ThreadCtxERNS_4RingERNS_11LoopSignalsE",
+      "name": "tomo::notify_ex_pass_entry(tomo::Server&, tomo::Shard&, unsigned int, tomo::ThreadCtx&, tomo::Ring&, tomo::LoopSignals&)",
+      "hot": false,
+      "pre_size": 5602,
+      "post_size": 5586,
+      "differing_bytes": 2762,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo20notify_ex_pass_entryERNS_6ServerERNS_5ShardEjRNS_9ThreadCtxERNS_4RingERNS_11LoopSignalsE.cold",
+      "name": "tomo::notify_ex_pass_entry(tomo::Server&, tomo::Shard&, unsigned int, tomo::ThreadCtx&, tomo::Ring&, tomo::LoopSignals&) [clone .cold]",
+      "hot": false,
+      "pre_size": 529,
+      "post_size": 529,
+      "differing_bytes": 0,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo24blocking_execute_iofusedERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_5ShardERNS_2OpE",
+      "name": "tomo::blocking_execute_iofused(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Shard&, tomo::Op&)",
+      "hot": false,
+      "pre_size": 2329,
+      "post_size": 2430,
+      "differing_bytes": 2263,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo24blocking_execute_iofusedERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_5ShardERNS_2OpE.cold",
+      "name": "tomo::blocking_execute_iofused(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Shard&, tomo::Op&) [clone .cold]",
+      "hot": false,
+      "pre_size": 45,
+      "post_size": 55,
+      "differing_bytes": 49,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo24kvobj_free_with_capacityEPNS_5KvObjEm",
+      "name": "tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)",
+      "hot": false,
+      "pre_size": 618,
+      "post_size": 698,
+      "differing_bytes": 586,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo25multi_dispatch_entry_implILb0EEEbRNS_6IoLoopERNS_6ClientERNS_2OpEj",
+      "name": "bool tomo::multi_dispatch_entry_impl<false>(tomo::IoLoop&, tomo::Client&, tomo::Op&, unsigned int)",
+      "hot": false,
+      "pre_size": 697,
+      "post_size": 745,
+      "differing_bytes": 614,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore34atomic_prepare_capacity_read_localEj",
+      "name": "tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)",
+      "hot": false,
+      "pre_size": 1185,
+      "post_size": 1250,
+      "differing_bytes": 515,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9reply_errINS_2Op4SinkEEEvOT_PKc",
+      "name": "void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)",
+      "hot": false,
+      "pre_size": 774,
+      "post_size": 813,
+      "differing_bytes": 702,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZNK4tomo6Server19capture_live_configEm",
+      "name": "tomo::Server::capture_live_config(unsigned long) const",
+      "hot": false,
+      "pre_size": 233,
+      "post_size": 246,
+      "differing_bytes": 115,
+      "targets_equal": true
+    },
+    {
+      "symbol": "_ZNKSt14default_deleteIN4tomo16NotifyShardStateEEclEPS1_.part.0",
+      "name": "std::default_delete<tomo::NotifyShardState>::operator()(tomo::NotifyShardState*) const [clone .part.0]",
+      "hot": false,
+      "pre_size": 865,
+      "post_size": 970,
+      "differing_bytes": 612,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav",
+      "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
+      "hot": false,
+      "pre_size": 1190,
+      "post_size": 1190,
+      "differing_bytes": 43,
+      "targets_equal": true
+    }
+  ],
+  "initial_inline_unit": 117591
+}

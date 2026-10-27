@@ -1,0 +1,13 @@
+luaU_header
+--- headline
+
++++ post
+
+@@ -1,5 +1,5 @@
+
+ CLONE 0 0000 [ 4] endbr64
+-CLONE 0 0004 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x900>
++CLONE 0 0004 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x348>
+ CLONE 0 000b [ 6] movl $0x61754c1b,(%rdi)
+ CLONE 0 0011 [ 4] mov %rax,0x4(%rdi)
+ CLONE 0 0015 [ 1] ret

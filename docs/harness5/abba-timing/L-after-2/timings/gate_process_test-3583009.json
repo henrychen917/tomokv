@@ -1,0 +1,60 @@
+{
+  "argv": [
+    "tests/gate_process_test.py"
+  ],
+  "affinity": [
+    46,
+    47
+  ],
+  "seconds": 0.4982937276363373,
+  "tests": [
+    {
+      "test": "__main__.ConnectionQuiescence.test_context_records_fence_then_reaps_child",
+      "seconds": 0.0015415530651807785
+    },
+    {
+      "test": "__main__.ConnectionQuiescence.test_dead_server_is_not_quiescence",
+      "seconds": 0.00011450983583927155
+    },
+    {
+      "test": "__main__.ConnectionQuiescence.test_deleted_fence_mutation_keeps_shutdown_red",
+      "seconds": 0.001194673590362072
+    },
+    {
+      "test": "__main__.ConnectionQuiescence.test_dirty_shutdown_still_fails_after_successful_fence",
+      "seconds": 0.0010775122791528702
+    },
+    {
+      "test": "__main__.ConnectionQuiescence.test_drain_failure_still_reaps_owned_child",
+      "seconds": 0.4633055366575718
+    },
+    {
+      "test": "__main__.ConnectionQuiescence.test_extra_reply_cannot_stand_in_for_eof",
+      "seconds": 0.00014664046466350555
+    },
+    {
+      "test": "__main__.ConnectionQuiescence.test_observation_cannot_be_missing_or_omit_observer",
+      "seconds": 0.0001803794875741005
+    },
+    {
+      "test": "__main__.ConnectionQuiescence.test_observed_releases_and_peer_eof_precede_stop",
+      "seconds": 5.943048745393753e-05
+    },
+    {
+      "test": "__main__.ConnectionQuiescence.test_original_row_failure_survives_cleanup",
+      "seconds": 0.0010313419625163078
+    },
+    {
+      "test": "__main__.ConnectionQuiescence.test_quit_reply_must_be_ok",
+      "seconds": 0.0001040194183588028
+    },
+    {
+      "test": "__main__.ConnectionQuiescence.test_quit_reply_without_close_fails",
+      "seconds": 7.941015064716339e-05
+    },
+    {
+      "test": "__main__.ConnectionQuiescence.test_retained_client_is_bounded_failure",
+      "seconds": 6.0480087995529175e-05
+    }
+  ]
+}

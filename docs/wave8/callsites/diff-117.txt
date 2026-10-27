@@ -1,0 +1,15 @@
+optsize
+--- lualibs
+
++++ post
+
+@@ -1,7 +1,7 @@
+
+ CLONE 0 0000 [ 3] sub $0x42,%esi
+ CLONE 0 0003 [ 4] cmp $0x36,%sil
+ CLONE 0 0007 [ 6] ja <+0xd0>
+-CLONE 0 000d [ 7] lea <rip>(%rip),%rcx # <__PRETTY_FUNCTION__.1+0x18>
++CLONE 0 000d [ 7] lea <rip>(%rip),%rcx # <tomo::IoLoop::shutdown_clients_after_join()::no_limits+0xbc>
+ CLONE 0 0014 [ 1] push %rbx
+ CLONE 0 0015 [ 4] movzbl %sil,%esi
+ CLONE 0 0019 [ 3] mov %rdx,%rax

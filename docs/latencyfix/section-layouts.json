@@ -1,0 +1,53 @@
+{
+  "PRE": {
+    ".text": {
+      "address": 129200,
+      "file_offset": 129200,
+      "bytes": 8279287
+    },
+    ".tdata": {
+      "address": 9383568,
+      "file_offset": 9379472,
+      "bytes": 224
+    },
+    ".tbss": {
+      "address": 9383792,
+      "file_offset": 9379696,
+      "bytes": 512
+    }
+  },
+  "POST": {
+    ".text": {
+      "address": 129200,
+      "file_offset": 129200,
+      "bytes": 8394609
+    },
+    ".tdata": {
+      "address": 9518560,
+      "file_offset": 9514464,
+      "bytes": 384
+    },
+    ".tbss": {
+      "address": 9518944,
+      "file_offset": 9514848,
+      "bytes": 520
+    }
+  },
+  "PAD-A": {
+    ".text": {
+      "address": 129200,
+      "file_offset": 129200,
+      "bytes": 8394609
+    },
+    ".tdata": {
+      "address": 9502352,
+      "file_offset": 9498256,
+      "bytes": 224
+    },
+    ".tbss": {
+      "address": 9502576,
+      "file_offset": 9498480,
+      "bytes": 512
+    }
+  }
+}

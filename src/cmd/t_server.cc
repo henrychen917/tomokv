@@ -16,6 +16,7 @@
 #include "scripting.h"
 #include "server_tail.h"
 #include "slowlog.h"
+#include "latency_tracking.h"
 #include "../base/alloc.h"
 #include "../core/genthread.h"
 #include "../core/server.h"
@@ -315,7 +316,7 @@ enum class ConfigKind : uint8_t {
     String, Bool, Unsigned, Bytes, Enum, Policy, ClientOutputBufferLimit, NotifyFlags, Save,
     // slowlog-log-slower-than is the tree's first genuinely signed knob: redis's grammar accepts
     // and reports -1, so an unsigned representation would not round-trip.
-    Signed, Encoding, Uint32, Uint32Bytes, Hz, Shutdown
+    Signed, Encoding, Uint32, Uint32Bytes, Hz, Shutdown, LatencyPercentiles
 };
 struct ConfigValue {
     const char* name;
@@ -326,6 +327,10 @@ struct ConfigValue {
 
 std::mutex g_config_mu;
 std::vector<ConfigValue> g_config;
+// An implicit default needs no vector allocation. Preserve unrounded doubles
+// separately from CONFIG GET/REWRITE's six-decimal serialization.
+std::vector<double> g_latency_percentiles;
+bool g_latency_percentiles_explicit = false;
 ClientOutputBufferLimits g_client_obuf_limits;
 std::atomic<uint64_t> g_proto_max_bulk_len{512ull * 1024 * 1024};
 
@@ -456,6 +461,12 @@ void init_config(const Config& cfg) {
     g_config.push_back({"slowlog-log-slower-than", ConfigKind::Signed,
                         std::to_string(cfg.slowlog_log_slower_than)});
     add_config("slowlog-max-len", ConfigKind::Unsigned, cfg.slowlog_max_len);
+    g_latency_percentiles = cfg.latency_tracking_info_percentiles;
+    g_latency_percentiles_explicit = cfg.latency_percentiles_explicit;
+    g_config.push_back({"latency-tracking", ConfigKind::Bool, cfg.latency_tracking ? "yes" : "no"});
+    g_config.push_back({"latency-tracking-info-percentiles", ConfigKind::LatencyPercentiles,
+        cfg.latency_percentiles_explicit
+            ? cfg_latency_percentiles_string(cfg.latency_tracking_info_percentiles) : "50 99 99.9"});
     add_config("latency-monitor-threshold", ConfigKind::Uint32,
                cfg.latency_monitor_threshold);
     const char* debug_mode = cfg.enable_debug_command == DebugCommandMode::Yes ? "yes" :
@@ -531,6 +542,12 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
             input.n = static_cast<const char*>(end) - input.p;
     }
     switch (entry.kind) {
+        case ConfigKind::LatencyPercentiles: {
+            std::vector<double> values;
+            if (!cfg_latency_percentiles(input, values, error)) return false;
+            out = cfg_latency_percentiles_string(values);
+            return true;
+        }
         case ConfigKind::Shutdown: {
             uint8_t flags = 0;
             if (!cfg_shutdown_flags(input, flags, error)) return false;
@@ -1345,6 +1362,12 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         reply_ok(op.sink());
         return;
     }
+#ifdef TOMO_TXNORDER_DEBUG
+    if (eq_icase(subcommand, "txn-registry-visits") && op.argc() == 2) {
+        reply_int(op.sink(), registry_visits.load(std::memory_order_relaxed));
+        return;
+    }
+#endif
     if (eq_icase(subcommand, "txn-last-attempts") && op.argc() == 2) {
         reply_int(op.sink(), g_client ? multi_last_attempts(*g_client) : 0);
         return;
@@ -1664,12 +1687,20 @@ void cmd_config(Shard& sh, Op& op) {
         return;
     }
     if (eq_icase(op.arg(1), "SET")) {
+        uint64_t latency_enable_start = 0;
         std::vector<std::pair<ConfigValue*, std::string>> updates;
         {
             std::lock_guard<std::mutex> lock(g_config_mu);
             // IO validated before fan-out, so failure here can only mean internal table corruption.
             if (!collect_config_updates(op, updates)) return;
             if (sh.id() == 0) {
+                // Redis samples an enabling CONFIG SET itself. Record this
+                // transition on shard 0; other fragments exclude this command
+                // because they may straddle the old/new per-pass selectors.
+                if (g_server)
+                    for (const auto& update : updates)
+                        if (!std::strcmp(update.first->name, "latency-tracking") &&
+                            update.second == "yes") latency_enable_start = now_ns();
                 for (auto& update : updates) {
                     if (!std::strcmp(update.first->name, "locale-collate") &&
                         !sort_locale_set(update.second.c_str())) {
@@ -1771,6 +1802,21 @@ void cmd_config(Shard& sh, Op& op) {
                 if (!std::strcmp(update.first->name, "requirepass")) {
                     auth_publish_requirepass(
                         *g_server, Slice(update.second.data(), update.second.size()));
+                    continue;
+                }
+                if (!std::strcmp(update.first->name, "latency-tracking-info-percentiles")) {
+                    for (uint32_t i = 2; i < op.argc(); i += 2)
+                        if (op.arg(i).eq_icase("latency-tracking-info-percentiles")) {
+                            const char* error = nullptr;
+                            cfg_latency_percentiles(op.arg(i + 1), g_latency_percentiles, error);
+                            g_latency_percentiles_explicit = true;
+                            break;
+                        }
+                    continue;
+                }
+                if (!std::strcmp(update.first->name, "latency-tracking")) {
+                    g_server->set_latency_tracking(update.second == "yes");
+                    if (update.second != "yes") latency_tracking_discard_pending();
                     continue;
                 }
                 if (!std::strcmp(update.first->name, "protected-mode")) {
@@ -1876,6 +1922,9 @@ void cmd_config(Shard& sh, Op& op) {
         }
         sh.set_type_limits(limits);
         sh.set_stream_limits(stream_limits);
+        if (latency_enable_start)
+            latency_tracking_record(g_server->worker_of_shard(sh.id()), op,
+                                    now_ns() - latency_enable_start);
         return;
     }
     // REWRITE / RESETSTAT / HELP live in the server-tail feature file. They are IO-local, like GET.
@@ -2992,6 +3041,16 @@ void cmd_info(Shard&, Op& op) {
                     static_cast<unsigned long long>(rejected_calls));
         }
     }
+    if (info_section(op, "LATENCYSTATS", false)) {
+        const bool enabled = g_server && g_server->latency_tracking();
+        std::vector<double> percentiles;
+        if (enabled) {
+            std::lock_guard lock(g_config_mu);
+            percentiles = g_latency_percentiles_explicit
+                ? g_latency_percentiles : std::vector<double>{50, 99, 99.9};
+        }
+        latency_tracking_info(body, percentiles, enabled);
+    }
     if (info_section(op, "CLUSTER")) body += "# Cluster\r\ncluster_enabled:0\r\n";
     if (want_keyspace) {
         body += "# Keyspace\r\n";
@@ -3369,6 +3428,7 @@ bool command_aof_load_truncated(bool boot_value) {
 }
 
 void command_config_resetstat() {
+    latency_tracking_reset();
     query_limit_disconnections.store(0, std::memory_order_relaxed);
     // Capture the CURRENT aggregate rather than writing zeros into per-shard/per-thread counters
     // that only their owner may write. INFO subtracts this baseline. The reads here are the same

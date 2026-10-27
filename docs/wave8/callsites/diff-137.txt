@@ -1,0 +1,17 @@
+table_is_an_array
+--- lualibs
+
++++ post
+
+@@ -31,8 +31,8 @@
+
+ CLONE 0 0070 [ 4] vxorpd %xmm3,%xmm3,%xmm3
+ CLONE 0 0074 [ 4] vcomisd %xmm0,%xmm3
+ CLONE 0 0078 [ 2] jae <+0xe0>
+-CLONE 0 007a [ 8] vandpd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::kNoThread+0x25c>
+-CLONE 0 0082 [ 8] vucomisd <rip>(%rip),%xmm1 # <tomo_db0::kNoThread+0x684>
++CLONE 0 007a [ 8] vandpd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418>
++CLONE 0 0082 [ 8] vucomisd <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x50>
+ CLONE 0 008a [ 2] ja <+0xe0>
+ CLONE 0 008c [ 4] vcvttsd2si %xmm0,%eax
+ CLONE 0 0090 [ 4] vxorpd %xmm2,%xmm2,%xmm2

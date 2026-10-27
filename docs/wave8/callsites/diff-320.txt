@@ -1,0 +1,18 @@
+tomo_db0::(anonymous namespace)::collect() [clone .cold]
+--- latencyfix
+
++++ post
+
+@@ -3,5 +3,9 @@
+
+ CLONE 0 0008 [ 5] call <pthread_mutex_unlock@plt>
+ CLONE 0 000d [ 5] mov 0x10(%r12),%rdi
+ CLONE 0 0012 [ 5] call <std::_Rb_tree<unsigned int, std::pair<unsigned int const, tomo_db0::(anonymous namespace)::Histogram>, std::_Select1st<std::pair<unsigned int const, tomo_db0::(anonymous namespace)::Histogram> >, std::less<unsigned int>, std::allocator<std::pair<unsigned int const, tomo_db0::(anonymous namespace)::Histogram> > >::_M_erase(std::_Rb_tree_node<std::pair<unsigned int const, tomo_db0::(anonymous namespace)::Histogram> >*) [clone .isra.0]>
+-CLONE 0 0017 [ 3] mov %rbx,%rdi
+-CLONE 0 001a [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0017 [ 5] mov 0x38(%rsp),%rax
++CLONE 0 001c [ 9] sub %fs:0x28,%rax
++CLONE 0 0025 [ 2] jne <+0x2f>
++CLONE 0 0027 [ 3] mov %rbx,%rdi
++CLONE 0 002a [ 5] call <_Unwind_Resume@plt>
++CLONE 0 002f [ 5] call <__stack_chk_fail@plt>

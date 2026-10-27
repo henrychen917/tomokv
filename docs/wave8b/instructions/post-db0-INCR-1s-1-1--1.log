@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-db0-INCR-1s-1-1--1.log
+SHA-256: 8fe3215ddd5e2e5c997b252349361b2ce500bec1de50b19d918a8eb80cc28432
+Exit: 0
+PASS bounded production command scope
+ n=<optimized out>) at src/core/ex_loop.h:2356
+2356	    }
+0x00005555558aecb8	2356	    }
+0x00005555558aecc1	2356	    }
+0x00005555558aecc7	2356	    }
+0x00005555558aeccb	2356	    }
+0x00005555558aeccc	2356	    }
+0x00005555558aecce	2356	    }
+0x00005555558aecd0	2356	    }
+0x00005555558aecd2	2356	    }
+0x00005555558aecd4	2356	    }
+0x00005555558aecd5	2356	    }
+0x0000555555d8d7b8 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:140
+140	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
+30	[[gnu::noinline]] void scope_end(){
+[Inferior 1 (process 2365598) exited normally]
+COUNT 1314

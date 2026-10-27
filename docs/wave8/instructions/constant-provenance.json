@@ -1,0 +1,226 @@
+{
+  "pre-normal tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": {
+    "production": [
+      {
+        "instruction_offset": "0x159",
+        "target": "0x81e3d8",
+        "bytes": "0100000001000000",
+        "instruction": "0159 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x610>"
+      },
+      {
+        "instruction_offset": "0x339",
+        "target": "0x81e470",
+        "bytes": "0200000001000000",
+        "instruction": "0339 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6a8>"
+      },
+      {
+        "instruction_offset": "0x34e",
+        "target": "0x81e3d8",
+        "bytes": "0100000001000000",
+        "instruction": "034e [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x610>"
+      }
+    ],
+    "probe": [
+      {
+        "instruction_offset": "0x159",
+        "target": "0x82a468",
+        "bytes": "0100000001000000",
+        "instruction": "0159 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x620>"
+      },
+      {
+        "instruction_offset": "0x339",
+        "target": "0x82a500",
+        "bytes": "0200000001000000",
+        "instruction": "0339 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6b8>"
+      },
+      {
+        "instruction_offset": "0x34e",
+        "target": "0x82a468",
+        "bytes": "0100000001000000",
+        "instruction": "034e [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x620>"
+      }
+    ],
+    "negative_controls": {
+      "changed_constant_byte": true,
+      "changed_opcode": true
+    },
+    "proof": "All instructions/encodings match except these verified constant loads or bounded switch destinations; no strict inventory tolerance added."
+  },
+  "pre-normal tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": {
+    "production": [
+      {
+        "instruction_offset": "0x490c",
+        "target": "0x81e408",
+        "bytes": "ffffffff00000000",
+        "instruction": "490c [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x640>"
+      }
+    ],
+    "probe": [
+      {
+        "instruction_offset": "0x490c",
+        "target": "0x82a498",
+        "bytes": "ffffffff00000000",
+        "instruction": "490c [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x650>"
+      }
+    ],
+    "negative_controls": {
+      "changed_constant_byte": true,
+      "changed_opcode": true
+    },
+    "proof": "All instructions/encodings match except these verified constant loads or bounded switch destinations; no strict inventory tolerance added."
+  },
+  "pre-db0 tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": {
+    "production": [
+      {
+        "instruction_offset": "0x4ea3",
+        "target": "0x81e408",
+        "bytes": "ffffffff00000000",
+        "instruction": "4ea3 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x640>"
+      }
+    ],
+    "probe": [
+      {
+        "instruction_offset": "0x4ea3",
+        "target": "0x82a498",
+        "bytes": "ffffffff00000000",
+        "instruction": "4ea3 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x650>"
+      }
+    ],
+    "negative_controls": {
+      "changed_constant_byte": true,
+      "changed_opcode": true
+    },
+    "proof": "All instructions/encodings match except these verified constant loads or bounded switch destinations; no strict inventory tolerance added."
+  },
+  "post-db0 tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)": {
+    "production": [
+      {
+        "instruction_offset": "0x53",
+        "target": "0x846a34",
+        "bytes": "7000000070000000700000007000000070000000700000007000000070000000d0000000a0010000e0010000e0010000d0000000d000000070000000d000000020020000a002000080020000a0010000f0000000f000000070030000f0000000f0000000f0000000d0000000d0000000d000000080000000a0000000a0000000a00000008000000080000000800000008000000010010000100100001001000040020000a0000000c0010000c001000000030000c002000050010000500100005001000040030000",
+        "instruction": "0053 [ 7] lea <rip>(%rip),%rdi # <tomo_db0::(anonymous namespace)::configure_protocols(ssl_ctx_st*, char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)::versions+0x234>",
+        "raw_bytes": "9c488eff9c488eff9c488eff9c488eff9c488eff9c488eff9c488eff9c488efffc488effcc498eff0c4a8eff0c4a8efffc488efffc488eff9c488efffc488eff4c4a8effcc4a8effac4a8effcc498eff1c498eff1c498eff9c4b8eff1c498eff1c498eff1c498efffc488efffc488efffc488effac488effcc488effcc488effcc488effac488effac488effac488effac488eff3c498eff3c498eff3c498eff6c4a8effcc488effec498effec498eff2c4b8effec4a8eff7c498eff7c498eff7c498eff6c4b8eff",
+        "destinations": [
+          112,
+          112,
+          112,
+          112,
+          112,
+          112,
+          112,
+          112,
+          208,
+          416,
+          480,
+          480,
+          208,
+          208,
+          112,
+          208,
+          544,
+          672,
+          640,
+          416,
+          240,
+          240,
+          880,
+          240,
+          240,
+          240,
+          208,
+          208,
+          208,
+          128,
+          160,
+          160,
+          160,
+          128,
+          128,
+          128,
+          128,
+          272,
+          272,
+          272,
+          576,
+          160,
+          448,
+          448,
+          768,
+          704,
+          336,
+          336,
+          336,
+          832
+        ],
+        "comparison": "all 50 case destinations relative to this exact function"
+      }
+    ],
+    "probe": [
+      {
+        "instruction_offset": "0x53",
+        "target": "0x853ab4",
+        "bytes": "7000000070000000700000007000000070000000700000007000000070000000d0000000a0010000e0010000e0010000d0000000d000000070000000d000000020020000a002000080020000a0010000f0000000f000000070030000f0000000f0000000f0000000d0000000d0000000d000000080000000a0000000a0000000a00000008000000080000000800000008000000010010000100100001001000040020000a0000000c0010000c001000000030000c002000050010000500100005001000040030000",
+        "instruction": "0053 [ 7] lea <rip>(%rip),%rdi # <tomo_db0::(anonymous namespace)::configure_protocols(ssl_ctx_st*, char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)::versions+0x214>",
+        "raw_bytes": "6c7d8dff6c7d8dff6c7d8dff6c7d8dff6c7d8dff6c7d8dff6c7d8dff6c7d8dffcc7d8dff9c7e8dffdc7e8dffdc7e8dffcc7d8dffcc7d8dff6c7d8dffcc7d8dff1c7f8dff9c7f8dff7c7f8dff9c7e8dffec7d8dffec7d8dff6c808dffec7d8dffec7d8dffec7d8dffcc7d8dffcc7d8dffcc7d8dff7c7d8dff9c7d8dff9c7d8dff9c7d8dff7c7d8dff7c7d8dff7c7d8dff7c7d8dff0c7e8dff0c7e8dff0c7e8dff3c7f8dff9c7d8dffbc7e8dffbc7e8dfffc7f8dffbc7f8dff4c7e8dff4c7e8dff4c7e8dff3c808dff",
+        "destinations": [
+          112,
+          112,
+          112,
+          112,
+          112,
+          112,
+          112,
+          112,
+          208,
+          416,
+          480,
+          480,
+          208,
+          208,
+          112,
+          208,
+          544,
+          672,
+          640,
+          416,
+          240,
+          240,
+          880,
+          240,
+          240,
+          240,
+          208,
+          208,
+          208,
+          128,
+          160,
+          160,
+          160,
+          128,
+          128,
+          128,
+          128,
+          272,
+          272,
+          272,
+          576,
+          160,
+          448,
+          448,
+          768,
+          704,
+          336,
+          336,
+          336,
+          832
+        ],
+        "comparison": "all 50 case destinations relative to this exact function"
+      }
+    ],
+    "negative_controls": {
+      "changed_constant_byte": true,
+      "changed_opcode": true
+    },
+    "proof": "All instructions/encodings match except these verified constant loads or bounded switch destinations; no strict inventory tolerance added."
+  }
+}

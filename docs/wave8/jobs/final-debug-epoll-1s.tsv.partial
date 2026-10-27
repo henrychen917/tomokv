@@ -1,0 +1,48 @@
+PARTIAL	0	GATE_ONLY_JOBS=debug-0 debug-1 script_bounds notify asan_batteries; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	0.010000	ASAN build
+ok	9.190000	plain-write lost updates (atomic 0)
+ok	0.170000	lbsignals battery (atomic 0)
+ok	1.500000	slowlog battery (atomic 0)
+ok	0.050000	atomfix battery (atomic 0)
+ok	0.060000	scriptatomic battery (atomic 0)
+ok	14.490000	execatomic battery (atomic 0)
+ok	11.880000	execiso battery (atomic 0)
+ok	0.510000	execfix battery (atomic 0)
+ok	0.120000	multires battery (atomic 0)
+ok	0.840000	multirace battery (atomic 0)
+ok	30.590000	session_monotonic battery (atomic 0)
+ok	0.390000	xacct battery (atomic 0)
+ok	0.280000	xmove battery (atomic 0)
+ok	1.870000	xscript battery (atomic 0)
+ok	2.660000	txn_nx battery (atomic 0)
+ok	8.540000	txniso battery (atomic 0)
+ok	6.160000	plain-write lost updates (atomic 1)
+ok	0.160000	lbsignals battery (atomic 1)
+ok	1.510000	slowlog battery (atomic 1)
+ok	0.050000	atomfix battery (atomic 1)
+ok	0.050000	scriptatomic battery (atomic 1)
+ok	14.470000	execatomic battery (atomic 1)
+ok	11.870000	execiso battery (atomic 1)
+ok	0.490000	execfix battery (atomic 1)
+ok	0.130000	multires battery (atomic 1)
+ok	0.770000	multirace battery (atomic 1)
+ok	30.710000	session_monotonic battery (atomic 1)
+ok	0.390000	xacct battery (atomic 1)
+ok	0.290000	xmove battery (atomic 1)
+ok	1.920000	xscript battery (atomic 1)
+ok	3.650000	txn_nx battery (atomic 1)
+ok	8.380000	txniso battery (atomic 1)
+ok	0.050000	xscript limit control
+ok	0.550000	xscript window control
+ok	2.080000	MULTI feature battery
+ok	1.600000	blocking feature battery
+ok	0.930000	pubsub feature battery
+ok	0.030000	Lua feature battery
+ok	46.260000	keyspace notification battery (atomic 0/1)
+ok	0.020000	feature battery shutdown invariants
+ok	6.990000	torture under ASAN
+ok	1.100000	RYOW under ASAN
+ok	25.100000	atomic torn/window under ASAN
+ok	4.080000	atomic RYOW under ASAN
+ok	0.030000	ASAN clean

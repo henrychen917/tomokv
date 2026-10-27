@@ -1,0 +1,2 @@
+ok	0.000000	release build (+footprint locks)
+ok	11.940000	local script notification AOF vs Redis 7.4

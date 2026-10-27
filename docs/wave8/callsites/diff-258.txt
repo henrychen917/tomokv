@@ -1,0 +1,15 @@
+tomo::acl_command_entry(tomo::IoLoop&, tomo::Client&, tomo::Op&)
+--- execindex
+
++++ post
+
+@@ -1146,7 +1146,7 @@
+
+ CLONE 0 16a4 [ 4] cmp $0x14,%rdx
+ CLONE 0 16a8 [ 6] jbe <+0x1a2b>
+ CLONE 0 16ae [ 4] vmovdqu (%rsi),%xmm0
+-CLONE 0 16b2 [ 8] vpxor <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x628>
++CLONE 0 16b2 [ 8] vpxor <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x668>
+ CLONE 0 16ba [ 5] vptest %xmm0,%xmm0
+ CLONE 0 16bf [ 6] je <+0x17e7>
+ CLONE 0 16c5 [ 5] mov $0x1,%eax

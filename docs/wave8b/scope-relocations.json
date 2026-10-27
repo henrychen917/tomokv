@@ -1,0 +1,323 @@
+{
+  "normalizer": "tests/reorder_noop.py unchanged; this supplements its unresolved operand labels",
+  "differences_sha256": "f2e504f30f4e9cefbf8f8c89bb5e65644a61fa7a82034dac26216d2f1a04bf08",
+  "function_instances": 13,
+  "sites": 15,
+  "rows": [
+    {
+      "arm": "headline",
+      "namespace": "normal",
+      "name": "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)",
+      "probe_sha256": "d6fbe0fa6413fc36cc9e2767e06f8450783500a716c0c971a9291a25973013d4",
+      "release_sha256": "56ec64d13cf87d97d75ad955311a44c77ffc87a6798b548d5c4330b6713cd97c",
+      "verified": true,
+      "sites": [
+        {
+          "offset": 345,
+          "verification": {
+            "kind": "immutable 64-bit load",
+            "value_hex": "0100000001000000"
+          }
+        },
+        {
+          "offset": 825,
+          "verification": {
+            "kind": "immutable 64-bit load",
+            "value_hex": "0200000001000000"
+          }
+        },
+        {
+          "offset": 846,
+          "verification": {
+            "kind": "immutable 64-bit load",
+            "value_hex": "0100000001000000"
+          }
+        }
+      ]
+    },
+    {
+      "arm": "headline",
+      "namespace": "normal",
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+      "probe_sha256": "d6fbe0fa6413fc36cc9e2767e06f8450783500a716c0c971a9291a25973013d4",
+      "release_sha256": "56ec64d13cf87d97d75ad955311a44c77ffc87a6798b548d5c4330b6713cd97c",
+      "verified": true,
+      "sites": [
+        {
+          "offset": 18700,
+          "verification": {
+            "kind": "immutable 64-bit load",
+            "value_hex": "ffffffff00000000"
+          }
+        }
+      ]
+    },
+    {
+      "arm": "headline",
+      "namespace": "db0",
+      "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+      "probe_sha256": "70650843dca0666038e6f0e505837776ac4514d4d6eaab2738b0473dbbbeb17f",
+      "release_sha256": "56ec64d13cf87d97d75ad955311a44c77ffc87a6798b548d5c4330b6713cd97c",
+      "verified": true,
+      "sites": [
+        {
+          "offset": 23,
+          "verification": {
+            "kind": "six-entry switch, memory-byte bound and reload verified",
+            "default_offset": 60,
+            "destination_offsets": [
+              48,
+              624,
+              880,
+              1120,
+              64,
+              304
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "arm": "headline",
+      "namespace": "db0",
+      "name": "tomo_db0::kvobj_free_with_capacity(tomo_db0::KvObj*, unsigned long)",
+      "probe_sha256": "70650843dca0666038e6f0e505837776ac4514d4d6eaab2738b0473dbbbeb17f",
+      "release_sha256": "56ec64d13cf87d97d75ad955311a44c77ffc87a6798b548d5c4330b6713cd97c",
+      "verified": true,
+      "sites": [
+        {
+          "offset": 120,
+          "verification": {
+            "kind": "six-entry switch, memory-byte bound and reload verified",
+            "default_offset": 24,
+            "destination_offsets": [
+              624,
+              576,
+              400,
+              208,
+              160,
+              720
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "arm": "headline",
+      "namespace": "db0",
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+      "probe_sha256": "07ccf304fbaee2ec3eb498d8f9d14fdf4c0a28e9fdd71843c8a88c8f4d2ba40d",
+      "release_sha256": "56ec64d13cf87d97d75ad955311a44c77ffc87a6798b548d5c4330b6713cd97c",
+      "verified": true,
+      "sites": [
+        {
+          "offset": 20131,
+          "verification": {
+            "kind": "immutable 64-bit load",
+            "value_hex": "ffffffff00000000"
+          }
+        }
+      ]
+    },
+    {
+      "arm": "headline",
+      "namespace": "db0",
+      "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+      "probe_sha256": "07ccf304fbaee2ec3eb498d8f9d14fdf4c0a28e9fdd71843c8a88c8f4d2ba40d",
+      "release_sha256": "56ec64d13cf87d97d75ad955311a44c77ffc87a6798b548d5c4330b6713cd97c",
+      "verified": true,
+      "sites": [
+        {
+          "offset": 23,
+          "verification": {
+            "kind": "six-entry switch, memory-byte bound and reload verified",
+            "default_offset": 60,
+            "destination_offsets": [
+              48,
+              624,
+              880,
+              1120,
+              64,
+              304
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "arm": "headline",
+      "namespace": "db0",
+      "name": "tomo_db0::kvobj_free_with_capacity(tomo_db0::KvObj*, unsigned long)",
+      "probe_sha256": "07ccf304fbaee2ec3eb498d8f9d14fdf4c0a28e9fdd71843c8a88c8f4d2ba40d",
+      "release_sha256": "56ec64d13cf87d97d75ad955311a44c77ffc87a6798b548d5c4330b6713cd97c",
+      "verified": true,
+      "sites": [
+        {
+          "offset": 120,
+          "verification": {
+            "kind": "six-entry switch, memory-byte bound and reload verified",
+            "default_offset": 24,
+            "destination_offsets": [
+              624,
+              576,
+              400,
+              208,
+              160,
+              720
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "arm": "execindex",
+      "namespace": "db0",
+      "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+      "probe_sha256": "e7917b84bb58452141dc0d599606b1d91ec84396e7ab5989589b8b5b68f35817",
+      "release_sha256": "aee048859f6f8d84d5aa4e0b30767ad1e8dac4595d383ff634a8226027d1566a",
+      "verified": true,
+      "sites": [
+        {
+          "offset": 23,
+          "verification": {
+            "kind": "six-entry switch, memory-byte bound and reload verified",
+            "default_offset": 60,
+            "destination_offsets": [
+              48,
+              624,
+              880,
+              1120,
+              64,
+              304
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "arm": "execindex",
+      "namespace": "db0",
+      "name": "tomo_db0::kvobj_free_with_capacity(tomo_db0::KvObj*, unsigned long)",
+      "probe_sha256": "e7917b84bb58452141dc0d599606b1d91ec84396e7ab5989589b8b5b68f35817",
+      "release_sha256": "aee048859f6f8d84d5aa4e0b30767ad1e8dac4595d383ff634a8226027d1566a",
+      "verified": true,
+      "sites": [
+        {
+          "offset": 120,
+          "verification": {
+            "kind": "six-entry switch, memory-byte bound and reload verified",
+            "default_offset": 24,
+            "destination_offsets": [
+              624,
+              576,
+              400,
+              208,
+              160,
+              720
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+      "probe_sha256": "7d0e2dde2951f3edcc0fa422fe17d5ba55b84c22009e1bbb30cf3896bc0ad0e2",
+      "release_sha256": "f94fbd1d57873ff32bdf279b796139e0dd94e8cd7f613d9a7f17832ef86af359",
+      "verified": true,
+      "sites": [
+        {
+          "offset": 23,
+          "verification": {
+            "kind": "six-entry switch, memory-byte bound and reload verified",
+            "default_offset": 60,
+            "destination_offsets": [
+              48,
+              624,
+              880,
+              1120,
+              64,
+              304
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
+      "name": "tomo_db0::kvobj_free_with_capacity(tomo_db0::KvObj*, unsigned long)",
+      "probe_sha256": "7d0e2dde2951f3edcc0fa422fe17d5ba55b84c22009e1bbb30cf3896bc0ad0e2",
+      "release_sha256": "f94fbd1d57873ff32bdf279b796139e0dd94e8cd7f613d9a7f17832ef86af359",
+      "verified": true,
+      "sites": [
+        {
+          "offset": 120,
+          "verification": {
+            "kind": "six-entry switch, memory-byte bound and reload verified",
+            "default_offset": 24,
+            "destination_offsets": [
+              624,
+              576,
+              400,
+              208,
+              160,
+              720
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+      "probe_sha256": "9ddcb7cfeed040d74badfbccc15901f7d0b10ba49c993093929fecabcfc48db0",
+      "release_sha256": "8c150a28fd2ef2e1e5b63b7b92e2c61f5e76824e22398835c9bab04ae708f6d7",
+      "verified": true,
+      "sites": [
+        {
+          "offset": 23,
+          "verification": {
+            "kind": "six-entry switch, memory-byte bound and reload verified",
+            "default_offset": 60,
+            "destination_offsets": [
+              48,
+              624,
+              880,
+              1120,
+              64,
+              304
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "arm": "post",
+      "namespace": "db0",
+      "name": "tomo_db0::kvobj_free_with_capacity(tomo_db0::KvObj*, unsigned long)",
+      "probe_sha256": "9ddcb7cfeed040d74badfbccc15901f7d0b10ba49c993093929fecabcfc48db0",
+      "release_sha256": "8c150a28fd2ef2e1e5b63b7b92e2c61f5e76824e22398835c9bab04ae708f6d7",
+      "verified": true,
+      "sites": [
+        {
+          "offset": 120,
+          "verification": {
+            "kind": "six-entry switch, memory-byte bound and reload verified",
+            "default_offset": 24,
+            "destination_offsets": [
+              624,
+              576,
+              400,
+              208,
+              160,
+              720
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

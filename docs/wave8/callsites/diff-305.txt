@@ -1,0 +1,25 @@
+tomo::stream_parse_xreadgroup(tomo::Op&, tomo::StreamXreadGroupArgs&)
+--- headline
+
++++ post
+
+@@ -59,7 +59,7 @@
+
+ CLONE 0 00e4 [ 2] pop %r15
+ CLONE 0 00e6 [ 1] pop %rbp
+ CLONE 0 00e7 [ 1] ret
+-CLONE 0 00e8 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x758>
++CLONE 0 00e8 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x1a8>
+ CLONE 0 00ef [ 3] mov %rax,(%rbx)
+ CLONE 0 00f2 [ 8] mov 0xcc(%r12),%r13d
+ CLONE 0 00fa [ 4] cmp $0x4,%r13d
+@@ -238,7 +238,7 @@
+
+ CLONE 0 03c9 [ 3] sub %r11d,%r13d
+ CLONE 0 03cc [ 4] cmp $0x3,%r13d
+ CLONE 0 03d0 [ 6] jne <+0x267>
+-CLONE 0 03d6 [ 8] vmovq <rip>(%rip),%xmm2 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6b0>
++CLONE 0 03d6 [ 8] vmovq <rip>(%rip),%xmm2 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xe8>
+ CLONE 0 03de [ 5] vmovd %r11d,%xmm1
+ CLONE 0 03e3 [ 5] vpshufd $0xe0,%xmm1,%xmm0
+ CLONE 0 03e8 [ 4] vpaddd %xmm2,%xmm0,%xmm0

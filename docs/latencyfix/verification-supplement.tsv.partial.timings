@@ -1,0 +1,38 @@
+ok	0.030000	release build (+footprint locks)
+ok	0.930000	R7 generated envelope parity
+FAIL	0.120000	R7 production engagement (both database runtimes)
+FAIL	68.560000	R7 FIFO twin off-path identity + negative controls
+ok	0.110000	core concurrency watch
+ok	0.320000	core concurrency lifetime
+ok	0.110000	core concurrency drain
+ok	7.230000	core concurrency route
+ok	0.110000	core concurrency snapshot
+ok	0.170000	core concurrency config
+ok	0.170000	core concurrency notify
+ok	0.570000	read-local topology demotion (1s)
+ok	0.560000	read-local topology demotion (2s)
+ok	0.280000	exbatch publication and WATCH lifecycle (1s)
+ok	0.280000	exbatch publication and WATCH lifecycle (2s)
+ok	32.540000	atomic torn/window battery
+ok	4.060000	atomic RYOW/mixed-write battery
+ok	4.240000	atomic owner-local hazard battery
+ok	0.020000	atomic shutdown invariants
+ok	12.970000	fused txngroup battery (atomic 1)
+ok	12.860000	txngroup battery (atomic 1)
+ok	0.030000	txnorder2 writer episode R1
+ok	0.020000	txnorder2 writer episode R2
+ok	0.030000	txnorder2 writer episode R3
+ok	0.020000	txnorder2 writer episode R4
+ok	0.030000	txnorder2 writer episode R5
+ok	0.020000	txnorder2 writer episode R6
+ok	0.020000	txnorder2 writer episode R7
+ok	0.060000	txnorder2 writer episode R8
+ok	0.030000	txnorder2 writer episode R9
+ok	0.020000	txnorder2 writer episode R10
+ok	0.020000	txnorder2 writer episode R11
+ok	4.550000	txnorder2 writer episode R12
+ok	0.050000	txnorder2 direct RENAME owner join
+ok	22.690000	txnorder2 WATCH serve
+ok	30.270000	txnorder2 WATCH flush
+ok	27.070000	txnorder2 WATCH readonly
+ok	0.010000	txnorder2 busy owner inbox wake

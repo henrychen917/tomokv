@@ -1,0 +1,18 @@
+{
+  "reason": "Found approximate slowlog start reconstruction race; gracefully stop the owned proof before source correction",
+  "time": 1793096226.8035471,
+  "processes": [
+    {
+      "pid": 520993,
+      "start": "475151374",
+      "command": "python3 docs/wave8b/run_final.py ",
+      "signal": "TERM"
+    },
+    {
+      "pid": 521126,
+      "start": "475151449",
+      "command": "bash tests/gate.sh full --server-cores 64-71 --load-cores 72-79 --load-smt  --ports 20020-20029 --candidate-binary /home/user/Projects/cx-wave8b/build/tomokv ",
+      "signal": "TERM"
+    }
+  ]
+}

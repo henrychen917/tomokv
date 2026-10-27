@@ -1,0 +1,11 @@
+{
+  "job": "abba_selftest",
+  "log": "build/gate-run.LjCcCy/jobs/abba_selftest/gate-abbagate-unit.txt",
+  "gates_test": {
+    "tests": 72,
+    "passed": true
+  },
+  "aggregate_row": "FAIL",
+  "reason": "Receipt fixture requires 816 declared rows; protected EXPECT_FULL remains 815.",
+  "expect_constants_edited": false
+}

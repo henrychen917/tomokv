@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-db0-MGET-1s-1-1--1.log
+SHA-256: 421bccafa4c33dbad488a55ef1a97f7c5bd445185e32023aa19d41bdadf9c860
+Exit: 0
+0x00005555556a4120	2284	}
+0x00005555556a4122	2284	}
+0x00005555556a4124	2284	}
+0x0000555555d8ddb7 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
+180	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
+163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8ddc3	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8ddca	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8ddd2	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8ddd9	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8dddf	183	   std::string want="+OK\r\n";
+0x0000555555d8dde6	183	   std::string want="+OK\r\n";
+0x0000555555d8dded	182	   scope_end();
+
+Breakpoint 2, scope_end () at /home/TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
+30	[[gnu::noinline]] void scope_end(){
+[Inferior 1 (process 2365792) exited normally]
+COUNT 10370

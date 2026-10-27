@@ -173,6 +173,7 @@ void IoLoop::shutdown_clients_after_join() {
             srv_->client_released();
         }
         release_tls(c);
+        latency_tracking_forget_client(*c);
         delete c;
     }
     // No producer remains. Dropping these references is a real join fence, not

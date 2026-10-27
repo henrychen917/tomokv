@@ -1,0 +1,10 @@
+# Socket samples during flip-fliplisten-PRE-oddport (gate-run.C4WVsf, PRE, uring, slot ports 46831/46832/46833).
+# Zero self-connects on the odd slot port; a client to 46831 drew 46832 (PORT+1, TLS) as its source port:
+first: 12:21:11.650 TIME-WAIT 0      0      127.0.0.1:46832 127.0.0.1:46831 timer:(timewait,59sec,0) ino:0 sk:12b6df                                               
+last:  12:22:15.921 TIME-WAIT 0      0      127.0.0.1:46832 127.0.0.1:46831 timer:(timewait,,0) ino:0 sk:119c98
+# self-connected samples on 46831: 0
+# fliplisten uring legs:
+bind tls-port: Address already in use
+bind tls-port: Address already in use
+# perfio epoll-lb on PRE (not a port failure):
+AssertionError: ('selected socket did not move', 510973506, [24])

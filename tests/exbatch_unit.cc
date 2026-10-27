@@ -127,6 +127,20 @@ void watch_lifecycle() {
     check(sh.watch_write_ready(key) && refs == 0 && !watches(sh),
           "commit finalizes last reservation and clears gate");
 
+    // Execindex's ready path may retire via the queue-specific overload. Exercise
+    // the explicit finalizer too: its planted cache-update break must fail here,
+    // before the unrelated allocation-failure fixture runs.
+    const Slice direct_key("direct-finalize");
+    const auto direct_owned = database_owned_key(direct_key);
+    epoch = 0;
+    check(sh.watch_add(direct_key, &a, ga), "arm explicit finalization watcher");
+    sh.watch_reserve_write(direct_key, &b, gb, &token, &epoch, &aborted, &refs);
+    sh.watch_remove(direct_key, &a, ga);
+    check(refs == 1 && watches(sh), "explicit finalization reservation armed");
+    epoch = 1;
+    check(sh.watch_finalize_reservation(direct_owned) && refs == 0 && !watches(sh),
+          "explicit commit finalizes last reservation and clears gate");
+
     check(sh.watch_add(key, &a, ga), "arm nonblocking writers");
     a.clear_watch_dirty(); epoch = 0;
     sh.watch_reserve_write(key, &b, gb, &token, &epoch, &aborted, &refs);

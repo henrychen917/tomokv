@@ -1,0 +1,33 @@
+# Socket samples (ss -tanoepH, local port 46800-46899, every 0.2 s) during flip-fliplisten-PRE
+# gate-run.8nOuib, slot ports 46810/46811/46812, PRE binary, uring. Excerpt: every non-ESTABLISHED
+# socket on the slot ports (first and last sample), the client that used PORT+2 as its
+# ephemeral source port, and the first samples of the self-connected TIME-WAIT entry.
+
+first: 12:11:27.322 CLOSE-WAIT 0      0         127.0.0.1:46810     127.0.0.1:45274 users:(("PRE",pid=3570545,fd=1433)) timer:(keepalive,4min59sec,0) uid:1000 ino:510416833 sk:12a32f cgroup:/user.slice/user-1000.slice/session-4.scope -->
+last:  12:11:27.322 CLOSE-WAIT 0      0         127.0.0.1:46810     127.0.0.1:45274 users:(("PRE",pid=3570545,fd=1433)) timer:(keepalive,4min59sec,0) uid:1000 ino:510416833 sk:12a32f cgroup:/user.slice/user-1000.slice/session-4.scope -->
+first: 12:11:27.588 CLOSE-WAIT 1      0         127.0.0.1:46810     127.0.0.1:44266 users:(("PRE",pid=3570545,fd=1321)) timer:(keepalive,4min59sec,0) uid:1000 ino:510427892 sk:12a00f cgroup:/user.slice/user-1000.slice/session-4.scope -->
+last:  12:11:27.588 CLOSE-WAIT 1      0         127.0.0.1:46810     127.0.0.1:44266 users:(("PRE",pid=3570545,fd=1321)) timer:(keepalive,4min59sec,0) uid:1000 ino:510427892 sk:12a00f cgroup:/user.slice/user-1000.slice/session-4.scope -->
+first: 12:11:28.106 LAST-ACK   0      1         127.0.0.1:46810     127.0.0.1:34508 timer:(keepalive,4min59sec,0) uid:1000 ino:510556505 sk:128779 cgroup:/user.slice/user-1000.slice/session-4.scope ---                                    
+last:  12:11:28.106 LAST-ACK   0      1         127.0.0.1:46810     127.0.0.1:34508 timer:(keepalive,4min59sec,0) uid:1000 ino:510556505 sk:128779 cgroup:/user.slice/user-1000.slice/session-4.scope ---                                    
+first: 12:11:28.106 CLOSE-WAIT 1      0         127.0.0.1:46810     127.0.0.1:60066 users:(("PRE",pid=3570584,fd=1543)) timer:(keepalive,4min59sec,0) uid:1000 ino:510510943 sk:1288b0 cgroup:/user.slice/user-1000.slice/session-4.scope -->
+last:  12:11:28.106 CLOSE-WAIT 1      0         127.0.0.1:46810     127.0.0.1:60066 users:(("PRE",pid=3570584,fd=1543)) timer:(keepalive,4min59sec,0) uid:1000 ino:510510943 sk:1288b0 cgroup:/user.slice/user-1000.slice/session-4.scope -->
+first: 12:11:28.378 SYN-RECV  0      0         127.0.0.1:46810     127.0.0.1:60008 timer:(on,1sec,0) ino:0 sk:128d09                                                                                                                        
+last:  12:11:28.378 SYN-RECV  0      0         127.0.0.1:46810     127.0.0.1:60008 timer:(on,1sec,0) ino:0 sk:128d09                                                                                                                        
+first: 12:11:28.647 CLOSE-WAIT 0      0         127.0.0.1:46810     127.0.0.1:58148 users:(("PRE",pid=3570584,fd=1327)) timer:(keepalive,4min59sec,0) uid:1000 ino:510510906 sk:128a54 cgroup:/user.slice/user-1000.slice/session-4.scope -->
+last:  12:11:28.647 CLOSE-WAIT 0      0         127.0.0.1:46810     127.0.0.1:58148 users:(("PRE",pid=3570584,fd=1327)) timer:(keepalive,4min59sec,0) uid:1000 ino:510510906 sk:128a54 cgroup:/user.slice/user-1000.slice/session-4.scope -->
+first: 12:11:28.913 TIME-WAIT 0      0         127.0.0.1:46812     127.0.0.1:46810 timer:(timewait,59sec,0) ino:0 sk:128c96                                                                                                             
+last:  12:11:49.835 TIME-WAIT 0      0         127.0.0.1:46812     127.0.0.1:46810 timer:(timewait,38sec,0) ino:0 sk:128c96                                                                                                               
+first: 12:11:29.168 TIME-WAIT 0      0         127.0.0.1:46810     127.0.0.1:46810 timer:(timewait,59sec,0) ino:0 sk:1185ef                                                                                                             
+last:  12:15:25.571 TIME-WAIT 0      0      127.0.0.1:46810 127.0.0.1:46810 timer:(timewait,28sec,0) ino:0 sk:12a560
+
+# client sockets whose local port is a slot port (first 6 samples):
+12:11:28.106 ESTAB      0      0         127.0.0.1:46810     127.0.0.1:46812 users:(("PRE",pid=3570584,fd=71)) timer:(keepalive,4min59sec,0) uid:1000 ino:510423991 sk:128bf8 cgroup:/user.slice/user-1000.slice/session-4.scope <->  
+12:11:28.106 ESTAB      0      0         127.0.0.1:46812     127.0.0.1:46810 users:(("python3",pid=3570576,fd=49)) uid:1000 ino:510549551 sk:128c96 cgroup:/user.slice/user-1000.slice/session-4.scope <->                            
+12:11:28.378 ESTAB     0      0         127.0.0.1:46810     127.0.0.1:46812 users:(("PRE",pid=3570584,fd=71)) timer:(keepalive,4min59sec,0) uid:1000 ino:510423991 sk:128bf8 cgroup:/user.slice/user-1000.slice/session-4.scope <->  
+12:11:28.378 ESTAB     0      0         127.0.0.1:46812     127.0.0.1:46810 users:(("python3",pid=3570576,fd=49)) uid:1000 ino:510549551 sk:128c96 cgroup:/user.slice/user-1000.slice/session-4.scope <->                            
+12:11:28.647 ESTAB      0      0         127.0.0.1:46810     127.0.0.1:46812 users:(("PRE",pid=3570584,fd=71)) timer:(keepalive,4min59sec,0) uid:1000 ino:510423991 sk:128bf8 cgroup:/user.slice/user-1000.slice/session-4.scope <->  
+12:11:28.647 ESTAB      0      0         127.0.0.1:46812     127.0.0.1:46810 users:(("python3",pid=3570576,fd=49)) uid:1000 ino:510549551 sk:128c96 cgroup:/user.slice/user-1000.slice/session-4.scope <->                            
+
+# client source-port parity seen by the slot-port server sockets (distinct ports):
+odd 2
+even 3123

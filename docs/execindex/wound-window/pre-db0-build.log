@@ -1,0 +1,5 @@
+In file included from /home/user/Projects/cx-execindex/tests/txnorder_wound_window.cc:5:
+/home/user/Projects/cx-execindex/build/execindex/pre-source/tests/atomic_survivors_unit.cc: In function ‘int survivors_fixture_main(int, char**)’:
+/home/user/Projects/cx-execindex/build/execindex/pre-source/tests/atomic_survivors_unit.cc:872:1: warning: no return statement in function returning non-void [-Wreturn-type]
+  872 | }
+      | ^

@@ -1,0 +1,954 @@
+{
+  "normalizer": "tests/reorder_noop.py (unchanged), literal_pools=True",
+  "pre_sha256": "5e708c7aa744e251f1c1005a06f03f1815c08c97cd965c1a95ad650844e4ea68",
+  "post_sha256": "257d6ee619d33eeaffbb6fa55cd30b9880a37fc873f01d467c9469519dbf36d0",
+  "compared": 80,
+  "identical": 68,
+  "changed": [
+    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+    "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+    "tomo::xshard_flush_commits_timed(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+    "tomo::xshard_queue_commit(tomo::Server&, tomo::ThreadCtx&, tomo::Task const&)",
+    "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+    "tomo_db0::xshard_flush_commits_timed(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+    "tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&)",
+    "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+    "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+    "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)"
+  ],
+  "bodies": [
+    {
+      "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, false>() const",
+      "pre_sizes": [
+        1078
+      ],
+      "post_sizes": [
+        1078
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, true>() const",
+      "pre_sizes": [
+        1094
+      ],
+      "post_sizes": [
+        1094
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
+      "pre_sizes": [
+        1190
+      ],
+      "post_sizes": [
+        1190
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, false>() const",
+      "pre_sizes": [
+        1133
+      ],
+      "post_sizes": [
+        1133
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, true>() const",
+      "pre_sizes": [
+        1094
+      ],
+      "post_sizes": [
+        1094
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
+      "pre_sizes": [
+        1190
+      ],
+      "post_sizes": [
+        1190
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo::ScatterFinish tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+      "pre_sizes": [
+        1727
+      ],
+      "post_sizes": [
+        1727
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo::ScatterFinish tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+      "pre_sizes": [
+        1727
+      ],
+      "post_sizes": [
+        1727
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo::ScatterFinish tomo::xshard_complete_script<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&, tomo::ScatterState&)",
+      "pre_sizes": [
+        1901
+      ],
+      "post_sizes": [
+        1901
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo::ScatterFinish tomo::xshard_complete_script<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&, tomo::ScatterState&)",
+      "pre_sizes": [
+        1901
+      ],
+      "post_sizes": [
+        1901
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo::cmd_xshard_only(tomo::Shard&, tomo::Op&)",
+      "pre_sizes": [
+        9
+      ],
+      "post_sizes": [
+        9
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo::cmd_xshard_only_notify(tomo::Shard&, tomo::Op&)",
+      "pre_sizes": [
+        117
+      ],
+      "post_sizes": [
+        117
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo::cmd_xshard_only_notify_body(tomo::Shard&, tomo::Op&)",
+      "pre_sizes": [
+        9
+      ],
+      "post_sizes": [
+        9
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo::xshard_complete(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+      "pre_sizes": [
+        9
+      ],
+      "post_sizes": [
+        9
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const",
+      "pre_sizes": [
+        158
+      ],
+      "post_sizes": [
+        158
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const",
+      "pre_sizes": [
+        158
+      ],
+      "post_sizes": [
+        158
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo::xshard_complete_iofused(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+      "pre_sizes": [
+        9
+      ],
+      "post_sizes": [
+        9
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo::xshard_complete_script<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&, tomo::ScatterState&)::{lambda(tomo::(anonymous namespace)::ScriptPhase)#1}::operator()(tomo::(anonymous namespace)::ScriptPhase) const",
+      "pre_sizes": [
+        98
+      ],
+      "post_sizes": [
+        98
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo::xshard_complete_script<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&, tomo::ScatterState&)::{lambda(tomo::(anonymous namespace)::ScriptPhase)#1}::operator()(tomo::(anonymous namespace)::ScriptPhase) const",
+      "pre_sizes": [
+        98
+      ],
+      "post_sizes": [
+        98
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+      "pre_sizes": [
+        21794
+      ],
+      "post_sizes": [
+        21794
+      ],
+      "strict_linked_equal": false,
+      "diff": "--- PRE\n+++ POST\n@@ -784,17 +784,17 @@\n 0: 0faa [ 7] mov -0x148(%rbp),%rbx | 48 8b 9d b8 fe ff ff\n 0: 0fb1 [ 4] mov 0x78(%rbx),%rax | 48 8b 43 78\n 0: 0fb5 [ 8] lock incq 0x17598(%rax) | f0 48 ff 80 98 75 01 00\n-0: 0fbd [ 9] cmpb $0x0,%fs:0xffffffffffffff00 | 64 80 3c 25 00 ff ff ff 00\n+0: 0fbd [ 9] cmpb $0x0,%fs:0xfffffffffffffef8 | 64 80 3c 25 f8 fe ff ff 00\n 0: 0fc6 [ 7] mov 0xb0(%rbx),%r13d | 44 8b ab b0 00 00 00\n 0: 0fcd [ 4] mov 0x78(%rbx),%rbx | 48 8b 5b 78\n 0: 0fd1 [ 6] je <+0x1991> | 0f 84 ba 09 00 00\n-0: 0fd7 [10] cmpq $0x0,%fs:0xffffffffffffff38 | 64 48 83 3c 25 38 ff ff ff 00\n+0: 0fd7 [10] cmpq $0x0,%fs:0xffffffffffffff30 | 64 48 83 3c 25 30 ff ff ff 00\n 0: 0fe1 [ 6] je <+0x48f0> | 0f 84 09 39 00 00\n-0: 0fe7 [ 9] cmpb $0x0,%fs:0xffffffffffffff00 | 64 80 3c 25 00 ff ff ff 00\n+0: 0fe7 [ 9] cmpb $0x0,%fs:0xfffffffffffffef8 | 64 80 3c 25 f8 fe ff ff 00\n 0: 0ff0 [ 6] je <+0x45ed> | 0f 84 f7 35 00 00\n-0: 0ff6 [ 9] cmp %fs:0xffffffffffffff40,%rbx | 64 48 3b 1c 25 40 ff ff ff\n+0: 0ff6 [ 9] cmp %fs:0xffffffffffffff38,%rbx | 64 48 3b 1c 25 38 ff ff ff\n 0: 0fff [ 6] jne <+0x54c9> | 0f 85 c4 44 00 00\n-0: 1005 [ 9] mov %fs:0xffffffffffffff38,%r12 | 64 4c 8b 24 25 38 ff ff ff\n+0: 1005 [ 9] mov %fs:0xffffffffffffff30,%r12 | 64 4c 8b 24 25 30 ff ff ff\n 0: 100e [ 4] cmp (%r12),%r13d | 45 3b 2c 24\n 0: 1012 [ 6] je <+0x451b> | 0f 84 03 35 00 00\n 0: 1018 [ 8] mov %rbx,0x530(%r12) | 49 89 9c 24 30 05 00 00\n@@ -1294,8 +1294,8 @@\n 0: 1991 [ 9] mov %fs:0x0,%rax | 64 48 8b 04 25 00 00 00 00\n 0: 199a [ 7] lea <rip>(%rip),%rdx # <__dso_handle> | 48 8d 15 ?? ?? ?? ??\n 0: 19a1 [ 7] lea <rip>(%rip),%rdi # <tomo::(anonymous namespace)::ScriptWorkbench::~ScriptWorkbench()> | 48 8d 3d ?? ?? ?? ??\n-0: 19a8 [ 9] movb $0x1,%fs:0xffffffffffffff00 | 64 c6 04 25 00 ff ff ff 01\n-0: 19b1 [ 7] lea -0xc8(%rax),%rsi | 48 8d b0 38 ff ff ff\n+0: 19a8 [ 9] movb $0x1,%fs:0xfffffffffffffef8 | 64 c6 04 25 f8 fe ff ff 01\n+0: 19b1 [ 7] lea -0xd0(%rax),%rsi | 48 8d b0 30 ff ff ff\n 0: 19b8 [ 5] call <__cxa_thread_atexit@plt> | e8 ?? ?? ?? ??\n 0: 19bd [ 5] jmp <+0xfd7> | e9 15 f6 ff ff\n 0: 19c2 [ 2] test %dl,%dl | 84 d2\n@@ -3620,8 +3620,8 @@\n 0: 45ed [ 9] mov %fs:0x0,%rax | 64 48 8b 04 25 00 00 00 00\n 0: 45f6 [ 7] lea <rip>(%rip),%rdx # <__dso_handle> | 48 8d 15 ?? ?? ?? ??\n 0: 45fd [ 7] lea <rip>(%rip),%rdi # <tomo::(anonymous namespace)::ScriptWorkbench::~ScriptWorkbench()> | 48 8d 3d ?? ?? ?? ??\n-0: 4604 [ 9] movb $0x1,%fs:0xffffffffffffff00 | 64 c6 04 25 00 ff ff ff 01\n-0: 460d [ 7] lea -0xc8(%rax),%rsi | 48 8d b0 38 ff ff ff\n+0: 4604 [ 9] movb $0x1,%fs:0xfffffffffffffef8 | 64 c6 04 25 f8 fe ff ff 01\n+0: 460d [ 7] lea -0xd0(%rax),%rsi | 48 8d b0 30 ff ff ff\n 0: 4614 [ 3] vzeroupper | c5 f8 77\n 0: 4617 [ 5] call <__cxa_thread_atexit@plt> | e8 ?? ?? ?? ??\n 0: 461c [ 5] jmp <+0xff6> | e9 d5 c9 ff ff\n@@ -3779,7 +3779,7 @@\n 0: 48ff [ 5] mov $0x5a0,%edx | ba a0 05 00 00\n 0: 4904 [ 3] mov %rax,%r12 | 49 89 c4\n 0: 4907 [ 5] call <memset@plt> | e8 ?? ?? ?? ??\n-0: 490c [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x640> | 48 8b 05 ?? ?? ?? ??\n+0: 490c [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x670> | 48 8b 05 ?? ?? ?? ??\n 0: 4913 [ 5] lea 0x38(%r12),%rdi | 49 8d 7c 24 38\n 0: 4918 [ 5] mov $0x400,%esi | be 00 04 00 00\n 0: 491d [ 8] movl $0xffffffff,(%r12) | 41 c7 04 24 ff ff ff ff\n@@ -3841,11 +3841,11 @@\n 0: 4b28 [ 7] lea <rip>(%rip),%rax # <tomo::notify_flat_emit(void*, unsigned int, tomo::NotifyEventId, tomo::Slice)> | 48 8d 05 ?? ?? ?? ??\n 0: 4b2f [ 6] vpinsrq $0x1,%rax,%xmm0,%xmm0 | c4 e3 f9 22 c0 01\n 0: 4b35 [10] vmovdqu %xmm0,0x540(%r12) | c4 c1 7a 7f 84 24 40 05 00 00\n-0: 4b3f [ 9] cmpb $0x0,%fs:0xffffffffffffff00 | 64 80 3c 25 00 ff ff ff 00\n+0: 4b3f [ 9] cmpb $0x0,%fs:0xfffffffffffffef8 | 64 80 3c 25 f8 fe ff ff 00\n 0: 4b48 [ 6] je <+0x4fff> | 0f 84 b1 04 00 00\n-0: 4b4e [ 9] mov %fs:0xffffffffffffff38,%r14 | 64 4c 8b 34 25 38 ff ff ff\n-0: 4b57 [ 9] mov %rbx,%fs:0xffffffffffffff40 | 64 48 89 1c 25 40 ff ff ff\n-0: 4b60 [ 9] mov %r12,%fs:0xffffffffffffff38 | 64 4c 89 24 25 38 ff ff ff\n+0: 4b4e [ 9] mov %fs:0xffffffffffffff30,%r14 | 64 4c 8b 34 25 30 ff ff ff\n+0: 4b57 [ 9] mov %rbx,%fs:0xffffffffffffff38 | 64 48 89 1c 25 38 ff ff ff\n+0: 4b60 [ 9] mov %r12,%fs:0xffffffffffffff30 | 64 4c 89 24 25 30 ff ff ff\n 0: 4b69 [ 3] test %r14,%r14 | 4d 85 f6\n 0: 4b6c [ 6] je <+0xfe7> | 0f 84 75 c4 ff ff\n 0: 4b72 [ 3] mov %r14,%rdi | 4c 89 f7\n@@ -4089,8 +4089,8 @@\n 0: 4fff [ 9] mov %fs:0x0,%rax | 64 48 8b 04 25 00 00 00 00\n 0: 5008 [ 7] lea <rip>(%rip),%rdx # <__dso_handle> | 48 8d 15 ?? ?? ?? ??\n 0: 500f [ 7] lea <rip>(%rip),%rdi # <tomo::(anonymous namespace)::ScriptWorkbench::~ScriptWorkbench()> | 48 8d 3d ?? ?? ?? ??\n-0: 5016 [ 9] movb $0x1,%fs:0xffffffffffffff00 | 64 c6 04 25 00 ff ff ff 01\n-0: 501f [ 7] lea -0xc8(%rax),%rsi | 48 8d b0 38 ff ff ff\n+0: 5016 [ 9] movb $0x1,%fs:0xfffffffffffffef8 | 64 c6 04 25 f8 fe ff ff 01\n+0: 501f [ 7] lea -0xd0(%rax),%rsi | 48 8d b0 30 ff ff ff\n 0: 5026 [ 3] vzeroupper | c5 f8 77\n 0: 5029 [ 5] call <__cxa_thread_atexit@plt> | e8 ?? ?? ?? ??\n 0: 502e [ 5] jmp <+0x4b4e> | e9 1b fb ff ff\n"
+    },
+    {
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int) [clone .cold]",
+      "pre_sizes": [
+        507
+      ],
+      "post_sizes": [
+        507
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::ScriptApplyPins::~ScriptApplyPins()",
+      "pre_sizes": [
+        225
+      ],
+      "post_sizes": [
+        225
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(unsigned long, tomo::Slice, bool)#1}::operator()(unsigned long, tomo::Slice, bool) const",
+      "pre_sizes": [
+        228
+      ],
+      "post_sizes": [
+        228
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+      "pre_sizes": [
+        1747
+      ],
+      "post_sizes": [
+        1747
+      ],
+      "strict_linked_equal": false,
+      "diff": "--- PRE\n+++ POST\n@@ -15,12 +15,12 @@\n 0: 0037 [ 3] test %r8,%r8 | 4d 85 c0\n 0: 003a [ 6] je <tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]+0x28> | 0f 84 ?? ?? ?? ??\n 0: 0040 [ 6] vmovq 0x60(%rsp),%xmm1 | c5 fa 7e 4c 24 60\n-0: 0046 [ 9] mov %fs:0xfffffffffffffdc0,%r14 | 64 4c 8b 34 25 c0 fd ff ff\n+0: 0046 [ 9] mov %fs:0xfffffffffffffd70,%r14 | 64 4c 8b 34 25 70 fd ff ff\n 0: 004f [ 7] lea 0x14cb0(%rdi),%rax | 48 8d 87 b0 4c 01 00\n 0: 0056 [ 3] mov %rdi,%r15 | 49 89 ff\n 0: 0059 [ 5] mov %rax,0x28(%rsp) | 48 89 44 24 28\n 0: 005e [ 3] mov %rsi,%rax | 48 89 f0\n-0: 0061 [ 8] lea 0xfffffffffffffdc0,%rdx | 48 8d 14 25 c0 fd ff ff\n+0: 0061 [ 8] lea 0xfffffffffffffd70,%rdx | 48 8d 14 25 70 fd ff ff\n 0: 0069 [ 6] add $0x3c0,%rax | 48 05 c0 03 00 00\n 0: 006f [ 6] vpinsrq $0x1,%rax,%xmm1,%xmm0 | c4 e3 f1 22 c0 01\n 0: 0075 [ 6] vmovdqa %xmm0,0x40(%rsp) | c5 f9 7f 44 24 40\n@@ -39,11 +39,11 @@\n 0: 00b5 [ 4] mov 0x0(%r13),%eax | 41 8b 45 00\n 0: 00b9 [ 4] cmp %eax,%fs:0x20(%rsi) | 64 39 46 20\n 0: 00bd [ 6] jne <tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]+0x28> | 0f 85 ?? ?? ?? ??\n-0: 00c3 [13] movq $0x0,%fs:0xfffffffffffffdc0 | 64 48 c7 04 25 c0 fd ff ff 00 00 00 00\n-0: 00d0 [13] movq $0x0,%fs:0xfffffffffffffdc8 | 64 48 c7 04 25 c8 fd ff ff 00 00 00 00\n-0: 00dd [13] movq $0x0,%fs:0xfffffffffffffdd0 | 64 48 c7 04 25 d0 fd ff ff 00 00 00 00\n-0: 00ea [13] movq $0x0,%fs:0xfffffffffffffdd8 | 64 48 c7 04 25 d8 fd ff ff 00 00 00 00\n-0: 00f7 [12] movl $0xffffffff,%fs:0xfffffffffffffde0 | 64 c7 04 25 e0 fd ff ff ff ff ff ff\n+0: 00c3 [13] movq $0x0,%fs:0xfffffffffffffd70 | 64 48 c7 04 25 70 fd ff ff 00 00 00 00\n+0: 00d0 [13] movq $0x0,%fs:0xfffffffffffffd78 | 64 48 c7 04 25 78 fd ff ff 00 00 00 00\n+0: 00dd [13] movq $0x0,%fs:0xfffffffffffffd80 | 64 48 c7 04 25 80 fd ff ff 00 00 00 00\n+0: 00ea [13] movq $0x0,%fs:0xfffffffffffffd88 | 64 48 c7 04 25 88 fd ff ff 00 00 00 00\n+0: 00f7 [12] movl $0xffffffff,%fs:0xfffffffffffffd90 | 64 c7 04 25 90 fd ff ff ff ff ff ff\n 0: 0103 [ 5] mov 0x28(%rsp),%rax | 48 8b 44 24 28\n 0: 0108 [ 4] lock incq (%rax) | f0 48 ff 00\n 0: 010c [ 7] lea 0x14ca8(%r15),%rbx | 49 8d 9f a8 4c 01 00\n@@ -247,13 +247,13 @@\n 0: 04d8 [ 4] mov %fs:(%rsi),%r14 | 64 4c 8b 36\n 0: 04dc [ 3] test %r14,%r14 | 4d 85 f6\n 0: 04df [ 6] jne <+0x90> | 0f 85 ab fb ff ff\n-0: 04e5 [10] cmpq $0x0,%fs:0xfffffffffffffdc8 | 64 48 83 3c 25 c8 fd ff ff 00\n+0: 04e5 [10] cmpq $0x0,%fs:0xfffffffffffffd78 | 64 48 83 3c 25 78 fd ff ff 00\n 0: 04ef [ 6] jne <tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]+0x28> | 0f 85 ?? ?? ?? ??\n-0: 04f5 [10] cmpq $0x0,%fs:0xfffffffffffffdd0 | 64 48 83 3c 25 d0 fd ff ff 00\n+0: 04f5 [10] cmpq $0x0,%fs:0xfffffffffffffd80 | 64 48 83 3c 25 80 fd ff ff 00\n 0: 04ff [ 6] jne <tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]+0x28> | 0f 85 ?? ?? ?? ??\n-0: 0505 [10] cmpq $0x0,%fs:0xfffffffffffffdd8 | 64 48 83 3c 25 d8 fd ff ff 00\n+0: 0505 [10] cmpq $0x0,%fs:0xfffffffffffffd88 | 64 48 83 3c 25 88 fd ff ff 00\n 0: 050f [ 6] jne <tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]+0x28> | 0f 85 ?? ?? ?? ??\n-0: 0515 [ 9] cmpl $0xffffffff,%fs:0xfffffffffffffde0 | 64 83 3c 25 e0 fd ff ff ff\n+0: 0515 [ 9] cmpl $0xffffffff,%fs:0xfffffffffffffd90 | 64 83 3c 25 90 fd ff ff ff\n 0: 051e [ 6] jne <+0x6ce> | 0f 85 aa 01 00 00\n 0: 0524 [ 8] mov 0xa8(%rsp),%rax | 48 8b 84 24 a8 00 00 00\n 0: 052c [ 9] sub %fs:0x28,%rax | 64 48 2b 04 25 28 00 00 00\n"
+    },
+    {
+      "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]",
+      "pre_sizes": [
+        45
+      ],
+      "post_sizes": [
+        45
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo::xshard_flush_commits_timed(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+      "pre_sizes": [
+        1743
+      ],
+      "post_sizes": [
+        1743
+      ],
+      "strict_linked_equal": false,
+      "diff": "--- PRE\n+++ POST\n@@ -15,12 +15,12 @@\n 0: 0037 [ 3] test %r8,%r8 | 4d 85 c0\n 0: 003a [ 6] je <tomo::xshard_flush_commits_timed(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]+0x28> | 0f 84 ?? ?? ?? ??\n 0: 0040 [ 6] vmovq 0x60(%rsp),%xmm1 | c5 fa 7e 4c 24 60\n-0: 0046 [ 9] mov %fs:0xfffffffffffffdc0,%r14 | 64 4c 8b 34 25 c0 fd ff ff\n+0: 0046 [ 9] mov %fs:0xfffffffffffffd70,%r14 | 64 4c 8b 34 25 70 fd ff ff\n 0: 004f [ 7] lea 0x14cb0(%rdi),%rax | 48 8d 87 b0 4c 01 00\n 0: 0056 [ 3] mov %rdi,%r15 | 49 89 ff\n 0: 0059 [ 5] mov %rax,0x28(%rsp) | 48 89 44 24 28\n 0: 005e [ 3] mov %rsi,%rax | 48 89 f0\n-0: 0061 [ 8] lea 0xfffffffffffffdc0,%rdx | 48 8d 14 25 c0 fd ff ff\n+0: 0061 [ 8] lea 0xfffffffffffffd70,%rdx | 48 8d 14 25 70 fd ff ff\n 0: 0069 [ 6] add $0x3c0,%rax | 48 05 c0 03 00 00\n 0: 006f [ 6] vpinsrq $0x1,%rax,%xmm1,%xmm0 | c4 e3 f1 22 c0 01\n 0: 0075 [ 6] vmovdqa %xmm0,0x40(%rsp) | c5 f9 7f 44 24 40\n@@ -39,11 +39,11 @@\n 0: 00b5 [ 4] mov 0x0(%r13),%eax | 41 8b 45 00\n 0: 00b9 [ 4] cmp %eax,%fs:0x20(%rsi) | 64 39 46 20\n 0: 00bd [ 6] jne <tomo::xshard_flush_commits_timed(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]+0x28> | 0f 85 ?? ?? ?? ??\n-0: 00c3 [13] movq $0x0,%fs:0xfffffffffffffdc0 | 64 48 c7 04 25 c0 fd ff ff 00 00 00 00\n-0: 00d0 [13] movq $0x0,%fs:0xfffffffffffffdc8 | 64 48 c7 04 25 c8 fd ff ff 00 00 00 00\n-0: 00dd [13] movq $0x0,%fs:0xfffffffffffffdd0 | 64 48 c7 04 25 d0 fd ff ff 00 00 00 00\n-0: 00ea [13] movq $0x0,%fs:0xfffffffffffffdd8 | 64 48 c7 04 25 d8 fd ff ff 00 00 00 00\n-0: 00f7 [12] movl $0xffffffff,%fs:0xfffffffffffffde0 | 64 c7 04 25 e0 fd ff ff ff ff ff ff\n+0: 00c3 [13] movq $0x0,%fs:0xfffffffffffffd70 | 64 48 c7 04 25 70 fd ff ff 00 00 00 00\n+0: 00d0 [13] movq $0x0,%fs:0xfffffffffffffd78 | 64 48 c7 04 25 78 fd ff ff 00 00 00 00\n+0: 00dd [13] movq $0x0,%fs:0xfffffffffffffd80 | 64 48 c7 04 25 80 fd ff ff 00 00 00 00\n+0: 00ea [13] movq $0x0,%fs:0xfffffffffffffd88 | 64 48 c7 04 25 88 fd ff ff 00 00 00 00\n+0: 00f7 [12] movl $0xffffffff,%fs:0xfffffffffffffd90 | 64 c7 04 25 90 fd ff ff ff ff ff ff\n 0: 0103 [ 5] mov 0x28(%rsp),%rax | 48 8b 44 24 28\n 0: 0108 [ 4] lock incq (%rax) | f0 48 ff 00\n 0: 010c [ 7] lea 0x14ca8(%r15),%rbx | 49 8d 9f a8 4c 01 00\n@@ -247,13 +247,13 @@\n 0: 04d8 [ 4] mov %fs:(%rsi),%r14 | 64 4c 8b 36\n 0: 04dc [ 3] test %r14,%r14 | 4d 85 f6\n 0: 04df [ 6] jne <+0x90> | 0f 85 ab fb ff ff\n-0: 04e5 [10] cmpq $0x0,%fs:0xfffffffffffffdc8 | 64 48 83 3c 25 c8 fd ff ff 00\n+0: 04e5 [10] cmpq $0x0,%fs:0xfffffffffffffd78 | 64 48 83 3c 25 78 fd ff ff 00\n 0: 04ef [ 6] jne <tomo::xshard_flush_commits_timed(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]+0x28> | 0f 85 ?? ?? ?? ??\n-0: 04f5 [10] cmpq $0x0,%fs:0xfffffffffffffdd0 | 64 48 83 3c 25 d0 fd ff ff 00\n+0: 04f5 [10] cmpq $0x0,%fs:0xfffffffffffffd80 | 64 48 83 3c 25 80 fd ff ff 00\n 0: 04ff [ 6] jne <tomo::xshard_flush_commits_timed(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]+0x28> | 0f 85 ?? ?? ?? ??\n-0: 0505 [10] cmpq $0x0,%fs:0xfffffffffffffdd8 | 64 48 83 3c 25 d8 fd ff ff 00\n+0: 0505 [10] cmpq $0x0,%fs:0xfffffffffffffd88 | 64 48 83 3c 25 88 fd ff ff 00\n 0: 050f [ 6] jne <tomo::xshard_flush_commits_timed(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]+0x28> | 0f 85 ?? ?? ?? ??\n-0: 0515 [ 9] cmpl $0xffffffff,%fs:0xfffffffffffffde0 | 64 83 3c 25 e0 fd ff ff ff\n+0: 0515 [ 9] cmpl $0xffffffff,%fs:0xfffffffffffffd90 | 64 83 3c 25 90 fd ff ff ff\n 0: 051e [ 6] jne <+0x6ca> | 0f 85 a6 01 00 00\n 0: 0524 [ 8] mov 0xa8(%rsp),%rax | 48 8b 84 24 a8 00 00 00\n 0: 052c [ 9] sub %fs:0x28,%rax | 64 48 2b 04 25 28 00 00 00\n"
+    },
+    {
+      "name": "tomo::xshard_flush_commits_timed(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]",
+      "pre_sizes": [
+        45
+      ],
+      "post_sizes": [
+        45
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
+      "pre_sizes": [
+        18231
+      ],
+      "post_sizes": [
+        18231
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*) [clone .cold]",
+      "pre_sizes": [
+        573
+      ],
+      "post_sizes": [
+        573
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo::xshard_queue_commit(tomo::Server&, tomo::ThreadCtx&, tomo::Task const&)",
+      "pre_sizes": [
+        375
+      ],
+      "post_sizes": [
+        375
+      ],
+      "strict_linked_equal": false,
+      "diff": "--- PRE\n+++ POST\n@@ -14,21 +14,21 @@\n 0: 0043 [ 6] jne <tomo::xshard_queue_commit(tomo::Server&, tomo::ThreadCtx&, tomo::Task const&) [clone .cold]> | 0f 85 ?? ?? ?? ??\n 0: 0049 [ 3] test %rcx,%rcx | 48 85 c9\n 0: 004c [ 6] jne <+0xe0> | 0f 85 8e 00 00 00\n-0: 0052 [10] cmpq $0x0,%fs:0xfffffffffffffdc0 | 64 48 83 3c 25 c0 fd ff ff 00\n+0: 0052 [10] cmpq $0x0,%fs:0xfffffffffffffd70 | 64 48 83 3c 25 70 fd ff ff 00\n 0: 005c [ 6] je <+0x115> | 0f 84 b3 00 00 00\n-0: 0062 [ 9] cmp %rdi,%fs:0xfffffffffffffdd8 | 64 48 39 3c 25 d8 fd ff ff\n+0: 0062 [ 9] cmp %rdi,%fs:0xfffffffffffffd88 | 64 48 39 3c 25 88 fd ff ff\n 0: 006b [ 6] jne <tomo::xshard_queue_commit(tomo::Server&, tomo::ThreadCtx&, tomo::Task const&) [clone .cold]> | 0f 85 ?? ?? ?? ??\n 0: 0071 [ 2] mov (%rsi),%edi | 8b 3e\n-0: 0073 [ 8] cmp %edi,%fs:0xfffffffffffffde0 | 64 39 3c 25 e0 fd ff ff\n+0: 0073 [ 8] cmp %edi,%fs:0xfffffffffffffd90 | 64 39 3c 25 90 fd ff ff\n 0: 007b [ 6] jne <tomo::xshard_queue_commit(tomo::Server&, tomo::ThreadCtx&, tomo::Task const&) [clone .cold]> | 0f 85 ?? ?? ?? ??\n-0: 0081 [ 9] mov %fs:0xfffffffffffffdc8,%rcx | 64 48 8b 0c 25 c8 fd ff ff\n+0: 0081 [ 9] mov %fs:0xfffffffffffffd78,%rcx | 64 48 8b 0c 25 78 fd ff ff\n 0: 008a [ 3] test %rcx,%rcx | 48 85 c9\n 0: 008d [ 6] je <tomo::xshard_queue_commit(tomo::Server&, tomo::ThreadCtx&, tomo::Task const&) [clone .cold]> | 0f 84 ?? ?? ?? ??\n 0: 0093 [ 7] mov %rax,0x2d0(%rcx) | 48 89 81 d0 02 00 00\n-0: 009a [ 9] mov %fs:0xfffffffffffffdd0,%rcx | 64 48 8b 0c 25 d0 fd ff ff\n+0: 009a [ 9] mov %fs:0xfffffffffffffd80,%rcx | 64 48 8b 0c 25 80 fd ff ff\n 0: 00a3 [ 3] inc %rcx | 48 ff c1\n-0: 00a6 [ 9] mov %rax,%fs:0xfffffffffffffdc8 | 64 48 89 04 25 c8 fd ff ff\n-0: 00af [ 9] mov %rcx,%fs:0xfffffffffffffdd0 | 64 48 89 0c 25 d0 fd ff ff\n+0: 00a6 [ 9] mov %rax,%fs:0xfffffffffffffd78 | 64 48 89 04 25 78 fd ff ff\n+0: 00af [ 9] mov %rcx,%fs:0xfffffffffffffd80 | 64 48 89 0c 25 80 fd ff ff\n 0: 00b8 [ 3] mov (%rdx),%rcx | 48 8b 0a\n 0: 00bb [ 7] mov %rcx,0x2d8(%rax) | 48 89 88 d8 02 00 00\n 0: 00c2 [ 4] mov 0x8(%rdx),%rcx | 48 8b 4a 08\n@@ -44,19 +44,19 @@\n 0: 00f5 [ 6] je <tomo::xshard_queue_commit(tomo::Server&, tomo::ThreadCtx&, tomo::Task const&) [clone .cold]> | 0f 84 ?? ?? ?? ??\n 0: 00fb [ 4] cmp $0xffffffffffffffff,%rcx | 48 83 f9 ff\n 0: 00ff [ 6] jne <tomo::xshard_queue_commit(tomo::Server&, tomo::ThreadCtx&, tomo::Task const&) [clone .cold]> | 0f 85 ?? ?? ?? ??\n-0: 0105 [10] cmpq $0x0,%fs:0xfffffffffffffdc0 | 64 48 83 3c 25 c0 fd ff ff 00\n+0: 0105 [10] cmpq $0x0,%fs:0xfffffffffffffd70 | 64 48 83 3c 25 70 fd ff ff 00\n 0: 010f [ 6] jne <+0x62> | 0f 85 4d ff ff ff\n-0: 0115 [10] cmpq $0x0,%fs:0xfffffffffffffdc8 | 64 48 83 3c 25 c8 fd ff ff 00\n+0: 0115 [10] cmpq $0x0,%fs:0xfffffffffffffd78 | 64 48 83 3c 25 78 fd ff ff 00\n 0: 011f [ 6] jne <tomo::xshard_queue_commit(tomo::Server&, tomo::ThreadCtx&, tomo::Task const&) [clone .cold]> | 0f 85 ?? ?? ?? ??\n-0: 0125 [ 9] mov %fs:0xfffffffffffffdd0,%rcx | 64 48 8b 0c 25 d0 fd ff ff\n+0: 0125 [ 9] mov %fs:0xfffffffffffffd80,%rcx | 64 48 8b 0c 25 80 fd ff ff\n 0: 012e [ 3] test %rcx,%rcx | 48 85 c9\n 0: 0131 [ 6] jne <tomo::xshard_queue_commit(tomo::Server&, tomo::ThreadCtx&, tomo::Task const&) [clone .cold]> | 0f 85 ?? ?? ?? ??\n-0: 0137 [10] cmpq $0x0,%fs:0xfffffffffffffdd8 | 64 48 83 3c 25 d8 fd ff ff 00\n+0: 0137 [10] cmpq $0x0,%fs:0xfffffffffffffd88 | 64 48 83 3c 25 88 fd ff ff 00\n 0: 0141 [ 6] jne <tomo::xshard_queue_commit(tomo::Server&, tomo::ThreadCtx&, tomo::Task const&) [clone .cold]> | 0f 85 ?? ?? ?? ??\n-0: 0147 [ 9] cmpl $0xffffffff,%fs:0xfffffffffffffde0 | 64 83 3c 25 e0 fd ff ff ff\n+0: 0147 [ 9] cmpl $0xffffffff,%fs:0xfffffffffffffd90 | 64 83 3c 25 90 fd ff ff ff\n 0: 0150 [ 6] jne <tomo::xshard_queue_commit(tomo::Server&, tomo::ThreadCtx&, tomo::Task const&) [clone .cold]> | 0f 85 ?? ?? ?? ??\n-0: 0156 [ 9] mov %rdi,%fs:0xfffffffffffffdd8 | 64 48 89 3c 25 d8 fd ff ff\n+0: 0156 [ 9] mov %rdi,%fs:0xfffffffffffffd88 | 64 48 89 3c 25 88 fd ff ff\n 0: 015f [ 2] mov (%rsi),%esi | 8b 36\n-0: 0161 [ 9] mov %rax,%fs:0xfffffffffffffdc0 | 64 48 89 04 25 c0 fd ff ff\n-0: 016a [ 8] mov %esi,%fs:0xfffffffffffffde0 | 64 89 34 25 e0 fd ff ff\n+0: 0161 [ 9] mov %rax,%fs:0xfffffffffffffd70 | 64 48 89 04 25 70 fd ff ff\n+0: 016a [ 8] mov %esi,%fs:0xfffffffffffffd90 | 64 89 34 25 90 fd ff ff\n 0: 0172 [ 5] jmp <+0xa3> | e9 2c ff ff ff\n"
+    },
+    {
+      "name": "tomo::xshard_queue_commit(tomo::Server&, tomo::ThreadCtx&, tomo::Task const&) [clone .cold]",
+      "pre_sizes": [
+        6
+      ],
+      "post_sizes": [
+        6
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo::xshard_store_string(tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+      "pre_sizes": [
+        44
+      ],
+      "post_sizes": [
+        44
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo::xshard_store_string_notify(tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+      "pre_sizes": [
+        44
+      ],
+      "post_sizes": [
+        44
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",
+      "pre_sizes": [
+        1727
+      ],
+      "post_sizes": [
+        1727
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",
+      "pre_sizes": [
+        1727
+      ],
+      "post_sizes": [
+        1727
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo_db0::ScatterFinish tomo_db0::xshard_complete_script<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::ScatterState&)",
+      "pre_sizes": [
+        1901
+      ],
+      "post_sizes": [
+        1901
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo_db0::ScatterFinish tomo_db0::xshard_complete_script<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::ScatterState&)",
+      "pre_sizes": [
+        1901
+      ],
+      "post_sizes": [
+        1901
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo_db0::cmd_xshard_only(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_sizes": [
+        9
+      ],
+      "post_sizes": [
+        9
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo_db0::cmd_xshard_only_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_sizes": [
+        117
+      ],
+      "post_sizes": [
+        117
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo_db0::cmd_xshard_only_notify_body(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_sizes": [
+        9
+      ],
+      "post_sizes": [
+        9
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo_db0::xshard_complete(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",
+      "pre_sizes": [
+        9
+      ],
+      "post_sizes": [
+        9
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const",
+      "pre_sizes": [
+        158
+      ],
+      "post_sizes": [
+        158
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const",
+      "pre_sizes": [
+        158
+      ],
+      "post_sizes": [
+        158
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo_db0::xshard_complete_iofused(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",
+      "pre_sizes": [
+        9
+      ],
+      "post_sizes": [
+        9
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo_db0::xshard_complete_script<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::ScatterState&)::{lambda(tomo_db0::(anonymous namespace)::ScriptPhase)#1}::operator()(tomo_db0::(anonymous namespace)::ScriptPhase) const",
+      "pre_sizes": [
+        98
+      ],
+      "post_sizes": [
+        98
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo_db0::xshard_complete_script<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::ScatterState&)::{lambda(tomo_db0::(anonymous namespace)::ScriptPhase)#1}::operator()(tomo_db0::(anonymous namespace)::ScriptPhase) const",
+      "pre_sizes": [
+        98
+      ],
+      "post_sizes": [
+        98
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+      "pre_sizes": [
+        23675
+      ],
+      "post_sizes": [
+        23675
+      ],
+      "strict_linked_equal": false,
+      "diff": "--- PRE\n+++ POST\n@@ -692,17 +692,17 @@\n 0: 0daa [ 7] mov -0x148(%rbp),%rbx | 48 8b 9d b8 fe ff ff\n 0: 0db1 [ 4] mov 0x78(%rbx),%rax | 48 8b 43 78\n 0: 0db5 [ 8] lock incq 0x17418(%rax) | f0 48 ff 80 18 74 01 00\n-0: 0dbd [ 9] cmpb $0x0,%fs:0xfffffffffffffe00 | 64 80 3c 25 00 fe ff ff 00\n+0: 0dbd [ 9] cmpb $0x0,%fs:0xfffffffffffffdf0 | 64 80 3c 25 f0 fd ff ff 00\n 0: 0dc6 [ 7] mov 0xb0(%rbx),%r15d | 44 8b bb b0 00 00 00\n 0: 0dcd [ 4] mov 0x78(%rbx),%rbx | 48 8b 5b 78\n 0: 0dd1 [ 6] je <+0x19e6> | 0f 84 0f 0c 00 00\n-0: 0dd7 [10] cmpq $0x0,%fs:0xfffffffffffffe38 | 64 48 83 3c 25 38 fe ff ff 00\n+0: 0dd7 [10] cmpq $0x0,%fs:0xfffffffffffffe28 | 64 48 83 3c 25 28 fe ff ff 00\n 0: 0de1 [ 6] je <+0x4e87> | 0f 84 a0 40 00 00\n-0: 0de7 [ 9] cmpb $0x0,%fs:0xfffffffffffffe00 | 64 80 3c 25 00 fe ff ff 00\n+0: 0de7 [ 9] cmpb $0x0,%fs:0xfffffffffffffdf0 | 64 80 3c 25 f0 fd ff ff 00\n 0: 0df0 [ 6] je <+0x4bdf> | 0f 84 e9 3d 00 00\n-0: 0df6 [ 9] cmp %rbx,%fs:0xfffffffffffffe40 | 64 48 39 1c 25 40 fe ff ff\n+0: 0df6 [ 9] cmp %rbx,%fs:0xfffffffffffffe30 | 64 48 39 1c 25 30 fe ff ff\n 0: 0dff [ 6] jne <+0x5c0d> | 0f 85 08 4e 00 00\n-0: 0e05 [ 9] mov %fs:0xfffffffffffffe38,%r12 | 64 4c 8b 24 25 38 fe ff ff\n+0: 0e05 [ 9] mov %fs:0xfffffffffffffe28,%r12 | 64 4c 8b 24 25 28 fe ff ff\n 0: 0e0e [ 4] cmp (%r12),%r15d | 45 3b 3c 24\n 0: 0e12 [ 6] je <+0x4b9c> | 0f 84 84 3d 00 00\n 0: 0e18 [ 8] mov %rbx,0x530(%r12) | 49 89 9c 24 30 05 00 00\n@@ -1327,8 +1327,8 @@\n 0: 19e6 [ 9] mov %fs:0x0,%rax | 64 48 8b 04 25 00 00 00 00\n 0: 19ef [ 7] lea <rip>(%rip),%rdx # <__dso_handle> | 48 8d 15 ?? ?? ?? ??\n 0: 19f6 [ 7] lea <rip>(%rip),%rdi # <tomo_db0::(anonymous namespace)::ScriptWorkbench::~ScriptWorkbench()> | 48 8d 3d ?? ?? ?? ??\n-0: 19fd [ 9] movb $0x1,%fs:0xfffffffffffffe00 | 64 c6 04 25 00 fe ff ff 01\n-0: 1a06 [ 7] lea -0x1c8(%rax),%rsi | 48 8d b0 38 fe ff ff\n+0: 19fd [ 9] movb $0x1,%fs:0xfffffffffffffdf0 | 64 c6 04 25 f0 fd ff ff 01\n+0: 1a06 [ 7] lea -0x1d8(%rax),%rsi | 48 8d b0 28 fe ff ff\n 0: 1a0d [ 5] call <__cxa_thread_atexit@plt> | e8 ?? ?? ?? ??\n 0: 1a12 [ 5] jmp <+0xdd7> | e9 c0 f3 ff ff\n 0: 1a17 [ 2] test %dl,%dl | 84 d2\n@@ -3895,8 +3895,8 @@\n 0: 4bdf [ 9] mov %fs:0x0,%rax | 64 48 8b 04 25 00 00 00 00\n 0: 4be8 [ 7] lea <rip>(%rip),%rdx # <__dso_handle> | 48 8d 15 ?? ?? ?? ??\n 0: 4bef [ 7] lea <rip>(%rip),%rdi # <tomo_db0::(anonymous namespace)::ScriptWorkbench::~ScriptWorkbench()> | 48 8d 3d ?? ?? ?? ??\n-0: 4bf6 [ 9] movb $0x1,%fs:0xfffffffffffffe00 | 64 c6 04 25 00 fe ff ff 01\n-0: 4bff [ 7] lea -0x1c8(%rax),%rsi | 48 8d b0 38 fe ff ff\n+0: 4bf6 [ 9] movb $0x1,%fs:0xfffffffffffffdf0 | 64 c6 04 25 f0 fd ff ff 01\n+0: 4bff [ 7] lea -0x1d8(%rax),%rsi | 48 8d b0 28 fe ff ff\n 0: 4c06 [ 3] vzeroupper | c5 f8 77\n 0: 4c09 [ 5] call <__cxa_thread_atexit@plt> | e8 ?? ?? ?? ??\n 0: 4c0e [ 5] jmp <+0xdf6> | e9 e3 c1 ff ff\n@@ -4037,7 +4037,7 @@\n 0: 4e96 [ 5] mov $0x5a0,%edx | ba a0 05 00 00\n 0: 4e9b [ 3] mov %rax,%r12 | 49 89 c4\n 0: 4e9e [ 5] call <memset@plt> | e8 ?? ?? ?? ??\n-0: 4ea3 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x640> | 48 8b 05 ?? ?? ?? ??\n+0: 4ea3 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x670> | 48 8b 05 ?? ?? ?? ??\n 0: 4eaa [ 5] lea 0x38(%r12),%rdi | 49 8d 7c 24 38\n 0: 4eaf [ 5] mov $0x400,%esi | be 00 04 00 00\n 0: 4eb4 [ 8] movl $0xffffffff,(%r12) | 41 c7 04 24 ff ff ff ff\n@@ -4099,11 +4099,11 @@\n 0: 50bf [ 7] lea <rip>(%rip),%rax # <tomo_db0::notify_flat_emit(void*, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)> | 48 8d 05 ?? ?? ?? ??\n 0: 50c6 [ 6] vpinsrq $0x1,%rax,%xmm0,%xmm0 | c4 e3 f9 22 c0 01\n 0: 50cc [10] vmovdqu %xmm0,0x540(%r12) | c4 c1 7a 7f 84 24 40 05 00 00\n-0: 50d6 [ 9] cmpb $0x0,%fs:0xfffffffffffffe00 | 64 80 3c 25 00 fe ff ff 00\n+0: 50d6 [ 9] cmpb $0x0,%fs:0xfffffffffffffdf0 | 64 80 3c 25 f0 fd ff ff 00\n 0: 50df [ 6] je <+0x5781> | 0f 84 9c 06 00 00\n-0: 50e5 [ 9] mov %fs:0xfffffffffffffe38,%r13 | 64 4c 8b 2c 25 38 fe ff ff\n-0: 50ee [ 9] mov %rbx,%fs:0xfffffffffffffe40 | 64 48 89 1c 25 40 fe ff ff\n-0: 50f7 [ 9] mov %r12,%fs:0xfffffffffffffe38 | 64 4c 89 24 25 38 fe ff ff\n+0: 50e5 [ 9] mov %fs:0xfffffffffffffe28,%r13 | 64 4c 8b 2c 25 28 fe ff ff\n+0: 50ee [ 9] mov %rbx,%fs:0xfffffffffffffe30 | 64 48 89 1c 25 30 fe ff ff\n+0: 50f7 [ 9] mov %r12,%fs:0xfffffffffffffe28 | 64 4c 89 24 25 28 fe ff ff\n 0: 5100 [ 3] test %r13,%r13 | 4d 85 ed\n 0: 5103 [ 6] je <+0xde7> | 0f 84 de bc ff ff\n 0: 5109 [ 3] mov %r13,%rdi | 4c 89 ef\n@@ -4448,8 +4448,8 @@\n 0: 5781 [ 9] mov %fs:0x0,%rax | 64 48 8b 04 25 00 00 00 00\n 0: 578a [ 7] lea <rip>(%rip),%rdx # <__dso_handle> | 48 8d 15 ?? ?? ?? ??\n 0: 5791 [ 7] lea <rip>(%rip),%rdi # <tomo_db0::(anonymous namespace)::ScriptWorkbench::~ScriptWorkbench()> | 48 8d 3d ?? ?? ?? ??\n-0: 5798 [ 9] movb $0x1,%fs:0xfffffffffffffe00 | 64 c6 04 25 00 fe ff ff 01\n-0: 57a1 [ 7] lea -0x1c8(%rax),%rsi | 48 8d b0 38 fe ff ff\n+0: 5798 [ 9] movb $0x1,%fs:0xfffffffffffffdf0 | 64 c6 04 25 f0 fd ff ff 01\n+0: 57a1 [ 7] lea -0x1d8(%rax),%rsi | 48 8d b0 28 fe ff ff\n 0: 57a8 [ 3] vzeroupper | c5 f8 77\n 0: 57ab [ 5] call <__cxa_thread_atexit@plt> | e8 ?? ?? ?? ??\n 0: 57b0 [ 5] jmp <+0x50e5> | e9 30 f9 ff ff\n"
+    },
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+      "pre_sizes": [
+        399
+      ],
+      "post_sizes": [
+        399
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::ScriptApplyPins::~ScriptApplyPins()",
+      "pre_sizes": [
+        209
+      ],
+      "post_sizes": [
+        209
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(unsigned long, tomo_db0::Slice, bool)#1}::operator()(unsigned long, tomo_db0::Slice, bool) const",
+      "pre_sizes": [
+        228
+      ],
+      "post_sizes": [
+        228
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+      "pre_sizes": [
+        1747
+      ],
+      "post_sizes": [
+        1747
+      ],
+      "strict_linked_equal": false,
+      "diff": "--- PRE\n+++ POST\n@@ -15,12 +15,12 @@\n 0: 0037 [ 3] test %r8,%r8 | 4d 85 c0\n 0: 003a [ 6] je <tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]+0x28> | 0f 84 ?? ?? ?? ??\n 0: 0040 [ 6] vmovq 0x60(%rsp),%xmm1 | c5 fa 7e 4c 24 60\n-0: 0046 [ 9] mov %fs:0xfffffffffffffd50,%r14 | 64 4c 8b 34 25 50 fd ff ff\n+0: 0046 [ 9] mov %fs:0xfffffffffffffcb0,%r14 | 64 4c 8b 34 25 b0 fc ff ff\n 0: 004f [ 7] lea 0x14b30(%rdi),%rax | 48 8d 87 30 4b 01 00\n 0: 0056 [ 3] mov %rdi,%r15 | 49 89 ff\n 0: 0059 [ 5] mov %rax,0x28(%rsp) | 48 89 44 24 28\n 0: 005e [ 3] mov %rsi,%rax | 48 89 f0\n-0: 0061 [ 8] lea 0xfffffffffffffd50,%rdx | 48 8d 14 25 50 fd ff ff\n+0: 0061 [ 8] lea 0xfffffffffffffcb0,%rdx | 48 8d 14 25 b0 fc ff ff\n 0: 0069 [ 6] add $0x3c0,%rax | 48 05 c0 03 00 00\n 0: 006f [ 6] vpinsrq $0x1,%rax,%xmm1,%xmm0 | c4 e3 f1 22 c0 01\n 0: 0075 [ 6] vmovdqa %xmm0,0x40(%rsp) | c5 f9 7f 44 24 40\n@@ -39,11 +39,11 @@\n 0: 00b5 [ 4] mov 0x0(%r13),%eax | 41 8b 45 00\n 0: 00b9 [ 4] cmp %eax,%fs:0x20(%rsi) | 64 39 46 20\n 0: 00bd [ 6] jne <tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]+0x28> | 0f 85 ?? ?? ?? ??\n-0: 00c3 [13] movq $0x0,%fs:0xfffffffffffffd50 | 64 48 c7 04 25 50 fd ff ff 00 00 00 00\n-0: 00d0 [13] movq $0x0,%fs:0xfffffffffffffd58 | 64 48 c7 04 25 58 fd ff ff 00 00 00 00\n-0: 00dd [13] movq $0x0,%fs:0xfffffffffffffd60 | 64 48 c7 04 25 60 fd ff ff 00 00 00 00\n-0: 00ea [13] movq $0x0,%fs:0xfffffffffffffd68 | 64 48 c7 04 25 68 fd ff ff 00 00 00 00\n-0: 00f7 [12] movl $0xffffffff,%fs:0xfffffffffffffd70 | 64 c7 04 25 70 fd ff ff ff ff ff ff\n+0: 00c3 [13] movq $0x0,%fs:0xfffffffffffffcb0 | 64 48 c7 04 25 b0 fc ff ff 00 00 00 00\n+0: 00d0 [13] movq $0x0,%fs:0xfffffffffffffcb8 | 64 48 c7 04 25 b8 fc ff ff 00 00 00 00\n+0: 00dd [13] movq $0x0,%fs:0xfffffffffffffcc0 | 64 48 c7 04 25 c0 fc ff ff 00 00 00 00\n+0: 00ea [13] movq $0x0,%fs:0xfffffffffffffcc8 | 64 48 c7 04 25 c8 fc ff ff 00 00 00 00\n+0: 00f7 [12] movl $0xffffffff,%fs:0xfffffffffffffcd0 | 64 c7 04 25 d0 fc ff ff ff ff ff ff\n 0: 0103 [ 5] mov 0x28(%rsp),%rax | 48 8b 44 24 28\n 0: 0108 [ 4] lock incq (%rax) | f0 48 ff 00\n 0: 010c [ 7] lea 0x14b28(%r15),%rbx | 49 8d 9f 28 4b 01 00\n@@ -247,13 +247,13 @@\n 0: 04d8 [ 4] mov %fs:(%rsi),%r14 | 64 4c 8b 36\n 0: 04dc [ 3] test %r14,%r14 | 4d 85 f6\n 0: 04df [ 6] jne <+0x90> | 0f 85 ab fb ff ff\n-0: 04e5 [10] cmpq $0x0,%fs:0xfffffffffffffd58 | 64 48 83 3c 25 58 fd ff ff 00\n+0: 04e5 [10] cmpq $0x0,%fs:0xfffffffffffffcb8 | 64 48 83 3c 25 b8 fc ff ff 00\n 0: 04ef [ 6] jne <tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]+0x28> | 0f 85 ?? ?? ?? ??\n-0: 04f5 [10] cmpq $0x0,%fs:0xfffffffffffffd60 | 64 48 83 3c 25 60 fd ff ff 00\n+0: 04f5 [10] cmpq $0x0,%fs:0xfffffffffffffcc0 | 64 48 83 3c 25 c0 fc ff ff 00\n 0: 04ff [ 6] jne <tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]+0x28> | 0f 85 ?? ?? ?? ??\n-0: 0505 [10] cmpq $0x0,%fs:0xfffffffffffffd68 | 64 48 83 3c 25 68 fd ff ff 00\n+0: 0505 [10] cmpq $0x0,%fs:0xfffffffffffffcc8 | 64 48 83 3c 25 c8 fc ff ff 00\n 0: 050f [ 6] jne <tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]+0x28> | 0f 85 ?? ?? ?? ??\n-0: 0515 [ 9] cmpl $0xffffffff,%fs:0xfffffffffffffd70 | 64 83 3c 25 70 fd ff ff ff\n+0: 0515 [ 9] cmpl $0xffffffff,%fs:0xfffffffffffffcd0 | 64 83 3c 25 d0 fc ff ff ff\n 0: 051e [ 6] jne <+0x6ce> | 0f 85 aa 01 00 00\n 0: 0524 [ 8] mov 0xa8(%rsp),%rax | 48 8b 84 24 a8 00 00 00\n 0: 052c [ 9] sub %fs:0x28,%rax | 64 48 2b 04 25 28 00 00 00\n"
+    },
+    {
+      "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]",
+      "pre_sizes": [
+        45
+      ],
+      "post_sizes": [
+        45
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo_db0::xshard_flush_commits_timed(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+      "pre_sizes": [
+        1743
+      ],
+      "post_sizes": [
+        1743
+      ],
+      "strict_linked_equal": false,
+      "diff": "--- PRE\n+++ POST\n@@ -15,12 +15,12 @@\n 0: 0037 [ 3] test %r8,%r8 | 4d 85 c0\n 0: 003a [ 6] je <tomo_db0::xshard_flush_commits_timed(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]+0x28> | 0f 84 ?? ?? ?? ??\n 0: 0040 [ 6] vmovq 0x60(%rsp),%xmm1 | c5 fa 7e 4c 24 60\n-0: 0046 [ 9] mov %fs:0xfffffffffffffd50,%r14 | 64 4c 8b 34 25 50 fd ff ff\n+0: 0046 [ 9] mov %fs:0xfffffffffffffcb0,%r14 | 64 4c 8b 34 25 b0 fc ff ff\n 0: 004f [ 7] lea 0x14b30(%rdi),%rax | 48 8d 87 30 4b 01 00\n 0: 0056 [ 3] mov %rdi,%r15 | 49 89 ff\n 0: 0059 [ 5] mov %rax,0x28(%rsp) | 48 89 44 24 28\n 0: 005e [ 3] mov %rsi,%rax | 48 89 f0\n-0: 0061 [ 8] lea 0xfffffffffffffd50,%rdx | 48 8d 14 25 50 fd ff ff\n+0: 0061 [ 8] lea 0xfffffffffffffcb0,%rdx | 48 8d 14 25 b0 fc ff ff\n 0: 0069 [ 6] add $0x3c0,%rax | 48 05 c0 03 00 00\n 0: 006f [ 6] vpinsrq $0x1,%rax,%xmm1,%xmm0 | c4 e3 f1 22 c0 01\n 0: 0075 [ 6] vmovdqa %xmm0,0x40(%rsp) | c5 f9 7f 44 24 40\n@@ -39,11 +39,11 @@\n 0: 00b5 [ 4] mov 0x0(%r13),%eax | 41 8b 45 00\n 0: 00b9 [ 4] cmp %eax,%fs:0x20(%rsi) | 64 39 46 20\n 0: 00bd [ 6] jne <tomo_db0::xshard_flush_commits_timed(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]+0x28> | 0f 85 ?? ?? ?? ??\n-0: 00c3 [13] movq $0x0,%fs:0xfffffffffffffd50 | 64 48 c7 04 25 50 fd ff ff 00 00 00 00\n-0: 00d0 [13] movq $0x0,%fs:0xfffffffffffffd58 | 64 48 c7 04 25 58 fd ff ff 00 00 00 00\n-0: 00dd [13] movq $0x0,%fs:0xfffffffffffffd60 | 64 48 c7 04 25 60 fd ff ff 00 00 00 00\n-0: 00ea [13] movq $0x0,%fs:0xfffffffffffffd68 | 64 48 c7 04 25 68 fd ff ff 00 00 00 00\n-0: 00f7 [12] movl $0xffffffff,%fs:0xfffffffffffffd70 | 64 c7 04 25 70 fd ff ff ff ff ff ff\n+0: 00c3 [13] movq $0x0,%fs:0xfffffffffffffcb0 | 64 48 c7 04 25 b0 fc ff ff 00 00 00 00\n+0: 00d0 [13] movq $0x0,%fs:0xfffffffffffffcb8 | 64 48 c7 04 25 b8 fc ff ff 00 00 00 00\n+0: 00dd [13] movq $0x0,%fs:0xfffffffffffffcc0 | 64 48 c7 04 25 c0 fc ff ff 00 00 00 00\n+0: 00ea [13] movq $0x0,%fs:0xfffffffffffffcc8 | 64 48 c7 04 25 c8 fc ff ff 00 00 00 00\n+0: 00f7 [12] movl $0xffffffff,%fs:0xfffffffffffffcd0 | 64 c7 04 25 d0 fc ff ff ff ff ff ff\n 0: 0103 [ 5] mov 0x28(%rsp),%rax | 48 8b 44 24 28\n 0: 0108 [ 4] lock incq (%rax) | f0 48 ff 00\n 0: 010c [ 7] lea 0x14b28(%r15),%rbx | 49 8d 9f 28 4b 01 00\n@@ -247,13 +247,13 @@\n 0: 04d8 [ 4] mov %fs:(%rsi),%r14 | 64 4c 8b 36\n 0: 04dc [ 3] test %r14,%r14 | 4d 85 f6\n 0: 04df [ 6] jne <+0x90> | 0f 85 ab fb ff ff\n-0: 04e5 [10] cmpq $0x0,%fs:0xfffffffffffffd58 | 64 48 83 3c 25 58 fd ff ff 00\n+0: 04e5 [10] cmpq $0x0,%fs:0xfffffffffffffcb8 | 64 48 83 3c 25 b8 fc ff ff 00\n 0: 04ef [ 6] jne <tomo_db0::xshard_flush_commits_timed(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]+0x28> | 0f 85 ?? ?? ?? ??\n-0: 04f5 [10] cmpq $0x0,%fs:0xfffffffffffffd60 | 64 48 83 3c 25 60 fd ff ff 00\n+0: 04f5 [10] cmpq $0x0,%fs:0xfffffffffffffcc0 | 64 48 83 3c 25 c0 fc ff ff 00\n 0: 04ff [ 6] jne <tomo_db0::xshard_flush_commits_timed(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]+0x28> | 0f 85 ?? ?? ?? ??\n-0: 0505 [10] cmpq $0x0,%fs:0xfffffffffffffd68 | 64 48 83 3c 25 68 fd ff ff 00\n+0: 0505 [10] cmpq $0x0,%fs:0xfffffffffffffcc8 | 64 48 83 3c 25 c8 fc ff ff 00\n 0: 050f [ 6] jne <tomo_db0::xshard_flush_commits_timed(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]+0x28> | 0f 85 ?? ?? ?? ??\n-0: 0515 [ 9] cmpl $0xffffffff,%fs:0xfffffffffffffd70 | 64 83 3c 25 70 fd ff ff ff\n+0: 0515 [ 9] cmpl $0xffffffff,%fs:0xfffffffffffffcd0 | 64 83 3c 25 d0 fc ff ff ff\n 0: 051e [ 6] jne <+0x6ca> | 0f 85 a6 01 00 00\n 0: 0524 [ 8] mov 0xa8(%rsp),%rax | 48 8b 84 24 a8 00 00 00\n 0: 052c [ 9] sub %fs:0x28,%rax | 64 48 2b 04 25 28 00 00 00\n"
+    },
+    {
+      "name": "tomo_db0::xshard_flush_commits_timed(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]",
+      "pre_sizes": [
+        45
+      ],
+      "post_sizes": [
+        45
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+      "pre_sizes": [
+        18665
+      ],
+      "post_sizes": [
+        18665
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*) [clone .cold]",
+      "pre_sizes": [
+        558
+      ],
+      "post_sizes": [
+        558
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&)",
+      "pre_sizes": [
+        375
+      ],
+      "post_sizes": [
+        375
+      ],
+      "strict_linked_equal": false,
+      "diff": "--- PRE\n+++ POST\n@@ -14,21 +14,21 @@\n 0: 0043 [ 6] jne <tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&) [clone .cold]> | 0f 85 ?? ?? ?? ??\n 0: 0049 [ 3] test %rcx,%rcx | 48 85 c9\n 0: 004c [ 6] jne <+0xe0> | 0f 85 8e 00 00 00\n-0: 0052 [10] cmpq $0x0,%fs:0xfffffffffffffd50 | 64 48 83 3c 25 50 fd ff ff 00\n+0: 0052 [10] cmpq $0x0,%fs:0xfffffffffffffcb0 | 64 48 83 3c 25 b0 fc ff ff 00\n 0: 005c [ 6] je <+0x115> | 0f 84 b3 00 00 00\n-0: 0062 [ 9] cmp %rdi,%fs:0xfffffffffffffd68 | 64 48 39 3c 25 68 fd ff ff\n+0: 0062 [ 9] cmp %rdi,%fs:0xfffffffffffffcc8 | 64 48 39 3c 25 c8 fc ff ff\n 0: 006b [ 6] jne <tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&) [clone .cold]> | 0f 85 ?? ?? ?? ??\n 0: 0071 [ 2] mov (%rsi),%edi | 8b 3e\n-0: 0073 [ 8] cmp %edi,%fs:0xfffffffffffffd70 | 64 39 3c 25 70 fd ff ff\n+0: 0073 [ 8] cmp %edi,%fs:0xfffffffffffffcd0 | 64 39 3c 25 d0 fc ff ff\n 0: 007b [ 6] jne <tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&) [clone .cold]> | 0f 85 ?? ?? ?? ??\n-0: 0081 [ 9] mov %fs:0xfffffffffffffd58,%rcx | 64 48 8b 0c 25 58 fd ff ff\n+0: 0081 [ 9] mov %fs:0xfffffffffffffcb8,%rcx | 64 48 8b 0c 25 b8 fc ff ff\n 0: 008a [ 3] test %rcx,%rcx | 48 85 c9\n 0: 008d [ 6] je <tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&) [clone .cold]> | 0f 84 ?? ?? ?? ??\n 0: 0093 [ 7] mov %rax,0x2d0(%rcx) | 48 89 81 d0 02 00 00\n-0: 009a [ 9] mov %fs:0xfffffffffffffd60,%rcx | 64 48 8b 0c 25 60 fd ff ff\n+0: 009a [ 9] mov %fs:0xfffffffffffffcc0,%rcx | 64 48 8b 0c 25 c0 fc ff ff\n 0: 00a3 [ 3] inc %rcx | 48 ff c1\n-0: 00a6 [ 9] mov %rax,%fs:0xfffffffffffffd58 | 64 48 89 04 25 58 fd ff ff\n-0: 00af [ 9] mov %rcx,%fs:0xfffffffffffffd60 | 64 48 89 0c 25 60 fd ff ff\n+0: 00a6 [ 9] mov %rax,%fs:0xfffffffffffffcb8 | 64 48 89 04 25 b8 fc ff ff\n+0: 00af [ 9] mov %rcx,%fs:0xfffffffffffffcc0 | 64 48 89 0c 25 c0 fc ff ff\n 0: 00b8 [ 3] mov (%rdx),%rcx | 48 8b 0a\n 0: 00bb [ 7] mov %rcx,0x2d8(%rax) | 48 89 88 d8 02 00 00\n 0: 00c2 [ 4] mov 0x8(%rdx),%rcx | 48 8b 4a 08\n@@ -44,19 +44,19 @@\n 0: 00f5 [ 6] je <tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&) [clone .cold]> | 0f 84 ?? ?? ?? ??\n 0: 00fb [ 4] cmp $0xffffffffffffffff,%rcx | 48 83 f9 ff\n 0: 00ff [ 6] jne <tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&) [clone .cold]> | 0f 85 ?? ?? ?? ??\n-0: 0105 [10] cmpq $0x0,%fs:0xfffffffffffffd50 | 64 48 83 3c 25 50 fd ff ff 00\n+0: 0105 [10] cmpq $0x0,%fs:0xfffffffffffffcb0 | 64 48 83 3c 25 b0 fc ff ff 00\n 0: 010f [ 6] jne <+0x62> | 0f 85 4d ff ff ff\n-0: 0115 [10] cmpq $0x0,%fs:0xfffffffffffffd58 | 64 48 83 3c 25 58 fd ff ff 00\n+0: 0115 [10] cmpq $0x0,%fs:0xfffffffffffffcb8 | 64 48 83 3c 25 b8 fc ff ff 00\n 0: 011f [ 6] jne <tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&) [clone .cold]> | 0f 85 ?? ?? ?? ??\n-0: 0125 [ 9] mov %fs:0xfffffffffffffd60,%rcx | 64 48 8b 0c 25 60 fd ff ff\n+0: 0125 [ 9] mov %fs:0xfffffffffffffcc0,%rcx | 64 48 8b 0c 25 c0 fc ff ff\n 0: 012e [ 3] test %rcx,%rcx | 48 85 c9\n 0: 0131 [ 6] jne <tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&) [clone .cold]> | 0f 85 ?? ?? ?? ??\n-0: 0137 [10] cmpq $0x0,%fs:0xfffffffffffffd68 | 64 48 83 3c 25 68 fd ff ff 00\n+0: 0137 [10] cmpq $0x0,%fs:0xfffffffffffffcc8 | 64 48 83 3c 25 c8 fc ff ff 00\n 0: 0141 [ 6] jne <tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&) [clone .cold]> | 0f 85 ?? ?? ?? ??\n-0: 0147 [ 9] cmpl $0xffffffff,%fs:0xfffffffffffffd70 | 64 83 3c 25 70 fd ff ff ff\n+0: 0147 [ 9] cmpl $0xffffffff,%fs:0xfffffffffffffcd0 | 64 83 3c 25 d0 fc ff ff ff\n 0: 0150 [ 6] jne <tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&) [clone .cold]> | 0f 85 ?? ?? ?? ??\n-0: 0156 [ 9] mov %rdi,%fs:0xfffffffffffffd68 | 64 48 89 3c 25 68 fd ff ff\n+0: 0156 [ 9] mov %rdi,%fs:0xfffffffffffffcc8 | 64 48 89 3c 25 c8 fc ff ff\n 0: 015f [ 2] mov (%rsi),%esi | 8b 36\n-0: 0161 [ 9] mov %rax,%fs:0xfffffffffffffd50 | 64 48 89 04 25 50 fd ff ff\n-0: 016a [ 8] mov %esi,%fs:0xfffffffffffffd70 | 64 89 34 25 70 fd ff ff\n+0: 0161 [ 9] mov %rax,%fs:0xfffffffffffffcb0 | 64 48 89 04 25 b0 fc ff ff\n+0: 016a [ 8] mov %esi,%fs:0xfffffffffffffcd0 | 64 89 34 25 d0 fc ff ff\n 0: 0172 [ 5] jmp <+0xa3> | e9 2c ff ff ff\n"
+    },
+    {
+      "name": "tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&) [clone .cold]",
+      "pre_sizes": [
+        6
+      ],
+      "post_sizes": [
+        6
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo_db0::xshard_store_string(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+      "pre_sizes": [
+        44
+      ],
+      "post_sizes": [
+        44
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "tomo_db0::xshard_store_string_notify(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+      "pre_sizes": [
+        44
+      ],
+      "post_sizes": [
+        44
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "unsigned int tomo::FlatStore::scan_home<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}>(int, unsigned int, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}&, bool)",
+      "pre_sizes": [
+        1345
+      ],
+      "post_sizes": [
+        1345
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+      "pre_sizes": [
+        1422
+      ],
+      "post_sizes": [
+        1422
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)",
+      "pre_sizes": [
+        1072
+      ],
+      "post_sizes": [
+        1072
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_get<true, false>(tomo::Shard&, tomo::Op&)",
+      "pre_sizes": [
+        792
+      ],
+      "post_sizes": [
+        792
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_get<true, true>(tomo::Shard&, tomo::Op&)",
+      "pre_sizes": [
+        1088
+      ],
+      "post_sizes": [
+        1088
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_set<false>(tomo::Shard&, tomo::Op&)",
+      "pre_sizes": [
+        2201
+      ],
+      "post_sizes": [
+        2201
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_set<true>(tomo::Shard&, tomo::Op&)",
+      "pre_sizes": [
+        2163
+      ],
+      "post_sizes": [
+        2163
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "void tomo::FlatStore::atomic_for_each_unique_key<tomo::FlatStore::atomic_for_each_side_key<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}>(unsigned long, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&)::{lambda(unsigned long, tomo::Slice)#1}>(tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&) [clone .isra.0]",
+      "pre_sizes": [
+        2394
+      ],
+      "post_sizes": [
+        2394
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "void tomo::FlatStore::atomic_for_each_unique_key<tomo::FlatStore::atomic_for_each_side_key<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}>(unsigned long, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&)::{lambda(unsigned long, tomo::Slice)#1}>(tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&) [clone .isra.0] [clone .cold]",
+      "pre_sizes": [
+        5
+      ],
+      "post_sizes": [
+        5
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+      "pre_sizes": [
+        15966
+      ],
+      "post_sizes": [
+        15966
+      ],
+      "strict_linked_equal": false,
+      "diff": "--- PRE\n+++ POST\n@@ -256,7 +256,7 @@\n 0: 04e1 [11] data16 cs nopw 0x0(%rax,%rax,1) | 66 66 2e 0f 1f 84 00 00 00 00 00\n 0: 04ec [ 4] nopl 0x0(%rax) | 0f 1f 40 00\n 0: 04f0 [ 3] movzbl %al,%eax | 0f b6 c0\n-0: 04f3 [ 7] lea <rip>(%rip),%rcx # <CSWTCH.7642> | 48 8d 0d ?? ?? ?? ??\n+0: 04f3 [ 7] lea <rip>(%rip),%rcx # <CSWTCH.7645> | 48 8d 0d ?? ?? ?? ??\n 0: 04fa [ 4] movzbl (%rcx,%rax,1),%eax | 0f b6 04 01\n 0: 04fe [ 2] test %al,%al | 84 c0\n 0: 0500 [ 3] setne %dl | 0f 95 c2\n@@ -1055,7 +1055,7 @@\n 0: 15ae [ 5] call <tomo::(anonymous namespace)::ObjectImage::operator=(tomo::(anonymous namespace)::ObjectImage&&) [clone .constprop.0] [clone .isra.0]> | e8 ?? ?? ?? ??\n 0: 15b3 [ 7] lea -0x538(%rbp),%rdi | 48 8d bd c8 fa ff ff\n 0: 15ba [ 5] call <std::vector<unsigned char, std::allocator<unsigned char> >::~vector()> | e8 ?? ?? ?? ??\n-0: 15bf [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6a8> | 48 8b 05 ?? ?? ?? ??\n+0: 15bf [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6d0> | 48 8b 05 ?? ?? ?? ??\n 0: 15c6 [ 7] lea -0x3f0(%rbp),%rsi | 48 8d b5 10 fc ff ff\n 0: 15cd [ 7] lea -0x580(%rbp),%rcx | 48 8d 8d 80 fa ff ff\n 0: 15d4 [ 5] mov $0x2,%edx | ba 02 00 00 00\n@@ -1242,7 +1242,7 @@\n 0: 197d [ 5] call <tomo::(anonymous namespace)::encode_elements(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, tomo::(anonymous namespace)::ObjectImage&, tomo::Type, long, bool)> | e8 ?? ?? ?? ??\n 0: 1982 [ 2] test %al,%al | 84 c0\n 0: 1984 [ 6] je <+0x31d9> | 0f 84 4f 18 00 00\n-0: 198a [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6b0> | 48 8b 05 ?? ?? ?? ??\n+0: 198a [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6d8> | 48 8b 05 ?? ?? ?? ??\n 0: 1991 [ 7] lea -0x3f0(%rbp),%rsi | 48 8d b5 10 fc ff ff\n 0: 1998 [ 7] lea -0x620(%rbp),%rcx | 48 8d 8d e0 f9 ff ff\n 0: 199f [ 5] mov $0x2,%edx | ba 02 00 00 00\n@@ -2202,7 +2202,7 @@\n 0: 2d4f [ 2] cmp $0x3,%al | 3c 03\n 0: 2d51 [ 2] ja <+0x2d61> | 77 0e\n 0: 2d53 [ 3] movzbl %al,%eax | 0f b6 c0\n-0: 2d56 [ 7] lea <rip>(%rip),%rdx # <CSWTCH.7642> | 48 8d 15 ?? ?? ?? ??\n+0: 2d56 [ 7] lea <rip>(%rip),%rdx # <CSWTCH.7645> | 48 8d 15 ?? ?? ?? ??\n 0: 2d5d [ 4] movzbl (%rdx,%rax,1),%edx | 0f b6 14 02\n 0: 2d61 [ 6] mov %dl,-0x62d(%rbp) | 88 95 d3 f9 ff ff\n 0: 2d67 [ 5] jmp <+0x17b7> | e9 4b ea ff ff\n@@ -2626,7 +2626,7 @@\n 0: 3612 [ 5] call <tomo::(anonymous namespace)::encode_elements(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, tomo::(anonymous namespace)::ObjectImage&, tomo::Type, long, bool)> | e8 ?? ?? ?? ??\n 0: 3617 [ 2] test %al,%al | 84 c0\n 0: 3619 [ 6] je <+0x3550> | 0f 84 31 ff ff ff\n-0: 361f [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6b0> | 48 8b 05 ?? ?? ?? ??\n+0: 361f [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6d8> | 48 8b 05 ?? ?? ?? ??\n 0: 3626 [ 7] lea -0x4b0(%rbp),%rsi | 48 8d b5 50 fb ff ff\n 0: 362d [ 7] lea -0x620(%rbp),%rcx | 48 8d 8d e0 f9 ff ff\n 0: 3634 [ 5] mov $0x2,%edx | ba 02 00 00 00\n"
+    },
+    {
+      "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+      "pre_sizes": [
+        17131
+      ],
+      "post_sizes": [
+        17131
+      ],
+      "strict_linked_equal": false,
+      "diff": "--- PRE\n+++ POST\n@@ -298,7 +298,7 @@\n 0: 05a6 [ 2] cmp $0x3,%al | 3c 03\n 0: 05a8 [ 6] ja <+0x500> | 0f 87 52 ff ff ff\n 0: 05ae [ 3] movzbl %al,%eax | 0f b6 c0\n-0: 05b1 [ 7] lea <rip>(%rip),%rcx # <CSWTCH.7642> | 48 8d 0d ?? ?? ?? ??\n+0: 05b1 [ 7] lea <rip>(%rip),%rcx # <CSWTCH.7645> | 48 8d 0d ?? ?? ?? ??\n 0: 05b8 [ 4] movzbl (%rcx,%rax,1),%eax | 0f b6 04 01\n 0: 05bc [ 2] test %al,%al | 84 c0\n 0: 05be [ 6] je <+0xf48> | 0f 84 84 09 00 00\n@@ -1132,7 +1132,7 @@\n 0: 172b [ 5] call <tomo::(anonymous namespace)::ObjectImage::operator=(tomo::(anonymous namespace)::ObjectImage&&) [clone .constprop.0] [clone .isra.0]> | e8 ?? ?? ?? ??\n 0: 1730 [ 7] lea -0x538(%rbp),%rdi | 48 8d bd c8 fa ff ff\n 0: 1737 [ 5] call <std::vector<unsigned char, std::allocator<unsigned char> >::~vector()> | e8 ?? ?? ?? ??\n-0: 173c [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6a8> | 48 8b 05 ?? ?? ?? ??\n+0: 173c [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6d0> | 48 8b 05 ?? ?? ?? ??\n 0: 1743 [ 7] lea -0x3f0(%rbp),%rsi | 48 8d b5 10 fc ff ff\n 0: 174a [ 7] lea -0x580(%rbp),%rcx | 48 8d 8d 80 fa ff ff\n 0: 1751 [ 5] mov $0x2,%edx | ba 02 00 00 00\n@@ -1296,7 +1296,7 @@\n 0: 1a63 [ 5] call <tomo::(anonymous namespace)::encode_elements(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, tomo::(anonymous namespace)::ObjectImage&, tomo::Type, long, bool)> | e8 ?? ?? ?? ??\n 0: 1a68 [ 2] test %al,%al | 84 c0\n 0: 1a6a [ 6] je <+0x377a> | 0f 84 0a 1d 00 00\n-0: 1a70 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6b0> | 48 8b 05 ?? ?? ?? ??\n+0: 1a70 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6d8> | 48 8b 05 ?? ?? ?? ??\n 0: 1a77 [ 7] lea -0x3f0(%rbp),%rsi | 48 8d b5 10 fc ff ff\n 0: 1a7e [ 7] lea -0x620(%rbp),%rcx | 48 8d 8d e0 f9 ff ff\n 0: 1a85 [ 5] mov $0x2,%edx | ba 02 00 00 00\n@@ -2437,7 +2437,7 @@\n 0: 3185 [ 7] mov %r8,0x98(%r15) | 4d 89 87 98 00 00 00\n 0: 318c [ 5] jmp <+0x1071> | e9 e0 de ff ff\n 0: 3191 [ 3] movzbl %al,%eax | 0f b6 c0\n-0: 3194 [ 7] lea <rip>(%rip),%rdx # <CSWTCH.7642> | 48 8d 15 ?? ?? ?? ??\n+0: 3194 [ 7] lea <rip>(%rip),%rdx # <CSWTCH.7645> | 48 8d 15 ?? ?? ?? ??\n 0: 319b [ 4] movzbl (%rdx,%rax,1),%esi | 0f b6 34 02\n 0: 319f [ 7] mov %sil,-0x62d(%rbp) | 40 88 b5 d3 f9 ff ff\n 0: 31a6 [ 3] test %sil,%sil | 40 84 f6\n@@ -2845,7 +2845,7 @@\n 0: 39ca [ 5] call <tomo::(anonymous namespace)::encode_elements(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, tomo::(anonymous namespace)::ObjectImage&, tomo::Type, long, bool)> | e8 ?? ?? ?? ??\n 0: 39cf [ 2] test %al,%al | 84 c0\n 0: 39d1 [ 6] je <+0x390a> | 0f 84 33 ff ff ff\n-0: 39d7 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6b0> | 48 8b 05 ?? ?? ?? ??\n+0: 39d7 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6d8> | 48 8b 05 ?? ?? ?? ??\n 0: 39de [ 7] lea -0x4b0(%rbp),%rsi | 48 8d b5 50 fb ff ff\n 0: 39e5 [ 7] lea -0x620(%rbp),%rcx | 48 8d 8d e0 f9 ff ff\n 0: 39ec [ 5] mov $0x2,%edx | ba 02 00 00 00\n"
+    },
+    {
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<false, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_sizes": [
+        1072
+      ],
+      "post_sizes": [
+        1072
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<true, false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_sizes": [
+        776
+      ],
+      "post_sizes": [
+        776
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<true, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_sizes": [
+        1088
+      ],
+      "post_sizes": [
+        1088
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "void tomo_db0::(anonymous namespace)::cmd_set<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_sizes": [
+        2201
+      ],
+      "post_sizes": [
+        2201
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "void tomo_db0::(anonymous namespace)::cmd_set<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_sizes": [
+        2162
+      ],
+      "post_sizes": [
+        2162
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "void tomo_db0::FlatStore::atomic_for_each_unique_key<tomo_db0::FlatStore::atomic_for_each_side_key<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}>(unsigned long, tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&)::{lambda(unsigned long, tomo_db0::Slice)#1}>(tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&) [clone .isra.0]",
+      "pre_sizes": [
+        2219
+      ],
+      "post_sizes": [
+        2219
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "void tomo_db0::FlatStore::atomic_for_each_unique_key<tomo_db0::FlatStore::atomic_for_each_side_key<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}>(unsigned long, tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&)::{lambda(unsigned long, tomo_db0::Slice)#1}>(tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&) [clone .isra.0] [clone .cold]",
+      "pre_sizes": [
+        5
+      ],
+      "post_sizes": [
+        5
+      ],
+      "strict_linked_equal": true,
+      "diff": ""
+    },
+    {
+      "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_sizes": [
+        15887
+      ],
+      "post_sizes": [
+        15887
+      ],
+      "strict_linked_equal": false,
+      "diff": "--- PRE\n+++ POST\n@@ -258,7 +258,7 @@\n 0: 04d1 [11] data16 cs nopw 0x0(%rax,%rax,1) | 66 66 2e 0f 1f 84 00 00 00 00 00\n 0: 04dc [ 4] nopl 0x0(%rax) | 0f 1f 40 00\n 0: 04e0 [ 3] movzbl %al,%eax | 0f b6 c0\n-0: 04e3 [ 7] lea <rip>(%rip),%rcx # <CSWTCH.7635> | 48 8d 0d ?? ?? ?? ??\n+0: 04e3 [ 7] lea <rip>(%rip),%rcx # <CSWTCH.7638> | 48 8d 0d ?? ?? ?? ??\n 0: 04ea [ 4] movzbl (%rcx,%rax,1),%eax | 0f b6 04 01\n 0: 04ee [ 2] test %al,%al | 84 c0\n 0: 04f0 [ 3] setne %dl | 0f 95 c2\n@@ -1059,7 +1059,7 @@\n 0: 158f [ 5] call <tomo_db0::(anonymous namespace)::ObjectImage::operator=(tomo_db0::(anonymous namespace)::ObjectImage&&) [clone .constprop.0] [clone .isra.0]> | e8 ?? ?? ?? ??\n 0: 1594 [ 7] lea -0x538(%rbp),%rdi | 48 8d bd c8 fa ff ff\n 0: 159b [ 5] call <std::vector<unsigned char, std::allocator<unsigned char> >::~vector()> | e8 ?? ?? ?? ??\n-0: 15a0 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6a8> | 48 8b 05 ?? ?? ?? ??\n+0: 15a0 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6d0> | 48 8b 05 ?? ?? ?? ??\n 0: 15a7 [ 7] lea -0x3f0(%rbp),%rsi | 48 8d b5 10 fc ff ff\n 0: 15ae [ 7] lea -0x580(%rbp),%rcx | 48 8d 8d 80 fa ff ff\n 0: 15b5 [ 5] mov $0x2,%edx | ba 02 00 00 00\n@@ -1244,7 +1244,7 @@\n 0: 1936 [ 5] call <tomo_db0::(anonymous namespace)::encode_elements(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, tomo_db0::(anonymous namespace)::ObjectImage&, tomo_db0::Type, long, bool)> | e8 ?? ?? ?? ??\n 0: 193b [ 2] test %al,%al | 84 c0\n 0: 193d [ 6] je <+0x32dd> | 0f 84 9a 19 00 00\n-0: 1943 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6b0> | 48 8b 05 ?? ?? ?? ??\n+0: 1943 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6d8> | 48 8b 05 ?? ?? ?? ??\n 0: 194a [ 7] lea -0x550(%rbp),%rbx | 48 8d 9d b0 fa ff ff\n 0: 1951 [ 7] lea -0x3f0(%rbp),%rsi | 48 8d b5 10 fc ff ff\n 0: 1958 [ 7] lea -0x620(%rbp),%rcx | 48 8d 8d e0 f9 ff ff\n@@ -2212,7 +2212,7 @@\n 0: 2d20 [ 2] cmp $0x3,%al | 3c 03\n 0: 2d22 [ 2] ja <+0x2d32> | 77 0e\n 0: 2d24 [ 3] movzbl %al,%eax | 0f b6 c0\n-0: 2d27 [ 7] lea <rip>(%rip),%rdx # <CSWTCH.7635> | 48 8d 15 ?? ?? ?? ??\n+0: 2d27 [ 7] lea <rip>(%rip),%rdx # <CSWTCH.7638> | 48 8d 15 ?? ?? ?? ??\n 0: 2d2e [ 4] movzbl (%rdx,%rax,1),%edx | 0f b6 14 02\n 0: 2d32 [ 6] mov %dl,-0x62d(%rbp) | 88 95 d3 f9 ff ff\n 0: 2d38 [ 5] jmp <+0x1791> | e9 54 ea ff ff\n@@ -2593,7 +2593,7 @@\n 0: 34d4 [ 5] call <tomo_db0::(anonymous namespace)::encode_elements(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, tomo_db0::(anonymous namespace)::ObjectImage&, tomo_db0::Type, long, bool)> | e8 ?? ?? ?? ??\n 0: 34d9 [ 2] test %al,%al | 84 c0\n 0: 34db [ 6] je <+0x33f1> | 0f 84 10 ff ff ff\n-0: 34e1 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6b0> | 48 8b 05 ?? ?? ?? ??\n+0: 34e1 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6d8> | 48 8b 05 ?? ?? ?? ??\n 0: 34e8 [ 7] lea -0x550(%rbp),%rbx | 48 8d 9d b0 fa ff ff\n 0: 34ef [ 7] lea -0x4b0(%rbp),%rsi | 48 8d b5 50 fb ff ff\n 0: 34f6 [ 7] lea -0x620(%rbp),%rcx | 48 8d 8d e0 f9 ff ff\n"
+    },
+    {
+      "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_sizes": [
+        17185
+      ],
+      "post_sizes": [
+        17185
+      ],
+      "strict_linked_equal": false,
+      "diff": "--- PRE\n+++ POST\n@@ -304,7 +304,7 @@\n 0: 05b0 [ 2] cmp $0x3,%al | 3c 03\n 0: 05b2 [ 6] ja <+0x510> | 0f 87 58 ff ff ff\n 0: 05b8 [ 3] movzbl %al,%eax | 0f b6 c0\n-0: 05bb [ 7] lea <rip>(%rip),%rcx # <CSWTCH.7635> | 48 8d 0d ?? ?? ?? ??\n+0: 05bb [ 7] lea <rip>(%rip),%rcx # <CSWTCH.7638> | 48 8d 0d ?? ?? ?? ??\n 0: 05c2 [ 4] movzbl (%rcx,%rax,1),%eax | 0f b6 04 01\n 0: 05c6 [ 2] test %al,%al | 84 c0\n 0: 05c8 [ 6] je <+0xf88> | 0f 84 ba 09 00 00\n@@ -1149,7 +1149,7 @@\n 0: 1766 [ 5] call <tomo_db0::(anonymous namespace)::ObjectImage::operator=(tomo_db0::(anonymous namespace)::ObjectImage&&) [clone .constprop.0] [clone .isra.0]> | e8 ?? ?? ?? ??\n 0: 176b [ 7] lea -0x538(%rbp),%rdi | 48 8d bd c8 fa ff ff\n 0: 1772 [ 5] call <std::vector<unsigned char, std::allocator<unsigned char> >::~vector()> | e8 ?? ?? ?? ??\n-0: 1777 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6a8> | 48 8b 05 ?? ?? ?? ??\n+0: 1777 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6d0> | 48 8b 05 ?? ?? ?? ??\n 0: 177e [ 7] lea -0x3f0(%rbp),%rsi | 48 8d b5 10 fc ff ff\n 0: 1785 [ 7] lea -0x580(%rbp),%rcx | 48 8d 8d 80 fa ff ff\n 0: 178c [ 5] mov $0x2,%edx | ba 02 00 00 00\n@@ -1394,7 +1394,7 @@\n 0: 1c15 [ 5] call <tomo_db0::(anonymous namespace)::encode_elements(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, tomo_db0::(anonymous namespace)::ObjectImage&, tomo_db0::Type, long, bool)> | e8 ?? ?? ?? ??\n 0: 1c1a [ 2] test %al,%al | 84 c0\n 0: 1c1c [ 6] je <+0x37f4> | 0f 84 d2 1b 00 00\n-0: 1c22 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6b0> | 48 8b 05 ?? ?? ?? ??\n+0: 1c22 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6d8> | 48 8b 05 ?? ?? ?? ??\n 0: 1c29 [ 7] lea -0x3f0(%rbp),%rsi | 48 8d b5 10 fc ff ff\n 0: 1c30 [ 7] lea -0x620(%rbp),%rcx | 48 8d 8d e0 f9 ff ff\n 0: 1c37 [ 5] mov $0x2,%edx | ba 02 00 00 00\n@@ -2457,7 +2457,7 @@\n 0: 31cb [ 5] call <tomo_db0::(anonymous namespace)::reply_work_error(tomo_db0::Op&, tomo_db0::(anonymous namespace)::WorkError)> | e8 ?? ?? ?? ??\n 0: 31d0 [ 5] jmp <+0x10d1> | e9 fc de ff ff\n 0: 31d5 [ 3] movzbl %al,%eax | 0f b6 c0\n-0: 31d8 [ 7] lea <rip>(%rip),%rdx # <CSWTCH.7635> | 48 8d 15 ?? ?? ?? ??\n+0: 31d8 [ 7] lea <rip>(%rip),%rdx # <CSWTCH.7638> | 48 8d 15 ?? ?? ?? ??\n 0: 31df [ 4] movzbl (%rdx,%rax,1),%esi | 0f b6 34 02\n 0: 31e3 [ 7] mov %sil,-0x62d(%rbp) | 40 88 b5 d3 f9 ff ff\n 0: 31ea [ 3] test %sil,%sil | 40 84 f6\n@@ -2884,7 +2884,7 @@\n 0: 3a69 [ 5] call <tomo_db0::(anonymous namespace)::encode_elements(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, tomo_db0::(anonymous namespace)::ObjectImage&, tomo_db0::Type, long, bool)> | e8 ?? ?? ?? ??\n 0: 3a6e [ 2] test %al,%al | 84 c0\n 0: 3a70 [ 6] je <+0x39a5> | 0f 84 2f ff ff ff\n-0: 3a76 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6b0> | 48 8b 05 ?? ?? ?? ??\n+0: 3a76 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6d8> | 48 8b 05 ?? ?? ?? ??\n 0: 3a7d [ 7] lea -0x4b0(%rbp),%rsi | 48 8d b5 50 fb ff ff\n 0: 3a84 [ 7] lea -0x620(%rbp),%rcx | 48 8d 8d e0 f9 ff ff\n 0: 3a8b [ 5] mov $0x2,%edx | ba 02 00 00 00\n"
+    }
+  ],
+  "difference_classification": {
+    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": {
+      "instructions_with_TLS_displacement_changes": 15,
+      "unchanged_encoding_with_changed_reference_labels": 1
+    },
+    "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))": {
+      "instructions_with_TLS_displacement_changes": 11,
+      "unchanged_encoding_with_changed_reference_labels": 0
+    },
+    "tomo::xshard_flush_commits_timed(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))": {
+      "instructions_with_TLS_displacement_changes": 11,
+      "unchanged_encoding_with_changed_reference_labels": 0
+    },
+    "tomo::xshard_queue_commit(tomo::Server&, tomo::ThreadCtx&, tomo::Task const&)": {
+      "instructions_with_TLS_displacement_changes": 15,
+      "unchanged_encoding_with_changed_reference_labels": 0
+    },
+    "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": {
+      "instructions_with_TLS_displacement_changes": 15,
+      "unchanged_encoding_with_changed_reference_labels": 1
+    },
+    "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))": {
+      "instructions_with_TLS_displacement_changes": 11,
+      "unchanged_encoding_with_changed_reference_labels": 0
+    },
+    "tomo_db0::xshard_flush_commits_timed(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))": {
+      "instructions_with_TLS_displacement_changes": 11,
+      "unchanged_encoding_with_changed_reference_labels": 0
+    },
+    "tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&)": {
+      "instructions_with_TLS_displacement_changes": 15,
+      "unchanged_encoding_with_changed_reference_labels": 0
+    },
+    "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)": {
+      "instructions_with_TLS_displacement_changes": 0,
+      "unchanged_encoding_with_changed_reference_labels": 5
+    },
+    "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)": {
+      "instructions_with_TLS_displacement_changes": 0,
+      "unchanged_encoding_with_changed_reference_labels": 5
+    },
+    "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)": {
+      "instructions_with_TLS_displacement_changes": 0,
+      "unchanged_encoding_with_changed_reference_labels": 5
+    },
+    "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)": {
+      "instructions_with_TLS_displacement_changes": 0,
+      "unchanged_encoding_with_changed_reference_labels": 5
+    }
+  },
+  "interpretation": "68/80 strict linked bodies match. The remaining 12 retain instruction offsets, widths and body sizes; changes are TLS displacements and relocated anonymous/static read-only labels. See 74/74 object relocation proof for symbol and data relocation identity. Strict linked identity is not claimed."
+}

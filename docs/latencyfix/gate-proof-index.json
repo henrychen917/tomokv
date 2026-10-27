@@ -1,0 +1,875 @@
+{
+  "production_sha256": "257d6ee619d33eeaffbb6fa55cd30b9880a37fc873f01d467c9469519dbf36d0",
+  "kind": "partial gate jobs; not full gate or performance receipt",
+  "runs": [
+    {
+      "label": "broad",
+      "directory": "build/gate-run.tKcymb",
+      "jobs": {
+        "acl_metadata": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "atomic_units": {
+          "exit": 0,
+          "ok": 27,
+          "fail": 0
+        },
+        "blockfix_mkstream": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "blockfix_registry": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "blockfix_structure": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "climonfix": {
+          "exit": 0,
+          "ok": 7,
+          "fail": 0
+        },
+        "cmd_metadata": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "compat2": {
+          "exit": 0,
+          "ok": 3,
+          "fail": 0
+        },
+        "compat3": {
+          "exit": 0,
+          "ok": 6,
+          "fail": 0
+        },
+        "config_unit": {
+          "exit": 0,
+          "ok": 2,
+          "fail": 0
+        },
+        "core_tsan_build": {
+          "exit": 0,
+          "ok": 0,
+          "fail": 0
+        },
+        "core_units": {
+          "exit": 0,
+          "ok": 8,
+          "fail": 1
+        },
+        "debug-0": {
+          "exit": 0,
+          "ok": 16,
+          "fail": 0
+        },
+        "debug-1": {
+          "exit": 0,
+          "ok": 16,
+          "fail": 0
+        },
+        "dispatch_arity": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "dispatch_children": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "dispatch_errors": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "exbatch_units": {
+          "exit": 0,
+          "ok": 3,
+          "fail": 0
+        },
+        "feature-armed-0": {
+          "exit": 0,
+          "ok": 35,
+          "fail": 0
+        },
+        "feature-armed-1": {
+          "exit": 0,
+          "ok": 35,
+          "fail": 0
+        },
+        "feature-split-0": {
+          "exit": 0,
+          "ok": 34,
+          "fail": 0
+        },
+        "feature-split-1": {
+          "exit": 0,
+          "ok": 34,
+          "fail": 0
+        },
+        "fused-0": {
+          "exit": 0,
+          "ok": 9,
+          "fail": 0
+        },
+        "fused-1": {
+          "exit": 0,
+          "ok": 9,
+          "fail": 0
+        },
+        "latencyfix_grammar": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "latencyfix_off": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "latencyfix_shape": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "persistfix2_shutdown": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "persistfix_units": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "production_units": {
+          "exit": 0,
+          "ok": 0,
+          "fail": 0
+        },
+        "release": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "release_batteries": {
+          "exit": 0,
+          "ok": 8,
+          "fail": 0
+        },
+        "script_bounds": {
+          "exit": 0,
+          "ok": 2,
+          "fail": 0
+        },
+        "scriptfix": {
+          "exit": 0,
+          "ok": 8,
+          "fail": 0
+        },
+        "serverfix_config": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "serverfix_hello": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "serverfix_lines": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "serverfix_scalar": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "serverfix_slowlog": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "serverfix_waitaof": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "wait_units": {
+          "exit": 0,
+          "ok": 2,
+          "fail": 0
+        },
+        "waits_tsan_build": {
+          "exit": 0,
+          "ok": 0,
+          "fail": 0
+        }
+      }
+    },
+    {
+      "label": "supplement",
+      "directory": "build/gate-run.XK3lkT",
+      "jobs": {
+        "atomic_batteries": {
+          "exit": 0,
+          "ok": 4,
+          "fail": 0
+        },
+        "core_tsan_build": {
+          "exit": 0,
+          "ok": 0,
+          "fail": 0
+        },
+        "core_units": {
+          "exit": 0,
+          "ok": 9,
+          "fail": 0
+        },
+        "exbatch_live": {
+          "exit": 0,
+          "ok": 2,
+          "fail": 0
+        },
+        "production_units": {
+          "exit": 0,
+          "ok": 0,
+          "fail": 0
+        },
+        "release": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "reorder_engagement": {
+          "exit": 0,
+          "ok": 0,
+          "fail": 1
+        },
+        "reorder_identity": {
+          "exit": 0,
+          "ok": 0,
+          "fail": 1
+        },
+        "reorder_sync": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "txn_group_fused": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "txn_group_split": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "txnorder2": {
+          "exit": 0,
+          "ok": 16,
+          "fail": 0
+        },
+        "txnorder_wake": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        }
+      }
+    },
+    {
+      "label": "fixtures",
+      "directory": "build/gate-run.Nbar7V",
+      "jobs": {
+        "core_tsan_build": {
+          "exit": 0,
+          "ok": 0,
+          "fail": 0
+        },
+        "core_units": {
+          "exit": 0,
+          "ok": 9,
+          "fail": 0
+        },
+        "production_units": {
+          "exit": 0,
+          "ok": 0,
+          "fail": 0
+        },
+        "release": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "reorder_engagement": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "reorder_identity": {
+          "exit": 0,
+          "ok": 0,
+          "fail": 1
+        },
+        "reorder_sync": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        }
+      }
+    },
+    {
+      "label": "reorder",
+      "directory": "build/gate-run.X5PDrp",
+      "jobs": {
+        "release": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "reorder_identity": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        }
+      }
+    },
+    {
+      "label": "directed",
+      "directory": "build/gate-run.uASq4n",
+      "jobs": {
+        "latencyfix_grammar": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "latencyfix_off": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "latencyfix_shape": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "release": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        }
+      }
+    },
+    {
+      "label": "info",
+      "directory": "build/gate-run.356Es3",
+      "jobs": {
+        "release": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "rlfix3_info": {
+          "exit": 0,
+          "ok": 8,
+          "fail": 0
+        }
+      }
+    },
+    {
+      "label": "legacy",
+      "directory": "build/gate-run.hupf7y",
+      "jobs": {
+        "authfix": {
+          "exit": 0,
+          "ok": 5,
+          "fail": 0
+        },
+        "bugs5": {
+          "exit": 0,
+          "ok": 3,
+          "fail": 0
+        },
+        "release": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        }
+      }
+    },
+    {
+      "label": "directed-wire-final",
+      "directory": "build/gate-run.8lSZGN",
+      "jobs": {
+        "latencyfix_shape": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "latencyfix_off": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "release": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "latencyfix_grammar": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        }
+      }
+    },
+    {
+      "label": "dispatch-units",
+      "directory": "build/gate-run.WlfKce",
+      "jobs": {
+        "production_units": {
+          "exit": 0,
+          "ok": 0,
+          "fail": 0
+        },
+        "release": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "splitlocal_units": {
+          "exit": 0,
+          "ok": 1,
+          "fail": 0
+        },
+        "wb_rule_units": {
+          "exit": 0,
+          "ok": 4,
+          "fail": 0
+        },
+        "wbland_units": {
+          "exit": 0,
+          "ok": 2,
+          "fail": 0
+        }
+      }
+    }
+  ],
+  "latest_jobs": {
+    "acl_metadata": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/acl_metadata",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "atomic_units": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/atomic_units",
+      "exit": 0,
+      "ok": 27,
+      "fail": 0
+    },
+    "blockfix_mkstream": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/blockfix_mkstream",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "blockfix_registry": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/blockfix_registry",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "blockfix_structure": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/blockfix_structure",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "climonfix": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/climonfix",
+      "exit": 0,
+      "ok": 7,
+      "fail": 0
+    },
+    "cmd_metadata": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/cmd_metadata",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "compat2": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/compat2",
+      "exit": 0,
+      "ok": 3,
+      "fail": 0
+    },
+    "compat3": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/compat3",
+      "exit": 0,
+      "ok": 6,
+      "fail": 0
+    },
+    "config_unit": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/config_unit",
+      "exit": 0,
+      "ok": 2,
+      "fail": 0
+    },
+    "core_tsan_build": {
+      "run": "fixtures",
+      "directory": "build/gate-run.Nbar7V/jobs/core_tsan_build",
+      "exit": 0,
+      "ok": 0,
+      "fail": 0
+    },
+    "core_units": {
+      "run": "fixtures",
+      "directory": "build/gate-run.Nbar7V/jobs/core_units",
+      "exit": 0,
+      "ok": 9,
+      "fail": 0
+    },
+    "debug-0": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/debug-0",
+      "exit": 0,
+      "ok": 16,
+      "fail": 0
+    },
+    "debug-1": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/debug-1",
+      "exit": 0,
+      "ok": 16,
+      "fail": 0
+    },
+    "dispatch_arity": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/dispatch_arity",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "dispatch_children": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/dispatch_children",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "dispatch_errors": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/dispatch_errors",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "exbatch_units": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/exbatch_units",
+      "exit": 0,
+      "ok": 3,
+      "fail": 0
+    },
+    "feature-armed-0": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/feature-armed-0",
+      "exit": 0,
+      "ok": 35,
+      "fail": 0
+    },
+    "feature-armed-1": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/feature-armed-1",
+      "exit": 0,
+      "ok": 35,
+      "fail": 0
+    },
+    "feature-split-0": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/feature-split-0",
+      "exit": 0,
+      "ok": 34,
+      "fail": 0
+    },
+    "feature-split-1": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/feature-split-1",
+      "exit": 0,
+      "ok": 34,
+      "fail": 0
+    },
+    "fused-0": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/fused-0",
+      "exit": 0,
+      "ok": 9,
+      "fail": 0
+    },
+    "fused-1": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/fused-1",
+      "exit": 0,
+      "ok": 9,
+      "fail": 0
+    },
+    "latencyfix_grammar": {
+      "run": "directed-wire-final",
+      "directory": "build/gate-run.8lSZGN/jobs/latencyfix_grammar",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "latencyfix_off": {
+      "run": "directed-wire-final",
+      "directory": "build/gate-run.8lSZGN/jobs/latencyfix_off",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "latencyfix_shape": {
+      "run": "directed-wire-final",
+      "directory": "build/gate-run.8lSZGN/jobs/latencyfix_shape",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "persistfix2_shutdown": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/persistfix2_shutdown",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "persistfix_units": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/persistfix_units",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "production_units": {
+      "run": "dispatch-units",
+      "directory": "build/gate-run.WlfKce/jobs/production_units",
+      "exit": 0,
+      "ok": 0,
+      "fail": 0
+    },
+    "release": {
+      "run": "dispatch-units",
+      "directory": "build/gate-run.WlfKce/jobs/release",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "release_batteries": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/release_batteries",
+      "exit": 0,
+      "ok": 8,
+      "fail": 0
+    },
+    "script_bounds": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/script_bounds",
+      "exit": 0,
+      "ok": 2,
+      "fail": 0
+    },
+    "scriptfix": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/scriptfix",
+      "exit": 0,
+      "ok": 8,
+      "fail": 0
+    },
+    "serverfix_config": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/serverfix_config",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "serverfix_hello": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/serverfix_hello",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "serverfix_lines": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/serverfix_lines",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "serverfix_scalar": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/serverfix_scalar",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "serverfix_slowlog": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/serverfix_slowlog",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "serverfix_waitaof": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/serverfix_waitaof",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "wait_units": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/wait_units",
+      "exit": 0,
+      "ok": 2,
+      "fail": 0
+    },
+    "waits_tsan_build": {
+      "run": "broad",
+      "directory": "build/gate-run.tKcymb/jobs/waits_tsan_build",
+      "exit": 0,
+      "ok": 0,
+      "fail": 0
+    },
+    "atomic_batteries": {
+      "run": "supplement",
+      "directory": "build/gate-run.XK3lkT/jobs/atomic_batteries",
+      "exit": 0,
+      "ok": 4,
+      "fail": 0
+    },
+    "exbatch_live": {
+      "run": "supplement",
+      "directory": "build/gate-run.XK3lkT/jobs/exbatch_live",
+      "exit": 0,
+      "ok": 2,
+      "fail": 0
+    },
+    "reorder_engagement": {
+      "run": "fixtures",
+      "directory": "build/gate-run.Nbar7V/jobs/reorder_engagement",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "reorder_identity": {
+      "run": "reorder",
+      "directory": "build/gate-run.X5PDrp/jobs/reorder_identity",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "reorder_sync": {
+      "run": "fixtures",
+      "directory": "build/gate-run.Nbar7V/jobs/reorder_sync",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "txn_group_fused": {
+      "run": "supplement",
+      "directory": "build/gate-run.XK3lkT/jobs/txn_group_fused",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "txn_group_split": {
+      "run": "supplement",
+      "directory": "build/gate-run.XK3lkT/jobs/txn_group_split",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "txnorder2": {
+      "run": "supplement",
+      "directory": "build/gate-run.XK3lkT/jobs/txnorder2",
+      "exit": 0,
+      "ok": 16,
+      "fail": 0
+    },
+    "txnorder_wake": {
+      "run": "supplement",
+      "directory": "build/gate-run.XK3lkT/jobs/txnorder_wake",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "rlfix3_info": {
+      "run": "info",
+      "directory": "build/gate-run.356Es3/jobs/rlfix3_info",
+      "exit": 0,
+      "ok": 8,
+      "fail": 0
+    },
+    "authfix": {
+      "run": "legacy",
+      "directory": "build/gate-run.hupf7y/jobs/authfix",
+      "exit": 0,
+      "ok": 5,
+      "fail": 0
+    },
+    "bugs5": {
+      "run": "legacy",
+      "directory": "build/gate-run.hupf7y/jobs/bugs5",
+      "exit": 0,
+      "ok": 3,
+      "fail": 0
+    },
+    "splitlocal_units": {
+      "run": "dispatch-units",
+      "directory": "build/gate-run.WlfKce/jobs/splitlocal_units",
+      "exit": 0,
+      "ok": 1,
+      "fail": 0
+    },
+    "wb_rule_units": {
+      "run": "dispatch-units",
+      "directory": "build/gate-run.WlfKce/jobs/wb_rule_units",
+      "exit": 0,
+      "ok": 4,
+      "fail": 0
+    },
+    "wbland_units": {
+      "run": "dispatch-units",
+      "directory": "build/gate-run.WlfKce/jobs/wbland_units",
+      "exit": 0,
+      "ok": 2,
+      "fail": 0
+    }
+  },
+  "latest_job_count": 57,
+  "latest_scored_rows": 336,
+  "unresolved": [],
+  "differential_receipt": "docs/latencyfix/differ-proof.json"
+}

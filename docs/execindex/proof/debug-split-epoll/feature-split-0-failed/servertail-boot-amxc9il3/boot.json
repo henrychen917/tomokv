@@ -1,0 +1,29 @@
+{
+  "port": 46802,
+  "cores": "96,97,98,99",
+  "config": null,
+  "binary": "/home/user/Projects/cx-execindex/build/tomokv",
+  "reason": "server boot timed out",
+  "argv": [
+    "taskset",
+    "-c",
+    "96,97,98,99",
+    "/home/user/Projects/cx-execindex/build/tomokv",
+    "--databases",
+    "1",
+    "--port",
+    "46802",
+    "--bind",
+    "127.0.0.1",
+    "--enable-debug-command",
+    "yes",
+    "--shards",
+    "2",
+    "--dir",
+    "/home/user/Projects/cx-execindex/build/gate-run.zVmicf/jobs/feature-split-0/tomokv-servertail-ktwfea2v"
+  ],
+  "pid": 2455396,
+  "error": "RuntimeError('server exited during boot (status 1)\\nTomoKV 1.0-cpp (Redis 7.4.10 compatible)\\ntopology: 1 L3 domain(s)\\n  domain  0: 4 cpus [96,97,98,99]\\ntomokv-cpp: 4 threads (2 io + 2 ex), 2 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0\\n  thread t0: role=ifid cpu=96 L3=0 shards=0\\n  thread t1: role=ifid cpu=97 L3=0 shards=0\\n  thread t2: role=ex cpu=98 L3=0 shards=1\\n  thread t3: role=ex cpu=99 L3=0 shards=1\\nbind: Address already in use\\n')",
+  "returncode": 1,
+  "wait_seconds": 6.0
+}

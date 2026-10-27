@@ -1,0 +1,15 @@
+b_size
+--- lualibs
+
++++ post
+
+@@ -13,7 +13,7 @@
+
+ CLONE 0 0025 [ 5] mov %rax,0x28(%rsp)
+ CLONE 0 002a [ 2] xor %eax,%eax
+ CLONE 0 002c [ 5] call <luaL_checklstring>
+-CLONE 0 0031 [ 7] mov <rip>(%rip),%rdx # <tomo_db0::kNoThread+0x614>
++CLONE 0 0031 [ 7] mov <rip>(%rip),%rdx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8>
+ CLONE 0 0038 [ 4] movsbq (%rax),%rbx
+ CLONE 0 003c [ 5] mov %rax,0x20(%rsp)
+ CLONE 0 0041 [ 5] mov %rdx,0x18(%rsp)

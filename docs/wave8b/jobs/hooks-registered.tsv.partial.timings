@@ -1,0 +1,5 @@
+ok	0.000000	release build (+footprint locks)
+ok	2.780000	latencyfix LAT-HIST-1 histogram and latencystats
+ok	20.360000	latencyfix LAT-HIST-1 zero allocations off
+ok	0.290000	wave8b tracking-off EXEC scans and transitions
+FAIL	38.450000	EXEC fast-lane polls

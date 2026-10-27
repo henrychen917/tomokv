@@ -1,0 +1,4 @@
+PARTIAL	0	GATE_ONLY_JOBS=execfair reorder_identity; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+ok	147.940000	R7 FIFO twin off-path identity + negative controls
+FAIL	22.500000	EXEC fast-lane polls

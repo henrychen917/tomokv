@@ -1,0 +1,26 @@
+[
+  {
+    "arm": "PRE",
+    "path": "/home/user/Projects/cx-execindex/build/execindex/PRE",
+    "sha256": "957d19eafa7beb151bfae017ea6675fca1da40b334a100602fa3fd38764029f4",
+    "bytes": 212508080
+  },
+  {
+    "arm": "POST",
+    "path": "/home/user/Projects/cx-execindex/build/execindex/POST",
+    "sha256": "aee048859f6f8d84d5aa4e0b30767ad1e8dac4595d383ff634a8226027d1566a",
+    "bytes": 213272368
+  },
+  {
+    "arm": "POST-layout",
+    "path": "/home/user/Projects/cx-execindex/build/execindex/POST-layout",
+    "sha256": "f697182c2ae572f27dca7db51bc0d9babf7f0388c682a6294e6f36be051a63b1",
+    "bytes": 413524952
+  },
+  {
+    "arm": "PAD-A",
+    "path": "/home/user/Projects/cx-execindex/build/execindex/PAD-A",
+    "sha256": "660409393444a5b6c1f6442a6bb281fcc4cb9437f8fd8141c9177eb4c7468e52",
+    "bytes": 413524952
+  }
+]

@@ -1,0 +1,13 @@
+tomo_db0::(anonymous namespace)::notify_event_name(tomo_db0::NotifyEventId)
+--- headline
+
++++ post
+
+@@ -200,5 +200,5 @@
+
+ CLONE 0 0418 [ 8] nopl 0x0(%rax,%rax,1)
+ CLONE 0 0420 [ 7] lea <rip>(%rip),%rax # <literal-string-64656c00>
+ CLONE 0 0427 [ 1] ret
+-CLONE 0 0428 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x126c8>
++CLONE 0 0428 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
+ CLONE 0 042f [ 1] ret

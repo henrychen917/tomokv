@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-wave8/build/wave8/commands/pre-normal-SET-1s-1-1--1.log
+SHA-256: 10763b9bd9be5dec9edeb425f4eb3f39c152f893a306bb477d742dbf2c78d377
+Exit: 0
+0x0000555555c81588	2345	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
+0x0000555555c81453 in tomo::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff61cf208, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2348
+2348	    }
+0x0000555555c81458	2348	    }
+0x0000555555c81461	2348	    }
+0x0000555555c81467	2348	    }
+0x0000555555c8146b	2348	    }
+0x0000555555c8146c	2348	    }
+0x0000555555c8146e	2348	    }
+0x0000555555c81470	2348	    }
+0x0000555555c81472	2348	    }
+0x0000555555c81474	2348	    }
+0x0000555555c81475	2348	    }
+0x0000555555d5f838 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8/tests/txnorder_command_scope.cc:72
+72	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 2438151) exited normally]
+COUNT 1078

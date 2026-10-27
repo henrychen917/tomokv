@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-normal-EXEC-single-2s-4-1--1.log
+SHA-256: be585aa1037e6de545974a903c238ca9e00f5fd8eddd4c56d2967ea3dc2b72e1
+Exit: 0
+2859	    for (size_t i = 0; i < deferred.size();) {
+0x0000555555a7dc2e	2859	    for (size_t i = 0; i < deferred.size();) {
+0x0000555555a7dc5b	2868	}
+0x0000555555a7dc5f	2868	}
+0x0000555555a7dc62	2868	}
+0x0000555555a7dc63	2868	}
+0x0000555555a7dc64	2868	}
+0x0000555555a7dc66	2868	}
+0x0000555555a7dc68	2868	}
+tomo::CoreConcurrencyTest::need (v=true) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:38
+38	 static void need(bool v){if(!v)std::abort();}
+0x0000555555d91e4f	38	 static void need(bool v){if(!v)std::abort();}
+0x0000555555d91e56	38	 static void need(bool v){if(!v)std::abort();}
+0x0000555555d91e5c in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=4, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:115
+115	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
+30	[[gnu::noinline]] void scope_end(){
+[Inferior 1 (process 2334262) exited normally]
+COUNT 36295

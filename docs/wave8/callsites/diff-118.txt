@@ -1,0 +1,15 @@
+singlevaraux
+--- headline
+
++++ post
+
+@@ -136,7 +136,7 @@
+
+ CLONE 0 01ce [ 4] mov 0x20(%rbx),%rdi
+ CLONE 0 01d2 [ 3] mov %r15,%rsi
+ CLONE 0 01d5 [ 4] lea 0x48(%r13),%rdx
+-CLONE 0 01d9 [ 7] lea <rip>(%rip),%r9 # <_IO_stdin_used+0x126c8>
++CLONE 0 01d9 [ 7] lea <rip>(%rip),%r9 # <_IO_stdin_used+0x788>
+ CLONE 0 01e0 [ 6] mov $0x7ffffffd,%r8d
+ CLONE 0 01e6 [ 5] mov $0x8,%ecx
+ CLONE 0 01eb [ 5] call <luaM_growaux_>

@@ -1,0 +1,44 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-71",
+    "--load-cores",
+    "72-79",
+    "--load-smt",
+    "",
+    "--ports",
+    "20020-20029",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave8b/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave8b",
+  "env": {
+    "LANG": "en_US.UTF-8",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_ONLY_JOBS": "debug-0 debug-1 script_bounds notify",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_ZC_NET_IO": "uring",
+    "GATE_SHUTDOWN_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TXN_FUSED": "1",
+    "GATE_TEST_PORT": "20098",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-debug-uring-1s.tsv",
+    "GATE_PROOF_NO_RATES": "1"
+  },
+  "binary_sha256": "4acdb9baab221726b46589a965802c4175439b9670077997690c20a0c37e040b",
+  "source_commit": "2000bf158edd1bea388efe477c032c3e862000fe",
+  "gate_sha256": "e804a2acdfd68f7b2ce6b619dd36cba82bb7e78e2b99063469e8d1be5572e6ff",
+  "started": 1793102566.5048208,
+  "exit": 0,
+  "seconds": 233.05923557281494,
+  "artifacts": "/home/user/Projects/cx-wave8b/build/gate-run.ip6jb1",
+  "summary": [
+    "GATE(PARTIAL): 41 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-debug-uring-1s.tsv.partial"
+  ],
+  "binary_unchanged": true
+}

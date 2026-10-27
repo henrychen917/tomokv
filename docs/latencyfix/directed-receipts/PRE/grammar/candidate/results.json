@@ -1,0 +1,1259 @@
+{
+  "binary": "/home/user/Projects/cx-latencyfix/build/latencyfix/pre/tomokv",
+  "sha256": "5e708c7aa744e251f1c1005a06f03f1815c08c97cd965c1a95ad650844e4ea68",
+  "checks": [
+    {
+      "label": "1s-uring explicit default deviation",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "1s-uring percentiles default",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "latency-tracking:0",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:1",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:2",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:3",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:4",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:5",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:6",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:7",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:8",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:9",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:0",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:1",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:2",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:3",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:4",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:5",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:6",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:7",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:8",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:9",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:10",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:11",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:12",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:13",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:14",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:15",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:16",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'LATENCY-TRACKING-INFO-PERCENTILES', '2')",
+      "passed": false,
+      "actual": {
+        "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'timeout', 'bad')",
+      "passed": false,
+      "actual": {
+        "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '50', '99')",
+      "passed": true,
+      "actual": {
+        "error": "ERR syntax error"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking', 'bad', 'no-such-knob', 'x')",
+      "passed": false,
+      "actual": {
+        "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+      }
+    },
+    {
+      "label": "1s-uring complete battery",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll explicit default deviation",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "1s-epoll percentiles default",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "latency-tracking:0",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:1",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:2",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:3",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:4",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:5",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:6",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:7",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:8",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:9",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:0",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:1",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:2",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:3",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:4",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:5",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:6",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:7",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:8",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:9",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:10",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:11",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:12",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:13",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:14",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:15",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:16",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'LATENCY-TRACKING-INFO-PERCENTILES', '2')",
+      "passed": false,
+      "actual": {
+        "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'timeout', 'bad')",
+      "passed": false,
+      "actual": {
+        "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '50', '99')",
+      "passed": true,
+      "actual": {
+        "error": "ERR syntax error"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking', 'bad', 'no-such-knob', 'x')",
+      "passed": false,
+      "actual": {
+        "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+      }
+    },
+    {
+      "label": "1s-epoll complete battery",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-uring explicit default deviation",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "2s-uring percentiles default",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "latency-tracking:0",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:1",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:2",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:3",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:4",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:5",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:6",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:7",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:8",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:9",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:0",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:1",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:2",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:3",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:4",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:5",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:6",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:7",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:8",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:9",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:10",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:11",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:12",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:13",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:14",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:15",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:16",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'LATENCY-TRACKING-INFO-PERCENTILES', '2')",
+      "passed": false,
+      "actual": {
+        "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'timeout', 'bad')",
+      "passed": false,
+      "actual": {
+        "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '50', '99')",
+      "passed": true,
+      "actual": {
+        "error": "ERR syntax error"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking', 'bad', 'no-such-knob', 'x')",
+      "passed": false,
+      "actual": {
+        "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+      }
+    },
+    {
+      "label": "2s-uring complete battery",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll explicit default deviation",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "2s-epoll percentiles default",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "latency-tracking:0",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:1",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:2",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:3",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:4",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:5",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:6",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:7",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:8",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking:9",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:0",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:1",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:2",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:3",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:4",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:5",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:6",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:7",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:8",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:9",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:10",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:11",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:12",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:13",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:14",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:15",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:16",
+      "passed": false,
+      "actual": [
+        {
+          "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+        },
+        []
+      ]
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'LATENCY-TRACKING-INFO-PERCENTILES', '2')",
+      "passed": false,
+      "actual": {
+        "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'timeout', 'bad')",
+      "passed": false,
+      "actual": {
+        "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '50', '99')",
+      "passed": true,
+      "actual": {
+        "error": "ERR syntax error"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking', 'bad', 'no-such-knob', 'x')",
+      "passed": false,
+      "actual": {
+        "error": "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"
+      }
+    },
+    {
+      "label": "2s-epoll complete battery",
+      "passed": false,
+      "actual": false
+    }
+  ],
+  "slowlog": {}
+}

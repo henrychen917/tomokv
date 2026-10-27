@@ -1,0 +1,1564 @@
+[
+  {
+    "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, false>() const",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      1078
+    ],
+    "post_sizes": [
+      1078
+    ]
+  },
+  {
+    "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, true>() const",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      1094
+    ],
+    "post_sizes": [
+      1094
+    ]
+  },
+  {
+    "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      1190
+    ],
+    "post_sizes": [
+      1190
+    ]
+  },
+  {
+    "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, false>() const",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      1133
+    ],
+    "post_sizes": [
+      1133
+    ]
+  },
+  {
+    "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, true>() const",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      1094
+    ],
+    "post_sizes": [
+      1094
+    ]
+  },
+  {
+    "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      1190
+    ],
+    "post_sizes": [
+      1190
+    ]
+  },
+  {
+    "name": "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      3868
+    ],
+    "post_sizes": [
+      3868
+    ]
+  },
+  {
+    "name": "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      3564
+    ],
+    "post_sizes": [
+      3564
+    ]
+  },
+  {
+    "name": "bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      3416
+    ],
+    "post_sizes": [
+      3416
+    ]
+  },
+  {
+    "name": "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      3867
+    ],
+    "post_sizes": [
+      3867
+    ]
+  },
+  {
+    "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      3563
+    ],
+    "post_sizes": [
+      3563
+    ]
+  },
+  {
+    "name": "bool tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      3415
+    ],
+    "post_sizes": [
+      3415
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::allocate_state(tomo::Server&, tomo::Client&, unsigned int, tomo::MultiStateKind, unsigned long)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      3169
+    ],
+    "post_sizes": [
+      3169
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::allocate_state(tomo::Server&, tomo::Client&, unsigned int, tomo::MultiStateKind, unsigned long) [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      78
+    ],
+    "post_sizes": [
+      78
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::assemble_final(tomo::Client&, tomo::Op&, tomo::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      7109
+    ],
+    "post_sizes": [
+      7109
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::build_groups(tomo::ScatterState&, unsigned int const*, unsigned int)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      510
+    ],
+    "post_sizes": [
+      510
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      929
+    ],
+    "post_sizes": [
+      929
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::classify_keys(tomo::Op&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyPlan&) [clone .constprop.0]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      705
+    ],
+    "post_sizes": [
+      705
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::classify_keys(tomo::Op&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyPlan&) [clone .constprop.0] [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      42
+    ],
+    "post_sizes": [
+      42
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      9724
+    ],
+    "post_sizes": [
+      9724
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&) [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      1090
+    ],
+    "post_sizes": [
+      1090
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::finish_phase2(tomo::ScatterState&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      494
+    ],
+    "post_sizes": [
+      494
+    ]
+  },
+  {
+    "name": "tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#1}::_FUN(void*, tomo::Task const&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      16
+    ],
+    "post_sizes": [
+      16
+    ]
+  },
+  {
+    "name": "tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)::{lambda(void*, unsigned long)#1}::_FUN(void*, unsigned long)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      110
+    ],
+    "post_sizes": [
+      110
+    ]
+  },
+  {
+    "name": "tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#1}::_FUN(void*, tomo::Task const&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      16
+    ],
+    "post_sizes": [
+      16
+    ]
+  },
+  {
+    "name": "tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)::{lambda(void*, unsigned long)#1}::_FUN(void*, unsigned long)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      110
+    ],
+    "post_sizes": [
+      110
+    ]
+  },
+  {
+    "name": "tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#1}::_FUN(void*, tomo::Task const&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      16
+    ],
+    "post_sizes": [
+      16
+    ]
+  },
+  {
+    "name": "tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)::{lambda(void*, unsigned long)#1}::_FUN(void*, unsigned long)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      110
+    ],
+    "post_sizes": [
+      110
+    ]
+  },
+  {
+    "name": "tomo::ExLoopT<true>::local_mget_final_reason(tomo::Op const&, unsigned long const*, int const*, unsigned int, bool, tomo::ReadLocalFallbackReason) const",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      457
+    ],
+    "post_sizes": [
+      457
+    ]
+  },
+  {
+    "name": "tomo::ExLoopT<true>::prepare_captured_local_mget(tomo::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      4626
+    ],
+    "post_sizes": [
+      4626
+    ]
+  },
+  {
+    "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      2249
+    ],
+    "post_sizes": [
+      2249
+    ]
+  },
+  {
+    "name": "tomo::Rob<64u>::arm_current_local_mget_fence()",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      26
+    ],
+    "post_sizes": [
+      26
+    ]
+  },
+  {
+    "name": "tomo::ScatterFinish tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      1727
+    ],
+    "post_sizes": [
+      1727
+    ]
+  },
+  {
+    "name": "tomo::ScatterFinish tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      1727
+    ],
+    "post_sizes": [
+      1727
+    ]
+  },
+  {
+    "name": "tomo::cmd_xshard_only(tomo::Shard&, tomo::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      9
+    ],
+    "post_sizes": [
+      9
+    ]
+  },
+  {
+    "name": "tomo::cmd_xshard_only_notify(tomo::Shard&, tomo::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      117
+    ],
+    "post_sizes": [
+      117
+    ]
+  },
+  {
+    "name": "tomo::cmd_xshard_only_notify_body(tomo::Shard&, tomo::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      9
+    ],
+    "post_sizes": [
+      9
+    ]
+  },
+  {
+    "name": "tomo::read_local_command_is_precise_mset(tomo::Op const&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      154
+    ],
+    "post_sizes": [
+      154
+    ]
+  },
+  {
+    "name": "tomo::xshard_aof_emit(tomo::Task const&, tomo::Shard&, tomo::Op&, tomo::AofOwnerContext&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      818
+    ],
+    "post_sizes": [
+      818
+    ]
+  },
+  {
+    "name": "tomo::xshard_aof_emit_local(tomo::Shard&, tomo::Op&, tomo::AofOwnerContext&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      1375
+    ],
+    "post_sizes": [
+      1375
+    ]
+  },
+  {
+    "name": "tomo::xshard_aof_emit_local(tomo::Shard&, tomo::Op&, tomo::AofOwnerContext&) [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      174
+    ],
+    "post_sizes": [
+      174
+    ]
+  },
+  {
+    "name": "tomo::xshard_aof_emit_local(tomo::Shard&, tomo::Op&, tomo::AofOwnerContext&)::{lambda(unsigned int)#1}::operator()(unsigned int) const [clone .isra.0]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      142
+    ],
+    "post_sizes": [
+      142
+    ]
+  },
+  {
+    "name": "tomo::xshard_complete(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      9
+    ],
+    "post_sizes": [
+      9
+    ]
+  },
+  {
+    "name": "tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      158
+    ],
+    "post_sizes": [
+      158
+    ]
+  },
+  {
+    "name": "tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      158
+    ],
+    "post_sizes": [
+      158
+    ]
+  },
+  {
+    "name": "tomo::xshard_complete_iofused(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      9
+    ],
+    "post_sizes": [
+      9
+    ]
+  },
+  {
+    "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      21794
+    ],
+    "post_sizes": [
+      21794
+    ]
+  },
+  {
+    "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int) [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      507
+    ],
+    "post_sizes": [
+      507
+    ]
+  },
+  {
+    "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::ScriptApplyPins::~ScriptApplyPins()",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      225
+    ],
+    "post_sizes": [
+      225
+    ]
+  },
+  {
+    "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(unsigned long, tomo::Slice, bool)#1}::operator()(unsigned long, tomo::Slice, bool) const",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      228
+    ],
+    "post_sizes": [
+      228
+    ]
+  },
+  {
+    "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      1747
+    ],
+    "post_sizes": [
+      1747
+    ]
+  },
+  {
+    "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      45
+    ],
+    "post_sizes": [
+      45
+    ]
+  },
+  {
+    "name": "tomo::xshard_is_local(tomo::Op const&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      15
+    ],
+    "post_sizes": [
+      15
+    ]
+  },
+  {
+    "name": "tomo::xshard_plain_finish(tomo::Shard&, tomo::PlainForeignReadScope&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      598
+    ],
+    "post_sizes": [
+      598
+    ]
+  },
+  {
+    "name": "tomo::xshard_plain_finish(tomo::Shard&, tomo::PlainForeignReadScope&) [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      5
+    ],
+    "post_sizes": [
+      5
+    ]
+  },
+  {
+    "name": "tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeignReadScope&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      7322
+    ],
+    "post_sizes": [
+      7322
+    ]
+  },
+  {
+    "name": "tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeignReadScope&) [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      242
+    ],
+    "post_sizes": [
+      242
+    ]
+  },
+  {
+    "name": "tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeignReadScope&)::{lambda(unsigned long, tomo::Slice)#1}::operator()(unsigned long, tomo::Slice) const",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      560
+    ],
+    "post_sizes": [
+      560
+    ]
+  },
+  {
+    "name": "tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeignReadScope&)::{lambda(unsigned long, tomo::Slice)#1}::operator()(unsigned long, tomo::Slice) const [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      47
+    ],
+    "post_sizes": [
+      47
+    ]
+  },
+  {
+    "name": "tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeignReadScope&)::{lambda(unsigned long, tomo::Slice)#2}::operator()(unsigned long, tomo::Slice) const",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      854
+    ],
+    "post_sizes": [
+      854
+    ]
+  },
+  {
+    "name": "tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeignReadScope&)::{lambda(unsigned long, tomo::Slice)#2}::operator()(unsigned long, tomo::Slice) const [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      47
+    ],
+    "post_sizes": [
+      47
+    ]
+  },
+  {
+    "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      18231
+    ],
+    "post_sizes": [
+      18231
+    ]
+  },
+  {
+    "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*) [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      573
+    ],
+    "post_sizes": [
+      573
+    ]
+  },
+  {
+    "name": "tomo::xshard_queue_commit(tomo::Server&, tomo::ThreadCtx&, tomo::Task const&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      375
+    ],
+    "post_sizes": [
+      375
+    ]
+  },
+  {
+    "name": "tomo::xshard_queue_commit(tomo::Server&, tomo::ThreadCtx&, tomo::Task const&) [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      6
+    ],
+    "post_sizes": [
+      6
+    ]
+  },
+  {
+    "name": "tomo::xshard_retire(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*))",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      543
+    ],
+    "post_sizes": [
+      543
+    ]
+  },
+  {
+    "name": "tomo::xshard_retire(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*)) [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      5
+    ],
+    "post_sizes": [
+      5
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::allocate_state(tomo_db0::Server&, tomo_db0::Client&, unsigned int, tomo_db0::MultiStateKind, unsigned long)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      3169
+    ],
+    "post_sizes": [
+      3169
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::allocate_state(tomo_db0::Server&, tomo_db0::Client&, unsigned int, tomo_db0::MultiStateKind, unsigned long) [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      78
+    ],
+    "post_sizes": [
+      78
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::assemble_final(tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      7125
+    ],
+    "post_sizes": [
+      7125
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::build_groups(tomo_db0::ScatterState&, unsigned int const*, unsigned int)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      510
+    ],
+    "post_sizes": [
+      510
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      947
+    ],
+    "post_sizes": [
+      947
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyPlan&) [clone .constprop.0]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      705
+    ],
+    "post_sizes": [
+      705
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyPlan&) [clone .constprop.0] [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      42
+    ],
+    "post_sizes": [
+      42
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::finish_phase1(tomo_db0::ScatterState&, tomo_db0::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      9772
+    ],
+    "post_sizes": [
+      9772
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::finish_phase1(tomo_db0::ScatterState&, tomo_db0::Op&) [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      1075
+    ],
+    "post_sizes": [
+      1075
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::finish_phase2(tomo_db0::ScatterState&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      494
+    ],
+    "post_sizes": [
+      494
+    ]
+  },
+  {
+    "name": "tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#1}::_FUN(void*, tomo_db0::Task const&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      16
+    ],
+    "post_sizes": [
+      16
+    ]
+  },
+  {
+    "name": "tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)::{lambda(void*, unsigned long)#1}::_FUN(void*, unsigned long)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      110
+    ],
+    "post_sizes": [
+      110
+    ]
+  },
+  {
+    "name": "tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#1}::_FUN(void*, tomo_db0::Task const&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      16
+    ],
+    "post_sizes": [
+      16
+    ]
+  },
+  {
+    "name": "tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)::{lambda(void*, unsigned long)#1}::_FUN(void*, unsigned long)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      110
+    ],
+    "post_sizes": [
+      110
+    ]
+  },
+  {
+    "name": "tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#1}::_FUN(void*, tomo_db0::Task const&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      16
+    ],
+    "post_sizes": [
+      16
+    ]
+  },
+  {
+    "name": "tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)::{lambda(void*, unsigned long)#1}::_FUN(void*, unsigned long)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      110
+    ],
+    "post_sizes": [
+      110
+    ]
+  },
+  {
+    "name": "tomo_db0::ExLoopT<true>::local_mget_final_reason(tomo_db0::Op const&, unsigned long const*, int const*, unsigned int, bool, tomo_db0::ReadLocalFallbackReason) const",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      457
+    ],
+    "post_sizes": [
+      457
+    ]
+  },
+  {
+    "name": "tomo_db0::ExLoopT<true>::prepare_captured_local_mget(tomo_db0::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      5089
+    ],
+    "post_sizes": [
+      5089
+    ]
+  },
+  {
+    "name": "tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::ReadLocalPrefetchCapture const*)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      2249
+    ],
+    "post_sizes": [
+      2249
+    ]
+  },
+  {
+    "name": "tomo_db0::Rob<64u>::arm_current_local_mget_fence()",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      26
+    ],
+    "post_sizes": [
+      26
+    ]
+  },
+  {
+    "name": "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      1727
+    ],
+    "post_sizes": [
+      1727
+    ]
+  },
+  {
+    "name": "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      1727
+    ],
+    "post_sizes": [
+      1727
+    ]
+  },
+  {
+    "name": "tomo_db0::cmd_xshard_only(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      9
+    ],
+    "post_sizes": [
+      9
+    ]
+  },
+  {
+    "name": "tomo_db0::cmd_xshard_only_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      117
+    ],
+    "post_sizes": [
+      117
+    ]
+  },
+  {
+    "name": "tomo_db0::cmd_xshard_only_notify_body(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      9
+    ],
+    "post_sizes": [
+      9
+    ]
+  },
+  {
+    "name": "tomo_db0::read_local_command_is_precise_mset(tomo_db0::Op const&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      154
+    ],
+    "post_sizes": [
+      154
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_aof_emit(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::AofOwnerContext&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      1045
+    ],
+    "post_sizes": [
+      1045
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_aof_emit_local(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::AofOwnerContext&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      1375
+    ],
+    "post_sizes": [
+      1375
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_aof_emit_local(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::AofOwnerContext&) [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      174
+    ],
+    "post_sizes": [
+      174
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_aof_emit_local(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::AofOwnerContext&)::{lambda(unsigned int)#1}::operator()(unsigned int) const [clone .isra.0]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      142
+    ],
+    "post_sizes": [
+      142
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_complete(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      9
+    ],
+    "post_sizes": [
+      9
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      158
+    ],
+    "post_sizes": [
+      158
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      158
+    ],
+    "post_sizes": [
+      158
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_complete_iofused(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      9
+    ],
+    "post_sizes": [
+      9
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      23675
+    ],
+    "post_sizes": [
+      23675
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      399
+    ],
+    "post_sizes": [
+      399
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::ScriptApplyPins::~ScriptApplyPins()",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      209
+    ],
+    "post_sizes": [
+      209
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(unsigned long, tomo_db0::Slice, bool)#1}::operator()(unsigned long, tomo_db0::Slice, bool) const",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      228
+    ],
+    "post_sizes": [
+      228
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      1747
+    ],
+    "post_sizes": [
+      1747
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      45
+    ],
+    "post_sizes": [
+      45
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_is_local(tomo_db0::Op const&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      15
+    ],
+    "post_sizes": [
+      15
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_plain_finish(tomo_db0::Shard&, tomo_db0::PlainForeignReadScope&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      598
+    ],
+    "post_sizes": [
+      598
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_plain_finish(tomo_db0::Shard&, tomo_db0::PlainForeignReadScope&) [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      5
+    ],
+    "post_sizes": [
+      5
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::PlainForeignReadScope&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      7322
+    ],
+    "post_sizes": [
+      7322
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::PlainForeignReadScope&) [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      240
+    ],
+    "post_sizes": [
+      240
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::PlainForeignReadScope&)::{lambda(unsigned long, tomo_db0::Slice)#1}::operator()(unsigned long, tomo_db0::Slice) const",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      560
+    ],
+    "post_sizes": [
+      560
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::PlainForeignReadScope&)::{lambda(unsigned long, tomo_db0::Slice)#1}::operator()(unsigned long, tomo_db0::Slice) const [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      47
+    ],
+    "post_sizes": [
+      47
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::PlainForeignReadScope&)::{lambda(unsigned long, tomo_db0::Slice)#2}::operator()(unsigned long, tomo_db0::Slice) const",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      811
+    ],
+    "post_sizes": [
+      811
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::PlainForeignReadScope&)::{lambda(unsigned long, tomo_db0::Slice)#2}::operator()(unsigned long, tomo_db0::Slice) const [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      47
+    ],
+    "post_sizes": [
+      47
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      18665
+    ],
+    "post_sizes": [
+      18665
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*) [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      558
+    ],
+    "post_sizes": [
+      558
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      375
+    ],
+    "post_sizes": [
+      375
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&) [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      6
+    ],
+    "post_sizes": [
+      6
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_retire(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*))",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      543
+    ],
+    "post_sizes": [
+      543
+    ]
+  },
+  {
+    "name": "tomo_db0::xshard_retire(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*)) [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      5
+    ],
+    "post_sizes": [
+      5
+    ]
+  },
+  {
+    "name": "unsigned int tomo::FlatStore::scan_home<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}>(int, unsigned int, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}&, bool)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      1345
+    ],
+    "post_sizes": [
+      1345
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      1422
+    ],
+    "post_sizes": [
+      1422
+    ]
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      1072
+    ],
+    "post_sizes": [
+      1072
+    ]
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_get<true, false>(tomo::Shard&, tomo::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      792
+    ],
+    "post_sizes": [
+      792
+    ]
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_get<true, true>(tomo::Shard&, tomo::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      1088
+    ],
+    "post_sizes": [
+      1088
+    ]
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_set<false>(tomo::Shard&, tomo::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      2201
+    ],
+    "post_sizes": [
+      2201
+    ]
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_set<true>(tomo::Shard&, tomo::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      2163
+    ],
+    "post_sizes": [
+      2163
+    ]
+  },
+  {
+    "name": "void tomo::FlatStore::atomic_for_each_unique_key<tomo::FlatStore::atomic_for_each_side_key<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}>(unsigned long, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&)::{lambda(unsigned long, tomo::Slice)#1}>(tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&) [clone .isra.0]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      2394
+    ],
+    "post_sizes": [
+      2394
+    ]
+  },
+  {
+    "name": "void tomo::FlatStore::atomic_for_each_unique_key<tomo::FlatStore::atomic_for_each_side_key<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}>(unsigned long, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&)::{lambda(unsigned long, tomo::Slice)#1}>(tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&) [clone .isra.0] [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      5
+    ],
+    "post_sizes": [
+      5
+    ]
+  },
+  {
+    "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      15966
+    ],
+    "post_sizes": [
+      15966
+    ]
+  },
+  {
+    "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      17131
+    ],
+    "post_sizes": [
+      17131
+    ]
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_get<false, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      1072
+    ],
+    "post_sizes": [
+      1072
+    ]
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_get<true, false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      776
+    ],
+    "post_sizes": [
+      776
+    ]
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_get<true, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      1088
+    ],
+    "post_sizes": [
+      1088
+    ]
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_set<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      2201
+    ],
+    "post_sizes": [
+      2201
+    ]
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_set<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      2162
+    ],
+    "post_sizes": [
+      2162
+    ]
+  },
+  {
+    "name": "void tomo_db0::FlatStore::atomic_for_each_unique_key<tomo_db0::FlatStore::atomic_for_each_side_key<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}>(unsigned long, tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&)::{lambda(unsigned long, tomo_db0::Slice)#1}>(tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&) [clone .isra.0]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      2219
+    ],
+    "post_sizes": [
+      2219
+    ]
+  },
+  {
+    "name": "void tomo_db0::FlatStore::atomic_for_each_unique_key<tomo_db0::FlatStore::atomic_for_each_side_key<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}>(unsigned long, tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&)::{lambda(unsigned long, tomo_db0::Slice)#1}>(tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&) [clone .isra.0] [clone .cold]",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      5
+    ],
+    "post_sizes": [
+      5
+    ]
+  },
+  {
+    "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      15887
+    ],
+    "post_sizes": [
+      15887
+    ]
+  },
+  {
+    "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": true,
+    "equal": true,
+    "pre_sizes": [
+      17185
+    ],
+    "post_sizes": [
+      17185
+    ]
+  }
+]

@@ -1,0 +1,21 @@
+{
+  "kind": "A: PRE behaviour with POST text size/layout",
+  "patches": [
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_121open_helper_librariesEP9lua_State",
+      "address": 2710736,
+      "offset": 2710736,
+      "old": 85,
+      "new": 195
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_121open_helper_librariesEP9lua_State",
+      "address": 6663584,
+      "offset": 6663584,
+      "old": 72,
+      "new": 195
+    }
+  ],
+  "post_sha256": "cf8cddadec95ade45d73c37bac6b635a9313106c45de99c74d09f7e1c17a3eb5",
+  "pad_sha256": "b76624ca330e80b2fded1ba5464da1f6f1c31ac42c94267574bd3d4676151ad4"
+}

@@ -21,3 +21,10 @@ int __wrap_main(int argc, char** argv) {
     return __real_main(argc, argv);
 }
 #endif
+
+#if !TOMO_SINGLE_DATABASE
+// PRE -> stable assertions shrinks the linked, suffix-merged .rodata by 1152
+// bytes. Preserve the following sections' addresses; this is measured ELF size,
+// not the sum of the removed literals. Only the last-linked variant owns it.
+[[gnu::used, gnu::aligned(1)]] static const unsigned char assertion_rodata_pad[1152] = {};
+#endif

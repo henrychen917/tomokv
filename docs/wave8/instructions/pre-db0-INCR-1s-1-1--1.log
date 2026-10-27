@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-wave8/build/wave8/commands/pre-db0-INCR-1s-1-1--1.log
+SHA-256: 9ff2b359c369f2a86fcedefd36e956e58474559a8152117aa6308ef2de891ca3
+Exit: 0
+PASS bounded production command scope
+fff6183208, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2348
+2348	    }
+0x00005555558ac958	2348	    }
+0x00005555558ac961	2348	    }
+0x00005555558ac967	2348	    }
+0x00005555558ac96b	2348	    }
+0x00005555558ac96c	2348	    }
+0x00005555558ac96e	2348	    }
+0x00005555558ac970	2348	    }
+0x00005555558ac972	2348	    }
+0x00005555558ac974	2348	    }
+0x00005555558ac975	2348	    }
+0x0000555555d5fb44 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8/tests/txnorder_command_scope.cc:72
+72	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 2475805) exited normally]
+COUNT 1324

@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/headline-db0-MSET-1s-1-0--1.log
+SHA-256: 3bee16eb1bcd49b073217c8cd8b055d02e18cc47b913e6cebc18601ccb1b9d75
+Exit: 0
+0x0000555555691461	0x0000555555691463	0x0000555555691465	94	    construct_at(_Tp* __location, _Args&&... __args)
+0x000055555569146d in std::construct_at<void*, void*> (__location=0x7ffff6359080) at /usr/include/c++/13/bits/stl_construct.h:97
+97	    { return ::new((void*)__location) _Tp(std::forward<_Args>(__args)...); }
+tomo_db0::ScatterArenaPool::release (pooled=true, ptr=0x7ffff6359080, this=0x7ffffffd9d30) at src/cmd/xshard.cc:1590
+0x000055555569147c in tomo_db0::xshard_destroy (state=0x7ffff6359080, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2311
+0x000055555569147d	0x000055555569147e	0x0000555555691480	0x0000555555691482	0x0000555555691484	0x0000555555d60bc7 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
+180	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
+163	   for(unsigned i=0;i<n;i++){
+0x0000555555d60bd3	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d60bda	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d60be2	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d60be9	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d60bef	183	   std::string want="+OK\r\n";
+0x0000555555d60bf6	183	   std::string want="+OK\r\n";
+0x0000555555d60bfd	182	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
+30	[[gnu::noinline]] void scope_end(){
+[Inferior 1 (process 2946723) exited normally]
+COUNT 11143

@@ -1,0 +1,15 @@
+str_sub
+--- headline
+
++++ post
+
+@@ -52,7 +52,7 @@
+
+ CLONE 0 00b8 [ 6] jae <+0x1b0>
+ CLONE 0 00be [ 4] mov 0x10(%rbx),%rbp
+ CLONE 0 00c2 [ 2] xor %edx,%edx
+-CLONE 0 00c4 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x126c8>
++CLONE 0 00c4 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x788>
+ CLONE 0 00cb [ 3] mov %rbx,%rdi
+ CLONE 0 00ce [ 5] call <luaS_newlstr>
+ CLONE 0 00d3 [ 4] mov %rax,0x0(%rbp)

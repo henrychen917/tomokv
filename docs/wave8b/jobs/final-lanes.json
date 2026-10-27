@@ -1,0 +1,44 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-71",
+    "--load-cores",
+    "72-79",
+    "--load-smt",
+    "",
+    "--ports",
+    "20020-20029",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave8b/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave8b",
+  "env": {
+    "LANG": "en_US.UTF-8",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_ONLY_JOBS": "source_identity lualibs latencyfix_grammar latencyfix_shape latencyfix_off iofix-deferred iofix-hz iofix-sleep iofix-signal execfair txnorder_index txnorder2 txnorder_wake reorder_identity reorder_sync reorder_engagement wb_rule_units wbland_units scriptfix atomfix5_watch datafix2_watch blockfix_structure blockfix_registry blockfix_mkstream serverfix_slowlog rlfix3_info compat3 netcmd_units atomic_units splitlocal_units exbatch_units moverfix core_units wait_units serverfix_waitaof netio-1s netio-2s wave8b_off authfix bugs5 ntfix_input netfix_query_stats persistfix2_lastsave racefix_counters",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_ZC_NET_IO": "uring",
+    "GATE_SHUTDOWN_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TEST_PORT": "20098",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-lanes.tsv",
+    "GATE_PROOF_NO_RATES": "1"
+  },
+  "binary_sha256": "4acdb9baab221726b46589a965802c4175439b9670077997690c20a0c37e040b",
+  "source_commit": "e42a75b6e0290216e211467178c9fbf1e3976818",
+  "gate_sha256": "e804a2acdfd68f7b2ce6b619dd36cba82bb7e78e2b99063469e8d1be5572e6ff",
+  "started": 1793099515.2789118,
+  "exit": 1,
+  "seconds": 1603.242817401886,
+  "artifacts": "/home/user/Projects/cx-wave8b/build/gate-run.Wf7bsF",
+  "summary": [
+    "GATE(PARTIAL): 146 ok, 3 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-lanes.tsv.partial"
+  ],
+  "binary_unchanged": true
+}

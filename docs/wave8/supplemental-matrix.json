@@ -1,0 +1,47 @@
+{
+  "once": [
+    "core_units",
+    "exbatch_units",
+    "asan",
+    "rldbg",
+    "netfix_query_stats",
+    "ntfix_input",
+    "persistfix2_lastsave",
+    "racefix_counters",
+    "notify_aof",
+    "notify_order",
+    "notifycompat",
+    "exbatch_live",
+    "atomfix5_accounting",
+    "acl_recheck",
+    "aclfix",
+    "authfix",
+    "bugs5",
+    "rlcache"
+  ],
+  "each_mode": [
+    "aof-epoll",
+    "aof-uring",
+    "snapshot-epoll",
+    "snapshot-uring"
+  ],
+  "each_mode_engine": [
+    "notify",
+    "asan_batteries"
+  ],
+  "quiet_after": [
+    "gates_test.py",
+    "abba_selftest"
+  ],
+  "each_engine": [
+    "multidb-1s-0-0",
+    "multidb-1s-0-1",
+    "multidb-1s-1-0",
+    "multidb-1s-1-1",
+    "multidb-2s-0-0",
+    "multidb-2s-0-1",
+    "multidb-2s-1-0",
+    "multidb-2s-1-1"
+  ],
+  "build_only": "production_units runs as the prerequisite of its selected consuming jobs; 49 concrete freshness checks are recorded separately."
+}

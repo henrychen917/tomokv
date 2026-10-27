@@ -56,7 +56,7 @@
                 if (no_touch) srv_->climon_note_no_touch();
             }
             const MultiTaskResult result = execute_multi_unit(t, shard,
-                [](void* loop, const Task& next) {
+                [](void* loop, MultiOwnerRetryNode& next) {
                     static_cast<ExLoopT*>(loop)->promote_multi_retry(next);
                 });
             shard.publish_size();
@@ -65,7 +65,7 @@
                 return true;
             }
             if (result == MultiTaskResult::Retry) {
-                multi_retries_.push_back(t);
+                queue_multi_retry(t);
                 return true;
             }
             if (result == MultiTaskResult::Final) {
@@ -98,7 +98,9 @@
                     sh.store().maxmemory_policy() != MaxmemoryPolicy::NoEviction,
                     false)) {
                 ReadLocalPreciseWriteGuard no_evict(sh.store());
-                if constexpr (Timed)
+                if constexpr (LatencyTracking)
+                    return execute_latency<IofusedPrivateQueue, true>(t);
+                else if constexpr (Timed)
                     return execute_timed<IofusedPrivateQueue, true>(t);
                 else
                     return execute<IofusedPrivateQueue, true>(t);
@@ -152,9 +154,14 @@
             tracking_observe_read(sh, op);
 
         if (t.scatter) {
-            const ScatterTaskResult result = sh.has_watches()
-                ? watch_execute_scatter(t, sh, op, self_->id())
-                : xshard_execute(t, sh, op, self_->id());
+            const ScatterTaskResult result = [&] {
+                if constexpr (LatencyTracking) return sh.has_watches()
+                    ? latency_watch_execute(t, sh, op, self_->id())
+                    : latency_xshard_execute(t, sh, op, self_->id());
+                else return sh.has_watches()
+                    ? watch_execute_scatter(t, sh, op, self_->id())
+                    : xshard_execute(t, sh, op, self_->id());
+            }();
             if (result == ScatterTaskResult::Defer) {
                 atomic_deferred_.push_back(t);
                 return true;

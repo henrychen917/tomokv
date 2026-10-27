@@ -1,0 +1,23 @@
+id_decimal	id_hex	file:line	function	condition	salt_or_pin
+2454250637	0x9248e48d	src/cmd/multi.inc:3612	tomo::Shard::watch_append_reservation	handle && ! reservation . mutates	salt=0
+3794585279	0xe22cc6bf	src/cmd/storesize.cc:160	tomo::FlatStore::storesize_replace	row . keys	salt=0
+3139673042	0xbb239bd2	src/cmd/storesize.cc:165	tomo::FlatStore::storesize_replace	row . expires && row . deadlines >= static_cast < uint64_t > ( at )	salt=0
+2186180554	0x824e77ca	src/cmd/storesize.cc:183	tomo::FlatStore::storesize_deadline	row . expires && row . deadlines >= static_cast < uint64_t > ( old )	salt=0
+3248246403	0xc19c4e83	src/cmd/txn_key_queue.h:54	tomo::TxnWaiter::operator=	! queue	salt=0
+4213168223	0xfb1fd85f	src/cmd/txn_key_queue.h:55	tomo::TxnWaiter::TxnWaiter	! other . queue	salt=0
+2810277921	0xa7817021	src/cmd/txn_key_queue.h:56	tomo::TxnWaiter::operator=	! queue && ! other . queue	salt=0
+2808554486	0xa76723f6	src/cmd/txn_key_queue.h:57	tomo::TxnWaiter::~TxnWaiter	! queue	salt=1
+3105543812	0xb91ad684	src/cmd/txn_key_queue.inc:5	(anonymous)::txn_unlink_waiter	node . waiting	salt=0
+2675944177	0x9f7faaf1	src/cmd/txn_key_queue.inc:33	(anonymous)::txn_link_waiter	! node . waiting	salt=0
+3989672324	0xedcd9184	src/cmd/txn_retry_queue.h:14	tomo::MultiOwnerRetryNode::~MultiOwnerRetryNode	! lane . load ( std :: memory_order_relaxed )	salt=0
+4013807346	0xef3dd6f2	src/cmd/txn_retry_queue.h:24	tomo::TxnRetryQueues::link	! node . lane . load ( std :: memory_order_relaxed )	salt=0
+2442986799	0x919d052f	src/cmd/txn_retry_queue.h:33	tomo::TxnRetryQueues::unlink	node . lane . load ( std :: memory_order_relaxed ) == this	salt=0
+2184563561	0x8235cb69	src/core/shard.h:68	tomo::Shard::init	bucket_begin <= bucket_end && bucket_end <= kNumBuckets	salt=0
+2335632193	0x8b36eb41	src/store/flatstore.h:2311	tomo::FlatStore::make_word	"( pointer & ~ kPtrMask ) == 0 && ""KvObj pointer exceeds FlatStore's 48-bit encoding"""	salt=0
+2624877285	0x9c7472e5	third_party/lua/helpers/fpconv.c:158	set_number_format	1 <= precision && precision <= 14	pin=2624877285
+3582334890	0xd58617aa	third_party/lua/helpers/lua_cjson.c:894	json_next_string_token	"* json -> ptr == '""'"	pin=3582334890
+2972037835	0xb125b2cb	third_party/lua/helpers/lua_cmsgpack.c:209	mp_encode_double	sizeof ( f ) == 4 && sizeof ( d ) == 8	pin=2972037835
+3819691878	0xe3abdf66	third_party/lua/helpers/lua_cmsgpack.c:555	mp_decode_to_lua_array	len <= UINT_MAX	pin=3819691878
+2478570521	0x93bbfc19	third_party/lua/helpers/lua_cmsgpack.c:569	mp_decode_to_lua_hash	len <= UINT_MAX	pin=2478570521
+2207234096	0x838fb830	third_party/lua/helpers/lua_cmsgpack.c:681	mp_decode_to_lua_type	sizeof ( float ) == 4	pin=2207234096
+3573670745	0xd501e359	third_party/lua/helpers/lua_cmsgpack.c:692	mp_decode_to_lua_type	sizeof ( double ) == 8	pin=3573670745

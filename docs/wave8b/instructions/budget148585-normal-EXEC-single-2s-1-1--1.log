@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/budget148585-normal-EXEC-single-2s-1-1--1.log
+SHA-256: 32d6fa067da75f77a6138029c5083cd86a5ecfe0a3d557eff88b832707c74697
+Exit: 0
+0x0000555555a7dafb in tomo::multi_reap_deferred(std::vector<tomo::MultiExecState*, std::allocator<tomo::MultiExecState*> >&) ()
+0x0000555555a7dafe in tomo::multi_reap_deferred(std::vector<tomo::MultiExecState*, std::allocator<tomo::MultiExecState*> >&) ()
+0x0000555555a7db2b in tomo::multi_reap_deferred(std::vector<tomo::MultiExecState*, std::allocator<tomo::MultiExecState*> >&) ()
+0x0000555555a7db2f in tomo::multi_reap_deferred(std::vector<tomo::MultiExecState*, std::allocator<tomo::MultiExecState*> >&) ()
+0x0000555555a7db32 in tomo::multi_reap_deferred(std::vector<tomo::MultiExecState*, std::allocator<tomo::MultiExecState*> >&) ()
+0x0000555555a7db33 in tomo::multi_reap_deferred(std::vector<tomo::MultiExecState*, std::allocator<tomo::MultiExecState*> >&) ()
+0x0000555555a7db34 in tomo::multi_reap_deferred(std::vector<tomo::MultiExecState*, std::allocator<tomo::MultiExecState*> >&) ()
+0x0000555555a7db36 in tomo::multi_reap_deferred(std::vector<tomo::MultiExecState*, std::allocator<tomo::MultiExecState*> >&) ()
+0x0000555555a7db38 in tomo::multi_reap_deferred(std::vector<tomo::MultiExecState*, std::allocator<tomo::MultiExecState*> >&) ()
+tomo::CoreConcurrencyTest::need (v=true) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:38
+38	 static void need(bool v){if(!v)std::abort();}
+0x0000555555d9163f	38	 static void need(bool v){if(!v)std::abort();}
+0x0000555555d91646	38	 static void need(bool v){if(!v)std::abort();}
+0x0000555555d9164c in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:115
+115	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
+30	[[gnu::noinline]] void scope_end(){
+[Inferior 1 (process 105063) exited normally]
+COUNT 13977

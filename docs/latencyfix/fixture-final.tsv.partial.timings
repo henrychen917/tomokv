@@ -1,0 +1,13 @@
+ok	0.030000	release build (+footprint locks)
+ok	0.930000	R7 generated envelope parity
+ok	13.890000	R7 production engagement (both database runtimes)
+FAIL	104.650000	R7 FIFO twin off-path identity + negative controls
+ok	0.110000	core concurrency watch
+ok	0.320000	core concurrency lifetime
+ok	0.110000	core concurrency drain
+ok	7.180000	core concurrency route
+ok	0.110000	core concurrency snapshot
+ok	0.170000	core concurrency config
+ok	0.170000	core concurrency notify
+ok	0.570000	read-local topology demotion (1s)
+ok	0.570000	read-local topology demotion (2s)

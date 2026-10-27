@@ -1,0 +1,8 @@
+ok	0.030000	release build (+footprint locks)
+ok	0.100000	writeback c12 policy witnesses + negative controls
+ok	5.050000	writeback c12 phase witnesses + negative controls
+ok	1.980000	writeback c12 stages witnesses + negative controls
+ok	5.480000	writeback c12 split-phase witnesses + negative controls
+ok	5.660000	writeback policy clauses witnesses + negative controls
+ok	2.010000	writeback policy paths witnesses + negative controls
+ok	0.920000	splitlocal template forwarding + old-argument controls

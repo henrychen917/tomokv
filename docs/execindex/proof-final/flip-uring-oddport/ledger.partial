@@ -1,0 +1,15 @@
+PARTIAL	0	GATE_ONLY_JOBS=flip fliplisten; NOT A RECEIPT
+ok	0.030000	release build (+footprint locks)
+ok	0.160000	FLIP state battery
+ok	1.040000	FLIP under verified load
+ok	1.540000	FLIP TTL + expiry events
+ok	2.230000	partial-frame conn parks (no io spin)
+ok	2.170000	FLIP close during FLIP (uring)
+ok	2.130000	FLIP close during FLIP (epoll)
+ok	1.050000	FLIP signal stop during FLIP + second SIGINT
+ok	0.550000	perfio stale epoll registration (epoll-flip)
+ok	1.100000	perfio stale epoll registration (epoll-lb)
+FAIL	74.960000	FLIP listener conservation (io-ex, complete)
+ok	27.550000	FLIP listener conservation (io-ex, rollback)
+ok	28.000000	FLIP listener conservation (ex-io, complete)
+ok	27.390000	FLIP listener conservation (ex-io, rollback)

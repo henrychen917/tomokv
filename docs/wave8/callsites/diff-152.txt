@@ -1,0 +1,15 @@
+tomo::(anonymous namespace)::cmd_slowlog(tomo::Shard&, tomo::Op&)
+--- headline
+
++++ post
+
+@@ -972,7 +972,7 @@
+
+ CLONE 0 11f8 [ 2] pop %r13
+ CLONE 0 11fa [ 5] jmp <_ZdlPvm@plt>
+ CLONE 0 11ff [ 7] lea <rip>(%rip),%rax # <literal-string-756e6b6e6f776e3a3000>
+-CLONE 0 1206 [ 7] lea <rip>(%rip),%r15 # <_IO_stdin_used+0x126c8>
++CLONE 0 1206 [ 7] lea <rip>(%rip),%r15 # <_IO_stdin_used+0x788>
+ CLONE 0 120d [10] movl $0x0,-0x130(%rbp)
+ CLONE 0 1217 [10] movl $0x9,-0x118(%rbp)
+ CLONE 0 1221 [ 7] mov %rax,-0x140(%rbp)

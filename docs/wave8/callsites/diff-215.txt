@@ -1,0 +1,25 @@
+tomo::FlipController::sample_role_demand(tomo::Server&, unsigned long, double&, double&, double&)
+--- headline
+
++++ post
+
+@@ -15,7 +15,7 @@
+
+ CLONE 0 0034 [ 2] jae <+0x47>
+ CLONE 0 0036 [ 3] sub %rax,%rdx
+ CLONE 0 0039 [ 6] vcvtusi2sd %rdx,%xmm5,%xmm3
+-CLONE 0 003f [ 8] vmulsd <rip>(%rip),%xmm3,%xmm3 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5e0>
++CLONE 0 003f [ 8] vmulsd <rip>(%rip),%xmm3,%xmm3 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x20>
+ CLONE 0 0047 [ 7] mov 0x103e0(%rsi),%rax
+ CLONE 0 004e [ 7] mov 0x103e8(%rsi),%rdx
+ CLONE 0 0055 [ 4] vpxor %xmm0,%xmm0,%xmm0
+@@ -119,7 +119,7 @@
+
+ CLONE 0 020f [ 6] vmovsd 0x18(%rsp),%xmm2
+ CLONE 0 0215 [ 4] vcomisd %xmm2,%xmm0
+ CLONE 0 0219 [ 2] jae <+0x270>
+-CLONE 0 021b [ 8] vmovq <rip>(%rip),%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x258>
++CLONE 0 021b [ 8] vmovq <rip>(%rip),%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418>
+ CLONE 0 0223 [ 4] vandpd %xmm0,%xmm1,%xmm4
+ CLONE 0 0227 [ 8] vmovsd <rip>(%rip),%xmm3 # <literal-load-ffffffffffffef7f>
+ CLONE 0 022f [ 4] vucomisd %xmm4,%xmm3

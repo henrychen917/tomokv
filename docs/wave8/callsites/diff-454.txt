@@ -1,0 +1,16 @@
+tomo_db0::latency_tracking_script_part(unsigned int, tomo_db0::Op const&, tomo_db0::Op const&, unsigned long) [clone .cold]
+--- headline
+
++++ post
+
+@@ -0,0 +1,9 @@
+
++CLONE 0 0000 [ 3] mov %r13,%rdi
++CLONE 0 0003 [ 3] vzeroupper
++CLONE 0 0006 [ 5] call <pthread_mutex_unlock@plt>
++CLONE 0 000b [ 5] mov 0x48(%rsp),%rax
++CLONE 0 0010 [ 9] sub %fs:0x28,%rax
++CLONE 0 0019 [ 2] jne <+0x23>
++CLONE 0 001b [ 3] mov %rbx,%rdi
++CLONE 0 001e [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0023 [ 5] call <__stack_chk_fail@plt>

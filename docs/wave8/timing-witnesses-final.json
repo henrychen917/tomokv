@@ -1,0 +1,613 @@
+{
+  "binary_sha256": "f94fbd1d57873ff32bdf279b796139e0dd94e8cd7f613d9a7f17832ef86af359",
+  "legs": [
+    {
+      "leg": "execfair-1s-0-epoll-wave8",
+      "source_log": "build/gate-run.eHsQsi/jobs/execfair/execfair-1s-0-epoll-wave8.log",
+      "witnesses": [
+        {
+          "attempt": 0,
+          "histogram": {
+            "multi": 96,
+            "exec": 96,
+            "eval": 32,
+            "incr": 192,
+            "incrby": 64,
+            "mget": 96
+          },
+          "counters": {
+            "script_stage_owner_tasks": 68,
+            "script_run_attempts": 34,
+            "script_validate_owner_tasks": 64,
+            "script_apply_owner_tasks": 64,
+            "script_crossshard_activations": 32,
+            "script_group_commits": 32,
+            "script_group_occ_retries": 2,
+            "script_group_occ_giveups": 0,
+            "script_staged_bytes_total": 6528,
+            "script_crossshard_window_refusals": 0,
+            "script_group_aborts_oom": 0,
+            "script_keys_armed": 64,
+            "script_keys_released": 64,
+            "script_intents_live": 0,
+            "script_write_tickets_forced": 0,
+            "script_flush_generation": 0,
+            "script_interpreter_builds": 2,
+            "script_chunk_cache_hits": 32,
+            "script_chunk_cache_misses": 2,
+            "script_readonly_rejections": 0,
+            "script_effect_writes": 68,
+            "script_failed_after_effects": 0,
+            "atomic_txn_attempts": 97,
+            "atomic_txn_retries": 1,
+            "atomic_txn_dooms": 0,
+            "atomic_txn_wounds": 1,
+            "atomic_txn_waits": 43,
+            "atomic_txn_intents": 0,
+            "atomic_txn_intents_live": 0,
+            "atomic_txn_executed": 96,
+            "atomic_txn_place_waits": 33,
+            "atomic_txn_writer_waits": 0,
+            "atomic_txn_writer_marks": 0,
+            "atomic_txn_blind_restarts": 0,
+            "atomic_txn_readonly": 0,
+            "atomic_txn_order_violations": 0,
+            "atomic_txn_fast_polls": 3277,
+            "atomic_txn_poll_skips": 853
+          }
+        },
+        {
+          "window": "exec",
+          "attempt": 0,
+          "retries": 1,
+          "histogram": {
+            "exec": 2,
+            "incr": 4,
+            "mget": 2
+          }
+        },
+        {
+          "window": "script",
+          "attempt": 0,
+          "retries": 1,
+          "histogram": {
+            "eval": 1,
+            "incrby": 2
+          }
+        }
+      ]
+    },
+    {
+      "leg": "execfair-1s-0-uring-wave8",
+      "source_log": "build/gate-run.eHsQsi/jobs/execfair/execfair-1s-0-uring-wave8.log",
+      "witnesses": [
+        {
+          "attempt": 0,
+          "histogram": {
+            "multi": 96,
+            "exec": 96,
+            "eval": 32,
+            "incr": 192,
+            "incrby": 64,
+            "mget": 96
+          },
+          "counters": {
+            "script_stage_owner_tasks": 72,
+            "script_run_attempts": 36,
+            "script_validate_owner_tasks": 64,
+            "script_apply_owner_tasks": 64,
+            "script_crossshard_activations": 32,
+            "script_group_commits": 32,
+            "script_group_occ_retries": 4,
+            "script_group_occ_giveups": 0,
+            "script_staged_bytes_total": 6912,
+            "script_crossshard_window_refusals": 0,
+            "script_group_aborts_oom": 0,
+            "script_keys_armed": 64,
+            "script_keys_released": 64,
+            "script_intents_live": 0,
+            "script_write_tickets_forced": 0,
+            "script_flush_generation": 0,
+            "script_interpreter_builds": 2,
+            "script_chunk_cache_hits": 34,
+            "script_chunk_cache_misses": 2,
+            "script_readonly_rejections": 0,
+            "script_effect_writes": 72,
+            "script_failed_after_effects": 0,
+            "atomic_txn_attempts": 96,
+            "atomic_txn_retries": 0,
+            "atomic_txn_dooms": 0,
+            "atomic_txn_wounds": 0,
+            "atomic_txn_waits": 8,
+            "atomic_txn_intents": 0,
+            "atomic_txn_intents_live": 0,
+            "atomic_txn_executed": 96,
+            "atomic_txn_place_waits": 23,
+            "atomic_txn_writer_waits": 0,
+            "atomic_txn_writer_marks": 0,
+            "atomic_txn_blind_restarts": 0,
+            "atomic_txn_readonly": 0,
+            "atomic_txn_order_violations": 0,
+            "atomic_txn_fast_polls": 1563,
+            "atomic_txn_poll_skips": 166
+          }
+        },
+        {
+          "window": "exec",
+          "attempt": 0,
+          "retries": 1,
+          "histogram": {
+            "exec": 2,
+            "incr": 4,
+            "mget": 2
+          }
+        },
+        {
+          "window": "script",
+          "attempt": 0,
+          "retries": 1,
+          "histogram": {
+            "eval": 1,
+            "incrby": 2
+          }
+        }
+      ]
+    },
+    {
+      "leg": "execfair-1s-1-epoll-wave8",
+      "source_log": "build/gate-run.eHsQsi/jobs/execfair/execfair-1s-1-epoll-wave8.log",
+      "witnesses": [
+        {
+          "attempt": 0,
+          "histogram": {
+            "multi": 96,
+            "exec": 96,
+            "eval": 32,
+            "incr": 192,
+            "incrby": 64,
+            "mget": 96
+          },
+          "counters": {
+            "script_stage_owner_tasks": 66,
+            "script_run_attempts": 33,
+            "script_validate_owner_tasks": 64,
+            "script_apply_owner_tasks": 64,
+            "script_crossshard_activations": 32,
+            "script_group_commits": 32,
+            "script_group_occ_retries": 1,
+            "script_group_occ_giveups": 0,
+            "script_staged_bytes_total": 6369,
+            "script_crossshard_window_refusals": 0,
+            "script_group_aborts_oom": 0,
+            "script_keys_armed": 64,
+            "script_keys_released": 64,
+            "script_intents_live": 0,
+            "script_write_tickets_forced": 0,
+            "script_flush_generation": 0,
+            "script_interpreter_builds": 2,
+            "script_chunk_cache_hits": 31,
+            "script_chunk_cache_misses": 2,
+            "script_readonly_rejections": 0,
+            "script_effect_writes": 66,
+            "script_failed_after_effects": 0,
+            "atomic_txn_attempts": 96,
+            "atomic_txn_retries": 0,
+            "atomic_txn_dooms": 0,
+            "atomic_txn_wounds": 0,
+            "atomic_txn_waits": 10,
+            "atomic_txn_intents": 0,
+            "atomic_txn_intents_live": 0,
+            "atomic_txn_executed": 96,
+            "atomic_txn_place_waits": 18,
+            "atomic_txn_writer_waits": 0,
+            "atomic_txn_writer_marks": 0,
+            "atomic_txn_blind_restarts": 0,
+            "atomic_txn_readonly": 0,
+            "atomic_txn_order_violations": 0,
+            "atomic_txn_fast_polls": 1317,
+            "atomic_txn_poll_skips": 222
+          }
+        },
+        {
+          "window": "exec",
+          "attempt": 0,
+          "retries": 1,
+          "histogram": {
+            "exec": 2,
+            "incr": 4,
+            "mget": 2
+          }
+        },
+        {
+          "window": "script",
+          "attempt": 0,
+          "retries": 1,
+          "histogram": {
+            "eval": 1,
+            "incrby": 2
+          }
+        }
+      ]
+    },
+    {
+      "leg": "execfair-1s-1-uring-wave8",
+      "source_log": "build/gate-run.eHsQsi/jobs/execfair/execfair-1s-1-uring-wave8.log",
+      "witnesses": [
+        {
+          "attempt": 0,
+          "histogram": {
+            "multi": 96,
+            "exec": 96,
+            "eval": 32,
+            "incr": 192,
+            "incrby": 64,
+            "mget": 96
+          },
+          "counters": {
+            "script_stage_owner_tasks": 70,
+            "script_run_attempts": 35,
+            "script_validate_owner_tasks": 64,
+            "script_apply_owner_tasks": 64,
+            "script_crossshard_activations": 32,
+            "script_group_commits": 32,
+            "script_group_occ_retries": 3,
+            "script_group_occ_giveups": 0,
+            "script_staged_bytes_total": 6755,
+            "script_crossshard_window_refusals": 0,
+            "script_group_aborts_oom": 0,
+            "script_keys_armed": 64,
+            "script_keys_released": 64,
+            "script_intents_live": 0,
+            "script_write_tickets_forced": 0,
+            "script_flush_generation": 0,
+            "script_interpreter_builds": 2,
+            "script_chunk_cache_hits": 33,
+            "script_chunk_cache_misses": 2,
+            "script_readonly_rejections": 0,
+            "script_effect_writes": 70,
+            "script_failed_after_effects": 0,
+            "atomic_txn_attempts": 96,
+            "atomic_txn_retries": 0,
+            "atomic_txn_dooms": 0,
+            "atomic_txn_wounds": 0,
+            "atomic_txn_waits": 126,
+            "atomic_txn_intents": 0,
+            "atomic_txn_intents_live": 0,
+            "atomic_txn_executed": 96,
+            "atomic_txn_place_waits": 41,
+            "atomic_txn_writer_waits": 0,
+            "atomic_txn_writer_marks": 0,
+            "atomic_txn_blind_restarts": 0,
+            "atomic_txn_readonly": 0,
+            "atomic_txn_order_violations": 0,
+            "atomic_txn_fast_polls": 2623,
+            "atomic_txn_poll_skips": 438
+          }
+        },
+        {
+          "window": "exec",
+          "attempt": 0,
+          "retries": 1,
+          "histogram": {
+            "exec": 2,
+            "incr": 4,
+            "mget": 2
+          }
+        },
+        {
+          "window": "script",
+          "attempt": 0,
+          "retries": 1,
+          "histogram": {
+            "eval": 1,
+            "incrby": 2
+          }
+        }
+      ]
+    },
+    {
+      "leg": "execfair-2s-0-epoll-wave8",
+      "source_log": "build/gate-run.eHsQsi/jobs/execfair/execfair-2s-0-epoll-wave8.log",
+      "witnesses": [
+        {
+          "attempt": 0,
+          "histogram": {
+            "multi": 96,
+            "exec": 96,
+            "eval": 32,
+            "incr": 192,
+            "incrby": 64,
+            "mget": 96
+          },
+          "counters": {
+            "script_stage_owner_tasks": 70,
+            "script_run_attempts": 35,
+            "script_validate_owner_tasks": 64,
+            "script_apply_owner_tasks": 64,
+            "script_crossshard_activations": 32,
+            "script_group_commits": 32,
+            "script_group_occ_retries": 3,
+            "script_group_occ_giveups": 0,
+            "script_staged_bytes_total": 6720,
+            "script_crossshard_window_refusals": 0,
+            "script_group_aborts_oom": 0,
+            "script_keys_armed": 64,
+            "script_keys_released": 64,
+            "script_intents_live": 0,
+            "script_write_tickets_forced": 0,
+            "script_flush_generation": 0,
+            "script_interpreter_builds": 2,
+            "script_chunk_cache_hits": 33,
+            "script_chunk_cache_misses": 2,
+            "script_readonly_rejections": 0,
+            "script_effect_writes": 70,
+            "script_failed_after_effects": 0,
+            "atomic_txn_attempts": 96,
+            "atomic_txn_retries": 0,
+            "atomic_txn_dooms": 0,
+            "atomic_txn_wounds": 0,
+            "atomic_txn_waits": 416,
+            "atomic_txn_intents": 0,
+            "atomic_txn_intents_live": 0,
+            "atomic_txn_executed": 96,
+            "atomic_txn_place_waits": 23,
+            "atomic_txn_writer_waits": 0,
+            "atomic_txn_writer_marks": 0,
+            "atomic_txn_blind_restarts": 0,
+            "atomic_txn_readonly": 0,
+            "atomic_txn_order_violations": 0,
+            "atomic_txn_fast_polls": 3068,
+            "atomic_txn_poll_skips": 529
+          }
+        },
+        {
+          "window": "exec",
+          "attempt": 0,
+          "retries": 1,
+          "histogram": {
+            "exec": 2,
+            "incr": 4,
+            "mget": 2
+          }
+        },
+        {
+          "window": "script",
+          "attempt": 0,
+          "retries": 1,
+          "histogram": {
+            "eval": 1,
+            "incrby": 2
+          }
+        }
+      ]
+    },
+    {
+      "leg": "execfair-2s-0-uring-wave8",
+      "source_log": "build/gate-run.eHsQsi/jobs/execfair/execfair-2s-0-uring-wave8.log",
+      "witnesses": [
+        {
+          "attempt": 0,
+          "histogram": {
+            "multi": 96,
+            "exec": 96,
+            "eval": 32,
+            "incr": 192,
+            "incrby": 64,
+            "mget": 96
+          },
+          "counters": {
+            "script_stage_owner_tasks": 70,
+            "script_run_attempts": 35,
+            "script_validate_owner_tasks": 64,
+            "script_apply_owner_tasks": 64,
+            "script_crossshard_activations": 32,
+            "script_group_commits": 32,
+            "script_group_occ_retries": 3,
+            "script_group_occ_giveups": 0,
+            "script_staged_bytes_total": 6720,
+            "script_crossshard_window_refusals": 0,
+            "script_group_aborts_oom": 0,
+            "script_keys_armed": 64,
+            "script_keys_released": 64,
+            "script_intents_live": 0,
+            "script_write_tickets_forced": 0,
+            "script_flush_generation": 0,
+            "script_interpreter_builds": 2,
+            "script_chunk_cache_hits": 33,
+            "script_chunk_cache_misses": 2,
+            "script_readonly_rejections": 0,
+            "script_effect_writes": 70,
+            "script_failed_after_effects": 0,
+            "atomic_txn_attempts": 96,
+            "atomic_txn_retries": 0,
+            "atomic_txn_dooms": 0,
+            "atomic_txn_wounds": 0,
+            "atomic_txn_waits": 129,
+            "atomic_txn_intents": 0,
+            "atomic_txn_intents_live": 0,
+            "atomic_txn_executed": 96,
+            "atomic_txn_place_waits": 22,
+            "atomic_txn_writer_waits": 0,
+            "atomic_txn_writer_marks": 0,
+            "atomic_txn_blind_restarts": 0,
+            "atomic_txn_readonly": 0,
+            "atomic_txn_order_violations": 0,
+            "atomic_txn_fast_polls": 1769,
+            "atomic_txn_poll_skips": 304
+          }
+        },
+        {
+          "window": "exec",
+          "attempt": 0,
+          "retries": 1,
+          "histogram": {
+            "exec": 2,
+            "incr": 4,
+            "mget": 2
+          }
+        },
+        {
+          "window": "script",
+          "attempt": 0,
+          "retries": 1,
+          "histogram": {
+            "eval": 1,
+            "incrby": 2
+          }
+        }
+      ]
+    },
+    {
+      "leg": "execfair-2s-1-epoll-wave8",
+      "source_log": "build/gate-run.eHsQsi/jobs/execfair/execfair-2s-1-epoll-wave8.log",
+      "witnesses": [
+        {
+          "attempt": 0,
+          "histogram": {
+            "multi": 96,
+            "exec": 96,
+            "eval": 32,
+            "incr": 192,
+            "incrby": 64,
+            "mget": 96
+          },
+          "counters": {
+            "script_stage_owner_tasks": 66,
+            "script_run_attempts": 33,
+            "script_validate_owner_tasks": 64,
+            "script_apply_owner_tasks": 64,
+            "script_crossshard_activations": 32,
+            "script_group_commits": 32,
+            "script_group_occ_retries": 1,
+            "script_group_occ_giveups": 0,
+            "script_staged_bytes_total": 6336,
+            "script_crossshard_window_refusals": 0,
+            "script_group_aborts_oom": 0,
+            "script_keys_armed": 64,
+            "script_keys_released": 64,
+            "script_intents_live": 0,
+            "script_write_tickets_forced": 0,
+            "script_flush_generation": 0,
+            "script_interpreter_builds": 2,
+            "script_chunk_cache_hits": 31,
+            "script_chunk_cache_misses": 2,
+            "script_readonly_rejections": 0,
+            "script_effect_writes": 66,
+            "script_failed_after_effects": 0,
+            "atomic_txn_attempts": 98,
+            "atomic_txn_retries": 2,
+            "atomic_txn_dooms": 0,
+            "atomic_txn_wounds": 2,
+            "atomic_txn_waits": 151,
+            "atomic_txn_intents": 0,
+            "atomic_txn_intents_live": 0,
+            "atomic_txn_executed": 96,
+            "atomic_txn_place_waits": 22,
+            "atomic_txn_writer_waits": 0,
+            "atomic_txn_writer_marks": 0,
+            "atomic_txn_blind_restarts": 0,
+            "atomic_txn_readonly": 0,
+            "atomic_txn_order_violations": 0,
+            "atomic_txn_fast_polls": 2175,
+            "atomic_txn_poll_skips": 417
+          }
+        },
+        {
+          "window": "exec",
+          "attempt": 0,
+          "retries": 1,
+          "histogram": {
+            "exec": 2,
+            "incr": 4,
+            "mget": 2
+          }
+        },
+        {
+          "window": "script",
+          "attempt": 0,
+          "retries": 1,
+          "histogram": {
+            "eval": 1,
+            "incrby": 2
+          }
+        }
+      ]
+    },
+    {
+      "leg": "execfair-2s-1-uring-wave8",
+      "source_log": "build/gate-run.eHsQsi/jobs/execfair/execfair-2s-1-uring-wave8.log",
+      "witnesses": [
+        {
+          "attempt": 0,
+          "histogram": {
+            "multi": 96,
+            "exec": 96,
+            "eval": 32,
+            "incr": 192,
+            "incrby": 64,
+            "mget": 96
+          },
+          "counters": {
+            "script_stage_owner_tasks": 66,
+            "script_run_attempts": 33,
+            "script_validate_owner_tasks": 64,
+            "script_apply_owner_tasks": 64,
+            "script_crossshard_activations": 32,
+            "script_group_commits": 32,
+            "script_group_occ_retries": 1,
+            "script_group_occ_giveups": 0,
+            "script_staged_bytes_total": 6336,
+            "script_crossshard_window_refusals": 0,
+            "script_group_aborts_oom": 0,
+            "script_keys_armed": 64,
+            "script_keys_released": 64,
+            "script_intents_live": 0,
+            "script_write_tickets_forced": 0,
+            "script_flush_generation": 0,
+            "script_interpreter_builds": 2,
+            "script_chunk_cache_hits": 31,
+            "script_chunk_cache_misses": 2,
+            "script_readonly_rejections": 0,
+            "script_effect_writes": 66,
+            "script_failed_after_effects": 0,
+            "atomic_txn_attempts": 96,
+            "atomic_txn_retries": 0,
+            "atomic_txn_dooms": 0,
+            "atomic_txn_wounds": 0,
+            "atomic_txn_waits": 126,
+            "atomic_txn_intents": 0,
+            "atomic_txn_intents_live": 0,
+            "atomic_txn_executed": 96,
+            "atomic_txn_place_waits": 20,
+            "atomic_txn_writer_waits": 0,
+            "atomic_txn_writer_marks": 0,
+            "atomic_txn_blind_restarts": 0,
+            "atomic_txn_readonly": 0,
+            "atomic_txn_order_violations": 0,
+            "atomic_txn_fast_polls": 1620,
+            "atomic_txn_poll_skips": 309
+          }
+        },
+        {
+          "window": "exec",
+          "attempt": 0,
+          "retries": 1,
+          "histogram": {
+            "exec": 2,
+            "incr": 4,
+            "mget": 2
+          }
+        },
+        {
+          "window": "script",
+          "attempt": 0,
+          "retries": 1,
+          "histogram": {
+            "eval": 1,
+            "incrby": 2
+          }
+        }
+      ]
+    }
+  ]
+}

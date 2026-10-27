@@ -1,0 +1,19 @@
+mp_decode_to_lua_hash
+--- lualibs
+
++++ post
+
+@@ -52,8 +52,8 @@
+
+ CLONE 0 00a4 [ 2] pop %r12
+ CLONE 0 00a6 [ 2] pop %r13
+ CLONE 0 00a8 [ 1] ret
+-CLONE 0 00a9 [ 7] lea <rip>(%rip),%rcx # <__PRETTY_FUNCTION__.0>
+-CLONE 0 00b0 [ 5] mov $0x239,%edx
+-CLONE 0 00b5 [ 7] lea <rip>(%rip),%rsi # <literal-string-74686972645f70617274792f6c75612f68656c706572732f6c75615f636d73677061636b2e6300>
+-CLONE 0 00bc [ 7] lea <rip>(%rip),%rdi # <literal-string-6c656e203c3d2055494e545f4d415800>
++CLONE 0 00a9 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
++CLONE 0 00b0 [ 5] mov $0x93bbfc19,%edx
++CLONE 0 00b5 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 0 00bc [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 0 00c3 [ 5] call <__assert_fail@plt>

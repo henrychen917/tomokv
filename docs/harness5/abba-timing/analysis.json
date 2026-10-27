@@ -1,0 +1,132 @@
+{
+ "I-after": {
+  "rows": [
+   [
+    "ok",
+    333.44
+   ]
+  ],
+  "median": 333.44,
+  "heads": [
+   "e72dcd8bc"
+  ],
+  "suites": {
+   "abba_instrument": 1.2195188514888287,
+   "abbagate": 72.57170898839831,
+   "background_environment_test": 0.009993619285523891,
+   "gate_history": 20.498128053732216,
+   "gate_measurements": 3.419116665609181,
+   "gate_process_test": 0.5061746845021844,
+   "gate_quiet": 0.05590514745563269,
+   "gate_receipt": 146.34941308572888,
+   "gate_subset_test": 0.05510812904685736,
+   "gateprod": 2.035912466235459,
+   "gates_test": 85.41915436740965,
+   "lb_stationary": 0.17353485245257616,
+   "netio": 0.00647495873272419,
+   "redis_tcl_test": 0.020264609716832638,
+   "tailgen_stall": 0.03974659461528063,
+   "wb_policy": 0.010322479531168938
+  }
+ },
+ "I-before": {
+  "rows": [
+   [
+    "ok",
+    371.46
+   ]
+  ],
+  "median": 371.46,
+  "heads": [
+   "3700b51d7"
+  ],
+  "suites": {
+   "abba_instrument": 1.2318531516939402,
+   "abbagate": 121.60645117983222,
+   "background_environment_test": 0.010046731680631638,
+   "gate_history": 20.507790284231305,
+   "gate_measurements": 2.640111818909645,
+   "gate_process_test": 0.4991304287686944,
+   "gate_quiet": 0.05645037814974785,
+   "gate_receipt": 133.24668079055846,
+   "gate_subset_test": 0.05521267931908369,
+   "gateprod": 1.8648914489895105,
+   "gates_test": 88.47072581667453,
+   "tailgen_stall": 0.03910995740443468
+  }
+ },
+ "L-after": {
+  "rows": [
+   [
+    "ok",
+    403.34
+   ],
+   [
+    "ok",
+    402.79
+   ]
+  ],
+  "median": 403.065,
+  "heads": [
+   "e72dcd8bc",
+   "e72dcd8bc"
+  ],
+  "suites": {
+   "abba_instrument": 1.2364186164923012,
+   "abbagate": 72.59078488592058,
+   "background_environment_test": 0.009820979554206133,
+   "gate_history": 20.651999379042536,
+   "gate_measurements": 3.392648231703788,
+   "gate_process_test": 0.5034366035833955,
+   "gate_quiet": 0.08270163554698229,
+   "gate_receipt": 146.47665025759488,
+   "gate_subset_test": 0.05434847017750144,
+   "gateprod": 2.0432370672933757,
+   "gates_test": 154.72848314838484,
+   "lb_stationary": 0.17313663568347692,
+   "netio": 0.00645676301792264,
+   "redis_tcl_test": 0.020517021417617798,
+   "tailgen_stall": 0.03898476390168071,
+   "wb_policy": 0.010291110258549452
+  }
+ },
+ "L-before": {
+  "rows": [
+   [
+    "FAIL",
+    431.7
+   ],
+   [
+    "FAIL",
+    430.98
+   ],
+   [
+    "ok",
+    430.8
+   ]
+  ],
+  "median": 430.98,
+  "heads": [
+   "3700b51d7",
+   "3700b51d7",
+   "3700b51d7"
+  ],
+  "suites": {
+   "abba_instrument": 1.2497213715687394,
+   "abbagate": 115.67397513333708,
+   "background_environment_test": 0.009768975898623466,
+   "gate_history": 20.65308214072138,
+   "gate_measurements": 2.7415822353214025,
+   "gate_process_test": 0.5003861552104354,
+   "gate_quiet": 0.05618366599082947,
+   "gate_receipt": 132.1184136401862,
+   "gate_subset_test": 0.0542773948982358,
+   "gateprod": 1.900206657126546,
+   "gates_test": 154.77249354310334,
+   "lb_stationary": 0.17317774891853333,
+   "netio": 0.006381555460393429,
+   "tailgen_stall": 0.03895099088549614,
+   "wb_policy": 0.010265140794217587
+  }
+ }
+}

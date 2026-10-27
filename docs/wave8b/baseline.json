@@ -1,0 +1,866 @@
+[
+  {
+    "namespace": "normal",
+    "command": "EXEC-single",
+    "mode": "1s",
+    "children": 1,
+    "atomic": 0,
+    "headline": 13598,
+    "execindex": 13915,
+    "pre": 15749,
+    "delta": 1834,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 62,
+      "tomo::LatencyTrackingPart::finish()": 10,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 20,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 793,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 915
+    }
+  },
+  {
+    "namespace": "normal",
+    "command": "EXEC-single",
+    "mode": "1s",
+    "children": 1,
+    "atomic": 1,
+    "headline": 13598,
+    "execindex": 13915,
+    "pre": 15749,
+    "delta": 1834,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 62,
+      "tomo::LatencyTrackingPart::finish()": 10,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 20,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 793,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 915
+    }
+  },
+  {
+    "namespace": "normal",
+    "command": "EXEC-single",
+    "mode": "1s",
+    "children": 2,
+    "atomic": 0,
+    "headline": 20713,
+    "execindex": 20983,
+    "pre": 24597,
+    "delta": 3614,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 94,
+      "tomo::LatencyTrackingPart::finish()": 15,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 30,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 1586,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 1830
+    }
+  },
+  {
+    "namespace": "normal",
+    "command": "EXEC-single",
+    "mode": "1s",
+    "children": 2,
+    "atomic": 1,
+    "headline": 20713,
+    "execindex": 20983,
+    "pre": 24597,
+    "delta": 3614,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 94,
+      "tomo::LatencyTrackingPart::finish()": 15,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 30,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 1586,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 1830
+    }
+  },
+  {
+    "namespace": "normal",
+    "command": "EXEC-single",
+    "mode": "1s",
+    "children": 4,
+    "atomic": 0,
+    "headline": 35988,
+    "execindex": 36164,
+    "pre": 43338,
+    "delta": 7174,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 158,
+      "tomo::LatencyTrackingPart::finish()": 25,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 50,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 3172,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 3660
+    }
+  },
+  {
+    "namespace": "normal",
+    "command": "EXEC-single",
+    "mode": "1s",
+    "children": 4,
+    "atomic": 1,
+    "headline": 35988,
+    "execindex": 36164,
+    "pre": 43338,
+    "delta": 7174,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 158,
+      "tomo::LatencyTrackingPart::finish()": 25,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 50,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 3172,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 3660
+    }
+  },
+  {
+    "namespace": "normal",
+    "command": "EXEC-single",
+    "mode": "2s",
+    "children": 1,
+    "atomic": 0,
+    "headline": 13598,
+    "execindex": 13915,
+    "pre": 15749,
+    "delta": 1834,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 62,
+      "tomo::LatencyTrackingPart::finish()": 10,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 20,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 793,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 915
+    }
+  },
+  {
+    "namespace": "normal",
+    "command": "EXEC-single",
+    "mode": "2s",
+    "children": 1,
+    "atomic": 1,
+    "headline": 13598,
+    "execindex": 13915,
+    "pre": 15749,
+    "delta": 1834,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 62,
+      "tomo::LatencyTrackingPart::finish()": 10,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 20,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 793,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 915
+    }
+  },
+  {
+    "namespace": "normal",
+    "command": "EXEC-single",
+    "mode": "2s",
+    "children": 2,
+    "atomic": 0,
+    "headline": 20713,
+    "execindex": 20983,
+    "pre": 24597,
+    "delta": 3614,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 94,
+      "tomo::LatencyTrackingPart::finish()": 15,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 30,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 1586,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 1830
+    }
+  },
+  {
+    "namespace": "normal",
+    "command": "EXEC-single",
+    "mode": "2s",
+    "children": 2,
+    "atomic": 1,
+    "headline": 20713,
+    "execindex": 20983,
+    "pre": 24597,
+    "delta": 3614,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 94,
+      "tomo::LatencyTrackingPart::finish()": 15,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 30,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 1586,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 1830
+    }
+  },
+  {
+    "namespace": "normal",
+    "command": "EXEC-single",
+    "mode": "2s",
+    "children": 4,
+    "atomic": 0,
+    "headline": 35988,
+    "execindex": 36164,
+    "pre": 43338,
+    "delta": 7174,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 158,
+      "tomo::LatencyTrackingPart::finish()": 25,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 50,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 3172,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 3660
+    }
+  },
+  {
+    "namespace": "normal",
+    "command": "EXEC-single",
+    "mode": "2s",
+    "children": 4,
+    "atomic": 1,
+    "headline": 35988,
+    "execindex": 36164,
+    "pre": 43338,
+    "delta": 7174,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 158,
+      "tomo::LatencyTrackingPart::finish()": 25,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 50,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 3172,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 3660
+    }
+  },
+  {
+    "namespace": "normal",
+    "command": "EXEC-cross",
+    "mode": "1s",
+    "children": 1,
+    "atomic": 0,
+    "headline": 13598,
+    "execindex": 13915,
+    "pre": 15749,
+    "delta": 1834,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 62,
+      "tomo::LatencyTrackingPart::finish()": 10,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 20,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 793,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 915
+    }
+  },
+  {
+    "namespace": "normal",
+    "command": "EXEC-cross",
+    "mode": "1s",
+    "children": 1,
+    "atomic": 1,
+    "headline": 13598,
+    "execindex": 13915,
+    "pre": 15749,
+    "delta": 1834,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 62,
+      "tomo::LatencyTrackingPart::finish()": 10,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 20,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 793,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 915
+    }
+  },
+  {
+    "namespace": "normal",
+    "command": "EXEC-cross",
+    "mode": "1s",
+    "children": 2,
+    "atomic": 0,
+    "headline": 22984,
+    "execindex": 23335,
+    "pre": 27145,
+    "delta": 3810,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 214,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 70,
+      "tomo::LatencyTrackingPart::finish()": 20,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 1586,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 1830
+    }
+  },
+  {
+    "namespace": "normal",
+    "command": "EXEC-cross",
+    "mode": "1s",
+    "children": 2,
+    "atomic": 1,
+    "headline": 22984,
+    "execindex": 23335,
+    "pre": 27145,
+    "delta": 3810,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 214,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 70,
+      "tomo::LatencyTrackingPart::finish()": 20,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 1586,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 1830
+    }
+  },
+  {
+    "namespace": "normal",
+    "command": "EXEC-cross",
+    "mode": "1s",
+    "children": 4,
+    "atomic": 0,
+    "headline": 41640,
+    "execindex": 42056,
+    "pre": 49818,
+    "delta": 7762,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 518,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 170,
+      "tomo::LatencyTrackingPart::finish()": 40,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 3172,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 3660
+    }
+  },
+  {
+    "namespace": "normal",
+    "command": "EXEC-cross",
+    "mode": "1s",
+    "children": 4,
+    "atomic": 1,
+    "headline": 41640,
+    "execindex": 42056,
+    "pre": 49818,
+    "delta": 7762,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 518,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 170,
+      "tomo::LatencyTrackingPart::finish()": 40,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 3172,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 3660
+    }
+  },
+  {
+    "namespace": "normal",
+    "command": "EXEC-cross",
+    "mode": "2s",
+    "children": 1,
+    "atomic": 0,
+    "headline": 13598,
+    "execindex": 13915,
+    "pre": 15749,
+    "delta": 1834,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 62,
+      "tomo::LatencyTrackingPart::finish()": 10,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 20,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 793,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 915
+    }
+  },
+  {
+    "namespace": "normal",
+    "command": "EXEC-cross",
+    "mode": "2s",
+    "children": 1,
+    "atomic": 1,
+    "headline": 13598,
+    "execindex": 13915,
+    "pre": 15749,
+    "delta": 1834,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 62,
+      "tomo::LatencyTrackingPart::finish()": 10,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 20,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 793,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 915
+    }
+  },
+  {
+    "namespace": "normal",
+    "command": "EXEC-cross",
+    "mode": "2s",
+    "children": 2,
+    "atomic": 0,
+    "headline": 22984,
+    "execindex": 23335,
+    "pre": 27145,
+    "delta": 3810,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 214,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 70,
+      "tomo::LatencyTrackingPart::finish()": 20,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 1586,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 1830
+    }
+  },
+  {
+    "namespace": "normal",
+    "command": "EXEC-cross",
+    "mode": "2s",
+    "children": 2,
+    "atomic": 1,
+    "headline": 22984,
+    "execindex": 23335,
+    "pre": 27145,
+    "delta": 3810,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 214,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 70,
+      "tomo::LatencyTrackingPart::finish()": 20,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 1586,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 1830
+    }
+  },
+  {
+    "namespace": "normal",
+    "command": "EXEC-cross",
+    "mode": "2s",
+    "children": 4,
+    "atomic": 0,
+    "headline": 41604,
+    "execindex": 42020,
+    "pre": 49782,
+    "delta": 7762,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 518,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 170,
+      "tomo::LatencyTrackingPart::finish()": 40,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 3172,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 3660
+    }
+  },
+  {
+    "namespace": "normal",
+    "command": "EXEC-cross",
+    "mode": "2s",
+    "children": 4,
+    "atomic": 1,
+    "headline": 41604,
+    "execindex": 42020,
+    "pre": 49782,
+    "delta": 7762,
+    "latency_hooks": {
+      "tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)": 518,
+      "tomo::LatencyTrackingPart::~LatencyTrackingPart()": 170,
+      "tomo::LatencyTrackingPart::finish()": 40,
+      "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)": 3172,
+      "tomo::latency_tracking_forget(tomo::Op const&)": 3660
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-single",
+    "mode": "1s",
+    "children": 1,
+    "atomic": 0,
+    "headline": 12396,
+    "execindex": 12686,
+    "pre": 14520,
+    "delta": 1834,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 62,
+      "tomo_db0::LatencyTrackingPart::finish()": 10,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 20,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 793,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 915
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-single",
+    "mode": "1s",
+    "children": 1,
+    "atomic": 1,
+    "headline": 12396,
+    "execindex": 12686,
+    "pre": 14520,
+    "delta": 1834,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 62,
+      "tomo_db0::LatencyTrackingPart::finish()": 10,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 20,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 793,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 915
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-single",
+    "mode": "1s",
+    "children": 2,
+    "atomic": 0,
+    "headline": 19046,
+    "execindex": 19279,
+    "pre": 22893,
+    "delta": 3614,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 94,
+      "tomo_db0::LatencyTrackingPart::finish()": 15,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 30,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 1586,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 1830
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-single",
+    "mode": "1s",
+    "children": 2,
+    "atomic": 1,
+    "headline": 19046,
+    "execindex": 19279,
+    "pre": 22893,
+    "delta": 3614,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 94,
+      "tomo_db0::LatencyTrackingPart::finish()": 15,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 30,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 1586,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 1830
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-single",
+    "mode": "1s",
+    "children": 4,
+    "atomic": 0,
+    "headline": 33277,
+    "execindex": 33402,
+    "pre": 40576,
+    "delta": 7174,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 158,
+      "tomo_db0::LatencyTrackingPart::finish()": 25,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 50,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 3172,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 3660
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-single",
+    "mode": "1s",
+    "children": 4,
+    "atomic": 1,
+    "headline": 33277,
+    "execindex": 33402,
+    "pre": 40576,
+    "delta": 7174,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 158,
+      "tomo_db0::LatencyTrackingPart::finish()": 25,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 50,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 3172,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 3660
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-single",
+    "mode": "2s",
+    "children": 1,
+    "atomic": 0,
+    "headline": 12396,
+    "execindex": 12686,
+    "pre": 14520,
+    "delta": 1834,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 62,
+      "tomo_db0::LatencyTrackingPart::finish()": 10,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 20,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 793,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 915
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-single",
+    "mode": "2s",
+    "children": 1,
+    "atomic": 1,
+    "headline": 12396,
+    "execindex": 12686,
+    "pre": 14520,
+    "delta": 1834,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 62,
+      "tomo_db0::LatencyTrackingPart::finish()": 10,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 20,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 793,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 915
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-single",
+    "mode": "2s",
+    "children": 2,
+    "atomic": 0,
+    "headline": 19046,
+    "execindex": 19279,
+    "pre": 22893,
+    "delta": 3614,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 94,
+      "tomo_db0::LatencyTrackingPart::finish()": 15,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 30,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 1586,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 1830
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-single",
+    "mode": "2s",
+    "children": 2,
+    "atomic": 1,
+    "headline": 19046,
+    "execindex": 19279,
+    "pre": 22893,
+    "delta": 3614,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 94,
+      "tomo_db0::LatencyTrackingPart::finish()": 15,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 30,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 1586,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 1830
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-single",
+    "mode": "2s",
+    "children": 4,
+    "atomic": 0,
+    "headline": 33277,
+    "execindex": 33402,
+    "pre": 40576,
+    "delta": 7174,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 158,
+      "tomo_db0::LatencyTrackingPart::finish()": 25,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 50,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 3172,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 3660
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-single",
+    "mode": "2s",
+    "children": 4,
+    "atomic": 1,
+    "headline": 33277,
+    "execindex": 33402,
+    "pre": 40576,
+    "delta": 7174,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 158,
+      "tomo_db0::LatencyTrackingPart::finish()": 25,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 50,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 3172,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 3660
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-cross",
+    "mode": "1s",
+    "children": 1,
+    "atomic": 0,
+    "headline": 12396,
+    "execindex": 12686,
+    "pre": 14520,
+    "delta": 1834,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 62,
+      "tomo_db0::LatencyTrackingPart::finish()": 10,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 20,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 793,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 915
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-cross",
+    "mode": "1s",
+    "children": 1,
+    "atomic": 1,
+    "headline": 12396,
+    "execindex": 12686,
+    "pre": 14520,
+    "delta": 1834,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 62,
+      "tomo_db0::LatencyTrackingPart::finish()": 10,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 20,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 793,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 915
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-cross",
+    "mode": "1s",
+    "children": 2,
+    "atomic": 0,
+    "headline": 21267,
+    "execindex": 21577,
+    "pre": 25389,
+    "delta": 3812,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 214,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 70,
+      "tomo_db0::LatencyTrackingPart::finish()": 20,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 1586,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 1830
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-cross",
+    "mode": "1s",
+    "children": 2,
+    "atomic": 1,
+    "headline": 21267,
+    "execindex": 21577,
+    "pre": 25389,
+    "delta": 3812,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 214,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 70,
+      "tomo_db0::LatencyTrackingPart::finish()": 20,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 1586,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 1830
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-cross",
+    "mode": "1s",
+    "children": 4,
+    "atomic": 0,
+    "headline": 38869,
+    "execindex": 39214,
+    "pre": 46982,
+    "delta": 7768,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 518,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 170,
+      "tomo_db0::LatencyTrackingPart::finish()": 40,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 3172,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 3660
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-cross",
+    "mode": "1s",
+    "children": 4,
+    "atomic": 1,
+    "headline": 38869,
+    "execindex": 39214,
+    "pre": 46982,
+    "delta": 7768,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 518,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 170,
+      "tomo_db0::LatencyTrackingPart::finish()": 40,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 3172,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 3660
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-cross",
+    "mode": "2s",
+    "children": 1,
+    "atomic": 0,
+    "headline": 12396,
+    "execindex": 12686,
+    "pre": 14520,
+    "delta": 1834,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 62,
+      "tomo_db0::LatencyTrackingPart::finish()": 10,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 20,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 793,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 915
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-cross",
+    "mode": "2s",
+    "children": 1,
+    "atomic": 1,
+    "headline": 12396,
+    "execindex": 12686,
+    "pre": 14520,
+    "delta": 1834,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 62,
+      "tomo_db0::LatencyTrackingPart::finish()": 10,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 20,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 793,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 915
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-cross",
+    "mode": "2s",
+    "children": 2,
+    "atomic": 0,
+    "headline": 21267,
+    "execindex": 21577,
+    "pre": 25389,
+    "delta": 3812,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 214,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 70,
+      "tomo_db0::LatencyTrackingPart::finish()": 20,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 1586,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 1830
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-cross",
+    "mode": "2s",
+    "children": 2,
+    "atomic": 1,
+    "headline": 21267,
+    "execindex": 21577,
+    "pre": 25389,
+    "delta": 3812,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 214,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 70,
+      "tomo_db0::LatencyTrackingPart::finish()": 20,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 1586,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 1830
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-cross",
+    "mode": "2s",
+    "children": 4,
+    "atomic": 0,
+    "headline": 38833,
+    "execindex": 39178,
+    "pre": 46946,
+    "delta": 7768,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 518,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 170,
+      "tomo_db0::LatencyTrackingPart::finish()": 40,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 3172,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 3660
+    }
+  },
+  {
+    "namespace": "db0",
+    "command": "EXEC-cross",
+    "mode": "2s",
+    "children": 4,
+    "atomic": 1,
+    "headline": 38833,
+    "execindex": 39178,
+    "pre": 46946,
+    "delta": 7768,
+    "latency_hooks": {
+      "tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)": 518,
+      "tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()": 170,
+      "tomo_db0::LatencyTrackingPart::finish()": 40,
+      "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)": 3172,
+      "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)": 3660
+    }
+  }
+]

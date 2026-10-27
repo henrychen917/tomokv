@@ -1,0 +1,22 @@
+tomo::(anonymous namespace)::parse_zset_operation(tomo::Op&, tomo::(anonymous namespace)::Kind, unsigned int&, std::vector<double, std::allocator<double> >&, tomo::(anonymous namespace)::ZAggregate&, bool&, unsigned long&) [clone .constprop.0]
+--- headline
+
++++ post
+
+@@ -553,12 +553,12 @@
+
+ CLONE 0 098f [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206174206c65617374203120696e707574206b6579206973206e656564656420666f7220277a696e746572636172642720636f6d6d616e6400>
+ CLONE 0 0996 [ 5] call <void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)>
+ CLONE 0 099b [ 5] jmp <+0x254>
+-CLONE 0 09a0 [ 8] vandpd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x258>
+-CLONE 0 09a8 [ 8] vucomisd <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x678>
++CLONE 0 09a0 [ 8] vandpd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418>
++CLONE 0 09a8 [ 8] vucomisd <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x50>
+ CLONE 0 09b0 [ 6] ja <+0x6a6>
+ CLONE 0 09b6 [ 4] vucomisd %xmm1,%xmm1
+ CLONE 0 09ba [ 6] jp <+0x6a6>
+-CLONE 0 09c0 [ 8] vcomisd <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x698>
++CLONE 0 09c0 [ 8] vcomisd <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xd0>
+ CLONE 0 09c8 [ 6] jae <+0x748>
+ CLONE 0 09ce [ 4] vxorpd %xmm1,%xmm1,%xmm1
+ CLONE 0 09d2 [ 4] vucomisd %xmm1,%xmm0

@@ -1,0 +1,15 @@
+tomo::IoLoop::fliplisten_commit()
+--- headline
+
++++ post
+
+@@ -21,7 +21,7 @@
+
+ CLONE 0 0056 [ 4] sar $0x3,%rcx
+ CLONE 0 005a [ 2] test %ecx,%ecx
+ CLONE 0 005c [ 6] je <+0x122>
+-CLONE 0 0062 [ 7] mov <rip>(%rip),%r10 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8d0>
++CLONE 0 0062 [ 7] mov <rip>(%rip),%r10 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x318>
+ CLONE 0 0069 [ 1] push %rbx
+ CLONE 0 006a [ 3] mov %rax,%rcx
+ CLONE 0 006d [ 2] xor %edi,%edi

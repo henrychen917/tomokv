@@ -1,0 +1,374 @@
+tomo::script_pcall_library(lua_State*)
+--- headline
+
++++ post
+
+@@ -2,147 +2,223 @@
+
+ CLONE 0 0004 [ 1] push %rbp
+ CLONE 0 0005 [ 4] vpxor %xmm0,%xmm0,%xmm0
+ CLONE 0 0009 [ 3] mov %rsp,%rbp
+-CLONE 0 000c [ 2] push %r14
+-CLONE 0 000e [ 2] push %r13
+-CLONE 0 0010 [ 2] push %r12
+-CLONE 0 0012 [ 1] push %rbx
+-CLONE 0 0013 [ 7] lea <rip>(%rip),%r13 # <tomo::(anonymous namespace)::g_hook_context_key>
+-CLONE 0 001a [ 3] mov %rdi,%rbx
+-CLONE 0 001d [ 4] sub $0x70,%rsp
+-CLONE 0 0021 [ 4] mov 0x10(%rdi),%r10
+-CLONE 0 0025 [ 9] mov %fs:0x28,%rax
+-CLONE 0 002e [ 5] mov %rax,0x68(%rsp)
+-CLONE 0 0033 [ 2] xor %eax,%eax
+-CLONE 0 0035 [ 9] movq $0x0,0x60(%rsp)
+-CLONE 0 003e [11] vmovdqu8 %zmm0,0x20(%rsp)
+-CLONE 0 0049 [ 5] movb $0x2,0x45(%rsp)
+-CLONE 0 004e [ 8] movl $0x2,0x8(%r10)
+-CLONE 0 0056 [ 5] lea 0x20(%rsp),%rax
+-CLONE 0 005b [ 4] lea 0x10(%r10),%r12
+-CLONE 0 005f [ 3] mov %r10,%rsi
+-CLONE 0 0062 [ 4] add $0x30,%r10
+-CLONE 0 0066 [ 5] mov %rax,0x8(%rsp)
+-CLONE 0 006b [ 4] mov 0x20(%rdi),%rax
+-CLONE 0 006f [ 4] mov %r13,-0x30(%r10)
+-CLONE 0 0073 [ 4] mov %r12,0x10(%rdi)
+-CLONE 0 0077 [ 7] mov 0xa0(%rax),%rdi
+-CLONE 0 007e [ 5] call <luaH_get>
+-CLONE 0 0083 [ 4] mov -0x40(%r10),%rcx
+-CLONE 0 0087 [ 4] sub 0x18(%rbx),%r12
+-CLONE 0 008b [ 5] mov $0xffffd8f0,%esi
+-CLONE 0 0090 [ 3] mov (%rax),%rdx
+-CLONE 0 0093 [ 3] mov 0x8(%rax),%eax
+-CLONE 0 0096 [ 3] mov %rbx,%rdi
+-CLONE 0 0099 [ 4] mov %r13,-0x20(%r10)
+-CLONE 0 009d [ 8] movl $0x2,-0x18(%r10)
+-CLONE 0 00a5 [ 8] movl $0x2,-0x8(%r10)
+-CLONE 0 00ad [ 4] mov %rcx,-0x30(%r10)
+-CLONE 0 00b1 [ 4] mov -0x38(%r10),%ecx
+-CLONE 0 00b5 [ 4] mov %eax,-0x38(%r10)
+-CLONE 0 00b9 [ 5] lea 0x8(%rsp),%rax
+-CLONE 0 00be [ 4] mov %rdx,-0x40(%r10)
+-CLONE 0 00c2 [ 4] sar $0x4,%r12
+-CLONE 0 00c6 [ 4] mov %rax,-0x10(%r10)
+-CLONE 0 00ca [ 3] dec %r12d
+-CLONE 0 00cd [ 4] mov %ecx,-0x28(%r10)
+-CLONE 0 00d1 [ 4] mov %r10,0x10(%rbx)
+-CLONE 0 00d5 [ 3] vzeroupper
+-CLONE 0 00d8 [ 5] call <lua_rawset>
+-CLONE 0 00dd [ 7] lea <rip>(%rip),%rax # <tomo::(anonymous namespace)::instruction_hook(lua_State*, lua_Debug*)>
+-CLONE 0 00e4 [ 5] lea 0x10(%rsp),%rdx
+-CLONE 0 00e9 [ 3] xor %r8d,%r8d
+-CLONE 0 00ec [ 7] lea <rip>(%rip),%rsi # <f_call>
+-CLONE 0 00f3 [ 4] mov %rax,0x70(%rbx)
+-CLONE 0 00f7 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x918>
+-CLONE 0 00fe [ 3] mov %rbx,%rdi
+-CLONE 0 0101 [ 4] movb $0x8,0x64(%rbx)
+-CLONE 0 0105 [ 8] movl $0x0,0x18(%rsp)
+-CLONE 0 010d [ 4] mov %rax,0x68(%rbx)
+-CLONE 0 0111 [ 4] mov 0x10(%rbx),%rax
+-CLONE 0 0115 [ 4] lea -0x10(%rax),%rcx
+-CLONE 0 0119 [ 5] mov %rcx,0x10(%rsp)
+-CLONE 0 011e [ 4] sub 0x40(%rbx),%rcx
+-CLONE 0 0122 [ 5] call <luaD_pcall>
+-CLONE 0 0127 [ 4] mov 0x10(%rbx),%r8
+-CLONE 0 012b [ 3] mov %r12d,%esi
+-CLONE 0 012e [ 3] mov %rbx,%rdi
+-CLONE 0 0131 [ 3] mov %eax,%r14d
+-CLONE 0 0134 [ 8] movq $0x0,0x70(%rbx)
+-CLONE 0 013c [ 8] movq $0x0,0x68(%rbx)
+-CLONE 0 0144 [ 4] movb $0x0,0x64(%rbx)
+-CLONE 0 0148 [ 4] lea 0x10(%r8),%rax
+-CLONE 0 014c [ 3] mov %r13,(%r8)
+-CLONE 0 014f [ 8] movl $0x2,0x8(%r8)
+-CLONE 0 0157 [ 4] add $0x20,%r8
+-CLONE 0 015b [ 4] mov %rax,0x10(%rbx)
+-CLONE 0 015f [ 5] call <index2adr>
+-CLONE 0 0164 [ 5] mov $0xffffd8f0,%esi
+-CLONE 0 0169 [ 3] mov %rbx,%rdi
+-CLONE 0 016c [ 3] mov (%rax),%rdx
+-CLONE 0 016f [ 3] mov 0x8(%rax),%eax
+-CLONE 0 0172 [ 4] mov %rdx,-0x10(%r8)
+-CLONE 0 0176 [ 4] mov %eax,-0x8(%r8)
+-CLONE 0 017a [ 4] mov %r8,0x10(%rbx)
+-CLONE 0 017e [ 3] vzeroupper
+-CLONE 0 0181 [ 5] call <lua_rawset>
+-CLONE 0 0186 [ 3] mov %r12d,%esi
+-CLONE 0 0189 [ 3] mov %rbx,%rdi
+-CLONE 0 018c [ 5] call <index2adr>
+-CLONE 0 0191 [ 4] mov 0x10(%rbx),%rcx
+-CLONE 0 0195 [ 4] add $0x10,%rax
+-CLONE 0 0199 [ 3] cmp %rcx,%rax
+-CLONE 0 019c [ 2] jae <+0x1b6>
+-CLONE 0 019e [ 2] xchg %ax,%ax
+-CLONE 0 01a0 [ 3] mov (%rax),%rdx
+-CLONE 0 01a3 [ 4] add $0x10,%rax
+-CLONE 0 01a7 [ 4] mov %rdx,-0x20(%rax)
+-CLONE 0 01ab [ 3] mov -0x8(%rax),%edx
+-CLONE 0 01ae [ 3] mov %edx,-0x18(%rax)
+-CLONE 0 01b1 [ 3] cmp %rcx,%rax
+-CLONE 0 01b4 [ 2] jb <+0x1a0>
+-CLONE 0 01b6 [ 5] cmpb $0x0,0x44(%rsp)
+-CLONE 0 01bb [ 4] lea -0x10(%rcx),%rax
+-CLONE 0 01bf [ 4] mov %rax,0x10(%rbx)
+-CLONE 0 01c3 [ 2] jne <+0x1f0>
+-CLONE 0 01c5 [ 3] vzeroupper
+-CLONE 0 01c8 [ 5] mov 0x68(%rsp),%rax
+-CLONE 0 01cd [ 9] sub %fs:0x28,%rax
+-CLONE 0 01d6 [ 6] jne <+0x263>
+-CLONE 0 01dc [ 4] add $0x70,%rsp
+-CLONE 0 01e0 [ 3] mov %r14d,%eax
+-CLONE 0 01e3 [ 1] pop %rbx
+-CLONE 0 01e4 [ 2] pop %r12
+-CLONE 0 01e6 [ 2] pop %r13
+-CLONE 0 01e8 [ 2] pop %r14
+-CLONE 0 01ea [ 1] pop %rbp
+-CLONE 0 01eb [ 1] ret
+-CLONE 0 01ec [ 4] nopl 0x0(%rax)
+-CLONE 0 01f0 [ 3] test %r14d,%r14d
+-CLONE 0 01f3 [ 2] jne <+0x240>
+-CLONE 0 01f5 [ 4] mov 0x20(%rbx),%rax
+-CLONE 0 01f9 [ 4] mov 0x70(%rax),%rsi
+-CLONE 0 01fd [ 4] cmp %rsi,0x78(%rax)
+-CLONE 0 0201 [ 2] jae <+0x256>
+-CLONE 0 0203 [ 3] vzeroupper
+-CLONE 0 0206 [ 4] mov 0x10(%rbx),%r12
+-CLONE 0 020a [ 5] mov $0x33,%edx
+-CLONE 0 020f [ 7] lea <rip>(%rip),%rsi # <literal-string-4552522066756e6374696f6e206c6962726172792065786365656465642074686520696e737472756374696f6e206c696d697400>
+-CLONE 0 0216 [ 3] mov %rbx,%rdi
+-CLONE 0 0219 [ 5] call <luaS_newlstr>
+-CLONE 0 021e [ 6] mov $0x2,%r14d
+-CLONE 0 0224 [ 4] mov %rax,(%r12)
+-CLONE 0 0228 [ 9] movl $0x4,0x8(%r12)
+-CLONE 0 0231 [ 5] addq $0x10,0x10(%rbx)
+-CLONE 0 0236 [ 2] jmp <+0x1c8>
+-CLONE 0 0238 [ 8] nopl 0x0(%rax,%rax,1)
+-CLONE 0 0240 [ 4] mov 0x20(%rbx),%rax
+-CLONE 0 0244 [ 4] sub $0x20,%rcx
+-CLONE 0 0248 [ 4] mov %rcx,0x10(%rbx)
+-CLONE 0 024c [ 4] mov 0x70(%rax),%rsi
+-CLONE 0 0250 [ 4] cmp %rsi,0x78(%rax)
+-CLONE 0 0254 [ 2] jb <+0x203>
+-CLONE 0 0256 [ 3] mov %rbx,%rdi
+-CLONE 0 0259 [ 3] vzeroupper
+-CLONE 0 025c [ 5] call <luaC_step>
+-CLONE 0 0261 [ 2] jmp <+0x206>
+-CLONE 0 0263 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 000c [ 2] push %r15
++CLONE 0 000e [ 2] push %r14
++CLONE 0 0010 [ 2] push %r13
++CLONE 0 0012 [ 2] push %r12
++CLONE 0 0014 [ 1] push %rbx
++CLONE 0 0015 [ 7] lea <rip>(%rip),%r12 # <tomo::script_pcall_library(lua_State*)::helpers>
++CLONE 0 001c [ 3] mov %rdi,%r15
++CLONE 0 001f [ 7] sub $0x88,%rsp
++CLONE 0 0026 [ 4] mov 0x10(%rdi),%rbx
++CLONE 0 002a [ 3] mov %r12,%r13
++CLONE 0 002d [ 4] sub 0x18(%rdi),%rbx
++CLONE 0 0031 [ 9] mov %fs:0x28,%rax
++CLONE 0 003a [ 5] mov %rax,0x78(%rsp)
++CLONE 0 003f [ 2] xor %eax,%eax
++CLONE 0 0041 [ 9] movq $0x0,0x70(%rsp)
++CLONE 0 004a [11] vmovdqu8 %zmm0,0x30(%rsp)
++CLONE 0 0055 [ 5] movb $0x2,0x55(%rsp)
++CLONE 0 005a [ 4] sar $0x4,%rbx
++CLONE 0 005e [ 5] lea 0x30(%rsp),%rax
++CLONE 0 0063 [ 5] mov %rbx,0x8(%rsp)
++CLONE 0 0068 [ 5] mov %rax,0x18(%rsp)
++CLONE 0 006d [ 3] vzeroupper
++CLONE 0 0070 [ 5] jmp <+0x118>
++CLONE 0 0075 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 0080 [ 3] mov %r14,%rdi
++CLONE 0 0083 [ 5] call <strlen@plt>
++CLONE 0 0088 [ 3] mov %rax,%rdx
++CLONE 0 008b [ 4] mov 0x20(%r15),%rax
++CLONE 0 008f [ 4] mov 0x70(%rax),%rbx
++CLONE 0 0093 [ 4] cmp %rbx,0x78(%rax)
++CLONE 0 0097 [ 6] jae <+0x360>
++CLONE 0 009d [ 3] mov %r14,%rsi
++CLONE 0 00a0 [ 3] mov %r15,%rdi
++CLONE 0 00a3 [ 4] mov 0x10(%r15),%rbx
++CLONE 0 00a7 [ 5] call <luaS_newlstr>
++CLONE 0 00ac [ 4] mov 0x10(%r15),%rsi
++CLONE 0 00b0 [ 3] mov %rax,(%rbx)
++CLONE 0 00b3 [ 7] movl $0x4,0x8(%rbx)
++CLONE 0 00ba [ 4] lea 0x10(%rsi),%r10
++CLONE 0 00be [ 4] mov 0x78(%r15),%rdi
++CLONE 0 00c2 [ 4] mov %r10,0x10(%r15)
++CLONE 0 00c6 [ 4] add $0x10,%r10
++CLONE 0 00ca [ 4] add $0x8,%r13
++CLONE 0 00ce [ 5] call <luaH_get>
++CLONE 0 00d3 [ 4] mov -0x30(%r10),%rcx
++CLONE 0 00d7 [ 3] mov %r14,%rsi
++CLONE 0 00da [ 3] mov %r15,%rdi
++CLONE 0 00dd [ 3] mov (%rax),%rdx
++CLONE 0 00e0 [ 3] mov 0x8(%rax),%eax
++CLONE 0 00e3 [ 8] movl $0x0,-0x8(%r10)
++CLONE 0 00eb [ 4] mov %rcx,-0x20(%r10)
++CLONE 0 00ef [ 4] mov -0x28(%r10),%ecx
++CLONE 0 00f3 [ 4] mov %rdx,-0x10(%r10)
++CLONE 0 00f7 [ 4] mov %eax,-0x28(%r10)
++CLONE 0 00fb [ 4] mov %rdx,-0x30(%r10)
++CLONE 0 00ff [ 4] mov %ecx,-0x18(%r10)
++CLONE 0 0103 [ 4] mov %r10,0x10(%r15)
++CLONE 0 0107 [ 5] call <tomo::(anonymous namespace)::set_global_raw(lua_State*, char const*)>
++CLONE 0 010c [ 7] lea <rip>(%rip),%rax # <tomo::(anonymous namespace)::script_name_whitelisted(tomo::CommandSpec const&)::allowed>
++CLONE 0 0113 [ 3] cmp %r13,%rax
++CLONE 0 0116 [ 2] je <+0x140>
++CLONE 0 0118 [ 4] mov 0x0(%r13),%r14
++CLONE 0 011c [ 3] test %r14,%r14
++CLONE 0 011f [ 6] jne <+0x80>
++CLONE 0 0125 [ 4] mov 0x10(%r15),%rsi
++CLONE 0 0129 [ 4] lea 0x10(%rsi),%r10
++CLONE 0 012d [ 7] movl $0x0,0x8(%rsi)
++CLONE 0 0134 [ 2] jmp <+0xbe>
++CLONE 0 0136 [10] cs nopw 0x0(%rax,%rax,1)
++CLONE 0 0140 [ 4] mov 0x10(%r15),%r10
++CLONE 0 0144 [ 4] mov 0x20(%r15),%rax
++CLONE 0 0148 [ 7] lea <rip>(%rip),%rbx # <tomo::(anonymous namespace)::g_hook_context_key>
++CLONE 0 014f [ 3] mov %rbx,(%r10)
++CLONE 0 0152 [ 7] mov 0xa0(%rax),%rdi
++CLONE 0 0159 [ 4] lea 0x10(%r10),%r13
++CLONE 0 015d [ 3] mov %r10,%rsi
++CLONE 0 0160 [ 8] movl $0x2,0x8(%r10)
++CLONE 0 0168 [ 4] mov %r13,0x10(%r15)
++CLONE 0 016c [ 4] add $0x30,%r10
++CLONE 0 0170 [ 5] call <luaH_get>
++CLONE 0 0175 [ 4] mov -0x40(%r10),%rcx
++CLONE 0 0179 [ 4] sub 0x18(%r15),%r13
++CLONE 0 017d [ 5] mov $0xffffd8f0,%esi
++CLONE 0 0182 [ 3] mov (%rax),%rdx
++CLONE 0 0185 [ 3] mov 0x8(%rax),%eax
++CLONE 0 0188 [ 3] mov %r15,%rdi
++CLONE 0 018b [ 4] mov %rbx,-0x20(%r10)
++CLONE 0 018f [ 8] movl $0x2,-0x18(%r10)
++CLONE 0 0197 [ 8] movl $0x2,-0x8(%r10)
++CLONE 0 019f [ 4] mov %rcx,-0x30(%r10)
++CLONE 0 01a3 [ 4] mov -0x38(%r10),%ecx
++CLONE 0 01a7 [ 4] mov %eax,-0x38(%r10)
++CLONE 0 01ab [ 5] lea 0x18(%rsp),%rax
++CLONE 0 01b0 [ 4] mov %rdx,-0x40(%r10)
++CLONE 0 01b4 [ 4] mov %rax,-0x10(%r10)
++CLONE 0 01b8 [ 4] sar $0x4,%r13
++CLONE 0 01bc [ 3] dec %r13d
++CLONE 0 01bf [ 4] mov %ecx,-0x28(%r10)
++CLONE 0 01c3 [ 4] mov %r10,0x10(%r15)
++CLONE 0 01c7 [ 5] call <lua_rawset>
++CLONE 0 01cc [ 7] lea <rip>(%rip),%rax # <tomo::(anonymous namespace)::instruction_hook(lua_State*, lua_Debug*)>
++CLONE 0 01d3 [ 4] mov %rax,0x70(%r15)
++CLONE 0 01d7 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x360>
++CLONE 0 01de [ 5] lea 0x20(%rsp),%rdx
++CLONE 0 01e3 [ 3] xor %r8d,%r8d
++CLONE 0 01e6 [ 7] lea <rip>(%rip),%rsi # <f_call>
++CLONE 0 01ed [ 3] mov %r15,%rdi
++CLONE 0 01f0 [ 5] movb $0x8,0x64(%r15)
++CLONE 0 01f5 [ 8] movl $0x0,0x28(%rsp)
++CLONE 0 01fd [ 4] mov %rax,0x68(%r15)
++CLONE 0 0201 [ 4] mov 0x10(%r15),%rax
++CLONE 0 0205 [ 4] lea -0x10(%rax),%rcx
++CLONE 0 0209 [ 5] mov %rcx,0x20(%rsp)
++CLONE 0 020e [ 4] sub 0x40(%r15),%rcx
++CLONE 0 0212 [ 5] call <luaD_pcall>
++CLONE 0 0217 [ 8] movq $0x0,0x70(%r15)
++CLONE 0 021f [ 8] movq $0x0,0x68(%r15)
++CLONE 0 0227 [ 5] movb $0x0,0x64(%r15)
++CLONE 0 022c [ 3] mov %eax,%r14d
++CLONE 0 022f [ 4] mov 0x10(%r15),%rax
++CLONE 0 0233 [ 3] mov %r13d,%esi
++CLONE 0 0236 [ 3] mov %r15,%rdi
++CLONE 0 0239 [ 3] mov %rbx,(%rax)
++CLONE 0 023c [ 7] movl $0x2,0x8(%rax)
++CLONE 0 0243 [ 4] add $0x10,%rax
++CLONE 0 0247 [ 4] mov %rax,0x10(%r15)
++CLONE 0 024b [ 5] call <lua_pushvalue>
++CLONE 0 0250 [ 5] mov $0xffffd8f0,%esi
++CLONE 0 0255 [ 3] mov %r15,%rdi
++CLONE 0 0258 [ 3] vzeroupper
++CLONE 0 025b [ 5] call <lua_rawset>
++CLONE 0 0260 [ 3] mov %r13d,%esi
++CLONE 0 0263 [ 3] mov %r15,%rdi
++CLONE 0 0266 [ 5] call <index2adr>
++CLONE 0 026b [ 4] mov 0x10(%r15),%rcx
++CLONE 0 026f [ 4] add $0x10,%rax
++CLONE 0 0273 [ 3] cmp %rcx,%rax
++CLONE 0 0276 [ 2] jae <+0x296>
++CLONE 0 0278 [ 8] nopl 0x0(%rax,%rax,1)
++CLONE 0 0280 [ 3] mov (%rax),%rdx
++CLONE 0 0283 [ 4] add $0x10,%rax
++CLONE 0 0287 [ 4] mov %rdx,-0x20(%rax)
++CLONE 0 028b [ 3] mov -0x8(%rax),%edx
++CLONE 0 028e [ 3] mov %edx,-0x18(%rax)
++CLONE 0 0291 [ 3] cmp %rcx,%rax
++CLONE 0 0294 [ 2] jb <+0x280>
++CLONE 0 0296 [ 4] mov 0x8(%rsp),%ebx
++CLONE 0 029a [ 4] sub $0x10,%rcx
++CLONE 0 029e [ 7] lea <rip>(%rip),%r13 # <tomo::(anonymous namespace)::reply_script_help(tomo::Op&)::lines+0x60>
++CLONE 0 02a5 [ 4] mov %rcx,0x10(%r15)
++CLONE 0 02a9 [ 3] add $0x3,%ebx
++CLONE 0 02ac [ 2] mov %ebx,%esi
++CLONE 0 02ae [ 3] mov %r15,%rdi
++CLONE 0 02b1 [ 5] call <index2adr>
++CLONE 0 02b6 [ 4] mov 0x10(%r15),%rdx
++CLONE 0 02ba [ 3] mov %r15,%rdi
++CLONE 0 02bd [ 3] mov (%rax),%rcx
++CLONE 0 02c0 [ 3] mov 0x8(%rax),%eax
++CLONE 0 02c3 [ 4] add $0x10,%rdx
++CLONE 0 02c7 [ 4] mov %rcx,-0x10(%rdx)
++CLONE 0 02cb [ 5] mov 0x18(%r12),%rsi
++CLONE 0 02d0 [ 3] mov %eax,-0x8(%rdx)
++CLONE 0 02d3 [ 4] mov %rdx,0x10(%r15)
++CLONE 0 02d7 [ 3] vzeroupper
++CLONE 0 02da [ 5] call <tomo::(anonymous namespace)::set_global_raw(lua_State*, char const*)>
++CLONE 0 02df [ 2] mov %ebx,%esi
++CLONE 0 02e1 [ 3] mov %r15,%rdi
++CLONE 0 02e4 [ 5] call <index2adr>
++CLONE 0 02e9 [ 4] mov 0x10(%r15),%rcx
++CLONE 0 02ed [ 4] add $0x10,%rax
++CLONE 0 02f1 [ 3] cmp %rcx,%rax
++CLONE 0 02f4 [ 2] jae <+0x316>
++CLONE 0 02f6 [10] cs nopw 0x0(%rax,%rax,1)
++CLONE 0 0300 [ 3] mov (%rax),%rdx
++CLONE 0 0303 [ 4] add $0x10,%rax
++CLONE 0 0307 [ 4] mov %rdx,-0x20(%rax)
++CLONE 0 030b [ 3] mov -0x8(%rax),%edx
++CLONE 0 030e [ 3] mov %edx,-0x18(%rax)
++CLONE 0 0311 [ 3] cmp %rcx,%rax
++CLONE 0 0314 [ 2] jb <+0x300>
++CLONE 0 0316 [ 4] lea -0x10(%rcx),%rax
++CLONE 0 031a [ 4] sub $0x8,%r12
++CLONE 0 031e [ 2] dec %ebx
++CLONE 0 0320 [ 4] mov %rax,0x10(%r15)
++CLONE 0 0324 [ 3] cmp %r13,%r12
++CLONE 0 0327 [ 2] jne <+0x2ac>
++CLONE 0 0329 [ 5] cmpb $0x0,0x54(%rsp)
++CLONE 0 032e [ 2] jne <+0x375>
++CLONE 0 0330 [ 3] vzeroupper
++CLONE 0 0333 [ 5] mov 0x78(%rsp),%rax
++CLONE 0 0338 [ 9] sub %fs:0x28,%rax
++CLONE 0 0341 [ 2] jne <+0x3a3>
++CLONE 0 0343 [ 7] add $0x88,%rsp
++CLONE 0 034a [ 3] mov %r14d,%eax
++CLONE 0 034d [ 1] pop %rbx
++CLONE 0 034e [ 2] pop %r12
++CLONE 0 0350 [ 2] pop %r13
++CLONE 0 0352 [ 2] pop %r14
++CLONE 0 0354 [ 2] pop %r15
++CLONE 0 0356 [ 1] pop %rbp
++CLONE 0 0357 [ 1] ret
++CLONE 0 0358 [ 8] nopl 0x0(%rax,%rax,1)
++CLONE 0 0360 [ 3] mov %r15,%rdi
++CLONE 0 0363 [ 4] mov %rdx,(%rsp)
++CLONE 0 0367 [ 5] call <luaC_step>
++CLONE 0 036c [ 4] mov (%rsp),%rdx
++CLONE 0 0370 [ 5] jmp <+0x9d>
++CLONE 0 0375 [ 3] test %r14d,%r14d
++CLONE 0 0378 [ 2] jne <+0x399>
++CLONE 0 037a [ 5] mov $0x33,%edx
++CLONE 0 037f [ 7] lea <rip>(%rip),%rsi # <literal-string-4552522066756e6374696f6e206c6962726172792065786365656465642074686520696e737472756374696f6e206c696d697400>
++CLONE 0 0386 [ 3] mov %r15,%rdi
++CLONE 0 0389 [ 3] vzeroupper
++CLONE 0 038c [ 6] mov $0x2,%r14d
++CLONE 0 0392 [ 5] call <lua_pushlstring>
++CLONE 0 0397 [ 2] jmp <+0x333>
++CLONE 0 0399 [ 4] sub $0x20,%rcx
++CLONE 0 039d [ 4] mov %rcx,0x10(%r15)
++CLONE 0 03a1 [ 2] jmp <+0x37a>
++CLONE 0 03a3 [ 5] call <__stack_chk_fail@plt>

@@ -1,0 +1,126 @@
+ok	0.010000	release build (+footprint locks)
+FAIL	0	correctness family core_tsan_build
+ok	45.700000	blockfix CC4.19 XINFO structural counts vs Redis 7.4
+ok	37.880000	blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4
+ok	46.120000	blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4
+ok	2.950000	epoll directed correctness (1s)
+ok	2.940000	epoll directed correctness (2s)
+ok	0.950000	R7 generated envelope parity
+ok	14.570000	R7 production engagement (both database runtimes)
+ok	2.090000	atomfix5 WATCH key count (both modes, both engines, atomic 0/1)
+FAIL	0.340000	core concurrency watch
+FAIL	0.170000	core concurrency lifetime
+FAIL	0.080000	core concurrency drain
+FAIL	1.500000	core concurrency route
+FAIL	0.080000	core concurrency snapshot
+FAIL	0.100000	core concurrency config
+FAIL	0.090000	core concurrency notify
+ok	0.870000	read-local topology demotion (1s)
+ok	0.620000	read-local topology demotion (2s)
+ok	16.100000	exbatch publication unit + negative controls
+FAIL	9.440000	exbatch watch unit + negative controls
+ok	17.600000	exbatch metadata unit + negative controls
+ok	0.270000	writeback c12 policy witnesses + negative controls
+ok	6.410000	writeback c12 phase witnesses + negative controls
+ok	2.490000	writeback c12 stages witnesses + negative controls
+ok	7.170000	writeback c12 split-phase witnesses + negative controls
+ok	6.300000	writeback policy clauses witnesses + negative controls
+ok	1.990000	writeback policy paths witnesses + negative controls
+ok	0.930000	splitlocal template forwarding + old-argument controls
+ok	0.060000	atomic commit publication catches up at quiescence
+ok	2.330000	flushfix flush witnesses
+ok	0.400000	flushfix headers witnesses
+ok	4.850000	multidb serverless owners
+ok	0.060000	multidb global namespace boundary
+ok	12.430000	storesize published monitoring
+ok	0.220000	MULTI admin command replies
+ok	0.090000	EXECABORT releases WATCH reservation
+ok	0.000000	atomic survivors unit build
+ok	0.020000	atomic survivor: admission
+ok	0.010000	atomic survivor: closure
+ok	0.010000	atomic survivor: script_keys
+ok	0.010000	atomic survivor: rename_overlay
+ok	0.010000	atomic survivor: write_latest
+ok	0.010000	atomic survivor: script_apply
+ok	0.010000	atomic survivor: post_apply_probe
+ok	0.010000	atomic survivor: lua_conversion
+ok	0.010000	atomic survivor: watch_parent
+ok	0.010000	atomic survivor: watch_cycle
+ok	0.010000	atomic survivor: mset_arity
+ok	0.010000	atomic survivor: watch_oom
+ok	0.000000	atomic survivor: lua_lines
+ok	0.010000	atomic survivor: library_limit
+ok	0.020000	atomic survivor: stage_flag
+ok	0.010000	atomic survivor: instruction_limit
+ok	0.010000	armed resize retirement: atomic-growth
+ok	0.010000	armed resize retirement: flush-prepared
+ok	0.000000	netcmd regression build
+ok	0.020000	netcmd streams regression
+ok	0.010000	netcmd zpop regression
+ok	0.000000	netcmd notify-oom regression
+ok	0.000000	netcmd notify-retry regression
+ok	0.010000	netcmd flush regression
+ok	0.010000	netcmd output regression
+ok	0.010000	netcmd pubsub regression
+ok	0.000000	netcmd receive regression
+ok	0.060000	netcmd config regression
+ok	0.000000	netcmd wb-small-pipe regression
+ok	0.010000	netcmd wb-complete-visits regression
+ok	0.000000	netcmd hexpire-oom regression
+ok	0.010000	encodingfix knob
+ok	0.000000	encodingfix precedence
+ok	0.010000	NET1 serverless bounds + scan + reclamation
+ok	0.110000	waits config publication + admission unit
+ok	1.010000	reads never wait for retirement quiescence
+ok	2.730000	moverfix conservation (1s, uring, databases 1, atomic 0)
+ok	2.690000	moverfix conservation (1s, uring, databases 16, atomic 0)
+ok	2.700000	moverfix conservation (1s, epoll, databases 1, atomic 0)
+ok	2.910000	moverfix conservation (1s, epoll, databases 16, atomic 0)
+ok	2.910000	moverfix conservation (2s, uring, databases 1, atomic 0)
+ok	2.790000	moverfix conservation (2s, uring, databases 16, atomic 0)
+ok	2.900000	moverfix conservation (2s, epoll, databases 1, atomic 0)
+ok	2.880000	moverfix conservation (2s, epoll, databases 16, atomic 0)
+ok	32.810000	compat3 CC4.12 pubsub vs Redis 7.4
+ok	33.010000	compat3 CC4.13 pending vs Redis 7.4
+ok	33.250000	compat3 CC4.14 history vs Redis 7.4
+ok	32.650000	compat3 CC4.16 grammar vs Redis 7.4
+ok	32.800000	compat3 CC4.5 glob vs Redis 7.4
+ok	33.080000	compat3 CC4.17 flags vs Redis 7.4
+ok	111.640000	datafix2 CD4.9 write WATCH table vs Redis 7.4
+ok	0.770000	INFO selective collection (1s, epoll, read-local 0)
+ok	0.770000	INFO selective collection (1s, epoll, read-local 1)
+ok	0.760000	INFO selective collection (1s, uring, read-local 0)
+ok	0.780000	INFO selective collection (1s, uring, read-local 1)
+ok	0.780000	INFO selective collection (2s, epoll, read-local 0)
+ok	0.780000	INFO selective collection (2s, epoll, read-local 1)
+ok	0.770000	INFO selective collection (2s, uring, read-local 0)
+ok	0.780000	INFO selective collection (2s, uring, read-local 1)
+ok	0.110000	scriptfix sandbox (1s)
+ok	0.110000	scriptfix functions (1s)
+ok	0.700000	scriptfix replies (1s)
+ok	0.920000	scriptfix dump (1s)
+ok	0.120000	scriptfix sandbox (2s)
+ok	0.120000	scriptfix functions (2s)
+ok	0.700000	scriptfix replies (2s)
+ok	0.920000	scriptfix dump (2s)
+ok	6.890000	serverfix SV4.5 WAITAOF wait lifecycle
+ok	13.190000	serverfix SV4.14 disabled slowlog allocation
+ok	104.670000	txnorder index oracle
+ok	2.740000	txnorder index complexity
+ok	0.040000	txnorder2 writer episode R1
+ok	0.030000	txnorder2 writer episode R2
+ok	0.030000	txnorder2 writer episode R3
+ok	0.020000	txnorder2 writer episode R4
+ok	0.020000	txnorder2 writer episode R5
+ok	0.030000	txnorder2 writer episode R6
+ok	0.030000	txnorder2 writer episode R7
+ok	0.690000	txnorder2 writer episode R8
+ok	0.020000	txnorder2 writer episode R9
+ok	0.020000	txnorder2 writer episode R10
+ok	0.020000	txnorder2 writer episode R11
+ok	4.590000	txnorder2 writer episode R12
+ok	0.100000	txnorder2 direct RENAME owner join
+ok	22.450000	txnorder2 WATCH serve
+ok	29.310000	txnorder2 WATCH flush
+ok	28.370000	txnorder2 WATCH readonly
+ok	0.010000	txnorder2 busy owner inbox wake

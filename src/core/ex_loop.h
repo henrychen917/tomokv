@@ -11,6 +11,7 @@
 // also must not sleep so eagerly that it pays a wakeup per op under load. So: spin briefly, then arm
 // the blocked flag, re-check, and block. Producers only pay a wake syscall while that flag is armed.
 #pragma once
+#include "../cmd/txn_retry_queue.h"
 #include <algorithm>
 #include <cstdint>
 #include <cstdio>
@@ -1640,6 +1641,13 @@ private:
                                                         : kForeignTouchNone;
         slowlog_arm_.slowlog_us = snapshot.slowlog_log_slower_than;
         slowlog_arm_.latency_ms = snapshot.latency_monitor_threshold;
+        slowlog_arm_.latency_tracking = snapshot.latency_tracking;
+        latency_tracking_bind(snapshot.latency_tracking);
+        timed_batch_<false> = snapshot.latency_tracking
+            ? exec_batch_latency<false> : exec_batch_timed<false>;
+        if constexpr (Fused)
+            timed_batch_<true> = snapshot.latency_tracking
+                ? exec_batch_latency<true> : exec_batch_timed<true>;
         slowlog_armed_ = slowlog_arm_.armed();
         debug_fanout_defer_us_ = snapshot.debug_fanout_defer_us;
         live_config_version_ = snapshot.version;
@@ -2107,8 +2115,8 @@ private:
         if (forward_stale_task<IofusedPrivateQueue>(task)) return true;
         // MULTI's tagged task owns its command images outside the public ROB and performs the
         // snapshot pre-image gate per installed transaction key.  Never decode it as a normal op.
-        if (multi_task_tagged(task)) return execute<IofusedPrivateQueue>(task);
-        if (!task.client) return execute<IofusedPrivateQueue>(task);
+        if (multi_task_tagged(task)) return execute_resumed<IofusedPrivateQueue>(task);
+        if (!task.client) return execute_resumed<IofusedPrivateQueue>(task);
         Op& op = task.client->rob().at(task.op_id);
         const int32_t sid = task.shard >= 0 ? task.shard : op.shard;
         Shard& shard = srv_->shard(sid);
@@ -2123,7 +2131,7 @@ private:
                     return false;
                 }
             }
-            return execute<IofusedPrivateQueue>(task);
+            return execute_resumed<IofusedPrivateQueue>(task);
         }
         if (capture_writes &&
             (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
@@ -2138,7 +2146,7 @@ private:
                 return false;
             }
         }
-        if (!execute<IofusedPrivateQueue>(task)) return false;
+        if (!execute_resumed<IofusedPrivateQueue>(task)) return false;
         shard.publish_size();
         return true;
     }
@@ -2234,29 +2242,29 @@ private:
     //
     template <bool IofusedPrivateQueue = false>
     __attribute__((noinline, cold))
-    void exec_batch_timed(const Task* batch, uint32_t n) {
-        Server::ClientWorkScope client_work(*srv_, self_->id());
-        const SlowlogArm arm = slowlog_arm_;
-        const int64_t now_ms = cached_now_ms_;
+    static void exec_batch_timed(ExLoopT* loop, const Task* batch, uint32_t n) {
+        Server::ClientWorkScope client_work(*loop->srv_, loop->self_->id());
+        const SlowlogArm arm = loop->slowlog_arm_;
+        const int64_t now_ms = loop->cached_now_ms_;
         slowlog_note_batch_timed();
         // Earlier service queues in this outer pass are not part of this batch's timing sample.
-        flush_xshard_commits();
+        loop->flush_xshard_commits();
 
-        if (slowlog_state_.escalate_batches || n == 1) {
-            exec_batch_exact<IofusedPrivateQueue>(batch, n, arm, now_ms);
+        if (loop->slowlog_state_.escalate_batches || n == 1) {
+            loop->template exec_batch_exact<IofusedPrivateQueue>(batch, n, arm, now_ms);
             return;
         }
 
         const uint64_t started = now_ns();
         uint32_t executed = n;
         for (uint32_t i = 0; i < n; i++) {
-            if (execute<IofusedPrivateQueue>(batch[i])) continue;
-            xshard_retries_.push_back(batch[i]);
-            for (uint32_t j = i + 1; j < n; j++) ordered_deferred_.push_back(batch[j]);
+            if (loop->template execute<IofusedPrivateQueue>(batch[i])) continue;
+            loop->xshard_retries_.push_back(batch[i]);
+            for (uint32_t j = i + 1; j < n; j++) loop->ordered_deferred_.push_back(batch[j]);
             executed = i;
             break;
         }
-        flush_xshard_commits();
+        loop->flush_xshard_commits();
         const uint64_t elapsed = now_ns() - started;
         // The screen is per-op-average, not whole-batch: a full batch of ordinary commands must
         // not look like one slow command just because there were 32 of them.
@@ -2267,7 +2275,7 @@ private:
             ? static_cast<uint64_t>(arm.latency_ms) * 1000000 : UINT64_MAX;
         const uint64_t bar = std::min(threshold_ns, latency_ns);
         if (executed && bar != UINT64_MAX && elapsed / executed >= bar) {
-            slowlog_state_.escalate_batches = kSlowlogEscalateBatches;
+            loop->slowlog_state_.escalate_batches = kSlowlogEscalateBatches;
             slowlog_note_escalation();
         }
     }
@@ -2327,7 +2335,7 @@ private:
             // not linked into this loop at all. The armed body is out of line in
             // exec_batch_timed().
             if (__builtin_expect(slowlog_armed_, false)) {
-                exec_batch_timed<IofusedPrivateQueue>(batch, n);
+                timed_batch_<IofusedPrivateQueue>(this, batch, n);
             } else {
                 for (uint32_t i = 0; i < n; i++) {
                     if (execute<IofusedPrivateQueue>(batch[i])) continue;
@@ -2366,13 +2374,34 @@ private:
     template <bool IofusedPrivateQueue = false, bool ReadLocalNoEvict = false>
     bool execute(const Task& t) {
         constexpr bool Timed = false;
+        constexpr bool LatencyTracking = false;
 #include "ex_execute.inc"
     }
 
     template <bool IofusedPrivateQueue = false, bool ReadLocalNoEvict = false>
     __attribute__((noinline, cold)) bool execute_timed(const Task& t) {
         constexpr bool Timed = true;
+        constexpr bool LatencyTracking = false;
 #include "ex_execute.inc"
+    }
+
+    template <bool IofusedPrivateQueue = false, bool ReadLocalNoEvict = false>
+    __attribute__((noinline, cold)) bool execute_latency(const Task& t);
+    template <bool IofusedPrivateQueue = false>
+    __attribute__((noinline, cold))
+    static void exec_batch_latency(ExLoopT* loop, const Task* batch, uint32_t n);
+    using TimedBatch = void (*)(ExLoopT*, const Task*, uint32_t);
+    template <bool IofusedPrivateQueue>
+    static inline thread_local constinit __attribute__((tls_model("local-exec")))
+        TimedBatch timed_batch_ = exec_batch_timed<IofusedPrivateQueue>;
+
+    template <bool IofusedPrivateQueue = false>
+    __attribute__((noinline, cold)) bool execute_resumed_latency(const Task& task);
+    template <bool IofusedPrivateQueue = false>
+    __attribute__((always_inline)) bool execute_resumed(const Task& task) {
+        if (__builtin_expect(slowlog_arm_.latency_tracking, false))
+            return execute_resumed_latency<IofusedPrivateQueue>(task);
+        return execute<IofusedPrivateQueue>(task);
     }
 
     template <bool IofusedPrivateQueue = false>
@@ -2381,7 +2410,7 @@ private:
         const Task task = xshard_retries_.front();
         xshard_retries_.pop_front();
         const bool complete = snapshot_owner_state_ == SnapshotOwnerState::None
-            ? execute<IofusedPrivateQueue>(task)
+            ? execute_resumed<IofusedPrivateQueue>(task)
             : execute_snapshot_task<IofusedPrivateQueue>(task, true);
         if (!complete) xshard_retries_.push_back(task);
         return 1;  // one bounded KEYS pass (or one snapshot-gate attempt) per executor iteration
@@ -2409,56 +2438,37 @@ private:
     }
 
     __attribute__((noinline)) MultiTaskResult execute_multi_unit(
-        const Task& task, Shard& shard, void (*promote)(void*, const Task&)) {
+        const Task& task, Shard& shard, void (*promote)(void*, MultiOwnerRetryNode&)) {
         AofOwnerContext context{self_->id(), &ring_, &self_->sig()};
         const MultiRetryPromoter promoter{this, promote};
         return multi_execute_task(*srv_, task, shard, self_->id(), self_->domain(),
                                   aof_manager_ ? &context : nullptr, &promoter);
     }
 
-    // deque insertion needs an aligned temporary; keep that frame entirely on
-    // the unit retry path instead of changing every ordinary execute prologue.
     __attribute__((noinline)) void queue_fast_multi_retry(const Task& task) {
-        multi_retries_.insert(multi_retries_.begin() + multi_fast_count_, task);
-        ++multi_fast_count_;
+        multi_retries_.enqueue(multi_owner_retry_node(task), task, true);
     }
-
-    void promote_multi_retry(const Task& next) {
-        for (size_t i = multi_fast_count_; i < multi_retries_.size(); ++i) {
-            if (multi_retries_[i].scatter != next.scatter || multi_retries_[i].shard != next.shard)
-                continue;
-            // Moving a queued task must not allocate or lose it on failure.
-            std::rotate(multi_retries_.begin() + multi_fast_count_,
-                        multi_retries_.begin() + i, multi_retries_.begin() + i + 1);
-            ++multi_fast_count_;
-            return;
-        }
+    __attribute__((noinline)) void queue_multi_retry(const Task& task) {
+        multi_retries_.enqueue(multi_owner_retry_node(task), task, false);
     }
+    void promote_multi_retry(MultiOwnerRetryNode& node) { multi_retries_.promote(node); }
 
     template <bool IofusedPrivateQueue = false>
     uint32_t service_multi_retries() {
         if (multi_retries_.empty()) return 0;
-        // Snapshot the prefix: retries and promotions append to it, behind the
-        // as-yet unpolled members. No fragment can be polled twice in this pass.
-        const uint32_t fast = multi_fast_count_;
-        // Reserve the original rotation head before promotions or demotions.
-        // It is polled last, exactly once, even if a fast poll promotes it.
-        const bool rotate = multi_retries_.size() > fast;
+        // Snapshot the prefix and reserve the original rotation head. Promotions
+        // and demotions append behind it, exactly as in the former deque.
+        const uint32_t fast = multi_retries_.fast_count;
+        const bool rotate = multi_retries_.rotation_head != nullptr;
         Task rotation{};
-        if (rotate) {
-            const auto at = multi_retries_.begin() + fast;
-            rotation = *at;
-            multi_retries_.erase(at);
-        }
+        if (rotate) rotation = multi_retries_.pop(false);
         for (uint32_t i = 0; i < fast; ++i) {
-            const Task task = multi_retries_.front();
-            multi_retries_.pop_front();
-            --multi_fast_count_;
+            const Task task = multi_retries_.pop(true);
             srv_->note_txn(self_->id(), TxnCounter::FastPolls);
-            execute<IofusedPrivateQueue>(task);
+            execute_resumed<IofusedPrivateQueue>(task);
         }
         // Always advance the rotation too: a fast waiter may depend on it.
-        if (rotate) execute<IofusedPrivateQueue>(rotation);
+        if (rotate) execute_resumed<IofusedPrivateQueue>(rotation);
         return fast + rotate;
     }
 
@@ -2479,7 +2489,7 @@ private:
             return 1;
         }
         const bool complete = snapshot_owner_state_ == SnapshotOwnerState::None
-            ? execute<IofusedPrivateQueue>(task)
+            ? execute_resumed<IofusedPrivateQueue>(task)
             : execute_snapshot_task<IofusedPrivateQueue>(task, true);
         if (!complete) xshard_retries_.push_back(task);
         return 1;
@@ -2524,7 +2534,7 @@ private:
             const Task task = ordered_deferred_.front();
             ordered_deferred_.pop_front();
             if (snapshot_owner_state_ == SnapshotOwnerState::None) {
-                if (!execute<IofusedPrivateQueue>(task)) xshard_retries_.push_back(task);
+                if (!execute_resumed<IofusedPrivateQueue>(task)) xshard_retries_.push_back(task);
             } else {
                 schedule_snapshot_task<IofusedPrivateQueue>(task);
             }
@@ -2553,7 +2563,7 @@ private:
     }
 
     template <bool IofusedPrivateQueue = false>
-    bool forward_stale_task(const Task& task) {
+    __attribute__((always_inline)) bool forward_stale_task(const Task& task) {
         const int32_t sid = task_shard(task);
         if (sid < 0) return false;
         const uint32_t target = srv_->worker_of_shard(sid);
@@ -2600,7 +2610,7 @@ private:
                     }
                 }
                 stale_tasks_.pop_front();
-                if (!execute<IofusedPrivateQueue>(task)) xshard_retries_.push_back(task);
+                if (!execute_resumed<IofusedPrivateQueue>(task)) xshard_retries_.push_back(task);
                 work++;
                 continue;
             }
@@ -2626,7 +2636,7 @@ private:
     __attribute__((noinline)) void flush_xshard_commits() {
         flush_xshard_commits_impl<false>();
     }
-    void flush_xshard_commits_timed() {
+    __attribute__((always_inline)) void flush_xshard_commits_timed() {
         flush_xshard_commits_impl<true>();
     }
     template <bool Timed>
@@ -2651,7 +2661,7 @@ private:
     // Tell this client's io thread it has completed ops -- it retires the ROB and writes, so it is
     // what needs waking. Deduplicated: a pipelined burst of N completions on one client must not
     // enqueue it N times.
-    void notify_sender(Client* c) {
+    __attribute__((always_inline)) void notify_sender(Client* c) {
         const uint32_t target = c->ifid_thread();
         if constexpr (Fused) {
             if (target == self_->id()) {
@@ -2815,7 +2825,7 @@ private:
     std::vector<std::unique_ptr<SnapshotChunk>> snapshot_pending_chunks_;
     std::vector<std::deque<Task>> snapshot_backlogs_;
     std::deque<Task> atomic_deferred_;
-    std::deque<Task> multi_retries_;
+    TxnRetryQueues multi_retries_;
     std::deque<Task> xshard_retries_;
     std::deque<Task> ordered_deferred_;
     // Backpressure cannot turn a stale route into a dropped request/release. These queues contain
@@ -2853,7 +2863,7 @@ private:
     [[no_unique_address]] ReadLocalExState<Fused> read_local_;
     // Counted prefix keeps every existing empty-queue test unchanged. Cold tail
     // preserves offsets of the ordinary executor fields.
-    uint32_t multi_fast_count_ = 0;
+    uint32_t multi_retry_layout_pad_ = 0; // former fast count; retain following offsets
 public:
     // R7 bodies are isolated from the FIFO translation units.
 // BEGIN R7 GENERATED ENVELOPES

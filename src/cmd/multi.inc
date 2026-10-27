@@ -1,3 +1,4 @@
+#include "txn_retry_queue.h"
 // multi.inc -- MULTI/EXEC/DISCARD/WATCH/UNWATCH on the epoch-MVCC seam.
 //
 // This file is textually included by xshard.cc.  It shares the command-image helpers in the same
@@ -20,6 +21,7 @@ struct MultiWatchedKey {
     int32_t shard = -1;
     uint8_t ns = 0;
     uint8_t db = 0;
+    bool claim_finalizes = false;
 };
 
 enum class MultiCommandKind : uint8_t {
@@ -95,6 +97,7 @@ struct MultiWriteKey {
     int32_t shard = -1;
     uint8_t ns = 0;
     mutable bool signals_watch = true; // Not part of the hash/equality identity.
+    bool claim_finalizes = false;
 };
 
 struct MultiWriteKeyHash {
@@ -228,6 +231,7 @@ struct alignas(8) MultiExecState : SnapshotCut {
     std::atomic<NotifyBatch*> notify{nullptr};
     std::shared_ptr<AofGroupDecision> aof_group;
     std::unique_ptr<TxnPlaceBlocker[]> place_blockers;
+    std::unique_ptr<MultiOwnerRetryNode[]> owner_retries;
 };
 
 namespace {
@@ -434,6 +438,9 @@ bool multi_records_done(const MultiExecState& state) {
 }
 
 void destroy_multi_children(MultiExecState& state) {
+    if (__builtin_expect(state.server->latency_tracking(), false))
+        for (const auto& command : state.commands)
+            if (command->op) latency_tracking_forget(*command->op);
     for (const auto& command : state.commands) {
         if (!command->scatter) continue;
         xshard_destroy(command->scatter, state.scatter_pool, state.owner_io);
@@ -806,6 +813,20 @@ void prepare_claims(MultiExecState& state) {
             state_writes_key(state, watched) ? TxnClaimMode::Write : TxnClaimMode::Read);
     }
     for (auto& claims : state.claims) txn_cap_claims(claims);
+    // Exact claims already retire all decided reservations for that physical
+    // key. Keep the cold sweep only for capped whole-shard claims, inactive
+    // WATCH aliases and synthetic/unprepared cleanup states.
+    if (!state.read_only) {
+        const auto covered = [&](const auto& key) {
+            for (const auto& claim : state.claims[key.shard])
+                if (claim.key.size() == key.key.size() + 1 &&
+                    static_cast<uint8_t>(claim.key[0]) == key.ns &&
+                    claim.key.compare(1, std::string::npos, key.key) == 0) return true;
+            return false;
+        };
+        for (auto& key : state.write_keys) key.claim_finalizes = covered(key);
+        for (auto& key : state.watched) key.claim_finalizes = covered(key);
+    }
 }
 
 bool prepare_commands(Server& server, MultiExecState& state,
@@ -1068,6 +1089,7 @@ MultiExecState* allocate_state(Server& server, Client& client, uint32_t owner_io
     state->kind = kind;
     try {
         state->owner_record_refs.assign(server.nthreads(), MultiOwnerRecordRefs{});
+        state->owner_retries = std::make_unique<MultiOwnerRetryNode[]>(server.nshards());
         state->shard_commands.resize(server.nshards());
         state->claims.resize(server.nshards());
         state->shard_cursors.assign(server.nshards(), 0);
@@ -1129,7 +1151,9 @@ void initialize_multi_owner_record_refs(MultiExecState& state) {
     state.record_refs.store(owners, std::memory_order_release);
 }
 
-void complete_multi_owner_record_refs(MultiExecState& state, uint32_t owner_thread_id) {
+// These helpers were single-caller in execindex. The tracked twin must not
+// make GCC outline them in the ordinary body solely because it adds a caller.
+__attribute__((always_inline)) inline void complete_multi_owner_record_refs(MultiExecState& state, uint32_t owner_thread_id) {
     if (!state.record_refs_precounted) return;
     const uint32_t slot = state.server->executor_slot(owner_thread_id);
     if (slot >= state.owner_record_refs.size()) std::abort();
@@ -1487,7 +1511,7 @@ void multi_tripwire_read_execution(MultiExecState& state, MultiCommand& command,
         shard.store().atomic_tripwire_plain_path());
 }
 
-bool execute_local_command(Server& server, MultiExecState& state, MultiCommand& command,
+__attribute__((always_inline)) inline bool execute_local_command(Server& server, MultiExecState& state, MultiCommand& command,
                            Shard& shard, uint32_t owner_thread_id) {
     if (!(command.queued.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
         if (has_name(command.queued, "scan")) {
@@ -1713,7 +1737,7 @@ void assemble_cross_reply(MultiCommand& command) {
     }
 }
 
-bool execute_watch_phase(MultiExecState& state, Shard& shard,
+__attribute__((always_inline)) inline bool execute_watch_phase(MultiExecState& state, Shard& shard,
                          const MultiRetryPromoter* promoter = nullptr) {
     if (state.watch_shard_done[static_cast<uint32_t>(shard.id())]) return true;
     if (state.kind == MultiStateKind::Execute && !state.read_only &&
@@ -1802,7 +1826,7 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard,
     return true;
 }
 
-void finalize_reservations(MultiExecState& state, Shard& shard,
+__attribute__((always_inline)) inline void finalize_reservations(MultiExecState& state, Shard& shard,
                            const MultiRetryPromoter* promoter = nullptr) {
     if (state.final_shard_done[static_cast<uint32_t>(shard.id())]) return;
     if (state.place_blockers) state.place_blockers[shard.id()].clear();
@@ -1827,21 +1851,21 @@ void finalize_reservations(MultiExecState& state, Shard& shard,
     for (const MultiWatchedKey& watched : state.watched) {
         if (watched.shard != shard.id()) continue;
         const Slice key(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns);
-        shard.watch_write_ready(key, nullptr);
+        if (!watched.claim_finalizes) shard.watch_write_ready(key, nullptr);
         // Cancellation discards only an attempt. Keep the original watch entry
         // and deadline so a write between attempts still gives EXEC's legal null.
         if (!state.doomed && state.kind == MultiStateKind::Execute)
             shard.watch_remove(key, state.client, state.watch_generation);
     }
     for (const MultiWriteKey& write : state.write_keys) {
-        if (write.shard != shard.id()) continue;
+        if (write.shard != shard.id() || write.claim_finalizes) continue;
         shard.watch_write_ready(
             Slice(write.key.data(), static_cast<uint32_t>(write.key.size()), write.ns), nullptr);
     }
     state.final_shard_done[static_cast<uint32_t>(shard.id())] = 1;
 }
 
-void finish_command(MultiCommand& command, uint32_t stage) {
+__attribute__((always_inline)) inline void finish_command(MultiCommand& command, uint32_t stage) {
     if (command.pending.fetch_sub(1, std::memory_order_acq_rel) != 1) return;
     if (stage == 0 && (command.kind == MultiCommandKind::Admin ||
                        command.kind == MultiCommandKind::DebugSleep)) {
@@ -1866,12 +1890,23 @@ void finish_command(MultiCommand& command, uint32_t stage) {
     command.finished.store(true, std::memory_order_release);
 }
 
-void assemble_ownerless_replies(MultiExecState& state) {
+// The tracked instantiation retains active-slice nesting. The ordinary EXEC
+// body has no timing object, TLS stack update, clock call or per-child test.
+struct MultiLatencyOff {
+    MultiLatencyOff(uint32_t, const Op*) {}
+    void finish() {}
+};
+template<bool Tracked>
+using MultiLatencyPart = std::conditional_t<Tracked, LatencyTrackingPart, MultiLatencyOff>;
+
+template<bool Tracked>
+void assemble_ownerless_replies(MultiExecState& state, uint32_t owner_thread_id) {
     for (const auto& command : state.commands) {
         if (command_has_owner_work(*command) ||
             command->kind == MultiCommandKind::IoLocal ||
             command->kind == MultiCommandKind::Prebuilt)
             continue;
+        MultiLatencyPart<Tracked> latency(owner_thread_id, command->op.get());
         assemble_cross_reply(*command);
     }
 }
@@ -2306,6 +2341,8 @@ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t co
     if (was_queueing && op_id != queue_session->next_queue_op_id)
         queue_session->queue_error = true;
     MultiExecState* dispatch = nullptr;
+    const uint64_t latency_started = __builtin_expect(loop.srv_->latency_tracking(), false)
+        ? latency_tracking_start() : 0;
     const MultiIoAction action =
         multi_handle_io(*loop.srv_, client, op, loop.self_->id(), dispatch);
     if (action == MultiIoAction::NotHandled) return false;
@@ -2315,6 +2352,8 @@ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t co
     }
     if (was_queueing) queue_session->next_queue_op_id = op_id + 1;
     if (action == MultiIoAction::LocalDone) {
+        if (latency_started && (op.spec->flags & CmdFlags::Transaction))
+            latency_tracking_finish(loop.self_->id(), op, latency_started);
         client.advance_parse(consumed);
         loop.self_->note_command(op.spec->id);
         loop.flip_fingerprint_note(*op.spec, op);
@@ -2542,6 +2581,9 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
                 multi_enqueue_retry(*previous);
                 continue;
             }
+            if (__builtin_expect(loop.srv_->latency_tracking(), false))
+                for (size_t i = 0; i < previous->commands.size(); ++i)
+                    latency_tracking_retry(*previous->commands[i]->op, *next->commands[i]->op);
             previous->watched.clear();
             previous->retired = true;
             loop.multi_deferred_.push_back(previous);
@@ -2740,322 +2782,28 @@ bool multi_aof_emit_fragment(MultiExecState& state, Shard& shard) {
     return ok;
 }
 
-MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shard,
-                                   uint32_t owner_thread_id, uint32_t owner_domain,
-                                   AofOwnerContext* aof_context,
-                                   const MultiRetryPromoter* promoter) {
-    struct DeferBlockingPublication {
-        DeferBlockingPublication() { blocking_defer_plain_publication(true); }
-        ~DeferBlockingPublication() { blocking_defer_plain_publication(false); }
-    } defer_blocking_publication;
-    // A carrier-less fragment is not an error: multi_close_entry posts the watch-release fragment
-    // of a vanished connection with client=nullptr and op_id=UINT64_MAX, and this function's own
-    // tail already destroys the state on that path. Only the notify scope wanted an Op, and a
-    // fragment with no client raises no notifications, so it takes the pointer form.
-    Op* carrier = task.client && task.op_id != UINT64_MAX
-        ? &task.client->rob().at(task.op_id) : nullptr;
-    const bool notify = carrier && (carrier->spec->flags & CmdFlags::NotifySelected);
-    NotifyExecutionScope notify_scope(shard, carrier, notify);
-    const uintptr_t tagged = reinterpret_cast<uintptr_t>(task.scatter);
+MultiOwnerRetryNode& multi_owner_retry_node(const Task& task) {
+    const auto tagged = reinterpret_cast<uintptr_t>(task.scatter);
     auto& state = *reinterpret_cast<MultiExecState*>(tagged & ~kMultiTaskTag);
-    // ONE EXPIRY CUT FOR THE WHOLE TRANSACTION, on every owner and for every fragment including the
-    // WATCH phase below -- redis validates watches inside EXEC's own call, under EXEC's snapshot.
-    // Without this, two identical reads in one EXEC could disagree about the same key.
-    PinnedNowMs now_cut(shard, state.now_cut_ms);
-    uint8_t& noted = state.execution_noted[static_cast<uint32_t>(shard.id())];
-    if (!(noted & 1u)) {
-        shard.note_execution(owner_domain);
-        noted |= 1u;
-    }
-    if (state.kind == MultiStateKind::Execute && state.read_only &&
-        state.shards.size() == 1 && !state.read_cut_sampled) {
-        // A single-shard unit samples on its owner, before its first read.
-        state.snapshot = server.atomic_snapshot();
-        state.read_cut_sampled = true;
-        for (const auto& command : state.commands)
-            if (command->scatter) command->scatter->snapshot = state.snapshot;
-    }
-    if (__builtin_expect(atomic_tripwire_enabled(), false) && !(noted & 2u)) {
-        multi_tripwire_fragment_begin(state, shard);
-        noted |= 2u;
-    }
-    const auto retry = [&] {
-        const auto sid = static_cast<uint32_t>(shard.id());
-        const bool arriving = state.kind == MultiStateKind::Execute && !state.read_only &&
-            state.shards.size() != 1 &&
-            state.watch_arrived.load(std::memory_order_acquire) != state.shards.size();
-        return state.watch_shard_done[sid] || arriving || (state.execution_noted[sid] & 16u)
-            ? MultiTaskResult::RetrySoon : MultiTaskResult::Retry;
-    };
-    MultiWatchMapScope transaction_map(state.database_watch.empty() ? nullptr : &state.database_map);
-    if (!state.watch_phase_done.load(std::memory_order_acquire)) {
-        if (!execute_watch_phase(state, shard, promoter)) return retry();
-        if (!state.watch_phase_done.load(std::memory_order_acquire)) return retry();
-    }
+    return state.owner_retries[task.shard];
+}
 
-    if (state.kind == MultiStateKind::Execute &&
-        state.decision.phase.load(std::memory_order_acquire) == TxnPhase::Executing)
-        noted |= 8u; // owner-local start: plain writers may no longer pass this shard
+__attribute__((noinline, cold)) static
+MultiTaskResult multi_execute_task_tracked(Server& server, const Task& task, Shard& shard,
+        uint32_t owner_thread_id, uint32_t owner_domain, AofOwnerContext* aof_context,
+        const MultiRetryPromoter* promoter) {
+    constexpr bool Tracked = true;
+#include "multi_execute.inc"
+}
 
-    // TEST HOOK (DEBUG ATOMIC-FANOUT-DEFER), the MULTI half. Park every fragment of this
-    // transaction except the one on its lead shard until the deadline, so the foreign transaction
-    // the battery races really does commit BETWEEN two fragments of one in-EXEC read. It sits
-    // AFTER the watch phase and this owner's start bit deliberately: D1 permits plain writes
-    // before owner start, so parking earlier does not hold the read claims being tested.
-    // The watch phase is an all-participants barrier, so parking
-    // ahead of it would hold the lead back too and no fragment would run early. A park, not a
-    // stall -- Retry re-queues the task on multi_retries_ and the owner returns to its queue, so
-    // the writer is free to execute and publish its ticket inside the window. Off, this is one
-    // load of a word the task has already touched.
-    if (__builtin_expect(state.debug_fanout_deadline != 0, false) &&
-        shard.id() != state.debug_fanout_lead &&
-        now_ns() < state.debug_fanout_deadline)
-        return retry();
-
-    const uint32_t shard_id = static_cast<uint32_t>(shard.id());
-    std::vector<uint32_t>& command_list = state.shard_commands[shard_id];
-    uint32_t& cursor = state.shard_cursors[shard_id];
-    if (state.kind != MultiStateKind::Execute ||
-        state.final_reply == MultiFinalReply::ExecAbort ||
-        state.watch_failed.load(std::memory_order_acquire)) {
-        cursor = static_cast<uint32_t>(command_list.size());
-    }
-
-    while (cursor < command_list.size()) {
-        MultiCommand& command = *state.commands[command_list[cursor]];
-        MultiWatchMapScope command_map(command.watch_map.get());
-        if (command.finished.load(std::memory_order_acquire)) {
-            cursor++;
-            continue;
-        }
-        const uint32_t stage = command.stage.load(std::memory_order_acquire);
-        uint8_t& done = command.shard_done[shard_id];
-        if (command.kind == MultiCommandKind::Xshard) {
-            if (!state.decision.aborted.load(std::memory_order_acquire) &&
-                command.scatter->kind == Kind::Sort && command.scatter->sort_options.deref &&
-                !multi_touch_key(state, shard, 0, {}, false, true))
-                return retry();
-            // Membership is published with `stage`, not discovered from ScatterState::groups.
-            // The latter is a reusable table: source/gather/apply transitions rewrite it on the
-            // last owner of the old stage.  Reading it from a barrier-only task before the release
-            // store below races that rewrite and can execute a partially built SORT gather group.
-            if (!multi_xshard_stage_has_group(command, stage, shard.id())) {
-                if (command.finished.load(std::memory_order_acquire)) continue;
-                return retry();
-            }
-            if (done == stage + 1) {
-                if (command.finished.load(std::memory_order_acquire)) continue;
-                return retry();
-            }
-            if (!state.decision.aborted.load(std::memory_order_acquire)) {
-                ShardGroup& group = *group_for(*command.scatter, shard.id());
-                const bool writes = command.queued.spec->flags &
-                    (CmdFlags::Write | CmdFlags::SnapshotWrite);
-                if (group.count == 0 || command.scatter->kind == Kind::DatabaseInfo) {
-                    if (!multi_touch_key(state, shard, 0, {}, false, true))
-                        return retry();
-                } else if (!sort_deref_gathering(*command.scatter)) {
-                    for (uint32_t i = 0; i < group.count; ++i) {
-                        const KeyRef& key = command.scatter->keys[
-                            command.scatter->key_order[group.begin + i]];
-                        const Slice bytes = command.op->arg(key.arg);
-                        // A source can become a phase-two write (pop/move/rename).
-                        // Conservatively resolve all keyed write-child roles as Write.
-                        if (!multi_touch_key(state, shard, key.hash, bytes, writes) ||
-                            (writes && !shard.watch_txn_write_ready(bytes, state)))
-                            return retry();
-                        // Its phase-one image is a read dependency until install.
-                        if (!multi_touch_key(state, shard, key.hash, bytes, false))
-                            return retry();
-                    }
-                }
-            } else command.scatter->aborted.store(true, std::memory_order_release);
-            if (notify)
-                notify_execute_source(shard, *command.op, command.notify_order_base);
-            const Task child_task{state.client, task.op_id, shard.id(), command.scatter};
-            bool execute_child = !state.decision.aborted.load(std::memory_order_acquire);
-            if (execute_child && command.scatter->atomic_pop && command.scatter->phase == 2) {
-                ShardGroup* group = group_for(*command.scatter, shard.id());
-                if (!group || group->count != 1) std::abort();
-                const uint32_t pos = command.scatter->key_order[group->begin];
-                const KeyRef& selected = command.scatter->keys[pos];
-                const MultiPrepareWrite prepared = prepare_write_key(
-                    server, state, shard, command.op->arg(selected.arg), selected.hash,
-                    owner_thread_id, command.scatter, &command.scatter->watch_refs);
-                if (prepared == MultiPrepareWrite::Retry) return retry();
-                if (prepared == MultiPrepareWrite::Error) {
-                    state.decision.aborted.store(true, std::memory_order_release);
-                    command.scatter->aborted.store(true, std::memory_order_release);
-                    execute_child = false;
-                }
-            }
-            ScatterTaskResult executed = ScatterTaskResult::Complete;
-            if (execute_child) {
-                if (command.scatter->kind == Kind::DatabaseInfo)
-                    multi_collect_database_stats(state, command, shard);
-                else executed = shard.has_watches()
-                    ? watch_execute_scatter(child_task, shard, *command.op, owner_thread_id)
-                    : xshard_execute(child_task, shard, *command.op, owner_thread_id);
-            }
-            if (executed != ScatterTaskResult::Complete) return retry();
-            done = static_cast<uint8_t>(stage + 1);
-            const MultiChildFinish finished = xshard_multi_child_complete(
-                *command.scatter, *command.op, owner_thread_id);
-            if (finished == MultiChildFinish::PhaseAdvanced) {
-                const uint32_t next_stage = stage + 1;
-                if (next_stage >= MultiCommand::kXshardStages) std::abort();
-                // xshard_multi_child_complete has finished rebuilding groups.  Snapshot their
-                // membership first; the release store then publishes both the group contents and
-                // this immutable routing decision to every retrying transaction fragment.
-                xshard_multi_child_capture_groups(
-                    *command.scatter, command.xshard_stage_groups[next_stage]);
-                command.stage.store(next_stage, std::memory_order_release);
-            } else if (finished == MultiChildFinish::Final) {
-                if (notify)
-                    notify_xshard_finished(shard, *command.op, *command.scatter);
-                if (!kSingleDatabase && command.scatter->kind == Kind::DatabaseInfo && command.watch_map) {
-                    // SWAPDB publishes the live map only at the transaction's final decision.
-                    // INFO must label this command's physical counts using the map at its own
-                    // position in EXEC, including earlier swaps but excluding later ones.
-                    WorkError error;
-                    if (first_error(*command.scatter, error)) {
-                        reply_work_error(*command.op, error);
-                    } else {
-                        DatabaseStatsTable physical{}, visible{};
-                        for (uint32_t i = 0; i < command.scatter->nsub; ++i) {
-                            const auto* aux = command.scatter->groups[i].aux;
-                            if (!aux || !aux->database_stats) continue;
-                            for (unsigned db = 0; db < physical.size(); ++db) {
-                                const auto& row = (*aux->database_stats)[db];
-                                physical[db].keys += row.keys;
-                                physical[db].expires += row.expires;
-                                physical[db].ttl += row.ttl;
-                                physical[db].subexpiry += row.subexpiry;
-                            }
-                        }
-                        for (uint32_t db = 0; db < server.cfg().databases; ++db)
-                            visible[state.database_map[db]] = physical[(*command.watch_map)[db]];
-                        command_info_with_databases(server, *command.op, visible);
-                    }
-                } else {
-                    assemble_final(*state.client, *command.op, *command.scatter,
-                                   nullptr, nullptr, nullptr);
-                }
-                command.finished.store(true, std::memory_order_release);
-            }
-            continue;
-        }
-        if (done == stage + 1) {
-            if (command.finished.load(std::memory_order_acquire)) continue;
-            return retry();
-        }
-        bool executed = true;
-        if (state.decision.aborted.load(std::memory_order_acquire)) {
-            // Still join the command barrier; another owner may already have installed a
-            // private candidate which the shared abort flag will hide.
-        } else if (command.kind == MultiCommandKind::Local ||
-                   command.kind == MultiCommandKind::Scan) {
-            executed = execute_local_command(server, state, command, shard, owner_thread_id);
-        } else {
-            executed = execute_cross_command(
-                server, state, command, shard, owner_thread_id, stage);
-        }
-        if (!executed) return retry();
-        done = static_cast<uint8_t>(stage + 1);
-        finish_command(command, stage);
-    }
-
-    uint8_t& joined = state.execution_joined[shard_id];
-    if (!joined) {
-        joined = 1;
-        // Each shard emits its AOF fragment exactly once, under the same join guard that
-        // publishes its list's owner work; a failed emit aborts the whole group (GCMT).
-        if (!multi_aof_emit_fragment(state, shard)) aof_abort_group(state.aof_group);
-        // This first barrier publishes every list's owner work before the one commit decision.
-        // tasks_pending remains the post-decision lifetime barrier for state and reservations.
-        if (state.lists_pending.fetch_sub(1, std::memory_order_acq_rel) == 1) {
-            bool expected = false;
-            if (state.finalizer_claimed.compare_exchange_strong(
-                    expected, true, std::memory_order_acq_rel)) {
-                // A read-only unit has no validation claim. All fragment reads
-                // happen-before this last join; catch a write after placement
-                // before discarding WATCH entries or publishing a non-null reply.
-                if (state.read_only && !state.watched.empty() && state.client->watch_dirty())
-                    state.watch_failed.store(true, std::memory_order_release);
-                if (state.watch_failed.load(std::memory_order_acquire))
-                    state.decision.aborted.store(true, std::memory_order_release);
-                if (!state.decision.aborted.load(std::memory_order_acquire) &&
-                    state.final_reply == MultiFinalReply::Exec) {
-                    assemble_ownerless_replies(state);
-                    const uint64_t ticket = server.atomic_commit_group_cas(
-                        state.decision.epoch,
-                        [&](uint64_t shared) {
-                            publish_multi_child_epochs(state, shared);
-                            if (state.database_publish)
-                                server.databases().publish_prepared(std::move(state.database_publish));
-                        });
-                    if (!ticket) {
-                        state.decision.aborted.store(true, std::memory_order_release);
-                        abort_multi_children(state);
-                        aof_abort_group(state.aof_group);
-                    } else {
-                        if (aof_context)
-                            (void)aof_commit_group(server.aof(), state.aof_group, ticket,
-                                                   *aof_context);
-                        // Private pushes must never claim a blocked client. Once
-                        // the CAS wins, sweep participant registries on their owners.
-                        bool owners[kMaxThreads] = {};
-                        for (int32_t sid : state.shards) {
-                            Shard& participant = server.shard(sid);
-                            if (!participant.has_blocking_waiters()) continue;
-                            participant.set_blocking_dirty();
-                            owners[server.worker_of_shard(sid)] = true;
-                        }
-                        ThreadCtx& self = server.thread(owner_thread_id);
-                        if (Ring* ring = self.ring())
-                            for (uint32_t tid = 0; tid < server.nthreads(); ++tid)
-                                if (owners[tid]) server.thread(tid).wake_if_parked(*ring, self.sig());
-                    }
-                } else {
-                    // Child entries no longer point at the parent's abort word, because doing so
-                    // made a normal child error abort every other command. A genuine transaction
-                    // abort still has to decide all of them before reservations are finalized.
-                    abort_multi_children(state);
-                    aof_abort_group(state.aof_group);
-                }
-                state.doomed = state.decision.epoch.load(std::memory_order_acquire) ==
-                               kAtomicCancelledEpoch;
-                state.finalized.store(true, std::memory_order_release);
-                // Every owner has joined and the one commit decision is made: nothing this
-                // transaction writes can land on a shard after this point, so it can no longer
-                // straddle a snapshot cut. Closed here, on an OWNER, not at reply retirement.
-                server.atomic_apply_close(owner_thread_id, state.apply_open);
-            }
-        }
-    }
-    if (!state.finalized.load(std::memory_order_acquire)) return retry();
-    finalize_reservations(state, shard, promoter);
-    complete_multi_owner_record_refs(state, owner_thread_id);
-    if (state.tasks_pending.fetch_sub(1, std::memory_order_acq_rel) != 1)
-        return MultiTaskResult::Complete;
-
-    if (task.op_id == UINT64_MAX) {
-        destroy_multi_state(&state);
-        return MultiTaskResult::Complete;
-    }
-    if (state.doomed || (state.has_publication &&
-                        !state.decision.aborted.load(std::memory_order_acquire) &&
-                        state.final_reply == MultiFinalReply::Exec)) {
-        state.exec_op_id = task.op_id;
-        if (state.backoff.load(std::memory_order_relaxed))
-            state.retry_after_ns = now_ns() + std::min(
-                kTxnRetryBackoffMax, uint64_t{1000} << std::min(state.attempt, uint32_t{10}));
-        multi_enqueue_retry(state);
-        if (Ring* ring = server.thread(owner_thread_id).ring())
-            server.thread(state.owner_io).wake_if_parked(*ring, server.thread(owner_thread_id).sig());
-        return MultiTaskResult::Complete;
-    }
-    return MultiTaskResult::Final;
+MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shard,
+        uint32_t owner_thread_id, uint32_t owner_domain, AofOwnerContext* aof_context,
+        const MultiRetryPromoter* promoter) {
+    if (__builtin_expect(server.latency_tracking(), false))
+        return multi_execute_task_tracked(server, task, shard, owner_thread_id,
+                                         owner_domain, aof_context, promoter);
+    constexpr bool Tracked = false;
+#include "multi_execute.inc"
 }
 
 void multi_retire(Client& client, Op& op, std::vector<MultiExecState*>& deferred) {
@@ -3073,8 +2821,19 @@ void multi_retire(Client& client, Op& op, std::vector<MultiExecState*>& deferred
             if (command->kind == MultiCommandKind::IoLocal &&
                 !(state->publication_started &&
                   (has_name(command->queued, "publish") || has_name(command->queued, "spublish"))))
-                command->op->spec->handler(state->server->shard(0), *command->op);
+            {
+                if (__builtin_expect(state->server->latency_tracking(), false)) {
+                    LatencyTrackingScope latency(state->owner_io, *command->op);
+                    command->op->spec->handler(state->server->shard(0), *command->op);
+                } else command->op->spec->handler(state->server->shard(0), *command->op);
+            }
     }
+    // A completed child can belong to an internally wounded attempt. Publish
+    // samples only at logical EXEC retirement; retries transfer their active
+    // slices to replacement children instead of incrementing call counts.
+    if (__builtin_expect(state->server->latency_tracking(), false))
+        for (const auto& command : state->commands)
+            latency_tracking_retire(state->owner_io, *command->op);
     set_state_reply(*state, op);
     op.detach_scatter_state();
     client.atomic_group_finished();
@@ -3240,148 +2999,21 @@ bool txn_wound(const Shard::WatchReservation& holder, Shard& shard, Server& serv
 }
 }
 
-// This helper is cold and owner-local. No claim on this shard is published
-// until every conflicting entry has been examined. Waiter marks retain the
-// original version across polls, so newer arrivals cannot overtake a waiter.
-bool Shard::watch_place_unit(const std::vector<TxnClaim>& keys, WatchReservation unit,
-                             const MultiRetryPromoter* promoter) {
-    auto& cached = unit.unit_kind == 1
-        ? static_cast<MultiExecState*>(const_cast<void*>(unit.token))->place_blockers[id()]
-        : static_cast<ScatterState*>(const_cast<void*>(unit.token))->group_attempt()->place_blockers[id()];
-    if (!txn_reservation_live(unit)) { cached.clear(); return true; }
-    if (cached.live()) {
-        server_->note_txn(server_->worker_of_shard(id()), TxnCounter::PollSkips);
-        return false;
-    }
-    cached.clear();
-    TxnPlaceBlocker older;
-    bool younger_placing = false;
-    bool ready = true;
-    const auto own = txn_unit_view(unit);
-    try {
-        for (const auto& key : keys) {
-            const auto inspect = [&](const std::string& name) {
-                watch_finalize_reservation(name);
-                auto found = watch_reservations_.find(name);
-                if (found == watch_reservations_.end()) return;
-                bool wounded = false;
-                for (const auto& holder : found->second) {
-                    if (holder.token == unit.token || !txn_reservation_live(holder)) continue;
-                    if (holder.entry_kind == 2) {
-                        // A' writer episodes: only arrivals after the episode wait.
-                        if (own.age_ns > holder.writer_generation) ready = false;
-                        continue;
-                    }
-                    if (!holder.blocking && holder.entry_kind != 3) continue;
-                    if (key.mode == TxnClaimMode::Read &&
-                        holder.unit_mode == static_cast<uint8_t>(TxnClaimMode::Read)) continue;
-                    if (!holder.unit_kind) { ready = false; continue; }
-                    const auto foreign = txn_unit_view(holder);
-                    const bool before = txn_version_before(foreign, own);
-                    // Pin immediately: a later key scan can retire this entry
-                    // and let the IO owner reclaim its state during this scan.
-                    if (before && !older.refs)
-                        older.pin(holder.epoch, holder.aborted, holder.refs);
-                    if (holder.entry_kind == 3) {
-                        if (before) ready = false;
-                        continue;
-                    }
-                    const auto phase = foreign.phase->load(std::memory_order_acquire);
-                    younger_placing |= phase == TxnPhase::Placing && txn_version_before(own, foreign);
-                    if (phase == TxnPhase::Executing ||
-                        !txn_version_before(own, foreign) || !txn_wound(holder, *this, *server_))
-                        ready = false;
-                    else wounded = true;
-                }
-                // The first scan already retired every previously decided entry.
-                // Only a successful wound creates more work in this owner turn.
-                if (wounded) watch_finalize_reservation(name);
-            };
-            if (key.key.empty()) {
-                // FLUSH visits a registry which finalization may erase from.
-                std::vector<std::string> names;
-                names.reserve(watch_reservations_.size());
-                for (const auto& [name, entries] : watch_reservations_) names.push_back(name);
-                for (const auto& name : names) inspect(name);
-            } else {
-                inspect("");
-                inspect(key.key);
-            }
-        }
-        if (!txn_reservation_live(unit)) return true;
-        if (!ready) server_->note_txn(server_->worker_of_shard(id()), TxnCounter::PlaceWaits);
-        for (const auto& key : keys) {
-            auto found = watch_reservations_.find(key.key);
-            bool exists = false;
-            if (found != watch_reservations_.end()) {
-                for (auto& r : found->second) if (r.token == unit.token && r.entry_kind >= 1) {
-                    r.entry_kind = ready ? 1 : 3;
-                    r.blocking = ready;
-                    r.unit_mode = static_cast<uint8_t>(key.mode);
-                    exists = true;
-                }
-            }
-            if (exists) continue;
-            unit.entry_kind = ready ? 1 : 3;
-            unit.blocking = ready;
-            unit.unit_mode = static_cast<uint8_t>(key.mode);
-            if (!watch_append_reservation(key.key, unit)) throw std::bad_alloc();
-        }
-        if (ready)
-            for (const auto& key : keys) watch_promote_unit_waiter(key.key, promoter);
-        // All own waiter marks now exist. A new younger placing claim cannot
-        // pass them. Preserve full wound scans if this scan found such a claim,
-        // even when its wound succeeded; never cache writer or legacy validation waits.
-        else if (older.refs && !younger_placing) cached.take(older);
-        return ready;
-    } catch (const std::bad_alloc&) {
-        unit.aborted->store(true, std::memory_order_release);
-        return true; // final error, never replay an allocation failure
-    }
-}
-
-void Shard::watch_promote_unit_waiter(const std::string& key,
-                                      const MultiRetryPromoter* promoter) {
-    const auto found = watch_reservations_.find(key);
-    if (found == watch_reservations_.end()) return;
-    const WatchReservation* oldest = nullptr;
-    for (const auto& waiter : found->second) {
-        if (waiter.entry_kind != 3 || !waiter.unit_kind || !txn_reservation_live(waiter)) continue;
-        if (!oldest || txn_version_before(txn_unit_view(waiter), txn_unit_view(*oldest)))
-            oldest = &waiter;
-    }
-    // Scatter units use their existing deferred queue. Only EXEC fragments live
-    // in multi_retries_. A missed synchronous promotion still gets its hint at
-    // its next rotation turn (including retirement outside an EXEC task).
-    if (!oldest || oldest->unit_kind != 1) return;
-    auto& next = *static_cast<MultiExecState*>(const_cast<void*>(oldest->token));
-    // The unused owner-local bit travels with the fragment on shard forwarding.
-    next.execution_noted[id()] |= 16u;
-    if (promoter) promoter->promote(promoter->context, multi_make_task(nullptr, 0, id(), &next));
-}
-
-void Shard::watch_finish_unit(const std::vector<TxnClaim>& keys, const void*,
-                              const MultiRetryPromoter* promoter) {
-    for (const auto& key : keys) {
-        watch_finalize_reservation(key.key);
-        watch_promote_unit_waiter(key.key, promoter);
-    }
-    if (has_blocking_waiters()) set_blocking_dirty();
-}
+#include "txn_key_queue.inc"
 
 uint64_t Shard::watch_writer_stamp(Slice key, const void* token, bool whole) const {
     const auto found = watch_reservations_.find(whole ? std::string{} : watch_key_string(key));
     if (found == watch_reservations_.end()) return 0;
-    for (const auto& r : found->second)
-        if (r.entry_kind == 2 && r.token == token) return r.writer_generation;
+    for (const auto& r : found->second.marks)
+        if ((TOMO_TXN_REGISTRY_VISIT(), r.entry_kind == 2) && r.token == token) return r.writer_generation;
     return 0;
 }
 
 bool Shard::watch_writer_mark(Slice key, const void* token, bool whole, uint64_t stamp) {
     const auto owned = whole ? std::string{} : watch_key_string(key);
     if (auto found = watch_reservations_.find(owned); found != watch_reservations_.end())
-        for (const auto& r : found->second)
-            if (r.entry_kind == 2 && r.token == token) return r.writer_generation == stamp;
+        for (const auto& r : found->second.marks)
+            if ((TOMO_TXN_REGISTRY_VISIT(), r.entry_kind == 2) && r.token == token) return r.writer_generation == stamp;
     WatchReservation mark;
     mark.token = token;
     mark.entry_kind = 2;
@@ -3397,8 +3029,9 @@ bool Shard::watch_writer_mark(Slice key, const void* token, bool whole, uint64_t
 void Shard::watch_writer_unmark(Slice key, const void* token, bool whole) {
     const auto found = watch_reservations_.find(whole ? std::string{} : watch_key_string(key));
     if (found == watch_reservations_.end()) return;
-    auto& list = found->second;
+    auto& list = found->second.marks;
     const auto removed = std::erase_if(list, [&](const auto& r) {
+        TOMO_TXN_REGISTRY_VISIT();
         return r.entry_kind == 2 && r.token == token;
     });
 #ifdef TOMO_TXNORDER_DEBUG
@@ -3406,14 +3039,15 @@ void Shard::watch_writer_unmark(Slice key, const void* token, bool whole) {
 #else
     (void)removed;
 #endif
-    if (list.empty()) { watch_reservations_.erase(found); refresh_has_watches(); }
+    if (found->second.empty()) { watch_reservations_.erase(found); refresh_has_watches(); }
 }
 
 // Allocation failure must not leave a partial episode. This fallback does not
 // allocate, including for long keys whose owned spelling could not be built.
 void Shard::watch_writer_forget(const void* token) {
     for (auto it = watch_reservations_.begin(); it != watch_reservations_.end();) {
-        const auto removed = std::erase_if(it->second, [&](const auto& r) {
+        const auto removed = std::erase_if(it->second.marks, [&](const auto& r) {
+            TOMO_TXN_REGISTRY_VISIT();
             return r.entry_kind == 2 && r.token == token;
         });
 #ifdef TOMO_TXNORDER_DEBUG
@@ -3432,6 +3066,7 @@ void Shard::watch_writer_forget(const void* token) {
 void Shard::watch_writer_check(Slice key, bool whole, uint64_t stamp) {
     const auto check = [&](const auto& entries) {
         for (const auto& r : entries) {
+            TOMO_TXN_REGISTRY_VISIT();
             if (!r.unit_kind || !r.blocking || !txn_reservation_live(r)) continue;
             const auto unit = txn_unit_view(r);
             if (unit.age_ns <= stamp ||
@@ -3442,11 +3077,11 @@ void Shard::watch_writer_check(Slice key, bool whole, uint64_t stamp) {
         }
     };
     if (whole) {
-        for (const auto& [name, entries] : watch_reservations_) check(entries);
+        for (const auto& [name, entries] : watch_reservations_) check(entries.held);
     } else {
-        if (auto it = watch_reservations_.find(""); it != watch_reservations_.end()) check(it->second);
+        if (auto it = watch_reservations_.find(""); it != watch_reservations_.end()) check(it->second.held);
         if (auto it = watch_reservations_.find(watch_key_string(key));
-            it != watch_reservations_.end()) check(it->second);
+            it != watch_reservations_.end()) check(it->second.held);
     }
 }
 
@@ -3457,20 +3092,14 @@ void Shard::watch_writer_check(Slice key, bool whole, uint64_t stamp) {
 // reservation is kept. Only an undecided BLOCKING reservation -- the EXEC validate claim --
 // makes this return false; an undecided atomic-group write reservation is left in place and
 // answers "ready", because nothing may wait on it (Shard::WatchReservation::blocking).
-bool Shard::watch_finalize_reservation(const std::string& key) {
-    auto found = watch_reservations_.find(key);
-    if (found == watch_reservations_.end()) return true;
-    std::vector<WatchReservation>& list = found->second;
+bool Shard::watch_finalize_queue(const std::string& key, TxnKeyQueue& queue) {
+    auto& list = queue.held;
     bool blocked = false;
     std::array<uint64_t, 4> dirty{};
     size_t keep = 0;
     for (size_t i = 0; i < list.size(); i++) {
-        WatchReservation& reservation = list[i];
-        if (reservation.entry_kind == 2) {
-            if (keep != i) list[keep] = reservation;
-            ++keep;
-            continue;
-        }
+        auto& reservation = list[i];
+        TOMO_TXN_REGISTRY_VISIT();
         const uint64_t epoch = reservation.epoch
             ? reservation.epoch->load(std::memory_order_acquire) : 1;
         const bool aborted = epoch == kAtomicCancelledEpoch || (reservation.aborted &&
@@ -3487,9 +3116,10 @@ bool Shard::watch_finalize_reservation(const std::string& key) {
         if (!aborted && reservation.mutates)
             for (unsigned db = 0; db < dirty.size(); ++db)
                 dirty[db] |= reservation.dirty_databases[db];
+        if (reservation.handle) reservation.handle->queue = nullptr;
         if (reservation.refs) reservation.refs->fetch_sub(1, std::memory_order_release);
     }
-    list.resize(keep);
+    list.erase(list.begin() + keep, list.end());
     if (dirty[0] || dirty[1] || dirty[2] || dirty[3]) {
         auto watchers = watchers_.find(key);
         if (watchers != watchers_.end()) {
@@ -3499,11 +3129,20 @@ bool Shard::watch_finalize_reservation(const std::string& key) {
                     entry.client->set_watch_dirty();
         }
     }
-    if (list.empty()) {
+    return !blocked;
+}
+
+bool Shard::watch_finalize_reservation(const std::string& key) {
+    auto found = watch_reservations_.find(key);
+    if (found == watch_reservations_.end()) return true;
+    const bool ready = watch_finalize_queue(key, found->second);
+    txn_live_head(found->second);
+    txn_live_head(found->second, true);
+    if (found->second.empty()) {
         watch_reservations_.erase(found);
         refresh_has_watches();
     }
-    return !blocked;
+    return ready;
 }
 
 void Shard::watch_prune_stale(const std::string& key) {
@@ -3593,7 +3232,7 @@ bool Shard::watch_validate_and_reserve(Slice key, Client* client, uint64_t gener
     if (client->watch_generation() != generation || client->watch_dirty()) return true;
     if (!reserve) return true;
     if (auto existing = watch_reservations_.find(owned); existing != watch_reservations_.end())
-        for (auto& r : existing->second) if (r.token == token) {
+        for (auto& r : existing->second.held) if ((TOMO_TXN_REGISTRY_VISIT(), r.token == token)) {
             r.entry_kind = 0; // WATCH blocks from validation, before the started bit
             r.blocking = true;
             if (r.mutates) watch_note_database(r, server_, key.ns);
@@ -3608,17 +3247,20 @@ bool Shard::watch_validate_and_reserve(Slice key, Client* client, uint64_t gener
 }
 
 bool Shard::watch_key_ready(const std::string& owned, const void* token, bool all_units) {
-    // A sole reservation belonging to the caller cannot obstruct that caller.
-    // Keep finalization on every foreign/combined list and at unit retirement.
-    if (token) {
-        const auto own = watch_reservations_.find(owned);
-        if (own != watch_reservations_.end() && own->second.size() == 1 &&
-            own->second.front().token == token) return true;
-    }
-    watch_finalize_reservation(owned);
     const auto found = watch_reservations_.find(owned);
     if (found == watch_reservations_.end()) return true;
-    for (const auto& r : found->second) {
+    auto& queue = found->second;
+    if (token && queue.size() == 1 && queue.front().token == token) return true;
+    watch_finalize_queue(owned, queue);
+    if (queue.empty()) {
+        watch_reservations_.erase(found);
+        refresh_has_watches();
+        return true;
+    }
+    // Waiters and writer marks cannot falsify unit execution. Preserve the
+    // exact validation/all-units/started predicate and OrderViolations caller.
+    for (const auto& r : queue.held) {
+        TOMO_TXN_REGISTRY_VISIT();
         if (r.token == token || !r.blocking || !txn_reservation_live(r)) continue;
         if (r.entry_kind != 1 || all_units) return false;
         if (r.unit_kind == 1) {
@@ -3656,8 +3298,8 @@ void Shard::watch_reserve_write(Slice key, Client* writer, uint64_t writer_gener
     // existing registrations need a dirty reservation for this decision.
     const std::string owned = watch_key_string(key);
     if (auto existing = watch_reservations_.find(owned); existing != watch_reservations_.end())
-        for (WatchReservation& reservation : existing->second)
-            if (reservation.token == token) {
+        for (WatchReservation& reservation : existing->second.held)
+            if ((TOMO_TXN_REGISTRY_VISIT(), reservation.token == token)) {
                 reservation.mutates = true;
                 watch_note_database(reservation, server_, key.ns);
                 return;
@@ -3675,13 +3317,27 @@ void Shard::watch_reserve_write(Slice key, Client* writer, uint64_t writer_gener
 
 // Appends one reservation, leaving the map unchanged on allocation failure. Returns false when the
 // caller must abort its unit rather than proceed with an unrecorded reservation.
-bool Shard::watch_append_reservation(const std::string& key, const WatchReservation& reservation) {
+bool Shard::watch_append_reservation(const std::string& key, const WatchReservation& reservation,
+                                      TxnWaiter* handle) {
     try {
-        std::vector<WatchReservation>& list = watch_reservations_[key];
-        list.push_back(reservation);
+        auto& queue = watch_reservations_[key];
+        if (reservation.entry_kind == 3) {
+            TOMO_ASSERT(handle && !reservation.mutates);
+            txn_link_waiter(queue, *handle, reservation);
+        } else if (reservation.entry_kind == 2) {
+            const auto at = std::upper_bound(queue.marks.begin(), queue.marks.end(),
+                reservation.writer_generation, [](uint64_t stamp, const auto& r) {
+                    TOMO_TXN_REGISTRY_VISIT();
+                    return stamp < r.writer_generation;
+                });
+            queue.marks.insert(at, reservation);
+        } else {
+            queue.held.emplace_back(reservation, handle);
+            if (reservation.mutates) watch_note_database(queue.held.back(), server_, static_cast<uint8_t>(key[0]));
+            if (handle) handle->queue = &queue;
+            if (reservation.refs) reservation.refs->fetch_add(1, std::memory_order_release);
+        }
         arm_watches();
-        if (reservation.mutates) watch_note_database(list.back(), server_, static_cast<uint8_t>(key[0]));
-        if (reservation.refs) reservation.refs->fetch_add(1, std::memory_order_release);
     } catch (const std::bad_alloc&) {
         auto found = watch_reservations_.find(key);
         if (found != watch_reservations_.end() && found->second.empty())

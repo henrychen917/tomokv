@@ -1,0 +1,8 @@
+{
+  "post_sha256": "f94fbd1d57873ff32bdf279b796139e0dd94e8cd7f613d9a7f17832ef86af359",
+  "comparisons": 72,
+  "single_key_zero_added": 48,
+  "scatter_totals_and_functions_equal": 24,
+  "external_library_and_fixture_callback_counts_equal": 72,
+  "normalization": "Only the known fixture callback artifact pathname; raw target names remain in every trace."
+}

@@ -1,0 +1,108 @@
+[
+  {
+    "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "exec_watch": false,
+    "execindex_equal": false,
+    "headline_sizes": [
+      590
+    ],
+    "post_sizes": [
+      590
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+  },
+  {
+    "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "exec_watch": false,
+    "execindex_equal": false,
+    "headline_sizes": [
+      590
+    ],
+    "post_sizes": [
+      590
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+  },
+  {
+    "name": "tomo::IoLoop::pubsub_handle_event(tomo::PubSubEvent&)",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "exec_watch": false,
+    "execindex_equal": false,
+    "headline_sizes": [
+      1882
+    ],
+    "post_sizes": [
+      1882
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+  },
+  {
+    "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "exec_watch": false,
+    "execindex_equal": false,
+    "headline_sizes": [
+      590
+    ],
+    "post_sizes": [
+      590
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+  },
+  {
+    "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "exec_watch": false,
+    "execindex_equal": false,
+    "headline_sizes": [
+      590
+    ],
+    "post_sizes": [
+      590
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+  },
+  {
+    "name": "tomo_wave8b_pad_a",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "exec_watch": false,
+    "execindex_equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      21680
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+  }
+]

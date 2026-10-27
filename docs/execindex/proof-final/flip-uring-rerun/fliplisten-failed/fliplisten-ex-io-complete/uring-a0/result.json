@@ -1,0 +1,7 @@
+{
+  "engine": "uring",
+  "atomic": 0,
+  "direction": "ex-io",
+  "outcome": "complete",
+  "sha256": "aee048859f6f8d84d5aa4e0b30767ad1e8dac4595d383ff634a8226027d1566a"
+}

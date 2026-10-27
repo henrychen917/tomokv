@@ -1,0 +1,24 @@
+{
+  "source_commit": "b56506b6dcc5b334ad088d5eaaa052d87ec18e64",
+  "arms": {
+    "PRE": {
+      "path": "/home/user/Projects/cx-latencyfix/build/latencyfix/pre/tomokv",
+      "sha256": "5e708c7aa744e251f1c1005a06f03f1815c08c97cd965c1a95ad650844e4ea68",
+      "bytes": 212508112
+    },
+    "POST": {
+      "path": "/home/user/Projects/cx-latencyfix/build/latencyfix/post/tomokv",
+      "sha256": "257d6ee619d33eeaffbb6fa55cd30b9880a37fc873f01d467c9469519dbf36d0",
+      "bytes": 216676696
+    },
+    "PAD-A": {
+      "path": "/home/user/Projects/cx-latencyfix/build/tomokv-latencyfix-pad-a",
+      "sha256": "68cc2a8996d2924b692b490bbdb0bf2ecd10259816b04f6f6bcc440b668c764a",
+      "bytes": 212626952
+    }
+  },
+  "pre_commit": "3700b51d7fb3074f32330dd81f138efbf1ddd980",
+  "last_production_change_commit": "6ec9a7ee4cb9001af88df87831a9bd640ee38685",
+  "test_commit": "1ed7b7c149daeb8b003e18bee4486f8417c791e6",
+  "note": "Production sources have not changed since last_production_change_commit. Later commits strengthen tests and receipts."
+}

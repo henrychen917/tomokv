@@ -1,0 +1,15 @@
+lua_getupvalue
+--- headline
+
++++ post
+
+@@ -24,7 +24,7 @@
+
+ CLONE 0 004b [ 2] cltq
+ CLONE 0 004d [ 4] shl $0x4,%rax
+ CLONE 0 0051 [ 5] lea 0x28(%rdx,%rax,1),%rsi
+-CLONE 0 0056 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x126c8>
++CLONE 0 0056 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x788>
+ CLONE 0 005d [ 4] mov 0x10(%rcx),%rax
+ CLONE 0 0061 [ 3] mov (%rsi),%rdi
+ CLONE 0 0064 [ 3] mov 0x8(%rsi),%esi

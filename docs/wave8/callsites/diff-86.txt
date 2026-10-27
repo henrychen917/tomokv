@@ -1,0 +1,15 @@
+json_enum_option.constprop.0.isra.0
+--- lualibs
+
++++ post
+
+@@ -3,7 +3,7 @@
+
+ CLONE 0 0005 [ 1] push %rbp
+ CLONE 0 0006 [ 3] mov %rsi,%r12
+ CLONE 0 0009 [ 1] push %rbx
+-CLONE 0 000a [ 7] lea <rip>(%rip),%rax # <bool_options.2>
++CLONE 0 000a [ 7] lea <rip>(%rip),%rax # <bool_options.1>
+ CLONE 0 0011 [ 3] mov %rdx,%rbx
+ CLONE 0 0014 [ 5] mov $0x1,%esi
+ CLONE 0 0019 [ 4] cmove %rax,%rbx

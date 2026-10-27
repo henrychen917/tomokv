@@ -1,0 +1,7 @@
+  row budget: 900s; median=21.44s; correctness-plan-fallback; mode equivalence part (all execution modes and knobs)
+DIFFER suites (47): string list set zset hash hexpire edgetime xshard xmove bitmap hll bitfield cgaps stream script streamgrp zsetops geo doubles scan multi encodingfix edgeenc edgeproto cmdgap cmdgap2 sort servertail arity storeorder infofix multidb blocking pubsub fanout spubsub notify wiredump climon compatintro aclsel aclkeys cmdmeta s6fix ccfix psfix monitor
+DIFFER geometry: split (--ratio 6:2 --net-io epoll)
+DIFFER matrix: atomic={} seeds={7 19 20 23 21 24} legs=0 logs=/home/user/Projects/cx-latencyfix/build/gate-run.2mXk2O/jobs/differ-equivalence/differ
+  mode equivalence: all execution/knob combinations          ok (exact replies and mechanism witnesses)
+DIFFER GATE: pass=1 fail=0 runtime=0m21s
+  mode equivalence part (all execution modes and knobs) ok

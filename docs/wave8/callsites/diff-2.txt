@@ -1,0 +1,47 @@
+_GLOBAL__sub_I__ZN4tomo14SetMemberTable12capacity_forEj
+--- headline
+
++++ post
+
+@@ -2,8 +2,8 @@
+
+ CLONE 0 0004 [ 4] sub $0x8,%rsp
+ CLONE 0 0008 [ 7] cmpb $0x0,<rip>(%rip) # <guard variable for tomo::atomic_tripwire_detail::state>
+ CLONE 0 000f [ 6] je <+0x2d8>
+-CLONE 0 0015 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x710>
+-CLONE 0 001c [ 7] mov <rip>(%rip),%rdx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x720>
++CLONE 0 0015 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x160>
++CLONE 0 001c [ 7] mov <rip>(%rip),%rdx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x170>
+ CLONE 0 0023 [ 7] lea <rip>(%rip),%rsi # <void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_sadd<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)>
+ CLONE 0 002a [ 7] lea <rip>(%rip),%rdi # <literal-string-5352454d00>
+ CLONE 0 0031 [ 7] mov %rsi,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0x28>
+@@ -27,7 +27,7 @@
+
+ CLONE 0 00af [10] movabs $0x100010001,%rax
+ CLONE 0 00b9 [ 7] mov %rsi,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0x88>
+ CLONE 0 00c0 [ 7] mov %rcx,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0xc0>
+-CLONE 0 00c7 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x708>
++CLONE 0 00c7 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x158>
+ CLONE 0 00ce [ 7] lea <rip>(%rip),%rsi # <void tomo::(anonymous namespace)::cmd_smismember<false>(tomo::Shard&, tomo::Op&)>
+ CLONE 0 00d5 [ 7] mov %rdi,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0x90>
+ CLONE 0 00dc [ 7] lea <rip>(%rip),%rdi # <void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_smismember<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)>
+@@ -59,7 +59,7 @@
+
+ CLONE 0 019e [ 7] mov %rsi,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0xd8>
+ CLONE 0 01a5 [ 7] mov %rdi,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0xe8>
+ CLONE 0 01ac [ 7] mov %rcx,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0x120>
+-CLONE 0 01b3 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x758>
++CLONE 0 01b3 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x1a8>
+ CLONE 0 01ba [ 7] lea <rip>(%rip),%rsi # <literal-string-534d454d4245525300>
+ CLONE 0 01c1 [ 7] lea <rip>(%rip),%rdi # <void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_smembers<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)>
+ CLONE 0 01c8 [ 7] mov %rsi,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0xf0>
+@@ -83,7 +83,7 @@
+
+ CLONE 0 024c [ 7] movb $0x0,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0x104>
+ CLONE 0 0253 [10] movl $0x1,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0x130>
+ CLONE 0 025d [ 7] mov %rcx,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0x150>
+-CLONE 0 0264 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6f8>
++CLONE 0 0264 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x148>
+ CLONE 0 026b [ 7] movb $0x0,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0x134>
+ CLONE 0 0272 [10] movl $0x2,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0x160>
+ CLONE 0 027c [ 7] movb $0x0,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0x164>

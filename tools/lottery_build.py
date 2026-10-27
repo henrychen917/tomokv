@@ -30,6 +30,7 @@ def prepare(output):
     hooks = (ROOT / 'tests/lottery_hooks.h').read_bytes()
     staged['tests/lottery_hooks.h'] = (hooks, 0o644)
     staged['Makefile'] = ((ROOT / 'Makefile').read_bytes(), 0o644)
+    staged['tools/assert_map.py'] = ((ROOT / 'tools/assert_map.py').read_bytes(), 0o644)
     changes = []
 
     def patch(path, old, new, count=1):

@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-normal-GET-1s-1-1--1.log
+SHA-256: 24178bffbe6f0668ec58568fbe42f536e7335a648133bb7253258663e6a77035
+Exit: 0
+0x0000555555c8d898	2353	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
+0x0000555555c8d763 in tomo::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff61cf088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356
+2356	    }
+0x0000555555c8d768	2356	    }
+0x0000555555c8d771	2356	    }
+0x0000555555c8d777	2356	    }
+0x0000555555c8d77b	2356	    }
+0x0000555555c8d77c	2356	    }
+0x0000555555c8d77e	2356	    }
+0x0000555555c8d780	2356	    }
+0x0000555555c8d782	2356	    }
+0x0000555555c8d784	2356	    }
+0x0000555555c8d785	2356	    }
+0x0000555555d8d528 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:140
+140	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
+30	[[gnu::noinline]] void scope_end(){
+[Inferior 1 (process 2356409) exited normally]
+COUNT 939

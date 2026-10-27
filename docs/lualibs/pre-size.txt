@@ -1,0 +1,2 @@
+   text	   data	    bss	    dec	    hex	filename
+9297053	  89048	1090136	10476237	 9fdacd	build/tomokv-lualibs-pre

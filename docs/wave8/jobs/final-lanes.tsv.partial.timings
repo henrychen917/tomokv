@@ -1,0 +1,31 @@
+ok	0.000000	release build (+footprint locks)
+ok	132.400000	production source identity + stable assertion ids
+ok	26.960000	iofix WB4.1 deferred IO parks
+ok	39.840000	iofix IO4.9 Redis hz cron
+ok	31.790000	iofix IO4.10 global DEBUG SLEEP
+ok	18.600000	iofix IO4.17 immediate signal shutdown
+ok	127.850000	R7 FIFO twin off-path identity + negative controls
+ok	38.500000	lualibs CC4.7 vs Redis 7.4
+ok	6.360000	latencyfix LAT-HIST-1 knob grammar
+ok	1.780000	latencyfix LAT-HIST-1 histogram and latencystats
+ok	13.880000	latencyfix LAT-HIST-1 zero allocations off
+ok	27.760000	EXEC fast-lane polls
+ok	104.640000	txnorder index oracle
+ok	2.760000	txnorder index complexity
+ok	0.030000	txnorder2 writer episode R1
+ok	0.020000	txnorder2 writer episode R2
+ok	0.030000	txnorder2 writer episode R3
+ok	0.020000	txnorder2 writer episode R4
+ok	0.020000	txnorder2 writer episode R5
+ok	0.030000	txnorder2 writer episode R6
+ok	0.030000	txnorder2 writer episode R7
+ok	0.100000	txnorder2 writer episode R8
+ok	0.020000	txnorder2 writer episode R9
+ok	0.030000	txnorder2 writer episode R10
+ok	0.030000	txnorder2 writer episode R11
+ok	4.580000	txnorder2 writer episode R12
+ok	0.050000	txnorder2 direct RENAME owner join
+ok	22.240000	txnorder2 WATCH serve
+ok	29.830000	txnorder2 WATCH flush
+ok	27.730000	txnorder2 WATCH readonly
+ok	0.010000	txnorder2 busy owner inbox wake

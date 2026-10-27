@@ -1,0 +1,15 @@
+tomo_db0::IoLoop::pubsub_handle_home_request(tomo_db0::PubSubEvent&)
+--- headline
+
++++ post
+
+@@ -18,7 +18,7 @@
+
+ CLONE 0 0041 [ 5] mov %rax,0x78(%rsp)
+ CLONE 0 0046 [ 6] ja <+0x13d0>
+ CLONE 0 004c [ 3] movzbl (%rsi),%eax
+-CLONE 0 004f [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x17d14>
++CLONE 0 004f [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x1863c>
+ CLONE 0 0056 [ 4] movslq (%rdx,%rax,4),%rax
+ CLONE 0 005a [ 3] add %rdx,%rax
+ CLONE 0 005d [ 3] notrack jmp *%rax

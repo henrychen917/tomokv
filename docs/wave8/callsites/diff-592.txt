@@ -1,0 +1,15 @@
+void tomo_db0::(anonymous namespace)::cmd_setrange<true>(tomo_db0::Shard&, tomo_db0::Op&)
+--- headline
+
++++ post
+
+@@ -197,7 +197,7 @@
+
+ CLONE 0 0343 [ 5] call <tomo_db0::command_proto_max_bulk_len()>
+ CLONE 0 0348 [ 3] cmp %r12,%rax
+ CLONE 0 034b [ 6] jb <+0x3e0>
+-CLONE 0 0351 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x126c8>
++CLONE 0 0351 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x788>
+ CLONE 0 0358 [ 8] movl $0x0,0x14(%rsp)
+ CLONE 0 0360 [ 9] movq $0x0,0x8(%rsp)
+ CLONE 0 0369 [ 5] jmp <+0x203>

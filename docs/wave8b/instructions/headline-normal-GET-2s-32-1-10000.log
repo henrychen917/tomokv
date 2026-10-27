@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/headline-normal-GET-2s-32-1-10000.log
+SHA-256: 6680fb028c4e9409f7b90d9cb86dd5d28e35186857eb1c2eb9c7395d65080f1b
+Exit: 0
+2348	        // One publish per batch, covering every shard this batch touched. Cheaper than tracking
+0x0000555555a22db8	2348	        // One publish per batch, covering every shard this batch touched. Cheaper than tracking
+0x0000555555a22dc1	2348	        // One publish per batch, coveringTomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+ every shard this batch touched. Cheaper than tracking
+0x0000555555a22dc7	2348	        // One publish per batch, covering every shard this batch touched. Cheaper than tracking
+0x0000555555a22dcb	2348	        // One publish per batch, covering every shard this batch touched. Cheaper than tracking
+0x0000555555a22dcc	2348	        // One publish per batch, covering every shard this batch touched. Cheaper than tracking
+0x0000555555a22dce	2348	        // One publish per batch, covering every shard this batch touched. Cheaper than tracking
+0x0000555555a22dd0	2348	        // One publish per batch, covering every shard this batch touched. Cheaper than tracking
+0x0000555555a22dd2	2348	        // One publish per batch, covering every shard this batch touched. Cheaper than tracking
+0x0000555555a22dd4	2348	        // One publish per batch, covering every shard this batch touched. Cheaper than tracking
+0x0000555555a22dd5	2348	        // One publish per batch, covering every shard this batch touched. Cheaper than tracking
+0x0000555555d63e80 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=10000) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:140
+140	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
+30	[[gnu::noinline]] void scope_end(){
+[Inferior 1 (process 2921561) exited normally]
+COUNT 18971

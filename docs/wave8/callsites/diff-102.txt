@@ -1,0 +1,15 @@
+lua_newstate
+--- headline
+
++++ post
+
+@@ -57,7 +57,7 @@
+
+ CLONE 0 0166 [ 4] vpxor %xmm0,%xmm0,%xmm0
+ CLONE 0 016a [11] movq $0x268,0x130(%rbx)
+ CLONE 0 0175 [ 8] vmovdqu %ymm0,0xf0(%rbx)
+-CLONE 0 017d [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x908>
++CLONE 0 017d [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x350>
+ CLONE 0 0184 [ 4] vpxor %xmm0,%xmm0,%xmm0
+ CLONE 0 0188 [10] vmovdqu8 %zmm0,0x198(%rbx)
+ CLONE 0 0192 [ 3] mov %rbx,%rsi

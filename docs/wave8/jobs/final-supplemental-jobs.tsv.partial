@@ -1,0 +1,44 @@
+PARTIAL	0	GATE_ONLY_JOBS=asan rldbg netfix_query_stats ntfix_input persistfix2_lastsave racefix_counters notify_aof notify_order notifycompat exbatch_live atomfix5_accounting acl_recheck aclfix authfix bugs5 rlcache; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+ok	60.850000	ASAN build
+ok	41.260000	read-local ownership-invariant build
+ok	45.010000	bugs5 scancompact (both modes, both engines, atomic 0/1)
+ok	33.510000	bugs5 slowlog_identity (both modes, both engines, atomic 0/1)
+ok	26.750000	bugs5 read_local_lfu (both modes, both engines, atomic 0/1)
+ok	7.850000	persistfix2 LASTSAVE and rewrite INFO
+ok	13.980000	atomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1)
+ok	1.460000	INFO command/socket counters (TSan, both modes)
+ok	0.280000	exbatch publication and WATCH lifecycle (1s)
+ok	0.280000	exbatch publication and WATCH lifecycle (2s)
+ok	1.550000	netfix NT4.6 query-limit INFO parity
+ok	6.100000	ACL recheck one-reply battery (2s)
+ok	6.240000	ACL recheck one-reply battery (1s)
+ok	0.070000	aclfix sort (1s)
+ok	0.060000	aclfix streams-name (1s)
+ok	0.070000	aclfix save-load (1s)
+ok	2.130000	aclfix capacity (1s)
+ok	0.080000	aclfix wake-pop (1s)
+ok	0.080000	aclfix wake-scatter (1s)
+ok	0.070000	aclfix sort (2s)
+ok	0.070000	aclfix streams-name (2s)
+ok	0.060000	aclfix save-load (2s)
+ok	2.000000	aclfix capacity (2s)
+ok	0.080000	aclfix wake-pop (2s)
+ok	0.080000	aclfix wake-scatter (2s)
+ok	0.910000	authfix CG4.1 binary config requirepass
+ok	3.450000	authfix CG4.2 missing config value refuses boot
+ok	0.900000	authfix SV4.2 binary requirepass rewrite restart
+ok	0.290000	authfix SV4.1 slowlog credential redaction (1s)
+ok	0.300000	authfix SV4.1 slowlog credential redaction (2s)
+ok	22.580000	notification compatibility setbit vs Redis 7.4
+ok	42.010000	notification compatibility setpast vs Redis 7.4
+ok	50.110000	notification compatibility emptystore vs Redis 7.4
+ok	43.070000	notification compatibility writemiss vs Redis 7.4
+ok	43.580000	notification compatibility objectmiss vs Redis 7.4
+ok	144.270000	notification compatibility expiredstore vs Redis 7.4
+ok	56.450000	notification compatibility flush vs Redis 7.4
+ok	65.710000	keyspace lazy-expiry order vs Redis 7.4
+ok	11.890000	local script notification AOF vs Redis 7.4
+ok	5.420000	INFO received bytes exact (ntfix N1)
+ok	25.190000	armed block-cache churn battery
+ok	0.020000	read-local ownership invariants

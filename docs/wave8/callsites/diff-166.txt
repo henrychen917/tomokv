@@ -1,0 +1,33 @@
+tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)
+--- execindex
+
++++ post
+
+@@ -1519,7 +1519,7 @@
+
+ CLONE 0 1cc1 [ 6] fldcw -0x3f4(%rbp)
+ CLONE 0 1cc7 [ 2] frndint
+ CLONE 0 1cc9 [ 6] fldcw -0x3f2(%rbp)
+-CLONE 0 1ccf [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x608>
++CLONE 0 1ccf [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x648>
+ CLONE 0 1cd5 [ 2] fxch %st(1)
+ CLONE 0 1cd7 [ 2] fcomi %st(1),%st
+ CLONE 0 1cd9 [ 2] fstp %st(1)
+@@ -2044,14 +2044,14 @@
+
+ CLONE 0 2609 [ 5] jmp <+0x1009>
+ CLONE 0 260e [ 2] fld %st(0)
+ CLONE 0 2610 [ 2] fabs
+-CLONE 0 2612 [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5e8>
++CLONE 0 2612 [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x628>
+ CLONE 0 2618 [ 2] fxch %st(1)
+ CLONE 0 261a [ 2] fucomi %st(1),%st
+ CLONE 0 261c [ 2] fstp %st(1)
+ CLONE 0 261e [ 6] ja <+0x18e8>
+ CLONE 0 2624 [ 2] fucomi %st(0),%st
+ CLONE 0 2626 [ 6] jp <+0x18ee>
+-CLONE 0 262c [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5f8>
++CLONE 0 262c [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x638>
+ CLONE 0 2632 [ 2] fxch %st(1)
+ CLONE 0 2634 [ 2] fcomip %st(1),%st
+ CLONE 0 2636 [ 2] ffreep %st(0)

@@ -1,0 +1,40 @@
+In file included from /home/user/Projects/cx-wave8b/build/wave8b/controls/scan/xshard.cc:58:
+/home/user/Projects/cx-wave8b/src/cmd/scatter_engine.inc:447:8: warning: ‘tomo::TxnGroupAttempt’ has a field ‘std::unique_ptr<tomo::{anonymous}::ShardGroup []> tomo::TxnGroupAttempt::placement_groups’ whose type has internal linkage [-Wsubobject-linkage]
+  447 | struct TxnGroupAttempt {
+      |        ^~~~~~~~~~~~~~~
+/home/user/Projects/cx-wave8b/src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::Kind tomo::ScatterState::kind’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+  465 | struct ScatterState : SnapshotCut {
+      |        ^~~~~~~~~~~~
+/home/user/Projects/cx-wave8b/src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::FinalReply tomo::ScatterState::final_reply’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+/home/user/Projects/cx-wave8b/src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::WorkError tomo::ScatterState::final_error’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+/home/user/Projects/cx-wave8b/src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ScriptPhase tomo::ScatterState::script_phase’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+/home/user/Projects/cx-wave8b/src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::PopReplyShape tomo::ScatterState::pop_reply_shape’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+/home/user/Projects/cx-wave8b/src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ImageRangeOptions tomo::ScatterState::range_options’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+/home/user/Projects/cx-wave8b/src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ImageRangeSpec tomo::ScatterState::range_spec’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+/home/user/Projects/cx-wave8b/src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::SortOptions tomo::ScatterState::sort_options’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+/home/user/Projects/cx-wave8b/src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ZAggregate tomo::ScatterState::zset_aggregate’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+/home/user/Projects/cx-wave8b/src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ShardGroup* tomo::ScatterState::groups’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+/home/user/Projects/cx-wave8b/src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::KeyRef* tomo::ScatterState::keys’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+/home/user/Projects/cx-wave8b/src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ValueSlot* tomo::ScatterState::values’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+/home/user/Projects/cx-wave8b/src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ObjectImage* tomo::ScatterState::images’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+/home/user/Projects/cx-wave8b/src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ObjectImage* tomo::ScatterState::apply’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+/home/user/Projects/cx-wave8b/src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ResultHeap* tomo::ScatterState::result’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+/home/user/Projects/cx-wave8b/src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::SortDerefState* tomo::ScatterState::sort_deref’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+In file included from /home/user/Projects/cx-wave8b/build/wave8b/controls/scan/xshard.cc:64:
+/home/user/Projects/cx-wave8b/build/wave8b/controls/scan/multi.inc: In function ‘void tomo::{anonymous}::txn_add_claim(std::vector<tomo::TxnClaim>&, tomo::Slice, tomo::TxnClaimMode, bool)’:
+/home/user/Projects/cx-wave8b/build/wave8b/controls/scan/multi.inc:770:21: warning: missing initializer for member ‘tomo::TxnClaim::waiter’ [-Wmissing-field-initializers]
+  770 |     claims.push_back({std::move(owned), whole ? 0 : FlatStore::hash_key(key), mode});
+      |     ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/user/Projects/cx-wave8b/build/wave8b/controls/scan/multi.inc: In function ‘void tomo::{anonymous}::txn_cap_claims(std::vector<tomo::TxnClaim>&)’:
+/home/user/Projects/cx-wave8b/build/wave8b/controls/scan/multi.inc:779:21: warning: missing initializer for member ‘tomo::TxnClaim::waiter’ [-Wmissing-field-initializers]
+  779 |     claims.push_back({{}, 0, mode});
+      |     ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+In file included from /home/user/Projects/cx-wave8b/build/wave8b/controls/scan/xshard.cc:68:
+/home/user/Projects/cx-wave8b/src/cmd/notify.inc: At global scope:
+/home/user/Projects/cx-wave8b/src/cmd/notify.inc:255:8: warning: ‘tomo::NotifyBatch’ has a field ‘std::shared_ptr<tomo::{anonymous}::NotifyExpiryCompletion> tomo::NotifyBatch::expiry_completion’ whose type has internal linkage [-Wsubobject-linkage]
+  255 | struct NotifyBatch {
+      |        ^~~~~~~~~~~
+/home/user/Projects/cx-wave8b/src/cmd/notify.inc: In function ‘void tomo::notify_elapsed_set(Shard&, Op&, Slice)’:
+/home/user/Projects/cx-wave8b/src/cmd/notify.inc:583:78: warning: narrowing conversion of ‘key.tomo::Slice::ns’ from ‘uint32_t’ {aka ‘unsigned int’} to ‘uint8_t’ {aka ‘unsigned char’} [-Wnarrowing]
+  583 |         pending.push_back(NotifyPendingExpiry{std::string(key.p, key.n), key.ns, std::move(ready)});
+      |                                                                          ~~~~^~

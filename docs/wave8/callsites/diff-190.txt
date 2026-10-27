@@ -1,0 +1,15 @@
+tomo::DatabaseMap::bind_workers(unsigned int, tomo::Server*)
+--- headline
+
++++ post
+
+@@ -30,7 +30,7 @@
+
+ CLONE 0 0062 [ 3] mov %rax,%rdi
+ CLONE 0 0065 [ 3] mov %rax,%r15
+ CLONE 0 0068 [ 5] call <_ZnamSt11align_val_t@plt>
+-CLONE 0 006d [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x650>
++CLONE 0 006d [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x90>
+ CLONE 0 0074 [ 3] mov %rax,%r12
+ CLONE 0 0077 [ 4] mov %r13,0x38(%rax)
+ CLONE 0 007b [ 4] lea 0x40(%rax),%r13

@@ -761,6 +761,7 @@ void IoLoop::r7_run_loop() {
                     client, probed, fallbacks, count, demoted);
             });
 
+    wb_rule::IdleWindow wb_idle;
     Server::DebugSleepWorker sleep_worker(srv_->debug_sleep_coordinator(), self_->id());
     if constexpr (Fused) {
         if (srv_->read_local_enabled()) {
@@ -816,6 +817,7 @@ void IoLoop::r7_run_loop() {
         scatter_pool_.reap_deferred();
 
         uint32_t did = 0;
+        uint32_t wb_completions = 0;
         {
             // The pass-boundary clock is already sampled. Reuse that same cut for
             // every monotonic millisecond consumer instead of issuing separate clock_gettime
@@ -885,7 +887,8 @@ void IoLoop::r7_run_loop() {
                     client_routing_cleanup_pass();
                 did += r7_flush_ready<HasTls, kEp, true, HasUnix, false, SplitLocal>();
             } else {
-                did += collect_retire_work<HasUnix, kEp>();
+                wb_completions = collect_retire_work<HasUnix, kEp>();
+                did += wb_completions;
                 if (__builtin_expect(!routing_forward_.empty(), false))
                     client_routing_cleanup_pass();
                 did += r7_flush_ready<HasTls, kEp>();
@@ -910,6 +913,10 @@ void IoLoop::r7_run_loop() {
                 did += srv_->save_cron_pass(*self_, ring_);
                 save_cron_beat_ms_ = cached_now_ms_ + 1000;
             }
+        }
+        if constexpr (!Fused) {
+            if (wb_config_.policy) wb_idle.observe(pass_ns, wb_completions != 0);
+            if (!did && wb_config_.policy && !pending_serve_.empty() && wb_idle.active(pass_ns)) did = 1;
         }
         // Flush prepared SQEs before looping. Recv re-arms and cross-ring wakes are
         // PREPARED during the work section but only reach the kernel on submit; taking
@@ -945,6 +952,7 @@ void IoLoop::r7_run_loop() {
         // Preserve the established classification: publication, inbound recheck,
         // epoll callbacks, the wait and resume/clear are ALL inside this idle span.
         Span idle(sig.idle_ns);
+        if constexpr (!Fused) { if (wb_config_.policy) wb_idle.park(); }
         const unsigned wait_ms = idle_timeout_ms();
         if constexpr (Fused) {
             if (__builtin_expect(srv_->read_local_enabled(), false))
@@ -1931,7 +1939,7 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
     static constexpr bool Fused = SplitLocal || (
         BatchOps == kGenthreadIfidBatchOps);
     [[maybe_unused]] const bool read_local_enabled =
-        Fused && __builtin_expect(srv_->read_local_enabled(), false);
+        Fused && __builtin_expect(latency_reads_local_, false);
     Client& conn = *c;
     if (__builtin_expect(query_buffer_exceeded(conn), false)) {
         close_client(c); // Redis query-buffer overflow closes without a protocol reply.
@@ -2442,10 +2450,10 @@ subscriber_checks_done:
                     if (__builtin_expect(slowlog_armed_, false)) {
                         timespec wall{};
                         ::clock_gettime(CLOCK_REALTIME, &wall);
-                        slowlog_record(self_id, c->id(), *op, now_ns() - slow_started,
+                        slowlog_recorder(self_id, c->id(), *op, now_ns() - slow_started,
                                        static_cast<int64_t>(wall.tv_sec) * 1000 +
                                            wall.tv_nsec / 1000000,
-                                       slowlog_arm_, true);
+                                       slowlog_arm_, true, slow_started);
                     }
                     conn.advance_parse(consumed);
                     self_->note_command(spec->id);
@@ -2464,11 +2472,18 @@ subscriber_checks_done:
             // IoLocal child calls cmd_wait at retirement and receives :0 immediately.
             if (__builtin_expect((spec->flags & CmdFlags::DeferredLocal) != 0, false)) {
                 uint64_t timeout_ms = 0;
+                const uint64_t latency_started = __builtin_expect(srv_->latency_tracking(), false)
+                    ? latency_tracking_start() : 0;
                 const WaitCommandResult wait = server_tail_prepare_wait(*op, timeout_ms);
                 if (wait == WaitCommandResult::Unsatisfied) {
+                    // Pending slices participate in CONFIG no's discard. Do not
+                    // retain an old probe duration in the parked timer itself.
+                    if (latency_started) latency_tracking_part(self_id, *op, latency_started);
                     if (!deferred_timer_start(c, rob.dispatch_id(),
-                                              DeferredTimerKind::WaitZero, timeout_ms, 0,
-                                              SlowlogArm{})) {
+                                              DeferredTimerKind::WaitZero, timeout_ms,
+                                              0,
+                                              slowlog_arm_)) {
+                        if (latency_started) latency_tracking_forget(*op);
                         reply_err(op->sink(), "ERR out of memory");
                     } else {
                         conn.advance_parse(consumed);
@@ -2491,6 +2506,7 @@ subscriber_checks_done:
                 }
                 // Error already carries its exact validation reply. Immediate already carries
                 // :0. Both retire through the ordinary local completion path below.
+                latency_tracking_finish(self_id, *op, latency_started);
                 conn.advance_parse(consumed);
                 self_->note_command(spec->id);
                 flip_fingerprint_note(*spec, *op);
@@ -2522,10 +2538,10 @@ subscriber_checks_done:
             if (__builtin_expect(slowlog_armed_, false)) {
                 timespec wall{};
                 ::clock_gettime(CLOCK_REALTIME, &wall);
-                slowlog_record(self_id, c->id(), *op, now_ns() - slow_started,
+                slowlog_recorder(self_id, c->id(), *op, now_ns() - slow_started,
                                static_cast<int64_t>(wall.tv_sec) * 1000 +
                                    wall.tv_nsec / 1000000,
-                               slowlog_arm_, true);
+                               slowlog_arm_, true, slow_started);
             }
             snapshot_bind_io(nullptr, nullptr);
             command_set_local_context(nullptr, nullptr);

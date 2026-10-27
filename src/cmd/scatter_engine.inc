@@ -4,7 +4,6 @@
 // translation unit and shares its anonymous namespace; there are no new external symbols or
 // build-system inputs.
 
-#line 34 "src/cmd/xshard.cc"
 
 namespace tomo {
 namespace {

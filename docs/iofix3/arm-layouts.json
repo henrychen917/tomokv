@@ -1,0 +1,23 @@
+[
+  {
+    "arm": "post4",
+    "allocated_sections_match_post2": true,
+    "allocated_symbols_match_post2": true,
+    "text_bytes_changed": 280,
+    "text_size_equal": true
+  },
+  {
+    "arm": "post8",
+    "allocated_sections_match_post2": true,
+    "allocated_symbols_match_post2": true,
+    "text_bytes_changed": 280,
+    "text_size_equal": true
+  },
+  {
+    "arm": "pad-a",
+    "allocated_sections_match_post2": true,
+    "allocated_symbols_match_post2": true,
+    "text_bytes_changed": 312,
+    "text_size_equal": true
+  }
+]

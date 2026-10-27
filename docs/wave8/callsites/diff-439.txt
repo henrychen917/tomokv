@@ -1,0 +1,25 @@
+tomo_db0::fliplisten_reserve(tomo_db0::Server&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)
+--- headline
+
++++ post
+
+@@ -64,7 +64,7 @@
+
+ CLONE 0 0100 [ 5] mov $0x10c28,%edi
+ CLONE 0 0105 [ 5] call <_Znwm@plt>
+ CLONE 0 010a [ 3] mov %rax,%rbx
+-CLONE 0 010d [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x610>
++CLONE 0 010d [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8>
+ CLONE 0 0114 [ 5] mov $0x10c18,%edx
+ CLONE 0 0119 [ 2] xor %esi,%esi
+ CLONE 0 011b [ 4] lea 0x10(%rbx),%r14
+@@ -86,7 +86,7 @@
+
+ CLONE 0 0163 [ 5] mov $0xd000,%edx
+ CLONE 0 0168 [ 2] xor %esi,%esi
+ CLONE 0 016a [ 5] call <memset@plt>
+-CLONE 0 016f [ 7] mov <rip>(%rip),%rdx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8d0>
++CLONE 0 016f [ 7] mov <rip>(%rip),%rdx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x318>
+ CLONE 0 0176 [ 7] lea 0x10c10(%rbx),%rcx
+ CLONE 0 017d [ 7] lea 0x3f50(%rbx),%rax
+ CLONE 0 0184 [ 7] mov %rdx,0x3c10(%rbx)

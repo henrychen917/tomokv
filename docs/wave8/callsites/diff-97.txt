@@ -1,0 +1,27 @@
+lua_cjson_new
+--- lualibs
+
++++ post
+
+@@ -91,8 +91,8 @@
+
+ CLONE 0 01ec [ 7] vmovdqu32 %zmm0,-0x40(%rax)
+ CLONE 0 01f3 [ 3] cmp %rax,%rcx
+ CLONE 0 01f6 [ 2] jne <+0x1e2>
+-CLONE 0 01f8 [ 7] mov <rip>(%rip),%rax # <tomo_db0::kNoThread+0x934>
+-CLONE 0 01ff [ 7] mov <rip>(%rip),%rdx # <tomo_db0::kNoThread+0x944>
++CLONE 0 01f8 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x370>
++CLONE 0 01ff [ 7] mov <rip>(%rip),%rdx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x380>
+ CLONE 0 0206 [ 8] lea 0xe8(%r12),%rsi
+ CLONE 0 020e [12] movl $0x0,0x1ec(%r12)
+ CLONE 0 021a [12] movl $0x1,0x1f4(%r12)
+@@ -111,7 +111,7 @@
+
+ CLONE 0 02af [12] movl $0xd,0x88(%r12)
+ CLONE 0 02bb [12] movl $0xd,0xb4(%r12)
+ CLONE 0 02c7 [ 5] mov %rax,0x24(%r12)
+-CLONE 0 02cc [ 7] mov <rip>(%rip),%rax # <tomo_db0::kNoThread+0x93c>
++CLONE 0 02cc [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x378>
+ CLONE 0 02d3 [ 8] mov %rdx,0xc0(%r12)
+ CLONE 0 02db [ 8] mov %rax,0xac(%r12)
+ CLONE 0 02e3 [ 8] lea 0xc8(%r12),%rax

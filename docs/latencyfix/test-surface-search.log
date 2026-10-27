@@ -1,0 +1,345 @@
+tests/infofields_test.py:59:        body = b"# Server\r\nrun_id:a\r\n\r\n# Cluster\r\ncluster_enabled:0\r\n"
+tests/infofields_test.py:61:        self.assertEqual(set(differ.infofields_sections(raw)), {b"Server", b"Cluster"})
+tests/infofields_test.py:62:        for bad in (b"# Server\r\na:1\r\na:2\r\n", b"# Server\r\n# Server\r\n", b"a:1\r\n",
+tests/infofields_test.py:63:                    b"# Server\na:1\n", b"# Server\r\na:1", b"# Server\r\na:1\n\r\n"):
+tests/abba_aslr.py:565:                            "latency_ms": 1, "busy_pct": 99.9, "instances": instances,
+tests/servertail.py:201:          lambda v: {"time", "lolwut", "role", "wait", "lcs", "slowlog", "latency",
+tests/servertail.py:205:    check("FILTERBY PATTERN", set(pattern), lambda v: "slowlog" in v and "get" not in v)
+tests/servertail.py:457:    check("CONFIG SET slowlog knob", c.cmd("CONFIG", "SET", "slowlog-max-len", "77"), "OK")
+tests/servertail.py:484:    check("slowlog knob survived", c.cmd("CONFIG", "GET", "slowlog-max-len"),
+tests/servertail.py:485:          ["slowlog-max-len", "77"])
+tests/gate_measurements.py:161:        return cell  # Preserve latency workload geometry; never apply a throughput PIN.
+tests/gate_measurements.py:281:            for field in ("rate", "latency_ms", "commands", "window_seconds"):
+tests/gate_measurements.py:585:                    rate=100., busy_pct=99.9, latency_ms=1., commands=1000,
+tests/gate_measurements.py:681:                    complete=True, instances=count, load_layout=layout, latency_ms=1, commands=2000, pid=123,
+tests/gate_measurements.py:746:                failed_latency = copy.deepcopy(report)
+tests/gate_measurements.py:747:                p1 = replace(cell, id="latency", depth=1, score="latency")
+tests/gate_measurements.py:748:                failed_latency["cells"].append(dict(cell=asdict(p1), verdict="FAIL"))
+tests/gate_measurements.py:749:                failed_latency["coverage"].update(ids=[cell.id, p1.id], count=2)
+tests/gate_measurements.py:750:                failed_latency["cell_source"]["total_cells"] = 2
+tests/gate_measurements.py:751:                path.write_text(json.dumps(failed_latency))
+tests/gate_measurements.py:752:                with self.assertRaisesRegex(ValueError, "nonpassing ABBA cell: latency"):
+tests/abba_evidence.py:229:                for field in ("rate", "latency_ms", "window_seconds", "commands"):
+tests/abba_evidence.py:277:        metric = {"auto": "latency_ms" if cell["depth"] == 1 else "rate",
+tests/abba_evidence.py:278:                  "rate": "rate", "latency": "latency_ms", "p999": "p999_ms"}.get(cell.get("score", "auto"))
+tests/abba_evidence.py:453:    This certifies observed rate/latency/tail resolution, never a prediction bound
+tests/reorder_scope.py:7:Neither population is handler-only time or end-to-end latency. Retries can name
+tests/perf_gate.py:170:                measurement='capacity' if pipeline == 32 else 'latency/round-trip')
+tests/perf_gate.py:272:                          client_mean_latency_ms=client_ms / client_count,
+tests/matrix.sh:187:  # connections divided by latency -- so 256 connections reported 1.86M where 512 gives 2.42M at the
+tests/snap_cut_battery.py:57:#   * INFO snapshot_cuts_waited must advance: a group drain that never actually blocks is
+tests/legacy_reorder_witness.py:24:this fixture makes no latency/rate claim and cannot certify a measured window.
+tests/legacy_reorder_witness.py:297:                # CONFIG reports the request; INFO reports whether the lane actually armed.
+tests/multirace.py:194:    """INFO atomic_exec_order_late -- the install-time ordering violations the dispatch park is
+tests/aoffix2.py:6:without applying the gate's latency assertion (never used by a gate row).
+tests/aoffix2.py:440:                         poked=poked, latency=summary(values), load_before=before, load_after=load())
+tests/aoffix2.py:443:def latency():
+tests/aoffix2.py:463:        emit('latency_ms', mode=ARGS.mode, policy=ARGS.policy, shape=ARGS.shape, connections=per,
+tests/aoffix2.py:567:             latency=latency, rewrite_fail2=rewrite_fail2, manifest_missing=manifest_missing,
+tests/differ_gate.sh:275:      --raw INFO all 2>/dev/null | tr -d '\r')
+tests/arity.py:94:    ("LATENCY HISTORY below", ["LATENCY", "HISTORY"], wrong("latency|history")),
+tests/arity.py:96:     wrong("latency|history")),
+tests/arity.py:97:    ("LATENCY GRAPH below", ["LATENCY", "GRAPH"], wrong("latency|graph")),
+tests/arity.py:98:    ("LATENCY GRAPH above", ["LATENCY", "GRAPH", "command", "x"], wrong("latency|graph")),
+tests/arity.py:99:    ("LATENCY DOCTOR above", ["LATENCY", "DOCTOR", "x"], wrong("latency|doctor")),
+tests/arity.py:100:    ("LATENCY LATEST above", ["LATENCY", "LATEST", "x"], wrong("latency|latest")),
+tests/arity.py:101:    ("LATENCY HELP above", ["LATENCY", "HELP", "x"], wrong("latency|help")),
+tests/arity.py:104:    ("SLOWLOG LEN above", ["SLOWLOG", "LEN", "x"], wrong("slowlog|len")),
+tests/arity.py:105:    ("SLOWLOG RESET above", ["SLOWLOG", "RESET", "x"], wrong("slowlog|reset")),
+tests/arity.py:106:    ("SLOWLOG HELP above", ["SLOWLOG", "HELP", "x"], wrong("slowlog|help")),
+tests/abba_holdout.py:42:    latency to .001 ms. Its HDR v2 tails have lowest=10 us, precision=2:
+tests/abba_holdout.py:48:    if metric == "latency_ms":
+tests/authfix.py:219:                 'latency-monitor-threshold', 'ratio', 'shard-home', 'place',
+tests/authfix.py:250:    def slowlog(self, mode):
+tests/authfix.py:252:        with Server(self, 'slowlog-' + mode, mode, extra=['--slowlog-log-slower-than', '0']) as s, s.client() as c:
+tests/authfix.py:303:                      checks=self.checks, slowlog=self.rows)
+tests/authfix.py:315:    parser.add_argument('--case', required=True, choices=['config-nul', 'arity', 'rewrite', 'slowlog-1s', 'slowlog-2s'])
+tests/authfix.py:324:            if args.case.startswith('slowlog-'):
+tests/authfix.py:325:                run.slowlog('redis' if oracle else args.case.split('-')[1])
+tests/atomicwindow.py:142:                            # INFO omits commands with zero calls on a fresh boot.
+tests/borrow_registry.py:200:    # Prove path identity with completed send/release counters, not a 1.5x latency ratio. There
+tests/lottery_test_driver.py:57:    if family in ('blocking', 'servertail', 'slowlog'):
+tests/abba_calibration.py:176:                all(metric in ("rate", "latency_ms", "p999_ms", "long_p999_ms") for metric in metrics), "invalid scored metric set")
+tests/abba_experiments.py:15:The rate window is central WINDOW seconds; memtier latency histograms cover
+tests/abba_experiments.py:356:    result["latency_window_seconds"] = abba.WARMUP + window + abba.TAIL
+tests/abba_experiments.py:412:        # Both arm spreads and every scored latency class must hold up on the
+tests/abba_experiments.py:451:    latency = [(block, metric, pair) for block in report.get("blocks", [])
+tests/abba_experiments.py:453:    if latency:
+tests/abba_experiments.py:456:        for block, metric, p in latency:
+tests/abba_experiments.py:457:            print(f"| {block['name']} | {metric} | {block['latency_window_seconds']}s | "
+tests/abba_experiments.py:537:                            "latency_ms": 1, "busy_pct": 99.9,
+tests/abba_experiments.py:869:        def test_noisier_latency_cannot_hide_behind_stable_rate(self):
+tests/evict_battery.py:337:    # INFO's eviction counter is batch-published. With all writes acknowledged, NOW is an
+tests/cmdmeta.py:28:function|stats latency|doctor latency|graph latency|help latency|histogram latency|history
+tests/cmdmeta.py:29:latency|latest latency|reset memory|doctor memory|help memory|malloc-stats memory|purge
+tests/cmdmeta.py:33:script|exists script|flush script|help script|kill script|load slowlog|get slowlog|help
+tests/cmdmeta.py:34:slowlog|len slowlog|reset xgroup|create xgroup|createconsumer xgroup|delconsumer
+tests/loading_ready_test.py:72:        peer = self.conn(b'PONG', b'# Server\r\nprocess_id:999\r\n')
+tests/loading_ready_test.py:81:        peer = self.conn(b'PONG', b'# Server\r\nprocess_id:123\r\n')
+tests/loading_ready_test.py:175:        peer = self.conn(b'PONG', b'# Server\r\n')
+tests/encodingfix.py:157:        used()  # first INFO allocation is outside the baseline
+tests/serverfix_config.py:49:            witness = 'acllog-max-len' if name == 'slowlog-max-len' else 'slowlog-max-len'
+tests/serverfix_config.py:84:            before = c.cmd('CONFIG', 'GET', name, 'slowlog-max-len')
+tests/serverfix_config.py:85:            reply = c.cmd('CONFIG', 'SET', 'slowlog-max-len', '17', name, bad)
+tests/serverfix_config.py:91:                          c.cmd('CONFIG', 'GET', name, 'slowlog-max-len'), before)
+tests/at15.py:74:    for command in (['INFO'], ['INFO', 'server'], ['INFO', 'all'], ['INFO', 'keyspace'],
+tests/at15.py:79:            assert {b'# Server', b'# Keyspace'} <= sections
+tests/at15.py:81:            assert sections == {b'# Server'} and b'redis_version:' in body
+tests/at15.py:85:            assert sections == {b'# Server', b'# Keyspace'}
+tests/clientfix_widths.py:6:The sender keeps its clock independent of replies; latency includes dispatch lag.
+tests/clientfix_widths.py:86:    latency = [(end - origin - i * period) / 1000 for i, end in enumerate(received)]
+tests/clientfix_widths.py:90:                p50_us=percentile(latency, .5), p99_us=percentile(latency, .99),
+tests/clientfix_widths.py:94:                below_offered_period=percentile(latency, .99) < period / 1000,
+tests/clientfix_widths.py:95:                latency_us=latency, service_us=service, lag_us=lag,
+tests/clientfix_widths.py:128:                extra_flags = ['--slowlog-log-slower-than', '-1', '--latency-monitor-threshold', '0']
+tests/multires.py:162:    """INFO atomic_exec_order_late -- install-time ordering violations. Must read zero: the park
+tests/abba_simple.py:23:# 0.08-1.8% for every other cell in the same run. Tail-latency cells are noisier still (t04 showed
+tests/abba_simple.py:73:        metric = "p999_ms" if cell.get("score") == "p999" else ("latency_ms" if cell["depth"] == 1 else "rate")
+tests/abba_simple.py:81:        # Higher is better for rate; lower is better for latency and p99.9.
+tests/abba_simple.py:133:        def test_tail_latency_is_reported_but_never_gates(self):
+tests/abba_workloads.py:76:    # INFO COMMANDSTATS in this server counts calls but does not expose handler
+tests/abba_workloads.py:79:    original = conn.must("CONFIG", "GET", "slowlog-log-slower-than")[1]
+tests/abba_workloads.py:81:    # GETs produced 0 slowlog entries while sixteen BITCOUNTs produced 16; the same server with
+tests/abba_workloads.py:90:        conn.must("CONFIG", "SET", "slowlog-log-slower-than", "0")
+tests/abba_workloads.py:117:        conn.must("CONFIG", "SET", "slowlog-log-slower-than", original)
+tests/abba_workloads.py:401:        raise ValueError("fewer than 1000 observations in a latency class; p99.9 not resolved")
+tests/serverfix_acllog.py:14:            ['--slowlog-log-slower-than', '-1', '--latency-monitor-threshold', '0', '--acllog-max-len', '0']) as server:
+tests/serverfix_scalar.py:11:    ('slowlog-max-len', '01', None), ('acllog-max-len', '+1', None),
+tests/serverfix_scalar.py:12:    ('slowlog-log-slower-than', '-0', None),
+tests/serverfix_scalar.py:13:    ('slowlog-log-slower-than', '-1', b'-1'),
+tests/serverfix_scalar.py:22:    ('latency-monitor-threshold', '01', None),
+tests/serverfix_scalar.py:27:    ('slowlog-log-slower-than', '-1\0ignored', None),
+tests/serverfix_scalar.py:31:    ('latency-monitor-threshold', '0\0ignored', None),
+tests/auth.py:199:unknown_subcommand = {b"acl", b"client", b"config", b"function", b"latency", b"memory",
+tests/auth.py:200:                      b"object", b"pubsub", b"script", b"slowlog", b"xgroup", b"xinfo"}
+tests/replyschema.py:1124:add("latency|doctor", "LATENCY", "DOCTOR")
+tests/replyschema.py:1125:add("latency|help", "LATENCY", "HELP")
+tests/replyschema.py:1126:add("latency|histogram", "LATENCY", "HISTOGRAM", "GET")
+tests/replyschema.py:1127:add("latency|history", "LATENCY", "HISTORY", "replyschema-event")
+tests/replyschema.py:1128:add("latency|latest", "LATENCY", "LATEST")
+tests/replyschema.py:1129:add("latency|reset", "LATENCY", "RESET", "replyschema-event")
+tests/replyschema.py:1156:add("slowlog|get", "SLOWLOG", "GET", "1")
+tests/replyschema.py:1157:add("slowlog|help", "SLOWLOG", "HELP")
+tests/replyschema.py:1158:add("slowlog|len", "SLOWLOG", "LEN")
+tests/replyschema.py:1159:add("slowlog|reset", "SLOWLOG", "RESET")
+tests/replyschema.py:1162:                    "latency|graph", "script|kill"})
+tests/replyschema.py:1219:        mismatches.append(("inventory", "COMMAND INFO <all Redis commands>",
+tests/gate.sh:105:# Server boot helpers explicitly replace this affinity with their eight physical server cores.
+tests/gate.sh:1140:              efficiency dump_restore auth authfix serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
+tests/gate.sh:1773:          taskset -c "$CORES" ./build/core-concurrency-unit slowlog-completion-negative \
+tests/gate.sh:1774:              >"$TMPDIR/slowlog-completion-negative.txt" 2>&1
+tests/gate.sh:1776:              'FAIL core concurrency: slowlog threshold decision and identity capture precede Done' \
+tests/gate.sh:1777:              "$TMPDIR/slowlog-completion-negative.txt"
+tests/gate.sh:2831:  for test in scancompact slowlog_identity read_local_lfu; do
+tests/gate.sh:2835:      slowlog_identity) battery=slowlog;;
+tests/gate.sh:2849:        # The threshold-zero identity witness leaves the per-owner slowlog
+tests/gate.sh:2917:  for t in lbsignals slowlog atomfix scriptatomic execatomic execiso execfix multires multirace session_monotonic xacct xmove xscript txn_nx txniso; do
+tests/gate.sh:3230:job_serverfix_slowlog(){
+tests/gate.sh:3231:  local label="serverfix SV4.14 disabled slowlog allocation"
+tests/gate.sh:3233:  py tests/serverfix_slowlog.py --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
+tests/gate.sh:3234:      --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/serverfix-slowlog" \
+tests/gate.sh:3235:      >"$TMPDIR/serverfix-slowlog.log" 2>&1 \
+tests/gate.sh:3236:      && ok "$label" || bad "$label" "see $TMPDIR/serverfix-slowlog.log"
+tests/gate.sh:3266:row_begin "authfix SV4.1 slowlog credential redaction (1s)"
+tests/gate.sh:3268:    --case slowlog-1s --output "$TMPDIR/authfix-slowlog-1s" >"$TMPDIR/authfix-slowlog-1s.log" 2>&1 \
+tests/gate.sh:3269:    && ok "authfix SV4.1 slowlog credential redaction (1s)" \
+tests/gate.sh:3270:    || bad "authfix SV4.1 slowlog credential redaction (1s)" "see $TMPDIR/authfix-slowlog-1s.log"
+tests/gate.sh:3271:row_begin "authfix SV4.1 slowlog credential redaction (2s)"
+tests/gate.sh:3273:    --case slowlog-2s --output "$TMPDIR/authfix-slowlog-2s" >"$TMPDIR/authfix-slowlog-2s.log" 2>&1 \
+tests/gate.sh:3274:    && ok "authfix SV4.1 slowlog credential redaction (2s)" \
+tests/gate.sh:3275:    || bad "authfix SV4.1 slowlog credential redaction (2s)" "see $TMPDIR/authfix-slowlog-2s.log"
+tests/gate.sh:4571:    if python3 tests/aoffix2.py latency --binary "$CANDIDATE_BINARY" \
+tests/gate.sh:4574:        --artifacts "$TMPDIR/aoffix2-latency-$AOFFIX_POLICY-$AOFFIX_MODE-$NET_IO" \
+tests/gate.sh:4575:        >"$TMPDIR/aoffix2-latency-$AOFFIX_POLICY-$AOFFIX_MODE-$NET_IO.log" 2>&1; then
+tests/gate.sh:4579:          "see $TMPDIR/aoffix2-latency-$AOFFIX_POLICY-$AOFFIX_MODE-$NET_IO.log"
+tests/gate.sh:5529:collect_job serverfix_slowlog
+tests/txnorder.py:250:        latency = []
+tests/txnorder.py:259:                    latency.append(time.monotonic() - at)
+tests/txnorder.py:264:        assert max(latency) < .040, ("writer bound 40 ms", max(latency))
+tests/txnorder.py:269:        self.report("b2", before, writer_max_seconds=max(latency), executions=counts)
+tests/slowlog_identity.py:12:        admin.must('CONFIG', 'SET', 'slowlog-log-slower-than', 0)
+tests/slowlog_identity.py:13:        admin.must('CONFIG', 'SET', 'slowlog-max-len', 128)
+tests/slowlog_identity.py:16:        client.must('SET', 'bugs5:slowlog:marker', 'value')
+tests/slowlog_identity.py:21:                matches = [e for e in entries if e[3] == [b'SET', b'bugs5:slowlog:marker', b'value']]
+tests/slowlog_identity.py:44:        print('slowlog historical identity PASS')
+tests/slowlog_identity.py:47:        admin.must('CONFIG', 'SET', 'slowlog-log-slower-than', 10000)
+tests/latencyfix.py:19:KNOB = 'latency-tracking-info-percentiles'
+tests/latencyfix.py:50:    info = c.cmd('INFO', 'latencystats')
+tests/latencyfix.py:54:        if not line.startswith('latency_percentiles_usec_'):
+tests/latencyfix.py:60:        result[key.removeprefix('latency_percentiles_usec_')] = [v.split('=')[0] for v in entries]
+tests/latencyfix.py:73:        run.check(label + ' explicit default deviation', c.cmd('CONFIG', 'GET', 'latency-tracking'),
+tests/latencyfix.py:74:                  [b'latency-tracking', b'yes' if run.oracle else b'no'])
+tests/latencyfix.py:77:            ('latency-tracking', ['yes', 'no', 'YES', 'No', '', '1', '0', 'true', 'yes ', b'yes\0tail']),
+tests/latencyfix.py:82:                c.cmd('CONFIG', 'SET', name, 'no' if name == 'latency-tracking' else '50 99 99.9')
+tests/latencyfix.py:89:                        ('CONFIG', 'SET', 'latency-tracking', 'bad', 'no-such-knob', 'x')]:
+tests/latencyfix.py:94:                        'latency-tracking yes\n' + KNOB + ' ' + values + '\n')
+tests/latencyfix.py:99:                    run.check(label + ' file tracking', c.cmd('CONFIG', 'GET', 'latency-tracking'),
+tests/latencyfix.py:100:                              [b'latency-tracking', b'yes'])
+tests/latencyfix.py:109:    with Server(run, label, mode, extra=extra + ['--latency-tracking', 'yes']) as server:
+tests/latencyfix.py:114:                assert c.cmd('SET', 'latencyfix:key', '0') == b'OK'
+tests/latencyfix.py:115:                for command in [('GET', 'latencyfix:key'), ('INCR', 'latencyfix:key')]:
+tests/latencyfix.py:119:                assert is_error(c.cmd('INCR', 'latencyfix:bad', 'extra'), 'ERR')
+tests/latencyfix.py:120:                assert is_error(c.cmd('no-such-latency-command'), 'ERR')
+tests/latencyfix.py:130:                                ('CONFIG', 'GET', 'latency-tracking')]:
+tests/latencyfix.py:137:                assert {'get', 'set', 'incr', 'latency|histogram', 'client|id'} <= set(all_rows), all_rows
+tests/latencyfix.py:150:                assert c.cmd('CONFIG', 'SET', 'latency-tracking', 'no') == b'OK'
+tests/latencyfix.py:151:                c.cmd('GET', 'latencyfix:key')
+tests/latencyfix.py:156:                c.cmd('CONFIG', 'SET', 'latency-tracking', 'yes')
+tests/latencyfix.py:159:                    c.cmd('GET', 'latencyfix:key')
+tests/latencyfix.py:162:            c.cmd('EVAL', "return redis.call('GET', KEYS[1])", 1, 'latencyfix:key')
+tests/latencyfix.py:167:            c.cmd('GET', 'latencyfix:key')
+tests/latencyfix.py:168:            c.cmd('INCR', 'latencyfix:key')
+tests/latencyfix.py:180:    shim = root / 'build/latencyfix/alloc-trace.so'
+tests/latencyfix.py:201:            run, label, mode, extra=extra + ['--slowlog-log-slower-than', '-1']) as server:
+tests/latencyfix.py:204:                c.cmd('CONFIG', 'SET', 'latency-tracking', 'no')
+tests/latencyfix.py:205:            run.check(label + ' tracking really off', c.cmd('CONFIG', 'GET', 'latency-tracking'),
+tests/latencyfix.py:206:                      [b'latency-tracking', b'no'])
+tests/latencyfix.py:209:                    for command in [('SET', 'latencyfix:key', '1'), ('GET', 'latencyfix:key'),
+tests/latencyfix.py:210:                                    ('INCR', 'latencyfix:key')]:
+tests/latencyfix.py:216:            assert c.cmd('CONFIG', 'SET', 'latency-tracking', 'yes') == b'OK'
+tests/latencyfix.py:218:                c.cmd('GET', 'latencyfix:key')
+tests/latencyfix.py:241:                'latency_tracking_record(' in symbols.get(a, '') for a in fields[3:]):
+tests/aclfix.py:63:    """(calls, rejected_calls) from INFO commandstats; failed_calls is TomoKV's known CC18 gap."""
+tests/txnfix_audit/t02b_exec_vs_exec.py:32:    for row in results: print("k1=%s(ex%d) k2=%s(ex%d) EXEC=%s INCR=%s incr_latency=%ss -> GET k1=%d GET k2=%d" % row)
+tests/execfair.py:4:No rates or latency claims: retain per-client completions in each one-second
+tests/infofix.py:251:    check("variadic INFO includes server", "# Server\r\n" in selected, True)
+tests/txnfix_audit/t02_exec_directed.py:32:    for row in results: print("k1=%s(ex%d) k2=%s(ex%d) EXEC=%s INCR=%s incr_latency=%ss -> GET k1=%d GET k2=%d" % row)
+tests/serverfix_slowlog.py:10:    untraced_rss(run, mode, label, extra, 'slowlog')
+tests/serverfix_slowlog.py:12:            ['--slowlog-log-slower-than', '-1', '--latency-monitor-threshold', '0', '--acllog-max-len', '0']) as server:
+tests/serverfix_slowlog.py:25:                      'slowlog-log-slower-than', 1000000000), b'OK')
+tests/serverfix_slowlog.py:32:            run.check(label + ' enable', c.cmd('CONFIG', 'SET', 'slowlog-log-slower-than', 0), b'OK')
+tests/serverfix_slowlog.py:36:                run.check(label + ' marker', c.cmd('SET', 'lazy-slowlog-marker', 'value'), b'OK')
+tests/serverfix_slowlog.py:40:                             if e[3][:2] == [b'SET', b'lazy-slowlog-marker']]
+tests/serverfix_slowlog.py:52:            run.check(label + ' disable', c.cmd('CONFIG', 'SET', 'slowlog-log-slower-than', -1), b'OK')
+tests/serverfix_slowlog.py:55:            old = [e for e in admin.cmd('SLOWLOG', 'GET', -1) if e[3][:2] == [b'SET', b'lazy-slowlog-marker']]
+tests/serverfix_slowlog.py:57:    trace.verify('slowlog')
+tests/txnfix_audit/t14_exec_window.py:3:# while DEBUG ATOMIC-COMMIT-DELAY slows commits; INFO atomic_window_stalls / atomic_groups move.
+tests/lottery_calibration.py:29:    'slowlog': 'W1 per-owner applied-config query',
+tests/dispatch_children.py:68:            for argv in [('CONFIG', 'SET', 'latency-tracking', 'no'), ('CONFIG', 'RESETSTAT')]:
+tests/aof_frame_order.py:291:        # Server::init binds the last serving thread as AOF writer. The armed status file below
+tests/gates_test.py:1493:                peer.cmd.return_value = b'# Server\r\nprocess_id:12345\r\n'
+tests/gates_test.py:1502:                peer.cmd.side_effect = [b'# Server\r\nprocess_id:12345\r\n', b'PONG']
+tests/gates_test.py:1513:                for reply in (b'process_id:54321\r\n', b'# Server\r\n'):
+tests/gates_test.py:1646:    def run_rows(self, kind='core', failure='', ready=True, topology_failure='', slowlog_failure=''):
+tests/gates_test.py:1665:    *slowlog-completion-negative*)
+tests/gates_test.py:1669:      echo 'FAIL core concurrency: slowlog threshold decision and identity capture precede Done'
+tests/gates_test.py:1707:                                       SLOWLOG_FAILURE=slowlog_failure),
+tests/gates_test.py:1721:                         ['slowlog-completion-negative'])
+tests/gates_test.py:1723:    def test_slowlog_negative_requires_failure_and_exact_witness(self):
+tests/gates_test.py:1726:                rows, _ = self.run_rows(slowlog_failure=failure)
+tests/perfio.py:229:def stream_latency(c):
+tests/perfio.py:248:            emit(event="latency", entries=n, prefix=label, samples_ns=times,
+tests/perfio.py:257:    emit(event="latency-bounds", entries=100000, prefix="xreadgroup", median_ns=median,
+tests/perfio.py:344:                if args.case == "stream": stream_latency(c)
+tests/_differ_ccfix.py:53:        payload = parse(issue(admins[0], ["INFO", "all"]))
+tests/load_calibration.py:421:                            memtier_totals=mock.Mock(return_value=dict(rate=100, latency_ms=1))), \
+tests/racefix.py:32:            '--flip-auto', '0', '--slowlog-log-slower-than', '-1', '--save', '',
+tests/abba_worker_affinity.py:83:            latency_limitation="full-run HDR includes startup SIGSTOP; central throughput improvement cannot justify p1/tail adoption",
+tests/abba_worker_affinity.py:292:                latency_comparison_eligible=False,
+tests/abba_worker_affinity.py:293:                latency_limitation="fixed full-run HDR includes startup SIGSTOP; p1/tail use requires excluding that pause or pinning before traffic",
+tests/abba_worker_affinity.py:450:            self.assertFalse(matched["latency_comparison_eligible"])
+tests/differ.py:389:    this request's send must lie in [0, measured send->read latency + 1 ms].
+tests/differ.py:5589:function|stats latency|doctor latency|graph latency|help latency|histogram latency|history
+tests/differ.py:5590:latency|latest latency|reset memory|doctor memory|help memory|malloc-stats memory|purge
+tests/differ.py:5594:script|exists script|flush script|help script|kill script|load slowlog|get slowlog|help
+tests/differ.py:5595:slowlog|len slowlog|reset xgroup|create xgroup|createconsumer xgroup|delconsumer
+tests/differ.py:6298:        coverage.note(["INFO", "persistence"], "field-name set/order; values intentionally differ")
+tests/differ.py:6903:    # required sections, and the deterministic transaction replies on both independent servers.
+tests/xacct.py:95:def xadd_latency(depth):
+tests/xacct.py:112:shallow_us, shallow_pending = xadd_latency(0)
+tests/xacct.py:113:deep_us, deep_pending = xadd_latency(10000)
+tests/xacct.py:142:def aborted_exec_latency(count):
+tests/xacct.py:160:small_us, small_aborts = aborted_exec_latency(2000)
+tests/xacct.py:161:large_us, large_aborts = aborted_exec_latency(10000)
+tests/slowlog.py:4:Usage: tests/slowlog.py HOST PORT
+tests/slowlog.py:10:    slowlog_batches_timed     the armed executor arm actually ran
+tests/slowlog.py:11:    slowlog_escalations       a pipelined batch overran and escalated to per-op timing
+tests/slowlog.py:12:    slowlog_entries_recorded  the recorder actually wrote an entry
+tests/slowlog.py:13:    latency_events_recorded   the latency monitor actually sampled
+tests/slowlog.py:15:The disabled case asserts slowlog_batches_timed does NOT move, which is the only way to tell
+tests/slowlog.py:95:        if line.startswith(("slowlog_", "latency_events_")):
+tests/slowlog.py:127:    check("disable slowlog", c.cmd("CONFIG", "SET", "slowlog-log-slower-than", "-1"), "OK")
+tests/slowlog.py:128:    check("disable latency", c.cmd("CONFIG", "SET", "latency-monitor-threshold", "0"), "OK")
+tests/slowlog.py:130:          c.cmd("CONFIG", "GET", "slowlog-log-slower-than"), ["slowlog-log-slower-than", "-1"])
+tests/slowlog.py:141:          after["slowlog_batches_timed"], before["slowlog_batches_timed"])
+tests/slowlog.py:143:          after["slowlog_entries_recorded"], before["slowlog_entries_recorded"])
+tests/slowlog.py:146:          after["slowlog_entries_recorded"], before["slowlog_entries_recorded"])
+tests/slowlog.py:149:    check("restore default", c.cmd("CONFIG", "SET", "slowlog-log-slower-than", "10000"), "OK")
+tests/slowlog.py:158:          after["slowlog_entries_recorded"], lambda v: v > before["slowlog_entries_recorded"])
+tests/slowlog.py:170:    c.cmd("CLIENT", "SETNAME", "slowlog-battery")
+tests/slowlog.py:174:    check("entry carries the client name", named[5], "slowlog-battery")
+tests/slowlog.py:178:    check("threshold 0", c.cmd("CONFIG", "SET", "slowlog-log-slower-than", "0"), "OK")
+tests/slowlog.py:186:          after["slowlog_batches_timed"], lambda v: v > before["slowlog_batches_timed"])
+tests/slowlog.py:193:          after["slowlog_escalations"], lambda v: v > before["slowlog_escalations"])
+tests/slowlog.py:196:    print("slowlog-max-len")
+tests/slowlog.py:197:    check("set max-len 5", c.cmd("CONFIG", "SET", "slowlog-max-len", "5"), "OK")
+tests/slowlog.py:208:          (c.cmd("CONFIG", "SET", "slowlog-max-len", "1"), c.cmd("SLOWLOG", "LEN"))[1],
+tests/slowlog.py:210:    check("max-len 0 keeps nothing", c.cmd("CONFIG", "SET", "slowlog-max-len", "0"), "OK")
+tests/slowlog.py:215:    c.cmd("CONFIG", "SET", "slowlog-max-len", "128")
+tests/slowlog.py:250:    c.cmd("CONFIG", "SET", "slowlog-log-slower-than", "10000")
+tests/slowlog.py:257:          c.cmd("CONFIG", "SET", "slowlog-log-slower-than", "10000"), "OK")
+tests/slowlog.py:258:    check("latency monitor off", c.cmd("CONFIG", "SET", "latency-monitor-threshold", "0"), "OK")
+tests/slowlog.py:265:          after["latency_events_recorded"], before["latency_events_recorded"])
+tests/slowlog.py:268:    check("arm the monitor", c.cmd("CONFIG", "SET", "latency-monitor-threshold", "1"), "OK")
+tests/slowlog.py:274:          after["latency_events_recorded"], lambda v: v > before["latency_events_recorded"])
+tests/slowlog.py:278:    check("LATEST latency is ~50ms", latest[0][2], lambda v: 40 <= v < 400)
+tests/slowlog.py:296:    c.cmd("CONFIG", "SET", "latency-monitor-threshold", "0")
+tests/slowlog.py:297:    c.cmd("CONFIG", "SET", "slowlog-log-slower-than", "10000")
+tests/slowlog.py:301:    print("\nslowlog: %d checks, %d failures -> %s"
+tests/gate_receipt.py:353:        metric_scope="rate/latency/p999 only; cycles/op UNPROVEN", null_sampling_policy=policy())
+tests/gate_receipt.py:913:                             rate=100., latency_ms=1., p999_ms=2., long_p999_ms=3., commands=2000,
+tests/rlfix3_info.py:6:no latency threshold is involved. --unit may name the frozen PRE-linked unit.
+tests/netio.py:235:check(worst < LAT_BUDGET_MS, "E2 doorbell wake latency under %.0fms (worst %.1fms)"
+tests/persistfix.py:468:            client.cmd.side_effect = [f'# Server\r\nprocess_id:{pid}\r\n{extra}'.encode(), pong]
+tests/persistfix.py:528:            for replies, message in (([b'# Server\r\n', b'PONG'], 'persistence peer PID mismatch'),
+tests/_lib.py:157:        # Serverless wire fakes implement the public reader without inheriting
+tests/_lib.py:334:    raw = call(conn, "INFO", section, *sections) if section else call(conn, "INFO")
+tests/expireindex.py:17:#   - each leg asserts INFO keyspace `expires` really reached the population it claims to test, so
+tests/pushtear.py:233:    raw = c.command("INFO", "everything", wait=0.8)
+tests/ttlcell_test.py:122:            return dict(configured_databases=1, arm=arm, instances=8, complete=True, rate=100., latency_ms=1., busy_pct=99.9,
+tests/ttlcell_test.py:230:                            totals = dict(rate=100., latency_ms=1., connections=2,
+tests/streamgroups.py:202:note("XINFO CONSUMERS exposes all created consumers and exact pending sum",
+tests/differ_test.py:77:        # No rounding up elapsed latency: 3 ms is outside a 2.25 ms bound.
+tests/_serverfix_alloc.py:59:        pattern = re.compile('Slowlog|slowlog|ClientDirectoryShard' if feature == 'slowlog' else
+tests/_serverfix_alloc.py:89:    off = ['--slowlog-log-slower-than', '-1', '--latency-monitor-threshold', '0',
+tests/_serverfix_alloc.py:101:            if feature == 'slowlog':
+tests/_serverfix_alloc.py:105:                run.check(label + ' RSS disabled slowlog', clients[0].cmd('SLOWLOG', 'GET', -1), [])
+tests/_nullrefresh_test.py:71:        latency_ms=1., p999_ms=2., long_p999_ms=3., commands=2000,
+tests/_nullrefresh_test.py:954:        cell = abba.Cell('resolution', '1s', 0, 1, 1, 'GET', 1, 512, score='latency')
+tests/_nullrefresh_test.py:958:            run['latency_ms'] = value
+tests/_nullrefresh_test.py:971:            run['latency_ms'] = extra[(sequence - 1) % len(abba.ORDER)]
+tests/_nullrefresh_test.py:1023:        bounds = {'latency_ms': dict(spread=4., abs_delta=1., status='UNRESOLVED')}
+tests/_nullrefresh_test.py:1033:            if run['arm'] == 'B': run['latency_ms'] = 101.5
+tests/_nullrefresh_test.py:1054:            broken = copy.deepcopy(row); broken['rounds'][0]['runs'][0]['latency_ms'] = value
+tests/_nullrefresh_test.py:1055:            with self.subTest(value=value), self.assertRaisesRegex(ValueError, 'invalid null latency_ms'):
+tests/_nullrefresh_test.py:1074:                 abba.Cell('latency', '2s', 0, 1, 1, 'GET', 1, 512),
+tests/wbland_checks.py:153:    # IO has legitimate clocks/allocation in accept, TLS, slowlog and timers.
+tests/abbagate.py:185:        return ("latency_ms" if self.depth == 1 else "rate") if self.score == "auto" else {
+tests/abbagate.py:186:            "rate": "rate", "latency": "latency_ms", "p999": "p999_ms"}[self.score]
+tests/abbagate.py:336:                    or score not in ("score=rate", "score=latency", "score=p999")
+tests/abbagate.py:639:                        latency_ms=1000 * (finished - sent), reply_bytes=len(body)))
+tests/abbagate.py:1628:    rate, latency = float(totals["Ops/sec"]), float(totals["Latency"])
+tests/abbagate.py:1629:    if not all(math.isfinite(x) and x > 0 for x in (rate, latency)):
+tests/abbagate.py:1636:    return {"rate": rate, "latency_ms": latency,
+tests/abbagate.py:2132:                # justify adopting worker pinning for p1 or scored tail latency.
+tests/abbagate.py:2134:                    latency_scoring_eligible=False,
+tests/abbagate.py:2135:                    limitation="exclude startup pause from scored latency or pin before traffic before any production adoption")
+tests/abbagate.py:2142:                          latency_ms=sum(t["latency_ms"] * t["rate"] for t in totals) / total_rate)
+tests/abbagate.py:2186:              f"CPU={result['cpu_pct']:.3f}% latency={result['latency_ms']:.5f}ms", flush=True)
+tests/abbagate.py:2199:                    ("ms (depth-1 latency; saturation exempt)", 1) if c["depth"] == 1 else ("Mops/s", 1e6))
+tests/abbagate.py:2793:            # Serverless loop tests replace the selected-CPU observer too. Dedicated
+tests/abbagate.py:3068:                        rounds.append(dict(instances=n, runs=[dict(arm="B", rate=100., latency_ms=1.,
+tests/abbagate.py:3107:                    return dict(arm=arm, rate=rates[sequence - 1], busy_pct=99., latency_ms=1.,
+tests/abbagate.py:3729:                            self.assertFalse(retained["full_histogram_runtime"]["latency_scoring_eligible"])
+tests/abbagate.py:3896:            # their verdict is a latency), but the exemption touches only the occupancy floor --
+tests/abbagate.py:3963:        def round(self, rates, n=1, busy=99.5, latency=None, mode="1s"):
+tests/abbagate.py:3969:                    latency_ms=(latency or [1, 1, 1, 1])[i])
+tests/abbagate.py:3981:            for score, depth, metric in (("rate", 32, "rate"), ("latency", 1, "latency_ms"),
+tests/abbagate.py:3987:                        runs = [dict(arm=arm, rate=100., latency_ms=100., p999_ms=100., long_p999_ms=100.)
+tests/abbagate.py:4041:            p1 = replace(self.cell, score="latency", read_local=1, depth=1, instances=0)
+tests/abbagate.py:4234:        def test_depth_one_uses_latency_and_is_exempt(self):
+tests/abbagate.py:4236:            a = assess(c, [self.round([100] * 4, busy=10, latency=[1, 1.1, 1.1, 1.001], mode="2s")])
+tests/abbagate.py:4241:            # This escalation repair must not add a throughput score to the p1 latency gate.
+tests/abbagate.py:4347:                                  load_layout=layouts[-1], busy_pct=busy, latency_ms=1,
+tests/abbagate.py:4792:                                    busy_pct=99.9, latency_ms=1, saturation=saturation_record(cell.mode),
+tests/abbagate.py:5039:                    return dict(arm=arm, rate=instances * 100, busy_pct=99.9, latency_ms=1,

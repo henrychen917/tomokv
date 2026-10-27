@@ -1,0 +1,47 @@
+START post2-rebuild
+END post2-rebuild 0
+START identity-post2-final
+END identity-post2-final 0
+START pad-a-final
+END pad-a-final 0
+START post2-recheck-uring
+END post2-recheck-uring 0
+START pad-a-idle-gate
+END pad-a-idle-gate 1
+START post4-build
+END post4-build 0
+START post4-freshness
+END post4-freshness 0
+START identity-post4
+END identity-post4 0
+START post4-idle-wb-gate
+END post4-idle-wb-gate 0
+START post8-build
+END post8-build 0
+START post8-freshness
+END post8-freshness 0
+START identity-post8
+END identity-post8 0
+START post8-idle-wb-gate
+END post8-idle-wb-gate 0
+START trace-pre-build
+END trace-pre-build 0
+START trace-post2-build
+END trace-post2-build 0
+START trace-post4-build
+END trace-post4-build 0
+START trace-post8-build
+END trace-post8-build 0
+START fixed-count
+END fixed-count 0
+START post2-correctness-epoll
+END post2-correctness-epoll 1
+START post2-fused-uring
+END post2-fused-uring 1
+START post2-fused-epoll
+END post2-fused-epoll 1
+START post2-differ-uring
+END post2-differ-uring 1
+START post2-differ-epoll
+END post2-differ-epoll 1
+COMPLETE remaining sequence; inspect every exit and ledger

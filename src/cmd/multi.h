@@ -5,6 +5,7 @@
 #pragma once
 
 #include "watch_modified.h"
+#include "txn_key_queue.h"
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
@@ -22,6 +23,8 @@ class Shard;
 struct MultiExecState;
 struct MultiSession;
 struct Task;
+struct MultiOwnerRetryNode;
+MultiOwnerRetryNode& multi_owner_retry_node(const Task& task);
 struct AofOwnerContext;
 struct AtomicEntry;
 struct AtomicScriptIntent;
@@ -37,6 +40,7 @@ struct TxnClaim {
     std::string key;
     uint64_t hash = 0;
     TxnClaimMode mode = TxnClaimMode::Read;
+    mutable TxnWaiter waiter; // stable once the attempt is published; also caches the queue
 };
 // A refused unit's owner-local lifetime pin. No Op, Shard or plain-writer state.
 // Only older conflicting units may be retained, so these pins cannot form a cycle.
@@ -143,7 +147,7 @@ inline bool multi_task_retry(MultiTaskResult result) {
 // Owner-local, synchronous promotion; no task or state pointer outlives this call.
 struct MultiRetryPromoter {
     void* context;
-    void (*promote)(void*, const Task&);
+    void (*promote)(void*, MultiOwnerRetryNode&);
 };
 
 // Called after lookup/arity validation.  Transaction controls are handled here; while MULTI is

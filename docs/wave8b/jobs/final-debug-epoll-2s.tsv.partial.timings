@@ -1,0 +1,41 @@
+ok	0.010000	release build (+footprint locks)
+ok	9.170000	plain-write lost updates (atomic 0)
+ok	0.170000	lbsignals battery (atomic 0)
+ok	1.490000	slowlog battery (atomic 0)
+ok	0.040000	atomfix battery (atomic 0)
+ok	0.040000	scriptatomic battery (atomic 0)
+ok	14.460000	execatomic battery (atomic 0)
+ok	11.880000	execiso battery (atomic 0)
+ok	0.460000	execfix battery (atomic 0)
+ok	0.120000	multires battery (atomic 0)
+ok	0.770000	multirace battery (atomic 0)
+ok	30.520000	session_monotonic battery (atomic 0)
+ok	0.380000	xacct battery (atomic 0)
+ok	0.290000	xmove battery (atomic 0)
+ok	1.870000	xscript battery (atomic 0)
+ok	2.160000	txn_nx battery (atomic 0)
+ok	9.310000	txniso battery (atomic 0)
+ok	6.160000	plain-write lost updates (atomic 1)
+ok	0.160000	lbsignals battery (atomic 1)
+ok	1.490000	slowlog battery (atomic 1)
+ok	0.050000	atomfix battery (atomic 1)
+ok	0.040000	scriptatomic battery (atomic 1)
+ok	14.470000	execatomic battery (atomic 1)
+ok	11.870000	execiso battery (atomic 1)
+ok	0.450000	execfix battery (atomic 1)
+ok	0.110000	multires battery (atomic 1)
+ok	0.760000	multirace battery (atomic 1)
+ok	30.520000	session_monotonic battery (atomic 1)
+ok	0.370000	xacct battery (atomic 1)
+ok	0.280000	xmove battery (atomic 1)
+ok	1.870000	xscript battery (atomic 1)
+ok	2.180000	txn_nx battery (atomic 1)
+ok	9.680000	txniso battery (atomic 1)
+ok	0.060000	xscript limit control
+ok	0.540000	xscript window control
+ok	2.080000	MULTI feature battery
+ok	1.560000	blocking feature battery
+ok	0.890000	pubsub feature battery
+ok	0.030000	Lua feature battery
+ok	46.170000	keyspace notification battery (atomic 0/1)
+ok	0.020000	feature battery shutdown invariants

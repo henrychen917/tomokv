@@ -1,0 +1,42 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-71",
+    "--load-cores",
+    "72-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "20020-20029",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave8/build/tomokv"
+  ],
+  "cwd": "build/wave8/selftest-final",
+  "env": {
+    "LANG": "en_US.UTF-8",
+    "GATE_TEST_PORT": "20098",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "abba_selftest",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_ZC_NET_IO": "uring",
+    "GATE_SHUTDOWN_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TXN_FUSED": "0",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave8/docs/wave8/jobs/final-abba-selftest.tsv"
+  },
+  "binary_sha256": "f94fbd1d57873ff32bdf279b796139e0dd94e8cd7f613d9a7f17832ef86af359",
+  "source_commit": "385e2a1e9cf74794c4f2fb35b5dc27d06a40eaea",
+  "gate_sha256": "bd41c16a1a51a9eeb1db68b1a3f7f2cca9e8d61f1a95a6a5f242d127bced0b13",
+  "started": 1793042221.7691424,
+  "exit": 0,
+  "seconds": 342.6941261291504,
+  "artifacts": "/home/user/Projects/cx-wave8/build/wave8/selftest-final/build/gate-run.HhAtFm",
+  "summary": [
+    "GATE(PARTIAL): 1 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-abba-selftest.tsv.partial"
+  ],
+  "binary_unchanged": true
+}

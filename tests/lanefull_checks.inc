@@ -18,6 +18,9 @@
         reader.bind_fused_completion(nullptr, [](void*, Client*) {});
         reader.refresh_live_config();
         f.io.fused_executor_ = &reader;
+        // The real IO pass adopts admission/config state before parsing. This
+        // serverless fixture supplies its executor manually, then takes that boundary.
+        f.io.refresh_notify_config();
         // Eventfd mailbox permits one real control rotation without io_uring or server boot.
         const bool engine = g_ring_epoll_mode;
         g_ring_epoll_mode = true;

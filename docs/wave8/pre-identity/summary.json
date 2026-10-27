@@ -1,0 +1,48 @@
+{
+  "function_groups": 9427,
+  "unchanged": 9427,
+  "changed": 0,
+  "lane_equal": 0,
+  "residual": 0,
+  "hot_groups": 633,
+  "hot_headline": 633,
+  "hot_lane": 0,
+  "command_hot_groups": 78,
+  "command_hot_headline": 78,
+  "command_hot_lane": 0,
+  "hot_residual": [],
+  "references": {
+    "headline": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-3700b51d7",
+      "sha256": "56ec64d13cf87d97d75ad955311a44c77ffc87a6798b548d5c4330b6713cd97c"
+    },
+    "readability-a0": {
+      "path": "/home/user/Projects/bins/readability-a0-post-423ba683",
+      "sha256": "423ba683d71492ab638d325ae6ea95069678716beb799fec826f7f7b1dcd8144"
+    },
+    "lualibs": {
+      "path": "/home/user/Projects/bins/lualibs-post-cf8cddad",
+      "sha256": "cf8cddadec95ade45d73c37bac6b635a9313106c45de99c74d09f7e1c17a3eb5"
+    },
+    "latencyfix": {
+      "path": "/home/user/Projects/bins/latencyfix-post-257d6ee6",
+      "sha256": "257d6ee619d33eeaffbb6fa55cd30b9880a37fc873f01d467c9469519dbf36d0"
+    },
+    "iofix3": {
+      "path": "/home/user/Projects/bins/iofix3-post2-dd1699ed",
+      "sha256": "dd1699ed4dc953cac8f24e9d47c8c5e43ef4b280e158f278c496c5193ab871d4"
+    },
+    "execindex": {
+      "path": "/home/user/Projects/bins/execindex-post-aee04885",
+      "sha256": "aee048859f6f8d84d5aa4e0b30767ad1e8dac4595d383ff634a8226027d1566a"
+    },
+    "baseline_lualibs": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-05a5e01a9",
+      "sha256": "ff538ad1bebb30a7272e5396ef7daca90df14f2a84db3dd6f3cfc2acc8c1acd8"
+    }
+  },
+  "post": {
+    "path": "build/tomokv-wave8-PRE",
+    "sha256": "9af252ab89c4cad77787556b48bce9c41a3033cac8d79d721c02c5cadd6f6a99"
+  }
+}

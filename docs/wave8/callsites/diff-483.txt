@@ -1,0 +1,64 @@
+unsigned int tomo::IoLoop::epoll_accept<true, true>(tomo::UrKind)
+--- headline
+
++++ post
+
+@@ -0,0 +1,57 @@
+
++CLONE 0 0000 [ 4] endbr64
++CLONE 0 0004 [ 2] push %r13
++CLONE 0 0006 [ 2] push %r12
++CLONE 0 0008 [ 1] push %rbp
++CLONE 0 0009 [ 2] xor %ebp,%ebp
++CLONE 0 000b [ 1] push %rbx
++CLONE 0 000c [ 4] sub $0x8,%rsp
++CLONE 0 0010 [ 7] mov 0x188(%rdi),%rax
++CLONE 0 0017 [ 7] movzbl 0x115e0(%rax),%eax
++CLONE 0 001e [ 2] cmp $0x3,%al
++CLONE 0 0020 [ 2] ja <+0x7a>
++CLONE 0 0022 [ 3] mov %rdi,%rbx
++CLONE 0 0025 [ 3] mov %esi,%r12d
++CLONE 0 0028 [ 4] cmp $0x6,%sil
++CLONE 0 002c [ 2] je <+0x90>
++CLONE 0 002e [ 4] cmp $0x9,%sil
++CLONE 0 0032 [ 6] je <+0xc0>
++CLONE 0 0038 [ 7] mov 0xaa0(%rdi),%r13d
++CLONE 0 003f [ 2] xor %ebp,%ebp
++CLONE 0 0041 [ 3] test %r13d,%r13d
++CLONE 0 0044 [ 2] js <+0x7a>
++CLONE 0 0046 [ 2] xor %edx,%edx
++CLONE 0 0048 [ 2] xor %esi,%esi
++CLONE 0 004a [ 5] mov $0x80800,%ecx
++CLONE 0 004f [ 3] mov %r13d,%edi
++CLONE 0 0052 [ 5] call <accept4@plt>
++CLONE 0 0057 [ 2] test %eax,%eax
++CLONE 0 0059 [ 2] jns <+0xa0>
++CLONE 0 005b [ 5] call <__errno_location@plt>
++CLONE 0 0060 [ 2] mov (%rax),%eax
++CLONE 0 0062 [ 3] cmp $0x4,%eax
++CLONE 0 0065 [ 2] je <+0x46>
++CLONE 0 0067 [ 3] cmp $0xb,%eax
++CLONE 0 006a [ 2] je <+0x7a>
++CLONE 0 006c [ 7] mov 0x190(%rbx),%rax
++CLONE 0 0073 [ 7] incq 0x458(%rax)
++CLONE 0 007a [ 4] add $0x8,%rsp
++CLONE 0 007e [ 2] mov %ebp,%eax
++CLONE 0 0080 [ 1] pop %rbx
++CLONE 0 0081 [ 1] pop %rbp
++CLONE 0 0082 [ 2] pop %r12
++CLONE 0 0084 [ 2] pop %r13
++CLONE 0 0086 [ 1] ret
++CLONE 0 0087 [ 9] nopw 0x0(%rax,%rax,1)
++CLONE 0 0090 [ 7] mov 0xaa8(%rdi),%r13d
++CLONE 0 0097 [ 2] jmp <+0x3f>
++CLONE 0 0099 [ 7] nopl 0x0(%rax)
++CLONE 0 00a0 [ 3] mov %r12d,%edx
++CLONE 0 00a3 [ 2] mov %eax,%esi
++CLONE 0 00a5 [ 3] mov %rbx,%rdi
++CLONE 0 00a8 [ 2] inc %ebp
++CLONE 0 00aa [ 5] call <void tomo::IoLoop::admit_fd<true, true>(int, tomo::UrKind)>
++CLONE 0 00af [ 2] jmp <+0x46>
++CLONE 0 00b1 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 00bc [ 4] nopl 0x0(%rax)
++CLONE 0 00c0 [ 7] mov 0xaa4(%rdi),%r13d
++CLONE 0 00c7 [ 5] jmp <+0x3f>

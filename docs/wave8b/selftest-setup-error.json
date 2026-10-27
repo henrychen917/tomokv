@@ -1,0 +1,36 @@
+{
+  "attempted_gate": "/home/user/Projects/cx-wave8b/build/wave8b/selftest-final/tests/gate.sh",
+  "gate_sha256": "160366ecb500c90e63cc2392604b68da34588d23316d33ca6cb2ff386be1e51c",
+  "actual_counts": {
+    "quick": 807,
+    "full": 815
+  },
+  "intended_counts": {
+    "quick": 807,
+    "full": 824
+  },
+  "invalid_setup": true,
+  "reason": "The initial copy generator matched a newline after EXPECT_FULL=815 and missed its trailing comment. selftest-copy.json recorded intended counts, not observed counts. The real gate and fixture were unchanged. The initial copy also omitted tracked docs/calib fixtures required by the self-tests and symlinked build/, which broke exact resolved-path controls.",
+  "repair": "A fresh disposable copy; regex replacement must match each constant exactly once and verify both resulting values before invoking the complete abba_selftest job. Copy all tracked source and fixtures and use a real, separate build directory so path-identity controls remain meaningful.",
+  "required_repair_receipt": "docs/wave8b/jobs/final-abba-selftest-count-repair.json",
+  "observed_test_failures": [
+    "ERROR: test_fused_only_smoke_needs_no_unmeasured_split_ratio (__main__.self_test.<locals>.ABBA.test_fused_only_smoke_needs_no_unmeasured_split_ratio)",
+    "ERROR: test_multidb_cell_inventory_and_exact_connection_assignment (__main__.self_test.<locals>.ABBA.test_multidb_cell_inventory_and_exact_connection_assignment)",
+    "ERROR: test_multidb_population_and_select_witness_reject_db0_only_load (__main__.self_test.<locals>.ABBA.test_multidb_population_and_select_witness_reject_db0_only_load)",
+    "ERROR: test_optional_cell_fields_are_strict_and_part_of_calibration_shape (__main__.self_test.<locals>.ABBA.test_optional_cell_fields_are_strict_and_part_of_calibration_shape)",
+    "ERROR: test_server_flags_reach_both_arm_boots (__main__.self_test.<locals>.ABBA.test_server_flags_reach_both_arm_boots)",
+    "FAIL: test_explicit_reference_records_digest_without_fabricating_a_commit (__main__.self_test.<locals>.ABBA.test_explicit_reference_records_digest_without_fabricating_a_commit)",
+    "FAIL: test_reference_must_match_last_push (__main__.self_test.<locals>.ABBA.test_reference_must_match_last_push)",
+    "FAILED (failures=2, errors=5)",
+    "FAIL: test_deleted_snapshot_is_not_recreated_from_surviving_alias (abba_binaries.self_test.<locals>.Controls.test_deleted_snapshot_is_not_recreated_from_surviving_alias)",
+    "FAILED (failures=1)",
+    "FAIL: test_real_coordinator_keeps_full_jobs_and_measures_only_after_join (__main__.CompleteTierDispatch.test_real_coordinator_keeps_full_jobs_and_measures_only_after_join) (purpose='iteration')",
+    "FAIL: test_real_coordinator_keeps_full_jobs_and_measures_only_after_join (__main__.CompleteTierDispatch.test_real_coordinator_keeps_full_jobs_and_measures_only_after_join) (purpose='push')",
+    "FAIL: test_real_coordinator_keeps_full_jobs_and_measures_only_after_join (__main__.CompleteTierDispatch.test_real_coordinator_keeps_full_jobs_and_measures_only_after_join) (purpose='release')",
+    "FAIL: test_real_coordinator_keeps_full_jobs_and_measures_only_after_join (__main__.CompleteTierDispatch.test_real_coordinator_keeps_full_jobs_and_measures_only_after_join) (purpose='full')",
+    "FAIL: test_missing_tls_oracle_names_path_without_tcp_fallback (__main__.NetfixOracleWiringTests.test_missing_tls_oracle_names_path_without_tcp_fallback)",
+    "FAILED (failures=5)"
+  ],
+  "failure_log": "/home/user/Projects/cx-wave8b/build/gate-run.xIfZOk/jobs/abba_selftest/gate-abbagate-unit.txt",
+  "failure_log_sha256": "13853ef735e4d711d15e53ead735527856c5f28c3f05ff84a3ec7b68e9d71c2e"
+}

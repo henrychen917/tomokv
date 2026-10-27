@@ -1,0 +1,15 @@
+tomo::FlipController::baseline_band() const
+--- headline
+
++++ post
+
+@@ -9,7 +9,7 @@
+
+ CLONE 0 0027 [ 4] vcomisd %xmm2,%xmm1
+ CLONE 0 002b [ 2] jb <+0x4b>
+ CLONE 0 002d [ 4] vaddsd %xmm2,%xmm1,%xmm3
+-CLONE 0 0031 [ 8] vmulsd <rip>(%rip),%xmm3,%xmm3 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x620>
++CLONE 0 0031 [ 8] vmulsd <rip>(%rip),%xmm3,%xmm3 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x68>
+ CLONE 0 0039 [ 4] vcomisd %xmm0,%xmm3
+ CLONE 0 003d [ 2] jbe <+0x4b>
+ CLONE 0 003f [ 4] vsubsd %xmm2,%xmm1,%xmm1

@@ -1,0 +1,22 @@
+{
+  "PRE": {
+    "path": "/home/user/Projects/cx-wave8/build/tomokv-wave8-PRE",
+    "sha256": "9af252ab89c4cad77787556b48bce9c41a3033cac8d79d721c02c5cadd6f6a99",
+    "bytes": 212508096
+  },
+  "POST": {
+    "path": "/home/user/Projects/cx-wave8/build/tomokv-wave8-POST",
+    "sha256": "f94fbd1d57873ff32bdf279b796139e0dd94e8cd7f613d9a7f17832ef86af359",
+    "bytes": 218187680
+  },
+  "PAD-A": {
+    "path": "/home/user/Projects/cx-wave8/build/tomokv-wave8-PAD-A",
+    "sha256": "3683af2efc51666fbb2686cac26e7883fa6c86dc79e33428968c321361e86708",
+    "bytes": 10799272
+  },
+  "POST_assert_map": {
+    "path": "/home/user/Projects/cx-wave8/build/tomokv-wave8-POST.asserts.tsv",
+    "sha256": "c054b62e728a7bffcfddc4dd2bd1e53113714b68117d0d6063af20adf28dd033",
+    "bytes": 2801
+  }
+}

@@ -2786,7 +2786,29 @@ def self_test():
             time.sleep(min(.01, remaining))
 
     class ABBA(unittest.TestCase):
+        @classmethod
+        def setUpClass(cls):
+            # Immutable input for serverless orchestration fixtures only. The
+            # dedicated changed-harness/instrument controls override these mocks;
+            # production main() still computes both fingerprints before AND after.
+            cls.fixture_harness = harness_fingerprint(ROOT)
+            cls.fixture_instrument = instrument_fingerprint(ROOT)
+            cls.fixture_git = {args: git(*args) for args in (("rev-parse", "HEAD"), ("status", "--short"))}
+
         def setUp(self):
+            from _abba_test_fixtures import compact_json_fixture
+            compact_json_fixture(self)
+            original_git = git
+            patcher = mock.patch(__name__ + ".git", side_effect=lambda *args:
+                                 self.fixture_git[args] if args in self.fixture_git else original_git(*args))
+            patcher.start()
+            self.addCleanup(patcher.stop)
+            for name, value in (("harness_fingerprint", self.fixture_harness),
+                                ("instrument_fingerprint", self.fixture_instrument),
+                                ("instrument_digest", self.fixture_instrument["sha256"])):
+                patcher = mock.patch(__name__ + "." + name, return_value=value)
+                patcher.start()
+                self.addCleanup(patcher.stop)
             # read_local=0, matching the real h01 and keeping threshold tests independent of the
             # read-local floor; the read-local cases construct their own cell with it enabled.
             self.cell = Cell("h01", "1s", 0, 0, 0, "GET", 32, 512)
@@ -4948,6 +4970,9 @@ def self_test():
                                  (3, 8, "PASS", "PARTIAL"))
                 self.assertTrue(report["measurement_valid"])
                 self.assertFalse(report["comparison_trusted"])
+                # CG4.7: real standing nulls are promoted. Keep replay strict for
+                # every raw block while allowing a selected comparison to bind.
+                control["promotion"] = {"kind": "synthetic promoted full control"}
                 for subset, count in (("full", 8), ("smoke", 4)):
                     rc, calls, report, out = run(control=control, subset=subset)
                     self.assertEqual((rc, len(calls), report["verdict"]), (0, count, "PASS"), report)
@@ -4962,6 +4987,9 @@ def self_test():
                 rc, calls, report, _ = run(control=control, only="n1")
                 self.assertEqual((rc, len(calls), report["verdict"], report["comparison_trusted"]),
                                  (3, 4, "PARTIAL", False))
+                self.assertEqual(report["standing_null"]["status"], "MATCHED")
+                with self.assertRaisesRegex(ValueError, "partial"):
+                    validate_comparison(report, control, now=epoch + ticks[0])
                 rc, calls, report, _ = run(control=[])
                 self.assertEqual((rc, len(calls), report["statistical_verdict"], report["verdict"]),
                                  (3, 8, "PASS", "PARTIAL"))

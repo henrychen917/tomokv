@@ -1,0 +1,6 @@
+id_decimal	id_hex	file:line	function	condition	salt_or_pin
+3794585279	0xe22cc6bf	src/cmd/storesize.cc:160	tomo::FlatStore::storesize_replace	row . keys	salt=0
+3139673042	0xbb239bd2	src/cmd/storesize.cc:165	tomo::FlatStore::storesize_replace	row . expires && row . deadlines >= static_cast < uint64_t > ( at )	salt=0
+2186180554	0x824e77ca	src/cmd/storesize.cc:183	tomo::FlatStore::storesize_deadline	row . expires && row . deadlines >= static_cast < uint64_t > ( old )	salt=0
+2184563561	0x8235cb69	src/core/shard.h:67	tomo::Shard::init	bucket_begin <= bucket_end && bucket_end <= kNumBuckets	salt=0
+2335632193	0x8b36eb41	src/store/flatstore.h:2311	tomo::FlatStore::make_word	"( pointer & ~ kPtrMask ) == 0 && ""KvObj pointer exceeds FlatStore's 48-bit encoding"""	salt=0

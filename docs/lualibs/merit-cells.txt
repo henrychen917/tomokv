@@ -1,0 +1,14 @@
+h05
+h06
+p8g
+p8s
+d1g_l0
+d1s_l0
+m8g_l0
+v1g_l0
+d128g_l0
+d32g_l1
+d8s_l1
+d32s_l1
+x9_32_l1
+x9_32_l0

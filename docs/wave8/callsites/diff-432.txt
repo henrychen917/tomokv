@@ -1,0 +1,27 @@
+tomo_db0::cfg_latency_percentiles(tomo_db0::Slice, std::vector<double, std::allocator<double> >&, char const*&)
+--- latencyfix
+
++++ post
+
+@@ -87,7 +87,7 @@
+
+ CLONE 0 016d [ 5] vmovsd (%rsp),%xmm2
+ CLONE 0 0172 [ 4] vcomisd %xmm2,%xmm0
+ CLONE 0 0176 [ 6] ja <+0x3d4>
+-CLONE 0 017c [ 8] vcomisd <rip>(%rip),%xmm2 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x638>
++CLONE 0 017c [ 8] vcomisd <rip>(%rip),%xmm2 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x58>
+ CLONE 0 0184 [ 6] ja <+0x3d4>
+ CLONE 0 018a [ 4] mov 0x8(%r14),%rax
+ CLONE 0 018e [ 4] cmp 0x10(%r14),%rax
+@@ -144,8 +144,8 @@
+
+ CLONE 0 0268 [ 2] jp <+0x26c>
+ CLONE 0 026a [ 2] je <+0x290>
+ CLONE 0 026c [ 5] vmovsd (%rsp),%xmm5
+-CLONE 0 0271 [ 8] vandpd <rip>(%rip),%xmm5,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x88>
+-CLONE 0 0279 [ 8] vucomisd <rip>(%rip),%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x630>
++CLONE 0 0271 [ 8] vandpd <rip>(%rip),%xmm5,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418>
++CLONE 0 0279 [ 8] vucomisd <rip>(%rip),%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x50>
+ CLONE 0 0281 [ 6] jbe <+0x169>
+ CLONE 0 0287 [ 9] nopw 0x0(%rax,%rax,1)
+ CLONE 0 0290 [ 7] lea <rip>(%rip),%rax # <literal-string-496e76616c6964206c6174656e63792d747261636b696e672d696e666f2d70657263656e74696c657320706172616d657465727300>

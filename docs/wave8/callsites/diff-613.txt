@@ -1,0 +1,55 @@
+void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)
+--- headline
+
++++ post
+
+@@ -258,7 +258,7 @@
+
+ CLONE 0 04d1 [11] data16 cs nopw 0x0(%rax,%rax,1)
+ CLONE 0 04dc [ 4] nopl 0x0(%rax)
+ CLONE 0 04e0 [ 3] movzbl %al,%eax
+-CLONE 0 04e3 [ 7] lea <rip>(%rip),%rcx # <CSWTCH.7635>
++CLONE 0 04e3 [ 7] lea <rip>(%rip),%rcx # <CSWTCH.7711>
+ CLONE 0 04ea [ 4] movzbl (%rcx,%rax,1),%eax
+ CLONE 0 04ee [ 2] test %al,%al
+ CLONE 0 04f0 [ 3] setne %dl
+@@ -1059,7 +1059,7 @@
+
+ CLONE 0 158f [ 5] call <tomo_db0::(anonymous namespace)::ObjectImage::operator=(tomo_db0::(anonymous namespace)::ObjectImage&&) [clone .constprop.0] [clone .isra.0]>
+ CLONE 0 1594 [ 7] lea -0x538(%rbp),%rdi
+ CLONE 0 159b [ 5] call <std::vector<unsigned char, std::allocator<unsigned char> >::~vector()>
+-CLONE 0 15a0 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6a8>
++CLONE 0 15a0 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xe0>
+ CLONE 0 15a7 [ 7] lea -0x3f0(%rbp),%rsi
+ CLONE 0 15ae [ 7] lea -0x580(%rbp),%rcx
+ CLONE 0 15b5 [ 5] mov $0x2,%edx
+@@ -1244,7 +1244,7 @@
+
+ CLONE 0 1936 [ 5] call <tomo_db0::(anonymous namespace)::encode_elements(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, tomo_db0::(anonymous namespace)::ObjectImage&, tomo_db0::Type, long, bool)>
+ CLONE 0 193b [ 2] test %al,%al
+ CLONE 0 193d [ 6] je <+0x32dd>
+-CLONE 0 1943 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6b0>
++CLONE 0 1943 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xe8>
+ CLONE 0 194a [ 7] lea -0x550(%rbp),%rbx
+ CLONE 0 1951 [ 7] lea -0x3f0(%rbp),%rsi
+ CLONE 0 1958 [ 7] lea -0x620(%rbp),%rcx
+@@ -2212,7 +2212,7 @@
+
+ CLONE 0 2d20 [ 2] cmp $0x3,%al
+ CLONE 0 2d22 [ 2] ja <+0x2d32>
+ CLONE 0 2d24 [ 3] movzbl %al,%eax
+-CLONE 0 2d27 [ 7] lea <rip>(%rip),%rdx # <CSWTCH.7635>
++CLONE 0 2d27 [ 7] lea <rip>(%rip),%rdx # <CSWTCH.7711>
+ CLONE 0 2d2e [ 4] movzbl (%rdx,%rax,1),%edx
+ CLONE 0 2d32 [ 6] mov %dl,-0x62d(%rbp)
+ CLONE 0 2d38 [ 5] jmp <+0x1791>
+@@ -2593,7 +2593,7 @@
+
+ CLONE 0 34d4 [ 5] call <tomo_db0::(anonymous namespace)::encode_elements(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, tomo_db0::(anonymous namespace)::ObjectImage&, tomo_db0::Type, long, bool)>
+ CLONE 0 34d9 [ 2] test %al,%al
+ CLONE 0 34db [ 6] je <+0x33f1>
+-CLONE 0 34e1 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6b0>
++CLONE 0 34e1 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xe8>
+ CLONE 0 34e8 [ 7] lea -0x550(%rbp),%rbx
+ CLONE 0 34ef [ 7] lea -0x4b0(%rbp),%rsi
+ CLONE 0 34f6 [ 7] lea -0x620(%rbp),%rcx

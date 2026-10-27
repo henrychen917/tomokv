@@ -1,0 +1,1275 @@
+[
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db09FlatStore18find_without_touchEmNS_5SliceE",
+    "name": "tomo_db0::FlatStore::find_without_touch(unsigned long, tomo_db0::Slice)",
+    "pre_size": 916,
+    "post_size": 836,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Compiler inlining/register allocation spillover from the changed translation unit; store source is unchanged. This is not claimed byte-identical."
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute_timed<false, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#1}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute_timed<false, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#2}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute_timed<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#1}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute_timed<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#2}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#1}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#2}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#1}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#2}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db09FlatStore22insert_into_read_localEimPNS_5KvObjEb",
+    "name": "tomo_db0::FlatStore::insert_into_read_local(int, unsigned long, tomo_db0::KvObj*, bool)",
+    "pre_size": 1343,
+    "post_size": 1318,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Compiler inlining/register allocation spillover from the changed translation unit; store source is unchanged. This is not claimed byte-identical."
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE18execute_multi_unitERKNS_4TaskERNS_5ShardEPFvPvS4_E",
+    "name": "tomo_db0::ExLoopT<true>::execute_multi_unit(tomo_db0::Task const&, tomo_db0::Shard&, void (*)(void*, tomo_db0::Task const&))",
+    "pre_size": 149,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE",
+    "name": "bool tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)",
+    "pre_size": 3415,
+    "post_size": 3399,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+    "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+    "pre_size": 3563,
+    "post_size": 3547,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskE",
+    "name": "bool tomo_db0::ExLoopT<true>::execute_timed<false, true>(tomo_db0::Task const&)",
+    "pre_size": 2543,
+    "post_size": 2539,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE",
+    "name": "bool tomo_db0::ExLoopT<true>::execute_timed<false, false>(tomo_db0::Task const&)",
+    "pre_size": 2708,
+    "post_size": 2704,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE5sweepILj32ELb1ELb0ELb1EEEjv",
+    "name": "unsigned int tomo_db0::ExLoopT<true>::sweep<32u, true, false, true>()",
+    "pre_size": 1651,
+    "post_size": 1651,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE16fused_sweep_implILj32ELb1ELb0ELb1EEEjv",
+    "name": "unsigned int tomo_db0::ExLoopT<true>::fused_sweep_impl<32u, true, false, true>()",
+    "pre_size": 1301,
+    "post_size": 1285,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db06IoLoop18parse_and_dispatchILb1ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+    "pre_size": 9879,
+    "post_size": 9815,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute_timed<false, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#1}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute_timed<false, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#2}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute_timed<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#1}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute_timed<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#2}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#1}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#2}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#1}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#2}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE18execute_multi_unitERKNS_4TaskERNS_5ShardEPFvPvS4_E",
+    "name": "tomo_db0::ExLoopT<true>::execute_multi_unit(tomo_db0::Task const&, tomo_db0::Shard&, void (*)(void*, tomo_db0::Task const&))",
+    "pre_size": 149,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db06IoLoop21r7_parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+    "pre_size": 18553,
+    "post_size": 18599,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE",
+    "name": "bool tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)",
+    "pre_size": 3511,
+    "post_size": 3495,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+    "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+    "pre_size": 3563,
+    "post_size": 3643,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskE",
+    "name": "bool tomo_db0::ExLoopT<true>::execute_timed<false, true>(tomo_db0::Task const&)",
+    "pre_size": 2543,
+    "post_size": 2539,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE",
+    "name": "bool tomo_db0::ExLoopT<true>::execute_timed<false, false>(tomo_db0::Task const&)",
+    "pre_size": 2708,
+    "post_size": 2704,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE34drain_tasks_read_local_interleavedILb0EEEjbRb",
+    "name": "unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)",
+    "pre_size": 1135,
+    "post_size": 1135,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE8r7_sweepILj32ELb1ELb0ELb1EEEjv",
+    "name": "unsigned int tomo_db0::ExLoopT<true>::r7_sweep<32u, true, false, true>()",
+    "pre_size": 1651,
+    "post_size": 1651,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE5sweepILj32ELb1ELb0ELb1EEEjv",
+    "name": "unsigned int tomo_db0::ExLoopT<true>::sweep<32u, true, false, true>()",
+    "pre_size": 1651,
+    "post_size": 1651,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE19r7_fused_sweep_implILj32ELb1ELb0ELb1EEEjv",
+    "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, true>()",
+    "pre_size": 882,
+    "post_size": 866,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE19r7_fused_sweep_implILj32ELb1ELb0ELb0EEEjv",
+    "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()",
+    "pre_size": 796,
+    "post_size": 729,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE15fused_pass_implILj32ELb1ELb0ELb0EEEjv",
+    "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+    "pre_size": 3742,
+    "post_size": 3791,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute_timed<false, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#1}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute_timed<false, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#2}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute_timed<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#1}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute_timed<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#2}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#1}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#2}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#1}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#2}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE18execute_multi_unitERKNS_4TaskERNS_5ShardEPFvPvS4_E",
+    "name": "tomo_db0::ExLoopT<true>::execute_multi_unit(tomo_db0::Task const&, tomo_db0::Shard&, void (*)(void*, tomo_db0::Task const&))",
+    "pre_size": 149,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE",
+    "name": "bool tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)",
+    "pre_size": 3939,
+    "post_size": 3871,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+    "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+    "pre_size": 4087,
+    "post_size": 4019,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskE",
+    "name": "bool tomo_db0::ExLoopT<true>::execute_timed<false, true>(tomo_db0::Task const&)",
+    "pre_size": 2543,
+    "post_size": 2539,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE",
+    "name": "bool tomo_db0::ExLoopT<true>::execute_timed<false, false>(tomo_db0::Task const&)",
+    "pre_size": 2708,
+    "post_size": 2704,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE34drain_tasks_read_local_interleavedILb0EEEjbRb",
+    "name": "unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)",
+    "pre_size": 1135,
+    "post_size": 1135,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE5sweepILj32ELb1ELb0ELb1EEEjv",
+    "name": "unsigned int tomo_db0::ExLoopT<true>::sweep<32u, true, false, true>()",
+    "pre_size": 2645,
+    "post_size": 2645,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE16fused_sweep_implILj32ELb1ELb0ELb1EEEjv",
+    "name": "unsigned int tomo_db0::ExLoopT<true>::fused_sweep_impl<32u, true, false, true>()",
+    "pre_size": 1977,
+    "post_size": 1961,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE15fused_pass_implILj32ELb1ELb0ELb1EEEjv",
+    "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()",
+    "pre_size": 7142,
+    "post_size": 7110,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb0EE13execute_timedILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<false>::execute_timed<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#1}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb0EE13execute_timedILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<false>::execute_timed<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#2}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#1}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZZN8tomo_db07ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#2}::_FUN(void*, tomo_db0::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb0EE18execute_multi_unitERKNS_4TaskERNS_5ShardEPFvPvS4_E",
+    "name": "tomo_db0::ExLoopT<false>::execute_multi_unit(tomo_db0::Task const&, tomo_db0::Shard&, void (*)(void*, tomo_db0::Task const&))",
+    "pre_size": 149,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE",
+    "name": "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)",
+    "pre_size": 3867,
+    "post_size": 3799,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb0EE13execute_timedILb0ELb0EEEbRKNS_4TaskE",
+    "name": "bool tomo_db0::ExLoopT<false>::execute_timed<false, false>(tomo_db0::Task const&)",
+    "pre_size": 2733,
+    "post_size": 2729,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute_timed<false, true>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#1}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute_timed<false, true>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#2}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#1}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#2}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#1}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#2}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#1}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#2}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE18execute_multi_unitERKNS_4TaskERNS_5ShardEPFvPvS4_E",
+    "name": "tomo::ExLoopT<true>::execute_multi_unit(tomo::Task const&, tomo::Shard&, void (*)(void*, tomo::Task const&))",
+    "pre_size": 149,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE",
+    "name": "bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)",
+    "pre_size": 3416,
+    "post_size": 3400,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+    "name": "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)",
+    "pre_size": 3564,
+    "post_size": 3548,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskE",
+    "name": "bool tomo::ExLoopT<true>::execute_timed<false, true>(tomo::Task const&)",
+    "pre_size": 2544,
+    "post_size": 2540,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE",
+    "name": "bool tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)",
+    "pre_size": 2709,
+    "post_size": 2705,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb1ELb1ELb0EEEvv",
+    "name": "void tomo::IoLoop::run_loop<false, true, true, true, false>()",
+    "pre_size": 5608,
+    "post_size": 5619,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute_timed<false, true>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#1}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute_timed<false, true>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#2}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#1}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#2}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#1}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#2}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#1}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#2}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE18execute_multi_unitERKNS_4TaskERNS_5ShardEPFvPvS4_E",
+    "name": "tomo::ExLoopT<true>::execute_multi_unit(tomo::Task const&, tomo::Shard&, void (*)(void*, tomo::Task const&))",
+    "pre_size": 149,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+    "pre_size": 18530,
+    "post_size": 18494,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)",
+    "pre_size": 18601,
+    "post_size": 18545,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE",
+    "name": "bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)",
+    "pre_size": 3416,
+    "post_size": 3400,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+    "name": "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)",
+    "pre_size": 3564,
+    "post_size": 3548,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskE",
+    "name": "bool tomo::ExLoopT<true>::execute_timed<false, true>(tomo::Task const&)",
+    "pre_size": 2544,
+    "post_size": 2540,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE",
+    "name": "bool tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)",
+    "pre_size": 2709,
+    "post_size": 2705,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE19r7_fused_sweep_implILj32ELb1ELb0ELb1EEEjv",
+    "name": "unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, true>()",
+    "pre_size": 882,
+    "post_size": 866,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+    "pre_size": 12154,
+    "post_size": 12133,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0.cold",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+    "pre_size": 244,
+    "post_size": 244,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+    "pre_size": 20831,
+    "post_size": 20900,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0.cold",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+    "pre_size": 288,
+    "post_size": 284,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
+    "pre_size": 20624,
+    "post_size": 20629,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0.cold",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+    "pre_size": 277,
+    "post_size": 280,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute_timed<false, true>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#1}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute_timed<false, true>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#2}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#1}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#2}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#1}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#2}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#1}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#2}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE18execute_multi_unitERKNS_4TaskERNS_5ShardEPFvPvS4_E",
+    "name": "tomo::ExLoopT<true>::execute_multi_unit(tomo::Task const&, tomo::Shard&, void (*)(void*, tomo::Task const&))",
+    "pre_size": 149,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+    "pre_size": 21091,
+    "post_size": 21073,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+    "pre_size": 21000,
+    "post_size": 21071,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE",
+    "name": "bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)",
+    "pre_size": 3940,
+    "post_size": 3872,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+    "name": "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)",
+    "pre_size": 4088,
+    "post_size": 4020,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskE",
+    "name": "bool tomo::ExLoopT<true>::execute_timed<false, true>(tomo::Task const&)",
+    "pre_size": 2544,
+    "post_size": 2540,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE",
+    "name": "bool tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)",
+    "pre_size": 2709,
+    "post_size": 2705,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE34drain_tasks_read_local_interleavedILb0EEEjbRb",
+    "name": "unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)",
+    "pre_size": 1135,
+    "post_size": 1135,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE5sweepILj32ELb1ELb0ELb1EEEjv",
+    "name": "unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, true>()",
+    "pre_size": 2645,
+    "post_size": 2645,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE16fused_sweep_implILj32ELb1ELb0ELb1EEEjv",
+    "name": "unsigned int tomo::ExLoopT<true>::fused_sweep_impl<32u, true, false, true>()",
+    "pre_size": 1977,
+    "post_size": 1961,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE15fused_pass_implILj32ELb1ELb0ELb1EEEjv",
+    "name": "unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()",
+    "pre_size": 7126,
+    "post_size": 7094,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb0EE13execute_timedILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<false>::execute_timed<false, false>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#1}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb0EE13execute_timedILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<false>::execute_timed<false, false>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#2}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#1}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZZN4tomo7ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskEENUlPvS5_E0_4_FUNES6_S5_",
+    "name": "tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#2}::_FUN(void*, tomo::Task const&)",
+    "pre_size": 16,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo7ExLoopTILb0EE18execute_multi_unitERKNS_4TaskERNS_5ShardEPFvPvS4_E",
+    "name": "tomo::ExLoopT<false>::execute_multi_unit(tomo::Task const&, tomo::Shard&, void (*)(void*, tomo::Task const&))",
+    "pre_size": 149,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Retry promotion callback now accepts a stable MultiOwnerRetryNode handle instead of a Task; old callback symbols are replaced."
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo7ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE",
+    "name": "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)",
+    "pre_size": 3868,
+    "post_size": 3800,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo7ExLoopTILb0EE13execute_timedILb0ELb0EEEbRKNS_4TaskE",
+    "name": "bool tomo::ExLoopT<false>::execute_timed<false, false>(tomo::Task const&)",
+    "pre_size": 2734,
+    "post_size": 2730,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "reason": "Owner retry service/dispatch uses the intrusive queues; inlined retry branches and compiler decisions change this enclosing body. Ordinary command scopes and the maintainer null cover its main-command path."
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav",
+    "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
+    "pre_size": 1190,
+    "post_size": 1190,
+    "raw_equal": false,
+    "canonical_equal": false,
+    "relocation_equal": false,
+    "reason": "Shared scatter body includes the changed transaction readiness/finalization helpers; indexed cold branches and compiler allocation differ. Bounded MGET/MSET instruction scopes are checked separately."
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj",
+    "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+    "pre_size": 21794,
+    "post_size": 21794,
+    "raw_equal": false,
+    "canonical_equal": false,
+    "relocation_equal": false,
+    "reason": "Shared scatter body includes the changed transaction readiness/finalization helpers; indexed cold branches and compiler allocation differ. Bounded MGET/MSET instruction scopes are checked separately."
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "pre_size": 23675,
+    "post_size": 23675,
+    "raw_equal": false,
+    "canonical_equal": false,
+    "relocation_equal": false,
+    "reason": "Shared scatter body includes the changed transaction readiness/finalization helpers; indexed cold branches and compiler allocation differ. Bounded MGET/MSET instruction scopes are checked separately."
+  }
+]

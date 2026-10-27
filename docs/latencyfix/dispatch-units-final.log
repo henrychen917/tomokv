@@ -1,0 +1,21 @@
+GATE(quick): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-latencyfix/build/gate-run.WlfKce
+PARTIAL jobs (including prerequisites): release production_units wb_rule_units wbland_units splitlocal_units
+PARTIAL jobs (including prerequisites): release production_units wb_rule_units wbland_units splitlocal_units
+  row budget: 900s; median=0.03s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; writeback c12 policy witnesses + negative controls
+  writeback c12 policy witnesses + negative controls   ok
+  row budget: 900s; median=-s; no-history-conservative-default; writeback c12 phase witnesses + negative controls
+  writeback c12 phase witnesses + negative controls    ok
+  row budget: 900s; median=-s; no-history-conservative-default; writeback c12 stages witnesses + negative controls
+  writeback c12 stages witnesses + negative controls   ok
+  row budget: 900s; median=-s; no-history-conservative-default; writeback c12 split-phase witnesses + negative controls
+  writeback c12 split-phase witnesses + negative controls ok
+  row budget: 900s; median=-s; no-history-conservative-default; writeback policy clauses witnesses + negative controls
+  writeback policy clauses witnesses + negative controls ok
+  row budget: 900s; median=-s; no-history-conservative-default; writeback policy paths witnesses + negative controls
+  writeback policy paths witnesses + negative controls ok
+  row budget: 900s; median=-s; no-history-conservative-default; splitlocal template forwarding + old-argument controls
+  splitlocal template forwarding + old-argument controls ok
+GATE(PARTIAL): 8 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-latencyfix/docs/latencyfix/dispatch-units-final.tsv.partial

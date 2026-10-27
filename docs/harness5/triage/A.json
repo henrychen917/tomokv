@@ -1,0 +1,2450 @@
+{
+ "group": "A",
+ "tests": [
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - is Lua able to call Redis API?",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-UNDECLARED-KEY",
+   "cascade_of": "unit/scripting: Script - disallow write on OOM",
+   "basis": "Passes in the FUNCTION pass and in a fresh isolated run (both variants); the EVAL-pass failure is an OOM reply to `r set mykey myval` because 'Script - disallow write on OOM' failed (undeclared key) before its CONFIG SET maxmemory 0, leaving maxmemory=1 for the rest of the EVAL pass."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - Redis integer -> Lua type conversion",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-UNDECLARED-KEY",
+   "cascade_of": "unit/scripting: Script - disallow write on OOM",
+   "basis": "Passes in the FUNCTION pass and in a fresh isolated run (both variants); the EVAL-pass failure is an OOM reply to `r set x 0` because 'Script - disallow write on OOM' failed (undeclared key) before its CONFIG SET maxmemory 0, leaving maxmemory=1 for the rest of the EVAL pass."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - Redis bulk -> Lua type conversion",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-UNDECLARED-KEY",
+   "cascade_of": "unit/scripting: Script - disallow write on OOM",
+   "basis": "Passes in the FUNCTION pass and in a fresh isolated run (both variants); the EVAL-pass failure is an OOM reply to `r set mykey myval` because 'Script - disallow write on OOM' failed (undeclared key) before its CONFIG SET maxmemory 0, leaving maxmemory=1 for the rest of the EVAL pass."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - Redis multi bulk -> Lua type conversion",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-UNDECLARED-KEY",
+   "cascade_of": "unit/scripting: Script - disallow write on OOM",
+   "basis": "Passes in the FUNCTION pass and in a fresh isolated run (both variants); the EVAL-pass failure is an OOM reply to `r rpush mylist a` because 'Script - disallow write on OOM' failed (undeclared key) before its CONFIG SET maxmemory 0, leaving maxmemory=1 for the rest of the EVAL pass."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - Redis status reply -> Lua type conversion",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-UNDECLARED-KEY",
+   "cascade_of": "unit/scripting: Script - disallow write on OOM",
+   "basis": "Passes in the FUNCTION pass and in a fresh isolated run (both variants); the EVAL-pass failure is an OOM reply to redis.pcall('set') (returned {err=OOM}, so foo['ok'] is nil: 'table' instead of 'table OK') because 'Script - disallow write on OOM' failed (undeclared key) before its CONFIG SET maxmemory 0, leaving maxmemory=1 for the rest of the EVAL pass."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - Redis error reply -> Lua type conversion",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-UNDECLARED-KEY",
+   "cascade_of": "unit/scripting: Script - disallow write on OOM",
+   "basis": "Passes in the FUNCTION pass and in a fresh isolated run (both variants); the EVAL-pass failure is an OOM reply to `r set mykey myval` because 'Script - disallow write on OOM' failed (undeclared key) before its CONFIG SET maxmemory 0, leaving maxmemory=1 for the rest of the EVAL pass."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - Scripts can run non-deterministic commands",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-UNDECLARED-KEY",
+   "cascade_of": "unit/scripting: Script - disallow write on OOM",
+   "basis": "Passes in the FUNCTION pass and in a fresh isolated run (both variants); the EVAL-pass failure is an OOM reply to redis.pcall('set','x','ciao') because 'Script - disallow write on OOM' failed (undeclared key) before its CONFIG SET maxmemory 0, leaving maxmemory=1 for the rest of the EVAL pass."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL_RO - Successful case",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-UNDECLARED-KEY",
+   "cascade_of": "unit/scripting: Script - disallow write on OOM",
+   "basis": "Passes in the FUNCTION pass and in a fresh isolated run (both variants); the EVAL-pass failure is an OOM reply to `r set foo bar` because 'Script - disallow write on OOM' failed (undeclared key) before its CONFIG SET maxmemory 0, leaving maxmemory=1 for the rest of the EVAL pass."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL_RO - Cannot run write commands",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-UNDECLARED-KEY",
+   "cascade_of": "unit/scripting: Script - disallow write on OOM",
+   "basis": "Passes in the FUNCTION pass and in a fresh isolated run (both variants); the EVAL-pass failure is an OOM reply to `r set foo bar` because 'Script - disallow write on OOM' failed (undeclared key) before its CONFIG SET maxmemory 0, leaving maxmemory=1 for the rest of the EVAL pass."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Test an example script DECR_IF_GT",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-UNDECLARED-KEY",
+   "cascade_of": "unit/scripting: Script - disallow write on OOM",
+   "basis": "Passes in the FUNCTION pass and in a fresh isolated run (both variants); the EVAL-pass failure is an OOM reply to `r set foo 5` because 'Script - disallow write on OOM' failed (undeclared key) before its CONFIG SET maxmemory 0, leaving maxmemory=1 for the rest of the EVAL pass."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL does not leak in the Lua stack",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-UNDECLARED-KEY",
+   "cascade_of": "unit/scripting: Script - disallow write on OOM",
+   "basis": "Passes in the FUNCTION pass and in a fresh isolated run (both variants); the EVAL-pass failure is an OOM reply to `r set x 0` because 'Script - disallow write on OOM' failed (undeclared key) before its CONFIG SET maxmemory 0, leaving maxmemory=1 for the rest of the EVAL pass."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Call Redis command with many args from Lua (issue #1764)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-UNDECLARED-KEY",
+   "cascade_of": "unit/scripting: Script - disallow write on OOM",
+   "basis": "Passes in the FUNCTION pass and in a fresh isolated run (both variants); the EVAL-pass failure is an OOM reply to redis.call('rpush') inside the script because 'Script - disallow write on OOM' failed (undeclared key) before its CONFIG SET maxmemory 0, leaving maxmemory=1 for the rest of the EVAL pass."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "String containing number precision test (regression of issue #1118)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-UNDECLARED-KEY",
+   "cascade_of": "unit/scripting: Script - disallow write on OOM",
+   "basis": "Passes in the FUNCTION pass and in a fresh isolated run (both variants); the EVAL-pass failure is an OOM reply to redis.call('set') inside the script because 'Script - disallow write on OOM' failed (undeclared key) before its CONFIG SET maxmemory 0, leaving maxmemory=1 for the rest of the EVAL pass."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Script with RESP3 map",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-UNDECLARED-KEY",
+   "cascade_of": "unit/scripting: Script - disallow write on OOM",
+   "basis": "Passes in the FUNCTION pass and in a fresh isolated run (both variants); the EVAL-pass failure is an OOM reply to `r hset hash field value` because 'Script - disallow write on OOM' failed (undeclared key) before its CONFIG SET maxmemory 0, leaving maxmemory=1 for the rest of the EVAL pass."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "SCRIPTING FLUSH - is able to clear the scripts cache?",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-UNDECLARED-KEY",
+   "cascade_of": "unit/scripting: Script - disallow write on OOM",
+   "basis": "Passes in the FUNCTION pass and in a fresh isolated run (both variants); the EVAL-pass failure is an OOM reply to `r set mykey myval` because 'Script - disallow write on OOM' failed (undeclared key) before its CONFIG SET maxmemory 0, leaving maxmemory=1 for the rest of the EVAL pass."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVALSHA - Can we call a SHA1 if already defined?",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-UNDECLARED-KEY",
+   "cascade_of": "unit/scripting: Script - disallow write on OOM",
+   "basis": "EVAL-pass only test: NOSCRIPT because the OOM cascade made 'EVAL - is Lua able to call Redis API?' fail at `r set mykey myval` before its EVAL cached the script. With the script cached TomoKV answers myval (verified)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVALSHA_RO - Can we call a SHA1 if already defined?",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-UNDECLARED-KEY",
+   "cascade_of": "unit/scripting: Script - disallow write on OOM",
+   "basis": "Same as the EVALSHA test: NOSCRIPT only because the cascaded EVAL never cached the script; EVALSHA_RO of a cached lowercase sha returns myval on TomoKV (verified)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "SCRIPTING FLUSH ASYNC",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-UNDECLARED-KEY",
+   "cascade_of": "unit/scripting: Script - disallow write on OOM",
+   "basis": "number_of_cached_scripts was not 100 because the previous test aborted on OOM before its SCRIPT FLUSH, so earlier EVAL-pass scripts were still cached; passes in isolation."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVALSHA - Can we call a SHA1 in uppercase?",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "EVALSHA-SHA-CASE",
+   "cascade_of": null,
+   "basis": "Full-file NOSCRIPT was masked by the OOM cascade, but with the script cached TomoKV still answers NOSCRIPT for the uppercase sha (and SCRIPT EXISTS says 0) while Redis matches sha1 case-insensitively."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - Lua number -> Redis integer conversion",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-UNDECLARED-KEY",
+   "cascade_of": null,
+   "basis": "Both variants (also isolated): redis.pcall('hincrby','hash','field',200000000) with numkeys 0 -> 'ERR Script attempted to access an undeclared key'; Redis returns {number 200000000}."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Script - disallow write on OOM",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-UNDECLARED-KEY",
+   "cascade_of": null,
+   "basis": "EVAL-only test: eval \"redis.call('set', 'x', 1)\" 0 under maxmemory 1 -> TomoKV 'Script attempted to access an undeclared key' instead of the OOM error (with x declared TomoKV does answer OOM). The failure skips CONFIG SET maxmemory 0, which is the root of the EVAL-pass OOM cascade."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Not a test: the two err events with an empty test name (one per is_eval pass) are the server-block setup `r debug set-disable-deny-scripts 1` (scripting.tcl:1782) failing with 'unknown subcommand ... debug'; DEBUG SET-DISABLE-DENY-SCRIPTS is a DEBUG subcommand TomoKV does not implement. It aborts the whole block, so its 42 tests (36 RESP2/3 'debug protocol' parsing + resp3 attribute, script time-freezing, RESTORE expired keys) never ran on TomoKV (see notes)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - Scripts do not block on blpop command",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-CMD-WHITELIST",
+   "cascade_of": null,
+   "basis": "Both variants (isolated too): redis.pcall('blpop', ...) -> \"ERR command 'BLPOP' is not allowed from scripts\"; Redis runs it non-blocking. Full-file EVAL variant failed earlier on the OOM cascade, which masks the same error."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - Scripts do not block on brpop command",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-CMD-WHITELIST",
+   "cascade_of": null,
+   "basis": "Both variants (isolated too): redis.pcall('brpop', ...) -> \"ERR command 'BRPOP' is not allowed from scripts\"; Redis runs it non-blocking. Full-file EVAL variant failed earlier on the OOM cascade, which masks the same error."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - Scripts do not block on brpoplpush command",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-CMD-WHITELIST",
+   "cascade_of": null,
+   "basis": "Both variants (isolated too): redis.pcall('brpoplpush', ...) -> \"ERR command 'BRPOPLPUSH' is not allowed from scripts\"; Redis runs it non-blocking. Full-file EVAL variant failed earlier on the OOM cascade, which masks the same error."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - Scripts do not block on blmove command",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-CMD-WHITELIST",
+   "cascade_of": null,
+   "basis": "Both variants (isolated too): redis.pcall('blmove', ...) -> \"ERR command 'BLMOVE' is not allowed from scripts\"; Redis runs it non-blocking. Full-file EVAL variant failed earlier on the OOM cascade, which masks the same error."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - Scripts do not block on bzpopmin command",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-CMD-WHITELIST",
+   "cascade_of": null,
+   "basis": "Both variants (isolated too): redis.pcall('bzpopmin', ...) -> \"ERR command 'BZPOPMIN' is not allowed from scripts\"; Redis runs it non-blocking. Full-file EVAL variant failed earlier on the OOM cascade, which masks the same error."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - Scripts do not block on bzpopmax command",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-CMD-WHITELIST",
+   "cascade_of": null,
+   "basis": "Both variants (isolated too): redis.pcall('bzpopmax', ...) -> \"ERR command 'BZPOPMAX' is not allowed from scripts\"; Redis runs it non-blocking. Full-file EVAL variant failed earlier on the OOM cascade, which masks the same error."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - Scripts do not block on XREAD with BLOCK option",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-CMD-WHITELIST",
+   "cascade_of": null,
+   "basis": "Both variants (isolated too): redis.pcall('xread', ...) -> \"ERR command 'XREAD' is not allowed from scripts\"; Redis runs it non-blocking. Full-file EVAL variant failed earlier on the OOM cascade, which masks the same error."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - Scripts do not block on XREADGROUP with BLOCK option",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-CMD-WHITELIST",
+   "cascade_of": null,
+   "basis": "Both variants (isolated too): redis.pcall('xreadgroup', ...) -> \"ERR command 'XREADGROUP' is not allowed from scripts\"; Redis runs it non-blocking. Full-file EVAL variant failed earlier on the OOM cascade, which masks the same error."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - Scripts do not block on XREAD with BLOCK option -- non empty stream",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-CMD-WHITELIST",
+   "cascade_of": null,
+   "basis": "Both variants (isolated too): redis.pcall('xread', ...) -> \"ERR command 'XREAD' is not allowed from scripts\"; Redis runs it non-blocking. Full-file EVAL variant failed earlier on the OOM cascade, which masks the same error."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - Scripts do not block on XREADGROUP with BLOCK option -- non empty stream",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-CMD-WHITELIST",
+   "cascade_of": null,
+   "basis": "Both variants (isolated too): redis.pcall('xreadgroup', ...) -> \"ERR command 'XREADGROUP' is not allowed from scripts\"; Redis runs it non-blocking. Full-file EVAL variant failed earlier on the OOM cascade, which masks the same error."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - Scripts do not block on wait",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "Subject is WAIT inside a script (owner list: WAIT/WAITAOF). Observed: \"ERR command 'WAIT' is not allowed from scripts\" (TomoKV's top-level WAIT stub answers 0, the script whitelist rejects it)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - Scripts do not block on waitaof",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "Subject is WAITAOF inside a script (owner list). First failing step is the setup `CONFIG SET appendonly no`, rejected as immutable even though appendonly is already no (the known boot-only appendonly constraint); WAITAOF would then be rejected by the script whitelist."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - No arguments to redis.call/pcall is considered an error",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-ERROR-WORDING",
+   "cascade_of": null,
+   "basis": "Both variants: redis.call() -> 'ERR redis.call requires a command name' vs Redis 'Please specify at least one argument for this redis lib call' (test expects *one argument*)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-ERROR-WORDING",
+   "cascade_of": null,
+   "basis": "Name shared by three tests: the 2nd fails in both variants, redis.call('get','a','b','c') -> 'ERR wrong number of arguments for command from script' vs Redis 'Wrong number of args calling Redis command from script' (*number of args*); the 3rd fails only in the EVAL pass on the OOM cascade (r set foo bar); the 1st passes."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - JSON numeric decoding",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-HELPER-LIBS",
+   "cascade_of": null,
+   "basis": "Both variants: \"Script attempted to access nonexistent global variable 'cjson'\"; the cjson library is not loaded in the TomoKV sandbox."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - JSON string decoding",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-HELPER-LIBS",
+   "cascade_of": null,
+   "basis": "Both variants: \"Script attempted to access nonexistent global variable 'cjson'\"; the cjson library is not loaded in the TomoKV sandbox."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - JSON smoke test",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-HELPER-LIBS",
+   "cascade_of": null,
+   "basis": "Both variants: \"Script attempted to access nonexistent global variable 'cjson'\"; the cjson library is not loaded in the TomoKV sandbox."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - cmsgpack can pack double?",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-HELPER-LIBS",
+   "cascade_of": null,
+   "basis": "Both variants: \"Script attempted to access nonexistent global variable 'cmsgpack'\"; the cmsgpack library is not loaded in the TomoKV sandbox."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - cmsgpack can pack negative int64?",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-HELPER-LIBS",
+   "cascade_of": null,
+   "basis": "Both variants: \"Script attempted to access nonexistent global variable 'cmsgpack'\"; the cmsgpack library is not loaded in the TomoKV sandbox."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - cmsgpack can pack and unpack circular references?",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-HELPER-LIBS",
+   "cascade_of": null,
+   "basis": "Both variants: \"Script attempted to access nonexistent global variable 'cmsgpack'\"; the cmsgpack library is not loaded in the TomoKV sandbox."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - Verify minimal bitop functionality",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-HELPER-LIBS",
+   "cascade_of": null,
+   "basis": "Both variants: \"Script attempted to access nonexistent global variable 'bit'\"; the bit library is not loaded in the TomoKV sandbox."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "lua bit.tohex bug",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-HELPER-LIBS",
+   "cascade_of": null,
+   "basis": "Both variants: \"Script attempted to access nonexistent global variable 'bit'\"; the bit library is not loaded in the TomoKV sandbox."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "redis.sha1hex() implementation",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-HELPER-LIBS",
+   "cascade_of": null,
+   "basis": "Both variants: \"attempt to call field 'sha1hex' (a nil value)\"."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Functions in the Redis namespace are able to report errors",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-HELPER-LIBS",
+   "cascade_of": null,
+   "basis": "Both variants: redis.sha1hex() is nil ('attempt to call field sha1hex') instead of Redis's arity error (*wrong number*)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Try trick readonly table on json table",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-HELPER-LIBS",
+   "cascade_of": null,
+   "basis": "Fails in isolation too: \"nonexistent global variable 'cjson'\" instead of 'Attempt to modify a readonly table' (full-file run additionally desynced by the readraw/bob cascades)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Try trick readonly table on cmsgpack table",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-HELPER-LIBS",
+   "cascade_of": null,
+   "basis": "Fails in isolation too: \"nonexistent global variable 'cmsgpack'\" instead of 'Attempt to modify a readonly table' (full-file run additionally desynced by the readraw/bob cascades)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Try trick readonly table on bit table",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-HELPER-LIBS",
+   "cascade_of": null,
+   "basis": "Fails in isolation too: \"nonexistent global variable 'bit'\" instead of 'Attempt to modify a readonly table' (full-file run additionally desynced by the readraw/bob cascades)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - cmsgpack pack/unpack smoke test",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-INSTRUCTION-LIMIT",
+   "cascade_of": null,
+   "basis": "Both variants: the 2x100000-iteration table build runs first and is aborted with 'BUSY script exceeded the 100000 instruction limit'; it would then also need cmsgpack (LUA-HELPER-LIBS)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Measures elapsed time os.clock()",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-SANDBOX-GLOBALS",
+   "cascade_of": null,
+   "basis": "Both variants: \"nonexistent global variable 'os'\" (no os table); the 1-second busy loop would then also hit the instruction limit."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Prohibit dangerous lua methods in sandbox",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-SANDBOX-GLOBALS",
+   "cascade_of": null,
+   "basis": "Both variants: pairs(os) fails, \"nonexistent global variable 'os'\" (Redis exposes os with only clock)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Verify execution of prohibit dangerous Lua methods will fail",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-SANDBOX-GLOBALS",
+   "cascade_of": null,
+   "basis": "Both variants: os.execute() -> \"nonexistent global variable 'os'\" instead of \"attempt to call field 'execute'\"."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Binary code loading failed",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-SANDBOX-GLOBALS",
+   "cascade_of": null,
+   "basis": "Fails in isolation: loadstring is removed (\"nonexistent global variable 'loadstring'\"); Redis keeps loadstring and only refuses the binary chunk ('attempt to call a nil value')."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Try trick readonly table on basic types metatable",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-SANDBOX-GLOBALS",
+   "cascade_of": null,
+   "basis": "Fails in isolation: coroutine is removed, so getmetatable(coroutine.create(...)) errors with \"nonexistent global variable 'coroutine'\" instead of 'attempt to index a nil value'."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "random numbers are random now",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-SANDBOX-GLOBALS",
+   "cascade_of": null,
+   "basis": "EVAL-only test: math.random is nil (\"attempt to call field 'random'\")."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Scripting engine PRNG can be seeded correctly",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-SANDBOX-GLOBALS",
+   "cascade_of": null,
+   "basis": "EVAL-only test: math.randomseed is nil."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Number conversion precision test (issue #1118)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-NUMBER-ARG",
+   "cascade_of": null,
+   "basis": "FUNCTION pass (and isolated, both variants): redis.call('set','foo',9007199254740991) stores '9.007199254741e+15' (Lua %.14g) where Redis stores 9007199254740991; the full-file EVAL variant hit the OOM cascade first."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Scripts can handle commands with incorrect arity",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-ERROR-WORDING",
+   "cascade_of": null,
+   "basis": "Both variants: 'ERR wrong number of arguments for command from script' vs 'ERR Wrong number of args calling Redis command from script'."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Correct handling of reused argv (issue #1939)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-CMD-WHITELIST",
+   "cascade_of": null,
+   "basis": "FUNCTION pass and isolated: \"command 'MGET' is not allowed from scripts\" (EXPIRE is not whitelisted either); EVAL pass hit the OOM cascade first."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "CLUSTER RESET can not be invoke from within a script",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-CLUSTER",
+   "cascade_of": null,
+   "basis": "CLUSTER does not exist on TomoKV, so redis.call('cluster','reset','hard') reports 'Unknown Redis command called from script' instead of *command is not allowed*; cluster family is out of scope."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Script return recursive object",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-REPLY-DEPTH",
+   "cascade_of": null,
+   "basis": "Both variants (isolated too): a self-referencing table returns '-ERR Error running script: script reply nesting is too deep' as the whole reply; Redis streams nested '*1' arrays until an inline '-ERR reached lua stack limit'. The failed assertion leaves the client in readraw mode (cascade root for the rest of the block)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Script check unpack with massive arguments",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-REPLY-DEPTH",
+   "cascade_of": "unit/scripting: Script return recursive object",
+   "basis": "Passes in isolation (both variants). FUNCTION pass: the connection is still in readraw mode left by 'Script return recursive object' (replies read as ':7999' lines / desynced); EVAL pass: same readraw state (plus the OOM cascade)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Script read key with expiration set",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-REPLY-DEPTH",
+   "cascade_of": "unit/scripting: Script return recursive object",
+   "basis": "Passes in isolation (both variants). FUNCTION pass: the connection is still in readraw mode left by 'Script return recursive object' (replies read as '$5' lines / desynced); EVAL pass: same readraw state (plus the OOM cascade)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Script del key with expiration set",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-REPLY-DEPTH",
+   "cascade_of": "unit/scripting: Script return recursive object",
+   "basis": "Passes in isolation (both variants). FUNCTION pass: the connection is still in readraw mode left by 'Script return recursive object' (replies read as '$4' lines / desynced); EVAL pass: same readraw state (plus the OOM cascade)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Script ACL check",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "ACL-SCRIPTS-NEED-ALLCOMMANDS",
+   "cascade_of": null,
+   "basis": "Fails in isolation: user bob (+@scripting +set ~x*) gets \"NOPERM User bob has no permissions to run the 'fcall'/'eval' command\"; Redis lets @scripting run EVAL/FCALL (redis.acl_check_cmd is also missing, LUA-REDIS-API). Full-file failure was masked by readraw ('+OK' vs OK), and it leaves the connection authenticated as bob."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Try trick global protection 1",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-REPLY-DEPTH",
+   "cascade_of": "unit/scripting: Script return recursive object",
+   "basis": "Passes in isolation (both variants). FUNCTION pass: the connection is still in readraw mode left by 'Script return recursive object' (replies read as '$4' lines / desynced); EVAL pass: additionally NOPERM because 'Script ACL check' left the connection authenticated as bob, who cannot run EVAL on TomoKV (ACL-SCRIPTS-NEED-ALLCOMMANDS)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Try trick global protection 2",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-REPLY-DEPTH",
+   "cascade_of": "unit/scripting: Script return recursive object",
+   "basis": "Passes in isolation (both variants). FUNCTION pass: the connection is still in readraw mode left by 'Script return recursive object' (replies read as '$4' lines / desynced); EVAL pass: additionally NOPERM because 'Script ACL check' left the connection authenticated as bob, who cannot run EVAL on TomoKV (ACL-SCRIPTS-NEED-ALLCOMMANDS)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Try trick global protection 3",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-REPLY-DEPTH",
+   "cascade_of": "unit/scripting: Script return recursive object",
+   "basis": "Passes in isolation (both variants). FUNCTION pass: the connection is still in readraw mode left by 'Script return recursive object' (replies read as '$4' lines / desynced); EVAL pass: additionally NOPERM because 'Script ACL check' left the connection authenticated as bob, who cannot run EVAL on TomoKV (ACL-SCRIPTS-NEED-ALLCOMMANDS)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Try trick global protection 4",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-REPLY-DEPTH",
+   "cascade_of": "unit/scripting: Script return recursive object",
+   "basis": "Passes in isolation (both variants). FUNCTION pass: the connection is still in readraw mode left by 'Script return recursive object' (replies read as '$4' lines / desynced); EVAL pass: additionally NOPERM because 'Script ACL check' left the connection authenticated as bob, who cannot run EVAL on TomoKV (ACL-SCRIPTS-NEED-ALLCOMMANDS)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Try trick readonly table on redis table",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-REPLY-DEPTH",
+   "cascade_of": "unit/scripting: Script return recursive object",
+   "basis": "Passes in isolation (both variants). FUNCTION pass: the connection is still in readraw mode left by 'Script return recursive object' (replies read as '$4' lines / desynced); EVAL pass: additionally NOPERM because 'Script ACL check' left the connection authenticated as bob, who cannot run EVAL on TomoKV (ACL-SCRIPTS-NEED-ALLCOMMANDS)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Test loadfile are not available",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-REPLY-DEPTH",
+   "cascade_of": "unit/scripting: Script return recursive object",
+   "basis": "Passes in isolation (both variants). FUNCTION pass: the connection is still in readraw mode left by 'Script return recursive object' (replies read as '$4' lines / desynced); EVAL pass: additionally NOPERM because 'Script ACL check' left the connection authenticated as bob, who cannot run EVAL on TomoKV (ACL-SCRIPTS-NEED-ALLCOMMANDS)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Test dofile are not available",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-REPLY-DEPTH",
+   "cascade_of": "unit/scripting: Script return recursive object",
+   "basis": "Passes in isolation (both variants). FUNCTION pass: the connection is still in readraw mode left by 'Script return recursive object' (replies read as '$4' lines / desynced); EVAL pass: additionally NOPERM because 'Script ACL check' left the connection authenticated as bob, who cannot run EVAL on TomoKV (ACL-SCRIPTS-NEED-ALLCOMMANDS)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Test print are not available",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-REPLY-DEPTH",
+   "cascade_of": "unit/scripting: Script return recursive object",
+   "basis": "Passes in isolation (both variants). FUNCTION pass: the connection is still in readraw mode left by 'Script return recursive object' (replies read as '$4' lines / desynced); EVAL pass: additionally NOPERM because 'Script ACL check' left the connection authenticated as bob, who cannot run EVAL on TomoKV (ACL-SCRIPTS-NEED-ALLCOMMANDS)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Timedout read-only scripts can be killed by SCRIPT KILL",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-NO-BUSY-WINDOW",
+   "cascade_of": null,
+   "basis": "Both variants: `CONFIG SET lua-time-limit 10` -> 'Unknown option ... lua-time-limit'; TomoKV has no busy window (other clients never see BUSY, SCRIPT/FUNCTION KILL answer NOTBUSY, long scripts die at the instruction limit)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Timedout read-only scripts can be killed by SCRIPT KILL even when use pcall",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-NO-BUSY-WINDOW",
+   "cascade_of": null,
+   "basis": "Both variants: `CONFIG SET lua-time-limit 10` -> 'Unknown option ... lua-time-limit'; TomoKV has no busy window (other clients never see BUSY, SCRIPT/FUNCTION KILL answer NOTBUSY, long scripts die at the instruction limit)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Timedout script does not cause a false dead client",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-NO-BUSY-WINDOW",
+   "cascade_of": null,
+   "basis": "Both variants: `CONFIG SET lua-time-limit 10` -> 'Unknown option ... lua-time-limit'; TomoKV has no busy window (other clients never see BUSY, SCRIPT/FUNCTION KILL answer NOTBUSY, long scripts die at the instruction limit)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Timedout script link is still usable after Lua returns",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-NO-BUSY-WINDOW",
+   "cascade_of": null,
+   "basis": "Both variants: `CONFIG SET lua-time-limit 10` -> 'Unknown option ... lua-time-limit'; TomoKV has no busy window (other clients never see BUSY, SCRIPT/FUNCTION KILL answer NOTBUSY, long scripts die at the instruction limit)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Test script flush will not leak memory - script:0",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "MEMORY-ACCOUNTING",
+   "cascade_of": null,
+   "basis": "assert_lessthan [s used_memory] [expr $used_memory*1.5] gets 0 < 0.0: TomoKV's used_memory counts dataset bytes (0 on an empty store), so the leak check is meaningless; memory accounting is Redis-internal."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Test script flush will not leak memory - script:1",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "MEMORY-ACCOUNTING",
+   "cascade_of": null,
+   "basis": "assert_lessthan [s used_memory] [expr $used_memory*1.5] gets 0 < 0.0: TomoKV's used_memory counts dataset bytes (0 on an empty store), so the leak check is meaningless; memory accounting is Redis-internal."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "SORT is normally not alpha re-ordered for the scripting engine",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-CMD-WHITELIST",
+   "cascade_of": null,
+   "basis": "EVAL-only test; full-file failure was the OOM cascade (r sadd), but in isolation \"command 'SORT' is not allowed from scripts\"."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "SORT BY <constant> output gets ordered for scripting",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-CMD-WHITELIST",
+   "cascade_of": null,
+   "basis": "EVAL-only test; full-file failure was the OOM cascade (r sadd), but in isolation \"command 'SORT' is not allowed from scripts\"."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "SORT BY <constant> with GET gets ordered for scripting",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-CMD-WHITELIST",
+   "cascade_of": null,
+   "basis": "EVAL-only test; full-file failure was the OOM cascade (r sadd), but in isolation \"command 'SORT' is not allowed from scripts\"."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "SPOP: We can call scripts rewriting client->argv from Lua",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream -> `CONFIG SET repl-ping-replica-period 3600` unknown; the test asserts the replication stream (owner list). INCRBYFLOAT's err comes from its nested start_server, then the outer test reports ok."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "MGET: mget shouldn't be propagated in Lua",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream -> `CONFIG SET repl-ping-replica-period 3600` unknown; the test asserts the replication stream (owner list). INCRBYFLOAT's err comes from its nested start_server, then the outer test reports ok."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EXPIRE: We can call scripts rewriting client->argv from Lua",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream -> `CONFIG SET repl-ping-replica-period 3600` unknown; the test asserts the replication stream (owner list). INCRBYFLOAT's err comes from its nested start_server, then the outer test reports ok."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "INCRBYFLOAT: We can call scripts expanding client->argv from Lua",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream -> `CONFIG SET repl-ping-replica-period 3600` unknown; the test asserts the replication stream (owner list). INCRBYFLOAT's err comes from its nested start_server, then the outer test reports ok."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Shebang support for lua engine",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "EVAL-SHEBANG",
+   "cascade_of": null,
+   "basis": "'#!not-lua' gives a Lua compile error ('unexpected symbol near #') instead of 'Unexpected engine in script shebang', and '#!lua' does not compile; EVAL does not parse shebangs."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Unknown shebang option",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "EVAL-SHEBANG",
+   "cascade_of": null,
+   "basis": "'#!lua badger=data' gives a compile error instead of 'Unknown lua shebang option'; EVAL does not parse shebangs."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Unknown shebang flag",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "EVAL-SHEBANG",
+   "cascade_of": null,
+   "basis": "'#!lua flags=allow-oom,what?' gives a compile error instead of 'Unexpected flag in script shebang'; EVAL does not parse shebangs."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "allow-oom shebang flag",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "EVAL-SHEBANG",
+   "cascade_of": null,
+   "basis": "isolated: eval '#!lua flags=' gives a compile error instead of OOM (full-file run failed even earlier, at `r set x 123`, on the leaked maxmemory=1); EVAL does not parse shebangs."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "no-writes shebang flag",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "EVAL-SHEBANG",
+   "cascade_of": null,
+   "basis": "'#!lua flags=no-writes' gives a compile error instead of 'Write commands are not allowed from read-only scripts'; EVAL does not parse shebangs."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "reject script do not cause a Lua stack leak",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "EVAL-SHEBANG",
+   "cascade_of": null,
+   "basis": "eval '#!lua' under maxmemory 1 gives a compile error instead of OOM; EVAL does not parse shebangs."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "not enough good replicas",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "Asserts NOREPLICAS via `CONFIG SET min-replicas-to-write 1` (unknown option on TomoKV); replica configs are out of scope. Full-file run failed even earlier at `r set x` on the leaked maxmemory=1."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "Consistent eval error reporting",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "INFO-ERRORSTATS",
+   "cascade_of": null,
+   "basis": "The script errors themselves match; `INFO errorstats` returns an empty string (no section at all), so errorstat_OOM:count=1 is missing."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "LUA redis.error_reply API",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-REDIS-API",
+   "cascade_of": null,
+   "basis": "\"attempt to call field 'error_reply' (a nil value)\"."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "LUA redis.error_reply API with empty string",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-REDIS-API",
+   "cascade_of": null,
+   "basis": "\"attempt to call field 'error_reply' (a nil value)\"."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "LUA redis.error_reply API with CRLF injection attempt",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-REDIS-API",
+   "cascade_of": null,
+   "basis": "\"attempt to call field 'error_reply' (a nil value)\"."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "LUA redis.status_reply API",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-REDIS-API",
+   "cascade_of": null,
+   "basis": "\"attempt to call field 'status_reply' (a nil value)\"; the failed assertion leaves the client in readraw mode (root of the next two failures)."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "LUA test pcall",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-REDIS-API",
+   "cascade_of": "unit/scripting: LUA redis.status_reply API",
+   "basis": "Passes in isolation; full-file replies are raw/desynced ('$22', previous reply) because 'LUA redis.status_reply API' left readraw on."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "LUA test pcall with error",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-REDIS-API",
+   "cascade_of": "unit/scripting: LUA redis.status_reply API",
+   "basis": "Passes in isolation; full-file replies are raw/desynced ('$22', previous reply) because 'LUA redis.status_reply API' left readraw on."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "LUA test pcall with non string/integer arg",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-ERROR-WORDING",
+   "cascade_of": null,
+   "basis": "Isolated: 'ERR Lua redis() command arguments must be strings or integers' vs Redis 'Lua redis lib command arguments ...'; the follow-up redis.call('ping','asdf') would also hit the whitelist."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "EVAL - explicit error() call handling",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-ERROR-WORDING",
+   "cascade_of": null,
+   "basis": "Isolated: error({}) -> 'ERR runtime error script: ...' vs Redis 'ERR unknown error script: ...' (first two assertions match)."
+  },
+  {
+   "file": "unit/functions",
+   "test": "FUNCTION - Load with unknown argument",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "FUNCTION-SUBCMD-ARGS",
+   "cascade_of": null,
+   "basis": "FUNCTION LOAD foo bar <code> -> \"ERR wrong number of arguments for 'function|load' command\" vs 'Unknown option given: foo'."
+  },
+  {
+   "file": "unit/functions",
+   "test": "FUNCTION - test function case insensitive",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "FCALL-NAME-CASE",
+   "cascade_of": null,
+   "basis": "FCALL TEST 0 -> 'ERR Function not found'; Redis looks function names up case-insensitively (hello1)."
+  },
+  {
+   "file": "unit/functions",
+   "test": "FUNCTION - test debug reload different options",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "DEBUG-RELOAD-OPTIONS",
+   "cascade_of": null,
+   "basis": "DEBUG RELOAD NOFLUSH -> 'unknown subcommand ... debug' instead of 'Error trying to load the RDB'; TomoKV implements DEBUG RELOAD only without arguments."
+  },
+  {
+   "file": "unit/functions",
+   "test": "FUNCTION - test debug reload with nosave and noflush",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "DEBUG-RELOAD-OPTIONS",
+   "cascade_of": null,
+   "basis": "DEBUG RELOAD NOSAVE NOFLUSH MERGE rejected ('unknown subcommand ... debug')."
+  },
+  {
+   "file": "unit/functions",
+   "test": "FUNCTION - test function restore with wrong number of arguments",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "FUNCTION-SUBCMD-ARGS",
+   "cascade_of": null,
+   "basis": "FUNCTION RESTORE a b c -> \"wrong number of arguments for 'function|restore' command\" vs \"unknown subcommand or wrong number of arguments for 'restore'. Try FUNCTION HELP.\""
+  },
+  {
+   "file": "unit/functions",
+   "test": "FUNCTION - test function kill",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-NO-BUSY-WINDOW",
+   "cascade_of": null,
+   "basis": "`CONFIG SET busy-reply-threshold 10` -> unknown option; no busy window, FUNCTION/SCRIPT KILL always NOTBUSY."
+  },
+  {
+   "file": "unit/functions",
+   "test": "FUNCTION - test script kill not working on function",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-NO-BUSY-WINDOW",
+   "cascade_of": null,
+   "basis": "`CONFIG SET busy-reply-threshold 10` -> unknown option; no busy window, FUNCTION/SCRIPT KILL always NOTBUSY."
+  },
+  {
+   "file": "unit/functions",
+   "test": "FUNCTION - test function kill not working on eval",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-NO-BUSY-WINDOW",
+   "cascade_of": null,
+   "basis": "`CONFIG SET busy-reply-threshold 10` -> unknown option; no busy window, FUNCTION/SCRIPT KILL always NOTBUSY."
+  },
+  {
+   "file": "unit/functions",
+   "test": "FUNCTION - async function flush rebuilds Lua VM without causing race condition between main and lazyfree thread",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "MEMORY-ACCOUNTING",
+   "cascade_of": null,
+   "basis": "assert_morethan [s used_memory_vm_functions] 100000 gets '' (field absent); the test also waits on lazyfreed_objects; Lua VM memory/lazyfree counters are Redis-internal."
+  },
+  {
+   "file": "unit/functions",
+   "test": "FUNCTION - test function wrong argument",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "FUNCTION-SUBCMD-ARGS",
+   "cascade_of": null,
+   "basis": "FUNCTION FLUSH sync extra_arg -> 'FUNCTION FLUSH only supports SYNC|ASYNC option' vs \"unknown subcommand or wrong number of arguments for 'flush'. Try FUNCTION HELP.\""
+  },
+  {
+   "file": "unit/functions",
+   "test": "LIBRARIES - test shared function can access default globals",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-CMD-WHITELIST",
+   "cascade_of": null,
+   "basis": "redis.call('ping') inside a function -> \"command 'PING' is not allowed from scripts\"."
+  },
+  {
+   "file": "unit/functions",
+   "test": "LIBRARIES - test registration failure revert the entire load",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "FUNCTION-REGISTER-ARGS",
+   "cascade_of": null,
+   "basis": "'callback argument given to redis.register_function must be a function' vs 'second argument to redis.register_function must be a function'."
+  },
+  {
+   "file": "unit/functions",
+   "test": "LIBRARIES - test registration with no string name",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "FUNCTION-REGISTER-ARGS",
+   "cascade_of": null,
+   "basis": "'function_name argument given to redis.register_function must be a string' vs 'first argument to redis.register_function must be a string'."
+  },
+  {
+   "file": "unit/functions",
+   "test": "LIBRARIES - test registration with wrong name format",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "FUNCTION-REGISTER-ARGS",
+   "cascade_of": null,
+   "basis": "register_function('test\\0test', ...) is accepted (returns lib2); Redis rejects function names outside [A-Za-z0-9_]."
+  },
+  {
+   "file": "unit/functions",
+   "test": "LIBRARIES - test registration with empty name",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "FUNCTION-REGISTER-ARGS",
+   "cascade_of": null,
+   "basis": "register_function('', ...) -> 'must get a function name argument' vs Redis's name-format error."
+  },
+  {
+   "file": "unit/functions",
+   "test": "LIBRARIES - math.random from function load",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "FUNCTION-LOAD-ENV",
+   "cascade_of": null,
+   "basis": "Library body sees math (\"attempt to call field 'random'\"); Redis exposes only the redis API during LOAD (\"nonexistent global variable 'math'\")."
+  },
+  {
+   "file": "unit/functions",
+   "test": "LIBRARIES - malicious access test",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "FUNCTION-REGISTER-ARGS",
+   "cascade_of": null,
+   "basis": "Last assertion: register_function called from a running function -> 'redis.register_function is not available here' vs 'can only be called on FUNCTION LOAD command'."
+  },
+  {
+   "file": "unit/functions",
+   "test": "LIBRARIES - delete removed all functions on library",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "FUNCTION-REGISTER-ARGS",
+   "cascade_of": "unit/functions: LIBRARIES - test registration with wrong name format",
+   "basis": "FUNCTION LIST still shows lib2, which TomoKV accepted in 'test registration with wrong name format' (Redis rejected it)."
+  },
+  {
+   "file": "unit/functions",
+   "test": "LIBRARIES - load timeout",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-INSTRUCTION-LIMIT",
+   "cascade_of": null,
+   "basis": "Infinite loop in a library body -> 'ERR Error registering functions: ERR ERR function library exceeded the instruction limit' (instruction budget, doubled ERR) vs Redis's 500 ms 'FUNCTION LOAD timeout'."
+  },
+  {
+   "file": "unit/functions",
+   "test": "FUNCTION - test function list withcode multiple times",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "FUNCTION-SUBCMD-ARGS",
+   "cascade_of": null,
+   "basis": "FUNCTION LIST WITHCODE WITHCODE is accepted; Redis: 'Unknown argument withcode'."
+  },
+  {
+   "file": "unit/functions",
+   "test": "FUNCTION - test function list libraryname multiple times",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "FUNCTION-SUBCMD-ARGS",
+   "cascade_of": null,
+   "basis": "Repeated LIBRARYNAME accepted (last wins); Redis: 'Unknown argument libraryname'."
+  },
+  {
+   "file": "unit/functions",
+   "test": "FUNCTION - verify OOM on function load and function restore",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "FUNCTION-LOAD-DENYOOM",
+   "cascade_of": null,
+   "basis": "FUNCTION LOAD under maxmemory 1 succeeds (returns 'test'); Redis refuses it with OOM. Not accounting: TomoKV accepts LOAD even when its own SET is refused with OOM (repro)."
+  },
+  {
+   "file": "unit/functions",
+   "test": "FUNCTION - verify allow-omm allows running any command",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "FUNCTION-LOAD-DENYOOM",
+   "cascade_of": "unit/functions: FUNCTION - verify OOM on function load and function restore",
+   "basis": "'Function f1 already exists': the previous test's library (loaded despite OOM) still owns f1; passes in isolation."
+  },
+  {
+   "file": "unit/functions",
+   "test": "FUNCTION - test function list with CRLF injection attempt",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "FUNCTION-LIST-CRLF",
+   "cascade_of": null,
+   "basis": "The unknown-argument error echoes the raw CR/LF: client reads 'ERR Unknown argument X' and the stray '+INJECTED' becomes the next reply (desync)."
+  },
+  {
+   "file": "unit/functions",
+   "test": "FUNCTION - deny oom",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "MAXMEMORY-BASELINE",
+   "cascade_of": null,
+   "basis": "FCALL of a non-allow-oom writer under maxmemory 1 on an EMPTY store is admitted (OK); once the key's shard holds data TomoKV answers OOM like Redis. The test assumes maxmemory 1 is exceeded by baseline usage; TomoKV counts per-shard dataset bytes (see notes)."
+  },
+  {
+   "file": "unit/functions",
+   "test": "FUNCTION - redis version api",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LUA-REDIS-API",
+   "cascade_of": null,
+   "basis": "redis.REDIS_VERSION_NUM is missing from the load-time redis table (\"nonexistent global variable 'REDIS_VERSION_NUM'\"); REDIS_VERSION(_NUM) are nil at run time too, and the callback also needs bit."
+  },
+  {
+   "file": "unit/functions",
+   "test": "FUNCTION - function test multiple names",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "FUNCTION-SHEBANG-META",
+   "cascade_of": null,
+   "basis": "'#!lua name=foo name=bar' is accepted as library bar; Redis: 'Invalid metadata value, name argument was given multiple times'."
+  },
+  {
+   "file": "unit/functions",
+   "test": "FUNCTION - function test name with quotes",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "FUNCTION-SHEBANG-META",
+   "cascade_of": null,
+   "basis": "'#!lua name=\"foo\"' is rejected (name-format error); Redis unquotes it and loads foo."
+  },
+  {
+   "file": "unit/functions",
+   "test": "FUNCTION - test getmetatable on script load",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "FUNCTION-LOAD-ENV",
+   "cascade_of": null,
+   "basis": "getmetatable is reachable during LOAD (the global assignment then fails: 'Attempt to modify a readonly table'); Redis: \"nonexistent global variable 'getmetatable'\"."
+  },
+  {
+   "file": "unit/functions",
+   "test": "LIBRARIES - register function inside a function",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "builder",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "FUNCTION-REGISTER-ARGS",
+   "cascade_of": "unit/functions: LIBRARIES - delete removed all functions on library",
+   "basis": "'ERR Function f1 already exists': the skipped previous test is the one that deletes lib1 (and f1). Seen only in the first gated-subset builder run, whose --skipfile (the survey failures) changed the state later tests see; it passes in the full-file runs. Added at integration."
+  },
+  {
+   "file": "unit/scripting",
+   "test": "LUA test trim string as expected",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "builder",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-UNDECLARED-KEY",
+   "cascade_of": null,
+   "basis": "Its body runs only when INFO reports jemalloc; there the script SETNXes key foo with numkeys 0 and TomoKV rejects the undeclared key. In the survey the guard did not hold (earlier ACL/maxmemory state), so the test passed vacuously. Seen only in the first gated-subset builder run, whose --skipfile (the survey failures) changed the state later tests see; it passes in the full-file runs. Added at integration."
+  }
+ ],
+ "roots": [
+  {
+   "id": "SCRIPT-CMD-WHITELIST",
+   "class": "REAL compatibility defect",
+   "title": "Scripts may call only a fixed whitelist of single-key commands (PING, MGET, SORT, EXPIRE, PUBLISH, blocking pops, XREAD* ... are rejected: \"command 'X' is not allowed from scripts\")",
+   "subsystem": "src/cmd/scripting.cc script_command_allowed / script_name_whitelisted (checked in redis_dispatch)",
+   "design_note": "Deliberate TomoKV restriction (docs/ARCHITECTURE.md:198): scripts may call only an audited whitelist of single-key commands on declared keys.",
+   "repro_case": "A-SCRIPT-CMD-WHITELIST",
+   "redis": "PONG / [nil,nil] / nil",
+   "tomokv": "ERR command 'PING'|'MGET'|'BLPOP' is not allowed from scripts",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/scripting: EVAL - Scripts do not block on blpop command",
+    "unit/scripting: EVAL - Scripts do not block on brpop command",
+    "unit/scripting: EVAL - Scripts do not block on brpoplpush command",
+    "unit/scripting: EVAL - Scripts do not block on blmove command",
+    "unit/scripting: EVAL - Scripts do not block on bzpopmin command",
+    "unit/scripting: EVAL - Scripts do not block on bzpopmax command",
+    "unit/scripting: EVAL - Scripts do not block on XREAD with BLOCK option",
+    "unit/scripting: EVAL - Scripts do not block on XREADGROUP with BLOCK option",
+    "unit/scripting: EVAL - Scripts do not block on XREAD with BLOCK option -- non empty stream",
+    "unit/scripting: EVAL - Scripts do not block on XREADGROUP with BLOCK option -- non empty stream",
+    "unit/scripting: Correct handling of reused argv (issue #1939)",
+    "unit/scripting: SORT is normally not alpha re-ordered for the scripting engine",
+    "unit/scripting: SORT BY <constant> output gets ordered for scripting",
+    "unit/scripting: SORT BY <constant> with GET gets ordered for scripting",
+    "unit/functions: LIBRARIES - test shared function can access default globals"
+   ],
+   "group": "A",
+   "also_found_as": [
+    {
+     "group": "B1",
+     "id": "SCRIPT-CMD-WHITELIST",
+     "repro_case": "SCRIPT-CMD-WHITELIST",
+     "title": "Scripts may call only a whitelist of commands (PING, EXPIRE, PUBLISH, ... rejected: \"command 'X' is not allowed from scripts\")"
+    },
+    {
+     "group": "B2",
+     "id": "SCRIPT-SORT-NOT-ALLOWED",
+     "repro_case": "B2-SCRIPT-SORT-NOT-ALLOWED",
+     "title": "SORT cannot be called from Lua scripts"
+    }
+   ]
+  },
+  {
+   "id": "SCRIPT-UNDECLARED-KEY",
+   "class": "REAL compatibility defect",
+   "title": "redis.call on a key that was not passed in KEYS is rejected",
+   "subsystem": "src/cmd/scripting.cc mark_declared (redis_dispatch)",
+   "design_note": "Deliberate TomoKV restriction (docs/ARCHITECTURE.md:198): scripts may only touch DECLARED keys. Its failure in Script - disallow write on OOM leaks maxmemory=1 through the EVAL pass (16 cascaded tests).",
+   "repro_case": "A-SCRIPT-UNDECLARED-KEY",
+   "redis": "+OK (and GET x = 1)",
+   "tomokv": "ERR Script attempted to access an undeclared key script: ...",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/scripting: EVAL - is Lua able to call Redis API?",
+    "unit/scripting: EVAL - Redis integer -> Lua type conversion",
+    "unit/scripting: EVAL - Redis bulk -> Lua type conversion",
+    "unit/scripting: EVAL - Redis multi bulk -> Lua type conversion",
+    "unit/scripting: EVAL - Redis status reply -> Lua type conversion",
+    "unit/scripting: EVAL - Redis error reply -> Lua type conversion",
+    "unit/scripting: EVAL - Scripts can run non-deterministic commands",
+    "unit/scripting: EVAL_RO - Successful case",
+    "unit/scripting: EVAL_RO - Cannot run write commands",
+    "unit/scripting: Test an example script DECR_IF_GT",
+    "unit/scripting: EVAL does not leak in the Lua stack",
+    "unit/scripting: Call Redis command with many args from Lua (issue #1764)",
+    "unit/scripting: String containing number precision test (regression of issue #1118)",
+    "unit/scripting: Script with RESP3 map",
+    "unit/scripting: SCRIPTING FLUSH - is able to clear the scripts cache?",
+    "unit/scripting: EVALSHA - Can we call a SHA1 if already defined?",
+    "unit/scripting: EVALSHA_RO - Can we call a SHA1 if already defined?",
+    "unit/scripting: SCRIPTING FLUSH ASYNC",
+    "unit/scripting: EVAL - Lua number -> Redis integer conversion",
+    "unit/scripting: Script - disallow write on OOM"
+   ],
+   "group": "A",
+   "also_found_as": [
+    {
+     "group": "B1",
+     "id": "SCRIPT-UNDECLARED-KEY",
+     "repro_case": "SCRIPT-UNDECLARED-KEY",
+     "title": "A script/function touching a key it did not declare is rejected (standalone Redis allows it)"
+    }
+   ]
+  },
+  {
+   "id": "SCRIPT-NUMBER-ARG",
+   "class": "REAL compatibility defect",
+   "title": "Lua number arguments to redis.call are stringified with %.14g instead of an exact conversion",
+   "subsystem": "src/cmd/scripting.cc redis_dispatch: lua_tolstring on LUA_TNUMBER (LUA_NUMBER_FMT %.14g, third_party/lua/luaconf.h:522); Redis uses fpconv_dtoa",
+   "design_note": null,
+   "repro_case": "A-SCRIPT-NUMBER-ARG",
+   "redis": "9007199254740991 / 0.30000000000000004",
+   "tomokv": "9.007199254741e+15 / 0.3",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/scripting: Number conversion precision test (issue #1118)"
+   ],
+   "group": "A"
+  },
+  {
+   "id": "EVAL-SHEBANG",
+   "class": "REAL compatibility defect",
+   "title": "EVAL / SCRIPT LOAD do not parse the #!lua shebang line or its flags (no-writes, allow-oom, ...)",
+   "subsystem": "src/cmd/scripting.cc validate_source / script_route_store / run_eval (source goes to luaL_loadbuffer unchanged; only functions.cc parses #!)",
+   "design_note": null,
+   "repro_case": "A-EVAL-SHEBANG",
+   "redis": "1 / Write commands are not allowed from read-only scripts / Unexpected engine in script shebang / sha",
+   "tomokv": "ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/scripting: Shebang support for lua engine",
+    "unit/scripting: Unknown shebang option",
+    "unit/scripting: Unknown shebang flag",
+    "unit/scripting: allow-oom shebang flag",
+    "unit/scripting: no-writes shebang flag",
+    "unit/scripting: reject script do not cause a Lua stack leak"
+   ],
+   "group": "A"
+  },
+  {
+   "id": "SCRIPT-ERROR-WORDING",
+   "class": "REAL compatibility defect",
+   "title": "Script error texts differ: empty redis.call(), wrong arity, non-string argument, error({})",
+   "subsystem": "src/cmd/scripting.cc redis_dispatch (deferred_error strings) and script_runtime_error (runtime error fallback)",
+   "design_note": null,
+   "repro_case": "A-SCRIPT-ERROR-WORDING",
+   "redis": "Please specify at least one argument for this redis lib call / Wrong number of args calling Redis command from script / Lua redis lib command arguments must be strings or integers / unknown error",
+   "tomokv": "redis.call requires a command name / wrong number of arguments for command from script / Lua redis() command arguments ... / runtime error",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/scripting: EVAL - No arguments to redis.call/pcall is considered an error",
+    "unit/scripting: EVAL - redis.call variant raises a Lua error on Redis cmd error (1)",
+    "unit/scripting: Scripts can handle commands with incorrect arity",
+    "unit/scripting: LUA test pcall with non string/integer arg",
+    "unit/scripting: EVAL - explicit error() call handling"
+   ],
+   "group": "A"
+  },
+  {
+   "id": "SCRIPT-REPLY-DEPTH",
+   "class": "REAL compatibility defect",
+   "title": "A script reply nested deeper than 32 levels fails as a whole instead of being converted",
+   "subsystem": "src/cmd/scripting.cc append_lua_result (kReplyMaxDepth = 32)",
+   "design_note": null,
+   "repro_case": "A-SCRIPT-REPLY-DEPTH",
+   "redis": "40-level nested array (recursive table: nested *1 ... then inline -ERR reached lua stack limit)",
+   "tomokv": "ERR Error running script: script reply nesting is too deep",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/scripting: Script return recursive object",
+    "unit/scripting: Script check unpack with massive arguments",
+    "unit/scripting: Script read key with expiration set",
+    "unit/scripting: Script del key with expiration set",
+    "unit/scripting: Try trick global protection 1",
+    "unit/scripting: Try trick global protection 2",
+    "unit/scripting: Try trick global protection 3",
+    "unit/scripting: Try trick global protection 4",
+    "unit/scripting: Try trick readonly table on redis table",
+    "unit/scripting: Test loadfile are not available",
+    "unit/scripting: Test dofile are not available",
+    "unit/scripting: Test print are not available"
+   ],
+   "group": "A"
+  },
+  {
+   "id": "LUA-HELPER-LIBS",
+   "class": "REAL compatibility defect",
+   "title": "cjson, cmsgpack, bit, struct and redis.sha1hex are absent from the Lua sandbox",
+   "subsystem": "src/cmd/scripting.cc create_sandbox_static (opens only base/table/string/math)",
+   "design_note": "Implemented on the UNMERGED branch cx-lualibs (lane CC4.7, 4db090a20; production commit 1909358b1). The defect is real on this base.",
+   "repro_case": "A-LUA-HELPER-LIBS",
+   "redis": "[1,2] / 1 / 1 / 2 / da39a3ee...",
+   "tomokv": "Script attempted to access nonexistent global variable 'cjson'|'cmsgpack'|'bit'|'struct'; sha1hex nil",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/scripting: EVAL - JSON numeric decoding",
+    "unit/scripting: EVAL - JSON string decoding",
+    "unit/scripting: EVAL - JSON smoke test",
+    "unit/scripting: EVAL - cmsgpack can pack double?",
+    "unit/scripting: EVAL - cmsgpack can pack negative int64?",
+    "unit/scripting: EVAL - cmsgpack can pack and unpack circular references?",
+    "unit/scripting: EVAL - Verify minimal bitop functionality",
+    "unit/scripting: lua bit.tohex bug",
+    "unit/scripting: redis.sha1hex() implementation",
+    "unit/scripting: Functions in the Redis namespace are able to report errors",
+    "unit/scripting: Try trick readonly table on json table",
+    "unit/scripting: Try trick readonly table on cmsgpack table",
+    "unit/scripting: Try trick readonly table on bit table"
+   ],
+   "group": "A"
+  },
+  {
+   "id": "LUA-SANDBOX-GLOBALS",
+   "class": "REAL compatibility defect",
+   "title": "Sandbox strips standard Lua globals Redis keeps: os (clock), loadstring, coroutine, collectgarbage, math.random/randomseed",
+   "subsystem": "src/cmd/scripting.cc create_sandbox_static (os never opened; remove_global loadstring/coroutine/collectgarbage; math.random/randomseed set to nil)",
+   "design_note": null,
+   "repro_case": "A-LUA-SANDBOX-GLOBALS",
+   "redis": "function / function / table / function / {function,function}",
+   "tomokv": "nonexistent global variable 'os'|'loadstring'|'coroutine'|'collectgarbage'; math.random nil",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/scripting: Measures elapsed time os.clock()",
+    "unit/scripting: Prohibit dangerous lua methods in sandbox",
+    "unit/scripting: Verify execution of prohibit dangerous Lua methods will fail",
+    "unit/scripting: Binary code loading failed",
+    "unit/scripting: Try trick readonly table on basic types metatable",
+    "unit/scripting: random numbers are random now",
+    "unit/scripting: Scripting engine PRNG can be seeded correctly"
+   ],
+   "group": "A"
+  },
+  {
+   "id": "LUA-REDIS-API",
+   "class": "REAL compatibility defect",
+   "title": "redis.* helpers absent: error_reply, status_reply, log/LOG_*, REDIS_VERSION(_NUM), acl_check_cmd, set_repl, replicate_commands",
+   "subsystem": "src/cmd/scripting.cc create_sandbox_static (redis table = call/pcall/setresp only); src/cmd/functions.cc run_library_body (load-time redis = register_function only)",
+   "design_note": null,
+   "repro_case": "A-LUA-REDIS-API",
+   "redis": "-MY_ERR custom msg / +MY_OK custom msg / 1 / 459786",
+   "tomokv": "attempt to call field 'error_reply'|'status_reply'|'log' (a nil value) / nil",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/scripting: LUA redis.error_reply API",
+    "unit/scripting: LUA redis.error_reply API with empty string",
+    "unit/scripting: LUA redis.error_reply API with CRLF injection attempt",
+    "unit/scripting: LUA redis.status_reply API",
+    "unit/scripting: LUA test pcall",
+    "unit/scripting: LUA test pcall with error",
+    "unit/functions: FUNCTION - redis version api"
+   ],
+   "group": "A"
+  },
+  {
+   "id": "SCRIPT-INSTRUCTION-LIMIT",
+   "class": "REAL compatibility defect",
+   "title": "Scripts and library bodies are aborted after 100,000 Lua instructions",
+   "subsystem": "src/cmd/scripting.cc instruction_hook / kInstructionLimit (script_execute BUSY reply; script_pcall_library, re-prefixed by functions.cc compile_library -> \"ERR ERR\")",
+   "design_note": "Deliberate: a fixed 100,000-instruction budget replaces Redis lua-time-limit/busy-reply-threshold; long but legitimate scripts fail with BUSY.",
+   "repro_case": "A-SCRIPT-INSTRUCTION-LIMIT",
+   "redis": "200000 / ERR Error registering functions: ERR FUNCTION LOAD timeout",
+   "tomokv": "BUSY script exceeded the 100000 instruction limit / ERR Error registering functions: ERR ERR function library exceeded the instruction limit",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/scripting: EVAL - cmsgpack pack/unpack smoke test",
+    "unit/functions: LIBRARIES - load timeout"
+   ],
+   "group": "A"
+  },
+  {
+   "id": "SCRIPT-NO-BUSY-WINDOW",
+   "class": "REAL compatibility defect",
+   "title": "No busy-script window: lua-time-limit/busy-reply-threshold unknown, other clients never see BUSY, SCRIPT/FUNCTION KILL answer NOTBUSY",
+   "subsystem": "src/cmd/scripting.cc cmd_script KILL and src/cmd/functions.cc cmd_function KILL (fixed NOTBUSY); no lua-time-limit/busy-reply-threshold config",
+   "design_note": "Deliberate: scripts run to completion inside one owner task under the instruction limit, so no activation is observable as busy.",
+   "repro_case": "A-SCRIPT-NO-BUSY-WINDOW",
+   "redis": "CONFIG SET OK; PING -> BUSY Redis is busy running a script; SCRIPT KILL -> OK; script -> ERR Script killed by user",
+   "tomokv": "CONFIG SET unknown option; PING -> PONG; SCRIPT KILL -> NOTBUSY; script -> BUSY script exceeded the 100000 instruction limit",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/scripting: Timedout read-only scripts can be killed by SCRIPT KILL",
+    "unit/scripting: Timedout read-only scripts can be killed by SCRIPT KILL even when use pcall",
+    "unit/scripting: Timedout script does not cause a false dead client",
+    "unit/scripting: Timedout script link is still usable after Lua returns",
+    "unit/functions: FUNCTION - test function kill",
+    "unit/functions: FUNCTION - test script kill not working on function",
+    "unit/functions: FUNCTION - test function kill not working on eval"
+   ],
+   "group": "A"
+  },
+  {
+   "id": "ACL-SCRIPTS-NEED-ALLCOMMANDS",
+   "class": "REAL compatibility defect",
+   "title": "A user without allcommands cannot run EVAL/FCALL even when +@scripting grants them",
+   "subsystem": "src/cmd/acl.inc acl_command_allowed (ScriptRoute commands require AclAllCommands)",
+   "design_note": "Deliberate safety boundary: nested redis.call commands are not ACL-checked, so script commands are reserved for unrestricted users.",
+   "repro_case": "A-ACL-SCRIPTS-NEED-ALLCOMMANDS",
+   "redis": "1 / ERR Function not found",
+   "tomokv": "NOPERM User bob has no permissions to run the 'eval'|'fcall' command",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/scripting: Script ACL check"
+   ],
+   "group": "A"
+  },
+  {
+   "id": "EVALSHA-SHA-CASE",
+   "class": "REAL compatibility defect",
+   "title": "EVALSHA / SCRIPT EXISTS sha1 lookup is case-sensitive",
+   "subsystem": "src/cmd/scripting.cc g_scripts.find/exists keyed by the exact sha text (script_route_store, cmd_eval<kSha>, SCRIPT EXISTS)",
+   "design_note": null,
+   "repro_case": "A-EVALSHA-SHA-CASE",
+   "redis": "hello / [1]",
+   "tomokv": "NOSCRIPT No matching script. Please use EVAL. / [0]",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/scripting: EVALSHA - Can we call a SHA1 in uppercase?"
+   ],
+   "group": "A"
+  },
+  {
+   "id": "INFO-ERRORSTATS",
+   "class": "REAL compatibility defect",
+   "title": "Error accounting absent: INFO ERRORSTATS is empty (no errorstat_<PREFIX>), no failed_calls in cmdstat_*",
+   "subsystem": "src/cmd/t_server.cc cmd_info (no Errorstats section is rendered)",
+   "design_note": null,
+   "repro_case": "A-INFO-ERRORSTATS",
+   "redis": "# Errorstats\\r\\nerrorstat_ERR:count=1",
+   "tomokv": "\"\" (empty bulk)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/scripting: Consistent eval error reporting"
+   ],
+   "group": "A",
+   "also_found_as": [
+    {
+     "group": "B1",
+     "id": "ERROR-STATS-ABSENT",
+     "repro_case": "ERROR-STATS-ABSENT",
+     "title": "Failed-command accounting not reported: no failed_calls/usec in cmdstat_*, INFO ERRORSTATS empty"
+    }
+   ]
+  },
+  {
+   "id": "FCALL-NAME-CASE",
+   "class": "REAL compatibility defect",
+   "title": "FCALL function-name lookup is case-sensitive",
+   "subsystem": "src/cmd/functions.cc invoke_fcall (lua_rawget of the exact name in kRegistryFunctions)",
+   "design_note": null,
+   "repro_case": "A-FCALL-NAME-CASE",
+   "redis": "hello",
+   "tomokv": "ERR Function not found",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/functions: FUNCTION - test function case insensitive"
+   ],
+   "group": "A"
+  },
+  {
+   "id": "FUNCTION-SUBCMD-ARGS",
+   "class": "REAL compatibility defect",
+   "title": "FUNCTION LOAD/RESTORE/FLUSH/LIST argument validation and error texts differ",
+   "subsystem": "src/cmd/functions.cc cmd_function (LOAD/RESTORE argc checks, FLUSH message) and function_list (no duplicate-option check)",
+   "design_note": null,
+   "repro_case": "A-FUNCTION-SUBCMD-ARGS",
+   "redis": "Unknown option given: foo / unknown subcommand or wrong number of arguments for 'restore'|'flush'. Try FUNCTION HELP. / Unknown argument withcode|libraryname",
+   "tomokv": "wrong number of arguments for 'function|load'|'function|restore' / FUNCTION FLUSH only supports SYNC|ASYNC option / [] (accepted)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/functions: FUNCTION - Load with unknown argument",
+    "unit/functions: FUNCTION - test function restore with wrong number of arguments",
+    "unit/functions: FUNCTION - test function wrong argument",
+    "unit/functions: FUNCTION - test function list withcode multiple times",
+    "unit/functions: FUNCTION - test function list libraryname multiple times"
+   ],
+   "group": "A"
+  },
+  {
+   "id": "FUNCTION-LIST-CRLF",
+   "class": "REAL compatibility defect",
+   "title": "FUNCTION LIST echoes an unknown argument with raw CR/LF into its error, injecting a forged reply and desyncing the connection",
+   "subsystem": "src/cmd/functions.cc function_list (snprintf \"Unknown argument %.*s\" of the raw argument, no CR/LF sanitization)",
+   "design_note": null,
+   "repro_case": "A-FUNCTION-LIST-CRLF",
+   "redis": "-ERR Unknown argument X  +INJECTED; next PING -> PONG",
+   "tomokv": "-ERR Unknown argument X, then +INJECTED is read as the next PING's reply",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/functions: FUNCTION - test function list with CRLF injection attempt"
+   ],
+   "group": "A"
+  },
+  {
+   "id": "FUNCTION-REGISTER-ARGS",
+   "class": "REAL compatibility defect",
+   "title": "redis.register_function argument validation and messages differ (no function-name charset check)",
+   "subsystem": "src/cmd/functions.cc fn_register",
+   "design_note": null,
+   "repro_case": "A-FUNCTION-REGISTER-ARGS",
+   "redis": "second/first argument to redis.register_function must be ... / Library names can only contain ... / can only be called on FUNCTION LOAD command",
+   "tomokv": "callback/function_name argument given to ... / 'test\\0test' accepted / must get a function name argument / is not available here",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/functions: LIBRARIES - test registration failure revert the entire load",
+    "unit/functions: LIBRARIES - test registration with no string name",
+    "unit/functions: LIBRARIES - test registration with wrong name format",
+    "unit/functions: LIBRARIES - test registration with empty name",
+    "unit/functions: LIBRARIES - malicious access test",
+    "unit/functions: LIBRARIES - delete removed all functions on library"
+   ],
+   "group": "A"
+  },
+  {
+   "id": "FUNCTION-LOAD-ENV",
+   "class": "REAL compatibility defect",
+   "title": "FUNCTION LOAD runs the library body with the full sandbox globals (math, getmetatable, ...) instead of only the redis API",
+   "subsystem": "src/cmd/functions.cc run_library_body (only the redis global is swapped for the registration table)",
+   "design_note": null,
+   "repro_case": "A-FUNCTION-LOAD-ENV",
+   "redis": "ERR Error registering functions: ... nonexistent global variable 'math'|'getmetatable'",
+   "tomokv": "env1 / env2 (loaded)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/functions: LIBRARIES - math.random from function load",
+    "unit/functions: FUNCTION - test getmetatable on script load"
+   ],
+   "group": "A"
+  },
+  {
+   "id": "FUNCTION-SHEBANG-META",
+   "class": "REAL compatibility defect",
+   "title": "Library shebang metadata parsing: duplicate name= accepted (last wins), quoted name rejected",
+   "subsystem": "src/cmd/functions.cc parse_library_header",
+   "design_note": null,
+   "repro_case": "A-FUNCTION-SHEBANG-META",
+   "redis": "Invalid metadata value, name argument was given multiple times / foo",
+   "tomokv": "bar / Library names can only contain letters ...",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/functions: FUNCTION - function test multiple names",
+    "unit/functions: FUNCTION - function test name with quotes"
+   ],
+   "group": "A"
+  },
+  {
+   "id": "FUNCTION-LOAD-DENYOOM",
+   "class": "REAL compatibility defect",
+   "title": "FUNCTION LOAD (and RESTORE) are not refused while the server is over maxmemory",
+   "subsystem": "src/cmd/functions.cc FUNCTION CommandSpec (ConnLocal|OrderedLocal|Admin, no DenyOom) / cmd_function never consults the memory budget",
+   "design_note": null,
+   "repro_case": "A-FUNCTION-LOAD-DENYOOM",
+   "redis": "OOM command not allowed when used memory > 'maxmemory'. (SET refused too)",
+   "tomokv": "oom1 (loaded while SET is refused with OOM)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/functions: FUNCTION - verify OOM on function load and function restore",
+    "unit/functions: FUNCTION - verify allow-omm allows running any command"
+   ],
+   "group": "A"
+  },
+  {
+   "id": "DEBUG-RELOAD-OPTIONS",
+   "class": "REAL compatibility defect",
+   "title": "DEBUG RELOAD accepts no options (NOSAVE/NOFLUSH/MERGE rejected)",
+   "subsystem": "src/cmd/t_server.cc DEBUG dispatcher (reload handled only when argc == 2)",
+   "design_note": null,
+   "repro_case": "A-DEBUG-RELOAD-OPTIONS",
+   "redis": "+OK",
+   "tomokv": "ERR unknown subcommand or wrong number of arguments for 'debug' command",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/functions: FUNCTION - test debug reload different options",
+    "unit/functions: FUNCTION - test debug reload with nosave and noflush"
+   ],
+   "group": "A"
+  },
+  {
+   "id": "MEMORY-ACCOUNTING",
+   "class": "Redis-internal assumption",
+   "title": "used_memory counts dataset bytes (0 when empty); used_memory_vm_functions / lazyfreed_objects absent",
+   "subsystem": "src/cmd/t_server.cc cmd_info (# Memory section)",
+   "design_note": null,
+   "repro_case": null,
+   "redis": null,
+   "tomokv": null,
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/scripting: Test script flush will not leak memory - script:0",
+    "unit/scripting: Test script flush will not leak memory - script:1",
+    "unit/functions: FUNCTION - async function flush rebuilds Lua VM without causing race condition between main and lazyfree thread"
+   ],
+   "group": "A"
+  },
+  {
+   "id": "MAXMEMORY-BASELINE",
+   "class": "Redis-internal assumption",
+   "title": "Test assumes maxmemory 1 is always exceeded; TomoKV admits a FCALL whose key shard holds 0 accounted bytes",
+   "subsystem": "src/cmd/scripting.cc FunctionMemoryScope::admit -> FlatStore::budget_admit (per-shard dataset accounting)",
+   "design_note": null,
+   "repro_case": null,
+   "redis": null,
+   "tomokv": null,
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/functions: FUNCTION - deny oom"
+   ],
+   "group": "A"
+  }
+ ],
+ "notes": "MODES: no 2s/1s difference anywhere. The full-file failure lists are identical event by event after normalising paths and shas (unit/scripting 163 err events, unit/functions 29 failing tests). All 22 repro cases are DIFFERENT in both 2s and 1s, with identical TomoKV replies in both modes (binary ef368a64..., the same build as the evidence). Neither file is in the reach pass: both completed, no test hung (slowest TomoKV test 19.8 s), so every entry is where=full-file, hung=false.\n\nCASCADE MECHANICS (external mode): run_external_server_test saves CONFIG GET * at the start of each start_server block and restores it at the end, on the block's own client. In the EVAL pass (is_eval=1), 'Script - disallow write on OOM' fails (undeclared key) before resetting maxmemory 1. Later, 'Script ACL check' leaves that client authenticated as bob, whom the restore's CONFIG SET calls then fail for (NOPERM, swallowed by catch/readraw). So maxmemory=1 also leaks into the later EVAL-pass blocks and into the eval-only shebang/final blocks: there 'allow-oom shebang flag' and 'not enough good replicas' first fail at a plain SET. Each of those has an independent root, confirmed in isolation. Two tests leave the client in readraw mode and desync every later reply in their block: 'Script return recursive object' and 'LUA redis.status_reply API'. Cascade entries were checked to pass in the isolated reruns, or are explained by the stated earlier failure. Several entries' full-file EVAL variant was masked by the OOM cascade. For those, the isolated evidence (both variants) and my own reruns were used: the uppercase EVALSHA, the SORT tests and the blocking-command tests are independent defects, not cascades.\n\nTESTS NEVER RUN ON TOMOKV: the needs:debug block at scripting.tcl:1781-2046 aborts at its setup line 'r debug set-disable-deny-scripts 1' in both is_eval passes. These are the two err events with an empty test name, recorded as one entry with test \"\". So 36 'test RESP<2|3>/<2|3> ... protocol parsing' tests plus 'test resp3 attribute protocol parsing', 'Script block the time during execution', 'Script delete the expired key', 'TIME command using cached time', 'Script block the time in some expiration related commands' and 'RESTORE expired keys with expiration time' were never exercised. They rely on calling DEBUG (PROTOCOL/SLEEP) from scripts, and TIME/EXPIRE/TTL/DUMP/RESTORE are also outside the script whitelist. Run with --tags -needs:debug to skip that block cleanly. The file-end 'exception' event (empty name, 'expected non-negative integer but got \"\"') appears identically on Redis in both files: it is a test-client teardown artifact, not a test, and is excluded.\n\nJUDGEMENT CALLS for the lead: (1) 'Scripts do not block on wait' and '... waitaof' are classified unsupported (owner list: WAIT/WAITAOF) although TomoKV has top-level WAIT/WAITAOF stubs. The observed failures are the script whitelist and, for waitaof, the setup 'CONFIG SET appendonly no' being refused as immutable even when appendonly is already no (the known boot-only constraint). (2) 'FUNCTION - deny oom' is classified Redis-internal (maxmemory baseline), but note a TomoKV inconsistency. On a fresh, empty server at maxmemory 1, a plain SET and an EVAL-nested SET are both refused with OOM, yet the first FCALL of a non-allow-oom writer is admitted. That is because FunctionMemoryScope::admit sees 0 accounted bytes for the key's shard and then lifts the limit for the whole callback. Treat it as REAL if FCALL admission should match TomoKV's own write admission. (3) DEBUG RELOAD options are classified REAL because DEBUG RELOAD is implemented (only with argc==2).\n\nEXTRA FAILURES BEHIND THE FIRST ONE: 'cmsgpack pack/unpack smoke test' would next need cmsgpack, 'Measures elapsed time os.clock()' would next hit the instruction limit, 'Script ACL check' would next need redis.acl_check_cmd, 'FUNCTION - redis version api' would next need bit, and 'LUA test pcall with non string/integer arg' would next hit the PING whitelist. Merging cx-lualibs (CC4.7) would clear the 13 LUA-HELPER-LIBS entries only. INFO-ERRORSTATS (no Errorstats section in cmd_info) is likely shared with the unit/info group.\n\nNOT A FAILURE: in the FUNCTION pass, 'Verify Lua performs GC correctly after script loading' (50,000 FUNCTION LOADs) took 19.8 s on TomoKV vs 1.7 s on Redis, about 11x slower. compile_library builds a throwaway sandbox lua_State per LOAD.",
+ "merged_root_ids": {
+  "A:UNSUPPORTED-REPLICATION": "UNSUP-REPLICATION",
+  "A:UNSUPPORTED-CLUSTER": "UNSUP-CLUSTER",
+  "A:UNSUPPORTED-DEBUG-SET-DISABLE-DENY-SCRIPTS": "UNSUP-DEBUG"
+ }
+}

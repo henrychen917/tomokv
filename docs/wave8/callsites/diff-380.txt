@@ -1,0 +1,15 @@
+tomo_db0::FlipController::sample_anchored_rate(tomo_db0::Server&, unsigned long, double&)
+--- headline
+
++++ post
+
+@@ -29,7 +29,7 @@
+
+ CLONE 0 0069 [ 2] je <+0x29>
+ CLONE 0 006b [ 4] vmovsd (%rbx),%xmm0
+ CLONE 0 006f [ 5] vaddsd (%rsp),%xmm0,%xmm0
+-CLONE 0 0074 [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x620>
++CLONE 0 0074 [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x68>
+ CLONE 0 007c [ 4] vmovsd %xmm0,(%rbx)
+ CLONE 0 0080 [ 2] jmp <+0x2b>
+ CLONE 0 0082 [ 5] call <__stack_chk_fail@plt>

@@ -60,7 +60,7 @@ def run(group):
                 ('watch-no-add', 'WATCH add arms gate'),
                 ('watch-no-remove', 'last UNWATCH clears gate'),
                 ('watch-no-prune', 'stale last watcher pruning clears gate'),
-                ('watch-no-finalize', 'commit finalizes last reservation and clears gate'),
+                ('watch-no-finalize', 'explicit commit finalizes last reservation and clears gate'),
                 ('watch-no-append', 'allocation failure preserves WATCH cache truth'),
             ):
                 rows.append(invoke(control(source, group_name), 'watch', diagnostic))
