@@ -335,6 +335,11 @@ image, changing only five bytes at main. Sections and symbol addresses match
 exactly. The twin is POST-layout, not the smaller release POST; measure both
 pairwise comparisons separately.
 
+`.text` is 8,267,735 bytes in PRE and 8,293,031 in POST (+25,296); both common-image
+arms are 16,560,407 bytes. Data/BSS sizes also match within the control pair.
+These static sizes do not predict the rate verdict; the merit request keeps the
+ordinary and common-image comparisons separate.
+
 `docs/at412c/freshness.json` records 51 successful make -q checks: PRE and POST
 all, all 46 job_production_units executable targets, the two mdbqsbr live-arm
 build roots, and blockfix-cost with its server/hash receipt. The native helper
