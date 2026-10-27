@@ -37,7 +37,7 @@ def cases():
     echo("hex consumes two digits", b'"\\x4142"', b"A42")
     echo("all bytes in one arg", b'"' + b"".join(b"\\x%02x" % n for n in range(256)) + b'"', bytes(range(256)))
     echo("single escaped quote", b"'a\\'b'", b"a'b")
-    echo("single literal escapes", b"'\\n\\r\\t\\b\\a\\x00\\\\'", b"\\n\\r\\t\\b\\a\\x00\\\\")
+    echo("single literal escapes", b"'\\n\\r\\t\\b\\a\\x00\\\\z'", b"\\n\\r\\t\\b\\a\\x00\\\\z")
     echo("unquoted literal escapes", b"a\\n\\x00\\\\", b"a\\n\\x00\\\\")
     for quote in (b'"', b"'"):
         echo("empty " + repr(quote), quote + quote, b"")
@@ -51,7 +51,7 @@ def cases():
             rows.append(Case("quote followed by nonspace " + repr(wire),
                              ((PING + wire + PING, PONG + PREFIX + b"unbalanced quotes in request\r\n"),), True))
     for wire in (b'ECHO "a\n', b"ECHO 'a\r\n", b'ECHO "a\\\n', b"ECHO 'a\\\n",
-                 b'ECHO "a\\"\n', b"ECHO 'a\\'\n", b'ECHO prefix"\n', b'ECHO ok "bad\n'):
+                 b'ECHO "a\\"\n', b"ECHO 'a\\'\n", b"ECHO 'a\\\\'\n", b'ECHO prefix"\n', b'ECHO ok "bad\n'):
         rows.append(Case("unbalanced " + repr(wire),
                          ((wire + PING, PREFIX + b"unbalanced quotes in request\r\n"),), True))
     for spaces in (b"", b" ", b"\t", b"\v", b"\f", b"\r", b" \t\v\f\r"):
