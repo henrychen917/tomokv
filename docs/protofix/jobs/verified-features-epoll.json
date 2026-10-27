@@ -1,0 +1,44 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "iteration",
+    "--server-cores",
+    "0-7",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "8-15",
+    "--load-smt",
+    "",
+    "--ports",
+    "20300-20329",
+    "--candidate-binary",
+    "/home/user/Projects/cx-protofix/build/tomokv"
+  ],
+  "env": {
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis74/src/redis-cli",
+    "GATE_ONLY_JOBS": "feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 fused-0 fused-1 release_batteries asan_batteries atomic_batteries debug-0 debug-1",
+    "GATE_NET_IO": "epoll",
+    "GATE_PROOF_NET_IO": "epoll",
+    "GATE_ZC_NET_IO": "epoll",
+    "GATE_DIFFER_NET_IO": "epoll",
+    "GATE_TXN_FUSED": "0",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_TEST_PORT": "20398",
+    "GATE_LEDGER": "/home/user/Projects/cx-protofix/docs/protofix/jobs/verified-features-epoll.tsv"
+  },
+  "binary_sha256": "e99c3f23182c0872214c2e1475cb64cb4d8aa3dd27ebeaf769ca0197c4b5ba5b",
+  "gate_sha256": "99bc2e27601375e8af3c6e0c9e543b4f22a31b0e6efada28a883f7eada47eddf",
+  "commit": "93bc059577f8c480ff4e999e1c08f57089da93f7",
+  "started": 1793099294.8756042,
+  "exit": 0,
+  "seconds": 802.3533771038055,
+  "binary_unchanged": true,
+  "artifacts": "/home/user/Projects/cx-protofix/build/gate-run.JeNwS1",
+  "summary": [
+    "GATE(PARTIAL): 207 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-protofix/docs/protofix/jobs/verified-features-epoll.tsv.partial"
+  ]
+}

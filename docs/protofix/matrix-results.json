@@ -22,5 +22,13 @@
   {
     "name": "verified-differ-uring",
     "exit": 0
+  },
+  {
+    "name": "verified-features-epoll",
+    "exit": 0
+  },
+  {
+    "name": "verified-fused-epoll",
+    "exit": 0
   }
 ]

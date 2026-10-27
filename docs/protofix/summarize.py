@@ -94,6 +94,16 @@ assert len(negative) == 4 and all("inline quoted argument decoding" in line for 
 for mode, engine in itertools.product(("1s", "2s"), ("epoll", "uring")):
     text = (Path(pad["artifacts"]) / "jobs/inline_quoted" / (mode + "-" + engine + ".log")).read_text()
     assert "inline decoding: 7 cases, 7 failures" in text
+pre_inline = ROOT / "build/gate-run.EmQy06"
+pre_plan = (pre_inline / "plan.sh").read_text()
+assert "CANDIDATE_BINARY=" + str(ROOT / "build/protofix/pre-source/build/tomokv") in pre_plan
+assert hashlib.sha256((ROOT / "build/protofix/pre-source/build/tomokv").read_bytes()).hexdigest() == pre_sha
+pre_negative = [line for line in (pre_inline / "ledger.partial").read_text().splitlines()
+                if line.startswith("FAIL\t")]
+assert len(pre_negative) == 4 and all("inline quoted argument decoding" in line for line in pre_negative)
+for mode, engine in itertools.product(("1s", "2s"), ("epoll", "uring")):
+    text = (pre_inline / "jobs/inline_quoted" / (mode + "-" + engine + ".log")).read_text()
+    assert "inline decoding: 7 cases, 7 failures" in text
 gate_test = (ROOT / "build/protofix/gate-selftests-verified.log").read_text()
 assert re.search(r"Ran 73 tests", gate_test) and re.search(r"^OK$", gate_test, re.M), gate_test[-2000:]
 summary = dict(post_sha256=post, batches=batches, oracle=oracle, differential=differential,
@@ -101,7 +111,7 @@ summary = dict(post_sha256=post, batches=batches, oracle=oracle, differential=di
                all_post_attempts_clean=not failed_post_rows, failed_post_rows=failed_post_rows,
                command_scope_exact_pairs=len(counts), hot_groups_equal=identity["hot_groups"],
                build_freshness_checks=len(build["freshness"]), gate_selftests=73,
-               pad_expected_failed_rows=negative, isolated_pipeorder=pipe, protocol_only_tcl=tcl)
+               pre_inline_expected_failed_rows=pre_negative, pad_expected_failed_rows=negative, isolated_pipeorder=pipe, protocol_only_tcl=tcl)
 (DOC / "coverage.json").write_text(json.dumps(summary, indent=2) + "\n")
 for row in batches:
     print(f"| {row['name']} | {row['passed']} | {row['failed']} |")
