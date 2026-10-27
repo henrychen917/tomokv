@@ -52,6 +52,7 @@
         Client* client = nullptr;
         uint8_t reply_mode = kClimonReplyOn;
         bool monitor = false;
+        bool pause_blocked = false;
         bool tracking_on = false;
         bool tracking_draining = false;
         bool bcast = false;
@@ -75,7 +76,7 @@
         uint64_t tracking_generation = 0;
 
         bool idle() const {
-            return reply_mode == kClimonReplyOn && !monitor && !tracking_on && !tracking_draining && !broken_redirect && tracking_reads.empty();
+            return !pause_blocked && reply_mode == kClimonReplyOn && !monitor && !tracking_on && !tracking_draining && !broken_redirect && tracking_reads.empty();
         }
     };
 
@@ -134,7 +135,7 @@
     bool climon_unblock_local(uint64_t id, bool error_flavor);
 
     // ---- CLIENT PAUSE ---------------------------------------------------------------------------
-    bool climon_pause_holds(Op& op);
+    bool climon_pause_holds(const Client& client, Op& op);
     bool climon_pause_armed() const { return (climon_armed_cached_ & Server::kClimonPause) != 0; }
     void climon_release_pause();
 

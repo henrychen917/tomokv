@@ -77,9 +77,9 @@ def trace(case):
     compressed_log = Path(str(existing_log) + ".gz")
     log_text = existing_log.read_text() if existing_log.exists() else (
         gzip.open(compressed_log, "rt").read() if compressed_log.exists() else "")
-    if output.exists() and "COUNT " in log_text:
-        receipt = json.loads((OUT / (arm + "-" + ns + "-build.json")).read_text())
-        assert receipt["sha256"] == hashlib.sha256(binary.read_bytes()).hexdigest()
+    binary_sha = hashlib.sha256(binary.read_bytes()).hexdigest()
+    if (output.exists() and "COUNT " in log_text and
+            json.loads(output.read_text()).get("binary_sha256") == binary_sha):
         row = dict(zip(("arm", "namespace", "command", "mode", "batch", "atomic", "threshold"), case))
         row.update(json.loads(output.read_text()))
         print(label, row["total"], "cached completed trace", flush=True)
@@ -132,7 +132,7 @@ for step in range(2000000):
  else:gdb.execute('stepi',to_string=True)
 else:raise RuntimeError('bounded instruction trace exhausted')
 assert sum(counts.values()) > 0, 'named production scope did not fire'
-json.dump(dict(total=sum(counts.values()),functions=dict(counts),bodies=dict(bodies),excluded=dict(excluded),clock_calls=clocks),open({str(output)!r},'w'),indent=2)
+json.dump(dict(binary_sha256={binary_sha!r},total=sum(counts.values()),functions=dict(counts),bodies=dict(bodies),excluded=dict(excluded),clock_calls=clocks),open({str(output)!r},'w'),indent=2)
 end.delete();gdb.execute('continue',to_string=True)
 assert int(gdb.parse_and_eval('$_exitcode'))==0,'fixture exact-data assertion failed'
 print('COUNT',sum(counts.values()))
@@ -161,6 +161,9 @@ end
 def main():
     p = argparse.ArgumentParser();p.add_argument("--build-only", action="store_true")
     p.add_argument("--trace-only", action="store_true");p.add_argument("--arms", default="pre,post")
+    p.add_argument("--commands", default="GET,SET,INCR,MGET,MSET")
+    p.add_argument("--batches", default="1,32")
+    p.add_argument("--workers", type=int, default=16)
     a = p.parse_args();arms=a.arms.split(",")
     if not a.trace_only:
         for arm in arms:
@@ -169,11 +172,11 @@ def main():
     if a.build_only:
         return
     cases = [(arm, ns, command, mode, batch, atomic, threshold) for arm in arms
-             for ns in ("normal", "db0") for command in ("GET", "SET", "INCR", "MGET", "MSET")
-             for mode in ("1s", "2s") for batch in (1, 32)
+             for ns in ("normal", "db0") for command in a.commands.split(",")
+             for mode in ("1s", "2s") for batch in map(int, a.batches.split(","))
              for atomic in ((0, 1) if command == "MSET" else (1,))
              for threshold in ((-1, 10000) if command in ("GET", "SET", "INCR") else (-1,))]
-    with concurrent.futures.ThreadPoolExecutor(16) as pool:
+    with concurrent.futures.ThreadPoolExecutor(a.workers) as pool:
         rows = list(pool.map(trace, cases))
     save(OUT / ("results-"+a.arms+".json"), rows)
     for arm in arms:

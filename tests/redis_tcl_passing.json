@@ -786,6 +786,7 @@
     "PIPELINING stresser (also a regression for the old epoll bug) in tests/unit/other.tcl",
     "Perform a final SAVE to leave a clean DB on disk in tests/unit/other.tcl",
     "RESET clears Pub/Sub state in tests/unit/other.tcl",
+    "RESET clears and discards MULTI state in tests/unit/other.tcl",
     "RESET clears authenticated state in tests/unit/other.tcl",
     "RESET clears client state in tests/unit/other.tcl",
     "SAVE - make sure there are all the types as values in tests/unit/other.tcl",
@@ -803,7 +804,6 @@
     "EXPIRES after AOF reload (without rewrite)": "failed on TomoKV 2s in the survey",
     "EXPIRES after a reload (snapshot + append only file rewrite)": "failed on TomoKV 2s in the survey",
     "RESET clears MONITOR state": "failed on TomoKV 2s in the survey",
-    "RESET clears and discards MULTI state": "failed on TomoKV 2s in the survey",
     "Same dataset digest if saving/reloading as AOF?": "failed on TomoKV 2s in the survey"
    }
   },
@@ -811,8 +811,13 @@
    "extra_args": [],
    "known_setup_errors": [],
    "passed_tests": [
+    "Test both active and passive expires are skipped during client pause in tests/unit/pause.tcl",
     "Test clients with syntax errors will get responses immediately in tests/unit/pause.tcl",
-    "Test read commands are not blocked by client pause in tests/unit/pause.tcl"
+    "Test read commands are not blocked by client pause in tests/unit/pause.tcl",
+    "Test that client pause starts at the end of a transaction in tests/unit/pause.tcl",
+    "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write in tests/unit/pause.tcl",
+    "Test write multi-execs are blocked by pause RO in tests/unit/pause.tcl",
+    "Test write scripts in multi-exec are blocked by pause RO in tests/unit/pause.tcl"
    ],
    "seconds": {
     "1s": 0.17,
@@ -822,7 +827,6 @@
    "skip_tests": {
     "CLIENT UNBLOCK is not allow to unblock client blocked by CLIENT PAUSE": "failed on TomoKV 2s in the survey",
     "Test RO scripts are not blocked by pause RO": "hung on TomoKV 2s in the survey",
-    "Test both active and passive expires are skipped during client pause": "failed on TomoKV 2s in the survey",
     "Test may-replicate commands are rejected in RO scripts": "failed on TomoKV 2s in the survey",
     "Test multiple clients can be queued up and unblocked": "failed on TomoKV 2s in the survey",
     "Test new pause time is smaller than old one, then old time preserved": "failed on TomoKV 2s in the survey",
@@ -831,11 +835,7 @@
     "Test read/admin multi-execs are not blocked by pause RO": "hung on TomoKV 2s in the survey",
     "Test scripts are blocked by pause RO": "failed on TomoKV 2s in the survey",
     "Test special commands are paused by RO": "failed on TomoKV 2s in the survey",
-    "Test that client pause starts at the end of a transaction": "failed on TomoKV 2s in the survey",
-    "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write": "failed on TomoKV 2s in the survey",
-    "Test write commands are paused by RO": "failed on TomoKV 2s in the survey",
-    "Test write multi-execs are blocked by pause RO": "hung on TomoKV 2s in the survey",
-    "Test write scripts in multi-exec are blocked by pause RO": "hung on TomoKV 2s in the survey"
+    "Test write commands are paused by RO": "failed on TomoKV 2s in the survey"
    }
   },
   "unit/protocol": {
@@ -1171,6 +1171,7 @@
    "extra_args": [],
    "known_setup_errors": [],
    "passed_tests": [
+    "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl",
     "SLOWLOG - RESET subcommand works in tests/unit/slowlog.tcl",
     "SLOWLOG - can be disabled in tests/unit/slowlog.tcl",
     "SLOWLOG - check that it starts with an empty log in tests/unit/slowlog.tcl",
@@ -1185,7 +1186,6 @@
    "sha256": "065eb61bfd9ac4f2168c9900f8f5774a18b492f0d60c3a8228c8d7085f3747fd",
    "skip_tests": {
     "SLOWLOG - Certain commands are omitted that contain sensitive information": "failed on TomoKV 2s in the survey",
-    "SLOWLOG - EXEC is not logged, just executed commands": "failed on TomoKV 2s in the survey",
     "SLOWLOG - GET optional argument to limit output len works": "failed on TomoKV 2s in the survey",
     "SLOWLOG - Rewritten commands are logged as their original command": "failed on TomoKV 2s in the survey",
     "SLOWLOG - Some commands can redact sensitive fields": "failed on TomoKV 2s in the survey",
@@ -1855,6 +1855,7 @@
     "SMISMEMBER SMEMBERS SCARD against non existing key in tests/unit/type/set.tcl",
     "SMISMEMBER SMEMBERS SCARD against non set in tests/unit/type/set.tcl",
     "SMISMEMBER requires one or more members in tests/unit/type/set.tcl",
+    "SMOVE only notify dstset when the addition is successful in tests/unit/type/set.tcl",
     "SMOVE with identical source and destination in tests/unit/type/set.tcl",
     "SMOVE wrong src key type in tests/unit/type/set.tcl",
     "SPOP basics - intset in tests/unit/type/set.tcl",
@@ -1919,7 +1920,6 @@
     "SMOVE from regular set to non existing destination set": "failed on TomoKV 2s in the survey",
     "SMOVE non existing key": "failed on TomoKV 2s in the survey",
     "SMOVE non existing src set": "failed on TomoKV 2s in the survey",
-    "SMOVE only notify dstset when the addition is successful": "failed on TomoKV 1s in builder round 1",
     "SMOVE wrong dst key type": "failed or hung on TomoKV 2s in an earlier builder run (round 0)",
     "SPOP new implementation: code path #1 propagate as DEL or UNLINK": "failed on TomoKV 2s in the survey",
     "SRANDMEMBER with a dict containing long chain": "failed on TomoKV 2s in the survey"

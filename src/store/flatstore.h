@@ -77,6 +77,7 @@
 #include "../core/atomic_tripwire.h"
 #include "eviction.h"
 #include "../cmd/notify.h"
+#include "../cmd/client_pause.h"
 #include "kv_block_cache.h"
 #include "kvobj.h"
 #include "object_idle.h"
@@ -1208,7 +1209,7 @@ public:
         if (!candidate && rehashing()) candidate = find_in(1, h, key);
         const bool expired = candidate && deadline_elapsed(h, candidate, cached_now_ms_) &&
                              !(snapshot_active_ && candidate == find_in(1, h, key));
-        if (expired && !notify_read_resolves_versions() && read_retirement_available())
+        if (expired && !client_pause_expiry_held() && !notify_read_resolves_versions() && read_retirement_available())
             notify_emit(sink, NOTIFY_EXPIRED, NotifyEventId::Expired, candidate->key());
         KvObj* found = find(h, key);
         if (!found) notify_emit(sink, NOTIFY_KEY_MISS, NotifyEventId::Keymiss, key);
@@ -1564,6 +1565,7 @@ public:
     // Finding an object from its full hash follows only that hash's FlatStore probe run; it never
     // scans the table or keyspace.
     uint32_t active_expire(uint32_t budget) {
+        if (client_pause_expiry_held()) return 0;
         // Expiry after the cut is a post-cut deletion.  Leaving the object physically present lets
         // traversal serialize its absolute deadline; find() still reports it logically absent.
         if (snapshot_active_) return 0;
@@ -1866,6 +1868,13 @@ public:
     // of a sparse table's probability. Resolve the owner's read cut before sampling, including
     // predecessors whose candidate is a physical deletion. Frozen snapshot objects stay resident.
     KvObj* random_live() {
+        const bool paused = client_pause_expiry_held();
+        struct ExpiryClock {
+            int64_t& clock;
+            int64_t saved;
+            ~ExpiryClock() { clock = saved; }
+        } expiry_clock{cached_now_ms_, cached_now_ms_};
+        if (paused) cached_now_ms_ = -1;
         const uint64_t total = static_cast<uint64_t>(cap_[0]) + cap_[1];
         if (!total) return nullptr;
         const uint64_t start_pos = next_random() % total;
@@ -1881,7 +1890,7 @@ public:
             const uint64_t h = hash_key(o->key());
             if (atomic_pending_ && atomic_pending_->live) {
                 o = atomic_resolve(h, o->key(), atomic_read_epoch_);
-            } else {
+            } else if (!paused) {
                 if (deadline_elapsed(h, o, cached_now_ms_) && !(snapshot_active_ && t == 1))
                     notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, o->key());
                 o = live_or_expire(t, h, o->key(), o);
@@ -2572,6 +2581,7 @@ private:
     void scan_visit(int t, uint64_t h, KvObj* o, Fn& fn, bool expire_on_visit) {
         if (!expire_on_visit) { fn(o); return; }
         if (deadline_elapsed(h, o, cached_now_ms_)) {
+            if (client_pause_expiry_held()) return;
             // An epoch record, not this physical candidate, owns logical expiry and pointer
             // lifetime. The walker callback resolves it at its registered cut.
             if (atomic_has_record(h, o->key())) { fn(o); return; }
@@ -2660,6 +2670,7 @@ private:
         const int64_t at = deadline(h, o);
         if (at < 0 || at >= cached_now_ms_) return o;  // Redis: still live at now == at
         if (snapshot_active_ && t == 1) return nullptr;
+        if (client_pause_expiry_held()) return nullptr;
         // Logical expiry never needs reclamation. With a full armed ring, leave the object and
         // its deadline index resident for owner maintenance. Only the eventual physical delete
         // emits expiry/AOF/accounting effects; repeated reads cannot enqueue or wait for grace.

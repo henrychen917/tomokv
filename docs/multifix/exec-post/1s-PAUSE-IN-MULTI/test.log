@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-multifix/tests/multifix.py", line 156, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/home/user/Projects/cx-multifix/tests/multifix.py", line 152, in main
+    CASES[args.case](a,b,args.oracle)
+  File "/home/user/Projects/cx-multifix/tests/multifix.py", line 119, in pause
+    assert a.cmd('RANDOMKEY') in (b'multifix:e1',b'multifix:e2')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

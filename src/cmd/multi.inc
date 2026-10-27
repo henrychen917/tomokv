@@ -5,6 +5,7 @@
 // anonymous namespace and deliberately creates no extra translation unit.
 
 #include "cmdmeta.h"
+#include "client_pause.h"
 
 namespace tomo {
 
@@ -76,6 +77,8 @@ struct MultiCommand {
     std::atomic<long long> integer{0};
     std::atomic<bool> condition_failed{false};
     std::atomic<bool> finished{false};
+    std::atomic<uint64_t> slow_ns{0};
+    std::atomic<uint64_t> slow_sleep_started{0};
     ScatterState* scatter = nullptr;
     // ScatterState::groups is rebuilt between an xshard child's waves.  A barrier-only shard must
     // decide whether it belongs to the PUBLISHED wave without consulting that mutable table: the
@@ -1360,6 +1363,19 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
     const auto snapshot = shard.store().snapshot_prepare_write(hash, key);
     if (snapshot == FlatStore::SnapshotWriteResult::Pending) return MultiPrepareWrite::Retry;
     if (snapshot == FlatStore::SnapshotWriteResult::Error) return MultiPrepareWrite::Error;
+    // The newest parent-owned version is already private to this transaction.
+    // Preserve its one committed predecessor instead of cloning the growing
+    // value on every command. A child-scatter/foreign version above it requires
+    // a fresh parent layer: that child has its own runtime-error decision.
+    bool private_head = false;
+    shard.store().atomic_visit_unit_records(hash, key, false, [&](AtomicEntry& entry) {
+        private_head = entry.plain() && entry.group_epoch == &state.decision.epoch &&
+            entry.group_aborted == &state.shard_aborted[shard.id()];
+    });
+    if (private_head) {
+        shard.store().atomic_set_read_context(UINT64_MAX, state.origin_conn_id);
+        return MultiPrepareWrite::Ready;
+    }
     if (!shard.store().atomic_prepare_capacity(1)) return MultiPrepareWrite::Error;
 
     shard.store().atomic_set_read_context(UINT64_MAX, state.origin_conn_id);
@@ -1507,6 +1523,28 @@ void multi_tripwire_read_execution(MultiExecState& state, MultiCommand& command,
         shard.store().atomic_tripwire_plain_path());
 }
 
+// Only EXEC's cold path enters these hooks. Accumulate execution slices;
+// retries spend their parked interval outside the timer. DEBUG SLEEP is the
+// explicit exception: its requested sleep is part of the command's duration.
+uint64_t multi_slowlog_start(MultiExecState& state, uint32_t owner) {
+    return state.server->live_config_snapshot(owner).slowlog_log_slower_than >= 0
+        ? now_ns() : 0;
+}
+void multi_slowlog_part(MultiCommand& command, uint64_t started) {
+    if (started && command.kind != MultiCommandKind::DebugSleep)
+        command.slow_ns.fetch_add(now_ns() - started, std::memory_order_relaxed);
+}
+void multi_slowlog_record(MultiExecState& state, MultiCommand& command, uint32_t owner) {
+    const auto config = state.server->live_config_snapshot(owner);
+    if (config.slowlog_log_slower_than < 0) return;
+    uint64_t duration = command.slow_ns.load(std::memory_order_relaxed);
+    if (const uint64_t sleep = command.slow_sleep_started.load(std::memory_order_acquire))
+        duration += now_ns() - sleep;
+    const SlowlogArm arm{config.slowlog_log_slower_than, 0, false};
+    slowlog_record(owner, state.origin_conn_id, *command.op, duration,
+                  state.now_cut_ms, arm, true);
+}
+
 bool execute_local_command(Server& server, MultiExecState& state, MultiCommand& command,
                            Shard& shard, uint32_t owner_thread_id) {
     if (!(command.queued.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
@@ -1560,8 +1598,14 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
     // DEBUG SLEEP requests the global pause after the first all-owner join.
     if (command.kind == MultiCommandKind::Admin || command.kind == MultiCommandKind::DebugSleep) {
         if (stage == 0) return true;
-        if (command.kind == MultiCommandKind::DebugSleep)
-            return debug_sleep_exec(server, shard, command.integer, owner_thread_id);
+        if (command.kind == MultiCommandKind::DebugSleep) {
+            const bool starting = shard.id() == 0 && command.integer.load(std::memory_order_acquire) >= 0;
+            const uint64_t started = starting ? multi_slowlog_start(state, owner_thread_id) : 0;
+            const bool done = debug_sleep_exec(server, shard, command.integer, owner_thread_id);
+            if (started && command.integer.load(std::memory_order_acquire) < 0)
+                command.slow_sleep_started.store(started, std::memory_order_release);
+            return done;
+        }
         if (shard.id() == 0) {
             Client* previous_client = command_local_client();
             ThreadCtx* previous_thread = command_local_thread();
@@ -1861,7 +1905,7 @@ void finalize_reservations(MultiExecState& state, Shard& shard,
     state.final_shard_done[static_cast<uint32_t>(shard.id())] = 1;
 }
 
-void finish_command(MultiCommand& command, uint32_t stage, uint32_t /*owner_thread_id*/) {
+void finish_command(MultiExecState& state, MultiCommand& command, uint32_t stage, uint32_t owner_thread_id) {
     if (command.pending.fetch_sub(1, std::memory_order_acq_rel) != 1) return;
     if (stage == 0 && (command.kind == MultiCommandKind::Admin ||
                        command.kind == MultiCommandKind::DebugSleep)) {
@@ -1883,6 +1927,8 @@ void finish_command(MultiCommand& command, uint32_t stage, uint32_t /*owner_thre
         command.kind != MultiCommandKind::Admin &&
         command.kind != MultiCommandKind::Swapdb &&
         command.kind != MultiCommandKind::Prebuilt) assemble_cross_reply(command);
+    if (command.kind != MultiCommandKind::IoLocal)
+        multi_slowlog_record(state, command, owner_thread_id);
     command.finished.store(true, std::memory_order_release);
 }
 
@@ -1893,7 +1939,10 @@ void assemble_ownerless_replies(MultiExecState& state, uint32_t owner_thread_id)
             command->kind == MultiCommandKind::Prebuilt)
             continue;
         LatencyTrackingPart latency(owner_thread_id, command->op.get());
+        const uint64_t started = multi_slowlog_start(state, owner_thread_id);
         assemble_cross_reply(*command);
+        multi_slowlog_part(*command, started);
+        multi_slowlog_record(state, *command, owner_thread_id);
     }
 }
 
@@ -1936,6 +1985,14 @@ void abort_multi_children(MultiExecState& state) {
 }
 
 }  // namespace
+
+bool multi_pause_writes(const Client& client) {
+    const auto* session = client.multi_session();
+    if (!session || !session->active) return false;
+    for (const auto& command : session->queue)
+        if (command.spec->flags & CmdFlags::Write) return true;
+    return false;
+}
 
 bool multi_queueing(const Client& client) {
     return client.multi_session() && client.multi_session()->active;
@@ -2405,6 +2462,7 @@ void multi_retire_entry(IoLoop& loop, Client& client, Op& op) {
             loop.scatter_pool_.unregister_snapshot(*loop.srv_, cut, loop.self_->id());
     }
     multi_retire(client, op, loop.multi_deferred_);
+    loop.climon_refresh_armed();
     snapshot_bind_io(nullptr, nullptr);
     command_set_local_context(nullptr, nullptr);
 }
@@ -2931,6 +2989,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                 }
             }
             ScatterTaskResult executed = ScatterTaskResult::Complete;
+            const uint64_t slow_started = execute_child ? multi_slowlog_start(state, owner_thread_id) : 0;
             if (execute_child) {
                 LatencyTrackingPart latency_child(owner_thread_id, command.op.get());
                 if (command.scatter->kind == Kind::DatabaseInfo)
@@ -2939,6 +2998,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                     ? watch_execute_scatter(child_task, shard, *command.op, owner_thread_id)
                     : xshard_execute(child_task, shard, *command.op, owner_thread_id);
             }
+            multi_slowlog_part(command, slow_started);
             if (executed != ScatterTaskResult::Complete) return retry();
             done = static_cast<uint8_t>(stage + 1);
             const MultiChildFinish finished = xshard_multi_child_complete(
@@ -2983,6 +3043,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                     assemble_final(*state.client, *command.op, *command.scatter,
                                    nullptr, nullptr, nullptr);
                 }
+                multi_slowlog_record(state, command, owner_thread_id);
                 command.finished.store(true, std::memory_order_release);
             }
             continue;
@@ -2993,6 +3054,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
         }
         LatencyTrackingPart latency_child(owner_thread_id,
             command.kind == MultiCommandKind::IoLocal ? nullptr : command.op.get());
+        const uint64_t slow_started = multi_slowlog_start(state, owner_thread_id);
         bool executed = true;
         if (state.decision.aborted.load(std::memory_order_acquire)) {
             // Still join the command barrier; another owner may already have installed a
@@ -3004,10 +3066,11 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
             executed = execute_cross_command(
                 server, state, command, shard, owner_thread_id, stage);
         }
+        multi_slowlog_part(command, slow_started);
         if (!executed) return retry();
         done = static_cast<uint8_t>(stage + 1);
         latency_child.finish();
-        finish_command(command, stage, owner_thread_id);
+        finish_command(state, command, stage, owner_thread_id);
     }
 
     uint8_t& joined = state.execution_joined[shard_id];
@@ -3121,7 +3184,11 @@ void multi_retire(Client& client, Op& op, std::vector<MultiExecState*>& deferred
                   (has_name(command->queued, "publish") || has_name(command->queued, "spublish"))))
             {
                 LatencyTrackingScope latency(state->owner_io, *command->op);
-                command->op->spec->handler(state->server->shard(0), *command->op);
+                const uint64_t started = multi_slowlog_start(*state, state->owner_io);
+                if (!command_client_pause(*state->server, *command->op))
+                    command->op->spec->handler(state->server->shard(0), *command->op);
+                multi_slowlog_part(*command, started);
+                multi_slowlog_record(*state, *command, state->owner_io);
             }
     }
     // A completed child can belong to an internally wounded attempt. Publish

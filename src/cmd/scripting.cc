@@ -230,6 +230,17 @@ std::string clean_error(const char* text, size_t length) {
 // compatible error text starts here.
 constexpr const char* kEvalChunkName = "@user_script";
 
+// EXEC's pause regression includes Redis's plain engine header. Hash/cache
+// the original source, but let Lua compile starting with its newline so error
+// line numbers retain the original source coordinates. Headers with metadata
+// continue through the existing validation path; flag support is separate.
+Slice eval_compile_source(Slice source) {
+    if (source.n >= 5 && std::memcmp(source.p, "#!lua", 5) == 0 &&
+        (source.n == 5 || source.p[5] == '\n'))
+        return Slice(source.p + 5, source.n - 5);
+    return source;
+}
+
 bool validate_source(Slice source, std::string& error) {
     if (source.n > kScriptMaxBytes) {
         error = "script exceeds the 1 MiB limit";
@@ -241,7 +252,8 @@ bool validate_source(Slice source, std::string& error) {
     }
     lua_State* state = luaL_newstate();
     if (!state) { error = "out of memory"; return false; }
-    const int status = luaL_loadbuffer(state, source.p, source.n, kEvalChunkName);
+    const int status = luaL_loadbuffer(state, eval_compile_source(source).p,
+                                             eval_compile_source(source).n, kEvalChunkName);
     if (status != 0) {
         size_t length = 0;
         const char* detail = lua_tolstring(state, -1, &length);
@@ -1383,7 +1395,8 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_h
     if (lua_isnil(state, -1)) {
         lua_pop(state, 1);
         g_compile_misses.fetch_add(1, std::memory_order_relaxed);
-        const int compiled = luaL_loadbuffer(state, source.p, source.n, kEvalChunkName);
+        const int compiled = luaL_loadbuffer(state, eval_compile_source(source).p,
+                                             eval_compile_source(source).n, kEvalChunkName);
         if (compiled != 0) {
             size_t length = 0;
             const char* text = lua_tolstring(state, -1, &length);

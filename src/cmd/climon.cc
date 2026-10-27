@@ -13,6 +13,7 @@
 
 #include "../core/io_loop.h"
 #include "cmdmeta.h"
+#include "client_pause.h"
 
 #include <cinttypes>
 
@@ -124,7 +125,7 @@ void climon_wrong_args(Op& op, const char* subcommand) {
     reply_err(op.sink(), error.c_str());
 }
 
-bool IoLoop::climon_parse_i64(Slice value, int64_t& out) {
+static bool client_parse_i64(Slice value, int64_t& out) {
     if (!value.n) return false;
     uint32_t pos = 0;
     bool negative = false;
@@ -154,6 +155,10 @@ bool IoLoop::climon_parse_i64(Slice value, int64_t& out) {
     }
     return true;
 }
+bool IoLoop::climon_parse_i64(Slice value, int64_t& out) {
+    return client_parse_i64(value, out);
+}
+
 
 std::string IoLoop::climon_string(Slice value) {
     return std::string(value.p, value.n);
@@ -185,6 +190,50 @@ void IoLoop::climon_copy_client_filter(PubSubEvent& target, const PubSubEvent& s
 
 // ---- lane state ----------------------------------------------------------------------------
 
+bool command_client_pause(Server& server, Op& op) {
+    if (!op.cmd_name().eq_icase("client") || op.argc() < 2) return false;
+    const Slice sub = op.arg(1);
+    if (sub.eq_icase("unpause")) {
+        if (op.argc() != 2) { climon_wrong_args(op, "unpause"); return true; }
+        server.climon_clear_pause();
+        reply_ok(op.sink());
+        return true;
+    }
+
+    if (sub.eq_icase("pause")) {
+        if (op.argc() < 3) { climon_wrong_args(op, "pause"); return true; }
+        if (op.argc() > 4) {
+            reply_err(op.sink(), "ERR unknown subcommand or wrong number of arguments for "
+                                 "'PAUSE'. Try CLIENT HELP.");
+            return true;
+        }
+        int64_t timeout = 0;
+        if (!client_parse_i64(op.arg(2), timeout)) {
+            reply_err(op.sink(), "ERR timeout is not an integer or out of range");
+            return true;
+        }
+        if (timeout < 0) {
+            reply_err(op.sink(), "ERR timeout is negative");
+            return true;
+        }
+        uint8_t mode = Server::kPauseAll;
+        if (op.argc() == 4) {
+            if (op.arg(3).eq_icase("write")) mode = Server::kPauseWrite;
+            else if (op.arg(3).eq_icase("all")) mode = Server::kPauseAll;
+            else {
+                reply_err(op.sink(), "ERR CLIENT PAUSE mode must be WRITE or ALL");
+                return true;
+            }
+        }
+        const uint64_t now_ms = now_ns() / 1000000ull;
+        server.climon_set_pause(now_ms + static_cast<uint64_t>(timeout), mode);
+        reply_ok(op.sink());
+        return true;
+    }
+
+    return false;
+}
+
 void IoLoop::climon_refresh_armed() {
     const uint32_t before = climon_armed_cached_;
     climon_armed_cached_ = srv_->climon_armed();
@@ -207,6 +256,12 @@ void IoLoop::climon_refresh_armed() {
     // UNPAUSE caller, or any owner whose clock passed the deadline) clears the global bit; EVERY
     // owner observes that here on its next batch and puts its own connections back.
     if ((before & Server::kClimonPause) && !(climon_armed_cached_ & Server::kClimonPause)) {
+        for (auto& [id, state] : climon_conn_) {
+            if (state.pause_blocked) {
+                state.pause_blocked = false;
+                srv_->blocking_client_unparked();
+            }
+        }
         for (Client* c : self_->clients())
             if (c && !c->dead()) { enqueue_serve(c); mark_active(c); }
     }
@@ -427,6 +482,7 @@ void IoLoop::climon_untrack_client(Client* client) {
         if (climon_local_reply_) climon_local_reply_--;
         srv_->climon_reply_removed();
     }
+    if (state.pause_blocked) srv_->blocking_client_unparked();
     climon_conn_.erase(id);
     climon_refresh_armed();
 }
@@ -475,7 +531,12 @@ bool IoLoop::climon_armed_gate(Client* client, Op& op) {
     if (__builtin_expect(armed == 0, true)) return false;
 
     if (armed & Server::kClimonPause) {
-        if (climon_pause_holds(op)) {
+        if (climon_pause_holds(*client, op)) {
+            ClimonConn& held = climon_conn_get(client);
+            if (!held.pause_blocked) {
+                held.pause_blocked = true;
+                srv_->blocking_client_parked();
+            }
             srv_->climon_note_pause_hold();
             return true;
         }
@@ -636,7 +697,7 @@ uint32_t IoLoop::climon_prepare_suppressed(Client* client, bool& submit_allowed)
 
 // ---- CLIENT PAUSE --------------------------------------------------------------------------
 
-bool IoLoop::climon_pause_holds(Op& op) {
+bool IoLoop::climon_pause_holds(const Client& client, Op& op) {
     if (!climon_pause_deadline_ms_) return false;
     // Cheap monotonic re-check: the per-batch clock in run_loop already refreshed cached_now_ms_
     // while the pause bit is armed.
@@ -650,7 +711,8 @@ bool IoLoop::climon_pause_holds(Op& op) {
     // redis.
     if (spec->flags & CmdFlags::Climon) return false;
     if (srv_->climon_pause_mode() == Server::kPauseWrite)
-        return (spec->flags & CmdFlags::Write) != 0;
+        return (spec->flags & CmdFlags::Write) != 0 ||
+            (op.cmd_name().eq_icase("exec") && multi_pause_writes(client));
     return true;
 }
 
@@ -1052,44 +1114,9 @@ IoLoop::ClimonStartResult IoLoop::climon_start_client_command(Client* client, Op
         return ClimonStartResult::Sync;
     }
 
-    if (sub.eq_icase("unpause")) {
-        if (op.argc() != 2) { climon_wrong_args(op, "unpause"); return ClimonStartResult::Sync; }
-        srv_->climon_clear_pause();
+    if (command_client_pause(*srv_, op)) {
         climon_refresh_armed();
         climon_release_pause();
-        reply_ok(op.sink());
-        return ClimonStartResult::Sync;
-    }
-
-    if (sub.eq_icase("pause")) {
-        if (op.argc() < 3) { climon_wrong_args(op, "pause"); return ClimonStartResult::Sync; }
-        if (op.argc() > 4) {
-            reply_err(op.sink(), "ERR unknown subcommand or wrong number of arguments for "
-                                 "'PAUSE'. Try CLIENT HELP.");
-            return ClimonStartResult::Sync;
-        }
-        int64_t timeout = 0;
-        if (!climon_parse_i64(op.arg(2), timeout)) {
-            reply_err(op.sink(), "ERR timeout is not an integer or out of range");
-            return ClimonStartResult::Sync;
-        }
-        if (timeout < 0) {
-            reply_err(op.sink(), "ERR timeout is negative");
-            return ClimonStartResult::Sync;
-        }
-        uint8_t mode = Server::kPauseAll;
-        if (op.argc() == 4) {
-            if (op.arg(3).eq_icase("write")) mode = Server::kPauseWrite;
-            else if (op.arg(3).eq_icase("all")) mode = Server::kPauseAll;
-            else {
-                reply_err(op.sink(), "ERR CLIENT PAUSE mode must be WRITE or ALL");
-                return ClimonStartResult::Sync;
-            }
-        }
-        const uint64_t now_ms = now_ns() / 1000000ull;
-        srv_->climon_set_pause(now_ms + static_cast<uint64_t>(timeout), mode);
-        climon_refresh_armed();
-        reply_ok(op.sink());
         return ClimonStartResult::Sync;
     }
 

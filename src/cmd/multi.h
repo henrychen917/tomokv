@@ -154,6 +154,7 @@ struct MultiRetryPromoter {
 // active every other accepted command is copied into connection-lived storage and answered QUEUED.
 MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t owner_io,
                               MultiExecState*& dispatch);
+bool multi_pause_writes(const Client& client);
 bool multi_queueing(const Client& client);
 void multi_mark_queue_error(Client& client);
 
