@@ -34,6 +34,8 @@ def compile_one(job):
     cmd = shlex.split(next(line for line in reversed(recipe.splitlines())
                           if line.startswith("g++ ") and line.endswith(" -o build/" + obj)))
     cmd = ["-g0" if x == "-g" else x for x in cmd]
+    if arm.startswith("auto"):
+        cmd += ["--param", "max-inline-insns-auto=" + arm.removeprefix("auto")]
     if budget is not None:
         cmd = ["large-unit-insns=" + str(budget) if x.startswith("large-unit-insns=") else x for x in cmd]
         if obj not in BUDGETS:

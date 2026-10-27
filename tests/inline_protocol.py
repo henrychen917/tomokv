@@ -29,9 +29,14 @@ def cases():
                              (b'"', b'"'), (b"'", b"'"), (b"q", b"q"),
                              (b"0", b"0"), (b"v", b"v"), (b"f", b"f")):
         echo("double escape " + repr(encoded), b'"a\\' + encoded + b'b"', b"a" + decoded + b"b")
-    for n in range(256):
-        for spelling in (b"%02x" % n, b"%02X" % n):
-            echo("hex " + repr(spelling), b'"a\\x' + spelling + b'b"', b"a" + bytes([n]) + b"b")
+    # Keep every byte and both hex alphabets, but reuse a connection instead of
+    # paying a separate silence deadline for each byte. Each step has its own
+    # exact ECHO and sentinel reply; every connection still proves it stays open.
+    for fmt in (b"%02x", b"%02X"):
+        for ending in (b"\n", b"\r\n"):
+            steps = tuple((b'ECHO "a\\x' + (fmt % n) + b'b"' + ending + PING,
+                           bulk(b"a" + bytes([n]) + b"b") + PONG) for n in range(256))
+            rows.append(Case("all hex bytes " + repr(fmt + ending), steps))
     for spelling in (b"x", b"x0", b"xG0", b"x0G", b"xgg", b"X41", b"x-1", b"x 1"):
         echo("invalid/short hex " + repr(spelling), b'"\\' + spelling + b'"', spelling)
     echo("hex consumes two digits", b'"\\x4142"', b"A42")
@@ -86,6 +91,8 @@ def cases():
         wire += encode("ECHO", b'"\\\0\r\n*1') + b'\nECHO ""\n'
         expected += b'+OK\r\n' + bulk(value) * 2 + bulk(b'"\\\0\r\n*1') + bulk(b'')
     rows.append(Case("mixed pipeline and ROB reuse", ((bytes(wire), bytes(expected)), (PING, PONG))))
+    rows.append(Case("clean quoted read pipeline", ((b'GET "inline key\\x001"\n' * 128 + PING,
+                     bulk(b"v 1") * 128 + PONG),)))
     rows.append(Case("heap argv plus decoded bytes", ((b'MGET ' + b'"" ' * 40 + b'\n' + PING,
                      b'*40\r\n' + b'$-1\r\n' * 40 + PONG),)))
     rows.append(Case("transaction retains decoded argv", ((b'MULTI\nECHO "a\\x00b"\n' + encode("ECHO", b"next") + b'EXEC\n',
@@ -114,6 +121,17 @@ def main():
                 failures += 1
                 print(f"FAIL {name}: {case.name}: {str(error)[:600]}", flush=True)
         print(f"{name}: {passed}/{len(rows)} exact bytes + connection states", flush=True)
+    with closing(Conn(args.host, args.port)) as conn:
+        config = conn.cmd("CONFIG", "GET", "read-local")
+        if config[1] == b"1":
+            def hits():
+                values = dict(line.split(b":", 1) for line in conn.cmd("INFO", "stats").split(b"\r\n") if b":" in line)
+                return int(values[b"read_local_hits"])
+            before = hits()
+            run_case((args.host, args.port), next(r for r in rows if r.name == "clean quoted read pipeline"))
+            after = hits()
+            assert after > before, "armed lane never served a decoded inline key"
+            print(f"decoded-key read-local witness: {after - before} hits", flush=True)
     return bool(failures)
 
 
