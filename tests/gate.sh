@@ -5064,7 +5064,7 @@ job_redis_tcl(){
     row_begin "$label"
     if py tests/redis_tcl.py --redis-root "$REDIS74_ROOT" --binary "$CANDIDATE_BINARY" \
         --mode "$mode" --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --controller-port "$((PORT+1))" \
-        --baseport "$((PORT+2))" --manifest tests/redis_tcl_passing.json \
+        --baseport "$((PORT+2))" --manifest tests/redis_tcl_passing.json --arm-smove \
         --output "$TMPDIR/redis-tcl-$mode" >"$TMPDIR/redis-tcl-$mode.log" 2>&1; then
       say "$label" ok; ledger ok "$label" 0
     else

@@ -111,21 +111,39 @@ def run_file(args, tree, unit, only=None, extra=(), server_args=()):
     if only:
         for name in only: client+=['--only',name]
     client+=list(extra)
-    start=time.monotonic();server=None;test=None;failure=None;rc=None
+    start=time.monotonic();server=None;test=None;failure=None;rc=None;layout_attempts=[]
     with (folder/'server.log').open('w') as sl, (folder/'suite.log').open('w') as tl:
         try:
             with socket.socket() as probe:
                 probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 probe.bind(('127.0.0.1',port))
-            server=subprocess.Popen(command,stdout=sl,stderr=subprocess.STDOUT,start_new_session=True)
-            for _ in range(150):
-                if server.poll() is not None: raise RuntimeError('server exited during boot')
+            # The unchanged SMOVE assertion names fixed keys. TomoKV randomizes
+            # their placement at boot; only its same-shard branch exposed this
+            # WATCH regression. Reroll fresh boots, never skip an unarmed test.
+            arm_smove = (getattr(args, 'arm_smove', False) and
+                         args.mode != 'redis' and unit == 'unit/type/set')
+            for attempt in range(128 if arm_smove else 1):
+                server=subprocess.Popen(command,stdout=sl,stderr=subprocess.STDOUT,start_new_session=True)
+                for _ in range(150):
+                    if server.poll() is not None: raise RuntimeError('server exited during boot')
+                    try:
+                        c=Conn('127.0.0.1',port); reply=c.cmd('PING')
+                        if reply=='PONG' or reply==b'PONG': break
+                        c.close()
+                    except (OSError,RuntimeError): pass
+                    time.sleep(.05)
+                else: raise RuntimeError('server not ready')
+                armed=True
                 try:
-                    c=Conn('127.0.0.1',port); reply=c.cmd('PING');c.close()
-                    if reply=='PONG' or reply==b'PONG': break
-                except (OSError,RuntimeError): pass
-                time.sleep(.05)
-            else: raise RuntimeError('server not ready')
+                    if arm_smove:
+                        shards=[c.cmd('DEBUG','SHARD',key) for key in ('srcset{t}','dstset{t}')]
+                        assert all(isinstance(s,int) and 0 <= s < 16 for s in shards), shards
+                        armed=shards[0]==shards[1]
+                        layout_attempts.append(dict(attempt=attempt+1,shards=shards,armed=armed))
+                finally: c.close()
+                if armed: break
+                stop(server);server=None
+            else: raise RuntimeError('SMOVE same-shard arming failed after 128 fresh boots')
             # gate.sh uses LC_ALL=C. Upstream files contain UTF-8 test names;
             # bind their decoding so the same assertion inventory survives it.
             test=subprocess.Popen(client,cwd=tree,env=dict(os.environ,HARNESS5_TCL_EVENTS=str(event_path),
@@ -140,7 +158,7 @@ def run_file(args, tree, unit, only=None, extra=(), server_args=()):
     totals, complete = counts(observed, unit)
     row=dict(file=unit,mode=args.mode,**totals,complete=complete,exit_code=rc,error=failure,
              seconds=time.monotonic()-start,server_argv=command,suite_argv=client,
-             server_exit=server.returncode if server else None,events=observed)
+             server_exit=server.returncode if server else None,smove_layout_attempts=layout_attempts,events=observed)
     (folder/'result.json').write_text(json.dumps(row,indent=2)+'\n')
     return row
 
@@ -221,6 +239,7 @@ def main():
     p.add_argument('--resume',action='store_true');p.add_argument('--manifest',type=Path)
     p.add_argument('--controller-port', type=int)
     p.add_argument('--ratio', default='6:2')
+    p.add_argument('--arm-smove', action='store_true')
     args=p.parse_args();args.output=args.output.resolve();args.binary=args.binary.resolve();args.output.mkdir(parents=True,exist_ok=True)
     tree=args.output/'checkout';prepare(args.redis_root,tree,controller_port=args.controller_port)
     files=sorted([*args.redis_root.glob('tests/unit/**/*.tcl'),*args.redis_root.glob('tests/integration/**/*.tcl')])

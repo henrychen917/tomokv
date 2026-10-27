@@ -512,7 +512,9 @@
         atomic_version_bytes_ -= bytes;
     }
 
-    void atomic_publish_group(void* opaque) {
+    // A small publication wrapper: unrelated cold MULTI code must not move it
+    // across GCC's translation-unit inlining budget on ordinary MSET.
+    [[gnu::always_inline]] void atomic_publish_group(void* opaque) {
         auto* entry = static_cast<AtomicEntry*>(opaque);
         if (!entry || !entry->count || entry->linked) std::abort();
         atomic_link_entry(*entry);
@@ -1160,7 +1162,7 @@ private:
         return false;
     }
 
-    void atomic_link_entry(AtomicEntry& entry) {
+    [[gnu::always_inline]] void atomic_link_entry(AtomicEntry& entry) {
         if (entry.linked) std::abort();
         const bool first = atomic_pending_->live == 0 &&
                            atomic_pending_->script_intent_count == 0;

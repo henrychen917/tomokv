@@ -2669,6 +2669,12 @@ private:
         if (!o->has_ttl_slot()) return o;
         const int64_t at = deadline(h, o);
         if (at < 0 || at >= cached_now_ms_) return o;  // Redis: still live at now == at
+        return expire_found(t, h, key);
+    }
+
+    // Keep maintenance-only checks out of the non-expiring lookup's inline
+    // body and register allocation. No pause clock is read for a live key.
+    [[gnu::noinline]] KvObj* expire_found(int t, uint64_t h, Slice key) {
         if (snapshot_active_ && t == 1) return nullptr;
         if (client_pause_expiry_held()) return nullptr;
         // Logical expiry never needs reclamation. With a full armed ring, leave the object and
