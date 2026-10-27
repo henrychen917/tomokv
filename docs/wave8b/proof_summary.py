@@ -25,6 +25,15 @@ resolved_labels = {
     'writeback policy clauses witnesses + negative controls',
 }
 assert all(repair_rows.get(label) == 'ok' for label in resolved_labels)
+selftest_setup = json.loads((OUT / 'selftest-setup-error.json').read_text())
+assert selftest_setup['invalid_setup'] and selftest_setup['actual_counts'] == {'quick':807,'full':815}
+selftest_repair_path = ROOT / selftest_setup['required_repair_receipt']
+selftest_repair = json.loads(selftest_repair_path.read_text())
+assert selftest_repair['exit'] == 0 and selftest_repair['binary_unchanged']
+assert selftest_repair['env']['GATE_ONLY_JOBS'] == 'abba_selftest'
+selftest_copy = json.loads((OUT / 'selftest-copy-count-repair.json').read_text())
+assert selftest_copy['counts'] == {'quick':807,'full':824}
+assert selftest_copy['copy_gate_sha256'] == selftest_repair['gate_sha256']
 rows, failures = [], []
 for path in sorted((OUT / 'jobs').glob('final-*.json')):
     receipt = json.loads(path.read_text())
@@ -38,8 +47,13 @@ for path in sorted((OUT / 'jobs').glob('final-*.json')):
         if not line.startswith('FAIL\t'):
             continue
         _, seconds, label = line.split('\t', 2)
-        resolved = path.stem == 'final-lanes' and label in resolved_labels
-        failed.append(dict(label=label, resolved_by=str(repair_path.relative_to(ROOT)) if resolved else None))
+        resolved_by = None
+        if path.stem == 'final-lanes' and label in resolved_labels:
+            resolved_by = str(repair_path.relative_to(ROOT))
+        if path.stem == 'final-abba-selftest' and label == 'ABBA comparison + saturation negative controls':
+            resolved_by = str(selftest_repair_path.relative_to(ROOT))
+        resolved = resolved_by is not None
+        failed.append(dict(label=label, resolved_by=resolved_by))
         if not resolved:
             failures.append(dict(receipt=str(path.relative_to(ROOT)), label=label))
     assert len(failed) == int(match[2]), path
@@ -50,6 +64,7 @@ for path in sorted((OUT / 'jobs').glob('final-*.json')):
         assert receipt['exit'] != 0, 'failed rows with a successful invocation exit'
     rows.append(dict(name=path.stem, exit=receipt['exit'], passed=int(match[1]), failed=int(match[2]),
                      failures=failed, binary_sha256=receipt['binary_sha256'],
+                     invalid_setup=path.stem == 'final-abba-selftest',
                      jobs=receipt['env']['GATE_ONLY_JOBS'], seconds=receipt['seconds'],
                      receipt=str(path.relative_to(ROOT)), artifacts=receipt['artifacts']))
 
@@ -58,7 +73,8 @@ build = json.loads((OUT / 'build/receipt.json').read_text())
 assert gates['exit'] == 0
 assert build['after_sha256'] == arms['POST']['sha256']
 assert all(row['exit'] == 0 for row in build['builds'] + build['freshness'])
-required = {name for name, jobs, options in campaign} | {'final-source-repair', 'final-abba-selftest'}
+required = {name for name, jobs, options in campaign} | {
+    'final-source-repair', 'final-abba-selftest', 'final-abba-selftest-count-repair'}
 assert required <= {row['name'] for row in rows}, 'campaign is incomplete'
 assert len(build['freshness']) == 49
 timing = json.loads((OUT / 'timing-interactions.json').read_text())
@@ -72,8 +88,9 @@ assert all(row['exit'] == -6 for row in controls), 'planted native failures did 
 source_controls = json.loads((OUT / 'source-controls.json').read_text())
 assert len(source_controls) == 22 and all(row['passed'] for row in source_controls)
 result = dict(post_sha256=arms['POST']['sha256'], runtime_identity_bridge='docs/wave8b/comment-sync.json',
-              whole_job_invocations=len(rows), successful_row_executions=sum(r['passed'] for r in rows),
+              whole_job_invocations=len(rows), successful_row_executions=sum(r['passed'] for r in rows if not r['invalid_setup']),
               failed_attempt_rows=sum(r['failed'] for r in rows), unresolved_failures=failures,
+              invalid_setup_attempts=[r['name'] for r in rows if r['invalid_setup']],
               rows=rows, gates_test=gates, make_freshness_checks=len(build['freshness']),
               timing_interaction_legs=len(timing['rows']), native_negative_controls=len(controls),
               source_controls=len(source_controls),
@@ -84,11 +101,13 @@ lines = ['# Wave8b correctness evidence', '',
          'Whole jobs use the gate partial-job interface. Row executions include repeated prerequisites; this is not a full-gate receipt.', '',
          '| Invocation | Passing rows | Failed attempt rows | Result |', '|---|---:|---:|---|']
 for row in rows:
-    status = 'PASS' if row['exit'] == 0 else ('source checks repaired' if all(f['resolved_by'] for f in row['failures']) and row['failures'] else 'FAIL')
+    status = 'setup repaired' if row['invalid_setup'] else ('PASS' if row['exit'] == 0 else (
+        'source checks repaired' if all(f['resolved_by'] for f in row['failures']) and row['failures'] else 'FAIL'))
     lines.append(f"| [{row['name']}]({row['receipt'].removeprefix('docs/wave8b/')}) | {row['passed']} | {row['failed']} | {status} |")
 lines += ['', f"Standalone gates_test exit: {gates['exit']}. Make freshness: {len(build['freshness'])}/{len(build['freshness'])}.", '',
           'The pre-comment and final POST binaries have identical runtime sections, program headers, entry point and symbols; only non-runtime debug/linker metadata and GNU build-id may differ. See comment-sync.json.', '',
           'The original three source-check failures remain in final-lanes. The final-source-repair job reruns their complete owning jobs.', '',
+          'The initial ABBA self-test copy incorrectly retained EXPECT_FULL=815 because of its trailing comment. Its attempt is retained but is not accepted as proof. A new copy verifies 807/824 and reruns the whole job; see selftest-setup-error.json and selftest-copy-count-repair.json.', '',
           'NOT RUN: performance benchmarks, load generators and the full gate iteration are reserved to the maintainer.']
 (OUT / 'proof-summary.md').write_text('\n'.join(lines) + '\n')
 print(json.dumps({k:v for k,v in result.items() if k not in ('rows','gates_test')}), flush=True)

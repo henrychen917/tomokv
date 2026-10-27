@@ -1,0 +1,10 @@
+{
+  "root": "/home/user/Projects/cx-wave8b/build/wave8b/selftest-final",
+  "original_gate_sha256": "e804a2acdfd68f7b2ce6b619dd36cba82bb7e78e2b99063469e8d1be5572e6ff",
+  "copy_gate_sha256": "160366ecb500c90e63cc2392604b68da34588d23316d33ca6cb2ff386be1e51c",
+  "counts": {
+    "quick": 807,
+    "full": 824
+  },
+  "fixture_rows": 824
+}
