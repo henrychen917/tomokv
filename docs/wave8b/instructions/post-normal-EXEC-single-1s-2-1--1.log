@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-normal-EXEC-single-1s-2-1--1.log
-SHA-256: 7db2c231c09dfb83b581de9f6cc60c61d562ab9318a77c1233831c68b33760eb
+SHA-256: a5b18c77541c491c652b59c20a240b9a379e1a5c2967b1e59ce5c5480bd825a8
 Exit: 0
-0x000055TomoKV 1.0-cpp (Redis 7.4.10 compatible)
 PASS bounded production command scope
-5555a7dccb	2868	}
-0x0000555555a7dccf	2868	}
-0x0000555555a7dcd2	2868	}
-0x0000555555a7dcd3	2868	}
-0x0000555555a7dcd4	2868	}
-0x0000555555a7dcd6	2868	}
-0x0000555555a7dcd8	2868	}
+    for (size_t i = 0; i < deferred.size();) {
+0x0000555555a7d73b	2868	}
+0x0000555555a7d73f	2868	}
+0x0000555555a7d742	2868	}
+0x0000555555a7d743	2868	}
+0x0000555555a7d744	2868	}
+0x0000555555a7d746	2868	}
+0x0000555555a7d748	2868	}
 tomo::CoreConcurrencyTest::need (v=true) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:38
 38	 static void need(bool v){if(!v)std::abort();}
-0x0000555555d8de94	38	 static void need(bool v){if(!v)std::abort();}
-0x0000555555d8de9b	38	 static void need(bool v){if(!v)std::abort();}
-0x0000555555d8dea1 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=2, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:115
+0x0000555555d8d894	38	 static void need(bool v){if(!v)std::abort();}
+0x0000555555d8d89b	38	 static void need(bool v){if(!v)std::abort();}
+0x0000555555d8d8a1 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=2, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:115
 115	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
 30	[[gnu::noinline]] void scope_end(){
-[Inferior 1 (process 3902175) exited normally]
-COUNT 21067
+[Inferior 1 (process 222512) exited normally]
+COUNT 21068

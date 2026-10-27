@@ -1,0 +1,22 @@
+{
+  "PRE": {
+    "path": "/home/user/Projects/cx-wave8b/build/tomokv-wave8b-PRE",
+    "sha256": "f94fbd1d57873ff32bdf279b796139e0dd94e8cd7f613d9a7f17832ef86af359"
+  },
+  "POST": {
+    "path": "/home/user/Projects/cx-wave8b/build/tomokv-wave8b-POST",
+    "sha256": "6165ac2d17e50182aadaf2e9a1de08e53c266ccb900455869598a4e47c76db1d"
+  },
+  "PAD-A": {
+    "path": "/home/user/Projects/cx-wave8b/build/tomokv-wave8b-PAD-A",
+    "sha256": "7c9de24ce951aa375208e559c63e7bd9de856952a5f623abd86b97923914474a"
+  },
+  "headline": {
+    "path": "/home/user/Projects/bench-bins/tomokv-headline-3700b51d7",
+    "sha256": "56ec64d13cf87d97d75ad955311a44c77ffc87a6798b548d5c4330b6713cd97c"
+  },
+  "execindex": {
+    "path": "/home/user/Projects/bins/execindex-post-aee04885",
+    "sha256": "aee048859f6f8d84d5aa4e0b30767ad1e8dac4595d383ff634a8226027d1566a"
+  }
+}

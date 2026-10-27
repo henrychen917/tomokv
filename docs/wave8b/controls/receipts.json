@@ -13,7 +13,7 @@
       "--param",
       "inline-unit-growth=0",
       "--param",
-      "large-unit-insns=148896",
+      "large-unit-insns=148585",
       "-DTOMO_JEMALLOC",
       "-I.",
       "-c",
@@ -161,7 +161,7 @@
       "-lm"
     ],
     "exit": -6,
-    "sha256": "e61ddb8837af266c10a1e64b1c9ea6d0ef9f49face2ed0b256ef46ce309812a0",
+    "sha256": "20223317e8d5f22d5249cf92aaa310bbd18c2a7e4cf4a52e78c9bb43bbbad188",
     "reason": "Unconditional retirement scan"
   },
   {
@@ -322,7 +322,7 @@
       "-lm"
     ],
     "exit": -6,
-    "sha256": "70a8faf198db22b7944e5541e212d3c209e6b1b40b927b9144512d6c257c02f7",
+    "sha256": "ef9cd2afac5b3d122d7791b501a6f4792d96313f6e5e7e41438a589946894a38",
     "reason": "Reintroduced stale pending slice after no/yes"
   }
 ]

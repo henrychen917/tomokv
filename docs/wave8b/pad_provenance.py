@@ -45,7 +45,9 @@ def inspect(arm, name):
             data = elf.section_data(elf.names.index('.rlfence'))[offset:offset+28]
             assert len(data) == 28 and data[23] == 0xe9
             returned = target + 28 + struct.unpack_from('<i', data, 24)[0]
-            assert returned == start + 0x3e
+            # The trampoline must return immediately after the replaced jump.
+            # Wave-8's lambda prologue differs from the headline's 0x3e offset.
+            assert returned == at + len(raw)
             normalized = 'jmp <verified-rlfence+' + hex(offset) + '>'
             evidence.append(dict(branch_offset=at-start, section_offset=offset,
                                  bytes_before_return=data[:24].hex(), return_offset=returned-start))

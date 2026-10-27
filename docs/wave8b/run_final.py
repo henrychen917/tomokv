@@ -5,7 +5,8 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 os.chdir(ROOT);os.sched_setaffinity(0,set(range(64,80)))
 matrix=json.loads((ROOT/'docs/wave8/correctness-matrix.json').read_text())
-once=matrix['once']+['wave8b_off','authfix','bugs5','ntfix_input','netfix_query_stats']
+once=matrix['once']+['wave8b_off','authfix','bugs5','ntfix_input','netfix_query_stats',
+    'persistfix2_lastsave','racefix_counters']
 campaign=[('final-lanes',once,[]),('final-tcl',['compat2'],[])]
 for engine in ('uring','epoll'):
  campaign += [('final-engine-'+engine,matrix['each_engine'],['--engine',engine])]
@@ -16,6 +17,8 @@ for engine in ('uring','epoll'):
 # AOF includes the latency/delayed-fsync witnesses, in both modes and engines.
 for fused in (False,True):
  campaign += [('final-aof-'+('1s' if fused else '2s'),['aof-epoll','aof-uring'],['--fused'] if fused else [])]
+for engine in ('uring','epoll'):
+ campaign += [('final-replyoff-fused-'+engine,['replyoff'],['--engine',engine,'--fused'])]
 sha=hashlib.sha256((ROOT/'build/tomokv').read_bytes()).hexdigest();out=[]
 for name,jobs,opts in campaign:
  assert hashlib.sha256((ROOT/'build/tomokv').read_bytes()).hexdigest()==sha

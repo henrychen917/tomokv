@@ -94,6 +94,8 @@ def compare(post, refs):
                                            re.search(r'ExLoopT<.*>::run\(', name) or name in COUNTED_HOT),
                          counted_command_scope=name in COUNTED_HOT,
                          command_hot=bool(HOT.search(name)), equal=same,
+                         exec_watch=bool(re.search(r'::multi_|::watch_|WatchMutationScope|TxnPlaceBlocker', name)),
+                         execindex_equal=signature(refs['execindex']['groups'].get(name, [])) == signature(after),
                          headline_sizes=[r['size'] for r in before], post_sizes=[r['size'] for r in after],
                          matches=matches, changed_lanes=changed_lanes))
     return rows
@@ -103,9 +105,11 @@ def main():
     # Expand the final audit to every body actually entered by the full command
     # matrix. Budget trials call compare() directly with the fixed historical
     # hot selection; this additional final inventory cannot change trial scores.
-    if os.getenv('WAVE8_COUNTED_HOT') == '1':
-        for arm in ('pre','post'):
-            for row in json.loads((ROOT/'docs/wave8b/instructions'/('results-'+arm+'.json')).read_text()):
+    for prefix in ('results-', 'exec-'):
+        for arm in ('headline','execindex','pre','post'):
+            path = ROOT/'docs/wave8b/instructions'/(prefix+arm+'.json')
+            if not path.exists(): continue
+            for row in json.loads(path.read_text()):
                 COUNTED_HOT.update(audit.canonical(name) for name in row['functions'])
     with ProcessPoolExecutor(max_workers=6) as pool:
         inventories = list(pool.map(inventory, [*REFS.values(), Path(sys.argv[1]) if len(sys.argv)>1 else ROOT / 'build/tomokv']))
@@ -116,7 +120,11 @@ def main():
     dest.mkdir(parents=True, exist_ok=True)
     changed = [r for r in rows if not r['equal']]
     for r in changed:
-        if r['matches']:
+        if not r['matches'] and re.search(r'latency_tracking|LatencyTracking|multi_execute_task_tracked|execute_resumed_latency', r['name']):
+            r['reason'] = 'wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC.'
+        elif not r['matches'] and re.search(r'::multi_|blocking_execute|blocking_run_direct|execute_resumed', r['name']):
+            r['reason'] = 'wave8b feature selection/conditional scopes plus compiler propagation; exact command-scope delta is in exec-attribution.json.'
+        elif r['matches']:
             r['reason'] = 'Exact linked body from ' + ', '.join(r['matches']) + '; lane change retained.'
         elif len(r['changed_lanes']) > 1:
             r['reason'] = 'Composition of ' + ', '.join(r['changed_lanes']) + '; residual instructions/layout require merit review.'
@@ -132,6 +140,9 @@ def main():
                    command_hot_groups=sum(r['command_hot'] for r in rows),
                    command_hot_headline=sum(r['command_hot'] and r['equal'] for r in rows),
                    command_hot_lane=sum(r['command_hot'] and not r['equal'] and bool(r['matches']) for r in rows),
+                   exec_watch_groups=sum(r['exec_watch'] for r in rows),
+                   exec_watch_execindex=sum(r['exec_watch'] and r['execindex_equal'] for r in rows),
+                   exec_watch_differences=[r for r in rows if r['exec_watch'] and not r['execindex_equal']],
                    hot_residual=[r for r in changed if r['hot'] and not r['matches']],
                    references={arm: {k:v for k,v in inv.items() if k!='groups'} for arm,inv in refs.items()},
                    post={k:v for k,v in post.items() if k!='groups'})

@@ -23,6 +23,7 @@ output=ROOT/'docs/wave8b/jobs';output.mkdir(parents=True,exist_ok=True)
 log=output/(a.name+'.log'); assert not log.exists(), 'preserve the earlier attempt'
 binary=(ROOT/a.binary).resolve()
 env=dict(os.environ,LANG='en_US.UTF-8',REDIS74_ROOT='/home/user/Projects/redis',
+    GATE_DIFFER_ORACLE_BIN='/home/user/Projects/redis/src/redis-server',
     GATE_ONLY_JOBS=' '.join(a.jobs),GATE_NET_IO=a.engine,GATE_PROOF_NET_IO=a.engine,
     GATE_ZC_NET_IO=a.engine,GATE_SHUTDOWN_NET_IO=a.engine,GATE_DIFFER_NET_IO=a.engine,
     GATE_TXN_FUSED=str(int(a.fused)),GATE_TEST_PORT='20098',

@@ -1,0 +1,31 @@
+{
+  "function_groups": 9764,
+  "unchanged": 9759,
+  "changed": 5,
+  "lane_equal": 0,
+  "residual": 5,
+  "hot_groups": 1110,
+  "hot_headline": 1110,
+  "hot_lane": 0,
+  "command_hot_groups": 78,
+  "command_hot_headline": 78,
+  "command_hot_lane": 0,
+  "exec_watch_groups": 252,
+  "exec_watch_execindex": 252,
+  "exec_watch_differences": [],
+  "hot_residual": [],
+  "references": {
+    "headline": {
+      "path": "build/tomokv-wave8b-PRE",
+      "sha256": "f94fbd1d57873ff32bdf279b796139e0dd94e8cd7f613d9a7f17832ef86af359"
+    },
+    "execindex": {
+      "path": "build/tomokv-wave8b-PRE",
+      "sha256": "f94fbd1d57873ff32bdf279b796139e0dd94e8cd7f613d9a7f17832ef86af359"
+    }
+  },
+  "post": {
+    "path": "build/tomokv-wave8b-PAD-A",
+    "sha256": "7c9de24ce951aa375208e559c63e7bd9de856952a5f623abd86b97923914474a"
+  }
+}
