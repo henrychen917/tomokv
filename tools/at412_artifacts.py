@@ -40,6 +40,31 @@ def inherited(tool, args, scripts=False):
     source = source.replace('96-103', cpus).replace('96-111', cpus)
     if tool == 'control_smoke':
         source = source.replace('PORT=46890', 'PORT=20290')  # this lane's port range
+        source = source.replace("if args.visits:cmd+=['--enable-debug-command','yes']",
+                                "cmd+=['--enable-debug-command','yes']")
+        # The common-image link must also preserve both namespaces' scripting
+        # registries. Prove distinct owners, then exercise all three entry points.
+        marker = "                info=c.cmd('INFO').decode();"
+        assert source.count(marker) == 1
+        source = source.replace(marker, '''                keys=[];owners=[]
+                for n in range(1000):
+                    key=f'at412:control-script:{n}'
+                    owner=c.cmd('DEBUG','SHARDS',key)[0][1]
+                    if owner not in owners:keys.append(key);owners.append(owner)
+                    if len(keys)==2:break
+                assert len(keys)==2,'control smoke never found distinct owners'
+                assert c.cmd('MSET',keys[0],0,keys[1],0)==b'OK'
+                script="return {redis.call('INCR',KEYS[1]),redis.call('INCR',KEYS[2])}"
+                assert c.cmd('EVAL',script,2,*keys)==[1,1]
+                digest=c.cmd('SCRIPT','LOAD',script).decode()
+                assert c.cmd('EVALSHA',digest,2,*keys)==[2,2]
+                library="#!lua name=at412_control\\nredis.register_function('at412_control',function(KEYS,ARGV) "+script+" end)"
+                assert c.cmd('FUNCTION','LOAD','REPLACE',library)==b'at412_control'
+                assert c.cmd('FCALL','at412_control',2,*keys)==[3,3]
+                assert c.cmd('MGET',*keys)==[b'3',b'3']
+''' + marker)
+        source = source.replace('pass_=True,visits_before=before,',
+                                'pass_=True,script_keys=keys,script_owners=owners,script_final=[3,3],visits_before=before,')
     if tool == 'scope' and scripts:
         source = source.replace('docs/at412c/instructions', 'docs/at412c/script-instructions')
         source = source.replace('("GET", "SET", "INCR", "MGET", "MSET")', '("EVAL", "EVAL-ADMIT")')
