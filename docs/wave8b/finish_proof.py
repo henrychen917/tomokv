@@ -37,4 +37,5 @@ for arm in arms.values():arm['sha256']=sha(arm['path'])
 Path('docs/wave8b/arms.json').write_text(json.dumps(arms,indent=2)+'\n')
 digest=sha('build/tomokv')
 subprocess.run(['python3','docs/wave8b/quiet_checks.py'],check=True)
+subprocess.run(['python3','docs/wave8b/scope_identity.py'],check=True)
 assert sha('build/tomokv')==digest
