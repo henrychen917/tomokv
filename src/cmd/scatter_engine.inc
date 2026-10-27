@@ -4,6 +4,8 @@
 // translation unit and shares its anonymous namespace; there are no new external symbols or
 // build-system inputs.
 
+#include <type_traits>
+
 #line 34 "src/cmd/xshard.cc"
 
 namespace tomo {
@@ -172,6 +174,8 @@ struct ImageRangeOptions {
 };
 
 struct SortOptions {
+    // Both preparation instantiations must retain PRE's inline copy.
+    [[gnu::always_inline]] SortOptions& operator=(const SortOptions&) = default;
     bool alpha = false;
     bool descending = false;
     bool store = false;
@@ -847,7 +851,9 @@ uint32_t key_count_for(const XshardKeyPlan& keys, bool snapshot_writes_only = fa
     return count;
 }
 
-uint32_t key_arg_for(const XshardKeyPlan& keys, uint32_t key,
+// Preparation has two instantiations. Keep its formerly singleton leaves inline so ordinary
+// scatters do not gain calls just because the script specialization also uses these helpers.
+[[gnu::always_inline]] inline uint32_t key_arg_for(const XshardKeyPlan& keys, uint32_t key,
                      bool snapshot_writes_only = false) {
     for (uint32_t i = 0; i < keys.span_count; i++) {
         const XshardKeySpan& span = keys.spans[i];
@@ -867,12 +873,12 @@ bool has_status(Kind kind, bool atomic_write) {
            kind == Kind::Exists || kind == Kind::Touch || kind == Kind::Pfcount ||
            kind == Kind::Xread || kind == Kind::Lcs || is_two_hop(kind);
 }
-bool has_images(Kind kind) {
+[[gnu::always_inline]] inline bool has_images(Kind kind) {
     return kind == Kind::Pfcount || kind == Kind::Xread || kind == Kind::Lcs ||
            (is_two_hop(kind) && kind != Kind::Msetnx);
 }
 
-size_t arena_layout_bytes(Kind kind, uint32_t key_count, uint32_t group_cap,
+[[gnu::always_inline]] inline size_t arena_layout_bytes(Kind kind, uint32_t key_count, uint32_t group_cap,
                           uint32_t shard_slots, bool atomic_write, bool atomic_apply,
                           uint32_t owner_slots, bool sort_deref) {
     const bool atomic_install = atomic_write || atomic_apply;
@@ -906,7 +912,7 @@ T* carve_at(char* base, size_t& off, uint32_t count) {
     return result;
 }
 
-void init_arena_arrays(ScatterState& state) {
+[[gnu::always_inline]] inline void init_arena_arrays(ScatterState& state) {
     char* base = reinterpret_cast<char*>(&state);
     size_t off = sizeof(ScatterState);
     state.groups = carve_at<ShardGroup>(base, off, state.group_cap);
@@ -1585,15 +1591,23 @@ void ScatterArenaPool::release(void* ptr, bool pooled) {
     ++count_;
 }
 
-ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
+[[gnu::noinline]] ScatterPrepare xshard_prepare_script(
+    Server&, Op&, ScatterArenaPool&, uint32_t, uint64_t, ScatterDispatch&, bool, Client*);
+
+// One implementation, two compiled routes. The ordinary route classifies once and hands scripts
+// off before constructing the reload lifetime guard. The FIFO call and its argument liveness
+// belong only to the script route; no script admission state is added to an ordinary command.
+template<bool ScriptOnly>
+[[gnu::always_inline]] inline ScatterPrepare xshard_prepare_body(Server& server, Op& op, ScatterArenaPool& pool,
                               uint32_t owner_io, uint64_t origin_conn_id,
                               ScatterDispatch& dispatch, bool force_atomic,
                               Client* origin_client) {
-    const bool all_shards = (op.spec->flags & CmdFlags::AllShards) ||
+    const bool all_shards = !ScriptOnly && ((op.spec->flags & CmdFlags::AllShards) ||
                             ((op.spec->flags & CmdFlags::ConfigRoute) &&
-                             command_config_routes_all_shards(op, force_atomic));
+                             command_config_routes_all_shards(op, force_atomic)));
     Kind kind;
-    if (all_shards)
+    if constexpr (ScriptOnly) kind = Kind::Script;
+    else if (all_shards)
         kind = op.cmd_name().eq_icase("randomkey") ? Kind::RandomKey :
                op.cmd_name().eq_icase("info") ? Kind::DatabaseInfo :
                op.cmd_name().eq_icase("swapdb") ? Kind::Swapdb :
@@ -1617,10 +1631,16 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
             return ScatterPrepare::Backpressure;
     }
 
-    if (op.cmd_name().eq_icase("move")) {
+    if constexpr (!ScriptOnly) if (op.cmd_name().eq_icase("move")) {
         // Both ordinary dispatch and EXEC already identified this operation's
         // keys from one map. Never resolve a second map during lowering.
         if (!multidb_prepare_move(server, op)) return ScatterPrepare::Error;
+    }
+
+    if constexpr (!ScriptOnly) {
+        if (kind == Kind::Script)
+            return xshard_prepare_script(server, op, pool, owner_io, origin_conn_id,
+                                         dispatch, force_atomic, origin_client);
     }
 
     // DEBUG RELOAD/LOADAOF are asynchronous all-owner loads. Publish that fact before any file
@@ -1668,10 +1688,13 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         key_hints.first = script_first;
         key_hints.count = script_count;
     }
-    std::unique_ptr<SnapshotLoadPlan> reload_plan;
-    std::unique_ptr<SnapshotLoadPlan> aof_reload_base;
-    std::vector<std::unique_ptr<AofReplayPlan>> aof_reload_increments;
-    if (all_shards) {
+    // Scripts cannot reload. Do not instantiate a second set of loader destructors: doing so
+    // changes GCC's inline decisions for the ordinary route's otherwise unchanged cleanup.
+    struct NoReload {};
+    std::conditional_t<ScriptOnly, NoReload, std::unique_ptr<SnapshotLoadPlan>> reload_plan;
+    std::conditional_t<ScriptOnly, NoReload, std::unique_ptr<SnapshotLoadPlan>> aof_reload_base;
+    std::conditional_t<ScriptOnly, NoReload, std::vector<std::unique_ptr<AofReplayPlan>>> aof_reload_increments;
+    if constexpr (!ScriptOnly) if (all_shards) {
         if (kind == Kind::DebugBorrowCount) {
             if (!debug_command_allowed(server, origin_client)) {
                 reply_debug_command_denied(op);
@@ -2027,7 +2050,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     // on its IO (per-IO FIFO, frame left unconsumed) instead of the old BUSY, and jumps over the
     // general 8-cut window (its own slots bound it). The slot is counted in txn_group_prepare,
     // after the last exit that could still refuse it.
-    if (kind == Kind::Script) {
+    if constexpr (ScriptOnly) {
         if (!script_window_admissible(server, owner_io, origin_client, force_atomic)) {
             if (routes != route_stack) delete[] routes;
             return ScatterPrepare::Backpressure;
@@ -2124,9 +2147,11 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     state->range_options = range_options;
     state->range_spec = range_spec;
     state->sort_options = sort_options;
-    state->reload_plan = std::move(reload_plan);
-    state->aof_reload_base = std::move(aof_reload_base);
-    state->aof_reload_increments = std::move(aof_reload_increments);
+    if constexpr (!ScriptOnly) {
+        state->reload_plan = std::move(reload_plan);
+        state->aof_reload_base = std::move(aof_reload_base);
+        state->aof_reload_increments = std::move(aof_reload_increments);
+    }
     // MSET is a blind replacement. Registering a read cut for it only pins predecessors across a
     // deep pipeline; atomic-ON MSETNX and delete keep their dispatch snapshot for existence.
     // A read that IO already stamped reuses that exact cut, so a plain read and a multi-key read
@@ -2255,6 +2280,22 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
 int32_t xshard_dispatch_shard(const ScatterDispatch& dispatch, uint32_t index) {
     if (!dispatch.state) return -1;
     return index < dispatch.state->nsub ? dispatch.state->groups[index].shard : -1;
+}
+
+ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
+                              uint32_t owner_io, uint64_t origin_conn_id,
+                              ScatterDispatch& dispatch, bool force_atomic,
+                              Client* origin_client) {
+    return xshard_prepare_body<false>(server, op, pool, owner_io, origin_conn_id,
+                                      dispatch, force_atomic, origin_client);
+}
+
+ScatterPrepare xshard_prepare_script(Server& server, Op& op, ScatterArenaPool& pool,
+                                     uint32_t owner_io, uint64_t origin_conn_id,
+                                     ScatterDispatch& dispatch, bool force_atomic,
+                                     Client* origin_client) {
+    return xshard_prepare_body<true>(server, op, pool, owner_io, origin_conn_id,
+                                     dispatch, force_atomic, origin_client);
 }
 
 void xshard_abandon_unpublished(ScatterState* state, ScatterArenaPool& pool,

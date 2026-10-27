@@ -1,0 +1,37 @@
+{
+  "unit": "src/cmd/xshard.o",
+  "budget": "152000",
+  "initial": 121768,
+  "changed": [
+    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int) [clone .cold]",
+    "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
+    "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*) [clone .cold]"
+  ],
+  "total": 37,
+  "command": [
+    "taskset",
+    "-c",
+    "48-63",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=152000",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/cmd/xshard.cc",
+    "-o",
+    "/home/user/Projects/cx-at412c/build/at412c/budgets-final/src_cmd_xshard.o-152000.o",
+    "-g0",
+    "-fdump-ipa-inline=/home/user/Projects/cx-at412c/build/at412c/budgets-final/src_cmd_xshard.o-152000.inline"
+  ]
+}

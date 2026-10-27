@@ -1,0 +1,104 @@
+[
+  {
+    "cell": "normal-MGET-1s-1-1--1",
+    "delta": -39,
+    "functions": {
+      "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&)": 6,
+      "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": -45
+    }
+  },
+  {
+    "cell": "normal-MGET-2s-1-1--1",
+    "delta": -39,
+    "functions": {
+      "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&)": 6,
+      "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": -45
+    }
+  },
+  {
+    "cell": "normal-MSET-1s-1-0--1",
+    "delta": -53,
+    "functions": {
+      "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&)": 6,
+      "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": -59
+    }
+  },
+  {
+    "cell": "normal-MSET-1s-1-1--1",
+    "delta": -44,
+    "functions": {
+      "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&)": 3,
+      "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": -47
+    }
+  },
+  {
+    "cell": "normal-MSET-2s-1-0--1",
+    "delta": -31,
+    "functions": {
+      "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&)": 6,
+      "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": -37
+    }
+  },
+  {
+    "cell": "normal-MSET-2s-1-1--1",
+    "delta": -22,
+    "functions": {
+      "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&)": 3,
+      "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": -25
+    }
+  },
+  {
+    "cell": "db0-MGET-1s-1-1--1",
+    "delta": -33,
+    "functions": {
+      "tomo_db0::(anonymous namespace)::initialize_owner_completion(tomo_db0::ScatterState&)": 6,
+      "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": -51,
+      "tomo_db0::Op::cmd_name() const": 12
+    }
+  },
+  {
+    "cell": "db0-MGET-2s-1-1--1",
+    "delta": -33,
+    "functions": {
+      "tomo_db0::(anonymous namespace)::initialize_owner_completion(tomo_db0::ScatterState&)": 6,
+      "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": -51,
+      "tomo_db0::Op::cmd_name() const": 12
+    }
+  },
+  {
+    "cell": "db0-MSET-1s-1-0--1",
+    "delta": -26,
+    "functions": {
+      "tomo_db0::(anonymous namespace)::initialize_owner_completion(tomo_db0::ScatterState&)": 6,
+      "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": -44,
+      "tomo_db0::Op::cmd_name() const": 12
+    }
+  },
+  {
+    "cell": "db0-MSET-1s-1-1--1",
+    "delta": -8,
+    "functions": {
+      "tomo_db0::(anonymous namespace)::initialize_owner_completion(tomo_db0::ScatterState&)": 3,
+      "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": -23,
+      "tomo_db0::Op::cmd_name() const": 12
+    }
+  },
+  {
+    "cell": "db0-MSET-2s-1-0--1",
+    "delta": -27,
+    "functions": {
+      "tomo_db0::(anonymous namespace)::initialize_owner_completion(tomo_db0::ScatterState&)": 6,
+      "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": -45,
+      "tomo_db0::Op::cmd_name() const": 12
+    }
+  },
+  {
+    "cell": "db0-MSET-2s-1-1--1",
+    "delta": -9,
+    "functions": {
+      "tomo_db0::(anonymous namespace)::initialize_owner_completion(tomo_db0::ScatterState&)": 3,
+      "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": -24,
+      "tomo_db0::Op::cmd_name() const": 12
+    }
+  }
+]
