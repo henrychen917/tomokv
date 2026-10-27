@@ -58,10 +58,18 @@ are explicit `GATE_ONLY_JOBS` selections; none is a full-gate receipt.
 | Full configured Tcl job, POST | Both modes pass: 35 files and 1,644 passing tests per mode, including the newly required CRLF assertion |
 | Full configured Tcl job, planted bypass | Both mode jobs fail their required FUNCTION-LIST-CRLF assertion |
 | epoll feature/client/RESP/ACL/script/auth/config/HELLO selection | 172/172 rows pass |
-| Frozen uring selection plus netcmd units | RUNNING; final receipt will be appended before delivery |
-| Standard differential seeds, both engines, all legs | RUNNING; final receipt will be appended before delivery |
+| Frozen uring selection plus netcmd units | 188/188 rows pass; production-unit prerequisite completes with all 47 readiness markers |
+| Standard differential seeds, both engines, all legs | 941/941 inner checks per engine; all four mode/atomic legs and both 16-cell equivalence matrices pass |
 | `python3 tests/gates_test.py` | 73/73 pass |
 | `make all`, every `job_production_units` target and freshness | Build exits zero; all 52 recorded checks return zero |
+
+The [differential receipts](docs/crlffix/differ-final.json) use permanent seeds
+7, 19, 20, 23 plus rotating seed 21 (epoll) / 22 (uring). Each engine passes
+235 split-a0, 239 split-a1, 231 armed-a0 and 235 armed-a1 checks, plus mode
+equivalence across all 16 execution/knob combinations. The existing sort suite
+requires split 6:2 and is explicitly skipped in armed legs; it passes both split
+legs for every seed. Both runs use `GATE_ONLY_JOBS="differ-split differ-armed"`
+with the engine selected in both GATE_NET_IO and GATE_DIFFER_NET_IO.
 
 The feature selection runs all four split/armed-fused × atomic 0/1 legs,
 including the functions, scripting and stream-group batteries. The other jobs

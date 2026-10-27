@@ -55,7 +55,12 @@
   },
   "post-uring": {
     "run": "/home/user/Projects/cx-crlffix/build/gate-run.JgWweO",
-    "complete": false
+    "complete": true,
+    "passed": 188,
+    "failed": 0,
+    "archive": "docs/crlffix/proof/post-uring.tar.gz",
+    "files": 110,
+    "sha256": "ebff3651e363802a03d1653c883524fe23fe9872bd6e25e6f56b8b1911fdf5cf"
   },
   "broken": {
     "run": "/home/user/Projects/cx-crlffix/build/gate-run.IY8ngB",
@@ -77,10 +82,20 @@
   },
   "differ-epoll": {
     "run": "/home/user/Projects/cx-crlffix/build/gate-run.S5xFVv",
-    "complete": false
+    "complete": true,
+    "passed": 6,
+    "failed": 0,
+    "archive": "docs/crlffix/proof/differ-epoll.tar.gz",
+    "files": 2109,
+    "sha256": "19c43921c1675efbcbbf41ef1680fc7a60b7b9e0455b940cd13e2769faf806b9"
   },
   "differ-uring": {
     "run": "/home/user/Projects/cx-crlffix/build/gate-run.8WGcCK",
-    "complete": false
+    "complete": true,
+    "passed": 6,
+    "failed": 0,
+    "archive": "docs/crlffix/proof/differ-uring.tar.gz",
+    "files": 2109,
+    "sha256": "021db7583088a6701f46f8e8edeb4f4fd811e1ea111be4c5a204a67b908ef294"
   }
 }

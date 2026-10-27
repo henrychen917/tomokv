@@ -51,7 +51,7 @@ def main():
                 selected.update(job.glob('redis-tcl-*.log'))
             if job.name.startswith('differ-'):
                 selected.update(p for p in (job / 'differ').rglob('*')
-                                if p.is_file() and p.suffix in ('.json', '.log', '.txt', '.tsv'))
+                                if p.is_file() and p.suffix in ('.json', '.log', '.txt', '.tsv', '.resp'))
             if job.name == 'production_units':
                 selected.update(job.glob('*.log'))
                 selected.update((run / 'unit-ready').glob('*'))
