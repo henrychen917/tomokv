@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Finish required correctness receipts on the final binary, serially on lane CPUs."""
-import json, os, subprocess, time
+import hashlib, json, os, subprocess, time
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 os.sched_setaffinity(0,set(range(32,48)))
@@ -23,6 +23,13 @@ def run(name,argv,env=None):
     return result.returncode
 if run('required-freshness',['python3','docs/multifix/freshness.py','--build']):
     raise SystemExit('required build freshness failed; inspect before consuming witnesses')
+assert (ROOT/'build/tomokv').read_bytes()==(ROOT/'build/multifix/tomokv-post').read_bytes()
+for item in json.loads((ROOT/'docs/multifix/freshness.json').read_text())['rows']:
+    source=ROOT/item['target']
+    if source.parent!=ROOT/'build' or not source.is_file() or source.suffix: continue
+    sibling=ROOT/'build/multifix'/source.name
+    if not sibling.exists(): os.link(source,sibling)
+    assert hashlib.sha256(sibling.read_bytes()).hexdigest()==item['sha256']
 env=dict(os.environ,GATE_TEST_PORT='20598')
 run('final-gates-test',['python3','tests/gates_test.py'],env)
 def jobs(name,names,engine='uring',port=20550):

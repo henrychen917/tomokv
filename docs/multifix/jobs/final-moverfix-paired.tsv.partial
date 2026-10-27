@@ -1,0 +1,10 @@
+PARTIAL	0	GATE_ONLY_JOBS=moverfix; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	2.970000	moverfix conservation (1s, uring, databases 1, atomic 0)
+ok	2.520000	moverfix conservation (1s, uring, databases 16, atomic 0)
+ok	2.520000	moverfix conservation (1s, epoll, databases 1, atomic 0)
+ok	2.500000	moverfix conservation (1s, epoll, databases 16, atomic 0)
+ok	2.530000	moverfix conservation (2s, uring, databases 1, atomic 0)
+ok	2.520000	moverfix conservation (2s, uring, databases 16, atomic 0)
+ok	2.530000	moverfix conservation (2s, epoll, databases 1, atomic 0)
+ok	2.520000	moverfix conservation (2s, epoll, databases 16, atomic 0)

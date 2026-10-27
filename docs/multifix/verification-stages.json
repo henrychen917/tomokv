@@ -1,0 +1,21 @@
+[
+  {
+    "name": "required-freshness",
+    "argv": [
+      "python3",
+      "docs/multifix/freshness.py",
+      "--build"
+    ],
+    "exit": 0,
+    "seconds": 87.59867572784424
+  },
+  {
+    "name": "final-gates-test",
+    "argv": [
+      "python3",
+      "tests/gates_test.py"
+    ],
+    "exit": 0,
+    "seconds": 113.48412609100342
+  }
+]

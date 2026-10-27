@@ -1,0 +1,569 @@
+{
+  "source_commit": "7b40601639fd7485fd03fb361f0ffaff757ebd0b",
+  "production_unit_targets": 45,
+  "rows": [
+    {
+      "target": "all",
+      "argv": [
+        "make",
+        "-q",
+        "all"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5"
+    },
+    {
+      "target": "build/expire-notify-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/expire-notify-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "f5bdda58f91f18c7ffbcca0ce01bb195685ce89721231f21e80cfa7f5291197f"
+    },
+    {
+      "target": "build/ktls-lifetime-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/ktls-lifetime-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "21680b26634728188122aa2cd940c738fa2905f1b8ab3bfc6faa5f84fbc3e140"
+    },
+    {
+      "target": "build/moverfix-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/moverfix-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "7d23c0cc0a76ff969d34be3b32d21ac46e50b4c0bfe3f6633ccb62a41699e46f"
+    },
+    {
+      "target": "build/moverfix-db0-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/moverfix-db0-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "d227dd7ee0572aeeb5ff96a9c3ed0424c9d6634d0bdc2b2c8b1106f4f15c6de1"
+    },
+    {
+      "target": "build/publishfix-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/publishfix-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "e737fc0d95067b6d2fdd018dafe8d646a457f73b2802016a9abad171de145f70"
+    },
+    {
+      "target": "build/at15-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/at15-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "96939bc446219da11240ffc4876a05459c63ea5ea18ca1e27e43c2e2ac7f8b24"
+    },
+    {
+      "target": "build/at15-db0-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/at15-db0-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "c3f4eb3f531b0ecca76530a255c023555f342e6957e2b36b92ea62b7608a6163"
+    },
+    {
+      "target": "build/execabort-watch-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/execabort-watch-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "f1229a50e01ed3ad4d86a431748c9704584ee06d4e7f850badff9ec80e97403f"
+    },
+    {
+      "target": "build/execabort-watch-db0-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/execabort-watch-db0-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "b95da962fd8b9aceee12e11a25f137941b0d91602c90bf9a7df3b1d52d14332f"
+    },
+    {
+      "target": "build/core-concurrency-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/core-concurrency-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "c26ca3e0b94020bc6b16fb307db3e0a65a846a856718a84f96f2cf0313893f45"
+    },
+    {
+      "target": "build/atomic-survivors-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/atomic-survivors-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "afc3c2e1ef32ee5ccb2cd1c3e1533b54b0caa4c1e5b6ce6a28642a33280a6837"
+    },
+    {
+      "target": "build/txnorder-index-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-index-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "40d05ec81c2e1483b2f258ec82904624e22b7bfbad70478a06c8a81745488a76"
+    },
+    {
+      "target": "build/txnorder-index-db0-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-index-db0-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "d0eedaf1c7fba6fd091f6d4a2f0955484211cdcc595893e7ee50f710bc674598"
+    },
+    {
+      "target": "build/txnorder-retry-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-retry-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "7563a17a925489e99de40e9672f225a10ec9b5568465e454daf42d89285e13cd"
+    },
+    {
+      "target": "build/txnorder-wake-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-wake-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "2faf0d7a7b3ff7a6fe0a49868d9579271e0bbbd79fd1c5e43552dbcd82f0cdae"
+    },
+    {
+      "target": "build/txnorder-episodes",
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-episodes"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "f6c5b0d58b6803a6baeb099996c38714a82ffcb399bf03f861cea113d90ae8fa"
+    },
+    {
+      "target": "build/txnorder-episodes-debug",
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-episodes-debug"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "397ee16ee8352db12834d53064508a24b4d59343eb5b82b27fee27c874dba050"
+    },
+    {
+      "target": "build/txnorder-watch-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-watch-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "9b70274fb4cace8f8a2e93d1ebf2853551ac8e39945153bc221ec05e8df1f6bf"
+    },
+    {
+      "target": "build/txnorder-watch-db0-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-watch-db0-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "ea34302b77a55a261b34768c976ff4dc4885105d9f19cb6f7bd6fb3a206b99c3"
+    },
+    {
+      "target": "build/netcmd-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/netcmd-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "72a3640906a3c30903ad310f6eb2c300ad47607459708555443de218bfad9a39"
+    },
+    {
+      "target": "build/encodingfix-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/encodingfix-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "7b388a6a4e038aa628212172f8a756e1c23280956cc75c76b57e37149abfe7f4"
+    },
+    {
+      "target": "build/netcap-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/netcap-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "827f844a48eceda23816fdb0d2b30c0e51f25988c5f61055a21f354866dd454e"
+    },
+    {
+      "target": "build/waits-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/waits-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "8533d30f76e1558571348432b3f5d4bbb57d64627c604926671352ab32d695a6"
+    },
+    {
+      "target": "build/rehash-waits-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/rehash-waits-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "0538d285bd7feb91b129ed073d1cd32ed19323813123a7daec5e467261d250f1"
+    },
+    {
+      "target": "build/multidb-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/multidb-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "36452144bbf9b638e375381afbbc41f06f847f85a925269a51395dd3f83cfddf"
+    },
+    {
+      "target": "build/multidb-boundary-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/multidb-boundary-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "190bd3251ebbb364c450d98d0803a1c3c84e24cf0de24e3aa6f36f65491f48de"
+    },
+    {
+      "target": "build/storesize-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/storesize-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "a057f19f5bbea3498bdd9a2964cc344045f06b1ff02276549cfe1c586cfee1c8"
+    },
+    {
+      "target": "build/respresume-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/respresume-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "cd87d70495b8463e66b758b7dae6a7566104d15024652deb3b327f69c1777a2c"
+    },
+    {
+      "target": "build/respresume-migration",
+      "argv": [
+        "make",
+        "-q",
+        "build/respresume-migration"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "a33aaa81b5d40e07c4136c60328a06604b5a10e821fc164eb9a78e02f9c6639c"
+    },
+    {
+      "target": "build/exbatch-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/exbatch-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "70ebaffab85b7a9d7b9917cad84400ac6e974be87c6e5186a39040c5bb6e5d02"
+    },
+    {
+      "target": "build/exbatch-db0-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/exbatch-db0-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "e49553066356765c0b6c3347407b16c579323d3e0572383a6857a663d2764c62"
+    },
+    {
+      "target": "build/wb-rule-units",
+      "argv": [
+        "make",
+        "-q",
+        "build/wb-rule-units"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "target": "build/wbland-units",
+      "argv": [
+        "make",
+        "-q",
+        "build/wbland-units"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "target": "build/rltopo-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/rltopo-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "f0ca9705fb51d66115adc943b42d6f3fc50d07c06334dbf81855cc150ae720e8"
+    },
+    {
+      "target": "build/lbplanner-units",
+      "argv": [
+        "make",
+        "-q",
+        "build/lbplanner-units"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "target": "build/shutdown-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/shutdown-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "d86b5b5eefc828a32b1dd015c70be96436cd12b5e57019509d210bf51683e287"
+    },
+    {
+      "target": "build/persistfix-units",
+      "argv": [
+        "make",
+        "-q",
+        "build/persistfix-units"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "target": "build/ktls-keyupdate",
+      "argv": [
+        "make",
+        "-q",
+        "build/ktls-keyupdate"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "b442daa5322b25bc823592d42d68cc79d57fc42725a25a737e0e16826a402c02"
+    },
+    {
+      "target": "build/ktls-keyupdate-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/ktls-keyupdate-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "48692f8c3c69f4587f7a4223b12192ab38c95f545eefb7590e1987f97721ffa6"
+    },
+    {
+      "target": "build/flushfix-units",
+      "argv": [
+        "make",
+        "-q",
+        "build/flushfix-units"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "target": "build/splitlocal-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/splitlocal-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "ebe15e1cd1cb150b27f1ddbf658b20a3d024cf00338eb40ca00700d2a07ff489"
+    },
+    {
+      "target": "build/reorder-engagement-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/reorder-engagement-unit"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "7a1a9e04582cd26816139754d85c106932a16264d5156d43283a1d7b65827c10"
+    },
+    {
+      "target": "build/reorder-engagement-unit-db0",
+      "argv": [
+        "make",
+        "-q",
+        "build/reorder-engagement-unit-db0"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "4a15b0e39ac23c4d8d7673a16435f6c03540732ef05493d706006c1d21a7f643"
+    },
+    {
+      "target": "build/racefix-climon",
+      "argv": [
+        "make",
+        "-q",
+        "build/racefix-climon"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "67c7effb89ede2be3b9ae36c25b4532e4f1a14d3eda16eaf1c0983a7a0fa6f78"
+    },
+    {
+      "target": "build/aoforder-scheduled",
+      "argv": [
+        "make",
+        "-q",
+        "build/aoforder-scheduled"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "f7d52daf4fd3ab31ad9aa1c7abc57bbc0c3b6721ed09348ff519e4a238bd4152"
+    },
+    {
+      "target": "all",
+      "argv": [
+        "make",
+        "BUILD_ROOT=build/mdbqsbr2-park",
+        "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK",
+        "-q",
+        "all"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "782f7e73d6db29f025875c9ac20983a4ef3dd38369cbd5f190598bd34a68fb5c"
+    },
+    {
+      "target": "all",
+      "argv": [
+        "make",
+        "BUILD_ROOT=build/mdbqsbr2-no-wake",
+        "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE",
+        "-q",
+        "all"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "70cc2c274502ea6f5f353062b007a287f0692ebefe5c2f90414e68e94cd6b2a5"
+    },
+    {
+      "target": "build/blockfix-cost",
+      "argv": [
+        "make",
+        "-f",
+        "Makefile",
+        "-f",
+        "tools/blockfix_cost.mk",
+        "-q",
+        "build/blockfix-cost"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "b298a6f1750eadf13eeffbbd6ba37de1cdef14f6a7c1dbce49d26f71e03a5879"
+    },
+    {
+      "target": "build/tomokv.blockfix-cost.sha256",
+      "argv": [
+        "make",
+        "-f",
+        "Makefile",
+        "-f",
+        "tools/blockfix_cost.mk",
+        "-q",
+        "build/tomokv.blockfix-cost.sha256"
+      ],
+      "exit": 0,
+      "diagnostic": "",
+      "sha256": "5e01e339034d9d30063d61926051d3c0ef1c45e094137478d902272b84f965fd"
+    }
+  ],
+  "all_fresh": true
+}
