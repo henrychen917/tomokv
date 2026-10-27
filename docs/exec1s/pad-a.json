@@ -1,14 +1,14 @@
 {
   "kind": "A: PRE behaviour with the exact POST-layout image",
   "release_candidate": "/home/user/Projects/cx-exec1s/build/tomokv",
-  "release_sha256": "d6ce8fc7f18f615ba9baff0b98a194228ce2a8f8e7f816a6f522f7c750a9e961",
+  "release_sha256": "8c3e31255b218e855c66444e2265a64593435036f94aae53200a0dcd9eb0cc21",
   "post_layout": "/home/user/Projects/cx-exec1s/build/exec1s/POST-layout",
-  "post_sha256": "fc3fe00592c9227cfcc6996fc0e55198ba609cd7af53fbaf323a4f028feaea53",
+  "post_sha256": "fa31d965c9021d8d6b3c91f5a74c5e8723b4edb0b26d32ebc7814cf3e3a69a38",
   "pad_a": "/home/user/Projects/cx-exec1s/build/exec1s/PAD-A",
-  "pad_sha256": "e751468184f26127449bfb09231be61f707e158833a31cf045823aa260316e9c",
+  "pad_sha256": "1b7d70bd28066295ea691866523272ef1d03a4adb6c896d388add33c6737b83a",
   "matching_sections": true,
   "matching_symbols": true,
-  "patch_offset": 795796,
+  "patch_offset": 794804,
   "before": "4c8d542408",
   "after": "e917cb0000",
   "changed_bytes": 5,
@@ -16,14 +16,14 @@
     "name": "main",
     "info": 18,
     "sec": 16,
-    "value": 795792,
+    "value": 794800,
     "size": 8630
   },
   "entry_target": {
     "name": "exec1s_pre_main",
     "info": 18,
     "sec": 16,
-    "value": 847792,
+    "value": 846800,
     "size": 8630
   },
   "link": [
