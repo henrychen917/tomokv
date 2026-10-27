@@ -3,6 +3,7 @@
 import json
 from pathlib import Path
 import re
+from run_final import campaign
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / 'docs/wave8b'
@@ -42,6 +43,11 @@ for path in sorted((OUT / 'jobs').glob('final-*.json')):
         if not resolved:
             failures.append(dict(receipt=str(path.relative_to(ROOT)), label=label))
     assert len(failed) == int(match[2]), path
+    if receipt['exit'] != 0 and not failed:
+        failures.append(dict(receipt=str(path.relative_to(ROOT)),
+                             label='nonzero invocation exit without a failed-row verdict'))
+    if failed:
+        assert receipt['exit'] != 0, 'failed rows with a successful invocation exit'
     rows.append(dict(name=path.stem, exit=receipt['exit'], passed=int(match[1]), failed=int(match[2]),
                      failures=failed, binary_sha256=receipt['binary_sha256'],
                      jobs=receipt['env']['GATE_ONLY_JOBS'], seconds=receipt['seconds'],
@@ -52,11 +58,25 @@ build = json.loads((OUT / 'build/receipt.json').read_text())
 assert gates['exit'] == 0
 assert build['after_sha256'] == arms['POST']['sha256']
 assert all(row['exit'] == 0 for row in build['builds'] + build['freshness'])
-assert len(rows) >= 21, 'campaign is incomplete'
+required = {name for name, jobs, options in campaign} | {'final-source-repair', 'final-abba-selftest'}
+assert required <= {row['name'] for row in rows}, 'campaign is incomplete'
+assert len(build['freshness']) == 49
+timing = json.loads((OUT / 'timing-interactions.json').read_text())
+assert timing['binary_sha256'] in accepted
+assert {(row['mode'], row['atomic'], row['engine']) for row in timing['rows']} == {
+    (mode, atomic, engine) for mode in ('1s', '2s') for atomic in (0, 1)
+    for engine in ('uring', 'epoll')}
+controls = json.loads((OUT / 'controls/receipts.json').read_text())
+assert {row['case'] for row in controls} == {'scan', 'stale', 'callback', 'orphan'}
+assert all(row['exit'] == -6 for row in controls), 'planted native failures did not abort'
+source_controls = json.loads((OUT / 'source-controls.json').read_text())
+assert len(source_controls) == 22 and all(row['passed'] for row in source_controls)
 result = dict(post_sha256=arms['POST']['sha256'], runtime_identity_bridge='docs/wave8b/comment-sync.json',
               whole_job_invocations=len(rows), successful_row_executions=sum(r['passed'] for r in rows),
               failed_attempt_rows=sum(r['failed'] for r in rows), unresolved_failures=failures,
               rows=rows, gates_test=gates, make_freshness_checks=len(build['freshness']),
+              timing_interaction_legs=len(timing['rows']), native_negative_controls=len(controls),
+              source_controls=len(source_controls),
               not_run=['Full gate iteration and performance/load-generator merit: maintainer reserved'],
               dq=1, df=1, wave8_dq=8, wave8_df=8, expected_after_landing={'quick':807,'full':824})
 (OUT / 'proof-summary.json').write_text(json.dumps(result, indent=2) + '\n')

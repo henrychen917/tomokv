@@ -25,14 +25,17 @@ for engine in ('uring','epoll'):
  campaign += [('final-multidb-'+engine,
      [f'multidb-{mode}-{read_local}-{atomic}' for mode in ('1s','2s')
       for read_local in (0,1) for atomic in (0,1)], ['--engine',engine])]
-sha=hashlib.sha256((ROOT/'build/tomokv').read_bytes()).hexdigest();out=[]
-for name,jobs,opts in campaign:
- assert hashlib.sha256((ROOT/'build/tomokv').read_bytes()).hexdigest()==sha
- receipt=ROOT/'docs/wave8b/jobs'/(name+'.json')
- if not receipt.exists():
-  cmd=['python3','docs/wave8b/run_jobs.py',name,*jobs,'--single-slot',*opts]
-  print('START',name,flush=True);subprocess.run(cmd,check=False)
- r=json.loads(receipt.read_text());assert r['binary_sha256']==sha and r['binary_unchanged']
- out.append(dict(name=name,exit=r['exit'],summary=r['summary']))
- (ROOT/'docs/wave8b/campaign.json').write_text(json.dumps(out,indent=2)+'\n')
- print('DONE',name,r['exit'],flush=True)
+def main():
+ sha=hashlib.sha256((ROOT/'build/tomokv').read_bytes()).hexdigest();out=[]
+ for name,jobs,opts in campaign:
+  assert hashlib.sha256((ROOT/'build/tomokv').read_bytes()).hexdigest()==sha
+  receipt=ROOT/'docs/wave8b/jobs'/(name+'.json')
+  if not receipt.exists():
+   cmd=['python3','docs/wave8b/run_jobs.py',name,*jobs,'--single-slot',*opts]
+   print('START',name,flush=True);subprocess.run(cmd,check=False)
+  r=json.loads(receipt.read_text());assert r['binary_sha256']==sha and r['binary_unchanged']
+  out.append(dict(name=name,exit=r['exit'],summary=r['summary']))
+  (ROOT/'docs/wave8b/campaign.json').write_text(json.dumps(out,indent=2)+'\n')
+  print('DONE',name,r['exit'],flush=True)
+
+if __name__=='__main__':main()
