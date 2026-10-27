@@ -49,6 +49,7 @@
 #include <vector>
 
 #include "../core/signal_doorbell.h"
+#include "../core/exec1s.h"
 
 namespace tomo {
 
@@ -156,6 +157,12 @@ public:
 
     bool shutdown_complete() const { return !inited_ && wake_fd_ < 0; }
 
+    // enter counts are submit/get-events entries; waits are separate because liburing
+    // may satisfy a wait from an already populated CQ without entering the kernel.
+    void bind_entry_counters(uint32_t tid, bool executor) {
+        counter_slot_ = 2 * tid + executor;
+        exec1s_ring_counters[counter_slot_] = {};
+    }
     io_uring* raw() { return &r_; }
     bool deferred() const { return deferred_; }
 
@@ -214,6 +221,8 @@ public:
 
     int submit() {
         if (__builtin_expect(wake_fd_ >= 0, false)) return 0;
+        if (counter_slot_ < 256 && io_uring_sq_ready(&r_))
+            ++exec1s_ring_counters[counter_slot_].enters;
         return io_uring_submit(&r_);
     }
 
@@ -232,6 +241,7 @@ public:
     int submit_and_reap() {
         if constexpr (ClearSendClassification) send_pending_ = false;
         if (__builtin_expect(wake_fd_ >= 0, false)) return 0;
+        if (counter_slot_ < 256) ++exec1s_ring_counters[counter_slot_].enters;
         return io_uring_submit_and_get_events(&r_);
     }
 
@@ -259,6 +269,7 @@ public:
             if (n > 0 && (waits[0].revents & POLLIN)) drain_wake_fd();
             return n < 0 ? 0 : n;
         }
+        if (counter_slot_ < 256) ++exec1s_ring_counters[counter_slot_].waits;
         __kernel_timespec ts{};
         ts.tv_sec  = timeout_ms / 1000;
         ts.tv_nsec = static_cast<long long>(timeout_ms % 1000) * 1000000LL;
@@ -402,6 +413,7 @@ private:
     std::vector<io_uring_cqe> deferred_cqes_;
     bool raw_callback_active_ = false;
     bool raw_callback_taken_ = false;
+    uint16_t counter_slot_ = 256; // pre-existing two-byte alignment hole
     unsigned raw_callback_index_ = 0;
     // Epoll-mode doorbell state. -1 in uring mode, which is the single test every method above
     // branches on; the vector and mutex are never constructed into use there.

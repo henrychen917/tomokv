@@ -103,6 +103,7 @@ public:
         client_lb_signal_armed_ = srv_->client_lb_signals_enabled();
         lb_controller_armed_ = srv_->lb_controller_enabled();
         if (!ring_.init(4096)) return false;
+        ring_.bind_entry_counters(self_->id(), false);
         if (!srv_->databases().watch_wake(self_->id(), ring_)) return false;
         if (epoll_ && !init_epoll()) return false;
         wb_.bind(&ring_, this, [](void* ctx, int32_t shard, const char* ptr) {

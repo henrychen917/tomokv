@@ -500,6 +500,7 @@ template <uint32_t BatchOps, bool ConsumeTasks,
           bool IofusedPrivateQueue, bool InterleaveLocalReads>
 uint32_t ExLoopT<Fused>::r7_fused_pass_impl() {
     TOMO_R7_PATH();
+    ++exec1s_counters[self_->id()].owner_passes;
     Server::ClientWorkScope client_work(*srv_, self_->id());
     struct RotationBoundary {
         bool enabled;
@@ -661,6 +662,7 @@ template <uint32_t BatchOps, bool ConsumeTasks,
           bool IofusedPrivateQueue, bool InterleaveLocalReads>
 uint32_t ExLoopT<Fused>::r7_fused_sweep_impl() {
     TOMO_R7_PATH();
+    ++exec1s_counters[self_->id()].owner_passes;
     if (lb_controller_armed_ && srv_->lb_dispatch_paused())
         return r7_fused_pass_impl<BatchOps, ConsumeTasks,
                                IofusedPrivateQueue>();

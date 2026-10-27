@@ -97,6 +97,7 @@
         const uint64_t bit = atomic_membership_bit(hash);
         uint64_t ticket = 0;
         for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
+            TOMO_EXEC1S_VISIT();
             if (!(entry->membership & bit)) continue;
             for (uint32_t i = 0; i < entry->count; i++) {
                 if (atomic_entry_hash(*entry, i) != hash || !atomic_entry_key(*entry, i).key_eq(key))
@@ -265,6 +266,7 @@
         if (!atomic_pending_) return;
         const uint64_t bit = atomic_membership_bit(hash);
         for (auto* entry = atomic_pending_->head; entry; entry = entry->next) {
+            TOMO_EXEC1S_VISIT();
             if (wildcard) { visit(*entry); continue; }
             if (!(entry->membership & bit)) continue;
             for (uint32_t i = 0; i < entry->count; ++i)

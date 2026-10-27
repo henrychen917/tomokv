@@ -194,6 +194,7 @@ public:
             }
         }
         if (!ring_.init(1024)) return false;
+        ring_.bind_entry_counters(self_->id(), true);
         if (!srv_->databases().watch_wake(self_->id(), ring_)) return false;
         initialized_ = true;
         if (!dormant) activate();
@@ -368,6 +369,7 @@ public:
     template <uint32_t BatchOps, bool ConsumeTasks,
               bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
     uint32_t fused_pass_impl() {
+        ++exec1s_counters[self_->id()].owner_passes;
         Server::ClientWorkScope client_work(*srv_, self_->id());
         struct RotationBoundary {
             bool enabled;
@@ -525,6 +527,7 @@ public:
     template <uint32_t BatchOps, bool ConsumeTasks,
               bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
     uint32_t fused_sweep_impl() {
+        ++exec1s_counters[self_->id()].owner_passes;
         if (lb_controller_armed_ && srv_->lb_dispatch_paused())
             return fused_pass_impl<BatchOps, ConsumeTasks,
                                    IofusedPrivateQueue>();
@@ -609,6 +612,7 @@ public:
             // the otherwise-cold configuration refresh path.
             if (!placement_frozen) refresh_live_config();
             sig.iterations++;
+            ++exec1s_counters[self_->id()].owner_passes;
 
             uint32_t did = 0;
             uint64_t pass_ns = 0;
@@ -2435,6 +2439,9 @@ private:
         const Task& task, Shard& shard, void (*promote)(void*, MultiOwnerRetryNode&)) {
         AofOwnerContext context{self_->id(), &ring_, &self_->sig()};
         const MultiRetryPromoter promoter{this, promote};
+#ifdef TOMO_EXEC1S_DEBUG
+        Exec1sVisitScope visits(self_->id());
+#endif
         return multi_execute_task(*srv_, task, shard, self_->id(), self_->domain(),
                                   aof_manager_ ? &context : nullptr, &promoter);
     }
