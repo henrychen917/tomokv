@@ -2444,6 +2444,27 @@ private:
         (void)owned[lb_bytes_shard_cursor_++]->lb_scan_bucket_bytes(64);
     }
 
+    // Four two-key EXECs amortize a prefix collapse against eight-record walks.
+    // Only transaction completion reaches this helper; ordinary command paths
+    // do not acquire a cleanup clock/floor or update new per-operation state.
+    __attribute__((noinline)) void reclaim_multi_prefix(Shard& shard) {
+        if (shard.store().atomic_live_records() < 8) return;
+        const uint64_t cutoff = srv_->atomic_snapshot(); // must precede floor
+        const uint64_t floor = srv_->atomic_read_floor();
+        if (xshard_cleanup_shard_at(shard, floor, cutoff, 8))
+            ++exec1s_counters[self_->id()].eager_collapses;
+    }
+
+    // Keep completion bookkeeping inside the transaction branch without
+    // extending its result's live range across calls in ordinary dispatch.
+    __attribute__((noinline)) MultiTaskResult finish_multi_store(Shard& shard, MultiTaskResult result) {
+        if (result == MultiTaskResult::Complete || result == MultiTaskResult::Final)
+            reclaim_multi_prefix(shard);
+        // Expiry/object-byte statistics may change while the key count stays fixed.
+        shard.publish_size();
+        return result;
+    }
+
     __attribute__((noinline)) MultiTaskResult execute_multi_unit(
         const Task& task, Shard& shard, void (*promote)(void*, MultiOwnerRetryNode&)) {
         AofOwnerContext context{self_->id(), &ring_, &self_->sig()};

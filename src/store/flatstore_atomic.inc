@@ -261,6 +261,12 @@
                 bytes_equal(intent->key_data(), key.p, key.n))) visit(*intent);
         }
     }
+    uint32_t atomic_live_records() const { return atomic_pending_ ? atomic_pending_->live : 0; }
+    // A conservative blind-group count: includes script/TO-B/EXEC children.
+    // Those extra positives cost a scan, never remove a required one.
+    bool atomic_may_have_blind_records() const {
+        return atomic_pending_ && (atomic_pending_->group_records || atomic_pending_->live >= 256);
+    }
     template <typename Visit>
     void atomic_visit_unit_records(uint64_t hash, Slice key, bool wildcard, Visit&& visit) {
         if (!atomic_pending_) return;
@@ -514,11 +520,11 @@
         atomic_version_bytes_ -= bytes;
     }
 
-    void atomic_publish_group(void* opaque) {
+    __attribute__((always_inline)) void atomic_publish_group(void* opaque) {
         auto* entry = static_cast<AtomicEntry*>(opaque);
         if (!entry || !entry->count || entry->linked) std::abort();
         atomic_link_entry(*entry);
-        atomic_pending_->group_installing = false;
+        atomic_pending_->finish_group_install();
     }
 
 
@@ -1162,7 +1168,7 @@ private:
         return false;
     }
 
-    void atomic_link_entry(AtomicEntry& entry) {
+    __attribute__((always_inline)) void atomic_link_entry(AtomicEntry& entry) {
         if (entry.linked) std::abort();
         const bool first = atomic_pending_->live == 0 &&
                            atomic_pending_->script_intent_count == 0;
@@ -1184,6 +1190,7 @@ private:
     }
 
     void atomic_unlink_conn(AtomicEntry& entry) {
+        if (entry.group) --atomic_pending_->group_records;
         const uint32_t bucket = static_cast<uint32_t>(mix64(entry.origin_conn_id)) & 63;
         if (entry.conn_prev) entry.conn_prev->conn_next = entry.conn_next;
         else {

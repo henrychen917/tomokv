@@ -1295,6 +1295,11 @@ bool multi_touch_key(MultiExecState& state, Shard& shard, uint64_t hash, Slice k
 enum class TxnBlind : uint8_t { Clear, Completing, Crossing };
 TxnBlind txn_blind_scan(Shard& shard, const std::vector<TxnClaim>& claims,
                         const void* own = nullptr) {
+    if (!shard.store().atomic_may_have_blind_records()) {
+        if (auto* server = shard.server())
+            ++exec1s_counters[server->worker_of_shard(shard.id())].blind_clear;
+        return TxnBlind::Clear;
+    }
     TxnBlind result = TxnBlind::Clear;
     for (const auto& claim : claims)
         shard.store().atomic_visit_unit_records(claim.hash, txn_claim_slice(claim),
@@ -1440,9 +1445,10 @@ bool prepare_local_write_keys(Server& server, MultiExecState& state, MultiComman
     for (size_t i = 0; count > 1 && i < count; ++i) {
         const uint32_t arg = unique[i];
         const Slice key = command.op->arg(arg);
-        if (!multi_touch_key(state, shard, FlatStore::hash_key(key), key, true) ||
+        const uint64_t hash = FlatStore::hash_key(key);
+        if (!multi_touch_key(state, shard, hash, key, true) ||
             !shard.watch_txn_write_ready(key, state)) return false;
-        const auto snapshot = shard.store().snapshot_prepare_write(FlatStore::hash_key(key), key);
+        const auto snapshot = shard.store().snapshot_prepare_write(hash, key);
         if (snapshot == FlatStore::SnapshotWriteResult::Pending) return false;
         if (snapshot == FlatStore::SnapshotWriteResult::Error) {
             state.decision.aborted.store(true, std::memory_order_release);
@@ -1453,7 +1459,8 @@ bool prepare_local_write_keys(Server& server, MultiExecState& state, MultiComman
         const uint32_t arg = unique[i];
         const Slice key = command.op->arg(arg);
         const MultiPrepareWrite result = prepare_write_key(
-            server, state, shard, key, FlatStore::hash_key(key), owner_thread_id,
+            server, state, shard, key, command.key_args.size() == 1
+                ? command.op->hash : FlatStore::hash_key(key), owner_thread_id,
             nullptr, nullptr, !has_name(command.queued, "xreadgroup"));
         if (result == MultiPrepareWrite::Retry) return false;
         if (result == MultiPrepareWrite::Error) {
