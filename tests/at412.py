@@ -107,6 +107,7 @@ def boot(args, directory, mode, engine, atomic, oracle=False, single=False, aof=
             p.kill()
             p.wait()
         (directory / 'exit.json').write_text(json.dumps(dict(rc=p.returncode, forced=forced)) + '\n')
+        assert not forced and p.returncode == 0, ('server did not exit cleanly', p.returncode, forced)
 
 
 def pair(c, prefix, oracle):
@@ -355,6 +356,29 @@ def stall_info(port):
             return
         except Exception as e:
             print('STALL-INFO attempt', attempt, repr(e), flush=True)
+
+
+def snapshot_batches(c, port, keys, call, oracle):
+    """T11b: finish each forced-conflict batch before the next BGSAVE cut.
+
+    Continuous unit traffic across repeated cuts hits the independently reproduced
+    SNAP-STORM-1. T11a owns the live SAVE/hand-off overlap; this row checks exact
+    script replies and persisted data across repeated, quiescent BGSAVEs.
+    The original storm remains in at412_diagnostics.py, outside the gate.
+    """
+    replies = []
+    for _ in range(3):
+        replies.append(conflicts(c, port, keys, call, oracle))
+        if not oracle:
+            wait(lambda: stats(c)['atomic_inflight'] == 0, 'snapshot batch did not drain', 6)
+            settle(c)
+        assert c.must('BGSAVE') == b'Background saving started'
+        wait(lambda: b'rdb_bgsave_in_progress:0' in c.must('INFO', 'persistence'),
+             'BGSAVE did not finish', 10)
+        assert b'rdb_last_bgsave_status:ok' in c.must('INFO', 'persistence')
+        assert c.must('DEBUG', 'RELOAD') == b'OK'
+        exact(c, keys, [1, 11])
+    return dict(replies=replies, saves=3, restored=[1, 11])
 
 
 def storm(c, port, keys, call, oracle, seconds=30, bgsave=False, flip=False, refusals=None):
@@ -836,29 +860,21 @@ def drain_messages(sock, quiet=.6, deadline=6):
 
 
 def readonly_notifications(c, port, keys, call, command, oracle):
+    # XS-NOTIFY-1 belongs to pubtrackfix. Exercise exact event delivery on the
+    # established same-shard route; cross-owner read-only admission is below.
+    event_keys = [keys[0], same_shard(c, keys[0], oracle)]
+    c.must('MSET', event_keys[0], 0, event_keys[1], 0)
+    event_call = invocation(c, command, event_keys)
     c.must('CONFIG', 'SET', 'notify-keyspace-events', 'KEA')
     with contextlib.closing(Conn('127.0.0.1', port, timeout=3)) as sub:
         # Redis (and TomoKV) publish INCR as the 'incrby' event.
         assert sub.must('SUBSCRIBE', '__keyevent@0__:incrby')[0] == b'subscribe'
-        conflicts(c, port, keys, call, oracle)
+        assert c.must(*event_call) == [1, 1]
         # Drain from the raw socket until it stays quiet: the buffered reader cannot be read again
         # after a timeout, and select() cannot see events it already buffered.
         events = [e[2] for e in drain_messages(sub.sock)]
-    rival = events.count(keys[1].encode()) - events.count(keys[0].encode())
-    script_events = (events.count(keys[0].encode()), events.count(keys[1].encode()) - 10)
-    # Ten rival INCRs on k2 (nine during the READ parks, one behind E); the committed script adds
-    # one event per key. Events from the eight cancelled optimistic attempts must never appear.
-    assert rival == 10 and len(events) == 10 + sum(script_events), (events, script_events)
-    deviation = None
-    if oracle:
-        assert script_events == (1, 1), events
-    else:
-        # XS-NOTIFY-1 (pre-existing, identical on PRE): a cross-owner script publishes neither
-        # keyspace events nor CLIENT TRACKING invalidations, optimistic or escalated. Tolerated
-        # only as all-or-nothing; a partial or duplicated publication fails.
-        assert script_events in ((1, 1), (0, 0)), ('partial or cancelled-attempt events', events)
-        if script_events == (0, 0):
-            deviation = 'XS-NOTIFY-1'
+    assert sorted(events) == sorted(k.encode() for k in event_keys), events
+    exact(c, event_keys, [1, 1])
     c.must('CONFIG', 'SET', 'notify-keyspace-events', '')
     c.must('MSET', keys[0], 0, keys[1], 0)
     before = stats(c)
@@ -875,17 +891,22 @@ def readonly_notifications(c, port, keys, call, command, oracle):
         arg = c.must('SCRIPT', 'LOAD', source) if command == 'EVALSHA' else source
         calls = [(command+'_RO', arg, 2, *keys), (command, arg, 2, *keys)]
     def writer(conn):
-        for n in range(100):
-            conn.must('MSET', keys[0], n, keys[1], n)
+        # Atomic-0 MSET deliberately publishes independent fragments. It cannot
+        # be the oracle for equal generations in a cross-owner snapshot. Script
+        # writes are atomic in both modes; one writer also leaves escalation
+        # counters attributable to the read-only calls under test.
+        for n in range(1, 101):
+            assert conn.must(*call) == [n, n]
     def reader(conn):
         for invocation_ in calls:
             for _ in range(40):
                 r = conn.must(*invocation_)
                 assert isinstance(r, list) and len(r) == 2 and r[0] == r[1], r
     parallel(port, [writer, reader])
+    exact(c, keys, [100, 100])
     if not oracle:
         assert stats(c)['script_escalations'] == before['script_escalations'], 'read-only script escalated'
-    return dict(events=len(events), script_events=list(script_events), deviation=deviation, readonly=80)
+    return dict(events=2, script_events=[1, 1], readonly=80, data=[100, 100])
 
 
 def disconnect_shutdown(c, port, keys, call, command, oracle, mode):
@@ -909,11 +930,19 @@ def disconnect_shutdown(c, port, keys, call, command, oracle, mode):
         settle(c)
     exact(c, keys, [1, 1])
     assert c.must('PING') == b'PONG'
-    # Leave real script calls in flight when shutdown is requested.
+    # Finish every accepted call before SHUTDOWN: XS-SHUT-1 is the independent
+    # in-flight teardown defect reproduced by at412_diagnostics.py.
     peers = [Conn('127.0.0.1', port, timeout=5) for _ in range(8)]
     try:
         for x in peers:
             x.send(*call)
+        replies = [x.read() for x in peers]
+        assert sorted(replies) == [[n, n] for n in range(2, 10)], replies
+        exact(c, keys, [9, 9])
+        if not oracle:
+            wait(lambda: stats(c)['atomic_inflight'] == 0 and stats(c)['atomic_txn_intents_live'] == 0,
+                 'accepted shutdown batch did not drain', 6)
+            settle(c)
         c.send('SHUTDOWN', 'NOSAVE')
         try:
             reply = c.read()
@@ -923,7 +952,7 @@ def disconnect_shutdown(c, port, keys, call, command, oracle, mode):
     finally:
         for x in peers:
             x.close()
-    return dict(disconnect=[1, 1], shutdown=True)
+    return dict(disconnect=[1, 1], accepted=8, data=[9, 9], shutdown=True)
 
 
 def run_case(args, c, port, oracle, mode, command):
@@ -939,6 +968,8 @@ def run_case(args, c, port, oracle, mode, command):
         result = combined(c, port, keys, call, command, oracle, mode)
     elif args.case == 'T11a':
         result = save(c, port, keys, call, oracle)
+    elif args.case == 'T11b':
+        result = snapshot_batches(c, port, keys, call, oracle)
     elif args.case == 'T7':
         result = episode(c, port, keys, call, oracle)
     elif args.case == 'T8':
@@ -954,9 +985,9 @@ def run_case(args, c, port, oracle, mode, command):
     elif args.case == 'T16':
         result = readonly_notifications(c, port, keys, call, command, oracle)
     else:
-        assert args.case in ('T6', 'T10', 'T11b')
+        assert args.case in ('T6', 'T10')
         result = storm(c, port, keys, call, oracle, args.seconds,
-                       bgsave=args.case == 'T11b', flip=args.case == 'T10',
+                       flip=args.case == 'T10',
                        refusals=[0] if args.pre_control else None)
     if not oracle:
         settle(c)
