@@ -1402,6 +1402,10 @@ bool delete_one(KvObj* object, const StreamID& wanted) {
                 !decode_record(raw.value, previous, previous_fields, record)) return false;
             if (id_equal(record.id, wanted)) {
                 if (record.flags & kDeleted) return false;
+                if (stream_live_length(object) == 1) {
+                    Compact empty;
+                    return rebuild_compact(empty, header, {}) && stream.replace_compact(std::move(empty));
+                }
                 std::string replacement(raw.value.p, raw.value.n);
                 replacement[record.flags_offset] = static_cast<char>(record.flags | kDeleted);
                 deleted = stream.replace(raw, Slice(replacement.data(), replacement.size()));
@@ -1436,11 +1440,37 @@ bool delete_one(KvObj* object, const StreamID& wanted) {
             return false;
         if (id_equal(record.id, wanted)) {
             if (record.flags & kDeleted) return false;
+            const bool remove_node = node.deleted_entries + 1 == node.physical_entries;
+            const bool tail_removed = remove_node && node_index + 1 == value->nodes.size();
+            std::vector<std::string> new_tail_fields;
+            // Prepare the surviving tail dictionary before mutating the log. Redis drops a
+            // completely deleted node; retaining it changes later append/trim boundaries.
+            if (tail_removed && node_index) {
+                StreamNode& tail = value->nodes[node_index - 1];
+                try {
+                    if (!scan_compact(CompactView(&tail.log), tail.base_id,
+                        [&](const Compact::Entry&, const RecordView& entry) {
+                            new_tail_fields.clear();
+                            for (Slice field : entry.fields)
+                                new_tail_fields.emplace_back(field.p, field.n);
+                            return true;
+                        }, node_index == 1 && !value->head_fields.empty() ? &value->head_fields : nullptr))
+                        return false;
+                } catch (const std::bad_alloc&) { return false; }
+            }
             std::string replacement(raw.value.p, raw.value.n);
             replacement[record.flags_offset] = static_cast<char>(record.flags | kDeleted);
             if (!node.log.replace(raw, Slice(replacement.data(), replacement.size()))) return false;
             stream_node_delete_count(node, 1);
             value->note_expanded_delete(0, value->node_allocation_bytes);
+            if (remove_node) {
+                value->nodes.erase(value->nodes.begin() + node_index);
+                value->index.erase(value->index.begin() + node_index);
+                for (uint32_t n = node_index; n < value->index.size(); n++) value->index[n].node = n;
+                if (!node_index) value->head_fields.clear();
+                if (tail_removed) value->tail_fields.swap(new_tail_fields);
+                refresh_allocation(*value);
+            }
             return true;
         }
         if (id_compare(record.id, wanted) > 0) return false;
@@ -1470,6 +1500,13 @@ void cmd_xdel(Shard& shard, Op& op) {
         if (id_compare(id, header.max_deleted_entry_id) > 0) header.max_deleted_entry_id = id;
     }
     if (removed) {
+        CollectionRef current(object);
+        if (current.encoding() == CollectionEncoding::Compact) {
+            if (current.compact().size() == 1) header.base_id = {};
+        } else {
+            const auto& nodes = current.external_as<StreamVal>()->nodes;
+            header.base_id = nodes.empty() ? StreamID{} : nodes.front().base_id;
+        }
         if (!update_object_header(object, header)) {
             reply_err(op.sink(), "ERR corrupt stream encoding"); return;
         }
