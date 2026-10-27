@@ -43,6 +43,11 @@ PHASES = {
     'extra-uring': (['execfair','fused-0','fused-1'], {}),
     'extra-epoll': (['fused-0','fused-1','flip','flipctl','flip_saturated'],
                     {'GATE_PROOF_NET_IO':'epoll'}),
+    # The standard armed-fused differential matrix excludes SORT because its
+    # differential suite requires split 6:2. Keep that exclusion visible and
+    # also exercise the dedicated job's explicit fused geometry on each engine.
+    'sort-fused-uring': (['sort'], {'GATE_TXN_FUSED':'1'}),
+    'sort-fused-epoll': (['sort'], {'GATE_TXN_FUSED':'1', 'GATE_PROOF_NET_IO':'epoll'}),
 }
 
 
