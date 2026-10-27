@@ -1,0 +1,294 @@
+{
+  "before": {
+    "path": "/home/user/Projects/cx-wave8b/build/tomokv-wave8b-before-comment-sync",
+    "sha256": "4acdb9baab221726b46589a965802c4175439b9670077997690c20a0c37e040b"
+  },
+  "after": {
+    "path": "/home/user/Projects/cx-wave8b/build/tomokv",
+    "sha256": "8c150a28fd2ef2e1e5b63b7b92e2c61f5e76824e22398835c9bab04ae708f6d7"
+  },
+  "changed_sources": [
+    {
+      "path": "src/core/reorder.cc",
+      "before_sha256": "4bd4ca465046b75c8a1457d68d0914b934a6e24cf9889d328659a0e2206b7574",
+      "after_sha256": "d7d2ba4e305cddc6683092902577539b143263b834a2a758efec167124ab0bbe",
+      "identical_cpp_tokens": true
+    }
+  ],
+  "identical": true,
+  "checked": "Every allocated section except GNU build-id, all program headers, entry point, and symbol names/addresses/sizes; C++ tokens identical.",
+  "exclusion": "GNU build-id and nonallocated debug/linker metadata may change after comment regeneration.",
+  "sections": {
+    ".interp": {
+      "type": 1,
+      "flags": 2,
+      "address": 848,
+      "offset": 848,
+      "size": 28,
+      "alignment": 1,
+      "sha256": "9097c98ea70f6f3b01d50145eb72bf55ad1f4e9713bccf27bd6405d6254eed00"
+    },
+    ".note.gnu.property": {
+      "type": 7,
+      "flags": 2,
+      "address": 880,
+      "offset": 880,
+      "size": 48,
+      "alignment": 8,
+      "sha256": "67098b0bd64a1f8fdb6594ba06e1fb1fd39e5d20334df6e6957967935b509beb"
+    },
+    ".note.ABI-tag": {
+      "type": 7,
+      "flags": 2,
+      "address": 964,
+      "offset": 964,
+      "size": 32,
+      "alignment": 4,
+      "sha256": "6e48317ad93a8ac2dc04321465ede06d1274543fc8ab172e68171a9d684bb313"
+    },
+    ".gnu.hash": {
+      "type": 1879048182,
+      "flags": 2,
+      "address": 1000,
+      "offset": 1000,
+      "size": 344,
+      "alignment": 8,
+      "sha256": "02b1b253938792012bcfac858b52e6f0f26b6837ac5b80e253c66c4f16e35450"
+    },
+    ".dynsym": {
+      "type": 11,
+      "flags": 2,
+      "address": 1344,
+      "offset": 1344,
+      "size": 9072,
+      "alignment": 8,
+      "sha256": "21a2c9afbd2355e29f6b79795a2fdd420ff486bda69b1d9cf8adf23e25ae04e8"
+    },
+    ".dynstr": {
+      "type": 3,
+      "flags": 2,
+      "address": 10416,
+      "offset": 10416,
+      "size": 8126,
+      "alignment": 1,
+      "sha256": "2eb193500893199a720c7904b66ceac9736b3e8e644a2485a85c698ba149b055"
+    },
+    ".gnu.version": {
+      "type": 1879048191,
+      "flags": 2,
+      "address": 18542,
+      "offset": 18542,
+      "size": 756,
+      "alignment": 2,
+      "sha256": "dca6a9bfd7def3af18247a5851bc82e58e0164dbd1b2ebf276605ccd96b28939"
+    },
+    ".gnu.version_r": {
+      "type": 1879048190,
+      "flags": 2,
+      "address": 19304,
+      "offset": 19304,
+      "size": 752,
+      "alignment": 8,
+      "sha256": "af398b8d1d602f3620d79fc551c60b1f34f471ce8a07241852df84f3c4ce8da4"
+    },
+    ".rela.dyn": {
+      "type": 4,
+      "flags": 2,
+      "address": 20056,
+      "offset": 20056,
+      "size": 90432,
+      "alignment": 8,
+      "sha256": "3e4c11f4d51c94700bafc82901754aff2327abf696628865719ade2361ac7e74"
+    },
+    ".rela.plt": {
+      "type": 4,
+      "flags": 66,
+      "address": 110488,
+      "offset": 110488,
+      "size": 7848,
+      "alignment": 8,
+      "sha256": "d3b570375237a088aca61d65a170cbb3d245297961103f8e7e1de6402fe20668"
+    },
+    ".init": {
+      "type": 1,
+      "flags": 6,
+      "address": 118784,
+      "offset": 118784,
+      "size": 27,
+      "alignment": 4,
+      "sha256": "2ac1206c4701505022c841d86dab950adf9e637488f54d03ad0ce9f33e693896"
+    },
+    ".plt": {
+      "type": 1,
+      "flags": 6,
+      "address": 118816,
+      "offset": 118816,
+      "size": 5248,
+      "alignment": 16,
+      "sha256": "479faa96a73f87dc3152e910c5ace29260605d72e52186f0568af5687c39c682"
+    },
+    ".plt.got": {
+      "type": 1,
+      "flags": 6,
+      "address": 124064,
+      "offset": 124064,
+      "size": 32,
+      "alignment": 16,
+      "sha256": "b075329997f0cd3a1fb0d8250e2d71a6b419030109e2d9285559580e5977bae4"
+    },
+    ".plt.sec": {
+      "type": 1,
+      "flags": 6,
+      "address": 124096,
+      "offset": 124096,
+      "size": 5232,
+      "alignment": 16,
+      "sha256": "62fdb11e28711762aac4b2ec614c8bb083d062bbe0ab836d64c6da91f9ae8b8f"
+    },
+    ".text": {
+      "type": 1,
+      "flags": 6,
+      "address": 129328,
+      "offset": 129328,
+      "size": 8457095,
+      "alignment": 16,
+      "sha256": "909cefa007436a86ea4325108f3fb7f856956d95d062e4b0bab2bc4137704024"
+    },
+    ".rlfence": {
+      "type": 1,
+      "flags": 6,
+      "address": 8586423,
+      "offset": 8586423,
+      "size": 112,
+      "alignment": 1,
+      "sha256": "1c3cc973f6621b11216b04dcc33c8998cf5b8ed105ba13cb8d264f5933e4e5f4"
+    },
+    ".fini": {
+      "type": 1,
+      "flags": 6,
+      "address": 8586536,
+      "offset": 8586536,
+      "size": 13,
+      "alignment": 4,
+      "sha256": "6a4f3e5efc7c1f7ee7d6f21afd9ed040ba1d7f0b97bb12b016f5b176cc558bd8"
+    },
+    ".rodata": {
+      "type": 1,
+      "flags": 2,
+      "address": 8589312,
+      "offset": 8589312,
+      "size": 169116,
+      "alignment": 64,
+      "sha256": "e1c1a765fd82c08d870851f55988a8ee6abac0aba439b432e0d149c66a24bb25"
+    },
+    ".eh_frame_hdr": {
+      "type": 1,
+      "flags": 2,
+      "address": 8758428,
+      "offset": 8758428,
+      "size": 89364,
+      "alignment": 4,
+      "sha256": "5f58c6e4405fd908b68d5b5fc1e418bdb3719ff125b8890bdc3743e5b4b12078"
+    },
+    ".eh_frame": {
+      "type": 1,
+      "flags": 2,
+      "address": 8847792,
+      "offset": 8847792,
+      "size": 594168,
+      "alignment": 8,
+      "sha256": "904e78a8ce5c43b39d04e8ac7ab62e3fff51e2b3c8e9dfe2953050b6f1028c4d"
+    },
+    ".gcc_except_table": {
+      "type": 1,
+      "flags": 2,
+      "address": 9441960,
+      "offset": 9441960,
+      "size": 143645,
+      "alignment": 4,
+      "sha256": "8c85b8b5855165c14b59574fd90ed2267cebb591bb3c466b22264c873a440a73"
+    },
+    ".tdata": {
+      "type": 1,
+      "flags": 1027,
+      "address": 9589632,
+      "offset": 9589632,
+      "size": 384,
+      "alignment": 16,
+      "sha256": "1ef87c6166824f980d040f008806d9c815aed0b3513032813895b28d0ab301ce"
+    },
+    ".tbss": {
+      "type": 8,
+      "flags": 1027,
+      "address": 9590016,
+      "offset": 9590016,
+      "size": 520,
+      "alignment": 16,
+      "sha256": null
+    },
+    ".init_array": {
+      "type": 14,
+      "flags": 3,
+      "address": 9590016,
+      "offset": 9590016,
+      "size": 760,
+      "alignment": 8,
+      "sha256": "74e1ed02355c02865bd939ea69c12c9b45ccabcd754efe099f1c576f13e340a7"
+    },
+    ".fini_array": {
+      "type": 15,
+      "flags": 3,
+      "address": 9590776,
+      "offset": 9590776,
+      "size": 8,
+      "alignment": 8,
+      "sha256": "65e501a8cefa6c1a583359ed51070564a5ca96db412cf9bb2f23042a67f96b27"
+    },
+    ".data.rel.ro": {
+      "type": 1,
+      "flags": 3,
+      "address": 9590784,
+      "offset": 9590784,
+      "size": 68304,
+      "alignment": 32,
+      "sha256": "1b0c72fb1e37a34eac1e03899f1b4a30eb4220b0ce718fbd23cffb117a0020e6"
+    },
+    ".dynamic": {
+      "type": 6,
+      "flags": 3,
+      "address": 9659088,
+      "offset": 9659088,
+      "size": 608,
+      "alignment": 8,
+      "sha256": "04bd346b7b7eadeb7d006575affae59315643ef3bba523fec10bf7dc9e61dc06"
+    },
+    ".got": {
+      "type": 1,
+      "flags": 3,
+      "address": 9659696,
+      "offset": 9659696,
+      "size": 2752,
+      "alignment": 8,
+      "sha256": "c7bb37a94370ce5210da97e65edb1154e5aa8429137b8a5cb27e196595cca2bd"
+    },
+    ".data": {
+      "type": 1,
+      "flags": 3,
+      "address": 9662464,
+      "offset": 9662464,
+      "size": 19321,
+      "alignment": 64,
+      "sha256": "8cded9b1be96b9a73d75e0d797de71d2b5e8673b3de8a405181e846af49aa7c9"
+    },
+    ".bss": {
+      "type": 8,
+      "flags": 3,
+      "address": 9681792,
+      "offset": 9681785,
+      "size": 1106312,
+      "alignment": 64,
+      "sha256": null
+    }
+  },
+  "symbol_count": 13008
+}

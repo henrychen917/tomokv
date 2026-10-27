@@ -1,0 +1,135 @@
+[
+  {
+    "name": "final-lanes",
+    "exit": 1,
+    "summary": [
+      "GATE(PARTIAL): 146 ok, 3 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-lanes.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-tcl",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-tcl.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-engine-uring",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 166 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-engine-uring.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-debug-uring-2s",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 41 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-debug-uring-2s.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-debug-uring-1s",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 41 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-debug-uring-1s.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-differ-uring",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-differ-uring.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-engine-epoll",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 166 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-engine-epoll.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-debug-epoll-2s",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 41 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-debug-epoll-2s.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-debug-epoll-1s",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 41 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-debug-epoll-1s.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-differ-epoll",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-differ-epoll.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-aof-2s",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 109 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-aof-2s.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-aof-1s",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 109 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-aof-1s.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-replyoff-fused-uring",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 3 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-replyoff-fused-uring.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-replyoff-fused-epoll",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 3 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-replyoff-fused-epoll.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-script-aof",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 2 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-script-aof.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-watch-blocking-uring",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 5 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-watch-blocking-uring.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-multidb-uring",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 25 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-multidb-uring.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-watch-blocking-epoll",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 5 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-watch-blocking-epoll.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-multidb-epoll",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 25 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-multidb-epoll.tsv.partial"
+    ]
+  }
+]

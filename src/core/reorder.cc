@@ -2476,7 +2476,8 @@ subscriber_checks_done:
                     ? latency_tracking_start() : 0;
                 const WaitCommandResult wait = server_tail_prepare_wait(*op, timeout_ms);
                 if (wait == WaitCommandResult::Unsatisfied) {
-                    // CONFIG no discards this probe along with every other pending slice.
+                    // Pending slices participate in CONFIG no's discard. Do not
+                    // retain an old probe duration in the parked timer itself.
                     if (latency_started) latency_tracking_part(self_id, *op, latency_started);
                     if (!deferred_timer_start(c, rob.dispatch_id(),
                                               DeferredTimerKind::WaitZero, timeout_ms,
