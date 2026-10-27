@@ -1329,5 +1329,201 @@
         "source": "/home/user/Projects/cx-at412c/build/gate-run.reErX1/jobs/release"
       }
     ]
+  },
+  {
+    "phase": "differ-uring",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "bash",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20200-20279"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_TEST_PORT": "20299",
+      "GATE_ONLY_JOBS": "differ-split differ-armed differ-equivalence"
+    },
+    "source": "0087600845a8dbb899ae045bd3817e1ea7228074",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "log": "/home/user/Projects/cx-at412c/build/at412c/proof/differ-uring-9.log",
+    "began": 1793106259.1609843,
+    "rc": 0,
+    "seconds": 2146.117,
+    "run_dir": "/home/user/Projects/cx-at412c/build/gate-run.nx4Shz",
+    "archived": "docs/at412c/proof/differ-uring-9-gate-run.nx4Shz",
+    "jobs": [
+      {
+        "name": "differ-armed-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.nx4Shz/jobs/differ-armed-0",
+        "differ_complete": {
+          "schema": 1,
+          "part": "armed-0",
+          "run": "full:gate-run.nx4Shz",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21
+          ],
+          "comparisons": 230,
+          "complete": true
+        },
+        "skipped_legs": [
+          "differ sort (atomic=0 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=0 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=0 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=0 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=0 seed=21)                             SKIP (suite requires the split 6:2 geometry)"
+        ],
+        "coverage_summary": [
+          "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1040799 recorded comparison witnesses, 230 legs)"
+        ],
+        "equivalence": []
+      },
+      {
+        "name": "differ-armed-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.nx4Shz/jobs/differ-armed-1",
+        "differ_complete": {
+          "schema": 1,
+          "part": "armed-1",
+          "run": "full:gate-run.nx4Shz",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21
+          ],
+          "comparisons": 234,
+          "complete": true
+        },
+        "skipped_legs": [
+          "differ sort (atomic=1 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=1 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=1 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=1 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=1 seed=21)                             SKIP (suite requires the split 6:2 geometry)"
+        ],
+        "coverage_summary": [
+          "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1057950 recorded comparison witnesses, 234 legs)"
+        ],
+        "equivalence": []
+      },
+      {
+        "name": "differ-equivalence",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.nx4Shz/jobs/differ-equivalence",
+        "differ_complete": {
+          "schema": 1,
+          "part": "equivalence",
+          "run": "full:gate-run.nx4Shz",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21
+          ],
+          "comparisons": 16,
+          "complete": true
+        },
+        "skipped_legs": [],
+        "coverage_summary": [],
+        "equivalence": [
+          {
+            "seed": 21,
+            "cells": 16,
+            "passed": 16,
+            "reached": 16,
+            "engines": [
+              "uring"
+            ],
+            "replies_per_cell": 6137,
+            "script_drain_boundaries": 105,
+            "stream_sha256": "bf1885a49ac7c0ad38e13bddaf8a3ba64448aec1a5c11243fa43c5c69521f13a"
+          }
+        ]
+      },
+      {
+        "name": "differ-split-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.nx4Shz/jobs/differ-split-0",
+        "differ_complete": {
+          "schema": 1,
+          "part": "split-0",
+          "run": "full:gate-run.nx4Shz",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21
+          ],
+          "comparisons": 235,
+          "complete": true
+        },
+        "skipped_legs": [],
+        "coverage_summary": [
+          "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1063960 recorded comparison witnesses, 235 legs)"
+        ],
+        "equivalence": []
+      },
+      {
+        "name": "differ-split-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.nx4Shz/jobs/differ-split-1",
+        "differ_complete": {
+          "schema": 1,
+          "part": "split-1",
+          "run": "full:gate-run.nx4Shz",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21
+          ],
+          "comparisons": 239,
+          "complete": true
+        },
+        "skipped_legs": [],
+        "coverage_summary": [
+          "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1081435 recorded comparison witnesses, 239 legs)"
+        ],
+        "equivalence": []
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.nx4Shz/jobs/release"
+      }
+    ]
   }
 ]

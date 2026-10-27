@@ -309,6 +309,7 @@ mechanism cost from compiler allocation or estimate contention throughput.
 | SVpV0r / tpQWzJ | Initial io_uring / epoll differential attempts with binary-only Redis prefix | **Preflight rc 2; comparisons NOT RUN**: required Redis source headers absent; retained and queued again with the full checkout |
 | zLdqei, POST b179853b | EXEC fairness across both modes/engines/atomic settings; io_uring fused batteries | **20 ok / 0 FAIL** |
 | reErX1, POST b179853b | Epoll FLIP, controller, saturated hand-off and fused batteries | **31 ok / 0 FAIL** |
+| nx4Shz, POST b179853b | Standard io_uring differential matrix and mode equivalence, using the full Redis checkout | **6 ok / 0 FAIL**; 930 executed suite legs and 16/16 equivalence cells |
 
 Further engine/mode and differential runs are still running; this table will be
 completed from their actual partial ledgers. It is not a full gate receipt. All commands, hashes,
@@ -324,6 +325,17 @@ preflight refuses that prefix before running differential comparisons. Both
 failed attempts are retained. The retry runner uses the complete
 /home/user/Projects/redis checkout; both binaries have the same
 SHA-256 (`docs/at412c/provenance.json`).
+
+The io_uring differential plan freezes permanent seeds 7, 19, 20 and 23 plus
+rotating seed 21, all 47 suites and the standard four MULTI repeats. Split
+atomic 0/1 each execute 235 comparisons; armed-fused atomic 0/1 each execute
+230. The standard armed-fused matrix explicitly skips its five SORT seed legs
+per atomic setting because that suite requires split 6:2; those seeded SORT
+comparisons execute in split. Dedicated fused SORT jobs are queued separately.
+All four completed parts report comparison coverage of 232/245 registered
+commands, with the harness's unobserved-command lists retained. Mode equivalence
+compares 6,137 replies per cell over all 16 mode/read-local/reorder/atomic cells,
+with 105 script-drain boundaries and mechanism witnesses (seed 21).
 
 ### 11. DQ / DF
 
@@ -391,6 +403,7 @@ no throughput claim; the instruction results do not decide performance.
 |---|---|
 | Generic, EXEC and contended-script performance measurements | Maintainer-owned quiet-box measurements; requested in §13 and MEASURE-REQUEST |
 | Full tests/gate.sh iteration | Maintainer-owned; only native selected-job ledgers were requested here |
+| SORT differential legs in armed-fused geometry | Standard suite requires split 6:2; those seeded comparisons run in split, with dedicated fused SORT jobs recorded separately |
 | Fixes for XS-SHUT-1 / SNAP-STORM-1 / XS-NOTIFY-1 / FLIP-MULTI-1 | Pre-existing and outside this lane; separate diagnostics retain failures |
 | Fix for AT4-WOUND-1 | Owned by woundfix; this lane's schedules remain independent of it |
 

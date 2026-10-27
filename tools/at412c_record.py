@@ -45,7 +45,8 @@ def main():
                 relative = file.relative_to(job)
                 keep = file.name in ('results.json', 'result.json', 'seeds.json',
                                      'legs.tsv', 'complete.json', 'stream.json',
-                                     'argv.json', 'exit.json')
+                                     'argv.json', 'exit.json', 'quiescence.json',
+                                     'command-coverage.json')
                 keep |= file.name.endswith('.coverage.json')
                 log = file.suffix in ('.txt', '.log') or file.name.startswith('gate-srv-')
                 if not (keep or log):
@@ -69,6 +70,28 @@ def main():
                     item['legs'] = len(legs)
                     item['passed_legs'] = sum(bool(x.get('pass')) for x in legs)
                     item['oracle_legs'] = sum(x['leg'].startswith('redis-') for x in legs)
+            if job.name.startswith('differ-'):
+                complete = job / 'differ' / 'complete.json'
+                if complete.exists():
+                    item['differ_complete'] = json.loads(complete.read_text())
+                output = job / 'output.log'
+                if output.exists():
+                    lines = output.read_text().splitlines()
+                    item['skipped_legs'] = [line.strip() for line in lines if ' SKIP ' in line]
+                    item['coverage_summary'] = [line for line in lines if
+                                                line.startswith('DIFFER COMMAND COVERAGE:')]
+                item['equivalence'] = []
+                for result in sorted((job / 'differ').glob('mode-equivalence-*/results.json')):
+                    cells = json.loads(result.read_text())
+                    stream = json.loads((result.parent / 'stream.json').read_text())
+                    item['equivalence'].append(dict(
+                        seed=stream['seed'], cells=len(cells),
+                        passed=sum(c['verdict'] == 'ok' for c in cells),
+                        reached=sum(bool(c['reached']) for c in cells),
+                        engines=sorted({c['knobs']['net-io'] for c in cells}),
+                        replies_per_cell=stream['operation_count'],
+                        script_drain_boundaries=stream['script_drain_boundaries'],
+                        stream_sha256=stream['stream_sha256']))
             jobs.append(item)
         records.append(dict(row, archived=str(dest.relative_to(ROOT)), jobs=jobs))
     save(OUT / 'runs.json', records)
