@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-SET-1s-32-1--1.log
+SHA-256: d9dd9df7ced1624dfdb9f86b44031d22592e70b56c464ba226d8e7ea588bf6ab
+Exit: 0
+2356	    }
+0x0000555555c882a8	2356	    }
+0x0000555555c882b1	2356	    }
+0x0000555555c882b7	2356	    }
+0x0000555555c882bb	2356	    }
+0x0000555555c882bc	2356	    }
+0x0000555555c882be	2356	    }
+0x0000555555c882c0	2356	    }
+0x0000555555c882c2	2356	    }
+0x0000555555c882c4	2356	    }
+0x0000555555c882c5	2356	    }
+0x0000555555d875d8 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entTomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+ry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72
+72	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 3781316) exited normally]
+COUNT 22706
