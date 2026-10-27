@@ -50,8 +50,8 @@ Owner decisions required (stopped under the task's architecture/restriction rule
 The implementation remains in the existing stream/group/blocking/MPOP files. A stream node
 caches Redis listpack byte accounting while keeping native Compact records; no Redis
 storage implementation is imported. The first implementation rescanned external nodes on
-append and failed the Tcl mass-insertion window. The cache removes that unbounded append
-work. The failed attempt and successful replacement are retained in the evidence.
+append and failed the Tcl mass-insertion window. The cache removes that scan from the
+external append path. The failed attempt and successful replacement are retained in the evidence.
 
 All locked layouts remain PRE=POST in both namespaces: Op 336, Client 1984, ThreadCtx 1408,
 Shard 1440, FlatStore 944, Rob<64> 192, AtomicEntry 144, Config 624.
@@ -71,10 +71,32 @@ Proof status and all failed/intermediate attempts are recorded in
 [docs/streamfix/jobs](docs/streamfix/jobs), and compressed Tcl transcripts under
 [docs/streamfix/proof-tcl](docs/streamfix/proof-tcl). `run_jobs.py` uses only gate.sh's
 `GATE_ONLY_JOBS` interface; `full` selects the job inventory, while PARTIAL forbids the
-full iteration/ABBA measurement flow. Final proof results are being collected. On the final candidate, both modes passed all
-21 promoted Tcl assertions; the first 2s whole-job attempt failed the pre-existing
-MONITOR blocked-command ordering assertion during concurrent verification. The whole
-Tcl job is queued for an otherwise idle allocated-CPU rerun, without assertion changes.
+full iteration/ABBA measurement flow. On the final candidate, all 144 directed legs and
+all 21 promoted Tcl assertions in both modes pass. The first whole Tcl 2s attempt failed the existing MONITOR
+blocked-command ordering assertion during concurrent verification. The complete
+isolated Tcl job now passes in both modes without any assertion change.
+
+The final proof audit passes ([audit result](docs/streamfix/verified.log)). The selected
+broad run produced 324 passes and two failures (MONITOR ordering and the old netcmd
+COUNT expectation); the complete isolated recheck produced 141 passes and one remaining **FAIL**, the receipt-count preflight in
+`abba_selftest` (EXPECT_FULL=815 versus 829 declarations). Its other self-test assertions
+pass; the exact refusal is retained in [abba-selftest.log](docs/streamfix/abba-selftest.log).
+This is not reported as a green full gate.
+
+| Gate job or required leg | Final result |
+| --- | --- |
+| `streamfix` | 6 rows, 144/144 directed oracle legs pass |
+| `redis_tcl` | Both modes pass, including all 21 promoted names |
+| `feature-split-0`, `feature-split-1`, `feature-armed-0`, `feature-armed-1` | All complete owning jobs pass after the netcmd expectation correction |
+| `compat3`, `blockfix_structure`, `blockfix_registry`, `blockfix_mkstream` | Pass |
+| `release_batteries`, `notify`, `netcmd_units` | Pass |
+| `snapshot-epoll`, `snapshot-uring`, `aof-epoll`, `aof-uring` | Pass |
+| Five standard differential jobs, each engine | Pass; fixed and rotating seeds retained in receipts |
+| `python3 tests/gates_test.py` | 73/73 pass on the isolated rerun |
+| `make all`, all production-unit targets and freshness | Pass, 49 successful `make -q` checks |
+| `abba_selftest` / explicit label fixture | Count refusal only; owner must update EXPECT to 812/829 |
+
+All lane TCP listeners have been reaped ([cleanup receipt](docs/streamfix/listener-cleanup.json)).
 
 PRE and PAD-A fail all six directed rows. The throwaway mutant restores one or more
 wrong decisions for each active root, while retaining the final candidate layout and all
@@ -91,11 +113,18 @@ fail all 144 directed legs after geometry and oracle checks; final POST passes 1
 blockfix witness pass, with 49 successful `make -q` checks and an unchanged candidate
 hash: [build receipt](docs/streamfix/build/receipt.json). The first standalone
 `python3 tests/gates_test.py` run had nine scheduler timeout failures during concurrent
-verification. Its original log is retained; a quiet allocated-CPU rerun is queued after the other verification jobs finish.
+verification. Its original log is retained; the isolated rerun passes **73/73 tests**
+([quiet log](docs/streamfix/gates-test-quiet.log)).
 The first feature-split-0 run also exposed the old netcmd expectation that an oversized
 XAUTOCLAIM COUNT succeeds on an empty PEL. That test now requires the exact Redis
-error and no consumer creation. Its whole owning job is queued for a fresh run; later
-feature-mode jobs use the corrected test. No production code changed after freezing POST.
+error and no consumer creation. Its complete owning job passes on the isolated rerun;
+all four feature-mode jobs now pass with the corrected test. No production code changed
+after freezing POST.
+
+Both standard differential jobs pass on both engines: fixed seeds 7/19/20/23 plus
+rotating seed 21 for uring and 22 for epoll, 47 suites, all four split/fused × atomic
+0/1 legs, and the complete mode-equivalence job. Each engine emits six green job rows
+including release, with no mismatches. [Detailed matrix receipts](docs/streamfix/differ-summary.json).
 
 Command-scope proof uses linked production objects, preserving production link order and
 placing the fixture object last. It opens no server or load generator. GET/SET/INCR/MGET/MSET
@@ -140,7 +169,7 @@ origin (129328) and size (8,454,935 bytes), with 19,520 padding bytes. Individua
 offsets and data sections retain PRE layout; this is not an exact per-symbol layout twin
 and cannot alone rule out all placement effects. Source, link inputs and digests:
 [pad-a.json](docs/streamfix/pad-a.json), [pad-layout build](docs/streamfix/pad-layout-build.json).
-No PAD runtime knob is added.
+No PAD runtime knob is added. [Verify all three arm digests](docs/streamfix/arms.sha256).
 
 Maintainer measurement request — **NOT RUN in this lane**:
 
@@ -160,6 +189,10 @@ contemporaneous identical-arm controls and matched offered loads. Record per-cel
 cycles/op, instructions/op and IPC, and depth-1 latency. The deciding result is the
 existing per-cell main-command null criterion; averaging across cells or instruction
 identity alone cannot waive a regression. Preserve the PAD-A limitation with any result.
+
+Directed POST-pass rows and Tcl promotion/negative-control proof for the three stopped
+roots are **NOT RUN**, because their implementations await the owner decisions above.
+Their original PRE and POST reproductions were run and still differ from Redis.
 
 Full `tests/gate.sh iteration`, performance benchmarks, throughput/null measurements and
 push are **NOT RUN**, reserved to the maintainer. No throughput claim is made.

@@ -1,0 +1,8 @@
+PARTIAL	0	GATE_ONLY_JOBS=streamfix; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+ok	75.280000	streamfix STREAM-TRIM-APPROX-LIMIT vs Redis 7.4
+ok	42.020000	streamfix XREAD-PLUS-LAST vs Redis 7.4
+ok	37.680000	streamfix XRANGE-EXCLUSIVE-SENTINEL vs Redis 7.4
+ok	35.920000	streamfix STREAM-GROUP-ID-DASH vs Redis 7.4
+ok	35.740000	streamfix XAUTOCLAIM-COUNT-RANGE vs Redis 7.4
+ok	36.480000	streamfix MPOP-ARG-ERROR-TEXT vs Redis 7.4

@@ -4,6 +4,7 @@
     "exit": 1,
     "binary_sha256": "927bf4c07d71d466846c8d53a3be586573660494ac15a42c90d028911f0c3e8b",
     "binary_unchanged": true,
+    "proof_files_unchanged": null,
     "summary": [
       "GATE(PARTIAL): 1 ok, 8 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-streamfix/docs/streamfix/jobs/controls-mutant.tsv.partial"
     ],
@@ -2545,6 +2546,7 @@
     "exit": 1,
     "binary_sha256": "31a7dd6d82480f2ec07e29d4a86a57a04639c34afc719f9830315df292e8a642",
     "binary_unchanged": true,
+    "proof_files_unchanged": null,
     "summary": [
       "GATE(PARTIAL): 1 ok, 6 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-streamfix/docs/streamfix/jobs/controls-pad.tsv.partial"
     ],
@@ -3771,6 +3773,7 @@
     "exit": 1,
     "binary_sha256": "41921f7270da1f141e0f6a85316cac965258dfad28fbeb3516d9d08607522647",
     "binary_unchanged": true,
+    "proof_files_unchanged": null,
     "summary": [
       "GATE(PARTIAL): 1 ok, 6 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-streamfix/docs/streamfix/jobs/controls-pre.tsv.partial"
     ],
@@ -4997,6 +5000,7 @@
     "exit": 2,
     "binary_sha256": "d74f21755f1a6dd58f137082753260010197d9c261fb651cb47c68cb2c64edc8",
     "binary_unchanged": true,
+    "proof_files_unchanged": null,
     "summary": [],
     "seconds": 0.5698387622833252,
     "artifacts": "/home/user/Projects/cx-streamfix/build/gate-run.gUUO5D",
@@ -5007,6 +5011,7 @@
     "exit": 130,
     "binary_sha256": "d74f21755f1a6dd58f137082753260010197d9c261fb651cb47c68cb2c64edc8",
     "binary_unchanged": true,
+    "proof_files_unchanged": null,
     "summary": [],
     "seconds": 1547.2075471878052,
     "artifacts": "/home/user/Projects/cx-streamfix/build/gate-run.mJ47ea",
@@ -6405,11 +6410,112 @@
       ]
     }
   },
+  "final-differ-epoll": {
+    "receipt": "docs/streamfix/jobs/final-differ-epoll.json",
+    "exit": 0,
+    "binary_sha256": "c671ede82505dda0c62da963e5230ba8aea8cd0edd08d1c5accf8948ed95ccf1",
+    "binary_unchanged": true,
+    "proof_files_unchanged": null,
+    "summary": [
+      "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-streamfix/docs/streamfix/jobs/final-differ-epoll.tsv.partial"
+    ],
+    "seconds": 2220.78045129776,
+    "artifacts": "/home/user/Projects/cx-streamfix/build/gate-run.5LwlE0",
+    "jobs": {
+      "differ-armed-0": {
+        "done": true,
+        "rows": [
+          "ok\t525.650000\tRedis 7.4 differential part (armed fused, atomic 0)"
+        ]
+      },
+      "differ-armed-1": {
+        "done": true,
+        "rows": [
+          "ok\t525.080000\tRedis 7.4 differential part (armed fused, atomic 1)"
+        ]
+      },
+      "differ-equivalence": {
+        "done": true,
+        "rows": [
+          "ok\t21.500000\tmode equivalence part (all execution modes and knobs)"
+        ]
+      },
+      "differ-split-0": {
+        "done": true,
+        "rows": [
+          "ok\t566.100000\tRedis 7.4 differential part (split, atomic 0)"
+        ]
+      },
+      "differ-split-1": {
+        "done": true,
+        "rows": [
+          "ok\t579.150000\tRedis 7.4 differential part (split, atomic 1)"
+        ]
+      },
+      "release": {
+        "done": true,
+        "rows": [
+          "ok\t0.000000\trelease build (+footprint locks)"
+        ]
+      }
+    }
+  },
+  "final-differ-uring": {
+    "receipt": "docs/streamfix/jobs/final-differ-uring.json",
+    "exit": 0,
+    "binary_sha256": "c671ede82505dda0c62da963e5230ba8aea8cd0edd08d1c5accf8948ed95ccf1",
+    "binary_unchanged": true,
+    "proof_files_unchanged": null,
+    "summary": [
+      "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-streamfix/docs/streamfix/jobs/final-differ-uring.tsv.partial"
+    ],
+    "seconds": 2201.815903186798,
+    "artifacts": "/home/user/Projects/cx-streamfix/build/gate-run.qZAR7R",
+    "jobs": {
+      "differ-armed-0": {
+        "done": true,
+        "rows": [
+          "ok\t529.650000\tRedis 7.4 differential part (armed fused, atomic 0)"
+        ]
+      },
+      "differ-armed-1": {
+        "done": true,
+        "rows": [
+          "ok\t528.360000\tRedis 7.4 differential part (armed fused, atomic 1)"
+        ]
+      },
+      "differ-equivalence": {
+        "done": true,
+        "rows": [
+          "ok\t21.520000\tmode equivalence part (all execution modes and knobs)"
+        ]
+      },
+      "differ-split-0": {
+        "done": true,
+        "rows": [
+          "ok\t560.510000\tRedis 7.4 differential part (split, atomic 0)"
+        ]
+      },
+      "differ-split-1": {
+        "done": true,
+        "rows": [
+          "ok\t557.780000\tRedis 7.4 differential part (split, atomic 1)"
+        ]
+      },
+      "release": {
+        "done": true,
+        "rows": [
+          "ok\t0.000000\trelease build (+footprint locks)"
+        ]
+      }
+    }
+  },
   "final-directed": {
     "receipt": "docs/streamfix/jobs/final-directed.json",
     "exit": 0,
     "binary_sha256": "c671ede82505dda0c62da963e5230ba8aea8cd0edd08d1c5accf8948ed95ccf1",
     "binary_unchanged": true,
+    "proof_files_unchanged": null,
     "summary": [
       "GATE(PARTIAL): 7 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-streamfix/docs/streamfix/jobs/final-directed.tsv.partial"
     ],
@@ -7636,6 +7742,7 @@
     "exit": 1,
     "binary_sha256": "c671ede82505dda0c62da963e5230ba8aea8cd0edd08d1c5accf8948ed95ccf1",
     "binary_unchanged": true,
+    "proof_files_unchanged": null,
     "summary": [
       "GATE(PARTIAL): 324 ok, 2 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-streamfix/docs/streamfix/jobs/final-main.tsv.partial"
     ],
@@ -10289,6 +10396,1505 @@
           "complete": true,
           "exit_code": 1,
           "error": "passing subset failed, incomplete, or assertion inventory changed",
+          "setup_errors": []
+        },
+        {
+          "file": "unit/introspection-2",
+          "passed": 41,
+          "failed": 0,
+          "skipped": 6,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/keyspace",
+          "passed": 37,
+          "failed": 0,
+          "skipped": 22,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/latency-monitor",
+          "passed": 14,
+          "failed": 0,
+          "skipped": 1,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/multi",
+          "passed": 27,
+          "failed": 0,
+          "skipped": 36,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/other",
+          "passed": 18,
+          "failed": 0,
+          "skipped": 12,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/pause",
+          "passed": 2,
+          "failed": 0,
+          "skipped": 17,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/protocol",
+          "passed": 17,
+          "failed": 0,
+          "skipped": 8,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/pubsub",
+          "passed": 26,
+          "failed": 0,
+          "skipped": 21,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/quit",
+          "passed": 3,
+          "failed": 0,
+          "skipped": 0,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/scan",
+          "passed": 25,
+          "failed": 0,
+          "skipped": 1,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/scripting",
+          "passed": 70,
+          "failed": 2,
+          "skipped": 176,
+          "complete": true,
+          "exit_code": 1,
+          "error": null,
+          "setup_errors": [
+            {
+              "command": "r debug set-disable-deny-scripts 1",
+              "reply": "ERR unknown subcommand or wrong number of arguments for 'debug' command",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "file": "unit/slowlog",
+          "passed": 6,
+          "failed": 0,
+          "skipped": 12,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/sort",
+          "passed": 52,
+          "failed": 0,
+          "skipped": 3,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/tracking",
+          "passed": 14,
+          "failed": 0,
+          "skipped": 44,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/type/hash",
+          "passed": 74,
+          "failed": 0,
+          "skipped": 1,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/type/incr",
+          "passed": 31,
+          "failed": 0,
+          "skipped": 2,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/type/list",
+          "passed": 227,
+          "failed": 1,
+          "skipped": 62,
+          "complete": true,
+          "exit_code": 1,
+          "error": null,
+          "setup_errors": [
+            {
+              "command": "r config set list-compress-depth 2",
+              "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "file": "unit/type/list-2",
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/type/list-3",
+          "passed": 2,
+          "failed": 1,
+          "skipped": 4,
+          "complete": true,
+          "exit_code": 1,
+          "error": null,
+          "setup_errors": [
+            {
+              "command": "config_set list-compress-depth $comp",
+              "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "file": "unit/type/set",
+          "passed": 109,
+          "failed": 0,
+          "skipped": 11,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/type/stream",
+          "passed": 73,
+          "failed": 0,
+          "skipped": 8,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/type/stream-cgroups",
+          "passed": 39,
+          "failed": 1,
+          "skipped": 15,
+          "complete": true,
+          "exit_code": 1,
+          "error": null,
+          "setup_errors": [
+            {
+              "command": "r config set $param $val",
+              "reply": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "file": "unit/type/string",
+          "passed": 80,
+          "failed": 0,
+          "skipped": 2,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/type/zset",
+          "passed": 317,
+          "failed": 0,
+          "skipped": 5,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/violations",
+          "passed": 1,
+          "failed": 0,
+          "skipped": 6,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        }
+      ]
+    }
+  },
+  "final-quiet-recheck": {
+    "receipt": "docs/streamfix/jobs/final-quiet-recheck.json",
+    "exit": 1,
+    "binary_sha256": "c671ede82505dda0c62da963e5230ba8aea8cd0edd08d1c5accf8948ed95ccf1",
+    "binary_unchanged": true,
+    "proof_files_unchanged": true,
+    "summary": [
+      "GATE(PARTIAL): 141 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-streamfix/docs/streamfix/jobs/final-quiet-recheck.tsv.partial"
+    ],
+    "seconds": 1173.277753353119,
+    "artifacts": "/home/user/Projects/cx-streamfix/build/gate-run.1SUkVx",
+    "jobs": {
+      "abba_selftest": {
+        "done": true,
+        "rows": [
+          "FAIL\t197.120000\tABBA comparison + saturation negative controls"
+        ]
+      },
+      "feature-armed-0": {
+        "done": true,
+        "rows": [
+          "ok\t0.260000\tfused+armed boot line (atomic 0)",
+          "ok\t1.210000\tfused+armed s6 battery (atomic 0)",
+          "ok\t2.080000\tfused+armed multi_exec battery (atomic 0)",
+          "ok\t1.570000\tfused+armed blocking battery (atomic 0)",
+          "ok\t0.460000\tfused+armed blockmulti battery (atomic 0)",
+          "ok\t0.810000\tfused+armed stream battery (atomic 0)",
+          "ok\t0.050000\tfused+armed streamgroups battery (atomic 0)",
+          "ok\t0.890000\tfused+armed pubsub battery (atomic 0)",
+          "ok\t0.030000\tfused+armed lua_scripting battery (atomic 0)",
+          "ok\t0.050000\tfused+armed scriptsurf battery (atomic 0)",
+          "ok\t14.930000\tfused+armed limits battery (atomic 0)",
+          "ok\t0.030000\tfused+armed resp3 battery (atomic 0)",
+          "ok\t0.040000\tfused+armed bitfield battery (atomic 0)",
+          "ok\t0.070000\tfused+armed dumprestore battery (atomic 0)",
+          "ok\t0.050000\tfused+armed zsetops battery (atomic 0)",
+          "ok\t0.030000\tfused+armed geo battery (atomic 0)",
+          "ok\t1.120000\tfused+armed climon battery (atomic 0)",
+          "ok\t3.300000\tfused+armed climon2 battery (atomic 0)",
+          "ok\t13.230000\tfused+armed tracking battery (atomic 0)",
+          "ok\t3.310000\tfused+armed hexpire battery (atomic 0)",
+          "ok\t0.580000\tfused+armed servertail battery (atomic 0)",
+          "ok\t0.180000\tfused+armed lcs battery (atomic 0)",
+          "ok\t2.850000\tfused+armed concur battery (atomic 0)",
+          "ok\t0.720000\tfused+armed edgeproto battery (atomic 0)",
+          "ok\t0.380000\tfused+armed edgeenc battery (atomic 0)",
+          "ok\t3.810000\tfused+armed edgetime battery (atomic 0)",
+          "ok\t0.030000\tfused+armed arity battery (atomic 0)",
+          "ok\t0.020000\tfused+armed contarity battery (atomic 0)",
+          "ok\t0.030000\tfused+armed cmdgap battery (atomic 0)",
+          "ok\t0.030000\tfused+armed aclsel battery (atomic 0)",
+          "ok\t49.310000\tfused+armed expwide battery (atomic 0)",
+          "ok\t4.150000\tfused+armed infofix battery (atomic 0)",
+          "ok\t2.960000\tfused+armed pushtear battery (atomic 0)",
+          "ok\t0.030000\tfused+armed netcmd battery (atomic 0)",
+          "ok\t1.170000\tfused+armed shutdown report + lane fired (hits=N, atomic 0)"
+        ]
+      },
+      "feature-armed-1": {
+        "done": true,
+        "rows": [
+          "ok\t0.270000\tfused+armed boot line (atomic 1)",
+          "ok\t1.190000\tfused+armed s6 battery (atomic 1)",
+          "ok\t2.080000\tfused+armed multi_exec battery (atomic 1)",
+          "ok\t1.610000\tfused+armed blocking battery (atomic 1)",
+          "ok\t0.460000\tfused+armed blockmulti battery (atomic 1)",
+          "ok\t0.810000\tfused+armed stream battery (atomic 1)",
+          "ok\t0.050000\tfused+armed streamgroups battery (atomic 1)",
+          "ok\t0.910000\tfused+armed pubsub battery (atomic 1)",
+          "ok\t0.030000\tfused+armed lua_scripting battery (atomic 1)",
+          "ok\t0.050000\tfused+armed scriptsurf battery (atomic 1)",
+          "ok\t15.400000\tfused+armed limits battery (atomic 1)",
+          "ok\t0.040000\tfused+armed resp3 battery (atomic 1)",
+          "ok\t0.030000\tfused+armed bitfield battery (atomic 1)",
+          "ok\t0.060000\tfused+armed dumprestore battery (atomic 1)",
+          "ok\t0.050000\tfused+armed zsetops battery (atomic 1)",
+          "ok\t0.030000\tfused+armed geo battery (atomic 1)",
+          "ok\t1.120000\tfused+armed climon battery (atomic 1)",
+          "ok\t3.330000\tfused+armed climon2 battery (atomic 1)",
+          "ok\t13.240000\tfused+armed tracking battery (atomic 1)",
+          "ok\t3.050000\tfused+armed hexpire battery (atomic 1)",
+          "ok\t0.580000\tfused+armed servertail battery (atomic 1)",
+          "ok\t0.160000\tfused+armed lcs battery (atomic 1)",
+          "ok\t2.780000\tfused+armed concur battery (atomic 1)",
+          "ok\t0.710000\tfused+armed edgeproto battery (atomic 1)",
+          "ok\t0.370000\tfused+armed edgeenc battery (atomic 1)",
+          "ok\t3.790000\tfused+armed edgetime battery (atomic 1)",
+          "ok\t0.030000\tfused+armed arity battery (atomic 1)",
+          "ok\t0.030000\tfused+armed contarity battery (atomic 1)",
+          "ok\t0.030000\tfused+armed cmdgap battery (atomic 1)",
+          "ok\t0.030000\tfused+armed aclsel battery (atomic 1)",
+          "ok\t54.410000\tfused+armed expwide battery (atomic 1)",
+          "ok\t4.200000\tfused+armed infofix battery (atomic 1)",
+          "ok\t5.440000\tfused+armed pushtear battery (atomic 1)",
+          "ok\t0.030000\tfused+armed netcmd battery (atomic 1)",
+          "ok\t1.170000\tfused+armed shutdown report + lane fired (hits=N, atomic 1)"
+        ]
+      },
+      "feature-split-0": {
+        "done": true,
+        "rows": [
+          "ok\t2.450000\ts6 battery (atomic 0)",
+          "ok\t2.080000\tmulti_exec battery (atomic 0)",
+          "ok\t1.580000\tblocking battery (atomic 0)",
+          "ok\t0.450000\tblockmulti battery (atomic 0)",
+          "ok\t0.810000\tstream battery (atomic 0)",
+          "ok\t0.050000\tstreamgroups battery (atomic 0)",
+          "ok\t0.920000\tpubsub battery (atomic 0)",
+          "ok\t0.030000\tlua_scripting battery (atomic 0)",
+          "ok\t0.040000\tscriptsurf battery (atomic 0)",
+          "ok\t14.580000\tlimits battery (atomic 0)",
+          "ok\t0.030000\tresp3 battery (atomic 0)",
+          "ok\t0.030000\tbitfield battery (atomic 0)",
+          "ok\t0.060000\tdumprestore battery (atomic 0)",
+          "ok\t0.040000\tzsetops battery (atomic 0)",
+          "ok\t0.030000\tgeo battery (atomic 0)",
+          "ok\t1.140000\tclimon battery (atomic 0)",
+          "ok\t3.340000\tclimon2 battery (atomic 0)",
+          "ok\t13.280000\ttracking battery (atomic 0)",
+          "ok\t3.310000\thexpire battery (atomic 0)",
+          "ok\t0.600000\tservertail battery (atomic 0)",
+          "ok\t0.160000\tlcs battery (atomic 0)",
+          "ok\t2.790000\tconcur battery (atomic 0)",
+          "ok\t0.580000\tedgeproto battery (atomic 0)",
+          "ok\t0.350000\tedgeenc battery (atomic 0)",
+          "ok\t3.710000\tedgetime battery (atomic 0)",
+          "ok\t0.030000\tarity battery (atomic 0)",
+          "ok\t0.030000\tcontarity battery (atomic 0)",
+          "ok\t0.020000\tcmdgap battery (atomic 0)",
+          "ok\t0.020000\taclsel battery (atomic 0)",
+          "ok\t69.280000\texpwide battery (atomic 0)",
+          "ok\t4.200000\tinfofix battery (atomic 0)",
+          "ok\t5.430000\tpushtear battery (atomic 0)",
+          "ok\t0.030000\tnetcmd battery (atomic 0)",
+          "ok\t0.020000\tfeature shutdown invariants (atomic 0)"
+        ]
+      },
+      "feature-split-1": {
+        "done": true,
+        "rows": [
+          "ok\t2.460000\ts6 battery (atomic 1)",
+          "ok\t2.070000\tmulti_exec battery (atomic 1)",
+          "ok\t1.540000\tblocking battery (atomic 1)",
+          "ok\t0.450000\tblockmulti battery (atomic 1)",
+          "ok\t0.770000\tstream battery (atomic 1)",
+          "ok\t0.050000\tstreamgroups battery (atomic 1)",
+          "ok\t0.920000\tpubsub battery (atomic 1)",
+          "ok\t0.030000\tlua_scripting battery (atomic 1)",
+          "ok\t0.040000\tscriptsurf battery (atomic 1)",
+          "ok\t15.080000\tlimits battery (atomic 1)",
+          "ok\t0.030000\tresp3 battery (atomic 1)",
+          "ok\t0.030000\tbitfield battery (atomic 1)",
+          "ok\t0.060000\tdumprestore battery (atomic 1)",
+          "ok\t0.040000\tzsetops battery (atomic 1)",
+          "ok\t0.020000\tgeo battery (atomic 1)",
+          "ok\t1.140000\tclimon battery (atomic 1)",
+          "ok\t3.300000\tclimon2 battery (atomic 1)",
+          "ok\t13.360000\ttracking battery (atomic 1)",
+          "ok\t3.050000\thexpire battery (atomic 1)",
+          "ok\t0.570000\tservertail battery (atomic 1)",
+          "ok\t0.160000\tlcs battery (atomic 1)",
+          "ok\t2.800000\tconcur battery (atomic 1)",
+          "ok\t0.570000\tedgeproto battery (atomic 1)",
+          "ok\t0.350000\tedgeenc battery (atomic 1)",
+          "ok\t4.030000\tedgetime battery (atomic 1)",
+          "ok\t0.030000\tarity battery (atomic 1)",
+          "ok\t0.030000\tcontarity battery (atomic 1)",
+          "ok\t0.020000\tcmdgap battery (atomic 1)",
+          "ok\t0.030000\taclsel battery (atomic 1)",
+          "ok\t53.330000\texpwide battery (atomic 1)",
+          "ok\t4.160000\tinfofix battery (atomic 1)",
+          "ok\t2.940000\tpushtear battery (atomic 1)",
+          "ok\t0.030000\tnetcmd battery (atomic 1)",
+          "ok\t0.020000\tfeature shutdown invariants (atomic 1)"
+        ]
+      },
+      "redis_tcl": {
+        "done": true,
+        "rows": [
+          "ok\t238.090000\tRedis 7.4.10 Tcl passing subset (2s)",
+          "ok\t241.210000\tRedis 7.4.10 Tcl passing subset (1s)"
+        ]
+      },
+      "release": {
+        "done": true,
+        "rows": [
+          "ok\t0.000000\trelease build (+footprint locks)"
+        ]
+      }
+    },
+    "tcl-1s": {
+      "binary_sha256": "c671ede82505dda0c62da963e5230ba8aea8cd0edd08d1c5accf8948ed95ccf1",
+      "promoted": [
+        {
+          "root": "MPOP-ARG-ERROR-TEXT",
+          "name": "LMPOP with illegal argument in tests/unit/type/list.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/list.tcl",
+              "test": "LMPOP with illegal argument in tests/unit/type/list.tcl",
+              "data": "LMPOP with illegal argument",
+              "milliseconds": "1"
+            }
+          ]
+        },
+        {
+          "root": "STREAM-TRIM-APPROX-LIMIT",
+          "name": "XADD with LIMIT consecutive calls in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XADD with LIMIT consecutive calls in tests/unit/type/stream.tcl",
+              "data": "XADD with LIMIT consecutive calls",
+              "milliseconds": "3"
+            }
+          ]
+        },
+        {
+          "root": "STREAM-TRIM-APPROX-LIMIT",
+          "name": "XADD with LIMIT delete entries no more than limit in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XADD with LIMIT delete entries no more than limit in tests/unit/type/stream.tcl",
+              "data": "XADD with LIMIT delete entries no more than limit",
+              "milliseconds": "1"
+            }
+          ]
+        },
+        {
+          "root": "STREAM-TRIM-APPROX-LIMIT",
+          "name": "XADD with MAXLEN option and the '~' argument in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XADD with MAXLEN option and the '~' argument in tests/unit/type/stream.tcl",
+              "data": "XADD with MAXLEN option and the '~' argument",
+              "milliseconds": "36"
+            }
+          ]
+        },
+        {
+          "root": "XRANGE-EXCLUSIVE-SENTINEL",
+          "name": "XRANGE exclusive ranges in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XRANGE exclusive ranges in tests/unit/type/stream.tcl",
+              "data": "XRANGE exclusive ranges",
+              "milliseconds": "1"
+            }
+          ]
+        },
+        {
+          "root": "XREAD-PLUS-LAST",
+          "name": "XREAD last element blocking from empty stream in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XREAD last element blocking from empty stream in tests/unit/type/stream.tcl",
+              "data": "XREAD last element blocking from empty stream",
+              "milliseconds": "1"
+            }
+          ]
+        },
+        {
+          "root": "XREAD-PLUS-LAST",
+          "name": "XREAD last element blocking from non-empty stream in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XREAD last element blocking from non-empty stream in tests/unit/type/stream.tcl",
+              "data": "XREAD last element blocking from non-empty stream",
+              "milliseconds": "0"
+            }
+          ]
+        },
+        {
+          "root": "XREAD-PLUS-LAST",
+          "name": "XREAD last element from empty stream in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XREAD last element from empty stream in tests/unit/type/stream.tcl",
+              "data": "XREAD last element from empty stream",
+              "milliseconds": "0"
+            }
+          ]
+        },
+        {
+          "root": "XREAD-PLUS-LAST",
+          "name": "XREAD last element from multiple streams in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XREAD last element from multiple streams in tests/unit/type/stream.tcl",
+              "data": "XREAD last element from multiple streams",
+              "milliseconds": "0"
+            }
+          ]
+        },
+        {
+          "root": "XREAD-PLUS-LAST",
+          "name": "XREAD last element from non-empty stream in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XREAD last element from non-empty stream in tests/unit/type/stream.tcl",
+              "data": "XREAD last element from non-empty stream",
+              "milliseconds": "1"
+            }
+          ]
+        },
+        {
+          "root": "XREAD-PLUS-LAST",
+          "name": "XREAD last element with count > 1 in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XREAD last element with count > 1 in tests/unit/type/stream.tcl",
+              "data": "XREAD last element with count > 1",
+              "milliseconds": "1"
+            }
+          ]
+        },
+        {
+          "root": "XREAD-PLUS-LAST",
+          "name": "XREAD: read last element after XDEL (issue #13628) in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XREAD: read last element after XDEL (issue #13628) in tests/unit/type/stream.tcl",
+              "data": "XREAD: read last element after XDEL (issue #13628)",
+              "milliseconds": "0"
+            }
+          ]
+        },
+        {
+          "root": "STREAM-TRIM-APPROX-LIMIT",
+          "name": "XTRIM with LIMIT delete entries no more than limit in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XTRIM with LIMIT delete entries no more than limit in tests/unit/type/stream.tcl",
+              "data": "XTRIM with LIMIT delete entries no more than limit",
+              "milliseconds": "0"
+            }
+          ]
+        },
+        {
+          "root": "STREAM-TRIM-APPROX-LIMIT",
+          "name": "XTRIM with MAXLEN option basic test in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XTRIM with MAXLEN option basic test in tests/unit/type/stream.tcl",
+              "data": "XTRIM with MAXLEN option basic test",
+              "milliseconds": "30"
+            }
+          ]
+        },
+        {
+          "root": "STREAM-TRIM-APPROX-LIMIT",
+          "name": "XTRIM with ~ is limited in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XTRIM with ~ is limited in tests/unit/type/stream.tcl",
+              "data": "XTRIM with ~ is limited",
+              "milliseconds": "4"
+            }
+          ]
+        },
+        {
+          "root": "STREAM-GROUP-ID-DASH",
+          "name": "PEL NACK reassignment after XGROUP SETID event in tests/unit/type/stream-cgroups.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream-cgroups.tcl",
+              "test": "PEL NACK reassignment after XGROUP SETID event in tests/unit/type/stream-cgroups.tcl",
+              "data": "PEL NACK reassignment after XGROUP SETID event",
+              "milliseconds": "0"
+            }
+          ]
+        },
+        {
+          "root": "STREAM-GROUP-ID-DASH",
+          "name": "XAUTOCLAIM as an iterator in tests/unit/type/stream-cgroups.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream-cgroups.tcl",
+              "test": "XAUTOCLAIM as an iterator in tests/unit/type/stream-cgroups.tcl",
+              "data": "XAUTOCLAIM as an iterator",
+              "milliseconds": "201"
+            }
+          ]
+        },
+        {
+          "root": "STREAM-GROUP-ID-DASH",
+          "name": "XAUTOCLAIM can claim PEL items from another consumer in tests/unit/type/stream-cgroups.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream-cgroups.tcl",
+              "test": "XAUTOCLAIM can claim PEL items from another consumer in tests/unit/type/stream-cgroups.tcl",
+              "data": "XAUTOCLAIM can claim PEL items from another consumer",
+              "milliseconds": "603"
+            }
+          ]
+        },
+        {
+          "root": "XAUTOCLAIM-COUNT-RANGE",
+          "name": "XAUTOCLAIM with out of range count in tests/unit/type/stream-cgroups.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream-cgroups.tcl",
+              "test": "XAUTOCLAIM with out of range count in tests/unit/type/stream-cgroups.tcl",
+              "data": "XAUTOCLAIM with out of range count",
+              "milliseconds": "0"
+            }
+          ]
+        },
+        {
+          "root": "MPOP-ARG-ERROR-TEXT",
+          "name": "BZMPOP with illegal argument in tests/unit/type/zset.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/zset.tcl",
+              "test": "BZMPOP with illegal argument in tests/unit/type/zset.tcl",
+              "data": "BZMPOP with illegal argument",
+              "milliseconds": "0"
+            }
+          ]
+        },
+        {
+          "root": "MPOP-ARG-ERROR-TEXT",
+          "name": "ZMPOP with illegal argument in tests/unit/type/zset.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/zset.tcl",
+              "test": "ZMPOP with illegal argument in tests/unit/type/zset.tcl",
+              "data": "ZMPOP with illegal argument",
+              "milliseconds": "1"
+            }
+          ]
+        }
+      ],
+      "files": [
+        {
+          "file": "integration/redis-cli",
+          "passed": 45,
+          "failed": 0,
+          "skipped": 5,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "integration/replication-buffer",
+          "passed": 2,
+          "failed": 0,
+          "skipped": 4,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/bitfield",
+          "passed": 18,
+          "failed": 0,
+          "skipped": 1,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/bitops",
+          "passed": 48,
+          "failed": 0,
+          "skipped": 3,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/dump",
+          "passed": 8,
+          "failed": 0,
+          "skipped": 20,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/expire",
+          "passed": 60,
+          "failed": 0,
+          "skipped": 10,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/functions",
+          "passed": 67,
+          "failed": 0,
+          "skipped": 33,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/geo",
+          "passed": 64,
+          "failed": 0,
+          "skipped": 0,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/hyperloglog",
+          "passed": 24,
+          "failed": 0,
+          "skipped": 4,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/introspection",
+          "passed": 21,
+          "failed": 0,
+          "skipped": 31,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/introspection-2",
+          "passed": 41,
+          "failed": 0,
+          "skipped": 6,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/keyspace",
+          "passed": 37,
+          "failed": 0,
+          "skipped": 22,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/latency-monitor",
+          "passed": 14,
+          "failed": 0,
+          "skipped": 1,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/multi",
+          "passed": 27,
+          "failed": 0,
+          "skipped": 36,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/other",
+          "passed": 18,
+          "failed": 0,
+          "skipped": 12,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/pause",
+          "passed": 2,
+          "failed": 0,
+          "skipped": 17,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/protocol",
+          "passed": 17,
+          "failed": 0,
+          "skipped": 8,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/pubsub",
+          "passed": 26,
+          "failed": 0,
+          "skipped": 21,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/quit",
+          "passed": 3,
+          "failed": 0,
+          "skipped": 0,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/scan",
+          "passed": 25,
+          "failed": 0,
+          "skipped": 1,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/scripting",
+          "passed": 70,
+          "failed": 2,
+          "skipped": 176,
+          "complete": true,
+          "exit_code": 1,
+          "error": null,
+          "setup_errors": [
+            {
+              "command": "r debug set-disable-deny-scripts 1",
+              "reply": "ERR unknown subcommand or wrong number of arguments for 'debug' command",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "file": "unit/slowlog",
+          "passed": 6,
+          "failed": 0,
+          "skipped": 12,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/sort",
+          "passed": 52,
+          "failed": 0,
+          "skipped": 3,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/tracking",
+          "passed": 14,
+          "failed": 0,
+          "skipped": 44,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/type/hash",
+          "passed": 74,
+          "failed": 0,
+          "skipped": 1,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/type/incr",
+          "passed": 31,
+          "failed": 0,
+          "skipped": 2,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/type/list",
+          "passed": 227,
+          "failed": 1,
+          "skipped": 62,
+          "complete": true,
+          "exit_code": 1,
+          "error": null,
+          "setup_errors": [
+            {
+              "command": "r config set list-compress-depth 2",
+              "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "file": "unit/type/list-2",
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/type/list-3",
+          "passed": 2,
+          "failed": 1,
+          "skipped": 4,
+          "complete": true,
+          "exit_code": 1,
+          "error": null,
+          "setup_errors": [
+            {
+              "command": "config_set list-compress-depth $comp",
+              "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "file": "unit/type/set",
+          "passed": 109,
+          "failed": 0,
+          "skipped": 11,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/type/stream",
+          "passed": 73,
+          "failed": 0,
+          "skipped": 8,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/type/stream-cgroups",
+          "passed": 39,
+          "failed": 1,
+          "skipped": 15,
+          "complete": true,
+          "exit_code": 1,
+          "error": null,
+          "setup_errors": [
+            {
+              "command": "r config set $param $val",
+              "reply": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "file": "unit/type/string",
+          "passed": 80,
+          "failed": 0,
+          "skipped": 2,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/type/zset",
+          "passed": 317,
+          "failed": 0,
+          "skipped": 5,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/violations",
+          "passed": 1,
+          "failed": 0,
+          "skipped": 6,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        }
+      ]
+    },
+    "tcl-2s": {
+      "binary_sha256": "c671ede82505dda0c62da963e5230ba8aea8cd0edd08d1c5accf8948ed95ccf1",
+      "promoted": [
+        {
+          "root": "MPOP-ARG-ERROR-TEXT",
+          "name": "LMPOP with illegal argument in tests/unit/type/list.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/list.tcl",
+              "test": "LMPOP with illegal argument in tests/unit/type/list.tcl",
+              "data": "LMPOP with illegal argument",
+              "milliseconds": "1"
+            }
+          ]
+        },
+        {
+          "root": "STREAM-TRIM-APPROX-LIMIT",
+          "name": "XADD with LIMIT consecutive calls in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XADD with LIMIT consecutive calls in tests/unit/type/stream.tcl",
+              "data": "XADD with LIMIT consecutive calls",
+              "milliseconds": "3"
+            }
+          ]
+        },
+        {
+          "root": "STREAM-TRIM-APPROX-LIMIT",
+          "name": "XADD with LIMIT delete entries no more than limit in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XADD with LIMIT delete entries no more than limit in tests/unit/type/stream.tcl",
+              "data": "XADD with LIMIT delete entries no more than limit",
+              "milliseconds": "0"
+            }
+          ]
+        },
+        {
+          "root": "STREAM-TRIM-APPROX-LIMIT",
+          "name": "XADD with MAXLEN option and the '~' argument in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XADD with MAXLEN option and the '~' argument in tests/unit/type/stream.tcl",
+              "data": "XADD with MAXLEN option and the '~' argument",
+              "milliseconds": "33"
+            }
+          ]
+        },
+        {
+          "root": "XRANGE-EXCLUSIVE-SENTINEL",
+          "name": "XRANGE exclusive ranges in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XRANGE exclusive ranges in tests/unit/type/stream.tcl",
+              "data": "XRANGE exclusive ranges",
+              "milliseconds": "1"
+            }
+          ]
+        },
+        {
+          "root": "XREAD-PLUS-LAST",
+          "name": "XREAD last element blocking from empty stream in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XREAD last element blocking from empty stream in tests/unit/type/stream.tcl",
+              "data": "XREAD last element blocking from empty stream",
+              "milliseconds": "0"
+            }
+          ]
+        },
+        {
+          "root": "XREAD-PLUS-LAST",
+          "name": "XREAD last element blocking from non-empty stream in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XREAD last element blocking from non-empty stream in tests/unit/type/stream.tcl",
+              "data": "XREAD last element blocking from non-empty stream",
+              "milliseconds": "0"
+            }
+          ]
+        },
+        {
+          "root": "XREAD-PLUS-LAST",
+          "name": "XREAD last element from empty stream in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XREAD last element from empty stream in tests/unit/type/stream.tcl",
+              "data": "XREAD last element from empty stream",
+              "milliseconds": "0"
+            }
+          ]
+        },
+        {
+          "root": "XREAD-PLUS-LAST",
+          "name": "XREAD last element from multiple streams in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XREAD last element from multiple streams in tests/unit/type/stream.tcl",
+              "data": "XREAD last element from multiple streams",
+              "milliseconds": "0"
+            }
+          ]
+        },
+        {
+          "root": "XREAD-PLUS-LAST",
+          "name": "XREAD last element from non-empty stream in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XREAD last element from non-empty stream in tests/unit/type/stream.tcl",
+              "data": "XREAD last element from non-empty stream",
+              "milliseconds": "0"
+            }
+          ]
+        },
+        {
+          "root": "XREAD-PLUS-LAST",
+          "name": "XREAD last element with count > 1 in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XREAD last element with count > 1 in tests/unit/type/stream.tcl",
+              "data": "XREAD last element with count > 1",
+              "milliseconds": "0"
+            }
+          ]
+        },
+        {
+          "root": "XREAD-PLUS-LAST",
+          "name": "XREAD: read last element after XDEL (issue #13628) in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XREAD: read last element after XDEL (issue #13628) in tests/unit/type/stream.tcl",
+              "data": "XREAD: read last element after XDEL (issue #13628)",
+              "milliseconds": "0"
+            }
+          ]
+        },
+        {
+          "root": "STREAM-TRIM-APPROX-LIMIT",
+          "name": "XTRIM with LIMIT delete entries no more than limit in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XTRIM with LIMIT delete entries no more than limit in tests/unit/type/stream.tcl",
+              "data": "XTRIM with LIMIT delete entries no more than limit",
+              "milliseconds": "0"
+            }
+          ]
+        },
+        {
+          "root": "STREAM-TRIM-APPROX-LIMIT",
+          "name": "XTRIM with MAXLEN option basic test in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XTRIM with MAXLEN option basic test in tests/unit/type/stream.tcl",
+              "data": "XTRIM with MAXLEN option basic test",
+              "milliseconds": "27"
+            }
+          ]
+        },
+        {
+          "root": "STREAM-TRIM-APPROX-LIMIT",
+          "name": "XTRIM with ~ is limited in tests/unit/type/stream.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream.tcl",
+              "test": "XTRIM with ~ is limited in tests/unit/type/stream.tcl",
+              "data": "XTRIM with ~ is limited",
+              "milliseconds": "3"
+            }
+          ]
+        },
+        {
+          "root": "STREAM-GROUP-ID-DASH",
+          "name": "PEL NACK reassignment after XGROUP SETID event in tests/unit/type/stream-cgroups.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream-cgroups.tcl",
+              "test": "PEL NACK reassignment after XGROUP SETID event in tests/unit/type/stream-cgroups.tcl",
+              "data": "PEL NACK reassignment after XGROUP SETID event",
+              "milliseconds": "1"
+            }
+          ]
+        },
+        {
+          "root": "STREAM-GROUP-ID-DASH",
+          "name": "XAUTOCLAIM as an iterator in tests/unit/type/stream-cgroups.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream-cgroups.tcl",
+              "test": "XAUTOCLAIM as an iterator in tests/unit/type/stream-cgroups.tcl",
+              "data": "XAUTOCLAIM as an iterator",
+              "milliseconds": "201"
+            }
+          ]
+        },
+        {
+          "root": "STREAM-GROUP-ID-DASH",
+          "name": "XAUTOCLAIM can claim PEL items from another consumer in tests/unit/type/stream-cgroups.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream-cgroups.tcl",
+              "test": "XAUTOCLAIM can claim PEL items from another consumer in tests/unit/type/stream-cgroups.tcl",
+              "data": "XAUTOCLAIM can claim PEL items from another consumer",
+              "milliseconds": "603"
+            }
+          ]
+        },
+        {
+          "root": "XAUTOCLAIM-COUNT-RANGE",
+          "name": "XAUTOCLAIM with out of range count in tests/unit/type/stream-cgroups.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/stream-cgroups.tcl",
+              "test": "XAUTOCLAIM with out of range count in tests/unit/type/stream-cgroups.tcl",
+              "data": "XAUTOCLAIM with out of range count",
+              "milliseconds": "0"
+            }
+          ]
+        },
+        {
+          "root": "MPOP-ARG-ERROR-TEXT",
+          "name": "BZMPOP with illegal argument in tests/unit/type/zset.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/zset.tcl",
+              "test": "BZMPOP with illegal argument in tests/unit/type/zset.tcl",
+              "data": "BZMPOP with illegal argument",
+              "milliseconds": "1"
+            }
+          ]
+        },
+        {
+          "root": "MPOP-ARG-ERROR-TEXT",
+          "name": "ZMPOP with illegal argument in tests/unit/type/zset.tcl",
+          "events": [
+            {
+              "status": "ok",
+              "file": "tests/unit/type/zset.tcl",
+              "test": "ZMPOP with illegal argument in tests/unit/type/zset.tcl",
+              "data": "ZMPOP with illegal argument",
+              "milliseconds": "0"
+            }
+          ]
+        }
+      ],
+      "files": [
+        {
+          "file": "integration/redis-cli",
+          "passed": 45,
+          "failed": 0,
+          "skipped": 5,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "integration/replication-buffer",
+          "passed": 2,
+          "failed": 0,
+          "skipped": 4,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/bitfield",
+          "passed": 18,
+          "failed": 0,
+          "skipped": 1,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/bitops",
+          "passed": 48,
+          "failed": 0,
+          "skipped": 3,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/dump",
+          "passed": 8,
+          "failed": 0,
+          "skipped": 20,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/expire",
+          "passed": 60,
+          "failed": 0,
+          "skipped": 10,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/functions",
+          "passed": 67,
+          "failed": 0,
+          "skipped": 33,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/geo",
+          "passed": 64,
+          "failed": 0,
+          "skipped": 0,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/hyperloglog",
+          "passed": 24,
+          "failed": 0,
+          "skipped": 4,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
+          "setup_errors": []
+        },
+        {
+          "file": "unit/introspection",
+          "passed": 21,
+          "failed": 0,
+          "skipped": 31,
+          "complete": true,
+          "exit_code": 0,
+          "error": null,
           "setup_errors": []
         },
         {

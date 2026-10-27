@@ -9,7 +9,7 @@ CASES=dict(trim='STREAM-TRIM-APPROX-LIMIT',xread='XREAD-PLUS-LAST',ranges='XRANG
 result={}
 for receipt in sorted((DOC/'jobs').glob('*.json')):
     job=json.loads(receipt.read_text())
-    item=dict(receipt=str(receipt.relative_to(ROOT)),exit=job['exit'],binary_sha256=job['binary_sha256'],binary_unchanged=job['binary_unchanged'],summary=job['summary'],seconds=job['seconds'])
+    item=dict(receipt=str(receipt.relative_to(ROOT)),exit=job['exit'],binary_sha256=job['binary_sha256'],binary_unchanged=job['binary_unchanged'],proof_files_unchanged=job.get('proof_files_unchanged'),summary=job['summary'],seconds=job['seconds'])
     result[receipt.stem]=item
     if 'artifacts' not in job:continue
     folder=Path(job['artifacts'])/'jobs';item['artifacts']=str(folder.parent)

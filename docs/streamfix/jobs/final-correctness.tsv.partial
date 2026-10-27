@@ -1,0 +1,1 @@
+PARTIAL	0	GATE_ONLY_JOBS=production_units streamfix redis_tcl feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 compat3 blockfix_structure blockfix_registry blockfix_mkstream release_batteries notify netcmd_units snapshot-epoll snapshot-uring aof-epoll aof-uring; NOT A RECEIPT
