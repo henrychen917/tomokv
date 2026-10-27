@@ -22,13 +22,22 @@ Corrected direct run: 24/24 TomoKV + 3/3 Redis legs. Both runs use shards 16,
 server CPUs 48-55, driver CPUs 56-63. `before.json` and `after.json` retain
 all leg outcomes. Final-source gate-job evidence is recorded in the lane report.
 
-Reproduction command (original schedule plus reply diagnostic):
+Reproduction command (extract the original schedule and add the reply diagnostic;
+the current tests/at412.py contains the corrected schedule):
 
 ```sh
-taskset -c 56-63 python3 tests/at412.py --case T7 \
+taskset -c 48-63 python3 - <<'PY'
+from pathlib import Path
+import subprocess
+source = subprocess.check_output(['git', 'show', '5591449e2:tests/at412.py'], text=True)
+source = source.replace('assert old.read() == [1, 1]',
+                        "old_reply = old.read()\n                assert old_reply == [1, 1], ('E_old', old_reply)")
+Path('build/at412c/t7-original.py').write_text(source)
+PY
+taskset -c 56-63 env PYTHONPATH="$PWD/tests" python3 build/at412c/t7-original.py --case T7 \
   --binary /home/user/Projects/bins/at412-post-931130b2 \
   --oracle /home/user/Projects/redis74/src/redis-server \
-  --cores 48-55 --port 20200 --output build/at412c/t7-before
+  --cores 48-55 --port 20200 --output build/at412c/t7-original-replay
 ```
 
 Saved POST SHA-256: `931130b2593c92dc984dea47d6ce6b229a748c2314b819903a51c2c33eaaca76`.
