@@ -3,7 +3,8 @@
   "post_sha256": "e99c3f23182c0872214c2e1475cb64cb4d8aa3dd27ebeaf769ca0197c4b5ba5b",
   "groups": 9771,
   "changed": 16,
-  "hot_groups": 705,
+  "hot_groups": 765,
+  "counted_command_groups": 81,
   "hot_changed": [],
   "changed_groups": [
     {

@@ -1,0 +1,442 @@
+{
+  "launcher_exception": {
+    "pid": 909158,
+    "command": "bash /home/user/Projects/cx-launch.sh protofix /home/user/Projects/cx-protofix 112-127 max",
+    "reason": "Pre-existing launcher ancestor; not a lane workload."
+  },
+  "workload_thread_masks_within_0_15": true,
+  "snapshot": [
+    {
+      "pid": 909158,
+      "command": "bash",
+      "cwd": "/home/user/Projects/cx-protofix",
+      "threads": [
+        {
+          "tid": 909158,
+          "cpus": [
+            112,
+            113,
+            114,
+            115,
+            116,
+            117,
+            118,
+            119,
+            120,
+            121,
+            122,
+            123,
+            124,
+            125,
+            126,
+            127
+          ],
+          "within_lane": false
+        }
+      ]
+    },
+    {
+      "pid": 3379444,
+      "command": "bash",
+      "cwd": "/home/user/Projects/cx-protofix",
+      "threads": [
+        {
+          "tid": 3379444,
+          "cpus": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "within_lane": true
+        }
+      ]
+    },
+    {
+      "pid": 3427559,
+      "command": "python3",
+      "cwd": "/home/user/Projects/cx-protofix",
+      "threads": [
+        {
+          "tid": 3427559,
+          "cpus": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "within_lane": true
+        }
+      ]
+    },
+    {
+      "pid": 3428292,
+      "command": "python3",
+      "cwd": "/home/user/Projects/cx-protofix",
+      "threads": [
+        {
+          "tid": 3428292,
+          "cpus": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "within_lane": true
+        }
+      ]
+    },
+    {
+      "pid": 3428761,
+      "command": "bash",
+      "cwd": "/home/user/Projects/cx-protofix",
+      "threads": [
+        {
+          "tid": 3428761,
+          "cpus": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "within_lane": true
+        }
+      ]
+    },
+    {
+      "pid": 3430172,
+      "command": "bash",
+      "cwd": "/home/user/Projects/cx-protofix",
+      "threads": [
+        {
+          "tid": 3430172,
+          "cpus": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "within_lane": true
+        }
+      ]
+    },
+    {
+      "pid": 3460044,
+      "command": "bash",
+      "cwd": "/home/user/Projects/cx-protofix",
+      "threads": [
+        {
+          "tid": 3460044,
+          "cpus": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "within_lane": true
+        }
+      ]
+    },
+    {
+      "pid": 3985163,
+      "command": "python3",
+      "cwd": "/home/user/Projects/cx-protofix",
+      "threads": [
+        {
+          "tid": 3985163,
+          "cpus": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "within_lane": true
+        }
+      ]
+    },
+    {
+      "pid": 3985167,
+      "command": "make",
+      "cwd": "/home/user/Projects/cx-protofix",
+      "threads": [
+        {
+          "tid": 3985167,
+          "cpus": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "within_lane": true
+        }
+      ]
+    },
+    {
+      "pid": 4029680,
+      "command": "make",
+      "cwd": "/home/user/Projects/cx-protofix",
+      "threads": [
+        {
+          "tid": 4029680,
+          "cpus": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "within_lane": true
+        }
+      ]
+    },
+    {
+      "pid": 4043575,
+      "command": "g++",
+      "cwd": "/home/user/Projects/cx-protofix",
+      "threads": [
+        {
+          "tid": 4043575,
+          "cpus": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "within_lane": true
+        }
+      ]
+    },
+    {
+      "pid": 4043576,
+      "command": "cc1plus",
+      "cwd": "/home/user/Projects/cx-protofix",
+      "threads": [
+        {
+          "tid": 4043576,
+          "cpus": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "within_lane": true
+        }
+      ]
+    },
+    {
+      "pid": 4045607,
+      "command": "g++",
+      "cwd": "/home/user/Projects/cx-protofix",
+      "threads": [
+        {
+          "tid": 4045607,
+          "cpus": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "within_lane": true
+        }
+      ]
+    },
+    {
+      "pid": 4045608,
+      "command": "cc1plus",
+      "cwd": "/home/user/Projects/cx-protofix",
+      "threads": [
+        {
+          "tid": 4045608,
+          "cpus": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "within_lane": true
+        }
+      ]
+    },
+    {
+      "pid": 4060531,
+      "command": "bash",
+      "cwd": "/home/user/Projects/cx-protofix",
+      "threads": [
+        {
+          "tid": 4060531,
+          "cpus": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "within_lane": true
+        }
+      ]
+    },
+    {
+      "pid": 4060560,
+      "command": "python3",
+      "cwd": "/home/user/Projects/cx-protofix",
+      "threads": [
+        {
+          "tid": 4060560,
+          "cpus": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "within_lane": true
+        }
+      ]
+    }
+  ]
+}

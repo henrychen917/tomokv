@@ -1,0 +1,23 @@
+{
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O1",
+    "-g",
+    "-fsanitize=address,undefined",
+    "-fno-omit-frame-pointer",
+    "-I.",
+    "docs/protofix/lifetime.cc",
+    "-o",
+    "build/protofix/lifetime"
+  ],
+  "run": [
+    "taskset",
+    "-c",
+    "0-15",
+    "build/protofix/lifetime"
+  ],
+  "result": "PASS",
+  "binary_sha256": "ed54cbda58c6edafac313f81ca73b48513587874a1b5b0cd9d68cc5db745fb43",
+  "source_sha256": "be81583867c038b5f54e5a1e765dedf830067bd918f0a59c39968a3f36b0c56e"
+}
