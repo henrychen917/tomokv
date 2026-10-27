@@ -83,7 +83,8 @@ grace-window observation; fused instantiations omit that bookkeeping. Slowlog's
 existing per-batch arm and readability assertions retain their semantics.
 
 `wave8b_off` adds one serverless scan/sample/transition witness row. Its
-`collect_job` line is before the quick-tier exit: **DQ=+1, DF=+1**. Wave 8 is
+`collect_job` is at gate line 5690, before the quick-tier exit at 5778:
+**DQ=+1, DF=+1**. Wave 8 is
 +8/+8, so total over headline 798/815 is **+9/+9 → 807/824**. Neither EXPECT
 constant is edited. Landing count/label adjustments for abba_selftest are confined
 to a throwaway source copy.
