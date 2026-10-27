@@ -2,3 +2,246 @@ GATE(iteration): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 lo
   artifacts: /home/user/Projects/cx-protofix/build/gate-run.1PWt0Q
 PARTIAL jobs (including prerequisites): release asan core_tsan_build rldbg production_units source_identity inline_quoted respresume-fragment-1s-epoll respresume-fragment-1s-uring respresume-fragment-2s-epoll respresume-fragment-2s-uring respresume-cpu-1s-epoll respresume-cpu-1s-uring respresume-cpu-2s-epoll respresume-cpu-2s-uring respresume-neighbour-1s-epoll respresume-neighbour-1s-uring respresume-neighbour-2s-epoll respresume-neighbour-2s-uring iofix-deferred iofix-hz iofix-sleep iofix-signal netio-1s netio-2s perfio_stream core_units splitlocal_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat readonly bplus rlfix3_zc rlfix3_info tls ntfix_input replyoff zc rlcache
 PARTIAL jobs (including prerequisites): release asan core_tsan_build rldbg production_units source_identity inline_quoted respresume-fragment-1s-epoll respresume-fragment-1s-uring respresume-fragment-2s-epoll respresume-fragment-2s-uring respresume-cpu-1s-epoll respresume-cpu-1s-uring respresume-cpu-2s-epoll respresume-cpu-2s-uring respresume-neighbour-1s-epoll respresume-neighbour-1s-uring respresume-neighbour-2s-epoll respresume-neighbour-2s-uring iofix-deferred iofix-hz iofix-sleep iofix-signal netio-1s netio-2s perfio_stream core_units splitlocal_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat readonly bplus rlfix3_zc rlfix3_info tls ntfix_input replyoff zc rlcache
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=98.67s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); ASAN build
+  ASAN build                                           ok
+  row budget: 900s; median=60.5s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); read-local ownership-invariant build
+  read-local ownership-invariant build                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; production source identity + stable assertion ids
+  production source identity + stable assertion ids    ok
+  row budget: 900s; median=1.405s; correctness-plan-fallback; inline quoted argument decoding (1s, epoll)
+  inline quoted argument decoding (1s, epoll)          ok
+  row budget: 900s; median=1.41s; correctness-plan-fallback; inline quoted argument decoding (1s, uring)
+  inline quoted argument decoding (1s, uring)          ok
+  row budget: 900s; median=1.405s; correctness-plan-fallback; inline quoted argument decoding (2s, epoll)
+  inline quoted argument decoding (2s, epoll)          ok
+  row budget: 900s; median=1.415s; correctness-plan-fallback; inline quoted argument decoding (2s, uring)
+  inline quoted argument decoding (2s, uring)          ok
+  row budget: 900s; median=30.41s; correctness-plan-fallback; RESP resumable fragment (1s, epoll)
+  RESP resumable fragment (1s, epoll)                  ok
+  row budget: 900s; median=24.65s; correctness-plan-fallback; RESP resumable fragment (1s, uring)
+  RESP resumable fragment (1s, uring)                  ok
+  row budget: 900s; median=15.28s; correctness-plan-fallback; RESP resumable fragment (2s, epoll)
+  RESP resumable fragment (2s, epoll)                  ok
+  row budget: 900s; median=14.78s; correctness-plan-fallback; RESP resumable fragment (2s, uring)
+  RESP resumable fragment (2s, uring)                  ok
+  row budget: 900s; median=2.63s; correctness-plan-fallback; RESP resumable cpu (1s, epoll)
+  RESP resumable cpu (1s, epoll)                       ok
+  row budget: 900s; median=2.63s; correctness-plan-fallback; RESP resumable cpu (1s, uring)
+  RESP resumable cpu (1s, uring)                       ok
+  row budget: 900s; median=2.63s; correctness-plan-fallback; RESP resumable cpu (2s, epoll)
+  RESP resumable cpu (2s, epoll)                       ok
+  row budget: 900s; median=2.62s; correctness-plan-fallback; RESP resumable cpu (2s, uring)
+  RESP resumable cpu (2s, uring)                       ok
+  row budget: 900s; median=0.82s; correctness-plan-fallback; RESP resumable neighbour (1s, epoll)
+  RESP resumable neighbour (1s, epoll)                 ok
+  row budget: 900s; median=0.81s; correctness-plan-fallback; RESP resumable neighbour (1s, uring)
+  RESP resumable neighbour (1s, uring)                 ok
+  row budget: 900s; median=0.8s; correctness-plan-fallback; RESP resumable neighbour (2s, epoll)
+  RESP resumable neighbour (2s, epoll)                 ok
+  row budget: 900s; median=0.81s; correctness-plan-fallback; RESP resumable neighbour (2s, uring)
+  RESP resumable neighbour (2s, uring)                 ok
+  row budget: 900s; median=26.79s; correctness-plan-fallback; iofix WB4.1 deferred IO parks
+  iofix WB4.1 deferred IO parks                        ok
+  row budget: 900s; median=44.18s; correctness-plan-fallback; iofix IO4.9 Redis hz cron
+  iofix IO4.9 Redis hz cron                            ok
+  row budget: 900s; median=-s; correctness-plan-fallback; iofix IO4.10 global DEBUG SLEEP
+  iofix IO4.10 global DEBUG SLEEP                      ok
+  row budget: 900s; median=17.75s; correctness-plan-fallback; iofix IO4.17 immediate signal shutdown
+  iofix IO4.17 immediate signal shutdown               ok
+  row budget: 900s; median=3.01s; correctness-plan-fallback; epoll directed correctness (1s)
+  epoll directed correctness (1s)                      ok
+  row budget: 900s; median=2.98s; correctness-plan-fallback; epoll directed correctness (2s)
+  epoll directed correctness (2s)                      ok
+  row budget: 900s; median=0.48s; correctness-plan-fallback; perfio XREADGROUP bounded delivery + Redis metadata (1s)
+  perfio XREADGROUP bounded delivery + Redis metadata (1s) ok
+  row budget: 900s; median=0.75s; correctness-plan-fallback; perfio XREADGROUP bounded delivery + Redis metadata (2s)
+  perfio XREADGROUP bounded delivery + Redis metadata (2s) ok
+  row budget: 900s; median=0.53s; correctness-plan-fallback; core concurrency watch
+  core concurrency watch                               ok
+  row budget: 900s; median=0.52s; correctness-plan-fallback; core concurrency lifetime
+  core concurrency lifetime                            ok
+  row budget: 900s; median=0.28s; correctness-plan-fallback; core concurrency drain
+  core concurrency drain                               ok
+  row budget: 900s; median=10.45s; correctness-plan-fallback; core concurrency route
+  core concurrency route                               ok
+  row budget: 900s; median=0.14s; correctness-plan-fallback; core concurrency snapshot
+  core concurrency snapshot                            ok
+  row budget: 900s; median=0.21s; correctness-plan-fallback; core concurrency config
+  core concurrency config                              ok
+  row budget: 900s; median=0.2s; correctness-plan-fallback; core concurrency notify
+  core concurrency notify                              ok
+  row budget: 900s; median=0.91s; correctness-plan-fallback; read-local topology demotion (1s)
+  read-local topology demotion (1s)                    ok
+  row budget: 900s; median=0.76s; correctness-plan-fallback; read-local topology demotion (2s)
+  read-local topology demotion (2s)                    ok
+  row budget: 900s; median=0.96s; correctness-plan-fallback; splitlocal template forwarding + old-argument controls
+  splitlocal template forwarding + old-argument controls ok
+  row budget: 900s; median=0s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); netcmd regression build
+  netcmd regression build                              ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd streams regression
+  netcmd streams regression                            ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd zpop regression
+  netcmd zpop regression                               ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd notify-oom regression
+  netcmd notify-oom regression                         ok
+  row budget: 900s; median=0s; correctness-plan-fallback; netcmd notify-retry regression
+  netcmd notify-retry regression                       ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd flush regression
+  netcmd flush regression                              ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd output regression
+  netcmd output regression                             ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd pubsub regression
+  netcmd pubsub regression                             ok
+  row budget: 900s; median=0s; correctness-plan-fallback; netcmd receive regression
+  netcmd receive regression                            ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; netcmd config regression
+  netcmd config regression                             ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd wb-small-pipe regression
+  netcmd wb-small-pipe regression                      ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd wb-complete-visits regression
+  netcmd wb-complete-visits regression                 ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; netcmd hexpire-oom regression
+  netcmd hexpire-oom regression                        ok
+  row budget: 900s; median=0.35s; correctness-plan-fallback; encodingfix knob
+  encodingfix knob                                     ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; encodingfix precedence
+  encodingfix precedence                               ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; NET1 serverless bounds + scan + reclamation
+  NET1 serverless bounds + scan + reclamation          ok
+  row budget: 900s; median=0.56s; correctness-plan-fallback; NET1 inline + query cap (1s, uring)
+  NET1 inline + query cap (1s, uring)                  ok
+  row budget: 900s; median=0.5s; correctness-plan-fallback; NET1 inline + query cap (1s, epoll)
+  NET1 inline + query cap (1s, epoll)                  ok
+  row budget: 900s; median=0.51s; correctness-plan-fallback; NET1 inline + query cap (2s, uring)
+  NET1 inline + query cap (2s, uring)                  ok
+  row budget: 900s; median=0.42s; correctness-plan-fallback; NET1 inline + query cap (2s, epoll)
+  NET1 inline + query cap (2s, epoll)                  ok
+  row budget: 900s; median=2.11s; correctness-plan-fallback; netfix NT4.6 query-limit INFO parity
+  netfix NT4.6 query-limit INFO parity                 ok
+  row budget: 900s; median=1.35s; correctness-plan-fallback; netfix NT4.11 Unix pathname parity
+  netfix NT4.11 Unix pathname parity                   ok
+  row budget: 900s; median=2.44s; correctness-plan-fallback; netfix NT4.8 network CONFIG error parity
+  netfix NT4.8 network CONFIG error parity             ok
+  row budget: 900s; median=11.09s; correctness-plan-fallback; netfix NT4.7 TLS default cipher parity
+  netfix NT4.7 TLS default cipher parity               ok
+  row budget: 900s; median=366.5s; correctness-plan-fallback; netfix NT4.19 idle buffer reclamation
+  netfix NT4.19 idle buffer reclamation                ok
+  row budget: 900s; median=29.37s; correctness-plan-fallback; RESP protocol error compatibility
+  RESP protocol error compatibility                    ok
+  row budget: 900s; median=2.23s; correctness-plan-fallback; read-only resize split read-local=0
+  read-only resize split read-local=0                  ok
+  row budget: 900s; median=2.08s; correctness-plan-fallback; read-only resize split read-local=1
+  read-only resize split read-local=1                  ok
+  row budget: 900s; median=1.59s; correctness-plan-fallback; read-only resize fused read-local=0
+  read-only resize fused read-local=0                  ok
+  row budget: 900s; median=1.59s; correctness-plan-fallback; read-only resize fused read-local=1
+  read-only resize fused read-local=1                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; B+ held-group GET/MGET filter battery
+  B+ held-group GET/MGET filter battery                ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local lane admission battery
+  read-local lane admission battery                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local MGET fence battery (1s)
+  read-local MGET fence battery (1s)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local GET miss battery (1s)
+  read-local GET miss battery (1s)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local one-key delete battery (1s)
+  read-local one-key delete battery (1s)               ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local MGET fence battery (2s)
+  read-local MGET fence battery (2s)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local GET miss battery (2s)
+  read-local GET miss battery (2s)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local one-key delete battery (2s)
+  read-local one-key delete battery (2s)               ok
+  row budget: 900s; median=0.35s; correctness-plan-fallback; read-local borrow capability (1s, epoll, read-local 0)
+  read-local borrow capability (1s, epoll, read-local 0) ok
+  row budget: 900s; median=0.29s; correctness-plan-fallback; read-local borrow capability (1s, epoll, read-local 1)
+  read-local borrow capability (1s, epoll, read-local 1) ok
+  row budget: 900s; median=0.29s; correctness-plan-fallback; read-local borrow capability (1s, uring, read-local 0)
+  read-local borrow capability (1s, uring, read-local 0) ok
+  row budget: 900s; median=0.29s; correctness-plan-fallback; read-local borrow capability (1s, uring, read-local 1)
+  read-local borrow capability (1s, uring, read-local 1) ok
+  row budget: 900s; median=0.3s; correctness-plan-fallback; read-local borrow capability (2s, epoll, read-local 0)
+  read-local borrow capability (2s, epoll, read-local 0) ok
+  row budget: 900s; median=0.3s; correctness-plan-fallback; read-local borrow capability (2s, epoll, read-local 1)
+  read-local borrow capability (2s, epoll, read-local 1) ok
+  row budget: 900s; median=0.3s; correctness-plan-fallback; read-local borrow capability (2s, uring, read-local 0)
+  read-local borrow capability (2s, uring, read-local 0) ok
+  row budget: 900s; median=0.3s; correctness-plan-fallback; read-local borrow capability (2s, uring, read-local 1)
+  read-local borrow capability (2s, uring, read-local 1) ok
+  row budget: 900s; median=0.82s; correctness-plan-fallback; INFO selective collection (1s, epoll, read-local 0)
+  INFO selective collection (1s, epoll, read-local 0)  ok
+  row budget: 900s; median=0.8s; correctness-plan-fallback; INFO selective collection (1s, epoll, read-local 1)
+  INFO selective collection (1s, epoll, read-local 1)  ok
+  row budget: 900s; median=0.79s; correctness-plan-fallback; INFO selective collection (1s, uring, read-local 0)
+  INFO selective collection (1s, uring, read-local 0)  ok
+  row budget: 900s; median=0.8s; correctness-plan-fallback; INFO selective collection (1s, uring, read-local 1)
+  INFO selective collection (1s, uring, read-local 1)  ok
+  row budget: 900s; median=0.81s; correctness-plan-fallback; INFO selective collection (2s, epoll, read-local 0)
+  INFO selective collection (2s, epoll, read-local 0)  ok
+  row budget: 900s; median=0.81s; correctness-plan-fallback; INFO selective collection (2s, epoll, read-local 1)
+  INFO selective collection (2s, epoll, read-local 1)  ok
+  row budget: 900s; median=0.8s; correctness-plan-fallback; INFO selective collection (2s, uring, read-local 0)
+  INFO selective collection (2s, uring, read-local 0)  ok
+  row budget: 900s; median=0.82s; correctness-plan-fallback; INFO selective collection (2s, uring, read-local 1)
+  INFO selective collection (2s, uring, read-local 1)  ok
+  row budget: 900s; median=0.92s; correctness-plan-fallback; TLS ephemeral CA/server/client certificates
+  TLS ephemeral CA/server/client certificates          ok
+  row budget: 900s; median=0.07s; correctness-plan-fallback; NET2 serverless RX policy and KeyUpdate controls
+  NET2 serverless RX policy and KeyUpdate controls     ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; reject TLS listener without certificate
+  reject TLS listener without certificate              ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; reject invalid tls-protocols
+  reject invalid tls-protocols                         ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; reject invalid tls-ciphers
+  reject invalid tls-ciphers                           ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; TLS client-auth yes matrix
+  TLS client-auth yes matrix                           ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; TLS yes shutdown invariants
+  TLS yes shutdown invariants                          ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; TLS client-auth optional matrix
+  TLS client-auth optional matrix                      ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; kTLS TLS 1.2 engaged live (default boot)
+  kTLS TLS 1.2 engaged live (default boot)             ok
+  row budget: 900s; median=0.18s; correctness-plan-fallback; TLS 1.3 KeyUpdate survives (NET2)
+  TLS 1.3 KeyUpdate survives (NET2)                    ok
+  row budget: 900s; median=0.17s; correctness-plan-fallback; TLS 1.3 userspace KeyUpdate survives (NET2)
+  TLS 1.3 userspace KeyUpdate survives (NET2)          ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; TLS optional shutdown invariants
+  TLS optional shutdown invariants                     ok
+  row budget: 900s; median=14.49s; correctness-plan-fallback; TLS pipeline/torn-record/coexistence battery
+  TLS pipeline/torn-record/coexistence battery         ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; TLS shutdown invariants
+  TLS shutdown invariants                              ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; TLS application send path error-free
+  TLS application send path error-free                 ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; TLS connection slots all freed (N/N)
+  TLS connection slots all freed (33/33)               ok
+  row budget: 900s; median=0s; correctness-plan-fallback; TLS zc borrow gates fired (suppressed=N)
+  TLS zc borrow gates fired (suppressed=21)            ok
+  row budget: 900s; median=5.9s; correctness-plan-fallback; TLS silent-peer close after reply (ntfix N2)
+  TLS silent-peer close after reply (ntfix N2)         ok
+  row budget: 900s; median=10.72s; correctness-plan-fallback; RESP pre-AUTH limit errors (ntfix N3)
+  RESP pre-AUTH limit errors (ntfix N3)                ok
+  row budget: 900s; median=15.13s; correctness-plan-fallback; RESP query-buffer frontier (ntfix N4)
+  RESP query-buffer frontier (ntfix N4)                ok
+  row budget: 900s; median=5.56s; correctness-plan-fallback; INFO received bytes exact (ntfix N1)
+  INFO received bytes exact (ntfix N1)                 ok
+  row budget: 900s; median=1.23s; correctness-plan-fallback; CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)
+  CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0) ok
+  row budget: 900s; median=1.24s; correctness-plan-fallback; CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)
+  CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1) ok
+  row budget: 900s; median=1.4s; correctness-plan-fallback; zc borrow battery
+  zc borrow battery                                    ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; zc fired (zc_sends=N)
+  zc fired (zc_sends=20)                               ok
+  row budget: 900s; median=1.47s; correctness-plan-fallback; zc borrow battery under ASAN
+  zc borrow battery under ASAN                         ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; zc ASAN clean
+  zc ASAN clean                                        ok
+  row budget: 900s; median=25.32s; correctness-plan-fallback; armed block-cache churn battery
+  armed block-cache churn battery                      ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; read-local ownership invariants
+  read-local ownership invariants                      ok
+GATE(PARTIAL): 121 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-protofix/docs/protofix/jobs/verified-protocol-uring.tsv.partial

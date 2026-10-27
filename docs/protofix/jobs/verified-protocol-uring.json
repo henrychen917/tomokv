@@ -1,0 +1,44 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "iteration",
+    "--server-cores",
+    "0-7",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "8-15",
+    "--load-smt",
+    "",
+    "--ports",
+    "20300-20329",
+    "--candidate-binary",
+    "/home/user/Projects/cx-protofix/build/tomokv"
+  ],
+  "env": {
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis74/src/redis-cli",
+    "GATE_ONLY_JOBS": "inline_quoted respcompat netio-1s netio-2s netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers ntfix_input iofix-deferred iofix-hz iofix-sleep iofix-signal perfio_stream rlfix3_info rlfix3_zc readonly replyoff tls zc rlcache netcmd_units splitlocal_units core_units bplus source_identity respresume-fragment-1s-epoll respresume-fragment-1s-uring respresume-fragment-2s-epoll respresume-fragment-2s-uring respresume-cpu-1s-epoll respresume-cpu-1s-uring respresume-cpu-2s-epoll respresume-cpu-2s-uring respresume-neighbour-1s-epoll respresume-neighbour-1s-uring respresume-neighbour-2s-epoll respresume-neighbour-2s-uring",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_ZC_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TXN_FUSED": "0",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_TEST_PORT": "20398",
+    "GATE_LEDGER": "/home/user/Projects/cx-protofix/docs/protofix/jobs/verified-protocol-uring.tsv"
+  },
+  "binary_sha256": "e99c3f23182c0872214c2e1475cb64cb4d8aa3dd27ebeaf769ca0197c4b5ba5b",
+  "gate_sha256": "99bc2e27601375e8af3c6e0c9e543b4f22a31b0e6efada28a883f7eada47eddf",
+  "commit": "4fa243af1f01cf93ef1bd78de7e418731f1c0dba",
+  "started": 1793093279.9742658,
+  "exit": 0,
+  "seconds": 2080.427029132843,
+  "binary_unchanged": true,
+  "artifacts": "/home/user/Projects/cx-protofix/build/gate-run.1PWt0Q",
+  "summary": [
+    "GATE(PARTIAL): 121 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-protofix/docs/protofix/jobs/verified-protocol-uring.tsv.partial"
+  ]
+}

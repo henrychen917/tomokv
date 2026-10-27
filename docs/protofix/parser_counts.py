@@ -2,16 +2,24 @@
 """Use the established instruction tracer on allocation-free inline/RESP parses."""
 from concurrent.futures import ThreadPoolExecutor
 import json
+import os
 from pathlib import Path
+import re
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[2]
+os.sched_setaffinity(0, set(range(16)))
+tag = os.environ.get("PROTOFIX_COUNT_TAG", "")
+assert not tag or re.fullmatch(r"[a-zA-Z0-9_-]+", tag), tag
+suffix = "-" + tag if tag else ""
 source = (ROOT / "tools/execindex_scope.py").read_text()
-source = source.replace('"docs/execindex/instructions"', '"docs/protofix/parser-instructions"')
-source = source.replace('"build/execindex/commands"', '"build/protofix/parser-commands"')
+source = source.replace('"docs/execindex/instructions"', f'"docs/protofix/parser-instructions{suffix}"')
+source = source.replace('"build/execindex/commands"', f'"build/protofix/parser-commands{suffix}"')
 source = source.replace('"96-103"', '"0-15"')
 scope = {"__file__": str(ROOT / "tools/execindex_scope.py"), "__name__": "protofix_parser_counter"}
 exec(compile(source, scope["__file__"], "exec"), scope)
+assert not any(any("-" + cmd + "-" in path.name for cmd in ("GET", "SET", "INCR"))
+               for path in scope["OUT"].glob("*.json")), "preserve earlier traces; set PROTOFIX_COUNT_TAG to a new name"
 for arm, base in (("pre", ROOT / "build/protofix/pre-source"), ("post", ROOT)):
     folder = scope["BUILD"] / (arm + "-normal")
     folder.mkdir(parents=True, exist_ok=True)

@@ -26,6 +26,8 @@ PAD-A is an exact POST-layout control, built by `docs/protofix/pad_a.py`. PRE's 
 
 The established serverless counter from `tools/execindex_scope.py` runs with only artifact paths and affinity changed. `docs/protofix/counts.py` uses fresh final destinations, avoiding stale traces from earlier compiler trials. All **24** command-scope PRE/POST comparisons match exactly: GET/SET/INCR × batch 1/32 × 1s/2s × normal/db0. Every total, per-function count and excluded external-call count agrees. Atomic is 1, slowlog threshold is -1. These counts cover named production command routines and inlined code, exclude external-library bodies, and are not cycles/op or throughput measurements. Full numbers and trace receipts: `docs/protofix/instructions-final/`.
 
+The instrument supplies deterministic clock results (one intercepted clock call per command scope). Wrapper guards refuse to reuse existing traces after rebuilding a fixture; reproduce into new directories with, for example, `PROTOFIX_COUNT_TAG=review1 python3 docs/protofix/counts.py` and the same environment setting for `parser_counts.py`.
+
 | Command / mode | normal batch 1 | normal batch 32 | db0 batch 1 | db0 batch 32 |
 | --- | ---: | ---: | ---: | ---: |
 | GET 1s | 939 → 939 | 18,578 → 18,578 | 818 → 818 | 18,705 → 18,705 |
@@ -64,7 +66,7 @@ The exact `inline_quoted` test and four-leg job were taken from cx-gaterows5 com
 
 ### Correctness campaign
 
-All gate invocations are **selected whole jobs** via `GATE_ONLY_JOBS`; the positional `iteration` argument selects the gate's job interface, never the forbidden full iteration. Each uses eight server CPUs 0–7, ratio 6:2, 16 shards, load CPUs 8–15, and owned ports 20300–20329. Extra native builds stay on 0–15 with `-j16`; gate self-tests use port 20398. The Redis oracle and every test server are confined to the authorized lane. The gate's existing correctness-only `GATE_PROOF_NO_RATES=1` is used for partial atomic batteries; their mechanism/window checks still run, and their rate assertion is explicitly skipped.
+All gate invocations are **selected whole jobs** via `GATE_ONLY_JOBS`; the positional `iteration` argument selects the gate's job interface, never the forbidden full iteration. Ordinary boots use eight server CPUs 0–7, ratio 6:2, 16 shards, load CPUs 8–15, and owned ports 20300–20329; a job's explicit specialized geometry is retained (for example, the 64-shard ownership-debug row). Extra native builds stay on 0–15 with `-j16`; gate self-tests use port 20398 and the isolated pipeorder supplement uses port 20350. The Redis oracle and every test server are confined to the authorized lane. The gate's existing correctness-only `GATE_PROOF_NO_RATES=1` is used for partial atomic batteries; their mechanism/window checks still run, and their rate assertion is explicitly skipped.
 
 `docs/protofix/matrix.py` and `supplement.py` declare the complete job selections. `docs/protofix/jobs/` retains every command, source/gate/binary hash, log, ledger and verdict; a failed earlier attempt is never overwritten. The remaining runtime outcomes are pending completion of this campaign.
 

@@ -1,0 +1,14 @@
+[
+  {
+    "script": "counts.py",
+    "exit": 1,
+    "existing_trace_files_unchanged": 107,
+    "refusal": "AssertionError: preserve earlier traces; set PROTOFIX_COUNT_TAG to a new name"
+  },
+  {
+    "script": "parser_counts.py",
+    "exit": 1,
+    "existing_trace_files_unchanged": 49,
+    "refusal": "AssertionError: preserve earlier traces; set PROTOFIX_COUNT_TAG to a new name"
+  }
+]

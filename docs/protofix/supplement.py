@@ -8,7 +8,7 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[2]
 os.sched_setaffinity(0, set(range(16)))
 jobs = """reorder_sync reorder_engagement reorder_identity filter_unit ring_unit
-wb_rule_units wbland_units wb_policy atomic_units bugs5 acl_recheck auth authfix
+wb_rule_units wbland_units wb_policy atomic_units bugs5 acl_recheck auth authfix compat2
 serverfix_hello dispatch_arity dispatch_errors dispatch_children acl_subcommands
 router_uniform flip fliplisten ntnew4_live clientfix climonfix""".split()
 matrix = [dict(name="verified-supplement-uring", jobs=jobs, engine="uring"),
