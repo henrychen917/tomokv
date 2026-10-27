@@ -80,6 +80,7 @@ struct MultiCommand {
     std::atomic<uint64_t> slow_ns{0};
     std::atomic<uint64_t> slow_sleep_started{0};
     int64_t slow_threshold = -1; // published by command/attempt completion
+    bool io_effect_done = false; // pause effects publish inside the commit bracket
     ScatterState* scatter = nullptr;
     // ScatterState::groups is rebuilt between an xshard child's waves.  A barrier-only shard must
     // decide whether it belongs to the PUBLISHED wave without consulting that mutable table: the
@@ -176,6 +177,7 @@ struct alignas(8) MultiExecState : SnapshotCut {
     // through a transaction.  Unconditional: a single-owner transaction spans several tasks too,
     // and its clock moved between them just as readily.
     int64_t now_cut_ms = 0;
+    uint64_t now_cut_mono_ms = 0;
     // TEST HOOK (DEBUG ATOMIC-FANOUT-DEFER), the MULTI half.  Deadline and lead shard are written
     // once on the owning IO thread before the tasks are posted and read by the owners through the
     // task handoff's release/acquire pair.  Zero in production.
@@ -2343,6 +2345,7 @@ bool multi_dispatch_attempt(Server& server, ThreadCtx& self, ScatterArenaPool& p
         if (delay) dispatch->debug_place_deadline = now_ns() + uint64_t(delay) * 1000;
     }
     dispatch->now_cut_ms = now_realtime_ms();
+    dispatch->now_cut_mono_ms = now_ns() / 1000000ull;
     for (const auto& command : dispatch->commands)
         if (command->scatter) command->scatter->now_cut_ms = dispatch->now_cut_ms;
 
@@ -3104,6 +3107,19 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                     const uint64_t ticket = server.atomic_commit_group_cas(
                         state.decision.epoch,
                         [&](uint64_t shared) {
+                            // Install a queued pause before publishing the read/GC
+                            // watermark. Otherwise a committed TTL can be reaped
+                            // between the owner decision and IO reply retirement.
+                            // Only the winning attempt may change global pause state.
+                            for (const auto& command : state.commands) {
+                                if (command->kind != MultiCommandKind::IoLocal) continue;
+                                const uint64_t started = multi_slowlog_start(state, owner_thread_id);
+                                if (command_client_pause(server, *command->op, state.now_cut_mono_ms)) {
+                                    command->io_effect_done = true;
+                                    multi_slowlog_part(*command, started);
+                                    multi_slowlog_finish(state, *command, owner_thread_id);
+                                }
+                            }
                             publish_multi_child_epochs(state, shared);
                             if (state.database_publish)
                                 server.databases().publish_prepared(std::move(state.database_publish));
@@ -3185,13 +3201,13 @@ void multi_retire(Client& client, Op& op, std::vector<MultiExecState*>& deferred
         // Connection-local handlers deliberately return to their owning IO thread.  This preserves
         // their thread-local client/snapshot context and keeps every shard-owning handler on EX.
         for (const auto& command : state->commands) {
-            if (command->kind == MultiCommandKind::IoLocal &&
+            if (command->kind == MultiCommandKind::IoLocal && !command->io_effect_done &&
                 !(state->publication_started &&
                   (has_name(command->queued, "publish") || has_name(command->queued, "spublish"))))
             {
                 LatencyTrackingScope latency(state->owner_io, *command->op);
                 const uint64_t started = multi_slowlog_start(*state, state->owner_io);
-                if (!command_client_pause(*state->server, *command->op))
+                if (!command_client_pause(*state->server, *command->op, state->now_cut_mono_ms))
                     command->op->spec->handler(state->server->shard(0), *command->op);
                 multi_slowlog_part(*command, started);
                 multi_slowlog_finish(*state, *command, state->owner_io);
@@ -3946,7 +3962,7 @@ bool multi_shutdown_retirable(Server& server, WbEngine& wb, Client& client, Op& 
         !state->watch_failed.load(std::memory_order_acquire) &&
         !state->decision.aborted.load(std::memory_order_acquire))
         for (const auto& command : state->commands)
-            if (command->kind == MultiCommandKind::IoLocal &&
+            if (command->kind == MultiCommandKind::IoLocal && !command->io_effect_done &&
                 !(state->publication_started &&
                   (has_name(command->queued, "publish") || has_name(command->queued, "spublish"))))
                 return false;

@@ -87,6 +87,15 @@ def slowlog(a, b, oracle):
     expect(entries[0][3],[b'DEBUG',b'SLEEP',b'0.2'])
     expect(entries[0][5],b'multifix-slow')
     assert entries[0][2]>=100000,entries
+    expect(a.cmd('SLOWLOG','RESET'),OK)
+    expect(a.cmd('MULTI'),OK)
+    expect(a.cmd('DEBUG','SLEEP','0.11'),QUEUED)
+    expect(a.cmd('PING'),QUEUED)
+    expect(a.cmd('DEBUG','SLEEP','0.21'),QUEUED)
+    expect(a.cmd('EXEC'),[OK,b'PONG',OK])
+    entries=a.cmd('SLOWLOG','GET')
+    expect([entry[3] for entry in entries],
+           [[b'DEBUG',b'SLEEP',b'0.21'],[b'DEBUG',b'SLEEP',b'0.11']])
     expect(a.cmd('CONFIG','SET','slowlog-log-slower-than',-1),OK)
 
 def held(a, count=1):
@@ -120,6 +129,15 @@ def pause(a, b, oracle):
     expect(a.cmd('CLIENT','UNPAUSE'),OK)
     for key in ('multifix:e1','multifix:e2'):expect(a.cmd('GET',key),None)
     expect(int(info(a,'STATS')['expired_keys']),before+2)
+    # Redis measures the timeout from EXEC's frozen command time. A long
+    # command after PAUSE can exhaust it before EXEC returns; retiring the
+    # pause with a fresh clock would incorrectly hold this next write.
+    expect(a.cmd('MULTI'),OK)
+    expect(a.cmd('CLIENT','PAUSE',2000,'WRITE'),QUEUED)
+    expect(a.cmd('DEBUG','SLEEP','2.1'),QUEUED)
+    expect(a.cmd('EXEC'),[OK,OK])
+    b.sock.settimeout(1.0)
+    expect(b.cmd('SET','multifix:deadline','v'),OK)
 
 def pause_exec(a, b, oracle):
     for command,reply in ((('SET','multifix:held','v'),OK),

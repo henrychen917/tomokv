@@ -21,7 +21,8 @@ def multi(s):
              'void multi_slowlog_record(MultiExecState& state, MultiCommand& command, uint32_t owner) {\n    return; // planted missing inner-command logging')
  s=s.replace('bool multi_pause_writes(const Client& client) {',
              'bool multi_pause_writes(const Client& client) {\n    return false; // planted missing EXEC write classification')
- s=s.replace('if (!command_client_pause(*state->server, *command->op))','if (true) // planted unsupported queued CLIENT PAUSE')
+ s=s.replace('if (!command_client_pause(*state->server, *command->op, state->now_cut_mono_ms))','if (true) // planted unsupported queued CLIENT PAUSE')
+ s=s.replace('if (command_client_pause(server, *command->op, state.now_cut_mono_ms)) {','if (false) { // planted missing commit-bracket pause')
  return s
 change('src/cmd/multi.inc',multi)
 for name in ('src/cmd/xshard_commands.inc','src/cmd/notify.inc'):

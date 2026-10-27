@@ -190,7 +190,7 @@ void IoLoop::climon_copy_client_filter(PubSubEvent& target, const PubSubEvent& s
 
 // ---- lane state ----------------------------------------------------------------------------
 
-bool command_client_pause(Server& server, Op& op) {
+bool command_client_pause(Server& server, Op& op, uint64_t time_base_ms) {
     if (!op.cmd_name().eq_icase("client") || op.argc() < 2) return false;
     const Slice sub = op.arg(1);
     if (sub.eq_icase("unpause")) {
@@ -225,7 +225,7 @@ bool command_client_pause(Server& server, Op& op) {
                 return true;
             }
         }
-        const uint64_t now_ms = now_ns() / 1000000ull;
+        const uint64_t now_ms = time_base_ms ? time_base_ms : now_ns() / 1000000ull;
         server.climon_set_pause(now_ms + static_cast<uint64_t>(timeout), mode);
         reply_ok(op.sink());
         return true;
