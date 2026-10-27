@@ -300,6 +300,8 @@ mechanism cost from compiler allocation or estimate contention throughput.
 | LwEpq1, POST b179853b | Broad native transaction, scripting/functions, persistence, FLIP and notification jobs; default uring boots plus each job's complete internal matrix | **420 ok / 0 FAIL** |
 | 2U0RnS, POST b179853b | Epoll transaction-order, scriptatomic/xscript, scripting/functions and notification jobs, including their internal matrices | **203 ok / 0 FAIL** |
 | JMYoLv, POST b179853b | Fused io_uring DEBUG, snapshot/SAVE, AOF and notification jobs, including their internal matrices | **204 ok / 0 FAIL** |
+| R5aocp, POST b179853b | Fused epoll DEBUG and notification jobs, including their internal matrices | **51 ok / 0 FAIL** |
+| SVpV0r / tpQWzJ | Initial io_uring / epoll differential attempts with binary-only Redis prefix | **Preflight rc 2; comparisons NOT RUN**: required Redis source headers absent; retained and queued again with the full checkout |
 
 Further engine/mode and differential runs are still running; this table will be
 completed from their actual partial ledgers. It is not a full gate receipt. All commands, hashes,
@@ -308,10 +310,12 @@ job outcomes and per-leg inventories are archived by tools/at412c_record.py in
 only as correctness stress: rates are discarded and no PRE/POST performance
 comparison is run. No SKIP/NOT RUN appeared in the completed broad run's logs.
 
-The first queued phases use the binary-only /home/user/Projects/redis74 prefix,
-so preflight warns about absent Redis source files for the unselected ACL-metadata
-job. The selected jobs use its valid 7.4.10 oracle binary. The later runner uses
-the complete /home/user/Projects/redis checkout; both binaries have the same
+The first queued phases use the binary-only /home/user/Projects/redis74 prefix.
+Quick-tier preflight warns about absent Redis source files for the unselected
+ACL-metadata job; its selected jobs use the valid 7.4.10 oracle binary. Full-tier
+preflight refuses that prefix before running differential comparisons. Both
+failed attempts are retained. The retry runner uses the complete
+/home/user/Projects/redis checkout; both binaries have the same
 SHA-256 (`docs/at412c/provenance.json`).
 
 ### 11. DQ / DF

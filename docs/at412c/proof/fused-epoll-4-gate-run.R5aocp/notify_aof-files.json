@@ -1,0 +1,92 @@
+[
+  {
+    "path": "gate-srv-fused.FF6S9H",
+    "bytes": 7640,
+    "sha256": "e098e4a7bc5ab3ffe931b902bc6db14d94ae7bd0c8f34feb54e5640cf859bcc6"
+  },
+  {
+    "path": "gate-srv-fused.X4ai1i",
+    "bytes": 7556,
+    "sha256": "712a78239f5b9a09967f5926bcf3d3b8ba4293a2dcc0fec8fc7ff309d5ff7f72"
+  },
+  {
+    "path": "gate-srv-fused.ez4bto",
+    "bytes": 7557,
+    "sha256": "ffa8e1c03c788a9aaa418a54d9298f2ed37a1e7f1e49ab4612ab24d15caf28fa"
+  },
+  {
+    "path": "gate-srv-fused.skYpri",
+    "bytes": 7643,
+    "sha256": "4a0348a15c2d9beb3e52f6920a22ddb6fc5432316b14edf8bf7d411f14c157c2"
+  },
+  {
+    "path": "gate-srv-main.FcSudn",
+    "bytes": 6636,
+    "sha256": "da2830384e1140b2eaeb0189476ac5004f802b7d62634b17cc534465cd9d1815"
+  },
+  {
+    "path": "gate-srv-main.GXAYKY",
+    "bytes": 6719,
+    "sha256": "ebcd1247e8f6b67aa91cafba22ac96cda90b84f6259c01ca86c65d8d0ee067ea"
+  },
+  {
+    "path": "gate-srv-main.TYchyt",
+    "bytes": 6721,
+    "sha256": "fa7294eb43586e9aba3898487012da94ab110585b803f94ebc33ce60c57e3616"
+  },
+  {
+    "path": "gate-srv-main.wbYHvW",
+    "bytes": 6640,
+    "sha256": "37c96e06ec944715c6c698697e5f1c0f52a283197a87e8d309919ecfcc090620"
+  },
+  {
+    "path": "oracle.log",
+    "bytes": 7055,
+    "sha256": "adef2aca16d8c2e998c6adc886aa504fd10c0aafa6cbc86330359d9b9a1077bd"
+  },
+  {
+    "path": "order-1s-epoll-a0-rl1.log",
+    "bytes": 978,
+    "sha256": "2640531b5a05f4cdd78b4a7e83370762bf198ee41ea956bc02d9eb826db6e09d"
+  },
+  {
+    "path": "order-1s-epoll-a1-rl1.log",
+    "bytes": 978,
+    "sha256": "9c06bd3bfa707cd339178dcea7d5950704644b02364ebbe523db10a3a3f6f3d4"
+  },
+  {
+    "path": "order-1s-uring-a0-rl1.log",
+    "bytes": 978,
+    "sha256": "572b8b880284a092e9c63c24592e7421b8f5cc14dc2abd58674f228f98a0c99a"
+  },
+  {
+    "path": "order-1s-uring-a1-rl1.log",
+    "bytes": 978,
+    "sha256": "332d5369a384b19a7a4ba60e0b56d1f435c5b66f0426c0ff648b7066be07b0ae"
+  },
+  {
+    "path": "order-2s-epoll-a0-rl0.log",
+    "bytes": 978,
+    "sha256": "f7986ad97acba48125d8dbc5f9742fc0f9caeb995e789d2faeb5644655f7bdbf"
+  },
+  {
+    "path": "order-2s-epoll-a1-rl0.log",
+    "bytes": 978,
+    "sha256": "2d6a58cef73b7df92e78866e6c03762f4a32ca89dcbcfa69e6de92a6a3c933fa"
+  },
+  {
+    "path": "order-2s-uring-a0-rl0.log",
+    "bytes": 978,
+    "sha256": "cdbc1fb176e2b8bdb0e943ac567f14fd8025970ed58f0e526128166e7361d757"
+  },
+  {
+    "path": "order-2s-uring-a1-rl0.log",
+    "bytes": 978,
+    "sha256": "e173d64e39dcdeeb30d23cfd635e16bb641a4aaa9a25b95f97ca5e2cac23c3e4"
+  },
+  {
+    "path": "output.log",
+    "bytes": 163,
+    "sha256": "f0eb7a977787296f05ecc5a234d401ddb2387bfa9c1d0b26619d1ff49073b765"
+  }
+]

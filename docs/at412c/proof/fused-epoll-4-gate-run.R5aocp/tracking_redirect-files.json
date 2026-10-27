@@ -1,0 +1,137 @@
+[
+  {
+    "path": "gate-srv-fused.42Pg8a",
+    "bytes": 7555,
+    "sha256": "fba22789af0b0001dbec631ecc697380dfaf30552abfb0cedbd9dc785f28dcd7"
+  },
+  {
+    "path": "gate-srv-fused.7B4M0F",
+    "bytes": 7559,
+    "sha256": "c880c45563d7ed774c5a05499adfe5a68bea52fb963b7443ca64df388046db75"
+  },
+  {
+    "path": "gate-srv-fused.DU6xNh",
+    "bytes": 7551,
+    "sha256": "4092166f81688733baaee68bf6ffe28ca6cdfaff683f15e74f7301bd37ebb898"
+  },
+  {
+    "path": "gate-srv-fused.KUYyCH",
+    "bytes": 7636,
+    "sha256": "291cbc38601c56391b9f862cadafb96015e8f92a2d3aaa834b9edbfdfed2db3c"
+  },
+  {
+    "path": "gate-srv-fused.ceDJSA",
+    "bytes": 7636,
+    "sha256": "a2e12153fe8c136eb38636f61b56d122b218b71dae3ee39bb3d077d9b92cd936"
+  },
+  {
+    "path": "gate-srv-fused.g9IddM",
+    "bytes": 7644,
+    "sha256": "42fe4a0559a7703ab8b91fd3d96628b387b4fe679e23939cf0962092b0914a08"
+  },
+  {
+    "path": "gate-srv-fused.wesXkZ",
+    "bytes": 7645,
+    "sha256": "cc3395c1487de0160e84c635bb4160b03db7da719d2924293247dc84afaeca4c"
+  },
+  {
+    "path": "gate-srv-fused.yt2D0L",
+    "bytes": 7555,
+    "sha256": "5172c8032904fad2fd708c6102bee0c5824de26ae1172de303d2c065d8da5ee7"
+  },
+  {
+    "path": "gate-srv-main.3h0wlH",
+    "bytes": 6653,
+    "sha256": "f3f767ebf54ee12cf3e7d30cb2559ed96c96324ef220fadf951be973ecea3d93"
+  },
+  {
+    "path": "gate-srv-main.Fcqe3B",
+    "bytes": 6648,
+    "sha256": "76d819b7f7c60f675ed55305d434d974e2665d85abcee75d26a387337f6372ab"
+  },
+  {
+    "path": "gate-srv-main.jPRi3O",
+    "bytes": 6742,
+    "sha256": "91620d9bda5596e6cced995092829fbe03ed4b5ac68aca584a3640176421d134"
+  },
+  {
+    "path": "gate-srv-main.vlkJN6",
+    "bytes": 6736,
+    "sha256": "32a6850063ae3c845db1107719b6ea25b6e2de533f3d647f6bf1cb3f1e98e734"
+  },
+  {
+    "path": "oracle.log",
+    "bytes": 1191,
+    "sha256": "40318eec610a98750a4971dea2c1ecd52f68a35699e3f49228494c80f7b5da10"
+  },
+  {
+    "path": "output.log",
+    "bytes": 157,
+    "sha256": "044d2c121641723c93945d62d3f63e0b40513df8a4249bc6674bbc868115eb5a"
+  },
+  {
+    "path": "redirect-1s-epoll-a0-rl0.log",
+    "bytes": 1498,
+    "sha256": "f93d851b22e3bdb7ba0e2c40e40349b966661b98bcdd1c43a1416ae1906e1e5e"
+  },
+  {
+    "path": "redirect-1s-epoll-a0-rl1.log",
+    "bytes": 1497,
+    "sha256": "7dd507ca0cde2f8634e773fe13fbbf101b7a4b93c8d2a11887fb3a3dc681b495"
+  },
+  {
+    "path": "redirect-1s-epoll-a1-rl0.log",
+    "bytes": 1504,
+    "sha256": "77355a1e55c616065b4fb57c7bd205ac800d8d43f5ec9b7b87e0b5a9e8688f71"
+  },
+  {
+    "path": "redirect-1s-epoll-a1-rl1.log",
+    "bytes": 1500,
+    "sha256": "7019b5c25e033bc021f1ead676f514d885467e3d047ea501cabbf84755640c2d"
+  },
+  {
+    "path": "redirect-1s-uring-a0-rl0.log",
+    "bytes": 1500,
+    "sha256": "a4c9883ea04714598da160043fbc25a44374a2a78e17eb666f20393bfcdfe255"
+  },
+  {
+    "path": "redirect-1s-uring-a0-rl1.log",
+    "bytes": 1498,
+    "sha256": "701485ad0519a5a6553b39bdbc0a6518f6e39c890092b66353678339dbbd8fbf"
+  },
+  {
+    "path": "redirect-1s-uring-a1-rl0.log",
+    "bytes": 1505,
+    "sha256": "58b94f2460955403051c58ce6d01d864e6833e2b8817486b919e72fba62be984"
+  },
+  {
+    "path": "redirect-1s-uring-a1-rl1.log",
+    "bytes": 1507,
+    "sha256": "65a4534deacece816ce492ff034131abd939a0fe5392abf04e0cb8bef3d0c017"
+  },
+  {
+    "path": "redirect-2s-epoll-a0-rl0.log",
+    "bytes": 1500,
+    "sha256": "03c8f544433a6bab548ec21bb52ff7830add8db838d69a706ddba4242f49d28f"
+  },
+  {
+    "path": "redirect-2s-epoll-a1-rl0.log",
+    "bytes": 1505,
+    "sha256": "6ee11557e6d8258dff1ddd523ec60ea74f1a16771e515f665fc080846f094e08"
+  },
+  {
+    "path": "redirect-2s-uring-a0-rl0.log",
+    "bytes": 1500,
+    "sha256": "72e74822deec71522d1f7c4dab8096a2cd1df9db500ef1866640da87960804ba"
+  },
+  {
+    "path": "redirect-2s-uring-a1-rl0.log",
+    "bytes": 1507,
+    "sha256": "5d2b9cfe4c34289f30f3afe4335ec03c0197f54ceff90c4743d561e22cfc97c6"
+  },
+  {
+    "path": "schedule-build.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

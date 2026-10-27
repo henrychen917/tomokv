@@ -1,0 +1,42 @@
+[
+  {
+    "path": "gate-blocking.txt",
+    "bytes": 1207,
+    "sha256": "b71a7c9f2e6e08ac06c0b3a59d9a26cca5e3ca8e6e09cff2f2ca69e5764861d2"
+  },
+  {
+    "path": "gate-lua.txt",
+    "bytes": 1331,
+    "sha256": "1d6500351c0bf3c46af90738c8708e28ce41952f55867ba58a0758ae862376f8"
+  },
+  {
+    "path": "gate-multi.txt",
+    "bytes": 1476,
+    "sha256": "fe80adcd0762d50413473078418b9c17d0d56dfb358c67debcd10e653205bf43"
+  },
+  {
+    "path": "gate-notify-0.txt",
+    "bytes": 157,
+    "sha256": "37b61ad6d35917c1e3c6b77feb5b95a00eb9c1dc6a62b9d3537a0d616c9e337e"
+  },
+  {
+    "path": "gate-notify-1.txt",
+    "bytes": 157,
+    "sha256": "6e224f23e3eec584c520ad6d5a1572799012505358cb0bd8eb769711a608ea74"
+  },
+  {
+    "path": "gate-pubsub.txt",
+    "bytes": 143,
+    "sha256": "e19552d41205fcab43f28ce0919886326677abf9d5db01177b7647889af29246"
+  },
+  {
+    "path": "gate-srv-fused.5d18uO",
+    "bytes": 8035,
+    "sha256": "3cd1a8dd95025a0056f5a0946cc3d912f198e112953cc9733c803910c30f3fd9"
+  },
+  {
+    "path": "output.log",
+    "bytes": 884,
+    "sha256": "62998b3c734789ce1fdefbae32cf55d1b952ef6653d17ed50a42908e35572744"
+  }
+]

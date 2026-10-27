@@ -986,5 +986,191 @@
         "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/tracking_redirect"
       }
     ]
+  },
+  {
+    "phase": "fused-epoll",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20200-20279"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_TEST_PORT": "20299",
+      "GATE_ONLY_JOBS": "debug-0 debug-1 notify notifycompat notify_order notify_aof tracking_redirect trackfix_accounting trackfix_order",
+      "GATE_TXN_FUSED": "1",
+      "GATE_PROOF_NET_IO": "epoll"
+    },
+    "source": "48df2c4208a35b92246b367292949e408d790fa3",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "log": "/home/user/Projects/cx-at412c/build/at412c/proof/fused-epoll-4.log",
+    "began": 1793104897.6770768,
+    "rc": 0,
+    "seconds": 1025.241,
+    "run_dir": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp",
+    "archived": "docs/at412c/proof/fused-epoll-4-gate-run.R5aocp",
+    "jobs": [
+      {
+        "name": "debug-0",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp/jobs/debug-0"
+      },
+      {
+        "name": "debug-1",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp/jobs/debug-1"
+      },
+      {
+        "name": "notify",
+        "returncode": 0,
+        "passed": 6,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp/jobs/notify"
+      },
+      {
+        "name": "notify_aof",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp/jobs/notify_aof"
+      },
+      {
+        "name": "notify_order",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp/jobs/notify_order"
+      },
+      {
+        "name": "notifycompat",
+        "returncode": 0,
+        "passed": 7,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp/jobs/notifycompat"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp/jobs/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp/jobs/release"
+      },
+      {
+        "name": "trackfix_accounting",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp/jobs/trackfix_accounting"
+      },
+      {
+        "name": "trackfix_order",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp/jobs/trackfix_order"
+      },
+      {
+        "name": "tracking_redirect",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp/jobs/tracking_redirect"
+      }
+    ]
+  },
+  {
+    "phase": "differ-uring",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "bash",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20200-20279"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_TEST_PORT": "20299",
+      "GATE_ONLY_JOBS": "differ-split differ-armed differ-equivalence"
+    },
+    "source": "d0cd5ddc9862df197aef1747fa5a28955654455b",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "log": "/home/user/Projects/cx-at412c/build/at412c/proof/differ-uring-5.log",
+    "began": 1793105923.1580532,
+    "rc": 2,
+    "seconds": 0.483,
+    "run_dir": "/home/user/Projects/cx-at412c/build/gate-run.SVpV0r",
+    "archived": "docs/at412c/proof/differ-uring-5-gate-run.SVpV0r",
+    "jobs": []
+  },
+  {
+    "phase": "differ-epoll",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "bash",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20200-20279"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_TEST_PORT": "20299",
+      "GATE_ONLY_JOBS": "differ-split differ-armed differ-equivalence",
+      "GATE_DIFFER_NET_IO": "epoll"
+    },
+    "source": "d0cd5ddc9862df197aef1747fa5a28955654455b",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "log": "/home/user/Projects/cx-at412c/build/at412c/proof/differ-epoll-6.log",
+    "began": 1793105923.8995354,
+    "rc": 2,
+    "seconds": 0.373,
+    "run_dir": "/home/user/Projects/cx-at412c/build/gate-run.tpQWzJ",
+    "archived": "docs/at412c/proof/differ-epoll-6-gate-run.tpQWzJ",
+    "jobs": []
   }
 ]
