@@ -5,13 +5,63 @@
 // anonymous namespace and deliberately creates no extra translation unit.
 
 #include "cmdmeta.h"
+#include "acl_categories_generated.h"
 
 namespace tomo {
 
 void multi_database_stats(Shard&, DatabaseStatsTable&, uint64_t cut, uint64_t origin_conn_id);
 
+enum class MultiVerb : uint8_t { Other, V_acl, V_blmpop, V_blpop, V_brpop, V_bzmpop, V_bzpopmax, V_bzpopmin, V_debug, V_del, V_discard, V_echo, V_exec, V_exists, V_flushall, V_flushdb, V_mget, V_move, V_mset, V_msetnx, V_multi, V_ping, V_psubscribe, V_publish, V_punsubscribe, V_scan, V_select, V_sort, V_sort_ro, V_spublish, V_ssubscribe, V_subscribe, V_sunsubscribe, V_swapdb, V_touch, V_unlink, V_unsubscribe, V_unwatch, V_watch, V_xreadgroup };
+MultiVerb multi_verb(const CommandSpec* spec) {
+    static const auto by_id = [] {
+        std::array<MultiVerb, kAclCommandCategoryCount> result{};
+        if (const auto* row = command_lookup(Slice("acl"))) result[row->id] = MultiVerb::V_acl;
+        if (const auto* row = command_lookup(Slice("blmpop"))) result[row->id] = MultiVerb::V_blmpop;
+        if (const auto* row = command_lookup(Slice("blpop"))) result[row->id] = MultiVerb::V_blpop;
+        if (const auto* row = command_lookup(Slice("brpop"))) result[row->id] = MultiVerb::V_brpop;
+        if (const auto* row = command_lookup(Slice("bzmpop"))) result[row->id] = MultiVerb::V_bzmpop;
+        if (const auto* row = command_lookup(Slice("bzpopmax"))) result[row->id] = MultiVerb::V_bzpopmax;
+        if (const auto* row = command_lookup(Slice("bzpopmin"))) result[row->id] = MultiVerb::V_bzpopmin;
+        if (const auto* row = command_lookup(Slice("debug"))) result[row->id] = MultiVerb::V_debug;
+        if (const auto* row = command_lookup(Slice("del"))) result[row->id] = MultiVerb::V_del;
+        if (const auto* row = command_lookup(Slice("discard"))) result[row->id] = MultiVerb::V_discard;
+        if (const auto* row = command_lookup(Slice("echo"))) result[row->id] = MultiVerb::V_echo;
+        if (const auto* row = command_lookup(Slice("exec"))) result[row->id] = MultiVerb::V_exec;
+        if (const auto* row = command_lookup(Slice("exists"))) result[row->id] = MultiVerb::V_exists;
+        if (const auto* row = command_lookup(Slice("flushall"))) result[row->id] = MultiVerb::V_flushall;
+        if (const auto* row = command_lookup(Slice("flushdb"))) result[row->id] = MultiVerb::V_flushdb;
+        if (const auto* row = command_lookup(Slice("mget"))) result[row->id] = MultiVerb::V_mget;
+        if (const auto* row = command_lookup(Slice("move"))) result[row->id] = MultiVerb::V_move;
+        if (const auto* row = command_lookup(Slice("mset"))) result[row->id] = MultiVerb::V_mset;
+        if (const auto* row = command_lookup(Slice("msetnx"))) result[row->id] = MultiVerb::V_msetnx;
+        if (const auto* row = command_lookup(Slice("multi"))) result[row->id] = MultiVerb::V_multi;
+        if (const auto* row = command_lookup(Slice("ping"))) result[row->id] = MultiVerb::V_ping;
+        if (const auto* row = command_lookup(Slice("psubscribe"))) result[row->id] = MultiVerb::V_psubscribe;
+        if (const auto* row = command_lookup(Slice("publish"))) result[row->id] = MultiVerb::V_publish;
+        if (const auto* row = command_lookup(Slice("punsubscribe"))) result[row->id] = MultiVerb::V_punsubscribe;
+        if (const auto* row = command_lookup(Slice("scan"))) result[row->id] = MultiVerb::V_scan;
+        if (const auto* row = command_lookup(Slice("select"))) result[row->id] = MultiVerb::V_select;
+        if (const auto* row = command_lookup(Slice("sort"))) result[row->id] = MultiVerb::V_sort;
+        if (const auto* row = command_lookup(Slice("sort_ro"))) result[row->id] = MultiVerb::V_sort_ro;
+        if (const auto* row = command_lookup(Slice("spublish"))) result[row->id] = MultiVerb::V_spublish;
+        if (const auto* row = command_lookup(Slice("ssubscribe"))) result[row->id] = MultiVerb::V_ssubscribe;
+        if (const auto* row = command_lookup(Slice("subscribe"))) result[row->id] = MultiVerb::V_subscribe;
+        if (const auto* row = command_lookup(Slice("sunsubscribe"))) result[row->id] = MultiVerb::V_sunsubscribe;
+        if (const auto* row = command_lookup(Slice("swapdb"))) result[row->id] = MultiVerb::V_swapdb;
+        if (const auto* row = command_lookup(Slice("touch"))) result[row->id] = MultiVerb::V_touch;
+        if (const auto* row = command_lookup(Slice("unlink"))) result[row->id] = MultiVerb::V_unlink;
+        if (const auto* row = command_lookup(Slice("unsubscribe"))) result[row->id] = MultiVerb::V_unsubscribe;
+        if (const auto* row = command_lookup(Slice("unwatch"))) result[row->id] = MultiVerb::V_unwatch;
+        if (const auto* row = command_lookup(Slice("watch"))) result[row->id] = MultiVerb::V_watch;
+        if (const auto* row = command_lookup(Slice("xreadgroup"))) result[row->id] = MultiVerb::V_xreadgroup;
+        return result;
+    }();
+    return spec && spec->id < by_id.size() ? by_id[spec->id] : MultiVerb::Other;
+}
+
 struct MultiQueuedCommand {
     const CommandSpec* spec = nullptr;
+    MultiVerb verb = MultiVerb::Other;
     std::vector<std::string> argv;
 };
 
@@ -166,6 +216,10 @@ struct alignas(8) MultiExecState : SnapshotCut {
     bool exec_read_fanout = false;
     bool read_cut_sampled = false;
     bool read_only = true;
+    // Empty map retains the cold WATCH/cleanup fixture identity indexing.
+    // Execute states discover slots before publication; owners only read it.
+    std::vector<uint8_t> shard_slots;
+    uint32_t slot(uint32_t sid) const { return shard_slots.empty() ? sid : shard_slots[sid]; }
     std::vector<std::vector<TxnClaim>> claims;
     // THE TRANSACTION'S EXPIRY CUT, the time-axis twin of the read cut above.  Absolute
     // CLOCK_REALTIME milliseconds, stamped once before any fragment is posted and installed on
@@ -404,7 +458,6 @@ void watch_note_database(Shard::WatchReservation& reservation, Server* server, u
 
 constexpr uintptr_t kMultiTaskTag = 1;
 
-bool multi_name(const Op& op, const char* lower) { return op.cmd_name().eq_icase(lower); }
 
 MultiSession* ensure_multi_session(Client& client) {
     if (client.multi_session()) return client.multi_session();
@@ -478,16 +531,17 @@ bool multi_engine_policy_refusal(const Op& op) {
     // Whole-store replacement has no transaction-private image; subscription controls and
     // ACL need their IO-owned protocols, not a synchronous EXEC child handler.
     // Keep the existing safety boundary until those mechanisms have transaction lowering.
-    return multi_name(op, "flushall") || multi_name(op, "flushdb") || multi_name(op, "acl") ||
-           multi_name(op, "subscribe") || multi_name(op, "unsubscribe") ||
-           multi_name(op, "psubscribe") || multi_name(op, "punsubscribe") ||
-           multi_name(op, "ssubscribe") || multi_name(op, "sunsubscribe") ||
-           (multi_name(op, "debug") && op.argc() == 2 &&
+    return (multi_verb(op.spec) == MultiVerb::V_flushall) || (multi_verb(op.spec) == MultiVerb::V_flushdb) || (multi_verb(op.spec) == MultiVerb::V_acl) ||
+           (multi_verb(op.spec) == MultiVerb::V_subscribe) || (multi_verb(op.spec) == MultiVerb::V_unsubscribe) ||
+           (multi_verb(op.spec) == MultiVerb::V_psubscribe) || (multi_verb(op.spec) == MultiVerb::V_punsubscribe) ||
+           (multi_verb(op.spec) == MultiVerb::V_ssubscribe) || (multi_verb(op.spec) == MultiVerb::V_sunsubscribe) ||
+           ((multi_verb(op.spec) == MultiVerb::V_debug) && op.argc() == 2 &&
             (op.arg(1).eq_icase("reload") || op.arg(1).eq_icase("loadaof")));
 }
 
 bool queued_copy(const Op& op, MultiQueuedCommand& out) {
     out.spec = op.spec;
+    out.verb = multi_verb(op.spec);
     try {
         out.argv.reserve(op.argc());
         for (uint32_t i = 0; i < op.argc(); i++)
@@ -498,18 +552,14 @@ bool queued_copy(const Op& op, MultiQueuedCommand& out) {
     return true;
 }
 
-bool has_name(const MultiQueuedCommand& queued, const char* lower) {
-    return Slice(queued.argv[0].data(), static_cast<uint32_t>(queued.argv[0].size()))
-        .eq_icase(lower);
-}
 
 MultiBlockingPop multi_blocking_pop(const MultiQueuedCommand& queued) {
-    if (has_name(queued, "blpop")) return MultiBlockingPop::Blpop;
-    if (has_name(queued, "brpop")) return MultiBlockingPop::Brpop;
-    if (has_name(queued, "blmpop")) return MultiBlockingPop::Blmpop;
-    if (has_name(queued, "bzpopmin")) return MultiBlockingPop::Bzpopmin;
-    if (has_name(queued, "bzpopmax")) return MultiBlockingPop::Bzpopmax;
-    if (has_name(queued, "bzmpop")) return MultiBlockingPop::Bzmpop;
+    if ((queued.verb == MultiVerb::V_blpop)) return MultiBlockingPop::Blpop;
+    if ((queued.verb == MultiVerb::V_brpop)) return MultiBlockingPop::Brpop;
+    if ((queued.verb == MultiVerb::V_blmpop)) return MultiBlockingPop::Blmpop;
+    if ((queued.verb == MultiVerb::V_bzpopmin)) return MultiBlockingPop::Bzpopmin;
+    if ((queued.verb == MultiVerb::V_bzpopmax)) return MultiBlockingPop::Bzpopmax;
+    if ((queued.verb == MultiVerb::V_bzmpop)) return MultiBlockingPop::Bzmpop;
     return MultiBlockingPop::None;
 }
 
@@ -568,7 +618,7 @@ void command_key_args(const MultiQueuedCommand& queued, std::vector<uint32_t>& a
     // correct; different shards fall through to xshard_prepare's two-hop apply. It also puts the
     // destination into add_write_key(), so WATCH on it now sees the write.
     // SORT_RO is excluded by name: STORE is a syntax error there, so it names no destination.
-    if (has_name(queued, "sort")) {
+    if ((queued.verb == MultiVerb::V_sort)) {
         uint32_t store_arg = 0;
         for (uint32_t i = 2; i < queued.argv.size(); i++) {
             const Slice word(queued.argv[i].data(),
@@ -587,7 +637,7 @@ void command_key_args(const MultiQueuedCommand& queued, std::vector<uint32_t>& a
 // that no key of the transaction names, so it cannot be executed as an ordinary one-key Local child:
 // see the participation note in prepare_commands().
 bool multi_sort_dereferences(const MultiQueuedCommand& queued) {
-    if (!has_name(queued, "sort") && !has_name(queued, "sort_ro")) return false;
+    if (!(queued.verb == MultiVerb::V_sort) && !(queued.verb == MultiVerb::V_sort_ro)) return false;
     const uint32_t argc = static_cast<uint32_t>(queued.argv.size());
     for (uint32_t i = 2; i < argc; i++) {
         const Slice word(queued.argv[i].data(), static_cast<uint32_t>(queued.argv[i].size()));
@@ -690,10 +740,10 @@ bool normalize_multi_blocking_pop(MultiCommand& command) {
 }
 
 MultiCommandKind classify_multi_command(MultiCommand& command) {
-    if (has_name(command.queued, "swapdb")) return MultiCommandKind::Swapdb;
-    if (has_name(command.queued, "ping")) return MultiCommandKind::Ping;
-    if (has_name(command.queued, "echo")) return MultiCommandKind::Echo;
-    if (has_name(command.queued, "unwatch")) return MultiCommandKind::UnwatchReply;
+    if ((command.queued.verb == MultiVerb::V_swapdb)) return MultiCommandKind::Swapdb;
+    if ((command.queued.verb == MultiVerb::V_ping)) return MultiCommandKind::Ping;
+    if ((command.queued.verb == MultiVerb::V_echo)) return MultiCommandKind::Echo;
+    if ((command.queued.verb == MultiVerb::V_unwatch)) return MultiCommandKind::UnwatchReply;
     if (command.queued.spec->flags & CmdFlags::ConnLocal) return MultiCommandKind::IoLocal;
     if (command.queued.spec->flags & CmdFlags::ConfigRoute)
         return command_config_routes_all_shards(*command.op, true)
@@ -708,7 +758,7 @@ MultiCommandKind classify_multi_command(MultiCommand& command) {
     // These six execute through a normalized nonblocking xshard child even when all keys happen
     // to share one owner. Calling their ordinary Blocking handler from EXEC would park the whole
     // transaction, which Redis never does.
-    if (command.blocking_pop != MultiBlockingPop::None || has_name(command.queued, "move"))
+    if (command.blocking_pop != MultiBlockingPop::None || (command.queued.verb == MultiVerb::V_move))
         return MultiCommandKind::Unsupported;
     if (command.key_args.empty()) return MultiCommandKind::Unsupported;
     // A DEREFERENCING SORT IS NEVER LOCAL, however few keys it names. Its BY/GET patterns read keys
@@ -721,12 +771,12 @@ MultiCommandKind classify_multi_command(MultiCommand& command) {
     for (size_t i = 1; i < command.key_shards.size(); i++)
         same &= command.key_shards[i] == command.key_shards[0];
     if (same) return MultiCommandKind::Local;
-    if (has_name(command.queued, "mget")) return MultiCommandKind::Mget;
-    if (has_name(command.queued, "mset")) return MultiCommandKind::Mset;
-    if (has_name(command.queued, "msetnx")) return MultiCommandKind::Msetnx;
-    if (has_name(command.queued, "del") || has_name(command.queued, "unlink"))
+    if ((command.queued.verb == MultiVerb::V_mget)) return MultiCommandKind::Mget;
+    if ((command.queued.verb == MultiVerb::V_mset)) return MultiCommandKind::Mset;
+    if ((command.queued.verb == MultiVerb::V_msetnx)) return MultiCommandKind::Msetnx;
+    if ((command.queued.verb == MultiVerb::V_del) || (command.queued.verb == MultiVerb::V_unlink))
         return MultiCommandKind::Del;
-    if (has_name(command.queued, "exists") || has_name(command.queued, "touch"))
+    if ((command.queued.verb == MultiVerb::V_exists) || (command.queued.verb == MultiVerb::V_touch))
         return MultiCommandKind::Exists;
     return MultiCommandKind::Unsupported;
 }
@@ -746,7 +796,7 @@ void add_write_key(MultiExecState& state, const MultiCommand& command, uint32_t 
     const int32_t shard = command.key_shards[index];
     MultiWriteKey candidate{
         std::string(key.p, key.n), FlatStore::hash_key(key), shard,
-        static_cast<uint8_t>(key.ns), !has_name(command.queued, "xreadgroup")};
+        static_cast<uint8_t>(key.ns), !(command.queued.verb == MultiVerb::V_xreadgroup)};
     const auto [position, inserted] = state.write_key_set.emplace(candidate);
     if (!inserted) {
         if (candidate.signals_watch && !position->signals_watch) {
@@ -787,6 +837,39 @@ void txn_cap_claims(std::vector<TxnClaim>& claims) {
     claims.push_back({{}, 0, mode});
 }
 
+// IO-only discovery. A slot is stable once assigned, including at 256 shards:
+// 255 is the unused marker until all 256 participants have been discovered.
+uint32_t ensure_state_slot(MultiExecState& state, int32_t sid) {
+    if (state.shard_slots.empty()) return static_cast<uint32_t>(sid);
+    if (state.shard_slots[sid] != 255 || state.claims.size() == 256)
+        return state.shard_slots[sid];
+    const auto slot = state.claims.size();
+    state.claims.emplace_back();
+    state.shard_commands.emplace_back();
+    state.shard_slots[sid] = static_cast<uint8_t>(slot);
+    return static_cast<uint32_t>(slot);
+}
+void add_state_shard(MultiExecState& state, int32_t sid) {
+    // Claims can name a shard outside the actual owner task set (registry
+    // metadata includes option tokens for some lowered commands). Keep those
+    // exact historical claims without adding owner tasks or changing barriers.
+    ensure_state_slot(state, sid);
+    add_shard(state.shards, sid);
+}
+void allocate_participant_state(MultiExecState& state, uint32_t count) {
+    state.owner_retries = std::make_unique<MultiOwnerRetryNode[]>(count);
+    state.shard_cursors.assign(count, 0);
+    state.watch_shard_done.assign(count, 0);
+    if (state.kind == MultiStateKind::Execute)
+        state.place_blockers = std::make_unique<TxnPlaceBlocker[]>(count);
+    state.execution_joined.assign(count, 0);
+    state.final_shard_done.assign(count, 0);
+    state.aof_shard_done.assign(count, 0);
+    state.execution_noted.assign(count, 0);
+    state.per_shard_intents.assign(count, 0);
+    state.shard_aborted = std::make_unique<std::atomic<bool>[]>(count);
+}
+
 void prepare_claims(MultiExecState& state) {
     for (const auto& command : state.commands) {
         if (!command_has_owner_work(*command)) continue;
@@ -797,18 +880,18 @@ void prepare_claims(MultiExecState& state) {
         state.read_only &= !writes;
         const auto mode = writes ? TxnClaimMode::Write : TxnClaimMode::Read;
         for (size_t i = 0; i < command->key_args.size(); ++i)
-            txn_add_claim(state.claims[command->key_shards[i]],
+            txn_add_claim(state.claims[ensure_state_slot(state, command->key_shards[i])],
                           command->op->arg(command->key_args[i]), mode);
         if (child) for (uint32_t i = 0; i < child->key_count; ++i)
-            txn_add_claim(state.claims[child->keys[i].shard],
+            txn_add_claim(state.claims[ensure_state_slot(state, child->keys[i].shard)],
                           command->op->arg(child->keys[i].arg), mode);
-        const bool whole = loader || has_name(command->queued, "scan") ||
+        const bool whole = loader || (command->queued.verb == MultiVerb::V_scan) ||
             (child && ((child->kind == Kind::Sort && child->sort_options.deref) ||
                        child->kind == Kind::AllShards || child->kind == Kind::DatabaseInfo ||
                        child->kind == Kind::DbsizeExact || child->kind == Kind::RandomKey ||
                        child->kind == Kind::Keys));
         if (whole) for (int32_t sid : command->participants)
-            txn_add_claim(state.claims[sid], {},
+            txn_add_claim(state.claims[state.slot(sid)], {},
                 loader || (writes && child && child->kind == Kind::AllShards)
                     ? TxnClaimMode::Write : TxnClaimMode::Read, true);
     }
@@ -816,7 +899,7 @@ void prepare_claims(MultiExecState& state) {
     // command accesses them. Inactive namespace aliases are validation-only.
     for (const auto& watched : state.watched) {
         if (state.database_map[watched.db] != watched.ns) continue;
-        txn_add_claim(state.claims[watched.shard],
+        txn_add_claim(state.claims[state.slot(watched.shard)],
             Slice(watched.key.data(), watched.key.size(), watched.ns),
             state_writes_key(state, watched) ? TxnClaimMode::Write : TxnClaimMode::Read);
     }
@@ -826,7 +909,7 @@ void prepare_claims(MultiExecState& state) {
     // WATCH aliases and synthetic/unprepared cleanup states.
     if (!state.read_only) {
         const auto covered = [&](const auto& key) {
-            for (const auto& claim : state.claims[key.shard])
+            for (const auto& claim : state.claims[state.slot(key.shard)])
                 if (claim.key.size() == key.key.size() + 1 &&
                     static_cast<uint8_t>(claim.key[0]) == key.ns &&
                     claim.key.compare(1, std::string::npos, key.key) == 0) return true;
@@ -845,7 +928,7 @@ bool prepare_commands(Server& server, MultiExecState& state,
         state.database_map = server.databases().capture();
         auto routing_map = state.database_map;
         const bool swaps = !kSingleDatabase && std::any_of(queue.begin(), queue.end(),
-            [](const auto& queued) { return has_name(queued, "swapdb"); });
+            [](const auto& queued) { return (queued.verb == MultiVerb::V_swapdb); });
         uint8_t logical_db = state.client->session().db_index;
         for (MultiQueuedCommand& queued : queue) {
             auto command = std::make_unique<MultiCommand>();
@@ -907,15 +990,15 @@ bool prepare_commands(Server& server, MultiExecState& state,
                 }
             }
             if (command->kind == MultiCommandKind::IoLocal &&
-                has_name(command->queued, "select")) {
+                (command->queued.verb == MultiVerb::V_select)) {
                 uint8_t selected = logical_db;
                 if (multidb_parse_index(command->op->arg(1), server.cfg().databases, selected))
                     logical_db = selected;
             }
             if (command->kind != MultiCommandKind::Prebuilt &&
-                (has_name(command->queued, "mset") || has_name(command->queued, "msetnx")) &&
+                ((command->queued.verb == MultiVerb::V_mset) || (command->queued.verb == MultiVerb::V_msetnx)) &&
                 (command->queued.argv.size() & 1u) == 0) {
-                reply_err(command->op->sink(), has_name(command->queued, "mset")
+                reply_err(command->op->sink(), (command->queued.verb == MultiVerb::V_mset)
                     ? "ERR wrong number of arguments for 'mset' command"
                     : "ERR wrong number of arguments for 'msetnx' command");
                 command->kind = MultiCommandKind::Prebuilt;
@@ -942,7 +1025,7 @@ bool prepare_commands(Server& server, MultiExecState& state,
             }
             if (state.client->resp3()) command->op->mark_resp3();
             if (command->kind == MultiCommandKind::Admin &&
-                has_name(command->queued, "debug")) {
+                (command->queued.verb == MultiVerb::V_debug)) {
                 uint64_t sleep_us = 0;
                 const auto sleep = debug_sleep_prepare(
                     server, *state.client, *command->op, sleep_us);
@@ -965,7 +1048,7 @@ bool prepare_commands(Server& server, MultiExecState& state,
                 if (prepared == ScatterPrepare::Ready) {
                     command->kind = MultiCommandKind::Xshard;
                     command->scatter = child_dispatch.state;
-                    if (has_name(command->queued, "move")) {
+                    if ((command->queued.verb == MultiVerb::V_move)) {
                         command->key_args.push_back(2);
                         command->key_shards.push_back(server.router().shard_of(
                             FlatStore::hash_key(command->op->arg(2))));
@@ -1029,7 +1112,7 @@ bool prepare_commands(Server& server, MultiExecState& state,
             }
             command->shard_done.assign(server.nshards(), 0);
             state.has_publication |= command->kind == MultiCommandKind::IoLocal &&
-                (has_name(command->queued, "publish") || has_name(command->queued, "spublish"));
+                ((command->queued.verb == MultiVerb::V_publish) || (command->queued.verb == MultiVerb::V_spublish));
             // SCOPE: multi-owner READ fragments, nothing else.  Mget/Exists are reached only when
             // classify_multi_command already found the key set spanning more than one shard, and an
             // Xshard child carries its own participant count.  A single-owner read resolves inside
@@ -1057,19 +1140,23 @@ bool prepare_commands(Server& server, MultiExecState& state,
             command->pending.store(static_cast<uint32_t>(command->participants.size()),
                                    std::memory_order_relaxed);
             for (size_t i = 0; i < command->key_args.size(); i++) add_write_key(state, *command, i);
-            for (int32_t shard : command->participants) add_shard(state.shards, shard);
+            for (int32_t shard : command->participants) add_state_shard(state, shard);
             const uint32_t command_index = static_cast<uint32_t>(state.commands.size());
             if (command_has_owner_work(*command)) {
                 for (int32_t shard : command->participants)
-                    state.shard_commands[static_cast<uint32_t>(shard)].push_back(command_index);
+                    state.shard_commands[state.slot(static_cast<uint32_t>(shard))].push_back(command_index);
             }
             state.commands.push_back(std::move(command));
         }
+        // Preserve the pre-compaction task order: command participants first,
+        // then WATCH-only participants. All slots exist before publication.
+        for (const auto& watched : state.watched) add_state_shard(state, watched.shard);
         if (!state.database_swaps.empty()) {
-            state.database_watch.resize(server.nshards());
+            state.database_watch.resize(state.claims.size());
             if (!server.databases().prepare_publish(routing_map, state.database_publish)) return false;
         }
         prepare_claims(state);
+        allocate_participant_state(state, state.claims.size());
         if (state.read_only && state.shards.size() > 1) state.exec_read_fanout = true;
     } catch (const std::bad_alloc&) {
         return false;
@@ -1097,19 +1184,13 @@ MultiExecState* allocate_state(Server& server, Client& client, uint32_t owner_io
     state->kind = kind;
     try {
         state->owner_record_refs.assign(server.nthreads(), MultiOwnerRecordRefs{});
-        state->owner_retries = std::make_unique<MultiOwnerRetryNode[]>(server.nshards());
-        state->shard_commands.resize(server.nshards());
-        state->claims.resize(server.nshards());
-        state->shard_cursors.assign(server.nshards(), 0);
-        state->watch_shard_done.assign(server.nshards(), 0);
-        if (kind == MultiStateKind::Execute)
-            state->place_blockers = std::make_unique<TxnPlaceBlocker[]>(server.nshards());
-        state->execution_joined.assign(server.nshards(), 0);
-        state->final_shard_done.assign(server.nshards(), 0);
-        state->aof_shard_done.assign(server.nshards(), 0);
-        state->execution_noted.assign(server.nshards(), 0);
-        state->per_shard_intents.assign(server.nshards(), 0);
-        state->shard_aborted = std::make_unique<std::atomic<bool>[]>(server.nshards());
+        if (kind == MultiStateKind::Execute) {
+            state->shard_slots.assign(server.nshards(), 255);
+        } else {
+            state->shard_commands.resize(server.nshards());
+            state->claims.resize(server.nshards());
+            allocate_participant_state(*state, server.nshards());
+        }
     } catch (const std::bad_alloc&) {
         delete state;
         return nullptr;
@@ -1197,7 +1278,7 @@ MultiExecState* prepare_unwatch_state(Server& server, Client& client, uint32_t o
     state->final_reply = reply;
     state->reset_watch = true;
     state->watched = std::move(session.watched);
-    for (const MultiWatchedKey& key : state->watched) add_shard(state->shards, key.shard);
+    for (const MultiWatchedKey& key : state->watched) add_state_shard(*state, key.shard);
     state->watch_pending.store(static_cast<uint32_t>(state->shards.size()),
                                std::memory_order_relaxed);
     state->lists_pending.store(static_cast<uint32_t>(state->shards.size()),
@@ -1396,7 +1477,7 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
     void* entry = nullptr;
     if (!shard.store().atomic_prepare_transaction(
             key, hash, state.origin_conn_id, &state.decision.epoch, &state.record_refs,
-            &state.shard_aborted[shard.id()], owner_refs, entry)) {
+            &state.shard_aborted[state.slot(shard.id())], owner_refs, entry)) {
         shard.store().atomic_unadmit(clone);
         if (clone) kvobj_free(clone);
         shard.store().atomic_clear_read_epoch();
@@ -1471,7 +1552,7 @@ bool prepare_local_write_keys(Server& server, MultiExecState& state, MultiComman
         const MultiPrepareWrite result = prepare_write_key(
             server, state, shard, key, command.key_args.size() == 1
                 ? command.op->hash : FlatStore::hash_key(key), owner_thread_id,
-            nullptr, nullptr, !has_name(command.queued, "xreadgroup"));
+            nullptr, nullptr, !(command.queued.verb == MultiVerb::V_xreadgroup));
         if (result == MultiPrepareWrite::Retry) return false;
         if (result == MultiPrepareWrite::Error) {
             state.decision.aborted.store(true, std::memory_order_release);
@@ -1496,7 +1577,7 @@ void multi_tripwire_fragment_begin(MultiExecState& state, Shard& shard) {
     if (!atomic_tripwire_enabled()) return;
     const uint32_t shard_id = static_cast<uint32_t>(shard.id());
     const uint64_t cut = multi_read_cut(state);
-    for (uint32_t command_index : state.shard_commands[shard_id]) {
+    for (uint32_t command_index : state.shard_commands[state.slot(shard_id)]) {
         MultiCommand& command = *state.commands[command_index];
         if (command.kind != MultiCommandKind::Mget &&
             command.kind != MultiCommandKind::Exists)
@@ -1527,7 +1608,7 @@ void multi_tripwire_read_execution(MultiExecState& state, MultiCommand& command,
 bool execute_local_command(Server& server, MultiExecState& state, MultiCommand& command,
                            Shard& shard, uint32_t owner_thread_id) {
     if (!(command.queued.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
-        if (has_name(command.queued, "scan")) {
+        if ((command.queued.verb == MultiVerb::V_scan)) {
             if (!multi_touch_key(state, shard, 0, {}, false, true)) return false;
         } else for (size_t i = 0; i < command.key_args.size(); ++i) {
             if (command.key_shards[i] != shard.id()) continue;
@@ -1605,7 +1686,7 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
         // these invalidations only when the whole transaction commits.
         shard.store().atomic_set_read_context(multi_read_cut(state), state.origin_conn_id);
         const bool ok = shard.watch_database_swap(first, second,
-            command.swap_physical[0], command.swap_physical[1], &state.database_watch[shard.id()]);
+            command.swap_physical[0], command.swap_physical[1], &state.database_watch[state.slot(shard.id())]);
         shard.store().atomic_clear_read_epoch();
         if (!ok) state.decision.aborted.store(true, std::memory_order_release);
         return true;
@@ -1752,15 +1833,15 @@ void assemble_cross_reply(MultiCommand& command) {
 
 bool execute_watch_phase(MultiExecState& state, Shard& shard,
                          const MultiRetryPromoter* promoter = nullptr) {
-    if (state.watch_shard_done[static_cast<uint32_t>(shard.id())]) return true;
+    if (state.watch_shard_done[state.slot(static_cast<uint32_t>(shard.id()))]) return true;
     if (state.kind == MultiStateKind::Execute && !state.read_only &&
         state.final_reply != MultiFinalReply::ExecAbort &&
         !state.decision.aborted.load(std::memory_order_acquire)) {
-        uint8_t& noted = state.execution_noted[shard.id()];
+        uint8_t& noted = state.execution_noted[state.slot(shard.id())];
         if (state.shards.size() != 1 && !(noted & 4u)) {
             // No shard holds anything until every participant has passed
             // program order and its blind-candidate arrival scan.
-            if (txn_blind_scan(shard, state.claims[shard.id()], &state) != TxnBlind::Clear)
+            if (txn_blind_scan(shard, state.claims[state.slot(shard.id())], &state) != TxnBlind::Clear)
                 return false;
             noted |= 4u;
             state.watch_arrived.fetch_add(1, std::memory_order_acq_rel);
@@ -1770,7 +1851,7 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard,
             state.watch_arrived.load(std::memory_order_acquire) != state.shards.size()) return false;
         if (state.debug_place_deadline && shard.id() != state.shards.front() &&
             now_ns() < state.debug_place_deadline) return false;
-        const auto blind = txn_blind_scan(shard, state.claims[shard.id()], &state);
+        const auto blind = txn_blind_scan(shard, state.claims[state.slot(shard.id())], &state);
         if (blind == TxnBlind::Completing) return false;
         if (blind == TxnBlind::Crossing) {
             TxnPhase placing = TxnPhase::Placing;
@@ -1783,7 +1864,7 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard,
             Shard::WatchReservation claim{&state, &state.decision.epoch, &state.decision.aborted,
                 &state.watch_refs, state.client, state.watch_generation, false, true};
             claim.unit_kind = 1;
-            if (!shard.watch_place_unit(state.claims[shard.id()], claim, promoter)) return false;
+            if (!shard.watch_place_unit(state.claims[state.slot(shard.id())], claim, promoter)) return false;
             noted |= 16u; // placed, including a subsequent WATCH validation wait
         }
     }
@@ -1823,7 +1904,7 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard,
                                state.client, state.watch_generation);
         }
     }
-    state.watch_shard_done[static_cast<uint32_t>(shard.id())] = 1;
+    state.watch_shard_done[state.slot(static_cast<uint32_t>(shard.id()))] = 1;
     if (state.watch_pending.fetch_sub(1, std::memory_order_acq_rel) == 1) {
         if (state.kind == MultiStateKind::Execute &&
             state.final_reply != MultiFinalReply::ExecAbort &&
@@ -1843,19 +1924,19 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard,
 
 void finalize_reservations(MultiExecState& state, Shard& shard,
                            const MultiRetryPromoter* promoter = nullptr) {
-    if (state.final_shard_done[static_cast<uint32_t>(shard.id())]) return;
-    if (state.place_blockers) state.place_blockers[shard.id()].clear();
+    if (state.final_shard_done[state.slot(static_cast<uint32_t>(shard.id()))]) return;
+    if (state.place_blockers) state.place_blockers[state.slot(shard.id())].clear();
     // A claim-skipped serve needs another owner sweep after either decision.
     // The periodic blocking beat alone does not revisit clean registries.
     if (shard.has_blocking_waiters()) shard.set_blocking_dirty();
-    state.shard_aborted[shard.id()].store(
+    state.shard_aborted[state.slot(shard.id())].store(
         state.decision.aborted.load(std::memory_order_acquire), std::memory_order_release);
     const uint32_t intents = shard.store().atomic_unit_unpin(&state);
     state.server->note_txn(state.server->worker_of_shard(shard.id()),
                            TxnCounter::IntentsLive, uint64_t{0} - intents);
-    shard.watch_finish_unit(state.claims[shard.id()], &state, promoter);
+    shard.watch_finish_unit(state.claims[state.slot(shard.id())], &state, promoter);
     if (!state.database_watch.empty()) {
-        auto& targets = state.database_watch[shard.id()];
+        auto& targets = state.database_watch[state.slot(shard.id())];
         const bool committed = !state.decision.aborted.load(std::memory_order_acquire);
         for (auto [client, generation] : targets) {
             if (committed && client->watch_generation() == generation) client->set_watch_dirty();
@@ -1877,7 +1958,7 @@ void finalize_reservations(MultiExecState& state, Shard& shard,
         shard.watch_write_ready(
             Slice(write.key.data(), static_cast<uint32_t>(write.key.size()), write.ns), nullptr);
     }
-    state.final_shard_done[static_cast<uint32_t>(shard.id())] = 1;
+    state.final_shard_done[state.slot(static_cast<uint32_t>(shard.id()))] = 1;
 }
 
 void finish_command(MultiCommand& command, uint32_t stage, uint32_t /*owner_thread_id*/) {
@@ -1996,7 +2077,7 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
         return MultiIoAction::Dispatch;
     }
 
-    if (multi_name(op, "multi")) {
+    if ((multi_verb(op.spec) == MultiVerb::V_multi)) {
         session = ensure_multi_session(client);
         if (!session) {
             reply_err(op.sink(), "ERR out of memory");
@@ -2016,7 +2097,7 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
         return MultiIoAction::LocalDone;
     }
 
-    if (multi_name(op, "watch")) {
+    if ((multi_verb(op.spec) == MultiVerb::V_watch)) {
         session = ensure_multi_session(client);
         if (!session) { reply_err(op.sink(), "ERR out of memory"); return MultiIoAction::LocalDone; }
         if (session->active) {
@@ -2049,7 +2130,7 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
                     state->watched.push_back(std::move(watched));
                 }
             }
-            for (const MultiWatchedKey& key : state->watched) add_shard(state->shards, key.shard);
+            for (const MultiWatchedKey& key : state->watched) add_state_shard(*state, key.shard);
         } catch (const std::bad_alloc&) {
             session->watched.resize(watched_before);
             destroy_multi_state(state);
@@ -2072,7 +2153,7 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
         return MultiIoAction::Dispatch;
     }
 
-    if (multi_name(op, "unwatch") && (!session || !session->active)) {
+    if ((multi_verb(op.spec) == MultiVerb::V_unwatch) && (!session || !session->active)) {
         if (!session || session->watched.empty()) {
             client.next_watch_generation();
             client.clear_watch_dirty();
@@ -2087,7 +2168,7 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
         return MultiIoAction::Dispatch;
     }
 
-    if (multi_name(op, "discard")) {
+    if ((multi_verb(op.spec) == MultiVerb::V_discard)) {
         if (!session || !session->active) {
             reply_err(op.sink(), "ERR DISCARD without MULTI");
             return MultiIoAction::LocalDone;
@@ -2109,7 +2190,7 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
         return MultiIoAction::Dispatch;
     }
 
-    if (multi_name(op, "exec")) {
+    if ((multi_verb(op.spec) == MultiVerb::V_exec)) {
 #ifdef TOMO_EXEC1S_WB
         if (session && session->active) session->wb_exec_id = client.rob().dispatch_id();
 #endif
@@ -2148,7 +2229,7 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
         }
         bool swaps = false;
         if constexpr (!kSingleDatabase)
-            for (const auto& queued : session->queue) swaps |= has_name(queued, "swapdb");
+            for (const auto& queued : session->queue) swaps |= (queued.verb == MultiVerb::V_swapdb);
         if (swaps && !server.database_boundary_begin(client, owner_io, client.rob().dispatch_id()))
             return MultiIoAction::Backpressure;
         if (!server.atomic_can_admit(owner_io, true)) return MultiIoAction::Backpressure;
@@ -2169,8 +2250,13 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
         state->reset_watch = true;
         state->watched = std::move(session->watched);
         state->final_reply = session->queue_error ? MultiFinalReply::ExecAbort : MultiFinalReply::Exec;
-        if (!session->queue_error &&
-            !prepare_commands(server, *state, session->queue)) {
+        bool prepared = true;
+        if (!session->queue_error) prepared = prepare_commands(server, *state, session->queue);
+        else try {
+            for (const auto& watched : state->watched) add_state_shard(*state, watched.shard);
+            allocate_participant_state(*state, state->shards.size());
+        } catch (const std::bad_alloc&) { prepared = false; }
+        if (!prepared) {
             destroy_multi_state(state);
             reply_err(op.sink(), "ERR out of memory");
             session->active = false;
@@ -2203,7 +2289,7 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
         session->active = false;
         session->queue_error = false;
         session->clear_queue();
-        for (const MultiWatchedKey& key : state->watched) add_shard(state->shards, key.shard);
+        for (const MultiWatchedKey& key : state->watched) add_state_shard(*state, key.shard);
         if (state->shards.empty()) {
             if (state->final_reply == MultiFinalReply::ExecAbort)
                 reply_err(op.sink(), "EXECABORT Transaction discarded because of previous errors.");
@@ -2466,7 +2552,7 @@ MultiExecState* multi_rebuild_attempt(MultiExecState& previous) {
         for (const auto& command : previous.commands) queue.push_back(command->queued);
         next->watched = previous.watched;
         if (!prepare_commands(server, *next, queue)) throw std::bad_alloc();
-        for (const auto& key : next->watched) add_shard(next->shards, key.shard);
+        for (const auto& key : next->watched) add_state_shard(*next, key.shard);
         if ((!next->write_keys.empty() || next->database_publish) && server.aof().recording()) {
             std::vector<uint32_t> participants;
             for (const auto& write : next->write_keys) participants.push_back(write.shard);
@@ -2544,11 +2630,11 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
                         chain = std::make_shared<PubSubNotificationChain>();
                         for (const auto& command : previous->commands) {
                             if (command->kind != MultiCommandKind::IoLocal ||
-                                !(has_name(command->queued, "publish") ||
-                                  has_name(command->queued, "spublish"))) continue;
+                                !((command->queued.verb == MultiVerb::V_publish) ||
+                                  (command->queued.verb == MultiVerb::V_spublish))) continue;
                             chain->items.push_back(PubSubNotificationItem{
                                 command->queued.argv[1], command->queued.argv[2], command->op.get(),
-                                has_name(command->queued, "spublish")});
+                                (command->queued.verb == MultiVerb::V_spublish)});
                         }
                         chain->completed = [](void* context) {
                             multi_enqueue_retry(*static_cast<MultiExecState*>(context));
@@ -2697,7 +2783,7 @@ static void multi_shutdown_attempt(MultiExecState* state, ScatterArenaPool& pool
             Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns),
             state->client, state->watch_generation);
     for (int32_t sid : state->shards)
-        state->server->shard(sid).watch_finish_unit(state->claims[sid], state);
+        state->server->shard(sid).watch_finish_unit(state->claims[state->slot(sid)], state);
     if (state->snapshot_registered)
         pool.unregister_snapshot(*state->server, state, state->owner_io);
     if (!state->published) clear_unpublished_multi_record_refs(*state);
@@ -2787,7 +2873,7 @@ Task multi_make_task(Client* client, uint64_t op_id, int32_t shard, MultiExecSta
 
 bool multi_aof_emit_fragment(MultiExecState& state, Shard& shard) {
     if (!state.aof_group) return true;
-    uint8_t& done = state.aof_shard_done[static_cast<uint32_t>(shard.id())];
+    uint8_t& done = state.aof_shard_done[state.slot(static_cast<uint32_t>(shard.id()))];
     if (done) return true;
     uint32_t count = 0;
     for (const MultiWriteKey& write : state.write_keys) count += write.shard == shard.id();
@@ -2817,7 +2903,7 @@ bool multi_aof_emit_fragment(MultiExecState& state, Shard& shard) {
 MultiOwnerRetryNode& multi_owner_retry_node(const Task& task) {
     const auto tagged = reinterpret_cast<uintptr_t>(task.scatter);
     auto& state = *reinterpret_cast<MultiExecState*>(tagged & ~kMultiTaskTag);
-    return state.owner_retries[task.shard];
+    return state.owner_retries[state.slot(task.shard)];
 }
 
 MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shard,
@@ -2843,7 +2929,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
     // WATCH phase below -- redis validates watches inside EXEC's own call, under EXEC's snapshot.
     // Without this, two identical reads in one EXEC could disagree about the same key.
     PinnedNowMs now_cut(shard, state.now_cut_ms);
-    uint8_t& noted = state.execution_noted[static_cast<uint32_t>(shard.id())];
+    uint8_t& noted = state.execution_noted[state.slot(static_cast<uint32_t>(shard.id()))];
     if (!(noted & 1u)) {
         shard.note_execution(owner_domain);
         noted |= 1u;
@@ -2865,7 +2951,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
         const bool arriving = state.kind == MultiStateKind::Execute && !state.read_only &&
             state.shards.size() != 1 &&
             state.watch_arrived.load(std::memory_order_acquire) != state.shards.size();
-        return state.watch_shard_done[sid] || arriving || (state.execution_noted[sid] & 16u)
+        return state.watch_shard_done[state.slot(sid)] || arriving || (state.execution_noted[state.slot(sid)] & 16u)
             ? MultiTaskResult::RetrySoon : MultiTaskResult::Retry;
     };
     MultiWatchMapScope transaction_map(state.database_watch.empty() ? nullptr : &state.database_map);
@@ -2894,8 +2980,8 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
         return retry();
 
     const uint32_t shard_id = static_cast<uint32_t>(shard.id());
-    std::vector<uint32_t>& command_list = state.shard_commands[shard_id];
-    uint32_t& cursor = state.shard_cursors[shard_id];
+    std::vector<uint32_t>& command_list = state.shard_commands[state.slot(shard_id)];
+    uint32_t& cursor = state.shard_cursors[state.slot(shard_id)];
     if (state.kind != MultiStateKind::Execute ||
         state.final_reply == MultiFinalReply::ExecAbort ||
         state.watch_failed.load(std::memory_order_acquire)) {
@@ -3051,7 +3137,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
         multi_ring_participants(state);
     }
 
-    uint8_t& joined = state.execution_joined[shard_id];
+    uint8_t& joined = state.execution_joined[state.slot(shard_id)];
     if (!joined) {
         joined = 1;
         // Each shard emits its AOF fragment exactly once, under the same join guard that
@@ -3160,7 +3246,7 @@ void multi_retire(Client& client, Op& op, std::vector<MultiExecState*>& deferred
         for (const auto& command : state->commands)
             if (command->kind == MultiCommandKind::IoLocal &&
                 !(state->publication_started &&
-                  (has_name(command->queued, "publish") || has_name(command->queued, "spublish"))))
+                  ((command->queued.verb == MultiVerb::V_publish) || (command->queued.verb == MultiVerb::V_spublish))))
             {
                 LatencyTrackingScope latency(state->owner_io, *command->op);
                 command->op->spec->handler(state->server->shard(0), *command->op);
@@ -3602,7 +3688,7 @@ bool Shard::watch_key_ready(const std::string& owned, const void* token, bool al
         if (r.entry_kind != 1 || all_units) return false;
         if (r.unit_kind == 1) {
             const auto& holder = *static_cast<const MultiExecState*>(r.token);
-            if (holder.execution_noted[id()] & 8u) return false;
+            if (holder.execution_noted[holder.slot(id())] & 8u) return false;
         } else if (r.unit_kind == 2) {
             const auto& holder = *static_cast<const ScatterState*>(r.token);
             if (holder.group_attempt()->arrived[id()] & 4u) return false;
@@ -3913,7 +3999,7 @@ bool multi_shutdown_retirable(Server& server, WbEngine& wb, Client& client, Op& 
         for (const auto& command : state->commands)
             if (command->kind == MultiCommandKind::IoLocal &&
                 !(state->publication_started &&
-                  (has_name(command->queued, "publish") || has_name(command->queued, "spublish"))))
+                  ((command->queued.verb == MultiVerb::V_publish) || (command->queued.verb == MultiVerb::V_spublish))))
                 return false;
     multi_shutdown_return_tls_borrows(server, wb, client, *state);
     return true;

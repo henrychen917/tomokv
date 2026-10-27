@@ -61,7 +61,7 @@ void txn_link_waiter(TxnKeyQueue& q, TxnWaiter& node,
 bool Shard::watch_place_unit(const std::vector<TxnClaim>& keys, WatchReservation unit,
                              const MultiRetryPromoter* promoter) {
     auto& cached = unit.unit_kind == 1
-        ? static_cast<MultiExecState*>(const_cast<void*>(unit.token))->place_blockers[id()]
+        ? static_cast<MultiExecState*>(const_cast<void*>(unit.token))->place_blockers[static_cast<MultiExecState*>(const_cast<void*>(unit.token))->slot(id())]
         : static_cast<ScatterState*>(const_cast<void*>(unit.token))->group_attempt()->place_blockers[id()];
     if (!txn_reservation_live(unit)) { cached.clear(); return true; }
     if (cached.live()) {
@@ -198,8 +198,8 @@ void Shard::watch_promote_unit_waiter(const std::string& key,
     }
     if (head->entry.unit_kind != 1) return;
     auto& next = *static_cast<MultiExecState*>(const_cast<void*>(head->entry.token));
-    next.execution_noted[id()] |= 16u;
-    if (promoter) promoter->promote(promoter->context, next.owner_retries[id()]);
+    next.execution_noted[next.slot(id())] |= 16u;
+    if (promoter) promoter->promote(promoter->context, next.owner_retries[next.slot(id())]);
 }
 
 void Shard::watch_finish_unit(const std::vector<TxnClaim>& keys, const void*,
