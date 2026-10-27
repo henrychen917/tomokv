@@ -1,0 +1,5 @@
+ok	0.000000	release build (+footprint locks)
+ok	0.280000	exbatch publication and WATCH lifecycle (1s)
+ok	0.280000	exbatch publication and WATCH lifecycle (2s)
+ok	6.090000	ACL recheck one-reply battery (2s)
+ok	6.200000	ACL recheck one-reply battery (1s)

@@ -1,0 +1,26 @@
+PARTIAL	0	GATE_ONLY_JOBS=multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	4.440000	multidb (1s, read-local 0, atomic 0)
+ok	0.100000	multidb (1s, read-local 0, atomic 0) SWAPDB serial order
+ok	0.270000	multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB
+ok	4.430000	multidb (1s, read-local 0, atomic 1)
+ok	0.090000	multidb (1s, read-local 0, atomic 1) SWAPDB serial order
+ok	0.270000	multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB
+ok	4.440000	multidb (1s, read-local 1, atomic 0)
+ok	0.100000	multidb (1s, read-local 1, atomic 0) SWAPDB serial order
+ok	0.270000	multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB
+ok	4.460000	multidb (1s, read-local 1, atomic 1)
+ok	0.090000	multidb (1s, read-local 1, atomic 1) SWAPDB serial order
+ok	0.280000	multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB
+ok	4.330000	multidb (2s, read-local 0, atomic 0)
+ok	0.090000	multidb (2s, read-local 0, atomic 0) SWAPDB serial order
+ok	0.270000	multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB
+ok	4.330000	multidb (2s, read-local 0, atomic 1)
+ok	0.100000	multidb (2s, read-local 0, atomic 1) SWAPDB serial order
+ok	0.280000	multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB
+ok	4.340000	multidb (2s, read-local 1, atomic 0)
+ok	0.090000	multidb (2s, read-local 1, atomic 0) SWAPDB serial order
+ok	0.280000	multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB
+ok	4.330000	multidb (2s, read-local 1, atomic 1)
+ok	0.100000	multidb (2s, read-local 1, atomic 1) SWAPDB serial order
+ok	0.280000	multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB
