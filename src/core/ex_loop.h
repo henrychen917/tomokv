@@ -193,6 +193,9 @@ public:
                 read_local_.impl = std::move(impl);
             }
         }
+        if constexpr (Fused) {
+            if (srv_->thread_mode() == ThreadMode::Fused) ring_.track_owned_completions();
+        }
         if (!ring_.init(1024)) return false;
         ring_.bind_entry_counters(self_->id(), true);
         if (!srv_->databases().watch_wake(self_->id(), ring_)) return false;
@@ -496,8 +499,14 @@ public:
                 read_local_impl().lane_admit_cap = want;
         }
         if (!lb_frozen) did += owner_control_tail();
-        if (did) {
+        // Incoming deferred task work and outstanding IO do not require any
+        // owner task to have progressed first. Keep the fused loop active until
+        // those CQEs can be reaped on its next pass.
+        if (ring_.completion_service_needed()) {
             ring_.submit_and_reap();
+            ++did;
+        }
+        if (did) {
             fused_idle_spins_ = 0;
             return did;
         }
@@ -512,7 +521,7 @@ public:
         } else {
             did = sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
         }
-        if (did) ring_.submit_and_reap();
+        if (ring_.completion_service_needed()) { ring_.submit_and_reap(); ++did; }
         return did;
     }
 
@@ -561,7 +570,7 @@ public:
                 sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
         }
         if (read_local_enabled()) did += read_local_impl().deferred.drain_ready();
-        if (did) ring_.submit_and_reap();
+        if (ring_.completion_service_needed()) { ring_.submit_and_reap(); ++did; }
         return did;
     }
 

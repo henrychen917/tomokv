@@ -627,8 +627,14 @@ uint32_t ExLoopT<Fused>::r7_fused_pass_impl() {
             read_local_impl().lane_admit_cap = want;
     }
     if (!lb_frozen) did += owner_control_tail();
-    if (did) {
+    // Incoming deferred task work and outstanding IO do not require any
+    // owner task to have progressed first. Keep the fused loop active until
+    // those CQEs can be reaped on its next pass.
+    if (ring_.completion_service_needed()) {
         ring_.submit_and_reap();
+        ++did;
+    }
+    if (did) {
         fused_idle_spins_ = 0;
         return did;
     }
@@ -643,7 +649,7 @@ uint32_t ExLoopT<Fused>::r7_fused_pass_impl() {
     } else {
         did = r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
     }
-    if (did) ring_.submit_and_reap();
+    if (ring_.completion_service_needed()) { ring_.submit_and_reap(); ++did; }
     return did;
 }
 
@@ -696,7 +702,7 @@ uint32_t ExLoopT<Fused>::r7_fused_sweep_impl() {
             r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
     }
     if (read_local_enabled()) did += read_local_impl().deferred.drain_ready();
-    if (did) ring_.submit_and_reap();
+    if (ring_.completion_service_needed()) { ring_.submit_and_reap(); ++did; }
     return did;
 }
 
@@ -763,6 +769,8 @@ void IoLoop::r7_run_loop() {
                     client, probed, fallbacks, count, demoted);
             });
 
+    Ring::RegisteredFd registered_io(Fused && !SplitLocal ? &ring_ : nullptr);
+    Ring::RegisteredFd registered_ex(Fused && !SplitLocal && fused_executor_ ? &fused_executor_->ring() : nullptr);
     wb_rule::IdleWindow wb_idle;
     Server::DebugSleepWorker sleep_worker(srv_->debug_sleep_coordinator(), self_->id());
     if constexpr (Fused) {

@@ -524,6 +524,8 @@ private:
         static_assert(!SplitLocal || Fused);
         LoopSignals& sig = self_->sig();
         IoTenure tenure(sig);
+        Ring::RegisteredFd registered_io(Fused && !SplitLocal ? &ring_ : nullptr);
+        Ring::RegisteredFd registered_ex(Fused && !SplitLocal && fused_executor_ ? &fused_executor_->ring() : nullptr);
         wb_rule::IdleWindow wb_idle;
         Server::DebugSleepWorker sleep_worker(srv_->debug_sleep_coordinator(), self_->id());
         if constexpr (Fused) {

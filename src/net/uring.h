@@ -75,6 +75,8 @@ enum class UrKind : uint8_t {
     TlsReadPoll = 14,
     TlsWritePoll = 15,
     MigrateCancel = 16, // source-ring cancellation request; original Recv CQE is the fence
+    // 18/19 are fliplisten's accept/cancel tags.
+    WakeSent = 20,      // issuer-side completion, distinct from a peer notification
     DatabaseWake = 17,  // physical-worker database grace/boundary eventfd
 };
 
@@ -109,6 +111,10 @@ public:
         // later SQE in the batch -- including recv re-arms belonging to unrelated connections -- and
         // present as one connection's fault stalling several others.
         p.flags = IORING_SETUP_SINGLE_ISSUER | IORING_SETUP_DEFER_TASKRUN | IORING_SETUP_SUBMIT_ALL;
+        // Fused EX rings skip idle enters. Peer MSG_RING and permanent polls
+        // can enqueue deferred task work without an owned SQE: the kernel flag
+        // is the service request for that incoming work.
+        if (track_owned_) p.flags |= IORING_SETUP_TASKRUN_FLAG;
         int rc = io_uring_queue_init_params(entries, &r_, &p);
         if (rc < 0) {
             // Fall back rather than refuse to boot: an older kernel should still run, just slower.
@@ -153,6 +159,33 @@ public:
         raw_callback_taken_ = false;
         raw_callback_index_ = 0;
         send_pending_ = false;
+    }
+
+    // Registration is task-local. The guard ends on the issuer, before the
+    // post-join teardown can call liburing from the coordinator thread.
+    class RegisteredFd {
+        Ring* ring_ = nullptr;
+    public:
+        explicit RegisteredFd(Ring* ring) {
+            if (ring && ring->inited_ && io_uring_register_ring_fd(&ring->r_) == 1)
+                ring_ = ring;
+        }
+        ~RegisteredFd() {
+            if (ring_ && io_uring_unregister_ring_fd(&ring_->r_) != 1) std::abort();
+        }
+        RegisteredFd(const RegisteredFd&) = delete;
+        RegisteredFd& operator=(const RegisteredFd&) = delete;
+    };
+
+    // Only fused executor rings opt in. Permanent shutdown/database polls do
+    // not represent outstanding data work; IO continues entering every rotation.
+    void track_owned_completions() { track_owned_ = true; }
+    void note_owned_completion() { if (track_owned_) ++owned_completions_; }
+    unsigned owned_completions() const { return owned_completions_; }
+    bool completion_service_needed() const {
+        return inited_ && (sq_ready() || owned_completions_ ||
+            (IO_URING_READ_ONCE(*r_.sq.kflags) &
+             (IORING_SQ_TASKRUN | IORING_SQ_CQ_OVERFLOW)));
     }
 
     bool shutdown_complete() const { return !inited_ && wake_fd_ < 0; }
@@ -298,6 +331,7 @@ public:
         io_uring_for_each_cqe(&r_, head, cqe) {
             raw++;
             raw_callback_index_ = raw;
+            account_owned_completion(cqe);
             fn(cqe);
             if (raw_callback_taken_) break;
         }
@@ -338,6 +372,7 @@ public:
         io_uring_cqe* cqe;
         unsigned head, raw = 0;
         io_uring_for_each_cqe(&r_, head, cqe) {
+            account_owned_completion(cqe);
             if (fn(cqe)) consumed++;
             else deferred_cqes_.push_back(*cqe);
             raw++;
@@ -370,11 +405,21 @@ public:
         io_uring_sqe* s = sqe();
         if (!s) return false;
         io_uring_prep_msg_ring(s, target.r_.ring_fd, 0, tag, 0);
-        s->user_data = ur_tag(UrKind::Wake, nullptr);
+        s->user_data = ur_tag(track_owned_ ? UrKind::WakeSent : UrKind::Wake, nullptr);
+        note_owned_completion();
         return true;
     }
 
 private:
+    void account_owned_completion(io_uring_cqe* cqe) {
+        const auto kind = ur_kind(cqe->user_data);
+        if (track_owned_ && (kind == UrKind::WakeSent || kind == UrKind::AofIo ||
+                             kind == UrKind::SnapshotIo)) {
+            if (!owned_completions_) std::abort();
+            --owned_completions_;
+            if (kind == UrKind::WakeSent) cqe->user_data = ur_tag(UrKind::Wake, nullptr);
+        }
+    }
     // The epoll-mode doorbell. PAYLOAD FIRST, THEN THE BELL -- the same push-then-flag order the
     // channel mesh uses, and for the same reason: a consumer woken by the bell must be able to see
     // everything the bell was rung for. The mutex is only ever contended by a peer that found this
@@ -410,6 +455,8 @@ private:
     bool     inited_   = false;
     bool     deferred_ = true;
     bool     send_pending_ = false;
+    bool     track_owned_ = false; // existing five-byte hole
+    uint32_t owned_completions_ = 0;
     std::vector<io_uring_cqe> deferred_cqes_;
     bool raw_callback_active_ = false;
     bool raw_callback_taken_ = false;
