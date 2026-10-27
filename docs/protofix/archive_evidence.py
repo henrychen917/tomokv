@@ -20,7 +20,8 @@ files = set()
 for folder in runs:
     assert folder.is_dir(), folder
     files.update(path for path in folder.rglob("*") if not path.is_dir())
-files.update((ROOT / "build/protofix").glob("*.log"))
+files.update(path for path in (ROOT / "build/protofix").glob("*.log")
+             if not path.name.startswith("archive-evidence-"))
 files.update(path for path in (ROOT / "build/protofix/tcl-protocol").rglob("*")
              if path.is_file() and path.suffix in (".json", ".log", ".txt"))
 rows = []

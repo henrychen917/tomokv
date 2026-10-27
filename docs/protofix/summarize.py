@@ -6,10 +6,13 @@ import json
 import os
 from pathlib import Path
 import re
+import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 DOC = ROOT / "docs/protofix"
 os.sched_setaffinity(0, set(range(16)))
+sys.path.insert(0, str(ROOT / "tests"))
+import differ_fanout
 read = lambda path: json.loads(path.read_text())
 matrix, results = read(DOC / "matrix.json"), read(DOC / "matrix-results.json")
 assert [row["name"] for row in results] == [row["name"] for row in matrix["batches"]]
@@ -63,11 +66,17 @@ for engine in ("uring", "epoll"):
     for part in ("split-0", "split-1", "armed-0", "armed-1", "equivalence"):
         result = read(folder / ("jobs/differ-" + part) / "differ/complete.json")
         assert result["complete"] and result["seeds"] == plan["manifest"]["seeds"]
-        expected = (16 if part == "equivalence" else
-                    len(plan["suites"]) * len(plan["manifest"]["seeds"]) +
-                    (plan["repeats"] if part.endswith("-1") else 0))
+        directory = folder / ("jobs/differ-" + part) / "differ"
+        # Use the gate's own full journal validator, including SORT's declared
+        # split-only geometry and positive per-command comparison witnesses.
+        expected = (differ_fanout.check_equivalence(plan, directory) if part == "equivalence" else
+                    differ_fanout.check_matrix(plan, part, directory))
         assert result["comparisons"] == expected, (engine, part, result)
-        parts.append(result)
+        if part.startswith("armed-"):
+            log = (directory.parent / "output.log").read_text()
+            assert log.count("SKIP (suite requires the split 6:2 geometry)") == len(plan["manifest"]["seeds"])
+        parts.append(dict(**result, declared_exclusions=["sort: split-only 6:2 geometry"]
+                          if part.startswith("armed-") else []))
     differential.append(dict(engine=engine, plan=plan, parts=parts))
 wound = read(DOC / "wound-window/receipt.json")
 assert read(DOC / "wound-status.json")["diagnostic_exit"] == 0
@@ -85,6 +94,14 @@ pipe = read(DOC / "pipeorder/receipt.json")
 assert len(pipe["results"]) == 4 and all(row["passed"] for row in pipe["results"])
 tcl = read(DOC / "tcl-protocol.json")
 assert len(tcl["rows"]) == 2 and all(row["exit"] == 0 for row in tcl["rows"])
+tcl_spec = read(ROOT / "tests/redis_tcl_passing.json")["files"]["unit/protocol"]
+for arm in tcl["rows"]:
+    assert arm["summary"]["binary_sha256"] == post and len(arm["summary"]["rows"]) == 1
+    result = arm["summary"]["rows"][0]
+    assert result["file"] == "unit/protocol" and result["complete"]
+    assert result["passed"] == len(tcl_spec["passed_tests"]) == 17 and result["failed"] == 0
+    assert result["skip_tests"] == sorted(tcl_spec["skip_tests"]) and result["skipped"] == 8
+    assert result["exit_code"] == result["server_exit"] == 0 and not result["setup_errors"]
 pad = read(DOC / "jobs/verified-pad-control.json")
 assert pad["binary_unchanged"] and pad["exit"] == 1
 assert pad["binary_sha256"] == read(DOC / "pad-a.json")["arms"]["PAD-A"]["sha256"]

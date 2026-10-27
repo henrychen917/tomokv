@@ -1,0 +1,26 @@
+{
+  "binary_sha256": "e99c3f23182c0872214c2e1475cb64cb4d8aa3dd27ebeaf769ca0197c4b5ba5b",
+  "scope": "Tripwire round-trip and pipeorder 400 rolls; atomic_floor rate row NOT RUN",
+  "results": [
+    {
+      "mode": "1s",
+      "engine": "epoll",
+      "passed": true
+    },
+    {
+      "mode": "1s",
+      "engine": "uring",
+      "passed": true
+    },
+    {
+      "mode": "2s",
+      "engine": "epoll",
+      "passed": true
+    },
+    {
+      "mode": "2s",
+      "engine": "uring",
+      "passed": true
+    }
+  ]
+}

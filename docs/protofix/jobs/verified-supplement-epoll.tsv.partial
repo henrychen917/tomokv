@@ -1,0 +1,24 @@
+PARTIAL	0	GATE_ONLY_JOBS=acl_recheck auth flip exbatch_live perfex_live; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	15.250000	perfex TTL sampler beat (1s)
+ok	15.250000	perfex TTL sampler beat (2s)
+ok	0.270000	exbatch publication and WATCH lifecycle (1s)
+ok	0.280000	exbatch publication and WATCH lifecycle (2s)
+ok	6.100000	ACL recheck one-reply battery (2s)
+ok	6.150000	ACL recheck one-reply battery (1s)
+ok	0.010000	reject bad protected-mode
+ok	0.010000	reject bad enable-debug-command
+ok	0.150000	AUTH/HELLO/protected state machine
+ok	5.560000	ACL battery (atomic off)
+ok	5.560000	ACL battery (atomic on)
+ok	2.470000	DEBUG toggle/reload battery
+ok	0.120000	typed snapshot round-trip incl stream
+ok	0.150000	FLIP state battery
+ok	1.040000	FLIP under verified load
+ok	1.450000	FLIP TTL + expiry events
+ok	2.230000	partial-frame conn parks (no io spin)
+ok	2.210000	FLIP close during FLIP (uring)
+ok	2.150000	FLIP close during FLIP (epoll)
+ok	1.130000	FLIP signal stop during FLIP + second SIGINT
+ok	0.530000	perfio stale epoll registration (epoll-flip)
+ok	1.110000	perfio stale epoll registration (epoll-lb)

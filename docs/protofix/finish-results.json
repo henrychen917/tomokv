@@ -1,0 +1,53 @@
+[
+  {
+    "name": "supplement",
+    "command": [
+      "python3",
+      "docs/protofix/supplement.py"
+    ],
+    "exit": 0,
+    "log": "/home/user/Projects/cx-protofix/build/protofix/supplement-verified.log"
+  },
+  {
+    "name": "pad-control",
+    "command": [
+      "python3",
+      "docs/protofix/run_jobs.py",
+      "verified-pad-control",
+      "inline_quoted",
+      "netio-1s",
+      "netio-2s",
+      "--binary",
+      "build/tomokv-protofix-PAD-A"
+    ],
+    "exit": 1,
+    "log": "/home/user/Projects/cx-protofix/build/protofix/pad-control-verified.log"
+  },
+  {
+    "name": "pipeorder",
+    "command": [
+      "python3",
+      "docs/protofix/pipeorder.py"
+    ],
+    "exit": 0,
+    "log": "/home/user/Projects/cx-protofix/build/protofix/pipeorder-verified.log"
+  },
+  {
+    "name": "gate-selftests",
+    "command": [
+      "python3",
+      "tests/gates_test.py"
+    ],
+    "exit": 0,
+    "log": "/home/user/Projects/cx-protofix/build/protofix/gate-selftests-verified.log"
+  },
+  {
+    "name": "production-freshness",
+    "command": [
+      "python3",
+      "docs/protofix/production_build.py"
+    ],
+    "exit": 0,
+    "log": "/home/user/Projects/cx-protofix/build/protofix/production-freshness-verified.log"
+  }
+]

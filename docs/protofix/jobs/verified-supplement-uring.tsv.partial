@@ -1,0 +1,112 @@
+PARTIAL	0	GATE_ONLY_JOBS=reorder_sync reorder_engagement reorder_identity filter_unit ring_unit wb_rule_units wbland_units wb_policy atomic_units exbatch_units exbatch_live perfex_units perfex_live bugs5 acl_recheck auth authfix serverfix_hello dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform flip fliplisten ntnew4_live clientfix climonfix; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+ok	0.290000	B+ counting-fingerprint filter unit
+ok	1.090000	read-local write ring + arming transient unit
+ok	0.170000	climon 128-owner delivery mask
+ok	0.890000	read-local MGET fence symmetry unit
+ok	44.160000	bugs5 scancompact (both modes, both engines, atomic 0/1)
+ok	33.750000	bugs5 slowlog_identity (both modes, both engines, atomic 0/1)
+ok	27.130000	bugs5 read_local_lfu (both modes, both engines, atomic 0/1)
+ok	5.980000	writeback policies 0/1: 22 standard fixtures
+ok	0.940000	R7 generated envelope parity
+ok	14.160000	R7 production engagement (both database runtimes)
+ok	112.130000	R7 FIFO twin off-path identity + negative controls
+ok	0.040000	shutdown policy + signal handoff serverless
+ok	0.340000	shutdown persistence (1s, command)
+ok	0.130000	shutdown persistence (1s, sigterm)
+ok	0.130000	shutdown persistence (1s, sigint)
+ok	0.340000	shutdown persistence (2s, command)
+ok	0.130000	shutdown persistence (2s, sigterm)
+ok	0.140000	shutdown persistence (2s, sigint)
+ok	1.750000	clientfix tracking-cap (1s)
+ok	6.850000	clientfix tracking-pipeline (1s)
+ok	13.730000	clientfix reply-skip (1s)
+ok	0.300000	clientfix pattern-cleanup (1s)
+ok	1.120000	clientfix pause-deadline (1s)
+ok	0.100000	clientfix geo-count (1s)
+ok	0.100000	clientfix geo-store (1s)
+ok	1.750000	clientfix tracking-cap (2s)
+ok	6.850000	clientfix tracking-pipeline (2s)
+ok	11.630000	clientfix reply-skip (2s)
+ok	0.300000	clientfix pattern-cleanup (2s)
+ok	1.120000	clientfix pause-deadline (2s)
+ok	0.110000	clientfix geo-count (2s)
+ok	0.110000	clientfix geo-store (2s)
+ok	0.140000	perfex clock binary regression
+ok	0.130000	perfex batch binary regression
+ok	15.250000	perfex TTL sampler beat (1s)
+ok	15.240000	perfex TTL sampler beat (2s)
+ok	1.170000	NT-new-4 command clock after dequeue (2s)
+ok	1.180000	NT-new-4 command clock after dequeue (1s)
+ok	1.170000	NT-new-4 command clock after dequeue (2s, epoll)
+ok	15.730000	exbatch publication unit + negative controls
+ok	40.220000	exbatch watch unit + negative controls
+ok	16.970000	exbatch metadata unit + negative controls
+ok	0.270000	exbatch publication and WATCH lifecycle (1s)
+ok	0.270000	exbatch publication and WATCH lifecycle (2s)
+ok	0.650000	writeback c12 policy witnesses + negative controls
+ok	8.020000	writeback c12 phase witnesses + negative controls
+ok	2.610000	writeback c12 stages witnesses + negative controls
+ok	7.180000	writeback c12 split-phase witnesses + negative controls
+ok	6.240000	writeback policy clauses witnesses + negative controls
+ok	2.060000	writeback policy paths witnesses + negative controls
+ok	0.010000	atomic commit publication catches up at quiescence
+ok	2.280000	flushfix flush witnesses
+ok	0.060000	flushfix headers witnesses
+ok	3.780000	multidb serverless owners
+ok	0.050000	multidb global namespace boundary
+ok	11.660000	storesize published monitoring
+ok	0.230000	MULTI admin command replies
+ok	0.090000	EXECABORT releases WATCH reservation
+ok	0.000000	atomic survivors unit build
+ok	0.010000	atomic survivor: admission
+ok	0.010000	atomic survivor: closure
+ok	0.010000	atomic survivor: script_keys
+ok	0.010000	atomic survivor: rename_overlay
+ok	0.000000	atomic survivor: write_latest
+ok	0.010000	atomic survivor: script_apply
+ok	0.010000	atomic survivor: post_apply_probe
+ok	0.010000	atomic survivor: lua_conversion
+ok	0.000000	atomic survivor: watch_parent
+ok	0.010000	atomic survivor: watch_cycle
+ok	0.010000	atomic survivor: mset_arity
+ok	0.010000	atomic survivor: watch_oom
+ok	0.000000	atomic survivor: lua_lines
+ok	0.000000	atomic survivor: library_limit
+ok	0.020000	atomic survivor: stage_flag
+ok	0.010000	atomic survivor: instruction_limit
+ok	0.020000	armed resize retirement: atomic-growth
+ok	0.000000	armed resize retirement: flush-prepared
+ok	0.840000	dispatchfix EX4.10 container outer arity
+ok	0.870000	dispatchfix EX4.11 container errors
+ok	0.940000	dispatchfix EX4.4 advertised children
+ok	14.330000	dispatchfix CC4.15 ACL subcommand grants
+ok	3.920000	dispatchfix EX4.17 uniform routing and legacy recovery
+ok	6.090000	ACL recheck one-reply battery (2s)
+ok	6.250000	ACL recheck one-reply battery (1s)
+ok	0.010000	reject bad protected-mode
+ok	0.000000	reject bad enable-debug-command
+ok	0.150000	AUTH/HELLO/protected state machine
+ok	5.560000	ACL battery (atomic off)
+ok	5.550000	ACL battery (atomic on)
+ok	2.470000	DEBUG toggle/reload battery
+ok	0.120000	typed snapshot round-trip incl stream
+ok	0.910000	authfix CG4.1 binary config requirepass
+ok	3.460000	authfix CG4.2 missing config value refuses boot
+ok	0.910000	authfix SV4.2 binary requirepass rewrite restart
+ok	0.300000	authfix SV4.1 slowlog credential redaction (1s)
+ok	0.300000	authfix SV4.1 slowlog credential redaction (2s)
+ok	0.790000	serverfix SV4.7 HELLO canonical protocol
+ok	0.180000	FLIP state battery
+ok	1.040000	FLIP under verified load
+ok	1.440000	FLIP TTL + expiry events
+ok	2.230000	partial-frame conn parks (no io spin)
+ok	2.200000	FLIP close during FLIP (uring)
+ok	2.150000	FLIP close during FLIP (epoll)
+ok	1.160000	FLIP signal stop during FLIP + second SIGINT
+ok	0.540000	perfio stale epoll registration (epoll-flip)
+ok	1.100000	perfio stale epoll registration (epoll-lb)
+ok	27.550000	FLIP listener conservation (io-ex, complete)
+ok	27.590000	FLIP listener conservation (io-ex, rollback)
+ok	27.220000	FLIP listener conservation (ex-io, complete)
+ok	27.530000	FLIP listener conservation (ex-io, rollback)
