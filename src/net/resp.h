@@ -44,7 +44,7 @@ struct RespInlineDecoder {
     // First pass validates and counts; second pass fills a single owned block.
     // No receive byte or reply storage is ever changed. Args are immutable after
     // parsing: commands that build another argv use a separate Op (e.g. EXEC).
-    static bool split(const char* p, const char* end, Slice* args, char* bytes,
+    [[gnu::cold, gnu::noinline]] static bool split(const char* p, const char* end, Slice* args, char* bytes,
                       uint32_t& argc) {
         argc = 0;
         uint32_t written = 0;
