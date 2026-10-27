@@ -2,5 +2,17 @@
   {
     "name": "verified-protocol-uring",
     "exit": 0
+  },
+  {
+    "name": "verified-protocol-epoll",
+    "exit": 0
+  },
+  {
+    "name": "verified-feature-cells",
+    "exit": 0
+  },
+  {
+    "name": "verified-features-uring",
+    "exit": 0
   }
 ]

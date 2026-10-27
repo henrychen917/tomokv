@@ -26,7 +26,7 @@ PAD-A is an exact POST-layout control, built by `docs/protofix/pad_a.py`. PRE's 
 
 The established serverless counter from `tools/execindex_scope.py` runs with only artifact paths and affinity changed. `docs/protofix/counts.py` uses fresh final destinations, avoiding stale traces from earlier compiler trials. All **24** command-scope PRE/POST comparisons match exactly: GET/SET/INCR × batch 1/32 × 1s/2s × normal/db0. Every total, per-function count and excluded external-call count agrees. Atomic is 1, slowlog threshold is -1. These counts cover named production command routines and inlined code, exclude external-library bodies, and are not cycles/op or throughput measurements. Full numbers and trace receipts: `docs/protofix/instructions-final/`.
 
-The instrument supplies deterministic clock results (one intercepted clock call per command scope). Wrapper guards refuse to reuse existing traces after rebuilding a fixture; reproduce into new directories with, for example, `PROTOFIX_COUNT_TAG=review1 python3 docs/protofix/counts.py` and the same environment setting for `parser_counts.py`.
+The instrument supplies deterministic clock results (one intercepted clock call per command scope). Wrapper guards refuse to overwrite or reuse existing traces; reproduce into new directories with, for example, `PROTOFIX_COUNT_TAG=review1 python3 docs/protofix/counts.py` and the same environment setting for `parser_counts.py`. The following counts are instructions per batch.
 
 | Command / mode | normal batch 1 | normal batch 32 | db0 batch 1 | db0 batch 32 |
 | --- | ---: | ---: | ---: | ---: |
@@ -48,9 +48,9 @@ The separate bounded parser witness checks exact parsed arguments and no extra a
 | RESP SET | 267 → 267 | 7,459 → 7,459 |
 | RESP INCR | 211 → 211 | 5,667 → 5,667 |
 
-`docs/protofix/parser-instructions/` retains all 12 comparisons and trace logs. External-call counts match in every pair.
+`docs/protofix/parser-instructions/` retains all 12 comparisons and trace logs. External-call counts match in every pair. `parser-provenance.json` binds all three entered out-of-line parser/helper bodies in each arm to identical instruction bodies in the corresponding production executable; the standalone fixture requires these parser symbols instead of unrelated executor-policy symbols, with a missing-body negative control. The trace therefore measures the production inline parser's instructions.
 
-GCC inlining budgets in `Makefile` are adjusted to keep the larger cold inline parser from changing unrelated hot bodies. No runtime knob is introduced. The final strict linked audit has **765/765 hot groups identical**, including all 81 named groups entered by the command traces, both database images, late-listener parser clones, and the existing main command/dispatch selections. Additional checks cover `r7_run_loop` and fused `flip_control_pass`. The object audit compares 118 objects and 19,388 bodies: all 1,744 non-inline bodies in its hot selection agree; its other 30 selected occurrences are the deliberately replaced inline parser/validator. Opcode, register and immediate changes are not masked. Reproduce with `docs/protofix/identity.py`; receipts are `docs/protofix/linked-identity-frozen.json` and `docs/protofix/identity-frozen/`.
+GCC inlining budgets in `Makefile` are adjusted to keep the larger cold inline parser from changing unrelated hot bodies. No runtime knob is introduced. The final strict linked audit has **765/765 hot groups with relocation-aware instruction identity**, including all 81 named groups entered by the command traces, both database images, late-listener parser clones, and the existing main command/dispatch selections. Additional checks cover `r7_run_loop` and fused `flip_control_pass`. The object audit compares 118 objects and 19,388 bodies: all 1,744 non-inline bodies in its hot selection agree; its other 30 selected occurrences are the deliberately replaced inline parser/validator. Opcode, register and immediate changes are not masked. Reproduce with `docs/protofix/identity.py`; receipts are `docs/protofix/linked-identity-frozen.json` and `docs/protofix/identity-frozen/`.
 
 This is not whole-executable identity: the linked inventory has 16 changed groups. Twelve are the intended inline bodies/helpers in the two namespaces; three cold bodies differ in resolved reference annotations, and normal `pubsub_append_ack` has one additional `u64_to_dec` inlining (972 → 1,068 bytes). These differences remain visible in the strict report and go to the maintainer's null. Compiler trials and earlier audits are retained in `docs/protofix/compiler-exploration.tar.gz`.
 
@@ -63,6 +63,8 @@ The existing `respcompat` job runs both its original protocol battery and the ne
 The exact `inline_quoted` test and four-leg job were taken from cx-gaterows5 commit `033e94d79326f50c61cce54ee1c7ec63da69f9a3` by a partial cherry-pick, committed as `2403bab77`. PRE fails all seven valid cases in each 1s/2s × epoll/uring leg. Final POST passes all four legs (seven cases each). PAD's corresponding negative-control receipts are pending below.
 
 **DQ=+4, DF=+4**, counted by the four row emissions collected at `tests/gate.sh:5554`, above the quick-tier exit block beginning at line 5785. The imported job is four scored rows, despite being one job name. Wave8's actual 806/823 becomes **810/827**. The stale maintainer-owned constants remain untouched at 798/815; do not apply this delta again if importing the same four rows through the full gaterows5 branch.
+
+The four corresponding receipt-fixture labels are also copied from that gaterows5 commit. Source inventory and fixture both contain exactly 827 rows, with no missing/extra labels. The standard fixture guard deliberately still exits 1 solely because protected `EXPECT_FULL=815`; `docs/protofix/row-inventory.json` retains the diagnostic. This is not a runtime failure or a passing full-gate receipt.
 
 ### Correctness campaign
 
@@ -84,3 +86,5 @@ Use the gate's own ABBA instrument on the quiet box, with its normal cell geomet
 Compare PRE/POST and PRE/PAD-A, and keep POST/PAD-A visible. **Every cell must be null** under the gate's existing rule. Report rate at matched offered load, cycles/op, instructions/op and IPC, plus depth-1 latency. A PAD shift identifies a code-placement effect; instruction equality alone does not establish the required null. No throughput claim is made.
 
 The performance-bearing `atomic_floor` whole job, its memtier floor, all ABBA/performance jobs and the full `tests/gate.sh iteration` are **NOT RUN** because the lane authorization excludes performance benchmarks. The isolated `pipeorder.py` correctness leg will be recorded separately rather than relabeling a partial `atomic_floor` as a complete job.
+
+The full `redis_tcl`/`compat2` job is also **NOT RUN**: its frozen subset contains four `SORT speed` benchmarks. A separately labeled protocol-only Tcl diagnostic retains the exact `unit/protocol` assertions and existing manifest exclusions in both declared thread modes; it is not a complete-job pass claim.

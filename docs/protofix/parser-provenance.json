@@ -1,0 +1,126 @@
+{
+  "pre": {
+    "production_sha256": "37b3a2f583859dff5e9bc74dd864f7257b6f486371883a0df4d12a0d5393912b",
+    "fixture_sha256": "e2acf478c4d509babf3c56fef367fce549692e969fc3e02550582863ecd54fed",
+    "inventory": "All counted parser/helpers required; standalone fixture has no executor policies",
+    "missing_body_control": "rejected",
+    "bodies": [
+      {
+        "name": "tomo::Op::push_arg(tomo::Slice)",
+        "production": [
+          {
+            "size": 288,
+            "address": "0x454430",
+            "digest": "3182f9852d841ba933339b43b88a6103b6bcff72b0f60f8db13b7a851e36b7cc"
+          }
+        ],
+        "fixture": [
+          {
+            "size": 288,
+            "address": "0x4230",
+            "digest": "3182f9852d841ba933339b43b88a6103b6bcff72b0f60f8db13b7a851e36b7cc"
+          }
+        ],
+        "equal": true
+      },
+      {
+        "name": "tomo::resp_inline_quotes_valid(char const*, char const*)",
+        "production": [
+          {
+            "size": 141,
+            "address": "0x4440d",
+            "digest": "3ef6e8c33ca275837a578c49c9caed6d63cc3a466987f14a1b18f3662d724db7"
+          }
+        ],
+        "fixture": [
+          {
+            "size": 141,
+            "address": "0x2340",
+            "digest": "3ef6e8c33ca275837a578c49c9caed6d63cc3a466987f14a1b18f3662d724db7"
+          }
+        ],
+        "equal": true
+      },
+      {
+        "name": "tomo::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned int&)",
+        "production": [
+          {
+            "size": 382,
+            "address": "0x454770",
+            "digest": "c7351eca6259b47d2bb108d28c8c774045d55888cd2359cb7dedd4f4f0f92b37"
+          }
+        ],
+        "fixture": [
+          {
+            "size": 382,
+            "address": "0x4350",
+            "digest": "c7351eca6259b47d2bb108d28c8c774045d55888cd2359cb7dedd4f4f0f92b37"
+          }
+        ],
+        "equal": true
+      }
+    ]
+  },
+  "post": {
+    "production_sha256": "e99c3f23182c0872214c2e1475cb64cb4d8aa3dd27ebeaf769ca0197c4b5ba5b",
+    "fixture_sha256": "65637f5d32fa1eac7448bd8d6ed32eb8d8d97504058087989deb4de520fd36e9",
+    "inventory": "All counted parser/helpers required; standalone fixture has no executor policies",
+    "missing_body_control": "rejected",
+    "bodies": [
+      {
+        "name": "tomo::Op::push_arg(tomo::Slice)",
+        "production": [
+          {
+            "size": 288,
+            "address": "0x454aa0",
+            "digest": "3182f9852d841ba933339b43b88a6103b6bcff72b0f60f8db13b7a851e36b7cc"
+          }
+        ],
+        "fixture": [
+          {
+            "size": 288,
+            "address": "0x34f0",
+            "digest": "3182f9852d841ba933339b43b88a6103b6bcff72b0f60f8db13b7a851e36b7cc"
+          }
+        ],
+        "equal": true
+      },
+      {
+        "name": "tomo::resp_inline_plain(char const*, char const*)",
+        "production": [
+          {
+            "size": 34,
+            "address": "0x446e5",
+            "digest": "b2a552006fa14310ec13e5f0bbc756f295d272f92dd1be266a5fc93979f1e9b1"
+          }
+        ],
+        "fixture": [
+          {
+            "size": 34,
+            "address": "0x1320",
+            "digest": "b2a552006fa14310ec13e5f0bbc756f295d272f92dd1be266a5fc93979f1e9b1"
+          }
+        ],
+        "equal": true
+      },
+      {
+        "name": "tomo::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned int&)",
+        "production": [
+          {
+            "size": 483,
+            "address": "0x454e30",
+            "digest": "27928fe999007dce99a73e076ab2258cbd6d2b0e590db49b45cfc10db9efea54"
+          }
+        ],
+        "fixture": [
+          {
+            "size": 483,
+            "address": "0x3660",
+            "digest": "27928fe999007dce99a73e076ab2258cbd6d2b0e590db49b45cfc10db9efea54"
+          }
+        ],
+        "equal": true
+      }
+    ]
+  }
+}

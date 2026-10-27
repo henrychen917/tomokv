@@ -1,0 +1,15 @@
+{
+  "source_pre_rows": 823,
+  "source_post_rows": 827,
+  "fixture_rows": 827,
+  "source_and_fixture_multisets_equal": true,
+  "imported_labels": [
+    "inline quoted argument decoding (1s, epoll)",
+    "inline quoted argument decoding (1s, uring)",
+    "inline quoted argument decoding (2s, epoll)",
+    "inline quoted argument decoding (2s, uring)"
+  ],
+  "protected_constants_unchanged": true,
+  "guard_exit": 1,
+  "guard_diagnostic": "RECEIPT FIXTURE REFUSED: tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=815, fixture=827, source declarations=827\nMissing fixture labels: none\nExtra fixture labels: none\nReview the gate row additions/removals and update the explicit fixture, preserving duplicate occurrences. EXPECT_QUICK/EXPECT_FULL are maintainer-owned; do not change them to hide this failure. A run ledger, including a partial run, is never this check's source of truth.\n"
+}

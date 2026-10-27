@@ -1,0 +1,1 @@
+PARTIAL	0	GATE_ONLY_JOBS=release_batteries asan_batteries atomic_batteries debug-0 debug-1; NOT A RECEIPT
