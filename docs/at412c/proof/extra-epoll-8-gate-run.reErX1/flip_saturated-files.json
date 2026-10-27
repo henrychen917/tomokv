@@ -1,0 +1,12 @@
+[
+  {
+    "path": "gate-srv-main.JOA2mh",
+    "bytes": 8646,
+    "sha256": "04fc5fa8859595cd2375b1f6d968ad75f4164062c39711c38fb2ea529793a73c"
+  },
+  {
+    "path": "output.log",
+    "bytes": 305,
+    "sha256": "17a394657e3eb57afdacd6ee37d2ca1b41ecfb83b41fa4400e8260f73fc17560"
+  }
+]

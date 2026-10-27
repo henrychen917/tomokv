@@ -302,6 +302,8 @@ mechanism cost from compiler allocation or estimate contention throughput.
 | JMYoLv, POST b179853b | Fused io_uring DEBUG, snapshot/SAVE, AOF and notification jobs, including their internal matrices | **204 ok / 0 FAIL** |
 | R5aocp, POST b179853b | Fused epoll DEBUG and notification jobs, including their internal matrices | **51 ok / 0 FAIL** |
 | SVpV0r / tpQWzJ | Initial io_uring / epoll differential attempts with binary-only Redis prefix | **Preflight rc 2; comparisons NOT RUN**: required Redis source headers absent; retained and queued again with the full checkout |
+| zLdqei, POST b179853b | EXEC fairness across both modes/engines/atomic settings; io_uring fused batteries | **20 ok / 0 FAIL** |
+| reErX1, POST b179853b | Epoll FLIP, controller, saturated hand-off and fused batteries | **31 ok / 0 FAIL** |
 
 Further engine/mode and differential runs are still running; this table will be
 completed from their actual partial ledgers. It is not a full gate receipt. All commands, hashes,

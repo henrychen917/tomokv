@@ -1,0 +1,62 @@
+[
+  {
+    "path": "gate-fused-atomfix-1.txt",
+    "bytes": 860,
+    "sha256": "09903fe180d3a9ac4d234a06d5019c54414ffdbd6bc16229a198bdb877af23f6"
+  },
+  {
+    "path": "gate-fused-edgeproto-1.txt",
+    "bytes": 42,
+    "sha256": "405cb7fa5bfc6243bb99e864f3031e0943859f1be2cd3c66065466a880686b82"
+  },
+  {
+    "path": "gate-fused-multi_exec-1.txt",
+    "bytes": 1476,
+    "sha256": "4adb957a762b9a840a35e5a200040a47422466f36da3be9d96604b537d7af995"
+  },
+  {
+    "path": "gate-fused-s6-1.txt",
+    "bytes": 403,
+    "sha256": "ff89c74a38119cb8de49b4de996c5e5c6b0b00f446d43ea4110c7cfecc51818c"
+  },
+  {
+    "path": "gate-fused-spinprobe-1.txt",
+    "bytes": 260,
+    "sha256": "c04956a00f1997ff712eed1a3b085c602a5044124fc3791e3ed44cb1df92103d"
+  },
+  {
+    "path": "gate-fused-txn-nx-1.txt",
+    "bytes": 342,
+    "sha256": "3e4761cb4c77fd32428addcae5efbb4b5d667d6aed685f9bc95bc5316ef46dfa"
+  },
+  {
+    "path": "gate-fused-txniso-1.txt",
+    "bytes": 1245,
+    "sha256": "3db09242a45fc793fcbecb63264a0b514ac3b46f1735cebddc0a79459a1fe617"
+  },
+  {
+    "path": "gate-srv-fused.7gvRPG",
+    "bytes": 7848,
+    "sha256": "c4c917ffe0c3a1a74a9dbc22fcb815871d76a2cba57ec3cdca7944299623b877"
+  },
+  {
+    "path": "gate-srv-fused.90lM8X",
+    "bytes": 7947,
+    "sha256": "dc41b5677fac28879c3ab7ef9c0110e572df8c66148e29622e6bc60346a733e8"
+  },
+  {
+    "path": "gate-srv-fused.WNsOBZ",
+    "bytes": 7947,
+    "sha256": "7c7d7c0cfd730e4069c4f4ebd34dddfdbfb3ef8bdeeab5190540c87d4df9f19d"
+  },
+  {
+    "path": "gate-srv-fused.YxIgCq",
+    "bytes": 7709,
+    "sha256": "e650f7382b296e26bb3fb9f9607f90727a7ebb7293c45b8c41f06a6d252a8e97"
+  },
+  {
+    "path": "output.log",
+    "bytes": 1361,
+    "sha256": "fb99eeb28e63b00da4e3706dc1dbbdb77a39d23868bffc06b5d0438abef63689"
+  }
+]
