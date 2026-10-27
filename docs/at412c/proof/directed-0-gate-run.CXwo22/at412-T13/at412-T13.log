@@ -1,0 +1,51 @@
+{"case": "T13", "leg": "redis-redis-0-EVAL", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 0, "escalated": 0}, "pass": true}
+{"case": "T13", "leg": "redis-redis-0-EVALSHA", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 0, "escalated": 0}, "pass": true}
+{"case": "T13", "leg": "redis-redis-0-FCALL", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 0, "escalated": 0}, "pass": true}
+{"keys": ["at412:T13:EVAL:0", "at412:T13:EVAL:1"], "geometry": [[13, 5], [8, 0]]}
+{"case": "T13", "leg": "1s-uring-0-EVAL", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 156, "escalated": 129}, "pass": true}
+{"keys": ["at412:T13:EVALSHA:0", "at412:T13:EVALSHA:1"], "geometry": [[3, 3], [5, 5]]}
+{"case": "T13", "leg": "1s-uring-0-EVALSHA", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 154, "escalated": 129}, "pass": true}
+{"keys": ["at412:T13:FCALL:0", "at412:T13:FCALL:1"], "geometry": [[6, 6], [8, 0]]}
+{"case": "T13", "leg": "1s-uring-0-FCALL", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 154, "escalated": 128}, "pass": true}
+{"keys": ["at412:T13:EVAL:0", "at412:T13:EVAL:1"], "geometry": [[3, 3], [7, 7]]}
+{"case": "T13", "leg": "1s-uring-1-EVAL", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 153, "escalated": 128}, "pass": true}
+{"keys": ["at412:T13:EVALSHA:0", "at412:T13:EVALSHA:1"], "geometry": [[1, 1], [11, 3]]}
+{"case": "T13", "leg": "1s-uring-1-EVALSHA", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 154, "escalated": 128}, "pass": true}
+{"keys": ["at412:T13:FCALL:0", "at412:T13:FCALL:1"], "geometry": [[6, 6], [15, 7]]}
+{"case": "T13", "leg": "1s-uring-1-FCALL", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 152, "escalated": 128}, "pass": true}
+{"keys": ["at412:T13:EVAL:0", "at412:T13:EVAL:1"], "geometry": [[2, 2], [4, 4]]}
+{"case": "T13", "leg": "1s-epoll-0-EVAL", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 157, "escalated": 129}, "pass": true}
+{"keys": ["at412:T13:EVALSHA:0", "at412:T13:EVALSHA:1"], "geometry": [[13, 5], [8, 0]]}
+{"case": "T13", "leg": "1s-epoll-0-EVALSHA", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 155, "escalated": 129}, "pass": true}
+{"keys": ["at412:T13:FCALL:0", "at412:T13:FCALL:3"], "geometry": [[6, 6], [15, 7]]}
+{"case": "T13", "leg": "1s-epoll-0-FCALL", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 154, "escalated": 129}, "pass": true}
+{"keys": ["at412:T13:EVAL:0", "at412:T13:EVAL:1"], "geometry": [[10, 2], [0, 0]]}
+{"case": "T13", "leg": "1s-epoll-1-EVAL", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 156, "escalated": 129}, "pass": true}
+{"keys": ["at412:T13:EVALSHA:0", "at412:T13:EVALSHA:1"], "geometry": [[9, 1], [5, 5]]}
+{"case": "T13", "leg": "1s-epoll-1-EVALSHA", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 150, "escalated": 127}, "pass": true}
+{"keys": ["at412:T13:FCALL:0", "at412:T13:FCALL:1"], "geometry": [[6, 6], [13, 5]]}
+{"case": "T13", "leg": "1s-epoll-1-FCALL", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 154, "escalated": 129}, "pass": true}
+{"keys": ["at412:T13:EVAL:0", "at412:T13:EVAL:3"], "geometry": [[10, 6], [15, 7]]}
+{"case": "T13", "leg": "2s-uring-0-EVAL", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 153, "escalated": 129}, "pass": true}
+{"keys": ["at412:T13:EVALSHA:0", "at412:T13:EVALSHA:1"], "geometry": [[0, 6], [13, 7]]}
+{"case": "T13", "leg": "2s-uring-0-EVALSHA", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 144, "escalated": 128}, "pass": true}
+{"keys": ["at412:T13:FCALL:0", "at412:T13:FCALL:1"], "geometry": [[7, 7], [12, 6]]}
+{"case": "T13", "leg": "2s-uring-0-FCALL", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 143, "escalated": 127}, "pass": true}
+{"keys": ["at412:T13:EVAL:0", "at412:T13:EVAL:3"], "geometry": [[12, 6], [13, 7]]}
+{"case": "T13", "leg": "2s-uring-1-EVAL", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 150, "escalated": 128}, "pass": true}
+{"keys": ["at412:T13:EVALSHA:0", "at412:T13:EVALSHA:2"], "geometry": [[11, 7], [12, 6]]}
+{"case": "T13", "leg": "2s-uring-1-EVALSHA", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 141, "escalated": 126}, "pass": true}
+{"keys": ["at412:T13:FCALL:0", "at412:T13:FCALL:1"], "geometry": [[11, 7], [2, 6]]}
+{"case": "T13", "leg": "2s-uring-1-FCALL", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 148, "escalated": 128}, "pass": true}
+{"keys": ["at412:T13:EVAL:0", "at412:T13:EVAL:2"], "geometry": [[0, 6], [15, 7]]}
+{"case": "T13", "leg": "2s-epoll-0-EVAL", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 148, "escalated": 128}, "pass": true}
+{"keys": ["at412:T13:EVALSHA:0", "at412:T13:EVALSHA:2"], "geometry": [[9, 7], [12, 6]]}
+{"case": "T13", "leg": "2s-epoll-0-EVALSHA", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 143, "escalated": 128}, "pass": true}
+{"keys": ["at412:T13:FCALL:0", "at412:T13:FCALL:1"], "geometry": [[2, 6], [5, 7]]}
+{"case": "T13", "leg": "2s-epoll-0-FCALL", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 142, "escalated": 128}, "pass": true}
+{"keys": ["at412:T13:EVAL:0", "at412:T13:EVAL:1"], "geometry": [[15, 7], [10, 6]]}
+{"case": "T13", "leg": "2s-epoll-1-EVAL", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 149, "escalated": 128}, "pass": true}
+{"keys": ["at412:T13:EVALSHA:0", "at412:T13:EVALSHA:1"], "geometry": [[10, 6], [9, 7]]}
+{"case": "T13", "leg": "2s-epoll-1-EVALSHA", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 142, "escalated": 127}, "pass": true}
+{"keys": ["at412:T13:FCALL:0", "at412:T13:FCALL:1"], "geometry": [[7, 7], [14, 6]]}
+{"case": "T13", "leg": "2s-epoll-1-FCALL", "value": {"scripts": 128, "execs": 32, "writers": 8, "peak": 145, "escalated": 128}, "pass": true}

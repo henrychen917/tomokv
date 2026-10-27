@@ -1,0 +1,51 @@
+{"case": "T16", "leg": "redis-redis-0-EVAL", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"case": "T16", "leg": "redis-redis-0-EVALSHA", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"case": "T16", "leg": "redis-redis-0-FCALL", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:EVAL:0", "at412:T16:EVAL:2"], "geometry": [[10, 2], [12, 4]]}
+{"case": "T16", "leg": "1s-uring-0-EVAL", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:EVALSHA:0", "at412:T16:EVALSHA:1"], "geometry": [[12, 4], [0, 0]]}
+{"case": "T16", "leg": "1s-uring-0-EVALSHA", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:FCALL:0", "at412:T16:FCALL:1"], "geometry": [[1, 1], [0, 0]]}
+{"case": "T16", "leg": "1s-uring-0-FCALL", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:EVAL:0", "at412:T16:EVAL:1"], "geometry": [[10, 2], [0, 0]]}
+{"case": "T16", "leg": "1s-uring-1-EVAL", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:EVALSHA:0", "at412:T16:EVALSHA:1"], "geometry": [[6, 6], [15, 7]]}
+{"case": "T16", "leg": "1s-uring-1-EVALSHA", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:FCALL:0", "at412:T16:FCALL:1"], "geometry": [[6, 6], [7, 7]]}
+{"case": "T16", "leg": "1s-uring-1-FCALL", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:EVAL:0", "at412:T16:EVAL:1"], "geometry": [[11, 3], [13, 5]]}
+{"case": "T16", "leg": "1s-epoll-0-EVAL", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:EVALSHA:0", "at412:T16:EVALSHA:1"], "geometry": [[5, 5], [15, 7]]}
+{"case": "T16", "leg": "1s-epoll-0-EVALSHA", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:FCALL:0", "at412:T16:FCALL:1"], "geometry": [[12, 4], [2, 2]]}
+{"case": "T16", "leg": "1s-epoll-0-FCALL", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:EVAL:0", "at412:T16:EVAL:1"], "geometry": [[10, 2], [13, 5]]}
+{"case": "T16", "leg": "1s-epoll-1-EVAL", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:EVALSHA:0", "at412:T16:EVALSHA:1"], "geometry": [[11, 3], [13, 5]]}
+{"case": "T16", "leg": "1s-epoll-1-EVALSHA", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:FCALL:0", "at412:T16:FCALL:1"], "geometry": [[9, 1], [0, 0]]}
+{"case": "T16", "leg": "1s-epoll-1-FCALL", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:EVAL:0", "at412:T16:EVAL:2"], "geometry": [[4, 6], [7, 7]]}
+{"case": "T16", "leg": "2s-uring-0-EVAL", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:EVALSHA:0", "at412:T16:EVALSHA:2"], "geometry": [[11, 7], [2, 6]]}
+{"case": "T16", "leg": "2s-uring-0-EVALSHA", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:FCALL:0", "at412:T16:FCALL:1"], "geometry": [[9, 7], [6, 6]]}
+{"case": "T16", "leg": "2s-uring-0-FCALL", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:EVAL:0", "at412:T16:EVAL:1"], "geometry": [[2, 6], [3, 7]]}
+{"case": "T16", "leg": "2s-uring-1-EVAL", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:EVALSHA:0", "at412:T16:EVALSHA:1"], "geometry": [[8, 6], [15, 7]]}
+{"case": "T16", "leg": "2s-uring-1-EVALSHA", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:FCALL:0", "at412:T16:FCALL:1"], "geometry": [[5, 7], [10, 6]]}
+{"case": "T16", "leg": "2s-uring-1-FCALL", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:EVAL:0", "at412:T16:EVAL:1"], "geometry": [[14, 6], [7, 7]]}
+{"case": "T16", "leg": "2s-epoll-0-EVAL", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:EVALSHA:0", "at412:T16:EVALSHA:1"], "geometry": [[5, 7], [8, 6]]}
+{"case": "T16", "leg": "2s-epoll-0-EVALSHA", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:FCALL:0", "at412:T16:FCALL:1"], "geometry": [[4, 6], [11, 7]]}
+{"case": "T16", "leg": "2s-epoll-0-FCALL", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:EVAL:0", "at412:T16:EVAL:1"], "geometry": [[9, 7], [6, 6]]}
+{"case": "T16", "leg": "2s-epoll-1-EVAL", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:EVALSHA:0", "at412:T16:EVALSHA:1"], "geometry": [[0, 6], [11, 7]]}
+{"case": "T16", "leg": "2s-epoll-1-EVALSHA", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}
+{"keys": ["at412:T16:FCALL:0", "at412:T16:FCALL:1"], "geometry": [[6, 6], [1, 7]]}
+{"case": "T16", "leg": "2s-epoll-1-FCALL", "value": {"events": 2, "script_events": [1, 1], "readonly": 80, "data": [100, 100]}, "pass": true}

@@ -1,0 +1,229 @@
+[
+  {
+    "phase": "directed",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20200-20279"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_TEST_PORT": "20299",
+      "GATE_ONLY_JOBS": "at412-T1 at412-T2 at412-T3 at412-T4 at412-T5 at412-T6 at412-T7 at412-T8 at412-T9 at412-T10 at412-T11a at412-T11b at412-T12 at412-T13 at412-T14 at412-T15 at412-T16 at412-owner"
+    },
+    "source": "8bee0cfae7ab7009a0bd1a167b55c7ffb48a98f1",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "log": "/home/user/Projects/cx-at412c/build/at412c/proof/directed-0.log",
+    "began": 1793096590.4471376,
+    "rc": 0,
+    "seconds": 2356.328,
+    "run_dir": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22",
+    "archived": "docs/at412c/proof/directed-0-gate-run.CXwo22",
+    "jobs": [
+      {
+        "name": "at412-T1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T1",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T10",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T10",
+        "legs": 15,
+        "passed_legs": 15,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T11a",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T11a",
+        "legs": 15,
+        "passed_legs": 15,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T11b",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T11b",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T12",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T12",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T13",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T13",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T14",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T14",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T15",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T15",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T16",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T16",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T2",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T2",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T3",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T3",
+        "legs": 15,
+        "passed_legs": 15,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T4",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T4",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T5",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T5",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T6",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T6",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T7",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T7",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T8",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T8",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T9",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T9",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-owner",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-owner"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/release"
+      }
+    ]
+  }
+]

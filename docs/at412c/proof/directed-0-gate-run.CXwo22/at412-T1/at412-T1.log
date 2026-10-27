@@ -1,0 +1,51 @@
+{"case": "T1", "leg": "redis-redis-0-EVAL", "value": [[1, 10], 11], "pass": true}
+{"case": "T1", "leg": "redis-redis-0-EVALSHA", "value": [[1, 10], 11], "pass": true}
+{"case": "T1", "leg": "redis-redis-0-FCALL", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:EVAL:0", "at412:T1:EVAL:1"], "geometry": [[4, 4], [14, 6]]}
+{"case": "T1", "leg": "1s-uring-0-EVAL", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:EVALSHA:0", "at412:T1:EVALSHA:1"], "geometry": [[8, 0], [10, 2]]}
+{"case": "T1", "leg": "1s-uring-0-EVALSHA", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:FCALL:0", "at412:T1:FCALL:1"], "geometry": [[9, 1], [13, 5]]}
+{"case": "T1", "leg": "1s-uring-0-FCALL", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:EVAL:0", "at412:T1:EVAL:1"], "geometry": [[13, 5], [12, 4]]}
+{"case": "T1", "leg": "1s-uring-1-EVAL", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:EVALSHA:0", "at412:T1:EVALSHA:1"], "geometry": [[10, 2], [14, 6]]}
+{"case": "T1", "leg": "1s-uring-1-EVALSHA", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:FCALL:0", "at412:T1:FCALL:1"], "geometry": [[7, 7], [8, 0]]}
+{"case": "T1", "leg": "1s-uring-1-FCALL", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:EVAL:0", "at412:T1:EVAL:1"], "geometry": [[7, 7], [6, 6]]}
+{"case": "T1", "leg": "1s-epoll-0-EVAL", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:EVALSHA:0", "at412:T1:EVALSHA:1"], "geometry": [[10, 2], [15, 7]]}
+{"case": "T1", "leg": "1s-epoll-0-EVALSHA", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:FCALL:0", "at412:T1:FCALL:1"], "geometry": [[8, 0], [5, 5]]}
+{"case": "T1", "leg": "1s-epoll-0-FCALL", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:EVAL:0", "at412:T1:EVAL:2"], "geometry": [[2, 2], [12, 4]]}
+{"case": "T1", "leg": "1s-epoll-1-EVAL", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:EVALSHA:0", "at412:T1:EVALSHA:1"], "geometry": [[1, 1], [14, 6]]}
+{"case": "T1", "leg": "1s-epoll-1-EVALSHA", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:FCALL:0", "at412:T1:FCALL:1"], "geometry": [[12, 4], [1, 1]]}
+{"case": "T1", "leg": "1s-epoll-1-FCALL", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:EVAL:0", "at412:T1:EVAL:1"], "geometry": [[15, 7], [14, 6]]}
+{"case": "T1", "leg": "2s-uring-0-EVAL", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:EVALSHA:0", "at412:T1:EVALSHA:2"], "geometry": [[6, 6], [5, 7]]}
+{"case": "T1", "leg": "2s-uring-0-EVALSHA", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:FCALL:0", "at412:T1:FCALL:2"], "geometry": [[6, 6], [9, 7]]}
+{"case": "T1", "leg": "2s-uring-0-FCALL", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:EVAL:0", "at412:T1:EVAL:1"], "geometry": [[11, 7], [14, 6]]}
+{"case": "T1", "leg": "2s-uring-1-EVAL", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:EVALSHA:0", "at412:T1:EVALSHA:1"], "geometry": [[1, 7], [4, 6]]}
+{"case": "T1", "leg": "2s-uring-1-EVALSHA", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:FCALL:0", "at412:T1:FCALL:4"], "geometry": [[1, 7], [6, 6]]}
+{"case": "T1", "leg": "2s-uring-1-FCALL", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:EVAL:0", "at412:T1:EVAL:1"], "geometry": [[12, 6], [3, 7]]}
+{"case": "T1", "leg": "2s-epoll-0-EVAL", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:EVALSHA:0", "at412:T1:EVALSHA:1"], "geometry": [[2, 6], [11, 7]]}
+{"case": "T1", "leg": "2s-epoll-0-EVALSHA", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:FCALL:0", "at412:T1:FCALL:2"], "geometry": [[14, 6], [11, 7]]}
+{"case": "T1", "leg": "2s-epoll-0-FCALL", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:EVAL:0", "at412:T1:EVAL:1"], "geometry": [[13, 7], [14, 6]]}
+{"case": "T1", "leg": "2s-epoll-1-EVAL", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:EVALSHA:0", "at412:T1:EVALSHA:1"], "geometry": [[3, 7], [2, 6]]}
+{"case": "T1", "leg": "2s-epoll-1-EVALSHA", "value": [[1, 10], 11], "pass": true}
+{"keys": ["at412:T1:FCALL:0", "at412:T1:FCALL:1"], "geometry": [[9, 7], [10, 6]]}
+{"case": "T1", "leg": "2s-epoll-1-FCALL", "value": [[1, 10], 11], "pass": true}

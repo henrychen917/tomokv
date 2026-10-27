@@ -1,0 +1,51 @@
+{"case": "T9", "leg": "redis-redis-0-EVAL", "value": {"values": ["M", "M"]}, "pass": true}
+{"case": "T9", "leg": "redis-redis-0-EVALSHA", "value": {"values": ["M", "M"]}, "pass": true}
+{"case": "T9", "leg": "redis-redis-0-FCALL", "value": {"values": ["S", "S"]}, "pass": true}
+{"keys": ["at412:T9:EVAL:0", "at412:T9:EVAL:1"], "geometry": [[6, 6], [2, 2]]}
+{"case": "T9", "leg": "1s-uring-0-EVAL", "value": {"rounds": 1, "blind_restarts": 6, "wounds": 0, "escalated_commits": 400}, "pass": true}
+{"keys": ["at412:T9:EVALSHA:0", "at412:T9:EVALSHA:1"], "geometry": [[15, 7], [12, 4]]}
+{"case": "T9", "leg": "1s-uring-0-EVALSHA", "value": {"rounds": 1, "blind_restarts": 16, "wounds": 3, "escalated_commits": 400}, "pass": true}
+{"keys": ["at412:T9:FCALL:0", "at412:T9:FCALL:1"], "geometry": [[1, 1], [8, 0]]}
+{"case": "T9", "leg": "1s-uring-0-FCALL", "value": {"rounds": 1, "blind_restarts": 15, "wounds": 10, "escalated_commits": 398}, "pass": true}
+{"keys": ["at412:T9:EVAL:0", "at412:T9:EVAL:1"], "geometry": [[11, 3], [7, 7]]}
+{"case": "T9", "leg": "1s-uring-1-EVAL", "value": {"rounds": 1, "blind_restarts": 34, "wounds": 10, "escalated_commits": 400}, "pass": true}
+{"keys": ["at412:T9:EVALSHA:0", "at412:T9:EVALSHA:1"], "geometry": [[0, 0], [3, 3]]}
+{"case": "T9", "leg": "1s-uring-1-EVALSHA", "value": {"rounds": 1, "blind_restarts": 15, "wounds": 7, "escalated_commits": 400}, "pass": true}
+{"keys": ["at412:T9:FCALL:0", "at412:T9:FCALL:1"], "geometry": [[12, 4], [3, 3]]}
+{"case": "T9", "leg": "1s-uring-1-FCALL", "value": {"rounds": 1, "blind_restarts": 16, "wounds": 18, "escalated_commits": 399}, "pass": true}
+{"keys": ["at412:T9:EVAL:0", "at412:T9:EVAL:1"], "geometry": [[15, 7], [2, 2]]}
+{"case": "T9", "leg": "1s-epoll-0-EVAL", "value": {"rounds": 1, "blind_restarts": 23, "wounds": 11, "escalated_commits": 399}, "pass": true}
+{"keys": ["at412:T9:EVALSHA:0", "at412:T9:EVALSHA:1"], "geometry": [[15, 7], [1, 1]]}
+{"case": "T9", "leg": "1s-epoll-0-EVALSHA", "value": {"rounds": 1, "blind_restarts": 13, "wounds": 6, "escalated_commits": 398}, "pass": true}
+{"keys": ["at412:T9:FCALL:0", "at412:T9:FCALL:1"], "geometry": [[11, 3], [5, 5]]}
+{"case": "T9", "leg": "1s-epoll-0-FCALL", "value": {"rounds": 1, "blind_restarts": 10, "wounds": 7, "escalated_commits": 400}, "pass": true}
+{"keys": ["at412:T9:EVAL:0", "at412:T9:EVAL:1"], "geometry": [[12, 4], [11, 3]]}
+{"case": "T9", "leg": "1s-epoll-1-EVAL", "value": {"rounds": 1, "blind_restarts": 17, "wounds": 5, "escalated_commits": 399}, "pass": true}
+{"keys": ["at412:T9:EVALSHA:0", "at412:T9:EVALSHA:1"], "geometry": [[9, 1], [5, 5]]}
+{"case": "T9", "leg": "1s-epoll-1-EVALSHA", "value": {"rounds": 1, "blind_restarts": 7, "wounds": 9, "escalated_commits": 393}, "pass": true}
+{"keys": ["at412:T9:FCALL:0", "at412:T9:FCALL:2"], "geometry": [[7, 7], [12, 4]]}
+{"case": "T9", "leg": "1s-epoll-1-FCALL", "value": {"rounds": 1, "blind_restarts": 12, "wounds": 17, "escalated_commits": 395}, "pass": true}
+{"keys": ["at412:T9:EVAL:0", "at412:T9:EVAL:2"], "geometry": [[2, 6], [5, 7]]}
+{"case": "T9", "leg": "2s-uring-0-EVAL", "value": {"rounds": 1, "blind_restarts": 5, "wounds": 2, "escalated_commits": 396}, "pass": true}
+{"keys": ["at412:T9:EVALSHA:0", "at412:T9:EVALSHA:2"], "geometry": [[13, 7], [10, 6]]}
+{"case": "T9", "leg": "2s-uring-0-EVALSHA", "value": {"rounds": 1, "blind_restarts": 8, "wounds": 4, "escalated_commits": 394}, "pass": true}
+{"keys": ["at412:T9:FCALL:0", "at412:T9:FCALL:2"], "geometry": [[13, 7], [6, 6]]}
+{"case": "T9", "leg": "2s-uring-0-FCALL", "value": {"rounds": 1, "blind_restarts": 1, "wounds": 0, "escalated_commits": 394}, "pass": true}
+{"keys": ["at412:T9:EVAL:0", "at412:T9:EVAL:4"], "geometry": [[14, 6], [1, 7]]}
+{"case": "T9", "leg": "2s-uring-1-EVAL", "value": {"rounds": 1, "blind_restarts": 4, "wounds": 1, "escalated_commits": 388}, "pass": true}
+{"keys": ["at412:T9:EVALSHA:0", "at412:T9:EVALSHA:1"], "geometry": [[10, 6], [3, 7]]}
+{"case": "T9", "leg": "2s-uring-1-EVALSHA", "value": {"rounds": 1, "blind_restarts": 5, "wounds": 0, "escalated_commits": 380}, "pass": true}
+{"keys": ["at412:T9:FCALL:0", "at412:T9:FCALL:3"], "geometry": [[3, 7], [6, 6]]}
+{"case": "T9", "leg": "2s-uring-1-FCALL", "value": {"rounds": 1, "blind_restarts": 3, "wounds": 0, "escalated_commits": 372}, "pass": true}
+{"keys": ["at412:T9:EVAL:0", "at412:T9:EVAL:1"], "geometry": [[14, 6], [11, 7]]}
+{"case": "T9", "leg": "2s-epoll-0-EVAL", "value": {"rounds": 1, "blind_restarts": 8, "wounds": 3, "escalated_commits": 381}, "pass": true}
+{"keys": ["at412:T9:EVALSHA:0", "at412:T9:EVALSHA:5"], "geometry": [[15, 7], [4, 6]]}
+{"case": "T9", "leg": "2s-epoll-0-EVALSHA", "value": {"rounds": 1, "blind_restarts": 12, "wounds": 2, "escalated_commits": 386}, "pass": true}
+{"keys": ["at412:T9:FCALL:0", "at412:T9:FCALL:1"], "geometry": [[12, 6], [11, 7]]}
+{"case": "T9", "leg": "2s-epoll-0-FCALL", "value": {"rounds": 1, "blind_restarts": 6, "wounds": 1, "escalated_commits": 374}, "pass": true}
+{"keys": ["at412:T9:EVAL:0", "at412:T9:EVAL:4"], "geometry": [[10, 6], [3, 7]]}
+{"case": "T9", "leg": "2s-epoll-1-EVAL", "value": {"rounds": 1, "blind_restarts": 9, "wounds": 0, "escalated_commits": 386}, "pass": true}
+{"keys": ["at412:T9:EVALSHA:0", "at412:T9:EVALSHA:1"], "geometry": [[2, 6], [7, 7]]}
+{"case": "T9", "leg": "2s-epoll-1-EVALSHA", "value": {"rounds": 1, "blind_restarts": 10, "wounds": 1, "escalated_commits": 383}, "pass": true}
+{"keys": ["at412:T9:FCALL:0", "at412:T9:FCALL:1"], "geometry": [[14, 6], [5, 7]]}
+{"case": "T9", "leg": "2s-epoll-1-FCALL", "value": {"rounds": 1, "blind_restarts": 4, "wounds": 0, "escalated_commits": 381}, "pass": true}

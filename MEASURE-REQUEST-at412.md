@@ -2,10 +2,12 @@
 
 ## at412
 
-Branch `cx-at412`, PRE `7ae703778e854a7b76945af5792a5ec5e88061a6` (cx-execindex). Final
-production source: `9c265b209`; evidence and report commits follow it on the branch.
-All lane processes used CPUs 48-63 (builds `-j16`); correctness servers 48-55, drivers 56-63;
-ports 20200-20299. No push. No performance run, no load generator for measurement and no full
+Branch `cx-at412c`, continuing `cx-at412` at `5591449e2`. PRE is
+`7ae703778e854a7b76945af5792a5ec5e88061a6` (cx-execindex); final production source is
+`f7204660ef5651ad0ae14de14e13a693b2db0f8c`. Later commits contain tools, evidence and this report.
+Processes use CPUs 48-63 (builds `-j16`); correctness servers 48-55, drivers 56-63;
+server ports 20200-20299. Two early harness self-test runs used ephemeral guard
+ports; the corrected 20299 run and exception are recorded in `docs/at412c/selftests/`. No push. No performance run, no load generator for measurement and no full
 `tests/gate.sh` iteration: every gate number below is a `GATE_ONLY_JOBS` partial ledger.
 
 Specification: `round4-read/at412-escalation-review.md` (holes H1-H6, conditions C1-C8, FIFO
@@ -20,11 +22,11 @@ here; escalated scripts do not depend on that window (H4/C5 row below).
 | Holes H1-H6 | All six closed. The H1 and H3 cycles appear in the serverless owner fixture only with non-compliant inputs. The H2 negative control hangs BGSAVE. S1 reproduced on PRE (12/12 legs) and fixed |
 | Holes found in the design | Two: the FIFO stale member (fixed, with a negative control) and the §5.1 cost claim for `xshard_prepare`/`xshard_execute` (counterexample in "Zero-cost proof") |
 | Directed rows T1-T16, T11a, T11b, owner | See "Directed rows" |
-| Refusals, af5 shape, final POST | 6,400/6,400 OK per command and 64/64 in the cut window, in every leg. PRE: 3,484-3,846 TRYAGAIN per 6,400 and 32-40 BUSY per 64 |
-| Non-script instruction counts (48 command scopes) | 24 scopes exactly PRE-equal (every GET/SET/INCR scope). MGET/MSET differ **only in `xshard_prepare`**: 20 scopes execute fewer instructions than PRE, 4 execute more (db0 MSET 1s: +16 or +17 per call, +0.10%/+0.15%). Not zero |
-| FIFO admission cost | +34 (normal namespace) / +40 (db0) instructions per cross-shard script admission |
+| Refusals, af5 shape, historical at412 POST (`docs/at412/af5/`) | 6,400/6,400 OK per command and 64/64 in the cut window, in every leg. PRE: 3,484-3,846 TRYAGAIN per 6,400 and 32-40 BUSY per 64 |
+| Non-script instruction counts (48 command scopes) | **Zero added instructions:** 24 exactly equal (GET/SET/INCR), 24 lower (MGET/MSET); no increases. All 24 requested handler bodies are identical |
+| Script cost | Final preparation is 298–312 instructions below PRE; full activation including Final is 76–88 below PRE. FIFO routines themselves execute 14 check + 27 admit + 14 release instructions. No rate claim |
 | DQ / DF | DQ=+18, DF=+18. EXPECT constants unchanged |
-| Arms (SHA-256) | PRE `decd26ff…`, POST `3c9ea2e6…`, POST-layout `d22a3b7c…`, PAD-A `a04975a6…` |
+| Arms (SHA-256) | PRE `6582b6cc…`, POST `b179853b…`, POST-layout `b2635958…`, PAD-A `019b5fc6…`; all rebuilt, full digests in §12 |
 
 ### 1. What was implemented (D4′)
 
@@ -34,7 +36,7 @@ here; escalated scripts do not depend on that window (H4/C5 row below).
 | Escalated attempt E (kind-2 unit) | `script_escalate_redispatch`, `script_group_prepare` | The IO lane re-prepares the command with `force_atomic`, attaches a `TxnGroupAttempt` before the first wave, draws or inherits the age, transfers the credit, reopens the apply window and posts wave 1 |
 | E's waves | `ScriptPhase::Place` + cold `script_group_read`; RUN unchanged; APPLY under claims | PLACE+READ: `txn_group_read_prepare`, then a read at UINT64_MAX. The RUN wave runs on the workbench as before. APPLY validates nothing: the read-set bits are cleared because the claims proved exclusivity |
 | Decision | `script_group_final` | Reserve, CAS 0 → ticket and publish in one coordinator step. A lost CAS aborts the process (falsifier). E never certifies |
-| FIFO admission (replaces BUSY) | `xshard_prepare` script branch, `script_window_*`, `txn_group_prepare` | Per-IO admission byte in `MultiRetryLane`: bits 0-6 count live optimistic activations (≤4), bit 7 = FIFO present. Waiters keep their frame unconsumed and the atomic-backpressure flag set. The cold resume arm grants the head. Scripts jump over the general 8-cut window |
+| FIFO admission (replaces BUSY) | `xshard_prepare_script`, `script_window_*`, `txn_group_prepare` | Per-IO admission byte in `MultiRetryLane`: bits 0-6 count live optimistic activations (≤4), bit 7 = FIFO present. Waiters keep their frame unconsumed and the atomic-backpressure flag set. The cold resume arm grants the head. Scripts jump over the general 8-cut window |
 | S1 / H2 apply windows | `xshard_complete_script_final`, hand-off, redispatch | Owner-side close at every script Final; EX-side close at the hand-off; reopen at redispatch |
 | Counters | `t_server.cc` INFO | `script_crossshard_window_waits`, `script_escalations`, `script_escalated_commits`, `script_waiters_peak`, `script_stage_watch_tasks`; `script_crossshard_window_refusals` stays and must read 0 |
 | Test hooks | `DEBUG SCRIPT-APPLY-DEFER`, `SCRIPT-ESCALATE-FORCE`, `SCRIPT-STAGE-WATCH`; SCRIPT-STAGE-DEFER re-armed per restage | Armed at phase launch or read where they are decided (script-only code), never in the shared deferral gate |
@@ -68,7 +70,7 @@ here; escalated scripts do not depend on that window (H4/C5 row below).
 | # | Hole | Counterexample | Disposition |
 |---|---|---|---|
 | A | **FIFO stale member.** §3.2 keys membership by connection only. A waiter whose frame is consumed without admission (EVALSHA → NOSCRIPT after SCRIPT FLUSH, an ACL or OOM refusal at re-parse, arena allocation failure after the grant) stays in the FIFO. As head it blocks every later waiter on its IO until the connection sends another script or closes | `tests/at412_owner.cc` stale-head check; negative control without pruning fails at that check (`docs/at412/fifo-stale/`) | Fixed (bd82e6ebd): each member records its frame (ROB dispatch id); stale members are pruned at the head scan, and a member arriving with a new frame re-queues at the tail |
-| B | **§5.1 "zero added instructions" for MGET/MSET.** The table says `xshard_execute: none` while §6.2 places the escalated branch in the owner Pin case (2624-2644). GCC inlines `execute_script_phase` (its IPA-SRA clone, called once) into `xshard_execute`, so any edit there re-allocates registers in the MGET/MSET body. The admission edit in `xshard_prepare` does the same | 49 measured source shapes (`docs/at412/budgets3/shape-search.json`). Even deleting the script branch from `xshard_prepare` entirely moves MGET/MSET counts by up to 6 instructions per call (variant `z0`) | `xshard_execute`: solved (escalated wave = `ScriptPhase::Place`, cold callee: counts PRE-equal in every scope). `xshard_prepare`: not removable; residual measured below |
+| B | **§5.1 "zero added instructions" for MGET/MSET.** The table says `xshard_execute: none` while §6.2 places the escalated branch in the owner Pin case (2624-2644). GCC inlines `execute_script_phase` (its IPA-SRA clone, called once) into `xshard_execute`, so any edit there re-allocates registers in the MGET/MSET body. The admission edit in `xshard_prepare` does the same | 49 measured source shapes (`docs/at412/budgets3/shape-search.json`). Even deleting the script branch from `xshard_prepare` entirely moves MGET/MSET counts by up to 6 instructions per call (variant `z0`) | `xshard_execute`: solved (escalated wave = `ScriptPhase::Place`, cold callee: counts PRE-equal in every scope). `xshard_prepare`: solved in at412c by a script specialization reached before reload lifetime setup; every final ordinary scope is PRE-equal or lower (§8). The original shared-body site claim remains disproved; the final placement differs |
 
 Smaller deviations from the site table (§3.6/§6.2), all script-only:
 
@@ -88,22 +90,63 @@ Smaller deviations from the site table (§3.6/§6.2), all script-only:
 
 ### 5. Directed rows
 
-DIRECTED-ROWS-PLACEHOLDER
+Final source, native `GATE_ONLY_JOBS` run `build/gate-run.CXwo22`: **18/18 at412
+rows pass**, plus the release prerequisite. There are **372 TomoKV + 51 Redis
+legs (423/423)** and **8/8 owner-fixture legs**. Every server boot requires rc 0
+and no forced teardown. EVAL/EVALSHA/FCALL × 1s/2s × atomic 0/1 × uring/epoll
+is the default; the single-geometry exceptions are stated below. Normal boots
+use shards 16, 2s/6:2 or 1s/read-local 1, and databases 16. The two single-IO
+rows use 2s/1:7. Servers use CPUs 48-55 and the driver 56-63.
+
+| Row | Property | TomoKV | Redis | Result |
+|---|---|---:|---:|---|
+| T1 | Ninth conflict hands off; exact reply/data and one escalated commit | 24/24 | 3/3 | PASS |
+| T2 | FIFO admission beyond four optimistic slots; no BUSY and waits witnessed | 24/24 | 3/3 | PASS |
+| T3 | Four MGET cuts do not consume script admission slots (2s, 1:7) | 12/12 | 3/3 | PASS |
+| T4 | APPLY conflict escalates immediately; no partial script result | 24/24 | 3/3 | PASS |
+| T5 | Conflict escalation and a full FIFO window in one schedule | 24/24 | 3/3 | PASS |
+| T6 | 30-second scripts + EXEC + WATCH/EXEC + plain-writer storm; exact accounting | 24/24 | 3/3 | PASS |
+| T7 | Started older-script claim orders H, E_old, W, E_young across a writer episode | 24/24 | 3/3 | PASS |
+| T8 | Opposite-order escalated scripts finish with Redis-equal data | 24/24 | 3/3 | PASS |
+| T9 | Escalated scripts versus blind groups; no torn generation | 24/24 | 3/3 | PASS |
+| T10 | Scripts/writers across FLIP, with quiescent transfer holds (2s only) | 12/12 | 3/3 | PASS |
+| T11a | Live SAVE at optimistic Final and BGSAVE across escalation hand-off (2s, 1:7) | 12/12 | 3/3 | PASS |
+| T11b | Three forced-conflict batches, drained BGSAVE/reload, exact restored data | 24/24 | 3/3 | PASS |
+| T12 | Forced conflict/escalation with AOF reload and exact data | 24/24 | 3/3 | PASS |
+| T13 | >64 simultaneous waiters, 128 scripts + 32 EXECs + eight writers; all finish | 24/24 | 3/3 | PASS |
+| T14 | Final WRONGTYPE/OOM semantics and partial Lua write retention; labelled XS-OOM-1 suffix | 24/24 | 3/3 | PASS |
+| T15 | Dispatched-script/FIFO-waiter disconnect cleanup; eight replies before clean shutdown | 24/24 | 3/3 | PASS |
+| T16 | Exact same-shard events; cross-owner read-only calls against atomic script generations | 24/24 | 3/3 | PASS |
+| owner | H1/H3 non-compliant-cycle controls, compliant rank schedules and wound-window guard | 8/8 | — | PASS |
+
+Evidence: `docs/at412c/proof/directed-0-gate-run.CXwo22/` (all leg results, boot
+argv/exits, native ledgers and log digests). The archived predecessor run had
+15 rows ok and four FAIL, retained in `docs/at412c/historical-gate-54JIbr/`;
+its failures remain failures. T7 was corrected; T11b/T15/T16 now isolate the
+lane property as explained in §6 and the at412c section.
 
 ### 6. Deviations found (pre-existing, labelled)
 
 Each was reproduced on PRE (`build/at412/pre/tomokv`) with the same result as POST, so none is
 caused by this lane. None involves AT4-WOUND-1.
 
-| Label | Deviation from Redis 7.4.10 | PRE | POST | Evidence | Rows that tolerate or report it |
+| Label | Deviation from Redis 7.4.10 | PRE | Historical POST | Evidence | Final gate treatment |
 |---|---|---|---|---|---|
-| XS-NOTIFY-1 | Cross-owner scripts publish no keyspace events and no CLIENT TRACKING invalidations (single-owner scripts do) | same | same | `docs/at412/deviations/probe-{redis,pre,post}.json` | T16 accepts it only all-or-nothing (no partial event set) |
+| XS-NOTIFY-1 | Cross-owner scripts publish no keyspace events and no CLIENT TRACKING invalidations (single-owner scripts do) | same | same | `docs/at412/deviations/probe-{redis,pre,post}.json` | T16 requires exact same-shard notifications; cross-owner event/tracking absence is a separate failing non-gate diagnostic |
 | XS-OOM-1 | A cross-owner EVAL refused by maxmemory omits Redis's ` script: <sha>` suffix | same | same | probe JSON (`two_key_eval_oom`) | T14 compares the message without the suffix and records the deviation |
 | XS-OOM-2 | DEL under maxmemory answers `ERR out of memory` while script intents are live | same | same | `oom2-shebang.txt` | T14 deletes before setting maxmemory |
 | XS-SHEBANG-1 | `#!lua flags=…` shebangs do not compile (`EVAL`/`EVAL_RO`) | same | same | `oom2-shebang.txt`, `shebang_probe.py` | T16 uses plain EVAL_RO bodies |
-| XS-SHUT-1 | SHUTDOWN NOSAVE with cross-owner scripts in flight aborts in `atomic_destroy_pending` → `atomic_remove_unit_intents` (flatstore_atomic.inc:232) | rc −6, 2/2 | rc −6, 2/2 (EXEC/RENAME rc 0) | `shutdown-abort.txt`, `shutdown-abort-pre-stack.txt` | T15 asserts a clean exit and therefore fails on it |
-| SNAP-STORM-1 | BGSAVE loop under a unit storm can stall: `snapshot_cuts_armed == rdb_saves`, units stuck, plain writers progress, resolves on disconnect. Reproduced with EXEC+writers and no scripts | full storm 4/7 stalled; EXEC+writers 2/5 | scripts+writers 4/5; EXEC+writers 0/5; full 1s 9/11, 2s 2/5 | `bgsave-storm-stall.json` | T11b asserts progress and fails when it stalls. Mechanism not isolated |
+| XS-SHUT-1 | SHUTDOWN NOSAVE with cross-owner scripts in flight aborts in `atomic_destroy_pending` → `atomic_remove_unit_intents` (flatstore_atomic.inc:232) | rc −6, 2/2 | rc −6, 2/2 (EXEC/RENAME rc 0) | `shutdown-abort.txt`, `shutdown-abort-pre-stack.txt` | T15 drains and verifies all eight accepted calls before clean shutdown; in-flight shutdown stays a failing non-gate diagnostic |
+| SNAP-STORM-1 | BGSAVE loop under a unit storm can stall: `snapshot_cuts_armed == rdb_saves`, units stuck, plain writers progress, resolves on disconnect. Reproduced with EXEC+writers and no scripts | full storm 4/7 stalled; EXEC+writers 2/5 | scripts+writers 4/5; EXEC+writers 0/5; full 1s 9/11, 2s 2/5 | `bgsave-storm-stall.json` | T11b saves/reloads after each forced-conflict batch drains; T11a keeps the live cut/handoff overlap. Continuous storm stays a failing non-gate diagnostic; mechanism not isolated |
 | FLIP-MULTI-1 | A connection that ever ran MULTI keeps its MultiSession, so it is never FLIP-transferable (`migration_protocol_idle`) | same | same | T10 notes | T10 runs scripts + writers with a hold around each FLIP; a full EXEC storm refuses every FLIP on PRE and POST |
+
+The final gate tolerates no crash, abort, forced teardown or stall. Reproduction
+commands and fresh PRE evidence for SNAP-STORM-1, XS-SHUT-1 and XS-NOTIFY-1 are in
+`docs/at412c/diagnostics/`; `tests/at412_diagnostics.py` is deliberately outside the
+gate and returns nonzero when a defect reproduces. The fresh snapshot mixed storm
+stalled on its first 30-second attempt; the script-free variant did not reproduce
+in ten 5-second and five 30-second attempts. Historical script-free evidence remains
+labelled separately. The fixes belong to other lanes.
 
 ### 7. Assertion flips (§6.5)
 
@@ -117,121 +160,245 @@ caused by this lane. None involves AT4-WOUND-1.
 | `tests/mode_equivalence.py:291` | refusal counter must stay 0 | kept |
 | `docs/wave5d/check_refusals.py` | `KNOWN` = tolerated | `KNOWN` = must never appear |
 
-### 8. Zero-cost proof for non-script commands
+### 8. Zero-added-instruction proof for non-script commands
 
-**Command scopes.** Serverless probe (`tests/txnorder_command_scope.cc` through the derived
-`tools/at412_scope.py` instrument): GET, SET, INCR, MGET, MSET; batch 1 and 32; 1s and 2s; both
-physical namespaces (normal, db0); MSET at atomic 0 and 1. PRE = 7ae703778 objects, POST = the
-final objects. Counts are instructions executed inside named production routines between the
-scope markers, with the clock stubbed. They are not rates.
+**48/48 scopes meet the requirement: 24 equal, 24 lower, zero higher.** GET/SET/INCR
+are equal per function too. MGET/MSET have the same algorithms and ordinary loader
+lifetimes as PRE. One source template supplies ordinary and script preparation;
+the ordinary entry tail-jumps to the script specialization before constructing
+`RuntimeLoadingGuard`. FIFO state and its argument lifetimes therefore remain in
+the script route. Scripts have no reload containers. Four preparation leaves and
+the SortOptions copy retain explicit inlining when they gain a second caller.
+There is no layout-lock or claim-protocol change.
 
-| Command scope (both namespaces, both modes, batch 1 and 32) | PRE vs POST instruction count | Where |
+The serverless probe links final production objects. GET/SET/INCR execute the
+production executor batch entry; MGET/MSET cover eight-shard prepare, owner
+execution, completion and retirement. Both namespaces, both thread modes and
+batches 1/32 are included; MSET covers atomic 0/1. Counts include named production
+routines, stub clock calls, and exclude fixture glue and outside library callees.
+Each trace checks exact replies/data. They are instruction counts, not rates.
+`tools/at412_artifacts.py scope` fails on a missing pair or any positive delta;
+cache reuse requires the exact probe SHA-256. Evidence: `docs/at412c/instructions/`.
+
+| Namespace | Command | Mode | Atomic | Batch | PRE | POST | Delta |
+|---|---|---|---:|---:|---:|---:|---:|
+| normal | GET | 1s | 1 | 1 | 949 | 949 | +0 |
+| normal | GET | 1s | 1 | 32 | 18,898 | 18,898 | +0 |
+| normal | GET | 2s | 1 | 1 | 1,575 | 1,575 | +0 |
+| normal | GET | 2s | 1 | 32 | 18,935 | 18,935 | +0 |
+| normal | SET | 1s | 1 | 1 | 1,078 | 1,078 | +0 |
+| normal | SET | 1s | 1 | 32 | 23,026 | 23,026 | +0 |
+| normal | SET | 2s | 1 | 1 | 1,704 | 1,704 | +0 |
+| normal | SET | 2s | 1 | 32 | 23,063 | 23,063 | +0 |
+| normal | INCR | 1s | 1 | 1 | 1,541 | 1,541 | +0 |
+| normal | INCR | 1s | 1 | 32 | 38,371 | 38,371 | +0 |
+| normal | INCR | 2s | 1 | 1 | 2,167 | 2,167 | +0 |
+| normal | INCR | 2s | 1 | 32 | 38,408 | 38,408 | +0 |
+| normal | MGET | 1s | 1 | 1 | 10,243 | 10,204 | -39 |
+| normal | MGET | 1s | 1 | 32 | 326,598 | 325,350 | -1,248 |
+| normal | MGET | 2s | 1 | 1 | 10,243 | 10,204 | -39 |
+| normal | MGET | 2s | 1 | 32 | 326,598 | 325,350 | -1,248 |
+| normal | MSET | 1s | 0 | 1 | 10,894 | 10,841 | -53 |
+| normal | MSET | 1s | 1 | 1 | 17,080 | 17,036 | -44 |
+| normal | MSET | 1s | 0 | 32 | 348,453 | 346,757 | -1,696 |
+| normal | MSET | 1s | 1 | 32 | 964,774 | 963,366 | -1,408 |
+| normal | MSET | 2s | 0 | 1 | 10,690 | 10,659 | -31 |
+| normal | MSET | 2s | 1 | 1 | 16,726 | 16,704 | -22 |
+| normal | MSET | 2s | 0 | 32 | 341,925 | 340,933 | -992 |
+| normal | MSET | 2s | 1 | 32 | 953,446 | 952,742 | -704 |
+| db0 | GET | 1s | 1 | 1 | 828 | 828 | +0 |
+| db0 | GET | 1s | 1 | 32 | 19,025 | 19,025 | +0 |
+| db0 | GET | 2s | 1 | 1 | 1,067 | 1,067 | +0 |
+| db0 | GET | 2s | 1 | 32 | 18,675 | 18,675 | +0 |
+| db0 | SET | 1s | 1 | 1 | 965 | 965 | +0 |
+| db0 | SET | 1s | 1 | 32 | 23,409 | 23,409 | +0 |
+| db0 | SET | 2s | 1 | 1 | 1,204 | 1,204 | +0 |
+| db0 | SET | 2s | 1 | 32 | 23,059 | 23,059 | +0 |
+| db0 | INCR | 1s | 1 | 1 | 1,324 | 1,324 | +0 |
+| db0 | INCR | 1s | 1 | 32 | 35,426 | 35,426 | +0 |
+| db0 | INCR | 2s | 1 | 1 | 1,563 | 1,563 | +0 |
+| db0 | INCR | 2s | 1 | 32 | 35,076 | 35,076 | +0 |
+| db0 | MGET | 1s | 1 | 1 | 10,370 | 10,337 | -33 |
+| db0 | MGET | 1s | 1 | 32 | 330,662 | 329,606 | -1,056 |
+| db0 | MGET | 2s | 1 | 1 | 10,370 | 10,337 | -33 |
+| db0 | MGET | 2s | 1 | 32 | 330,662 | 329,606 | -1,056 |
+| db0 | MSET | 1s | 0 | 1 | 11,143 | 11,117 | -26 |
+| db0 | MSET | 1s | 1 | 1 | 16,497 | 16,489 | -8 |
+| db0 | MSET | 1s | 0 | 32 | 356,421 | 355,589 | -832 |
+| db0 | MSET | 1s | 1 | 32 | 955,046 | 954,790 | -256 |
+| db0 | MSET | 2s | 0 | 1 | 10,962 | 10,935 | -27 |
+| db0 | MSET | 2s | 1 | 1 | 16,166 | 16,157 | -9 |
+| db0 | MSET | 2s | 0 | 32 | 350,629 | 349,765 | -864 |
+| db0 | MSET | 2s | 1 | 32 | 944,454 | 944,166 | -288 |
+
+In the ordinary MGET/MSET traces, preparation changes some inlining boundaries:
+`initialize_owner_completion` executes 3–6 additional named instructions and db0
+`Op::cmd_name` executes 12. These are included in the totals, not omitted. The
+prepare savings exceed them in every cell. Owner execution, deferral, completion,
+retirement and command-handler instruction counts remain PRE-equal in these scopes.
+
+| Identity set | Equal / total | Changed bodies |
 |---|---|---|
-| GET, SET, INCR (24 scopes) | **equal** in all 24, per function too | — |
-| MGET normal (4 scopes) | POST **fewer**: −11 per call (−0.107%) | `xshard_prepare` only |
-| MGET db0 (4) | POST **fewer**: −10 per call (−0.096%) | `xshard_prepare` only |
-| MSET normal, atomic 0 / 1 (8) | POST **fewer**: −8 / −7 per call (−0.07% / −0.04%) | `xshard_prepare` only |
-| MSET db0 2s, atomic 0 / 1 (4) | POST **fewer**: −6 / −7 per call | `xshard_prepare` only |
-| MSET db0 1s, atomic 0 / 1 (4) | POST **more**: +17 / +16 per call (+0.153% / +0.097%) | `xshard_prepare` only |
+| ccfix hot bodies | 1,274 / 1,378 | 104 flush_ready/r7_flush_ready instantiations containing the design's cold resume arm |
+| Command handlers | 1,224 / 1,232 | INFO and DEBUG only |
+| Extended hot list | 1,327 / 1,448 | Resume arm; preparation; script completion/tail target; owner Place dispatch including one db0 owner lambda |
+| GET/SET/INCR/MGET/MSET handlers | **24 / 24** | None |
 
-Full table: `docs/at412/instructions/comparison.json` (48 pairs). Every other function on these
-paths executes PRE's count exactly: `xshard_execute`, `xshard_task_should_defer`,
-`xshard_complete_impl`, `assemble_final`, `xshard_retire`, the `ScatterState` constructor and
-every handler.
+Identity evidence is `docs/at412c/identity/`. The raw ccfix assertion rejects the
+resume-arm edits; the lane wrapper accepts exactly that named set, plus INFO/DEBUG,
+and separately requires all 24 requested handlers to match. It does not claim
+whole-program identity. Final IPA initial sizes are 121768/120766, with selected
+budgets 152000/150500 (`docs/at412c/budgets-final/`). The original 49-shape search
+and its −11…+17 residual remain historical evidence in `docs/at412/budgets3/`;
+that residual is absent from the final source.
 
-**Identity audit** (`docs/at412/identity/`, ccfix canonicalisation):
+### 9. Script admission and complete-activation cost
 
-| Body set | Equal / total | Changed bodies |
-|---|---|---|
-| ccfix hot bodies | 1,274 / 1,378 | the 104 `flush_ready`/`r7_flush_ready` instantiations: the cold resume arm (§3.6) |
-| command handlers | 1,224 / 1,232 | `cmd_info`, `cmd_debug_impl` (new INFO fields and DEBUG hooks) |
-| extended hot list (adds `cmd_incr`, `cmd_xshard_only`, `xshard_*`, `assemble_final`) | 1,328 / 1,448 | resume arm (104); `xshard_complete_script` (script-only); `xshard_complete_impl` (only the script tail-call target); `xshard_prepare` (admission branch); `xshard_execute` (the Place case; counts equal) |
-| GET/SET/INCR/MGET/MSET handler bodies | 24 / 24 | none |
+The final constant-kind script route removes generic reload scaffolding and
+reduces the whole preparation scope by 298–312 instructions against PRE. The
+FIFO routines themselves execute **14 check + 27 admit** instructions; Final
+executes **14 release** instructions. These are included in the totals below.
+Full activation includes prepare, every dispatched wave, Final and retirement;
+the added work after admission is +224 instructions in the normal namespace and
++222 in db0. Preparation savings leave total activation 76–88 below PRE.
 
-**Why `xshard_prepare` is not zero (classification: IMPLEMENTATION COST, compiler register
-allocation in a shared body).** The script admission must live in `xshard_prepare`: it is the
-only place that can return Backpressure for a script. Any change there moves GCC's register
-allocation for the whole function. The search (`docs/at412/budgets3/shape-search.json`) measured
-49 shapes on the batch-1 cells:
+The old report's activation tracer skipped fixture callbacks that dispatch later
+waves, so its totals and statement that Final was unmeasured are superseded.
+The corrected tracer follows those callbacks while excluding their own instructions.
+Both PRE and POST were traced under this same rule. This is an uncontended two-owner
+EVAL scope after one warm-up activation, not a throughput result.
 
-| Variant (shape of the script branch) | MGET/MSET batch-1 deltas | Note |
-|---|---|---|
-| PRE `xshard_prepare` text inside the POST unit (diagnostic, not functional) | 0 in every cell | the rest of the unit does not perturb `xshard_prepare` |
-| No script branch at all (diagnostic, not functional) | −6 … +4 | deleting code moves the allocation too |
-| Design shape, call in the script-only block (PRE of this session) | −19 … +30 | |
-| Final: design else-if, slot counted in `txn_group_prepare` | −11 … +17 | smallest positive maximum of the functional shapes |
-| Inline fast path + cold slow path, strict-identity variant, argument-slot tricks, early check at classification | up to +78 | worse |
+| Namespace | Scope | Mode | Atomic | PRE | POST | Delta |
+|---|---|---|---:|---:|---:|---:|
+| normal | EVAL | 1s | 0 | 38,023 | 37,944 | -79 |
+| normal | EVAL | 1s | 1 | 38,030 | 37,942 | -88 |
+| normal | EVAL | 2s | 0 | 38,053 | 37,974 | -79 |
+| normal | EVAL | 2s | 1 | 38,060 | 37,972 | -88 |
+| normal | EVAL-ADMIT | 1s | 0 | 7,980 | 7,677 | -303 |
+| normal | EVAL-ADMIT | 1s | 1 | 7,987 | 7,675 | -312 |
+| normal | EVAL-ADMIT | 2s | 0 | 7,980 | 7,677 | -303 |
+| normal | EVAL-ADMIT | 2s | 1 | 7,987 | 7,675 | -312 |
+| db0 | EVAL | 1s | 0 | 35,422 | 35,346 | -76 |
+| db0 | EVAL | 1s | 1 | 35,429 | 35,344 | -85 |
+| db0 | EVAL | 2s | 0 | 35,452 | 35,376 | -76 |
+| db0 | EVAL | 2s | 1 | 35,459 | 35,374 | -85 |
+| db0 | EVAL-ADMIT | 1s | 0 | 7,984 | 7,686 | -298 |
+| db0 | EVAL-ADMIT | 1s | 1 | 7,991 | 7,684 | -307 |
+| db0 | EVAL-ADMIT | 2s | 0 | 7,984 | 7,686 | -298 |
+| db0 | EVAL-ADMIT | 2s | 1 | 7,991 | 7,684 | -307 |
 
-The IPA (inlining) decisions of every PRE function in the unit are budget-insensitive in the
-swept range; the budgets were re-derived anyway (`docs/at412/budgets3/sweep.json`): xshard.o
-150700, db0 xshard.o 149450.
-
-### 9. FIFO admission cost per cross-shard script
-
-| Scope (EVAL, 2 keys on 2 owners, `tests/txnorder_command_scope.cc`) | PRE | POST | POST minus PRE | Breakdown |
-|---|---:|---:|---:|---|
-| EVAL-ADMIT (`xshard_prepare` only), normal | 7,987 | 8,021 | **+34** (+0.43%) | `script_window_admissible` +14, `script_window_admit` +27, prepare −7 |
-| EVAL-ADMIT, db0 | 7,991 | 8,031 | **+40** (+0.50%) | +14, +27, prepare −1 |
-| EVAL activation scope (prepare, first wave, retirement), normal | 10,625 | 10,684 | +59 | admission +34; S1 owner-side close wrapper +28; `xshard_destroy` −8 (window already closed) |
-| EVAL activation scope, db0 | 10,580 | 10,643 | +63 | same |
-
-Values are per activation at atomic 1 (atomic 0 is identical). The slot release at Final
-(`script_window_release`, a flag test and one atomic add) lies outside the activation scope as
-the probe drives it; it was not measured. The design estimated +10 to +12 for the FIFO; the
-measured +34/+40 includes two call frames. Escalation itself adds nothing to an uncontended
-script (every escalation edit replaced a TRYAGAIN tail).
+Full per-function counts and probe receipts: `docs/at412c/script-instructions/`.
+This prices the final implementation, including the S1 close; it does not isolate
+mechanism cost from compiler allocation or estimate contention throughput.
 
 ### 10. Gate runs
 
-GATE-RUNS-PLACEHOLDER
+| Run | Geometry / jobs | Native result |
+|---|---|---|
+| Historical 54JIbr, saved POST 931130b2 | All at412 rows | 15 ok / 4 FAIL (T7/T11b/T15/T16); preserved, superseded by the final directed run |
+| CXwo22, POST b179853b | All 18 at412 rows, release prerequisite, production_units | **19 ok / 0 FAIL**, 423/423 server/oracle legs and 8/8 owner legs |
+
+The broader native proof is still running; this table will be completed from
+its actual partial ledgers. It is not a full gate receipt. All commands, hashes,
+job outcomes and per-leg inventories are archived by tools/at412c_record.py in
+`docs/at412c/proof/`.
+
+The first queued phases use the binary-only /home/user/Projects/redis74 prefix,
+so preflight warns about absent Redis source files for the unselected ACL-metadata
+job. The selected jobs use its valid 7.4.10 oracle binary. The later runner uses
+the complete /home/user/Projects/redis checkout; both binaries have the same
+SHA-256 (`docs/at412c/provenance.json`).
 
 ### 11. DQ / DF
 
 `job_at412` adds 18 rows (T1-T16 with T11 as T11a/T11b, plus `at412-owner`), all collected
-before the quick-tier exit: **DQ=+18, DF=+18**, on top of execindex's +2/+2. `EXPECT_QUICK=798`
+at tests/gate.sh line 5583, before the quick-tier exit at lines 5680–5684:
+**DQ=+18, DF=+18**, on top of execindex's +2/+2. `EXPECT_QUICK=798`
 and `EXPECT_FULL=815` are unchanged in this branch; the maintainer moves them to 800/817 for
 execindex and to **818/835** with at412. `build/at412-owner` joins `job_production_units` (built
 and `make -q`-checked there) and the `debug-*`/`txn_group_*` dependency list.
 
-### 12. Arms
+### 12. Final rebuilt arms
 
-| Arm | Path | SHA-256 | What it is |
+| Arm | Path | SHA-256 | Source / behaviour |
 |---|---|---|---|
-| PRE | `build/at412/pre/tomokv` | `decd26ffb38c69f5cf96f7b9bdc961113049d4b67d8cce142d0f80efbb61bb42` | cx-execindex 7ae703778, built from `build/at412/pre-source`, `make -q` fresh |
-| POST | `build/at412/POST` (= `build/tomokv`) | `3c9ea2e65f351e7cbf203c203a2819d301fab2bb5c109b65df2013555c795eaa` | production source 9c265b209 |
-| POST-layout | `build/at412/POST-layout` | `d22a3b7c1c0ceb0be19bfb937e369fb055fda90407c6ec7cd72d8b70c01af987` | POST objects + symbol-isolated PRE objects; executes POST |
-| PAD-A | `build/at412/PAD-A` | `a04975a6b790852afd8187c51ba06a0b6229d3dc559807f8dcf4e6c913edd886` | POST-layout with `main` jumping to PRE (5 bytes): PRE behaviour in POST-layout's exact image |
+| PRE | `build/at412/pre/tomokv` | `6582b6ccacf8a58a46e5204c808fbbb262cbb9d3238bb0eb01c57ea2d2674bdc` | 7ae703778e854a7b76945af5792a5ec5e88061a6 |
+| POST | `build/at412/POST` | `b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7` | f7204660ef5651ad0ae14de14e13a693b2db0f8c |
+| POST-layout | `build/at412/POST-layout` | `b263595804d2e3cd95b7cbaa22e0424766d87388b0b75f7edca2f24919e49237` | f7204660e plus symbol-isolated 7ae703778 objects |
+| PAD-A | `build/at412/PAD-A` | `019b5fc64e7171c642f806f7d77eafee1586915d61b9c7618f384fe26ed12296` | type A: PRE behaviour in POST-layout common image |
 
-`docs/at412/arms.json`, `docs/at412/pad-a.json` (sections and symbols match, 5 changed bytes),
-`docs/at412/pad-smoke.json` (16/16 correctness cells on POST-layout and PAD-A: 1s/2s × uring/epoll
-× 1/16 databases).
+`docs/at412c/arms.json` and `pad-a.json` bind the outputs to the final objects.
+PRE was rebuilt from a local archive of 7ae703778 inside this worktree. POST
+equals build/tomokv. POST-layout links POST followed by symbol-isolated PRE
+objects. PAD-A is **type A, behaviour twin**: PRE behaviour in the same common
+image, changing only five bytes at main. Sections and symbol addresses match
+exactly. The twin is POST-layout, not the smaller release POST; measure both
+pairwise comparisons separately.
 
-### 13. Merit request (maintainer; this lane ran no measurement)
+`docs/at412c/freshness.json` records 51 successful make -q checks: PRE and POST
+all, all 46 job_production_units executable targets, the two mdbqsbr live-arm
+build roots, and blockfix-cost with its server/hash receipt. The native helper
+built every target using -j16 before these checks.
 
-| # | Cell | Arms | What it decides |
-|---|---|---|---|
-| 1 | The **14 generic cells** (the standing generic-14 matrix) | PRE vs POST, ABBA; and POST-layout vs PAD-A (layout control) | Non-script commands. The instruction residual is in `xshard_prepare` only (−11 … +17 per MGET/MSET call); expect noise. A loss here is classified IMPLEMENTATION COST (register allocation), not MECHANISM |
-| 2 | **EXEC merit** (`calib/exec-merit.py`, its 8 cells) | PRE vs POST | EXECs now share claims with escalated scripts; the uncontended EXEC path is untouched |
-| 3 | **Contended-script throughput**: the T6 storm shape (EXEC + WATCH + plain writers + two-owner scripts on one key pair) at a fixed duration | PRE vs POST | Report completed scripts/s, EXEC/s, writers/s and refusals per arm. PRE answers part of its scripts with TRYAGAIN (af5: 54-60% at pipeline 16); POST answers all of them. Count only OK replies as throughput |
-| 4 | Optional: uncontended two-owner EVAL p1/p32 | PRE vs POST | The +34/+40 admission instructions (§9) and the S1 close (+28) |
+### 13. Merit request (maintainer; NOT RUN here)
 
-Protocol notes: boot both arms with `--databases 1` (memory: databases-default trap); keep the
-same `--atomic` and ratio per cell; check `script_crossshard_window_refusals == 0`,
-`script_escalations` and `atomic_txn_order_violations == 0` after each POST cell.
+The worktree-root `MEASURE-REQUEST` contains exact recipes and decision criteria.
+The standing 14-cell set is frozen in `docs/at412c/merit/generic14.txt`, copied from
+the execfair/bugs5 matrix with provenance in `recipes.json`.
 
-### 14. Not run
+| Cells | Arms | Verdict |
+|---|---|---|
+| Generic 14: h05, h06, p8g, p8s, d1g_l0, d1s_l0, m8g_l0, v1g_l0, d128g_l0, d32g_l1, d8s_l1, d32s_l1, x9_32_l1, x9_32_l0 | PRE vs POST; POST-layout vs PAD-A type A | Gate ABBA per-cell rate/latency at matched offered load, with cycles/op, IPC and instructions/op and measured spread |
+| EXEC merit's eight cells: 1s/2s × atomic 0/1 × uncontended/hot | PRE vs POST | Completed EXEC/s, writer progress/share and latency; 64 connections, p4, 16 generator threads, three 20-second ABBA blocks |
+| T6 contended-script shape | PRE vs POST | Successful scripts/s plus EXEC and plain-writer progress; separate refusals and WATCH aborts, exact final-data accounting; three 30-second ABBA blocks |
+| Optional two-owner EVAL p1/p32, both modes/atomics | PRE vs POST | Uncontended admission and Final cost in the rate instrument |
+
+Use --databases 1 explicitly, preserve each recipe's geometry/read-local posture,
+and match offered load. Require POST refusals and atomic_txn_order_violations to
+remain zero; retain escalation, committed-escalation and FIFO-wait counters.
+A crash, missing reply or wrong final data invalidates the cell. This lane makes
+no throughput claim; the instruction results do not decide performance.
+
+### 14. Not run / outside this lane
 
 | Item | Reason |
 |---|---|
-| Any performance measurement (generic cells, EXEC merit, contended-script throughput) | Forbidden in this lane; requested above |
-| Full `tests/gate.sh` iteration | Forbidden; partial ledgers only |
-| `script_window_release` instruction count at Final | Outside the activation scope as the probe drives it |
-| A fix for XS-SHUT-1 / SNAP-STORM-1 / XS-NOTIFY-1 / FLIP-MULTI-1 | Pre-existing, outside AT4.12; flagged, not fixed |
-| A fix for AT4-WOUND-1 | Owned by woundfix |
+| Generic, EXEC and contended-script performance measurements | Maintainer-owned quiet-box measurements; requested in §13 and MEASURE-REQUEST |
+| Full tests/gate.sh iteration | Maintainer-owned; only native selected-job ledgers were requested here |
+| Fixes for XS-SHUT-1 / SNAP-STORM-1 / XS-NOTIFY-1 / FLIP-MULTI-1 | Pre-existing and outside this lane; separate diagnostics retain failures |
+| Fix for AT4-WOUND-1 | Owned by woundfix; this lane's schedules remain independent of it |
 
 ## at412c
 
-Continuation from `5591449e2`, branch `cx-at412c`; no push. CPUs 48-63 and
-ports 20200-20299 only. T7's incorrect waiter/holder assumption is fixed;
-`docs/at412c/t7/` contains the reproduced failure and corrected 27-leg run.
-Final-source proof and arm tables below will supersede the at412 WIP tables.
+Continuation from 5591449e2, with no push. The final production change is
+f7204660e; the instruction/identity/arm receipts are committed separately.
+
+T7's archived failure was a schedule error: its old EXEC blocker held k, so the
+older script was only a waiter on k when the plain writer began. A waiter does
+not block a plain writer. The observed [101,1] reply was reproduced in 11/24
+Tomo legs on the saved 931130b2 binary (Redis 3/3 passed). H now holds a peer of k
+on the same shard plus j. E_old must place/read k and wait on H's j; both the
+placement-wait counter and three READ tasks must be witnessed before W. Exact
+replies assert H, E_old, W, E_young order. Direct corrected proof and the final native T7 job are both 27/27;
+`docs/at412c/t7/` retains both runs and the negative evidence.
+
+T11b now forces and verifies three conflict/escalation batches, drains each,
+then BGSAVEs, reloads and checks exact data. T11a retains the live SAVE/hand-off
+window. T15 keeps dispatched-script/FIFO-waiter disconnect checks and verifies
+eight accepted replies plus exact data before clean SHUTDOWN. T16 requires exact
+same-shard events and races cross-owner read-only calls against an atomic script
+writer. Its old atomic-0 MSET writer could correctly expose [2,1]; it could not
+prove atomic read-only generations. Missing cross-owner events, in-flight shutdown
+abort and continuous snapshot-storm stalls remain documented non-gate diagnostics.
+No gate success rule permits a crash, abort, forced teardown or stalled reply.
+
+The preparation split closes the remaining instruction-cost failure without
+changing claim admission, epoch rules, layouts or ordinary command algorithms.
+All 48 final ordinary scopes have no added instructions; all 24 requested handler
+bodies match PRE. The script trace now includes Final release. All four arms are
+rebuilt with full digests. Merit remains a request for the maintainer.
+
+This continuation adds no rows: **at412c DQ/DF = +0/+0; cumulative at412 = +18/+18**.
+EXPECT_QUICK/EXPECT_FULL remain untouched. The final port-bounded harness self-test
+passed 72/72; its earlier timeout and ephemeral-guard exception are preserved in
+`docs/at412c/selftests/`.
