@@ -438,8 +438,10 @@ bool multi_records_done(const MultiExecState& state) {
 }
 
 void destroy_multi_children(MultiExecState& state) {
+    if (__builtin_expect(state.server->latency_tracking(), false))
+        for (const auto& command : state.commands)
+            if (command->op) latency_tracking_forget(*command->op);
     for (const auto& command : state.commands) {
-        if (command->op) latency_tracking_forget(*command->op);
         if (!command->scatter) continue;
         xshard_destroy(command->scatter, state.scatter_pool, state.owner_io);
         command->scatter = nullptr;
@@ -3119,8 +3121,9 @@ void multi_retire(Client& client, Op& op, std::vector<MultiExecState*>& deferred
     // A completed child can belong to an internally wounded attempt. Publish
     // samples only at logical EXEC retirement; retries transfer their active
     // slices to replacement children instead of incrementing call counts.
-    for (const auto& command : state->commands)
-        latency_tracking_retire(state->owner_io, *command->op);
+    if (__builtin_expect(state->server->latency_tracking(), false))
+        for (const auto& command : state->commands)
+            latency_tracking_retire(state->owner_io, *command->op);
     set_state_reply(*state, op);
     op.detach_scatter_state();
     client.atomic_group_finished();

@@ -224,9 +224,13 @@ void latency_tracking_part(uint32_t executor, const Op& op, uint64_t started) {
     if (auto* server = command_server(); !server || !server->latency_tracking()) return;
     auto& local = store(executor);
     std::lock_guard lock(local.mutex);
+    if (auto* server = command_server(); !server || !server->latency_tracking()) return;
     local.pending[&op] += duration;
 }
 void latency_tracking_retire(uint32_t executor, const Op& op) {
+    // CONFIG's off transition clears every pending slice before returning.
+    // Disabled command hooks must never walk the physical executor slots.
+    if (auto* server = command_server(); !server || !server->latency_tracking()) return;
     uint64_t duration = 0;
     bool found = false;
     // All participants have published completion before ROB retirement. Histogram
@@ -267,6 +271,9 @@ void latency_tracking_retry(const Op& previous, const Op& next) {
     }
 }
 void latency_tracking_forget(const Op& op) {
+    // CONFIG's off transition clears every pending slice before returning.
+    // Disabled command hooks must never walk the physical executor slots.
+    if (auto* server = command_server(); !server || !server->latency_tracking()) return;
     for (auto& slot : stores) {
         auto* local = slot.value.load(std::memory_order_acquire);
         if (!local) continue;
@@ -276,6 +283,9 @@ void latency_tracking_forget(const Op& op) {
     }
 }
 void latency_tracking_forget_client(Client& client) {
+    // CONFIG's off transition clears every pending slice before returning.
+    // Disabled command hooks must never walk the physical executor slots.
+    if (auto* server = command_server(); !server || !server->latency_tracking()) return;
     for (auto& slot : stores) {
         auto* local = slot.value.load(std::memory_order_acquire);
         if (!local) continue;
@@ -317,6 +327,7 @@ void latency_tracking_script_part(uint32_t executor, const Op& parent,
     if (!metadata || !command_metadata_arity_ok(*metadata, child.argc())) return;
     auto& local = store(executor);
     std::lock_guard lock(local.mutex);
+    if (auto* server = command_server(); !server || !server->latency_tracking()) return;
     local.script_children[&parent].emplace_back(command_metadata_index(*metadata), duration);
 }
 
@@ -339,6 +350,7 @@ void latency_tracking_record(uint32_t executor, const Op& op, uint64_t duration_
     if (!metadata || !command_metadata_arity_ok(*metadata, op.argc())) return;
     auto& local = store(executor);
     std::lock_guard lock(local.mutex);
+    if (auto* server = command_server(); !server || !server->latency_tracking()) return;
     retire_script_children(local, op);
     // Redis's timer produces integral microseconds before conversion to nanoseconds.
     local.values[command_metadata_index(*metadata)].add((duration_ns / 1000) * 1000);
