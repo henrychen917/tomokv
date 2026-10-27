@@ -16,6 +16,7 @@ parser.add_argument("jobs", nargs="+")
 parser.add_argument("--engine", choices=("uring", "epoll"), default="uring")
 parser.add_argument("--fused", action="store_true")
 parser.add_argument("--binary", default="build/tomokv")
+parser.add_argument("--asan-binary")
 args = parser.parse_args()
 assert not set(args.jobs) & {"atomic_floor", "flip_saturated", "efficiency"}, "performance remains maintainer work"
 os.sched_setaffinity(0, set(range(16)))
@@ -31,6 +32,8 @@ env = dict(os.environ, REDIS74_ROOT="/home/user/Projects/redis",
            GATE_PROOF_NET_IO=args.engine, GATE_ZC_NET_IO=args.engine,
            GATE_DIFFER_NET_IO=args.engine, GATE_TXN_FUSED=str(int(args.fused)),
            GATE_TEST_PORT="20398", GATE_LEDGER=str(out / (args.name + ".tsv")))
+if args.asan_binary:
+    env["GATE_ASAN_BINARY"] = str((ROOT / args.asan_binary).resolve())
 argv = ["bash", "tests/gate.sh", "iteration", "--server-cores", "0-7", "--server-smt", "",
         "--load-cores", "8-15", "--load-smt", "", "--ports", "20300-20329", "--candidate-binary", str(binary)]
 sha = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()

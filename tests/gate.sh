@@ -2268,9 +2268,9 @@ job_respcompat(){
 # NET13/14/15/16: one aggregate row, both differential geometries and atomic modes.
 # Raw protocol cases own this row and its Redis oracle, outside the valid-command
 # fan-out plan. Keep its shell pass total exactly equal to the planned comparisons.
-local mode atomic read_local reorder compatible=1 booted oracle_ready=0 oracle_port=$((PORT+1))
+local mode atomic read_local reorder databases compatible=1 booted oracle_ready=0 oracle_port=$((PORT+1))
 local oracle_bin=${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server} oracle_dir
-row_begin "RESP protocol error compatibility"
+row_begin "RESP protocol error compatibility" "protofix-inline-all-parse-paths"
 guard_port "$oracle_port"
 oracle_dir=$(mktemp -d "$TMPDIR/respcompat-oracle.XXXXXX") || compatible=0
 if [ "$compatible" = 1 ] && [ -x "$oracle_bin" ]; then
@@ -2292,22 +2292,23 @@ fi
 if [ "$oracle_ready" = 1 ]; then
 for atomic in 0 1; do for mode in 1s 2s; do
 for read_local in 0 1; do for reorder in 0 1; do
+for databases in 1 16; do
   booted=0
   if [ "$mode" = 1s ]; then
-    boot_fused "$CANDIDATE_BINARY" --read-local "$read_local" --reorder "$reorder" --atomic "$atomic" --save '' && booted=1
+    boot_fused "$CANDIDATE_BINARY" --databases "$databases" --read-local "$read_local" --reorder "$reorder" --atomic "$atomic" --save '' && booted=1
   else
-    boot "$CANDIDATE_BINARY" --thread-mode 2s --read-local "$read_local" --reorder "$reorder" --atomic "$atomic" --save '' && booted=1
+    boot "$CANDIDATE_BINARY" --thread-mode 2s --databases "$databases" --read-local "$read_local" --reorder "$reorder" --atomic "$atomic" --save '' && booted=1
   fi
   if [ "$booted" != 1 ] || ! py tests/respcompat.py 127.0.0.1 "$PORT" \
-      --oracle 127.0.0.1 "$oracle_port" >"$TMPDIR/gate-respcompat-$mode-a$atomic-rl$read_local-r$reorder.txt" 2>&1; then
+      --oracle 127.0.0.1 "$oracle_port" >"$TMPDIR/gate-respcompat-$mode-a$atomic-rl$read_local-r$reorder-db$databases.txt" 2>&1; then
     compatible=0
   fi
   if [ "$booted" != 1 ] || ! py tests/inline_protocol.py 127.0.0.1 "$PORT" \
-      --oracle 127.0.0.1 "$oracle_port" >"$TMPDIR/gate-inline-$mode-a$atomic-rl$read_local-r$reorder.txt" 2>&1; then
+      --oracle 127.0.0.1 "$oracle_port" >"$TMPDIR/gate-inline-$mode-a$atomic-rl$read_local-r$reorder-db$databases.txt" 2>&1; then
     compatible=0
   fi
   stop
-done; done; done; done
+done; done; done; done; done
 else
   compatible=0
 fi

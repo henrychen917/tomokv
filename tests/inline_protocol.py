@@ -44,6 +44,10 @@ def cases():
     echo("single escaped quote", b"'a\\'b'", b"a'b")
     echo("single literal escapes", b"'\\n\\r\\t\\b\\a\\x00\\\\z'", b"\\n\\r\\t\\b\\a\\x00\\\\z")
     echo("unquoted literal escapes", b"a\\n\\x00\\\\", b"a\\n\\x00\\\\")
+    for command in (b'"ECHO"', b"'ECHO'", b'EC"HO"', b'"EC\\x48O"', b'"EC\\HO"'):
+        rows.append(Case("quoted command " + repr(command),
+                         ((command + b' "value"\n' + PING, bulk(b"value") + PONG),)))
+    rows.append(Case("quoted no-argument command", ((b'"PING"\n', PONG), (PING, PONG))))
     for quote in (b'"', b"'"):
         echo("empty " + repr(quote), quote + quote, b"")
         echo("prefix " + repr(quote), b"prefix" + quote + b"with space" + quote, b"prefixwith space")
@@ -93,6 +97,8 @@ def cases():
     rows.append(Case("mixed pipeline and ROB reuse", ((bytes(wire), bytes(expected)), (PING, PONG))))
     rows.append(Case("clean quoted read pipeline", ((b'GET "inline key\\x001"\n' * 128 + PING,
                      bulk(b"v 1") * 128 + PONG),)))
+    rows.append(Case("empty quoted key", ((b'SET "" "emptykey"\nGET ""\nDEL ""\n' + PING,
+                     b'+OK\r\n' + bulk(b'emptykey') + b':1\r\n' + PONG),)))
     rows.append(Case("heap argv plus decoded bytes", ((b'MGET ' + b'"" ' * 40 + b'\n' + PING,
                      b'*40\r\n' + b'$-1\r\n' * 40 + PONG),)))
     rows.append(Case("transaction retains decoded argv", ((b'MULTI\nECHO "a\\x00b"\n' + encode("ECHO", b"next") + b'EXEC\n',
