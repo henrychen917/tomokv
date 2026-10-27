@@ -1,0 +1,86 @@
+{
+  "pre-row": {
+    "run": "/home/user/Projects/cx-crlffix/build/gate-run.tY6YLw",
+    "complete": true,
+    "passed": 1,
+    "failed": 1,
+    "archive": "docs/crlffix/proof/pre-row.tar.gz",
+    "files": 66,
+    "sha256": "8c85968903c8fcd3932d483f3321b85cd71185b87c9033105ce0975abe47b9aa"
+  },
+  "post-broad-initial": {
+    "run": "/home/user/Projects/cx-crlffix/build/gate-run.pnF9qz",
+    "complete": true,
+    "passed": 173,
+    "failed": 2,
+    "archive": "docs/crlffix/proof/post-broad-initial.tar.gz",
+    "files": 118,
+    "sha256": "7fe3b18f3ccedaf280c8ebb9be7170b1bea0702cc01a67b51f41df46f3dcd144"
+  },
+  "post-broad": {
+    "run": "/home/user/Projects/cx-crlffix/build/gate-run.oNsWk7",
+    "complete": true,
+    "passed": 35,
+    "failed": 2,
+    "archive": "docs/crlffix/proof/post-broad.tar.gz",
+    "files": 102,
+    "sha256": "4d5b9d0e0ca9bb06e60a6b7d68c3b583b1282277df86b9770665bba275776f71"
+  },
+  "post-row": {
+    "run": "/home/user/Projects/cx-crlffix/build/gate-run.fFeNPi",
+    "complete": true,
+    "passed": 2,
+    "failed": 0,
+    "archive": "docs/crlffix/proof/post-row.tar.gz",
+    "files": 66,
+    "sha256": "dcfdb2596155e480286638855f3229d78cbfd16baf53410fa4093294ea58eb17"
+  },
+  "post-tcl-isolated": {
+    "run": "/home/user/Projects/cx-crlffix/build/gate-run.JdZJt3",
+    "complete": true,
+    "passed": 3,
+    "failed": 0,
+    "archive": "docs/crlffix/proof/post-tcl-isolated.tar.gz",
+    "files": 16,
+    "sha256": "8db1dc02d060d8f9e043d70d7ab0c321f4fd83c8c46ab69bc1dc1c0442482cbb"
+  },
+  "post-epoll": {
+    "run": "/home/user/Projects/cx-crlffix/build/gate-run.uqUxDW",
+    "complete": true,
+    "passed": 172,
+    "failed": 0,
+    "archive": "docs/crlffix/proof/post-epoll.tar.gz",
+    "files": 52,
+    "sha256": "617e8927ff76e2356886560a326130dcc72ff360690d0807821fd096fcab2512"
+  },
+  "post-uring": {
+    "run": "/home/user/Projects/cx-crlffix/build/gate-run.JgWweO",
+    "complete": false
+  },
+  "broken": {
+    "run": "/home/user/Projects/cx-crlffix/build/gate-run.IY8ngB",
+    "complete": true,
+    "passed": 1,
+    "failed": 3,
+    "archive": "docs/crlffix/proof/broken.tar.gz",
+    "files": 74,
+    "sha256": "1b61fc50a6845616bcc63d8486c5913744085cff95004f3011e2b13804a75daa"
+  },
+  "pad-a": {
+    "run": "/home/user/Projects/cx-crlffix/build/gate-run.nCN6jp",
+    "complete": true,
+    "passed": 1,
+    "failed": 1,
+    "archive": "docs/crlffix/proof/pad-a.tar.gz",
+    "files": 66,
+    "sha256": "a12ea752e16f40ab9058ebbb7d3d8840a9a9f94c6ea3eccb0b73a58d38c917d9"
+  },
+  "differ-epoll": {
+    "run": "/home/user/Projects/cx-crlffix/build/gate-run.S5xFVv",
+    "complete": false
+  },
+  "differ-uring": {
+    "run": "/home/user/Projects/cx-crlffix/build/gate-run.8WGcCK",
+    "complete": false
+  }
+}
