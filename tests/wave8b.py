@@ -20,6 +20,7 @@ def run(port):
                 keys = [names[0], next(k for k, r in zip(names, routes) if r[1] != routes[0][1])]
                 assert admin.cmd('MSET', keys[0], 0, keys[1], 0) == b'OK'
                 assert admin.cmd('CONFIG', 'SET', 'latency-tracking', 'yes') == b'OK'
+                assert admin.cmd('CONFIG', 'RESETSTAT') == b'OK'
                 before = counters(admin)
                 debug = 'TXN-PLACE-DEFER' if case == 'exec' else 'SCRIPT-STAGE-DEFER'
                 witness = 'atomic_txn_fast_polls' if case == 'exec' else 'script_stage_owner_tasks'
@@ -34,6 +35,11 @@ def run(port):
                         await_counter(admin, before, witness)
                         assert admin.cmd('CONFIG', 'SET', 'latency-tracking', 'no') == b'OK'
                         off_pending = not pending.done()
+                        if case == 'script':
+                            # Change versions during the parked activation; equal values keep
+                            # the reply oracle fixed while the retry counter proves replay.
+                            for key in keys:
+                                assert admin.cmd('SET', key, 0) == b'OK'
                         assert admin.cmd('CONFIG', 'SET', 'latency-tracking', 'yes') == b'OK'
                         on_pending = not pending.done()
                         result = pending.result(timeout=10)
@@ -41,7 +47,10 @@ def run(port):
                         assert result == expected, (case, result)
                     finally:
                         assert admin.cmd('DEBUG', debug, 0) == b'OK'
-                if off_pending and on_pending:
+                retried = case == 'exec' or counters(admin)['script_group_occ_retries'] > before['script_group_occ_retries']
+                if off_pending and on_pending and retried:
+                    if case == 'script':
+                        assert dict(histogram(admin, 'eval', 'incrby')) == dict(eval=1, incrby=2)
                     break
             else:
                 raise AssertionError((case, 'no pending CONFIG transition on three fresh states'))

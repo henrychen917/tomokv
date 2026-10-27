@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/budget147383-db0-EXEC-cross-2s-4-1--1.log
+SHA-256: 641790e1cbc83418514b9fcdc07bb8b3c27b78e340aae171d3a06886529eb3ce
+Exit: 0
+0x00005555556a8f2b in tomo_db0::multi_reap_deferred(std::vector<tomo_db0::MultiExecState*, std::allocator<tomo_db0::MultiExecState*> >&) ()
+0x00005555556a8f2e in tomo_db0::multi_reap_deferred(std::vector<tomo_db0::MultiExecState*, std::allocator<tomo_db0::MultiExecState*> >&) ()
+0x00005555556a8f5b in tomo_db0::multi_reap_deferred(std::vector<tomo_db0::MultiExecState*, std::allocator<tomo_db0::MultiExecState*> >&) ()
+0x00005555556a8f5f in tomo_db0::multi_reap_deferred(std::vector<tomo_db0::MultiExecState*, std::allocator<tomo_db0::MultiExecState*> >&) ()
+0x00005555556a8f62 in tomo_db0::multi_reap_deferred(std::vector<tomo_db0::MultiExecState*, std::allocator<tomo_db0::MultiExecState*> >&) ()
+0x00005555556a8f63 in tomo_db0::multi_reap_deferred(std::vector<tomo_db0::MultiExecState*, std::allocator<tomo_db0::MultiExecState*> >&) ()
+0x00005555556a8f64 in tomo_db0::multi_reap_deferred(std::vector<tomo_db0::MultiExecState*, std::allocator<tomo_db0::MultiExecState*> >&) ()
+0x00005555556a8f66 in tomo_db0::multi_reap_deferred(std::vector<tomo_db0::MultiExecState*, std::allocator<tomo_db0::MultiExecState*> >&) ()
+0x00005555556a8f68 in tomo_db0::multi_reap_deferred(std::vector<tomo_db0::MultiExecState*, std::allocator<tomo_db0::MultiExecState*> >&) ()
+tomo_db0::CoreConcurrencyTest::need (v=true) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:38
+38	 static void need(bool v){if(!v)std::abort();}
+0x0000555555d916e4	38	 static void need(bool v){if(!v)std::abort();}
+0x0000555555d916eb	38	 static void need(bool v){if(!v)std::abort();}
+0x0000555555d916f1 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=4, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:115
+115	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
+30	[[gnu::noinline]] void scope_end(){
+[Inferior 1 (process 105143) exited normally]
+COUNT 39436
