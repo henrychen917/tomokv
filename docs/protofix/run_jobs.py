@@ -31,6 +31,7 @@ env = dict(os.environ, REDIS74_ROOT="/home/user/Projects/redis",
            GATE_ONLY_JOBS=" ".join(args.jobs), GATE_NET_IO=args.engine,
            GATE_PROOF_NET_IO=args.engine, GATE_ZC_NET_IO=args.engine,
            GATE_DIFFER_NET_IO=args.engine, GATE_TXN_FUSED=str(int(args.fused)),
+           GATE_PROOF_NO_RATES="1",
            GATE_TEST_PORT="20398", GATE_LEDGER=str(out / (args.name + ".tsv")))
 if args.asan_binary:
     env["GATE_ASAN_BINARY"] = str((ROOT / args.asan_binary).resolve())

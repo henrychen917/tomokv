@@ -1,0 +1,17 @@
+{
+  "total": 23043,
+  "functions": {
+    "tomo::protofix_parse_scope(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, tomo::Op*, unsigned int)": 1187,
+    "tomo::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned int&)": 13056,
+    "tomo::resp_inline_quotes_valid(char const*, char const*)": 5920,
+    "tomo::Op::push_arg(tomo::Slice)": 2880
+  },
+  "bodies": {
+    "0x3ac0 tomo::protofix_parse_scope(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, tomo::Op*, unsigned int)": 1187,
+    "0x4350 tomo::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned int&)": 13056,
+    "0x2340 tomo::resp_inline_quotes_valid(char const*, char const*)": 5920,
+    "0x4230 tomo::Op::push_arg(tomo::Slice)": 2880
+  },
+  "excluded": {},
+  "clock_calls": 0
+}

@@ -1,0 +1,229 @@
+GATE(iteration): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA smoke: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-protofix/build/gate-run.Usxxod
+PARTIAL jobs (including prerequisites): release asan core_tsan_build rldbg production_units inline_quoted respresume-fragment-1s-epoll respresume-fragment-1s-uring respresume-fragment-2s-epoll respresume-fragment-2s-uring respresume-cpu-1s-epoll respresume-cpu-1s-uring respresume-cpu-2s-epoll respresume-cpu-2s-uring respresume-neighbour-1s-epoll respresume-neighbour-1s-uring respresume-neighbour-2s-epoll respresume-neighbour-2s-uring iofix-deferred iofix-hz iofix-sleep iofix-signal netio-1s netio-2s perfio_stream core_units splitlocal_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat readonly rlfix3_zc rlfix3_info tls ntfix_input replyoff zc rlcache
+PARTIAL jobs (including prerequisites): release asan core_tsan_build rldbg production_units inline_quoted respresume-fragment-1s-epoll respresume-fragment-1s-uring respresume-fragment-2s-epoll respresume-fragment-2s-uring respresume-cpu-1s-epoll respresume-cpu-1s-uring respresume-cpu-2s-epoll respresume-cpu-2s-uring respresume-neighbour-1s-epoll respresume-neighbour-1s-uring respresume-neighbour-2s-epoll respresume-neighbour-2s-uring iofix-deferred iofix-hz iofix-sleep iofix-signal netio-1s netio-2s perfio_stream core_units splitlocal_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat readonly rlfix3_zc rlfix3_info tls ntfix_input replyoff zc rlcache
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; ASAN build
+  ASAN build                                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local ownership-invariant build
+  read-local ownership-invariant build                 ok
+  row budget: 900s; median=1.39s; correctness-plan-fallback; inline quoted argument decoding (1s, epoll)
+  inline quoted argument decoding (1s, epoll)          ok
+  row budget: 900s; median=1.4s; correctness-plan-fallback; inline quoted argument decoding (1s, uring)
+  inline quoted argument decoding (1s, uring)          ok
+  row budget: 900s; median=1.4s; correctness-plan-fallback; inline quoted argument decoding (2s, epoll)
+  inline quoted argument decoding (2s, epoll)          ok
+  row budget: 900s; median=1.41s; correctness-plan-fallback; inline quoted argument decoding (2s, uring)
+  inline quoted argument decoding (2s, uring)          ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable fragment (1s, epoll)
+  RESP resumable fragment (1s, epoll)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable fragment (1s, uring)
+  RESP resumable fragment (1s, uring)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable fragment (2s, epoll)
+  RESP resumable fragment (2s, epoll)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable fragment (2s, uring)
+  RESP resumable fragment (2s, uring)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable cpu (1s, epoll)
+  RESP resumable cpu (1s, epoll)                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable cpu (1s, uring)
+  RESP resumable cpu (1s, uring)                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable cpu (2s, epoll)
+  RESP resumable cpu (2s, epoll)                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable cpu (2s, uring)
+  RESP resumable cpu (2s, uring)                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable neighbour (1s, epoll)
+  RESP resumable neighbour (1s, epoll)                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable neighbour (1s, uring)
+  RESP resumable neighbour (1s, uring)                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable neighbour (2s, epoll)
+  RESP resumable neighbour (2s, epoll)                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable neighbour (2s, uring)
+  RESP resumable neighbour (2s, uring)                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; iofix WB4.1 deferred IO parks
+  iofix WB4.1 deferred IO parks                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; iofix IO4.9 Redis hz cron
+  iofix IO4.9 Redis hz cron                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; iofix IO4.10 global DEBUG SLEEP
+  iofix IO4.10 global DEBUG SLEEP                      FAIL (see /home/user/Projects/cx-protofix/build/gate-run.Usxxod/jobs/iofix-sleep/sleep-*.log)
+  row budget: 900s; median=-s; no-history-conservative-default; iofix IO4.17 immediate signal shutdown
+  iofix IO4.17 immediate signal shutdown               ok
+  row budget: 900s; median=-s; no-history-conservative-default; epoll directed correctness (1s)
+  epoll directed correctness (1s)                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; epoll directed correctness (2s)
+  epoll directed correctness (2s)                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; perfio XREADGROUP bounded delivery + Redis metadata (1s)
+  perfio XREADGROUP bounded delivery + Redis metadata (1s) ok
+  row budget: 900s; median=-s; no-history-conservative-default; perfio XREADGROUP bounded delivery + Redis metadata (2s)
+  perfio XREADGROUP bounded delivery + Redis metadata (2s) ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency watch
+  core concurrency watch                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency lifetime
+  core concurrency lifetime                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency drain
+  core concurrency drain                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency route
+  core concurrency route                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency snapshot
+  core concurrency snapshot                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency config
+  core concurrency config                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency notify
+  core concurrency notify                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local topology demotion (1s)
+  read-local topology demotion (1s)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local topology demotion (2s)
+  read-local topology demotion (2s)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; splitlocal template forwarding + old-argument controls
+  splitlocal template forwarding + old-argument controls ok
+  row budget: 900s; median=-s; no-history-conservative-default; netcmd regression build
+  netcmd regression build                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; netcmd streams regression
+  netcmd streams regression                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; netcmd zpop regression
+  netcmd zpop regression                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; netcmd notify-oom regression
+  netcmd notify-oom regression                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; netcmd notify-retry regression
+  netcmd notify-retry regression                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; netcmd flush regression
+  netcmd flush regression                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; netcmd output regression
+  netcmd output regression                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; netcmd pubsub regression
+  netcmd pubsub regression                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; netcmd receive regression
+  netcmd receive regression                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; netcmd config regression
+  netcmd config regression                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; netcmd wb-small-pipe regression
+  netcmd wb-small-pipe regression                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; netcmd wb-complete-visits regression
+  netcmd wb-complete-visits regression                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; netcmd hexpire-oom regression
+  netcmd hexpire-oom regression                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; encodingfix knob
+  encodingfix knob                                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; encodingfix precedence
+  encodingfix precedence                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; NET1 serverless bounds + scan + reclamation
+  NET1 serverless bounds + scan + reclamation          ok
+  row budget: 900s; median=-s; no-history-conservative-default; NET1 inline + query cap (1s, uring)
+  NET1 inline + query cap (1s, uring)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; NET1 inline + query cap (1s, epoll)
+  NET1 inline + query cap (1s, epoll)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; NET1 inline + query cap (2s, uring)
+  NET1 inline + query cap (2s, uring)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; NET1 inline + query cap (2s, epoll)
+  NET1 inline + query cap (2s, epoll)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; netfix NT4.6 query-limit INFO parity
+  netfix NT4.6 query-limit INFO parity                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; netfix NT4.11 Unix pathname parity
+  netfix NT4.11 Unix pathname parity                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; netfix NT4.8 network CONFIG error parity
+  netfix NT4.8 network CONFIG error parity             ok
+  row budget: 900s; median=-s; no-history-conservative-default; netfix NT4.7 TLS default cipher parity
+  netfix NT4.7 TLS default cipher parity               ok
+  row budget: 900s; median=-s; no-history-conservative-default; netfix NT4.19 idle buffer reclamation
+  netfix NT4.19 idle buffer reclamation                ok
+  row budget: 900s; median=-s; correctness-plan-fallback; RESP protocol error compatibility
+  RESP protocol error compatibility                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-only resize split read-local=0
+  read-only resize split read-local=0                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-only resize split read-local=1
+  read-only resize split read-local=1                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-only resize fused read-local=0
+  read-only resize fused read-local=0                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-only resize fused read-local=1
+  read-only resize fused read-local=1                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (1s, epoll, read-local 0)
+  read-local borrow capability (1s, epoll, read-local 0) ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (1s, epoll, read-local 1)
+  read-local borrow capability (1s, epoll, read-local 1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (1s, uring, read-local 0)
+  read-local borrow capability (1s, uring, read-local 0) ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (1s, uring, read-local 1)
+  read-local borrow capability (1s, uring, read-local 1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (2s, epoll, read-local 0)
+  read-local borrow capability (2s, epoll, read-local 0) ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (2s, epoll, read-local 1)
+  read-local borrow capability (2s, epoll, read-local 1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (2s, uring, read-local 0)
+  read-local borrow capability (2s, uring, read-local 0) ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (2s, uring, read-local 1)
+  read-local borrow capability (2s, uring, read-local 1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (1s, epoll, read-local 0)
+  INFO selective collection (1s, epoll, read-local 0)  ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (1s, epoll, read-local 1)
+  INFO selective collection (1s, epoll, read-local 1)  ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (1s, uring, read-local 0)
+  INFO selective collection (1s, uring, read-local 0)  ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (1s, uring, read-local 1)
+  INFO selective collection (1s, uring, read-local 1)  ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (2s, epoll, read-local 0)
+  INFO selective collection (2s, epoll, read-local 0)  ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (2s, epoll, read-local 1)
+  INFO selective collection (2s, epoll, read-local 1)  ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (2s, uring, read-local 0)
+  INFO selective collection (2s, uring, read-local 0)  ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (2s, uring, read-local 1)
+  INFO selective collection (2s, uring, read-local 1)  ok
+  row budget: 900s; median=-s; no-history-conservative-default; TLS ephemeral CA/server/client certificates
+  TLS ephemeral CA/server/client certificates          ok
+  row budget: 900s; median=-s; no-history-conservative-default; NET2 serverless RX policy and KeyUpdate controls
+  NET2 serverless RX policy and KeyUpdate controls     ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject TLS listener without certificate
+  reject TLS listener without certificate              ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject invalid tls-protocols
+  reject invalid tls-protocols                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject invalid tls-ciphers
+  reject invalid tls-ciphers                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; TLS client-auth yes matrix
+  TLS client-auth yes matrix                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; TLS yes shutdown invariants
+  TLS yes shutdown invariants                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; TLS client-auth optional matrix
+  TLS client-auth optional matrix                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; kTLS TLS 1.2 engaged live (default boot)
+  kTLS TLS 1.2 engaged live (default boot)             ok
+  row budget: 900s; median=-s; no-history-conservative-default; TLS 1.3 KeyUpdate survives (NET2)
+  TLS 1.3 KeyUpdate survives (NET2)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; TLS 1.3 userspace KeyUpdate survives (NET2)
+  TLS 1.3 userspace KeyUpdate survives (NET2)          ok
+  row budget: 900s; median=-s; no-history-conservative-default; TLS optional shutdown invariants
+  TLS optional shutdown invariants                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; TLS pipeline/torn-record/coexistence battery
+  TLS pipeline/torn-record/coexistence battery         ok
+  row budget: 900s; median=-s; no-history-conservative-default; TLS shutdown invariants
+  TLS shutdown invariants                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; TLS application send path error-free
+  TLS application send path error-free                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; TLS connection slots all freed (N/N)
+  TLS connection slots all freed (33/33)               ok
+  row budget: 900s; median=-s; no-history-conservative-default; TLS zc borrow gates fired (suppressed=N)
+  TLS zc borrow gates fired (suppressed=21)            ok
+  row budget: 900s; median=-s; no-history-conservative-default; TLS silent-peer close after reply (ntfix N2)
+  TLS silent-peer close after reply (ntfix N2)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP pre-AUTH limit errors (ntfix N3)
+  RESP pre-AUTH limit errors (ntfix N3)                ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP query-buffer frontier (ntfix N4)
+  RESP query-buffer frontier (ntfix N4)                ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO received bytes exact (ntfix N1)
+  INFO received bytes exact (ntfix N1)                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)
+  CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0) ok
+  row budget: 900s; median=-s; no-history-conservative-default; CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)
+  CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; zc borrow battery
+  zc borrow battery                                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; zc fired (zc_sends=N)
+  zc fired (zc_sends=20)                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; zc borrow battery under ASAN
+  zc borrow battery under ASAN                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; zc ASAN clean
+  zc ASAN clean                                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; armed block-cache churn battery
+  armed block-cache churn battery                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local ownership invariants
+  read-local ownership invariants                      ok
+GATE(PARTIAL): 111 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-protofix/docs/protofix/jobs/final-protocol-uring.tsv.partial

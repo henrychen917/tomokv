@@ -12,7 +12,8 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 source = (ROOT / "tools/execindex_scope.py").read_text()
-source = source.replace('"docs/execindex/instructions"', '"docs/protofix/instructions"')
+source = source.replace('"docs/execindex/instructions"', '"docs/protofix/instructions-final"')
+source = source.replace('"build/execindex/commands"', '"build/protofix/commands-final"')
 source = source.replace('"build/execindex/', '"build/protofix/')
 source = source.replace('"96-103"', '"0-15"')
 scope = {"__file__": str(ROOT / "tools/execindex_scope.py"), "__name__": "protofix_counter"}

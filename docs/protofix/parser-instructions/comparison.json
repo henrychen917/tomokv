@@ -1,0 +1,110 @@
+[
+  {
+    "command": "GET",
+    "mode": "inline",
+    "batch": 1,
+    "pre": 502,
+    "post": 482,
+    "delta": -20,
+    "external_calls_equal": true
+  },
+  {
+    "command": "GET",
+    "mode": "inline",
+    "batch": 32,
+    "pre": 14979,
+    "post": 14339,
+    "delta": -640,
+    "external_calls_equal": true
+  },
+  {
+    "command": "GET",
+    "mode": "resp",
+    "batch": 1,
+    "pre": 211,
+    "post": 211,
+    "delta": 0,
+    "external_calls_equal": true
+  },
+  {
+    "command": "GET",
+    "mode": "resp",
+    "batch": 32,
+    "pre": 5667,
+    "post": 5667,
+    "delta": 0,
+    "external_calls_equal": true
+  },
+  {
+    "command": "SET",
+    "mode": "inline",
+    "batch": 1,
+    "pre": 754,
+    "post": 720,
+    "delta": -34,
+    "external_calls_equal": true
+  },
+  {
+    "command": "SET",
+    "mode": "inline",
+    "batch": 32,
+    "pre": 23043,
+    "post": 21955,
+    "delta": -1088,
+    "external_calls_equal": true
+  },
+  {
+    "command": "SET",
+    "mode": "resp",
+    "batch": 1,
+    "pre": 267,
+    "post": 267,
+    "delta": 0,
+    "external_calls_equal": true
+  },
+  {
+    "command": "SET",
+    "mode": "resp",
+    "batch": 32,
+    "pre": 7459,
+    "post": 7459,
+    "delta": 0,
+    "external_calls_equal": true
+  },
+  {
+    "command": "INCR",
+    "mode": "inline",
+    "batch": 1,
+    "pre": 534,
+    "post": 510,
+    "delta": -24,
+    "external_calls_equal": true
+  },
+  {
+    "command": "INCR",
+    "mode": "inline",
+    "batch": 32,
+    "pre": 16003,
+    "post": 15235,
+    "delta": -768,
+    "external_calls_equal": true
+  },
+  {
+    "command": "INCR",
+    "mode": "resp",
+    "batch": 1,
+    "pre": 211,
+    "post": 211,
+    "delta": 0,
+    "external_calls_equal": true
+  },
+  {
+    "command": "INCR",
+    "mode": "resp",
+    "batch": 32,
+    "pre": 5667,
+    "post": 5667,
+    "delta": 0,
+    "external_calls_equal": true
+  }
+]
