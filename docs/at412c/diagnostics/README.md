@@ -37,6 +37,20 @@ reproduce in ten 5-second and five 30-second attempts here; the earlier
 script-free witness remains in `docs/at412/deviations/bgsave-storm-stall.json`.
 A failure is never relabelled as a gate pass.
 
+Final POST (`b179853b`, production source `f7204660e`) reproduces all three as
+well; `post/` retains the logs, boot argv, exits and exceptions, and
+`../final-controls.json` binds the commands to the full binary digest:
+
+| Diagnostic | Fresh attempt | Result |
+|---|---:|---|
+| XS-SHUT-1 | 1 | Server abort, rc -6 |
+| XS-NOTIFY-1 | 1 | Exact writes committed; zero keyspace events and zero invalidations |
+| SNAP-STORM-1 | 2 | BGSAVE reply timeout, `rdb_bgsave_in_progress=1`, cuts=9 and saves=9; the first 30-second attempt completed 13 saves |
+
+Each diagnostic returns rc 1. The snapshot process exited cleanly after its
+clients disconnected; the missing BGSAVE reply remains a failure. No PRE
+refusal allowance is used in these POST runs.
+
 Gate geometry changes:
 
 * T11b finishes each forced-conflict script batch before BGSAVE, waits for the

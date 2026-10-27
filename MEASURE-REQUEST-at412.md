@@ -141,12 +141,17 @@ caused by this lane. None involves AT4-WOUND-1.
 | FLIP-MULTI-1 | A connection that ever ran MULTI keeps its MultiSession, so it is never FLIP-transferable (`migration_protocol_idle`) | same | same | T10 notes | T10 runs scripts + writers with a hold around each FLIP; a full EXEC storm refuses every FLIP on PRE and POST |
 
 The final gate tolerates no crash, abort, forced teardown or stall. Reproduction
-commands and fresh PRE evidence for SNAP-STORM-1, XS-SHUT-1 and XS-NOTIFY-1 are in
+commands and fresh PRE/final-POST evidence for SNAP-STORM-1, XS-SHUT-1 and XS-NOTIFY-1 are in
 `docs/at412c/diagnostics/`; `tests/at412_diagnostics.py` is deliberately outside the
-gate and returns nonzero when a defect reproduces. The fresh snapshot mixed storm
+gate and returns nonzero when a defect reproduces. The fresh PRE snapshot mixed storm
 stalled on its first 30-second attempt; the script-free variant did not reproduce
 in ten 5-second and five 30-second attempts. Historical script-free evidence remains
-labelled separately. The fixes belong to other lanes.
+labelled separately. Final POST aborted with rc -6 on the first shutdown attempt,
+committed writes but emitted no events/invalidations on the first notification
+attempt, and timed out in BGSAVE on the second fresh snapshot-storm attempt
+(`rdb_bgsave_in_progress=1`, cuts=9, saves=9). All three diagnostics returned rc 1;
+their commands and final binary digest are in `docs/at412c/final-controls.json`.
+The fixes belong to other lanes.
 
 ### 7. Assertion flips (§6.5)
 
