@@ -1,0 +1,19 @@
+{
+  "scope": "one actual linked production fused rotation, iterations [2,3), all bells clear; library callees excluded",
+  "cases": [
+    {
+      "namespace": "normal",
+      "x2": 3665,
+      "x3": 3695,
+      "delta": 30,
+      "target_plus_two_pass": false
+    },
+    {
+      "namespace": "db0",
+      "x2": 3631,
+      "x3": 3647,
+      "delta": 16,
+      "target_plus_two_pass": false
+    }
+  ]
+}

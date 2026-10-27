@@ -118,7 +118,7 @@ def category(name):
     if 'ExLoopT<' in name and any(n in name for n in [
         '::drain_tasks<','::drain_tasks_read_local_interleaved<',
         '::exec_batch<','::exec_batch_prefetched<','::execute<','::fused_pass_impl<',
-        '::fused_sweep_impl<','::fused_baseline_sweep()',
+        '::fused_sweep_impl<','::fused_baseline_sweep()','::fused_owner_turn<',
         '::prefetch_overlap_batch(', '::prefetch_owner_batch(', '::sweep<','::run()']): return 'scheduler'
     if 'IoLoop::' in name and any(n in name for n in [
         '::run_loop<','::flush_ready<','::pipeline_pass<','::wb_prefetch<']): return 'envelope'

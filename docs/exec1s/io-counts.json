@@ -1,0 +1,33 @@
+{
+  "scope": "multi_dispatch_entry through preparation/dispatch; queueing is outside",
+  "cases": [
+    {
+      "namespace": "normal",
+      "mode": "1s",
+      "pre": 11176,
+      "post": 6930,
+      "delta": -4246
+    },
+    {
+      "namespace": "normal",
+      "mode": "2s",
+      "pre": 8776,
+      "post": 6930,
+      "delta": -1846
+    },
+    {
+      "namespace": "db0",
+      "mode": "1s",
+      "pre": 9992,
+      "post": 5846,
+      "delta": -4146
+    },
+    {
+      "namespace": "db0",
+      "mode": "2s",
+      "pre": 7592,
+      "post": 5846,
+      "delta": -1746
+    }
+  ]
+}

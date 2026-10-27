@@ -1,0 +1,83 @@
+{
+  "source_commit": "c7ca4f0bfc6cb31b5bd6694ac73938b0e4c3f131",
+  "kind": "real production owner-word helper under TSAN plus exact old-overlap control",
+  "unit_sha256": "2e17896de9c682b845668d92dd57eab0fc48e6de844799c0297ab42272a4278c",
+  "production_helper_source_sha256": "ea7cb4eba1492807c75b522e83e59a51016b943c6eddd1153903387f8308a0cd",
+  "command": [
+    "taskset",
+    "-c",
+    "80-95",
+    "env",
+    "TSAN_OPTIONS=halt_on_error=1:exitcode=66",
+    "setarch",
+    "x86_64",
+    "-R",
+    "build/exec1s-word-tsan",
+    "word",
+    "/home/user/Projects/cx-exec1s/build/exec1s-evidence/audit-directed/word-wide-control.log"
+  ],
+  "passed": true,
+  "wide_control_report": true,
+  "positive_log_sha256": "185429bdca75e8e4ec70bee5c2209d70f3d294d382f7fa65fafce9b49ccdb872",
+  "control_log_sha256": "485103f00579a9fe40a3ca8d1bd16c86b63dd96899149ad7462697639a974b9a",
+  "byte_range": [
+    1317,
+    1319
+  ],
+  "excluded_reader_byte": 1316,
+  "wrap": 256,
+  "actual_256_live_group_fixtures": [
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "80-95",
+        "build/exec1s-unit",
+        "reclaim",
+        "1s",
+        "0"
+      ],
+      "log": "build/exec1s-evidence/audit-directed/reclaim-1s-0.log",
+      "returncode": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "80-95",
+        "build/exec1s-unit",
+        "reclaim",
+        "1s",
+        "1"
+      ],
+      "log": "build/exec1s-evidence/audit-directed/reclaim-1s-1.log",
+      "returncode": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "80-95",
+        "build/exec1s-unit",
+        "reclaim",
+        "2s",
+        "0"
+      ],
+      "log": "build/exec1s-evidence/audit-directed/reclaim-2s-0.log",
+      "returncode": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "80-95",
+        "build/exec1s-unit",
+        "reclaim",
+        "2s",
+        "1"
+      ],
+      "log": "build/exec1s-evidence/audit-directed/reclaim-2s-1.log",
+      "returncode": 0
+    }
+  ]
+}

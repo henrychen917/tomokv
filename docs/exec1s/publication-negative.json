@@ -1,0 +1,89 @@
+{
+  "source_commit": "c7ca4f0bfc6cb31b5bd6694ac73938b0e4c3f131",
+  "kind": "serverless directed preliminary checks; selected gate rows still pending",
+  "production_sha256": "dfcf400519a720a86481dec6c1e61d694c63eef67ef716802cb41847b3bba564",
+  "positive_unit_sha256": "890988f3be39f7ed0e931f23e0483caf5f66918e4ee94763cb7340960cf98d15",
+  "old_guard_unit_sha256": "4bbb8c5182e28f8766ff20fb8b66ff70a1e98e4f26a13aa12501d0b967d45cdf",
+  "positive": [
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "80-95",
+        "build/exec1s-unit",
+        "publication",
+        "1s",
+        "0"
+      ],
+      "log": "build/exec1s-evidence/audit-directed/publication-1s-0.log",
+      "returncode": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "80-95",
+        "build/exec1s-unit",
+        "publication",
+        "1s",
+        "1"
+      ],
+      "log": "build/exec1s-evidence/audit-directed/publication-1s-1.log",
+      "returncode": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "80-95",
+        "build/exec1s-unit",
+        "publication",
+        "2s",
+        "0"
+      ],
+      "log": "build/exec1s-evidence/audit-directed/publication-2s-0.log",
+      "returncode": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "80-95",
+        "build/exec1s-unit",
+        "publication",
+        "2s",
+        "1"
+      ],
+      "log": "build/exec1s-evidence/audit-directed/publication-2s-1.log",
+      "returncode": 0
+    }
+  ],
+  "negative": [
+    {
+      "mode": "1s",
+      "atomic": "0",
+      "returncode": 1,
+      "expected_failure": true
+    },
+    {
+      "mode": "1s",
+      "atomic": "1",
+      "returncode": 1,
+      "expected_failure": true
+    },
+    {
+      "mode": "2s",
+      "atomic": "0",
+      "returncode": 1,
+      "expected_failure": true
+    },
+    {
+      "mode": "2s",
+      "atomic": "1",
+      "returncode": 1,
+      "expected_failure": true
+    }
+  ],
+  "old_guard": "if (shard.store().size() != shard.published_size()) shard.publish_size();",
+  "witness": "standalone transaction task publishes non-size statistics"
+}

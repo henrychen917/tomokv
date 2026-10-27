@@ -1,0 +1,26 @@
+{
+  "kind": "correctness-only observer, no rate claims",
+  "instrument_sha256": "1e5e68fa0ed878431a5741eb108462530263cb74bbfb7442bd13e121d577f4f5",
+  "control_binary": "build/exec1s/ring-scope",
+  "control_sha256": "ae462eff33eb9f31131f343ad08fbeea4a01b058f125ec18a1bef6d5c8bc1112",
+  "rows": [
+    {
+      "fd": 3,
+      "deferred": 1,
+      "taskrun_flag": 1,
+      "samples": 389,
+      "overflow_samples": 0,
+      "dropped": 0
+    },
+    {
+      "fd": 4,
+      "deferred": 1,
+      "taskrun_flag": 1,
+      "samples": 23,
+      "overflow_samples": 2,
+      "dropped": 0
+    }
+  ],
+  "overflow_window_observed": true,
+  "log": "build/exec1s-evidence/cq-watch-control.log"
+}
