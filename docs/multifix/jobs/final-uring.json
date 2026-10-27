@@ -1,0 +1,41 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "32-39",
+    "--load-cores",
+    "40-47",
+    "--load-smt",
+    "",
+    "--ports",
+    "20530-20539",
+    "--candidate-binary",
+    "/home/user/Projects/cx-multifix/build/multifix/tomokv-post-final"
+  ],
+  "cwd": "/home/user/Projects/cx-multifix",
+  "env": {
+    "LANG": "en_US.UTF-8",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_ONLY_JOBS": "multifix-1s-uring multifix-1s-epoll multifix-2s-uring multifix-2s-epoll redis_tcl differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_ZC_NET_IO": "uring",
+    "GATE_SHUTDOWN_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TEST_PORT": "20598",
+    "GATE_LEDGER": "/home/user/Projects/cx-multifix/docs/multifix/jobs/final-uring.tsv"
+  },
+  "binary_sha256": "b46977828bc7bbacb73a02243a7966a9f3a9afb59ad326740aea3c6d88b91c3c",
+  "source_commit": "01fabda27b09b528c995fa2339e98154e9f975ae",
+  "gate_sha256": "81e88029b86c013f6aac852fe752c543ac7a2795142c6433da2cad27edf77ae7",
+  "started": 1793091161.7701602,
+  "exit": 130,
+  "seconds": 108.29683136940002,
+  "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.YQexyZ",
+  "summary": [],
+  "binary_unchanged": true
+}

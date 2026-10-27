@@ -20,7 +20,7 @@ BUILD = ROOT / "build/multifix/commands"
 OUT.mkdir(parents=True,exist_ok=True)
 BUILD.mkdir(parents=True,exist_ok=True)
 ARMS = {"pre": (ROOT / "build/multifix/pre-source", ROOT / "build/multifix/pre-source/build"),
-        "post": (ROOT, ROOT / "build"), "initial": (ROOT, ROOT / "build")}
+        "post": (ROOT, ROOT / "build"), "final": (ROOT, ROOT / "build"), "initial": (ROOT, ROOT / "build")}
 
 
 def save(path, value):

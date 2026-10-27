@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Run Redis's unchanged Tcl tests in a private external-server checkout."""
-import argparse, base64, hashlib, json, os, shutil, signal, socket, subprocess, sys, time
+import argparse, base64, copy, hashlib, json, os, shutil, signal, socket, subprocess, sys, time
 from collections import Counter
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
@@ -197,6 +197,40 @@ def validate_passing(row, expected, known_setup_errors=()):
             row['exit_code'] != expected_rc):
         raise ValueError('passing subset failed, incomplete, or assertion inventory changed')
 
+def run_manifest_file(args, tree, unit, spec, extra, server_args):
+    """Keep required assertions whose skipped predecessors changed their setup.
+
+    The upstream zero-capacity check leaves slowlog-max-len=0. Its skipped
+    successors normally restore capacity before the EXEC check. Run that
+    unchanged check on a fresh server; retain the zero-capacity assertion and
+    require both runs' exact assertion inventory and completion evidence.
+    """
+    row=run_file(args,tree,unit,extra=extra,server_args=server_args)
+    fresh=spec.get('fresh_tests', [])
+    if not fresh: return row
+    folder=args.output/unit
+    (folder/'primary-result.json').write_text(json.dumps(row,indent=2)+'\n')
+    row['fresh_runs']=[]
+    for index, name in enumerate(fresh):
+        child=copy.copy(args);child.output=folder/'fresh'/str(index)
+        part=run_file(child,tree,unit,only=[name.split(' in tests/')[0]],
+                      extra=spec.get('extra_args', []),server_args=server_args)
+        # Validate this receipt independently: a missing, duplicated or failed
+        # isolated assertion cannot be covered by another segment's passes.
+        try: validate_passing(part,[name])
+        except ValueError as error:
+            part['error']='; '.join(filter(None,(part['error'],str(error))))
+        row['fresh_runs'].append(dict(test=name,result=str(child.output/unit/'result.json'),
+                                     error=part['error'],exit_code=part['exit_code']))
+        row['events']+=part['events']
+        for key in ('passed','failed','skipped','teardown_exceptions','seconds'):
+            row[key]+=part[key]
+        row['complete']=row['complete'] and part['complete']
+        row['exit_code']=row['exit_code'] or part['exit_code']
+        row['error']='; '.join(filter(None,(row['error'],part['error']))) or None
+    (folder/'result.json').write_text(json.dumps(row,indent=2)+'\n')
+    return row
+
 def load_manifest(path, redis_root, inventory):
     """The frozen subset: upstream bytes, required passes and NAMED known failures."""
     manifest=json.loads(Path(path).read_text())
@@ -212,6 +246,11 @@ def load_manifest(path, redis_root, inventory):
         required = {name.split(' in tests/')[0] for name in spec['passed_tests']}
         if not spec['passed_tests'] or set(spec.get('skip_tests', ())) & required:
             raise ValueError(f'manifest file has no required pass or skips a required test: {unit}')
+        fresh=spec.get('fresh_tests', [])
+        if fresh and (unit!='unit/slowlog' or fresh!=[
+                'SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl'] or
+                not set(fresh)<=set(spec['passed_tests'])):
+            raise ValueError(f'invalid fresh assertion setup: {unit}')
         # The upstream histogram file assumes Redis's default yes. TomoKV's
         # owner-selected default is no, so this explicit, bound file setup
         # enables the feature under test without editing upstream assertions.
@@ -258,9 +297,12 @@ def main():
             spec=manifest['files'][unit]
             server_args=spec.get('server_args', [])
             skipfile=args.output/unit/'skip.txt'; skipfile.parent.mkdir(parents=True,exist_ok=True)
-            skipfile.write_text(''.join(name+'\n' for name in sorted(spec.get('skip_tests', ()))), encoding='utf-8')
+            primary_skip=set(spec.get('skip_tests', ()))
+            primary_skip.update(name.split(' in tests/')[0] for name in spec.get('fresh_tests', []))
+            skipfile.write_text(''.join(name+'\n' for name in sorted(primary_skip)), encoding='utf-8')
             extra=['--skipfile',str(skipfile),*spec.get('extra_args',[])]
         if args.resume and path.exists(): row=json.loads(path.read_text())
+        elif args.manifest: row=run_manifest_file(args,tree,unit,spec,extra,server_args)
         else: row=run_file(args,tree,unit,extra=extra,server_args=server_args)
         if args.manifest:
             row['skip_tests']=sorted(spec.get('skip_tests', ()))

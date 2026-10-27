@@ -37,6 +37,8 @@ receipt=dict(argv=argv,cwd=str(a.root),env={k:v for k,v in env.items() if k.star
     binary_sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),
     source_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
     gate_sha256=hashlib.sha256((a.root/'tests/gate.sh').read_bytes()).hexdigest(),started=time.time())
+receipt['input_sha256']={name:hashlib.sha256((a.root/name).read_bytes()).hexdigest()
+                        for name in ('tests/multifix.py','tests/redis_tcl.py','tests/redis_tcl_passing.json')}
 with log.open('w') as f:
     result=subprocess.run(argv,cwd=a.root,env=env,stdout=f,stderr=subprocess.STDOUT)
 receipt.update(exit=result.returncode,seconds=time.time()-receipt['started'])

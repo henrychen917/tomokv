@@ -1,0 +1,30 @@
+Starting test server at port 20541
+[ready]: 3503158
+Testing unit/slowlog
+[ok]: SLOWLOG - check that it starts with an empty log (1 ms)
+[ok]: SLOWLOG - only logs commands taking more time than specified (200 ms)
+[ok]: SLOWLOG - zero max length is correctly handled (2 ms)
+[skip]: SLOWLOG - max entries is correctly handled
+[skip]: SLOWLOG - GET optional argument to limit output len works
+[ok]: SLOWLOG - RESET subcommand works (0 ms)
+[skip]: SLOWLOG - logged entry sanity check
+[skip]: SLOWLOG - Certain commands are omitted that contain sensitive information
+[skip]: SLOWLOG - Some commands can redact sensitive fields
+[skip]: SLOWLOG - Rewritten commands are logged as their original command
+[skip]: SLOWLOG - commands with too many arguments are trimmed
+[skip]: SLOWLOG - too long arguments are trimmed
+[skip]: SLOWLOG - EXEC is not logged, just executed commands
+[skip]: SLOWLOG - can clean older entries
+[ok]: SLOWLOG - can be disabled (401 ms)
+[ok]: SLOWLOG - count must be >= -1 (1 ms)
+[skip]: SLOWLOG - get all slow logs
+[skip]: SLOWLOG - blocking command is reported only after unblocked
+[1/1 done]: unit/slowlog (0 seconds)
+
+                   The End
+
+Execution time of different units:
+  0 seconds - unit/slowlog
+
+\o/ All tests passed without errors!
+

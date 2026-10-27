@@ -1,0 +1,15 @@
+{
+  "binary_sha256": "025af9078f39a72499d9a69b1957e0ab8ea5231d90483a6fa3d75bacd0814a09",
+  "test_sha256": "83387a4bbf4f4b6155beeae332ab9c0ed789d9a70ff5025b9e3e12fee6e692e8",
+  "rows": 18,
+  "passed": 18,
+  "modes": [
+    "1s",
+    "2s",
+    "redis"
+  ],
+  "candidate_atomic": 1,
+  "candidate_read_local": 1,
+  "candidate_engine": "uring",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b"
+}

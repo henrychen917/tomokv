@@ -28,5 +28,7 @@
     "multifix PAUSE-EXEC-NOT-HELD (2s epoll)": 1
   },
   "removed": {},
-  "note": "All new collect_job calls precede quick-tier exit: DQ=DF=24. Baseline declares 806/823 rows despite constants 798/815. Maintainer-owned expected counts should be 830/847."
+  "note": "All new collect_job calls precede quick-tier exit: DQ=DF=24. Baseline declares 806/823 rows despite constants 798/815. Maintainer-owned expected counts should be 830/847.",
+  "new_collection_line": 5620,
+  "quick_exit_line": 5793
 }

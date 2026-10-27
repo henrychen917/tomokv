@@ -1196,7 +1196,10 @@
     "SLOWLOG - logged entry sanity check": "failed or hung on TomoKV 2s in an earlier builder run (round 0)",
     "SLOWLOG - max entries is correctly handled": "failed on TomoKV 2s in the survey",
     "SLOWLOG - too long arguments are trimmed": "failed or hung on TomoKV 2s in an earlier builder run (round 0)"
-   }
+   },
+   "fresh_tests": [
+    "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl"
+   ]
   },
   "unit/sort": {
    "extra_args": [],
