@@ -1,0 +1,7 @@
+{
+  "binary": "/home/user/Projects/cx-wave8b/build/wave8b/controls/orphan-before",
+  "sha256": "beba7be16d622a64408ea36a0a9bba73a21d2911bb99e340520546f25d192f3f",
+  "exit": -6,
+  "stdout": "",
+  "stderr": "wave8b: rejected parent retained 1 script-child maps\n"
+}

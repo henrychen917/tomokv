@@ -38,6 +38,17 @@ static void transitions() {
     record_tracked(0, 0, child, 1, 0, SlowlogArm{-1, 0, true}, true, old);
     CoreConcurrencyTest::need(store(0).pending.empty() && store(0).script_children.empty());
     CoreConcurrencyTest::need(collect().empty());
+    // A late nested call can begin after yes while its ordinary parent still
+    // carries a pre-disable start. Rejecting that parent must consume its
+    // child map now, before the same Op address belongs to another command.
+    const auto late_child = latency_tracking_start();
+    latency_tracking_script_part(0, parent, child, late_child);
+    CoreConcurrencyTest::need(!store(0).script_children.empty());
+    record_tracked(0, 0, parent, 1, 0, SlowlogArm{-1, 0, true}, true, old);
+    const bool consumed = store(0).script_children.empty() && collect().empty();
+    if (!consumed) std::fprintf(stderr, "wave8b: rejected parent retained %zu script-child maps\n",
+                                store(0).script_children.size());
+    CoreConcurrencyTest::need(consumed);
     const auto fresh = latency_tracking_start();
     latency_tracking_part(0, parent, fresh);
     latency_tracking_retry(parent, child);

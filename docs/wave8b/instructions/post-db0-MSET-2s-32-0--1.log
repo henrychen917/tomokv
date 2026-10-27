@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-db0-MSET-2s-32-0--1.log
-SHA-256: a0d588270cde39661cf24d57f0a32b1e0ecc7465d2047ba70e1dd7c8d34ca3ac
+SHA-256: 468d3da015b6ad4e875fb64fc3c42e9283953797a90d071391921a400d81a08e
 Exit: 0
-0x00005555556a407d	2284	}
-0x00005555556a407e	2284	}
-0x00005555556a4080	2284	}
-0x00005555556a4082	2284	}
-0x00005555556a4084	2284	}
-0x0000555555d90f26 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
+0x00005555556a411d	2284	}
+0x00005555556a411e	2284	}
+0x00005555556a4120	2284	}
+0x00005555556a4122	2284	}
+0x00005555556a4124	2284	}
+0x0000555555d91896 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
 180	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
 163	   for(unsigned i=0;i<n;i++){
-0x0000555555d90f32	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d90f39	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d90f41	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d90f48	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d90f4e	183	   std::string want="+OK\r\n";
-0x0000555555d90f55	183	   std::string want="+OK\r\n";
-0x0000555555d90f5c	182	   scope_end();
+0x0000555555d918a2	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d918a9	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d918b1	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d918b8	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d918be	183	   std::string want="+OK\r\n";
+0x0000555555d918c5	183	   std::string want="+OK\r\n";
+0x0000555555d918cc	182	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
 30	[[gnu::noinline]] void scope_end(){
-[Inferior 1 (process 330135) exited normally]
+[Inferior 1 (process 1853436) exited normally]
 COUNT 350629

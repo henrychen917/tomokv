@@ -122,6 +122,10 @@ def main():
     for r in changed:
         if not r['matches'] and re.search(r'latency_tracking|LatencyTracking|multi_execute_task_tracked|execute_resumed_latency', r['name']):
             r['reason'] = 'wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC.'
+        elif not r['matches'] and re.search(r'::slowlog_(?:record|complete)\(', r['name']):
+            r['reason'] = 'wave8b carries the actual start into the bound recorder to reject delayed callbacks crossing CONFIG no/yes; ordinary slowlog consumes the same duration.'
+        elif not r['matches'] and 'deferred_timer_pass' in r['name']:
+            r['reason'] = 'wave8b WAIT joins discardable active slices instead of retaining a pre-disable duration in its timer; DEBUG SLEEP carries its exact start.'
         elif not r['matches'] and re.search(r'::multi_|blocking_execute|blocking_run_direct|execute_resumed', r['name']):
             r['reason'] = 'wave8b feature selection/conditional scopes plus compiler propagation; exact command-scope delta is in exec-attribution.json.'
         elif r['matches']:

@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-normal-MGET-2s-1-1--1.log
-SHA-256: 889e140312e4547685e119be58e91184b47642b6107545aafe148ac7d9512ff4
+SHA-256: 3bd9686c629595708fda250dc393d433cfbba20f2f0ac87e19a001024e04a84b
 Exit: 0
-0x0000555555a78a4e	2284	}
-0x0000555555a78a50	2284	}
-0x0000555555a78a52	2284	}
-0x0000555555a78a54	2284	}
-0x0000555555d90db6 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
+0x0000555555a78f4e	2284	}
+0x0000555555a78f50	2284	}
+0x0000555555a78f52	2284	}
+0x0000555555a78f54	2284	}
+0x0000555555d91726 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
 180	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
 163	   for(unsigned i=0;i<n;i++){
-0x0000555555d90dc1	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d90dc9	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d90dd0	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d90dd8	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d90ddb	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d90de1	183	   std::string want="+OK\r\n";
-0x0000555555d90de8	183	   std::string want="+OK\r\n";
-0x0000555555d90def	182	   scope_end();
+0x0000555555d91731	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d91739	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d91740	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d91748	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d9174b	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d91751	183	   std::string want="+OK\r\n";
+0x0000555555d91758	183	   std::string want="+OK\r\n";
+0x0000555555d9175f	182	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
 30	[[gnu::noinline]] void scope_end(){
-[Inferior 1 (process 295401) exited normally]
+[Inferior 1 (process 1822383) exited normally]
 COUNT 10243

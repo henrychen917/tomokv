@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-db0-SET-1s-1-1--1.log
-SHA-256: 27ed1cfe3fd04953ee44ed51a00915e8d46510ffe6f15232fa80ffd21a143861
+SHA-256: 314a999d8df9faac2911a309e3680ae445cea2454132e54b40ca973d4b2ab108
 Exit: 0
 2356	    }
-0x00005555558aeb78	2356	    }
-0x00005555558aeb81	2356	    }
-0x00005555558aeb87	2356	    }
-0x00005555558aeb8b	2356	    }
-0x00005555558aeb8c	2356	    }
-0x00005555558aeb8e	2356	    }
-0x00005555558aeb90	2356	    }
-0x00005555558aeb92	2356	    }
-0x00005555558aeb94	2356	    }
-0x00005555558aeb95	2356	    }
-0x0000555555d8ce08 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:140
+0x00005555558aecb8	2356	    }
+0x00005555558aecc1	2356	    }
+0x00005555558aecc7	2356	    }
+0x00005555558aeccb	2356	    }
+0x00005555558aeccc	2356	    }
+0x00005555558aecce	2356	    }
+0x00005555558aecd0	2356	    }
+0x00005555558aecd2	2356	    }
+0x00005555558aecd4	2356	    }
+0x00005555558aecd5	2356	    }
+0x0000555555d8d778 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:140
 140	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
 30	[[gnuTomoKV 1.0-cpp (Redis 7.4.10 compatible)
 PASS bounded production command scope
 ::noinline]] void scope_end(){
-[Inferior 1 (process 306270) exited normally]
+[Inferior 1 (process 1832202) exited normally]
 COUNT 955

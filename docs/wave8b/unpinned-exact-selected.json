@@ -1,0 +1,128 @@
+[
+  {
+    "object": "db0/src/cmd/tracking.o",
+    "budget": 10000,
+    "score": [
+      6,
+      71,
+      166,
+      782
+    ],
+    "trials": [
+      {
+        "budget": 9992,
+        "score": [
+          6,
+          71,
+          166,
+          786
+        ],
+        "code_digest": "b0eeef59cf5acafd1ff1f8f3a20420bc03e407f2fc233e98a2be79775ae2f1e5"
+      },
+      {
+        "budget": 10000,
+        "score": [
+          6,
+          71,
+          166,
+          782
+        ],
+        "code_digest": "73415a92ced575d744687f3bb25cec69bfcf6ae62c4a1ce4bcd4a7a51f06b0dc"
+      },
+      {
+        "budget": 10008,
+        "score": [
+          6,
+          71,
+          166,
+          784
+        ],
+        "code_digest": "3e78c4ef016620fa237d8f7c65bbeaf31d0fb1ec76b21a18437d599dd3439b25"
+      }
+    ]
+  },
+  {
+    "object": "src/cmd/latency_tracking.o",
+    "budget": 10000,
+    "score": [
+      6,
+      71,
+      166,
+      782
+    ],
+    "trials": [
+      {
+        "budget": 9992,
+        "score": [
+          6,
+          71,
+          166,
+          782
+        ],
+        "code_digest": "28844d5df07aaaa036fca9eaed582f0941d5bd22b2d00063c6b6d64700d79be5"
+      },
+      {
+        "budget": 10000,
+        "score": [
+          6,
+          71,
+          166,
+          782
+        ],
+        "code_digest": "c5c2f6ea8df699d82a2d3dbef3133849d09d6599924427173f3924ec407a6dde"
+      },
+      {
+        "budget": 10008,
+        "score": [
+          6,
+          71,
+          166,
+          782
+        ],
+        "code_digest": "88632a643e3b3a82cc060fe9b1e8dc06ef32819af8e791a70404e18c32dffc8a"
+      }
+    ]
+  },
+  {
+    "object": "src/cmd/tracking.o",
+    "budget": 10000,
+    "score": [
+      6,
+      71,
+      166,
+      782
+    ],
+    "trials": [
+      {
+        "budget": 9992,
+        "score": [
+          6,
+          71,
+          166,
+          785
+        ],
+        "code_digest": "73387c5fb8691ce1f65699a9fb2e9d736091b909c6312e4013cd32155e90c1c9"
+      },
+      {
+        "budget": 10000,
+        "score": [
+          6,
+          71,
+          166,
+          782
+        ],
+        "code_digest": "2152f7e82e97b3ffff06842a66e3365b0f33b17103095fafa7433fbe65cd5a12"
+      },
+      {
+        "budget": 10008,
+        "score": [
+          6,
+          71,
+          166,
+          783
+        ],
+        "code_digest": "c96b93822832ac80e94ff521699cfc6f0f55aa3b33c77b15aa4cd1cbfb6c0b80"
+      }
+    ]
+  }
+]

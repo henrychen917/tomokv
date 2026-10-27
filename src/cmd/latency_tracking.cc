@@ -150,6 +150,10 @@ void record_tracked(uint32_t executor, uint64_t client, const Op& op, uint64_t n
             // A delayed callback cannot reconstruct its beginning from a new
             // clock read minus the old duration: no/yes may occupy that gap.
             if (started > cut) record_generation(executor, op, ns, cut);
+            // An ordinary script cannot resume after this completion. Nested
+            // calls begun after yes must not survive their rejected parent and
+            // attach to the next command using the same ROB slot.
+            else latency_tracking_forget(op);
         }
     slowlog_record(executor, client, op, ns, ms, arm, exact, started);
 }

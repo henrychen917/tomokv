@@ -9345,7 +9345,7 @@
     "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
   },
   {
-    "name": "tomo::(anonymous namespace)::record_tracked(unsigned int, unsigned long, tomo::Op const&, unsigned long, long, tomo::SlowlogArm const&, bool)",
+    "name": "tomo::(anonymous namespace)::record_tracked(unsigned int, unsigned long, tomo::Op const&, unsigned long, long, tomo::SlowlogArm const&, bool, unsigned long)",
     "hot": false,
     "counted_command_scope": false,
     "command_hot": false,
@@ -9354,13 +9354,11 @@
     "execindex_equal": false,
     "headline_sizes": [],
     "post_sizes": [
-      270
+      223
     ],
     "matches": [],
-    "changed_lanes": [
-      "latencyfix"
-    ],
-    "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
   },
   {
     "name": "tomo::(anonymous namespace)::redis_dispatch(lua_State*, bool)",
@@ -13231,7 +13229,7 @@
       12904
     ],
     "post_sizes": [
-      12898
+      12975
     ],
     "matches": [],
     "changed_lanes": [
@@ -13251,15 +13249,13 @@
       18814
     ],
     "post_sizes": [
-      19321
+      19469
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
   },
   {
     "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
@@ -13273,16 +13269,14 @@
       20624
     ],
     "post_sizes": [
-      19883
+      19879
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix",
       "execindex"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "Composition of latencyfix, execindex; residual instructions/layout require merit review."
   },
   {
     "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
@@ -13298,14 +13292,12 @@
     "post_sizes": [
       280
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix",
       "execindex"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "Composition of latencyfix, execindex; residual instructions/layout require merit review."
   },
   {
     "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
@@ -13319,7 +13311,7 @@
       21091
     ],
     "post_sizes": [
-      20112
+      20181
     ],
     "matches": [],
     "changed_lanes": [
@@ -13340,7 +13332,7 @@
       12925
     ],
     "post_sizes": [
-      12962
+      13065
     ],
     "matches": [],
     "changed_lanes": [
@@ -13363,20 +13355,18 @@
       10947
     ],
     "post_sizes": [
-      10536,
-      11382,
-      10467,
-      11505
+      10662,
+      11439,
+      10604,
+      11685
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix",
       "iofix3",
       "execindex"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "Composition of latencyfix, iofix3, execindex; residual instructions/layout require merit review."
   },
   {
     "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
@@ -13396,17 +13386,15 @@
       166,
       244,
       166,
-      247
+      244
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix",
       "iofix3",
       "execindex"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "Composition of latencyfix, iofix3, execindex; residual instructions/layout require merit review."
   },
   {
     "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)",
@@ -13420,15 +13408,13 @@
       18787
     ],
     "post_sizes": [
-      19261
+      19418
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
   },
   {
     "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
@@ -13443,17 +13429,15 @@
       19325
     ],
     "post_sizes": [
-      19991,
-      19736
+      20078,
+      19821
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix",
       "execindex"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "Composition of latencyfix, execindex; residual instructions/layout require merit review."
   },
   {
     "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
@@ -13468,17 +13452,15 @@
       293
     ],
     "post_sizes": [
-      298,
+      294,
       279
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix",
       "execindex"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "Composition of latencyfix, execindex; residual instructions/layout require merit review."
   },
   {
     "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
@@ -13492,16 +13474,14 @@
       21000
     ],
     "post_sizes": [
-      20189
+      20245
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix",
       "execindex"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "Composition of latencyfix, execindex; residual instructions/layout require merit review."
   },
   {
     "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)",
@@ -13515,15 +13495,13 @@
       18398
     ],
     "post_sizes": [
-      19000
+      19052
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
   },
   {
     "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)",
@@ -13537,15 +13515,13 @@
       18306
     ],
     "post_sizes": [
-      18798
+      18931
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
   },
   {
     "name": "tomo::IoLoop::IoLoop()",
@@ -13819,15 +13795,13 @@
       1821
     ],
     "post_sizes": [
-      1934
+      1966
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "wave8b WAIT joins discardable active slices instead of retaining a pre-disable duration in its timer; DEBUG SLEEP carries its exact start."
   },
   {
     "name": "tomo::IoLoop::deferred_timer_start(tomo::Client*, unsigned long, tomo::IoLoop::DeferredTimerKind, unsigned long, unsigned long, tomo::SlowlogArm const&)",
@@ -14353,13 +14327,11 @@
     "post_sizes": [
       191
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC."
   },
   {
     "name": "tomo::LatencyTrackingPart::finish()",
@@ -17615,13 +17587,11 @@
     "post_sizes": [
       273
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC."
   },
   {
     "name": "tomo::latency_tracking_discard_pending()",
@@ -17977,13 +17947,11 @@
     "post_sizes": [
       94
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC."
   },
   {
     "name": "tomo::lb_stall_reason(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
@@ -18894,15 +18862,13 @@
       142
     ],
     "post_sizes": [
-      145
+      148
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "wave8b carries the actual start into the bound recorder to reject delayed callbacks crossing CONFIG no/yes; ordinary slowlog consumes the same duration."
   },
   {
     "name": "tomo::slowlog_note_client(unsigned long, char const*)",
@@ -18951,6 +18917,70 @@
       "execindex"
     ],
     "reason": "Exact linked body from execindex; lane change retained."
+  },
+  {
+    "name": "tomo::slowlog_record(unsigned int, unsigned long, tomo::Op const&, unsigned long, long, tomo::SlowlogArm const&, bool)",
+    "hot": true,
+    "counted_command_scope": true,
+    "command_hot": false,
+    "equal": false,
+    "exec_watch": false,
+    "execindex_equal": false,
+    "headline_sizes": [
+      859
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "wave8b carries the actual start into the bound recorder to reject delayed callbacks crossing CONFIG no/yes; ordinary slowlog consumes the same duration."
+  },
+  {
+    "name": "tomo::slowlog_record(unsigned int, unsigned long, tomo::Op const&, unsigned long, long, tomo::SlowlogArm const&, bool) [clone .cold]",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "exec_watch": false,
+    "execindex_equal": false,
+    "headline_sizes": [
+      43
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "wave8b carries the actual start into the bound recorder to reject delayed callbacks crossing CONFIG no/yes; ordinary slowlog consumes the same duration."
+  },
+  {
+    "name": "tomo::slowlog_record(unsigned int, unsigned long, tomo::Op const&, unsigned long, long, tomo::SlowlogArm const&, bool, unsigned long)",
+    "hot": true,
+    "counted_command_scope": true,
+    "command_hot": false,
+    "equal": false,
+    "exec_watch": false,
+    "execindex_equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      859
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "wave8b carries the actual start into the bound recorder to reject delayed callbacks crossing CONFIG no/yes; ordinary slowlog consumes the same duration."
+  },
+  {
+    "name": "tomo::slowlog_record(unsigned int, unsigned long, tomo::Op const&, unsigned long, long, tomo::SlowlogArm const&, bool, unsigned long) [clone .cold]",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "exec_watch": false,
+    "execindex_equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      43
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "wave8b carries the actual start into the bound recorder to reject delayed callbacks crossing CONFIG no/yes; ordinary slowlog consumes the same duration."
   },
   {
     "name": "tomo::snapshot_bind_io(tomo::ThreadCtx*, tomo::Ring*)",
@@ -21160,7 +21190,7 @@
     "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
   },
   {
-    "name": "tomo_db0::(anonymous namespace)::record_tracked(unsigned int, unsigned long, tomo_db0::Op const&, unsigned long, long, tomo_db0::SlowlogArm const&, bool)",
+    "name": "tomo_db0::(anonymous namespace)::record_tracked(unsigned int, unsigned long, tomo_db0::Op const&, unsigned long, long, tomo_db0::SlowlogArm const&, bool, unsigned long)",
     "hot": false,
     "counted_command_scope": false,
     "command_hot": false,
@@ -21169,13 +21199,11 @@
     "execindex_equal": false,
     "headline_sizes": [],
     "post_sizes": [
-      270
+      223
     ],
     "matches": [],
-    "changed_lanes": [
-      "latencyfix"
-    ],
-    "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
   },
   {
     "name": "tomo_db0::(anonymous namespace)::redis_dispatch(lua_State*, bool)",
@@ -24881,15 +24909,13 @@
       12757
     ],
     "post_sizes": [
-      12759
+      12815
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
   },
   {
     "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
@@ -24903,15 +24929,13 @@
       18869
     ],
     "post_sizes": [
-      19097
+      19211
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
   },
   {
     "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
@@ -24925,7 +24949,7 @@
       21326
     ],
     "post_sizes": [
-      21478
+      21528
     ],
     "matches": [],
     "changed_lanes": [
@@ -24945,7 +24969,7 @@
       276
     ],
     "post_sizes": [
-      272
+      275
     ],
     "matches": [],
     "changed_lanes": [
@@ -24965,7 +24989,7 @@
       21808
     ],
     "post_sizes": [
-      21921
+      22017
     ],
     "matches": [],
     "changed_lanes": [
@@ -24985,15 +25009,13 @@
       12809
     ],
     "post_sizes": [
-      12865
+      12953
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
   },
   {
     "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
@@ -25010,10 +25032,10 @@
       10859
     ],
     "post_sizes": [
-      10386,
-      12516,
-      10410,
-      11419
+      10546,
+      12412,
+      10546,
+      11503
     ],
     "matches": [],
     "changed_lanes": [
@@ -25040,7 +25062,7 @@
       166,
       248,
       166,
-      248
+      244
     ],
     "matches": [],
     "changed_lanes": [
@@ -25060,15 +25082,13 @@
       18690
     ],
     "post_sizes": [
-      19059
+      19180
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
   },
   {
     "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
@@ -25083,8 +25103,8 @@
       19230
     ],
     "post_sizes": [
-      21594,
-      19663
+      21693,
+      19695
     ],
     "matches": [],
     "changed_lanes": [
@@ -25105,8 +25125,8 @@
       293
     ],
     "post_sizes": [
-      286,
-      283
+      289,
+      279
     ],
     "matches": [],
     "changed_lanes": [
@@ -25126,7 +25146,7 @@
       21649
     ],
     "post_sizes": [
-      21915
+      21993
     ],
     "matches": [],
     "changed_lanes": [
@@ -25146,16 +25166,14 @@
       18553
     ],
     "post_sizes": [
-      18941
+      19014
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix",
       "execindex"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "Composition of latencyfix, execindex; residual instructions/layout require merit review."
   },
   {
     "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
@@ -25169,15 +25187,13 @@
       18487
     ],
     "post_sizes": [
-      18732
+      18792
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
   },
   {
     "name": "tomo_db0::IoLoop::IoLoop()",
@@ -25403,15 +25419,13 @@
       1821
     ],
     "post_sizes": [
-      1934
+      1966
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "wave8b WAIT joins discardable active slices instead of retaining a pre-disable duration in its timer; DEBUG SLEEP carries its exact start."
   },
   {
     "name": "tomo_db0::IoLoop::deferred_timer_start(tomo_db0::Client*, unsigned long, tomo_db0::IoLoop::DeferredTimerKind, unsigned long, unsigned long, tomo_db0::SlowlogArm const&)",
@@ -26022,13 +26036,11 @@
     "post_sizes": [
       191
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC."
   },
   {
     "name": "tomo_db0::LatencyTrackingPart::finish()",
@@ -28978,13 +28990,11 @@
     "post_sizes": [
       273
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC."
   },
   {
     "name": "tomo_db0::latency_tracking_discard_pending()",
@@ -29340,13 +29350,11 @@
     "post_sizes": [
       94
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC."
   },
   {
     "name": "tomo_db0::lb_stall_reason(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
@@ -30312,15 +30320,13 @@
       142
     ],
     "post_sizes": [
-      145
+      148
     ],
-    "matches": [
-      "latencyfix"
-    ],
+    "matches": [],
     "changed_lanes": [
       "latencyfix"
     ],
-    "reason": "Exact linked body from latencyfix; lane change retained."
+    "reason": "wave8b carries the actual start into the bound recorder to reject delayed callbacks crossing CONFIG no/yes; ordinary slowlog consumes the same duration."
   },
   {
     "name": "tomo_db0::slowlog_note_client(unsigned long, char const*)",
@@ -30369,6 +30375,70 @@
       "execindex"
     ],
     "reason": "Exact linked body from execindex; lane change retained."
+  },
+  {
+    "name": "tomo_db0::slowlog_record(unsigned int, unsigned long, tomo_db0::Op const&, unsigned long, long, tomo_db0::SlowlogArm const&, bool)",
+    "hot": true,
+    "counted_command_scope": true,
+    "command_hot": false,
+    "equal": false,
+    "exec_watch": false,
+    "execindex_equal": false,
+    "headline_sizes": [
+      859
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "wave8b carries the actual start into the bound recorder to reject delayed callbacks crossing CONFIG no/yes; ordinary slowlog consumes the same duration."
+  },
+  {
+    "name": "tomo_db0::slowlog_record(unsigned int, unsigned long, tomo_db0::Op const&, unsigned long, long, tomo_db0::SlowlogArm const&, bool) [clone .cold]",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "exec_watch": false,
+    "execindex_equal": false,
+    "headline_sizes": [
+      43
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "wave8b carries the actual start into the bound recorder to reject delayed callbacks crossing CONFIG no/yes; ordinary slowlog consumes the same duration."
+  },
+  {
+    "name": "tomo_db0::slowlog_record(unsigned int, unsigned long, tomo_db0::Op const&, unsigned long, long, tomo_db0::SlowlogArm const&, bool, unsigned long)",
+    "hot": true,
+    "counted_command_scope": true,
+    "command_hot": false,
+    "equal": false,
+    "exec_watch": false,
+    "execindex_equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      859
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "wave8b carries the actual start into the bound recorder to reject delayed callbacks crossing CONFIG no/yes; ordinary slowlog consumes the same duration."
+  },
+  {
+    "name": "tomo_db0::slowlog_record(unsigned int, unsigned long, tomo_db0::Op const&, unsigned long, long, tomo_db0::SlowlogArm const&, bool, unsigned long) [clone .cold]",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "exec_watch": false,
+    "execindex_equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      43
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "wave8b carries the actual start into the bound recorder to reject delayed callbacks crossing CONFIG no/yes; ordinary slowlog consumes the same duration."
   },
   {
     "name": "tomo_db0::snapshot_bind_io(tomo_db0::ThreadCtx*, tomo_db0::Ring*)",
@@ -31605,7 +31675,7 @@
       2576
     ],
     "post_sizes": [
-      2574
+      2497
     ],
     "matches": [],
     "changed_lanes": [
@@ -35569,13 +35639,15 @@
       5425
     ],
     "post_sizes": [
-      5318
+      5292
     ],
-    "matches": [],
+    "matches": [
+      "latencyfix"
+    ],
     "changed_lanes": [
       "latencyfix"
     ],
-    "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    "reason": "Exact linked body from latencyfix; lane change retained."
   },
   {
     "name": "void tomo::IoLoop::r7_run_loop<true, false, false, true, false>()",
@@ -37468,13 +37540,15 @@
       5441
     ],
     "post_sizes": [
-      5245
+      5218
     ],
-    "matches": [],
+    "matches": [
+      "latencyfix"
+    ],
     "changed_lanes": [
       "latencyfix"
     ],
-    "reason": "latencyfix changes this body; merged compiler propagation differs from isolated POST."
+    "reason": "Exact linked body from latencyfix; lane change retained."
   },
   {
     "name": "void tomo_db0::IoLoop::run_loop<true, false, false, false, false>()",

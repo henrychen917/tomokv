@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-db0-MSET-1s-1-0--1.log
-SHA-256: cfecb43e404ddbc7c4cc9b20fbf776aa8e2574ffc0f50d58e47f7f6277a88570
+SHA-256: 1b89f9b81220dd3c9c3f711b35ebf078836f1f642101759996dbd458c3b8920b
 Exit: 0
-0x00005555556a407d	2284	}
-0x00005555556a407e	2284	}
-0x00005555556a4080	2284	}
-0x00005555556a4082	2284	}
-0x00005555556a4084	2284	}
-0x0000555555d8d407 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
+0x00005555556a411d	2284	}
+0x00005555556a411e	2284	}
+0x00005555556a4120	2284	}
+0x00005555556a4122	2284	}
+0x00005555556a4124	2284	}
+0x0000555555d8dd77 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
 180	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
 163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8d413	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8d41a	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8d422	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8d429	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8d42f	183	   std::string want="+OK\r\n";
-0x0000555555d8d436	183	   std::string want="+OK\r\n";
-0x0000555555d8d43d	182	   scope_end();
+0x0000555555d8dd83	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8dd8a	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8dd92	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8dd99	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8dd9f	183	   std::string want="+OK\r\n";
+0x0000555555d8dda6	183	   std::string want="+OK\r\n";
+0x0000555555d8ddad	182	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
 30	[[gnu::noinline]] void scope_end(){
-[Inferior 1 (process 319667) exited normally]
+[Inferior 1 (process 1842472) exited normally]
 COUNT 11143

@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-db0-MSET-1s-32-1--1.log
-SHA-256: 06bb7b2f526063d3276a5fb827729edf837d72884b18af10ee98de6acffe9320
+SHA-256: 719834c29ff82a5d07c8909de57ee8d2a103a0d804a657c68525917955fd32cd
 Exit: 0
-0x0000555555688d99	569	}
-0x0000555555688d9a	569	}
-0x0000555555688d9c	569	}
-0x0000555555688d9e	569	}
-0x0000555555688da0	569	}
-0x0000555555d8d407 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
+0x0000555555688e39	569	}
+0x0000555555688e3a	569	}
+0x0000555555688e3c	569	}
+0x0000555555688e3e	569	}
+0x0000555555688e40	569	}
+0x0000555555d8dd77 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
 180	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
 163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8d413	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8d41a	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8d422	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8d429	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8d42f	183	   std::string want="+OK\r\n";
-0x0000555555d8d436	183	   std::string want="+OK\r\n";
-0x0000555555d8d43d	182	   scope_end();
+0x0000555555d8dd83	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8dd8a	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8dd92	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8dd99	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8dd9f	183	   std::string want="+OK\r\n";
+0x0000555555d8dda6	183	   std::string want="+OK\r\n";
+0x0000555555d8ddad	182	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
 30	[[gnu::noinline]] void scope_end(){
-[Inferior 1 (process 329583) exited normally]
+[Inferior 1 (process 1852902) exited normally]
 COUNT 955046

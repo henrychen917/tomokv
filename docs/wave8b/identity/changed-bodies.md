@@ -457,7 +457,7 @@ Strict gate instruction/address normalization; local clone multiplicity retained
 | `tomo::(anonymous namespace)::random_bounded(unsigned long) [clone .part.0]` | [85] | [85] | Exact linked body from latencyfix; lane change retained. |
 | `tomo::(anonymous namespace)::record_generation(unsigned int, tomo::Op const&, unsigned long, unsigned long)` | [] | [571] | Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated. |
 | `tomo::(anonymous namespace)::record_generation(unsigned int, tomo::Op const&, unsigned long, unsigned long) [clone .cold]` | [] | [19] | Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated. |
-| `tomo::(anonymous namespace)::record_tracked(unsigned int, unsigned long, tomo::Op const&, unsigned long, long, tomo::SlowlogArm const&, bool)` | [] | [270] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
+| `tomo::(anonymous namespace)::record_tracked(unsigned int, unsigned long, tomo::Op const&, unsigned long, long, tomo::SlowlogArm const&, bool, unsigned long)` | [] | [223] | Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated. |
 | `tomo::(anonymous namespace)::redis_dispatch(lua_State*, bool)` | [3612] | [3757] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
 | `tomo::(anonymous namespace)::redis_dispatch(lua_State*, bool) [clone .cold]` | [268] | [302] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
 | `tomo::(anonymous namespace)::redis_sha1hex(lua_State*)` | [] | [459] | Exact linked body from lualibs; lane change retained. |
@@ -631,20 +631,20 @@ Strict gate instruction/address normalization; local clone multiplicity retained
 | `tomo::HashFieldMap::set(tomo::Slice, tomo::Slice)` | [2260] | [2260] | Composition of readability-a0, lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
 | `tomo::HashFieldTtl::erase(tomo::Slice)` | [954] | [954] | Composition of lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
 | `tomo::HashFieldTtl::set(tomo::Slice, long)` | [1169] | [1169] | Composition of readability-a0, lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
-| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)` | [12904] | [12898] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
-| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)` | [18814] | [19321] | Exact linked body from latencyfix; lane change retained. |
-| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]` | [20624] | [19883] | Exact linked body from latencyfix; lane change retained. |
-| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]` | [277] | [280] | Exact linked body from latencyfix; lane change retained. |
-| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)` | [21091] | [20112] | Composition of latencyfix, execindex; residual instructions/layout require merit review. |
-| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*)` | [12925] | [12962] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
-| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]` | [10003, 12154, 10003, 10947] | [10536, 11382, 10467, 11505] | Exact linked body from latencyfix; lane change retained. |
-| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]` | [166, 244, 166, 244] | [166, 244, 166, 247] | Exact linked body from latencyfix; lane change retained. |
-| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)` | [18787] | [19261] | Exact linked body from latencyfix; lane change retained. |
-| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]` | [20831, 19325] | [19991, 19736] | Exact linked body from latencyfix; lane change retained. |
-| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]` | [288, 293] | [298, 279] | Exact linked body from latencyfix; lane change retained. |
-| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)` | [21000] | [20189] | Exact linked body from latencyfix; lane change retained. |
-| `tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)` | [18398] | [19000] | Exact linked body from latencyfix; lane change retained. |
-| `tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)` | [18306] | [18798] | Exact linked body from latencyfix; lane change retained. |
+| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)` | [12904] | [12975] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
+| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)` | [18814] | [19469] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
+| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]` | [20624] | [19879] | Composition of latencyfix, execindex; residual instructions/layout require merit review. |
+| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]` | [277] | [280] | Composition of latencyfix, execindex; residual instructions/layout require merit review. |
+| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)` | [21091] | [20181] | Composition of latencyfix, execindex; residual instructions/layout require merit review. |
+| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*)` | [12925] | [13065] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
+| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]` | [10003, 12154, 10003, 10947] | [10662, 11439, 10604, 11685] | Composition of latencyfix, iofix3, execindex; residual instructions/layout require merit review. |
+| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]` | [166, 244, 166, 244] | [166, 244, 166, 244] | Composition of latencyfix, iofix3, execindex; residual instructions/layout require merit review. |
+| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)` | [18787] | [19418] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
+| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]` | [20831, 19325] | [20078, 19821] | Composition of latencyfix, execindex; residual instructions/layout require merit review. |
+| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]` | [288, 293] | [294, 279] | Composition of latencyfix, execindex; residual instructions/layout require merit review. |
+| `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)` | [21000] | [20245] | Composition of latencyfix, execindex; residual instructions/layout require merit review. |
+| `tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)` | [18398] | [19052] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
+| `tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)` | [18306] | [18931] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
 | `tomo::IoLoop::IoLoop()` | [3833] | [3842] | Composition of lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
 | `tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFallbackReason, bool, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, tomo::Op const*, bool)` | [6422] | [6081] | Exact linked body from latencyfix; lane change retained. |
 | `tomo::IoLoop::client_routing_commit_extract(tomo::IoLoop::ClientMigration&, std::vector<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >&)` | [1891] | [1955] | Exact linked body from latencyfix; lane change retained. |
@@ -656,7 +656,7 @@ Strict gate instruction/address normalization; local clone multiplicity retained
 | `tomo::IoLoop::climon_unblock_local(unsigned long, bool)` | [717] | [717] | Exact linked body from latencyfix; lane change retained. |
 | `tomo::IoLoop::debug_sleep_timer_start(tomo::Client*, unsigned long, unsigned long, unsigned long, tomo::SlowlogArm const&) [clone .isra.0]` | [766, 766, 766, 766, 766] | [812, 812, 812, 812, 812] | Exact linked body from latencyfix; lane change retained. |
 | `tomo::IoLoop::debug_sleep_timer_start(tomo::Client*, unsigned long, unsigned long, unsigned long, tomo::SlowlogArm const&) [clone .isra.0] [clone .cold]` | [34, 34, 34, 34, 34] | [34, 34, 34, 34, 34] | Exact linked body from latencyfix; lane change retained. |
-| `tomo::IoLoop::deferred_timer_pass(unsigned long)` | [1821] | [1934] | Exact linked body from latencyfix; lane change retained. |
+| `tomo::IoLoop::deferred_timer_pass(unsigned long)` | [1821] | [1966] | wave8b WAIT joins discardable active slices instead of retaining a pre-disable duration in its timer; DEBUG SLEEP carries its exact start. |
 | `tomo::IoLoop::deferred_timer_start(tomo::Client*, unsigned long, tomo::IoLoop::DeferredTimerKind, unsigned long, unsigned long, tomo::SlowlogArm const&)` | [946] | [978] | Exact linked body from latencyfix; lane change retained. |
 | `tomo::IoLoop::fliplisten_commit()` | [291] | [291] | Composition of lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
 | `tomo::IoLoop::idle_timeout_ms() const` | [] | [251] | Exact linked body from latencyfix; lane change retained. |
@@ -679,7 +679,7 @@ Strict gate instruction/address normalization; local clone multiplicity retained
 | `tomo::IoLoop::tracking_handle_event(tomo::PubSubEvent&)` | [4505] | [4296] | Exact linked body from latencyfix; lane change retained. |
 | `tomo::IoLoop::tracking_handle_event(tomo::PubSubEvent&) [clone .cold]` | [238] | [238] | Exact linked body from latencyfix; lane change retained. |
 | `tomo::IoLoop::tracking_reply_trackinginfo(tomo::Client*, tomo::Op&)` | [2961] | [3064] | Exact linked body from lualibs, latencyfix; lane change retained. |
-| `tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)` | [] | [191] | Exact linked body from latencyfix; lane change retained. |
+| `tomo::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo::Op const*)` | [] | [191] | wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC. |
 | `tomo::LatencyTrackingPart::finish()` | [] | [35] | Exact linked body from latencyfix; lane change retained. |
 | `tomo::LatencyTrackingPart::~LatencyTrackingPart()` | [] | [66] | Exact linked body from latencyfix; lane change retained. |
 | `tomo::LbAutotune::KeyDamping::update(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int, int, unsigned long, unsigned long, unsigned long)` | [957] | [957] | Composition of lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
@@ -828,7 +828,7 @@ Strict gate instruction/address normalization; local clone multiplicity retained
 | `tomo::kvobj_external_bytes(tomo::KvObj const*)` | [1606] | [1606] | Exact linked body from latencyfix; lane change retained. |
 | `tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)` | [772] | [772] | Exact linked body from latencyfix; lane change retained. |
 | `tomo::latency_tracking_allocated_histograms()` | [] | [95] | Exact linked body from latencyfix; lane change retained. |
-| `tomo::latency_tracking_bind(bool, unsigned int*)` | [] | [273] | Exact linked body from latencyfix; lane change retained. |
+| `tomo::latency_tracking_bind(bool, unsigned int*)` | [] | [273] | wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC. |
 | `tomo::latency_tracking_discard_pending()` | [] | [311] | wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC. |
 | `tomo::latency_tracking_finish(unsigned int, tomo::Op const&, unsigned long)` | [] | [160] | wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC. |
 | `tomo::latency_tracking_forget(tomo::Op const&)` | [] | [332] | wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC. |
@@ -848,7 +848,7 @@ Strict gate instruction/address normalization; local clone multiplicity retained
 | `tomo::latency_tracking_script_begin(tomo::Op const&)` | [] | [135] | wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC. |
 | `tomo::latency_tracking_script_part(unsigned int, tomo::Op const&, tomo::Op const&, unsigned long)` | [] | [758] | wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC. |
 | `tomo::latency_tracking_script_part(unsigned int, tomo::Op const&, tomo::Op const&, unsigned long) [clone .cold]` | [] | [40] | wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC. |
-| `tomo::latency_tracking_start()` | [] | [94] | Exact linked body from latencyfix; lane change retained. |
+| `tomo::latency_tracking_start()` | [] | [94] | wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC. |
 | `tomo::lb_stall_reason(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)` | [447] | [447] | Composition of lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
 | `tomo::lbsignals_capture(tomo::Server&)` | [4297] | [4297] | Composition of lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
 | `tomo::lbsignals_info_section(tomo::Server&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)` | [2662] | [2662] | Composition of lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
@@ -891,9 +891,13 @@ Strict gate instruction/address normalization; local clone multiplicity retained
 | `tomo::server_tail_config_subcommand(tomo::Op&)` | [11652] | [11746] | Composition of latencyfix, execindex; residual instructions/layout require merit review. |
 | `tomo::server_tail_config_subcommand(tomo::Op&) [clone .cold]` | [622] | [623] | Exact linked body from latencyfix; lane change retained. |
 | `tomo::slowlog_capture(tomo::Op const&, tomo::SlowlogCapture&, unsigned long)` | [1215] | [1215] | Exact linked body from execindex; lane change retained. |
-| `tomo::slowlog_complete(tomo::Op const&)` | [142] | [145] | Exact linked body from latencyfix; lane change retained. |
+| `tomo::slowlog_complete(tomo::Op const&)` | [142] | [148] | wave8b carries the actual start into the bound recorder to reject delayed callbacks crossing CONFIG no/yes; ordinary slowlog consumes the same duration. |
 | `tomo::slowlog_note_client(unsigned long, char const*)` | [1186] | [1186] | Exact linked body from execindex; lane change retained. |
 | `tomo::slowlog_note_client_name(unsigned long, char const*, unsigned int)` | [1488] | [1488] | Exact linked body from execindex; lane change retained. |
+| `tomo::slowlog_record(unsigned int, unsigned long, tomo::Op const&, unsigned long, long, tomo::SlowlogArm const&, bool)` | [859] | [] | wave8b carries the actual start into the bound recorder to reject delayed callbacks crossing CONFIG no/yes; ordinary slowlog consumes the same duration. |
+| `tomo::slowlog_record(unsigned int, unsigned long, tomo::Op const&, unsigned long, long, tomo::SlowlogArm const&, bool) [clone .cold]` | [43] | [] | wave8b carries the actual start into the bound recorder to reject delayed callbacks crossing CONFIG no/yes; ordinary slowlog consumes the same duration. |
+| `tomo::slowlog_record(unsigned int, unsigned long, tomo::Op const&, unsigned long, long, tomo::SlowlogArm const&, bool, unsigned long)` | [] | [859] | wave8b carries the actual start into the bound recorder to reject delayed callbacks crossing CONFIG no/yes; ordinary slowlog consumes the same duration. |
+| `tomo::slowlog_record(unsigned int, unsigned long, tomo::Op const&, unsigned long, long, tomo::SlowlogArm const&, bool, unsigned long) [clone .cold]` | [] | [43] | wave8b carries the actual start into the bound recorder to reject delayed callbacks crossing CONFIG no/yes; ordinary slowlog consumes the same duration. |
 | `tomo::snapshot_bind_io(tomo::ThreadCtx*, tomo::Ring*)` | [26] | [26] | Exact linked body from latencyfix; lane change retained. |
 | `tomo::snapshot_io_context()` | [23] | [23] | Exact linked body from latencyfix; lane change retained. |
 | `tomo::sort_run(tomo::SortSpec const&, tomo::SortResolved const*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<unsigned char, std::allocator<unsigned char> >&)` | [10003] | [10003] | Composition of readability-a0, lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
@@ -999,7 +1003,7 @@ Strict gate instruction/address normalization; local clone multiplicity retained
 | `tomo_db0::(anonymous namespace)::random_bounded(unsigned long) [clone .part.0]` | [85] | [85] | Exact linked body from latencyfix; lane change retained. |
 | `tomo_db0::(anonymous namespace)::record_generation(unsigned int, tomo_db0::Op const&, unsigned long, unsigned long)` | [] | [571] | Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated. |
 | `tomo_db0::(anonymous namespace)::record_generation(unsigned int, tomo_db0::Op const&, unsigned long, unsigned long) [clone .cold]` | [] | [19] | Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated. |
-| `tomo_db0::(anonymous namespace)::record_tracked(unsigned int, unsigned long, tomo_db0::Op const&, unsigned long, long, tomo_db0::SlowlogArm const&, bool)` | [] | [270] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
+| `tomo_db0::(anonymous namespace)::record_tracked(unsigned int, unsigned long, tomo_db0::Op const&, unsigned long, long, tomo_db0::SlowlogArm const&, bool, unsigned long)` | [] | [223] | Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated. |
 | `tomo_db0::(anonymous namespace)::redis_dispatch(lua_State*, bool)` | [3374] | [3587] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
 | `tomo_db0::(anonymous namespace)::redis_dispatch(lua_State*, bool) [clone .cold]` | [263] | [293] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
 | `tomo_db0::(anonymous namespace)::redis_sha1hex(lua_State*)` | [] | [268] | Exact linked body from lualibs; lane change retained. |
@@ -1166,20 +1170,20 @@ Strict gate instruction/address normalization; local clone multiplicity retained
 | `tomo_db0::HashFieldMap::set(tomo_db0::Slice, tomo_db0::Slice)` | [2228] | [2228] | Composition of readability-a0, lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
 | `tomo_db0::HashFieldTtl::erase(tomo_db0::Slice)` | [954] | [954] | Composition of lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
 | `tomo_db0::HashFieldTtl::set(tomo_db0::Slice, long)` | [1169] | [1169] | Composition of readability-a0, lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
-| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)` | [12757] | [12759] | Exact linked body from latencyfix; lane change retained. |
-| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)` | [18869] | [19097] | Exact linked body from latencyfix; lane change retained. |
-| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]` | [21326] | [21478] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
-| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]` | [276] | [272] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
-| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)` | [21808] | [21921] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
-| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*)` | [12809] | [12865] | Exact linked body from latencyfix; lane change retained. |
-| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]` | [9815, 12327, 9879, 10859] | [10386, 12516, 10410, 11419] | Composition of latencyfix, execindex; residual instructions/layout require merit review. |
-| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]` | [166, 248, 166, 248] | [166, 248, 166, 248] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
-| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)` | [18690] | [19059] | Exact linked body from latencyfix; lane change retained. |
-| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]` | [21448, 19230] | [21594, 19663] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
-| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]` | [293, 293] | [286, 283] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
-| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)` | [21649] | [21915] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
-| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)` | [18553] | [18941] | Exact linked body from latencyfix; lane change retained. |
-| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)` | [18487] | [18732] | Exact linked body from latencyfix; lane change retained. |
+| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)` | [12757] | [12815] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
+| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)` | [18869] | [19211] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
+| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]` | [21326] | [21528] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
+| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]` | [276] | [275] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
+| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)` | [21808] | [22017] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
+| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*)` | [12809] | [12953] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
+| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]` | [9815, 12327, 9879, 10859] | [10546, 12412, 10546, 11503] | Composition of latencyfix, execindex; residual instructions/layout require merit review. |
+| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]` | [166, 248, 166, 248] | [166, 248, 166, 244] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
+| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)` | [18690] | [19180] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
+| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]` | [21448, 19230] | [21693, 19695] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
+| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]` | [293, 293] | [289, 279] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
+| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)` | [21649] | [21993] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
+| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)` | [18553] | [19014] | Composition of latencyfix, execindex; residual instructions/layout require merit review. |
+| `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)` | [18487] | [18792] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
 | `tomo_db0::IoLoop::IoLoop()` | [3991] | [4000] | Composition of lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
 | `tomo_db0::IoLoop::ReadLocalDemotionPlan::discard_prepared_reads()` | [] | [273] | Exact linked body from latencyfix; lane change retained. |
 | `tomo_db0::IoLoop::ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo_db0::ReadLocalFallbackReason, bool, unsigned long const*, tomo_db0::ReadLocalFallbackReason const*, unsigned int, tomo_db0::Op const*, bool)` | [6629] | [6382] | Exact linked body from latencyfix; lane change retained. |
@@ -1189,7 +1193,7 @@ Strict gate instruction/address normalization; local clone multiplicity retained
 | `tomo_db0::IoLoop::climon_unblock_local(unsigned long, bool)` | [717] | [717] | Exact linked body from latencyfix; lane change retained. |
 | `tomo_db0::IoLoop::debug_sleep_timer_start(tomo_db0::Client*, unsigned long, unsigned long, unsigned long, tomo_db0::SlowlogArm const&) [clone .isra.0]` | [766, 766, 766, 766, 766] | [812, 812, 812, 812, 812] | Exact linked body from latencyfix; lane change retained. |
 | `tomo_db0::IoLoop::debug_sleep_timer_start(tomo_db0::Client*, unsigned long, unsigned long, unsigned long, tomo_db0::SlowlogArm const&) [clone .isra.0] [clone .cold]` | [34, 34, 34, 34, 34] | [34, 34, 34, 34, 34] | Exact linked body from latencyfix; lane change retained. |
-| `tomo_db0::IoLoop::deferred_timer_pass(unsigned long)` | [1821] | [1934] | Exact linked body from latencyfix; lane change retained. |
+| `tomo_db0::IoLoop::deferred_timer_pass(unsigned long)` | [1821] | [1966] | wave8b WAIT joins discardable active slices instead of retaining a pre-disable duration in its timer; DEBUG SLEEP carries its exact start. |
 | `tomo_db0::IoLoop::deferred_timer_start(tomo_db0::Client*, unsigned long, tomo_db0::IoLoop::DeferredTimerKind, unsigned long, unsigned long, tomo_db0::SlowlogArm const&)` | [946] | [978] | Exact linked body from latencyfix; lane change retained. |
 | `tomo_db0::IoLoop::fliplisten_commit()` | [291] | [291] | Composition of lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
 | `tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#1}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const` | [451] | [467] | Exact linked body from latencyfix; lane change retained. |
@@ -1215,7 +1219,7 @@ Strict gate instruction/address normalization; local clone multiplicity retained
 | `tomo_db0::IoLoop::tracking_handle_event(tomo_db0::PubSubEvent&)` | [4277] | [4505] | Exact linked body from latencyfix; lane change retained. |
 | `tomo_db0::IoLoop::tracking_handle_event(tomo_db0::PubSubEvent&) [clone .cold]` | [241] | [238] | Exact linked body from latencyfix; lane change retained. |
 | `tomo_db0::IoLoop::tracking_reply_trackinginfo(tomo_db0::Client*, tomo_db0::Op&)` | [3220] | [3080] | Exact linked body from latencyfix; lane change retained. |
-| `tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)` | [] | [191] | Exact linked body from latencyfix; lane change retained. |
+| `tomo_db0::LatencyTrackingPart::LatencyTrackingPart(unsigned int, tomo_db0::Op const*)` | [] | [191] | wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC. |
 | `tomo_db0::LatencyTrackingPart::finish()` | [] | [35] | Exact linked body from latencyfix; lane change retained. |
 | `tomo_db0::LatencyTrackingPart::~LatencyTrackingPart()` | [] | [66] | Exact linked body from latencyfix; lane change retained. |
 | `tomo_db0::LbAutotune::KeyDamping::update(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int, int, unsigned long, unsigned long, unsigned long)` | [957] | [957] | Composition of lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
@@ -1353,7 +1357,7 @@ Strict gate instruction/address normalization; local clone multiplicity retained
 | `tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)` | [1606] | [1606] | Composition of readability-a0, lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
 | `tomo_db0::kvobj_free_with_capacity(tomo_db0::KvObj*, unsigned long)` | [772] | [772] | Composition of readability-a0, lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
 | `tomo_db0::latency_tracking_allocated_histograms()` | [] | [95] | Exact linked body from latencyfix; lane change retained. |
-| `tomo_db0::latency_tracking_bind(bool, unsigned int*)` | [] | [273] | Exact linked body from latencyfix; lane change retained. |
+| `tomo_db0::latency_tracking_bind(bool, unsigned int*)` | [] | [273] | wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC. |
 | `tomo_db0::latency_tracking_discard_pending()` | [] | [311] | wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC. |
 | `tomo_db0::latency_tracking_finish(unsigned int, tomo_db0::Op const&, unsigned long)` | [] | [160] | wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC. |
 | `tomo_db0::latency_tracking_forget(tomo_db0::Op const&)` | [] | [332] | wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC. |
@@ -1373,7 +1377,7 @@ Strict gate instruction/address normalization; local clone multiplicity retained
 | `tomo_db0::latency_tracking_script_begin(tomo_db0::Op const&)` | [] | [135] | wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC. |
 | `tomo_db0::latency_tracking_script_part(unsigned int, tomo_db0::Op const&, tomo_db0::Op const&, unsigned long)` | [] | [758] | wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC. |
 | `tomo_db0::latency_tracking_script_part(unsigned int, tomo_db0::Op const&, tomo_db0::Op const&, unsigned long) [clone .cold]` | [] | [40] | wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC. |
-| `tomo_db0::latency_tracking_start()` | [] | [94] | Exact linked body from latencyfix; lane change retained. |
+| `tomo_db0::latency_tracking_start()` | [] | [94] | wave8b tracking-only implementation: guarded scans, disable cutoff, or isolated execution timing; compiled out of default EXEC. |
 | `tomo_db0::lb_stall_reason(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)` | [447] | [447] | Composition of lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
 | `tomo_db0::lbsignals_capture(tomo_db0::Server&)` | [4297] | [4297] | Composition of lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
 | `tomo_db0::lbsignals_info_section(tomo_db0::Server&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)` | [2646] | [2646] | Composition of lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
@@ -1417,9 +1421,13 @@ Strict gate instruction/address normalization; local clone multiplicity retained
 | `tomo_db0::server_tail_config_subcommand(tomo_db0::Op&) [clone .cold]` | [622] | [619] | Exact linked body from latencyfix; lane change retained. |
 | `tomo_db0::siphash12(char const*, unsigned long)::{lambda()#1}::operator()() const [clone .isra.0]` | [93, 93, 93, 93, 93, 93, 93, 93, 93, 93, 93, 93, 93, 93, 93, 93] | [93, 93, 93, 93, 93, 93, 93, 93, 93, 93, 93, 93, 93, 93, 93, 93, 93] | Exact linked body from latencyfix; lane change retained. |
 | `tomo_db0::slowlog_capture(tomo_db0::Op const&, tomo_db0::SlowlogCapture&, unsigned long)` | [1215] | [1215] | Exact linked body from execindex; lane change retained. |
-| `tomo_db0::slowlog_complete(tomo_db0::Op const&)` | [142] | [145] | Exact linked body from latencyfix; lane change retained. |
+| `tomo_db0::slowlog_complete(tomo_db0::Op const&)` | [142] | [148] | wave8b carries the actual start into the bound recorder to reject delayed callbacks crossing CONFIG no/yes; ordinary slowlog consumes the same duration. |
 | `tomo_db0::slowlog_note_client(unsigned long, char const*)` | [1186] | [1186] | Exact linked body from execindex; lane change retained. |
 | `tomo_db0::slowlog_note_client_name(unsigned long, char const*, unsigned int)` | [1488] | [1488] | Exact linked body from execindex; lane change retained. |
+| `tomo_db0::slowlog_record(unsigned int, unsigned long, tomo_db0::Op const&, unsigned long, long, tomo_db0::SlowlogArm const&, bool)` | [859] | [] | wave8b carries the actual start into the bound recorder to reject delayed callbacks crossing CONFIG no/yes; ordinary slowlog consumes the same duration. |
+| `tomo_db0::slowlog_record(unsigned int, unsigned long, tomo_db0::Op const&, unsigned long, long, tomo_db0::SlowlogArm const&, bool) [clone .cold]` | [43] | [] | wave8b carries the actual start into the bound recorder to reject delayed callbacks crossing CONFIG no/yes; ordinary slowlog consumes the same duration. |
+| `tomo_db0::slowlog_record(unsigned int, unsigned long, tomo_db0::Op const&, unsigned long, long, tomo_db0::SlowlogArm const&, bool, unsigned long)` | [] | [859] | wave8b carries the actual start into the bound recorder to reject delayed callbacks crossing CONFIG no/yes; ordinary slowlog consumes the same duration. |
+| `tomo_db0::slowlog_record(unsigned int, unsigned long, tomo_db0::Op const&, unsigned long, long, tomo_db0::SlowlogArm const&, bool, unsigned long) [clone .cold]` | [] | [43] | wave8b carries the actual start into the bound recorder to reject delayed callbacks crossing CONFIG no/yes; ordinary slowlog consumes the same duration. |
 | `tomo_db0::snapshot_bind_io(tomo_db0::ThreadCtx*, tomo_db0::Ring*)` | [26] | [26] | Exact linked body from latencyfix; lane change retained. |
 | `tomo_db0::snapshot_io_context()` | [23] | [23] | Exact linked body from latencyfix; lane change retained. |
 | `tomo_db0::sort_run(tomo_db0::SortSpec const&, tomo_db0::SortResolved const*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<unsigned char, std::allocator<unsigned char> >&)` | [10003] | [10003] | Composition of readability-a0, lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
@@ -1478,7 +1486,7 @@ Strict gate instruction/address normalization; local clone multiplicity retained
 | `unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false, true>()` | [2816] | [2875] | Exact linked body from iofix3; lane change retained. |
 | `unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false>()` | [2608] | [2529] | Composition of latencyfix, iofix3; residual instructions/layout require merit review. |
 | `unsigned int tomo::IoLoop::flush_ready<false, true, true, true, true, true>()` | [2800] | [2843] | Exact linked body from iofix3; lane change retained. |
-| `unsigned int tomo::IoLoop::flush_ready<false, true, true, true, true>()` | [2576] | [2574] | Composition of latencyfix, iofix3; residual instructions/layout require merit review. |
+| `unsigned int tomo::IoLoop::flush_ready<false, true, true, true, true>()` | [2576] | [2497] | Composition of latencyfix, iofix3; residual instructions/layout require merit review. |
 | `unsigned int tomo::IoLoop::flush_ready<true, false, false, false, false>()` | [4623] | [4647] | Exact linked body from iofix3; lane change retained. |
 | `unsigned int tomo::IoLoop::flush_ready<true, false, true, false, false, true>()` | [3210] | [3226] | Exact linked body from iofix3; lane change retained. |
 | `unsigned int tomo::IoLoop::flush_ready<true, false, true, false, false>()` | [3014] | [2918] | Composition of latencyfix, iofix3; residual instructions/layout require merit review. |
@@ -1662,7 +1670,7 @@ Strict gate instruction/address normalization; local clone multiplicity retained
 | `void tomo::IoLoop::r7_run_loop<false, false, false, true, false>()` | [5512] | [5326] | Exact linked body from latencyfix; lane change retained. |
 | `void tomo::IoLoop::r7_run_loop<false, false, true, true, false>()` | [5425] | [5292] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
 | `void tomo::IoLoop::r7_run_loop<false, true, false, true, false>()` | [5568] | [5356] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
-| `void tomo::IoLoop::r7_run_loop<false, true, true, true, false>()` | [5425] | [5318] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
+| `void tomo::IoLoop::r7_run_loop<false, true, true, true, false>()` | [5425] | [5292] | Exact linked body from latencyfix; lane change retained. |
 | `void tomo::IoLoop::r7_run_loop<true, false, false, true, false>()` | [5632] | [5430] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
 | `void tomo::IoLoop::r7_run_loop<true, false, true, true, false>()` | [5440] | [5307] | Exact linked body from latencyfix; lane change retained. |
 | `void tomo::IoLoop::r7_run_loop<true, true, false, true, false>()` | [5681] | [5447] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
@@ -1749,7 +1757,7 @@ Strict gate instruction/address normalization; local clone multiplicity retained
 | `void tomo_db0::IoLoop::run_loop<false, true, false, false, false>()` | [5250] | [5613] | Composition of latencyfix, iofix3; residual instructions/layout require merit review. |
 | `void tomo_db0::IoLoop::run_loop<false, true, false, true, false>()` | [5423] | [5191] | Exact linked body from latencyfix; lane change retained. |
 | `void tomo_db0::IoLoop::run_loop<false, true, true, false, false>()` | [5228] | [5546] | Composition of latencyfix, iofix3; residual instructions/layout require merit review. |
-| `void tomo_db0::IoLoop::run_loop<false, true, true, true, false>()` | [5441] | [5245] | latencyfix changes this body; merged compiler propagation differs from isolated POST. |
+| `void tomo_db0::IoLoop::run_loop<false, true, true, true, false>()` | [5441] | [5218] | Exact linked body from latencyfix; lane change retained. |
 | `void tomo_db0::IoLoop::run_loop<true, false, false, false, false>()` | [5310] | [5681] | Composition of latencyfix, iofix3; residual instructions/layout require merit review. |
 | `void tomo_db0::IoLoop::run_loop<true, false, false, true, false>()` | [5479] | [5280] | Exact linked body from latencyfix; lane change retained. |
 | `void tomo_db0::IoLoop::run_loop<true, false, false, true, true>()` | [5704] | [5706] | Exact linked body from latencyfix; lane change retained. |

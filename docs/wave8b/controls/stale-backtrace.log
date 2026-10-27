@@ -14,7 +14,7 @@ __pthread_kill_implementation (no_tid=0, signo=6, threadid=<optimized out>) at .
 #2  __GI___pthread_kill (threadid=<optimized out>, signo=signo@entry=6) at ./nptl/pthread_kill.c:89
 #3  0x00007ffff6e4527e in __GI_raise (sig=sig@entry=6) at ../sysdeps/posix/raise.c:26
 #4  0x00007ffff6e288ff in __GI_abort () at ./stdlib/abort.c:79
-#5  0x00005555555b9380 in tomo::CoreConcurrencyTest::need (v=false) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:38
+#5  0x0000555555d841e9 in tomo::CoreConcurrencyTest::need (v=false) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:38
 #6  transitions () at /home/user/Projects/cx-wave8b/build/wave8b/controls/stale/unit.cc:20
-#7  0x00005555555cac6a in main () at /home/user/Projects/cx-wave8b/build/wave8b/controls/stale/unit.cc:77
+#7  0x00005555555cac6a in main () at /home/user/Projects/cx-wave8b/build/wave8b/controls/stale/unit.cc:91
 warning: 44	./nptl/pthread_kill.c: No such file or directory

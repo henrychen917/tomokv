@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-normal-MSET-1s-32-1--1.log
-SHA-256: 2bc80bed6cc239872360fd7e028a17707bcdd43c9fad01fe4804f84f29af6343
+SHA-256: dbecba979d74f02bda1344545db0c1f14f8a1f076e27dbec139d19020ae713c6
 Exit: 0
-0x0000555555a5d93c	569	}
-0x0000555555a5d93e	569	}
-0x0000555555a5d940	569	}
-0x0000555555d8d197 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
+0x0000555555a5de3c	569	}
+0x0000555555a5de3e	569	}
+0x0000555555a5de40	569	}
+0x0000555555d8db07 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
 180	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
 163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8d1a3	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8d1aa	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8d1b2	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8d1b9	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8d1bf	183	   std::string want="+OK\r\n";
-0x0000555555d8d1c6	183	   std::string want="+OK\r\n";
-0x0000555555d8d1cd	182	   scope_end();
+0x0000555555d8db13	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8db1a	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8db22	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8db29	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8db2f	183	   std::string want="+OK\r\n";
+0x0000555555d8db36	183	   std::string want="+OK\r\n";
+0x0000555555d8db3d	182	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
-30TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+30	[[TomoKV 1.0-cpp (Redis 7.4.10 compatible)
 PASS bounded production command scope
-	[[gnu::noinline]] void scope_end(){
-[Inferior 1 (process 300783) exited normally]
+gnu::noinline]] void scope_end(){
+[Inferior 1 (process 1824250) exited normally]
 COUNT 964774

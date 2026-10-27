@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-normal-SET-1s-1-1--1.log
-SHA-256: 24036676ac0226b19db52eab0f9fddce11d013be27b28a64003bc5748e1b2146
+SHA-256: fe1a25e10f3ba9c9cefa82c21f7516b76a95e0d58a7fb9f3377b2b0eca8e8edc
 Exit: 0
-0x0000555555c8d2f8	2353	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
-0x0000555555c8d1c3 in tomo::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff61cf088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356
+0x0000555555c8d878	2353	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
+0x0000555555c8d743 in tomo::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff61cf088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356
 2356	    }
-0x0000555555c8d1c8	2356	    }
-0x0000555555c8d1d1	2356	    }
-0x0000555555c8d1d7	2356	    }
-0x0000555555c8d1db	2356	    }
-0x0000555555c8d1dc	2356	    }
-0x0000555555c8d1de	2356	    }
-0x0000555555c8d1e0	2356	    }
-0x0000555555c8d1e2	2356	    }
-0x0000555555c8d1e4	2356	    }
-0x0000555555c8d1e5	2356	    }
-0x0000555555d8cb78 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:140
+0x0000555555c8d748	2356	    }
+0x0000555555c8d751	2356	    }
+0x0000555555c8d757	2356	    }
+0x0000555555c8d75b	2356	    }
+0x0000555555c8d75c	2356	    }
+0x0000555555c8d75e	2356	    }
+0x0000555555c8d760	2356	    }
+0x0000555555c8d762	2356	    }
+0x0000555555c8d764	2356	    }
+0x0000555555c8d765	2356	    }
+0x0000555555d8d4e8 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:140
 140	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
 30	[[gnu::noinline]] void scope_end(){
-[Inferior 1 (process 292100) exited normally]
+[Inferior 1 (process 1821588) exited normally]
 COUNT 1068

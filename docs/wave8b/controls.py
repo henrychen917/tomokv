@@ -11,7 +11,7 @@ cmds=[shlex.split(s) for s in recipe.splitlines() if s.startswith('g++ ')]
 compile=next(c for c in cmds if '-c' in c and 'tests/wave8b_latency_unit.cc' in c)
 link=next(c for c in cmds if '-c' not in c and 'build/wave8b-latency-unit' in c)
 receipts=[]
-for case in ('scan','stale','callback'):
+for case in ('scan','stale','callback','orphan'):
  d=OUT/case;d.mkdir(exist_ok=True);binary=d/'broken';obj=d/'broken.o'
  if case=='scan':
   source=(ROOT/'src/cmd/multi.inc').read_text().replace('void multi_retire(Client& client, Op& op, std::vector<MultiExecState*>& deferred) {','void multi_retire(Client& client, Op& op, std::vector<MultiExecState*>& deferred) {\n    latency_tracking_discard_pending();')
@@ -24,7 +24,8 @@ for case in ('scan','stale','callback'):
  else:
   source=(ROOT/'src/cmd/latency_tracking.cc').read_text()
   if case=='stale': source=source.replace('    if (started <= disabled_cut_ns.load(std::memory_order_acquire)) return;\n','')
-  else: source=source.replace('if (started > cut) record_generation(executor, op, ns, cut);','if (now_ns() - ns > cut) record_generation(executor, op, ns, cut);')
+  elif case=='callback': source=source.replace('if (started > cut) record_generation(executor, op, ns, cut);','if (now_ns() - ns > cut) record_generation(executor, op, ns, cut);')
+  else: source=source.replace('            else latency_tracking_forget(op);\n','')
   cc=d/'latency_tracking.cc';cc.write_text(source)
   unit=d/'unit.cc';unit.write_text((ROOT/'tests/wave8b_latency_unit.cc').read_text().replace('#include "src/cmd/latency_tracking.cc"','#include "'+str(cc)+'"'))
   cmd=compile.copy();cmd[cmd.index('tests/wave8b_latency_unit.cc')]=str(unit)
@@ -37,9 +38,10 @@ for case in ('scan','stale','callback'):
  result=subprocess.run([str(binary)],capture_output=True,text=True)
  (DOC/(case+'.log')).write_text(result.stdout+result.stderr)
  assert result.returncode==-6,(case,result.returncode)
+ if case=='orphan': assert 'rejected parent retained 1 script-child maps' in result.stderr
  trace=subprocess.run(['gdb','-nx','-batch','-ex','run','-ex','bt',str(binary)],capture_output=True,text=True)
  (DOC/(case+'-backtrace.log')).write_text(trace.stdout+trace.stderr)
  assert 'SIGABRT' in trace.stdout
- receipts.append(dict(case=case,compile=cmd,link=ld,exit=result.returncode,sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),reason={'scan':'Unconditional retirement scan','stale':'Reintroduced stale pending slice after no/yes','callback':'Delayed callback reconstructs old beginning after no/yes'}[case]))
+ receipts.append(dict(case=case,compile=cmd,link=ld,exit=result.returncode,sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),reason={'scan':'Unconditional retirement scan','stale':'Reintroduced stale pending slice after no/yes','callback':'Delayed callback reconstructs old beginning after no/yes','orphan':'Rejected old parent leaves post-enable script children behind'}[case]))
  print('EXPECTED RED',case,result.returncode,flush=True)
 (DOC/'receipts.json').write_text(json.dumps(receipts,indent=2)+'\n')

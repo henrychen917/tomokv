@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-normal-INCR-1s-1-1-10000.log
-SHA-256: ab49641b0bfda544a2fbc8bcbf7736b2b9cdb20d54c936bab126c3c305b84726
+SHA-256: 14db4df951f2b5989b15d8211719066506107c26d86671a1bd46e14e1900705d
 Exit: 0
-0x0000555555c8d2f8	2353	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
-0x0000555555c8d1c3 in tomo::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff61cf088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356
 2356	    }
-0x0000555555c8d1c8	2356	    }
-0x0000555555c8d1d1	2356	    }
-0x0000555555c8d1d7	2356	    }
-0x0000555555c8d1db	2356	    }
-0x0000555555c8d1dc	2356	    }
-0x0000555555c8d1de	2356	    }
-0x0000555555c8d1e0	2356	    }
-0x0000555555c8d1e2	2356	    }
-0x0000555555c8d1e4	2356	    }
-0x0000555555c8d1e5	2356	    }
-0x0000555555d8cb78 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=10000) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:140
+0x0000555555c8d748	2356	    }
+0x0000555555c8d751	2356	    }
+0x0000555555c8d757	2356	    }
+0x0000555555c8d75b	2356	    }
+0x0000555555c8d75c	2356	    }
+0x0000555555c8d75e	2356	    }
+0x0000555555c8d760	2356	    }
+0x0000555555c8d762	2356	    }
+0x0000555555c8d764	2356	    }
+0x0000TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+555555c8d765	2356	    }
+0x0000555555d8d4e8 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=10000) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:140
 140	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
 30	[[gnu::noinline]] void scope_end(){
-[Inferior 1 (process 292709) exited normally]
-COUNT 1888
+[Inferior 1 (process 1821726) exited normally]
+COUNT 1889

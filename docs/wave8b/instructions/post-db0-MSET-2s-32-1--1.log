@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-db0-MSET-2s-32-1--1.log
-SHA-256: d0d2aee9e2c8f53be7de782f17a2cab25b37c040a01a3c27ab9b7874521bd6b8
+SHA-256: 2ac01e6123c5784325226b869ae4ef52f8a131f328ebddd643cfa982d9a4c6ff
 Exit: 0
-0x0000555555688d99	569	}
-0x0000555555688d9a	569	}
-0x0000555555688d9c	569	}
-0x0000555555688d9e	569	}
-0x0000555555688da0	569	}
-0x0000555555d90f26 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
+0x0000555555688e39	569	}
+0x0000555555688e3a	569	}
+0x0000555555688e3c	569	}
+0x0000555555688e3e	569	}
+0x0000555555688e40	569	}
+0x0000555555d91896 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
 180	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
 163	   for(unsigned i=0;i<n;i++){
-0x0000555555d90f32	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d90f39	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d90f41	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d90f48	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d90f4e	183	   std::string want="+OK\r\n";
-0x0000555555d90f55	183	   std::string want="+OK\r\n";
-0x0000555555d90f5c	182	   scope_end();
+0x0000555555d918a2	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d918a9	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d918b1	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d918b8	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d918be	183	   std::string want="+OK\r\n";
+0x0000555555d918c5	183	   std::string want="+OK\r\n";
+0x0000555555d918cc	182	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
 30	[[gnu::noinline]] void scope_end(){
-[Inferior 1 (process 330139) exited normally]
+[Inferior 1 (process 1853466) exited normally]
 COUNT 944454

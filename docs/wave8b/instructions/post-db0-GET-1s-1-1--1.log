@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-db0-GET-1s-1-1--1.log
-SHA-256: 9a9b50aeaece11f46927739639d37381e382c688322e51bf35df0ddb2f6bb277
+SHA-256: 02caa44fac103057e462eef75b964411d912dea0ec0eb2a6b2f7bd6bf0757879
 Exit: 0
-0x00005555558aeca8	2353	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
-0x00005555558aeb73 in tomo_db0::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff6183088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356
+0x00005555558aede8	2353	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
+0x00005555558aecb3 in tomo_db0::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff6183088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356
 2356	    }
-0x00005555558aeb78	2356	    }
-0x00005555558aeb81	2356	    }
-0x00005555558aeb87	2356	    }
-0x00005555558aeb8b	2356	    }
-0x00005555558aeb8c	2356	    }
-0x00005555558aeb8e	2356	    }
-0x00005555558aeb90	2356	    }
-0x00005555558aeb92	2356	    }
-0x00005555558aeb94	2356	    }
-0x00005555558aeb95	2356	    }
-0x0000555555d8ce08 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:140
+0x00005555558aecb8	2356	    }
+0x00005555558aecc1	2356	    }
+0x00005555558aecc7	2356	    }
+0x00005555558aeccb	2356	    }
+0x00005555558aeccc	2356	    }
+0x00005555558aecce	2356	    }
+0x00005555558aecd0	2356	    }
+0x00005555558aecd2	2356	    }
+0x00005555558aecd4	2356	    }
+0x00005555558aecd5	2356	    }
+0x0000555555d8d778 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:140
 140	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
 30	[[gnu::noinline]] void scope_end(){
-[Inferior 1 (process 304717) exited normally]
+[Inferior 1 (process 1831918) exited normally]
 COUNT 818

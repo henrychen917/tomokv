@@ -18,8 +18,8 @@
     "atomic": 1,
     "threshold": 10000,
     "headline": 1330,
-    "post": 1297,
-    "delta": -33
+    "post": 1298,
+    "delta": -32
   },
   {
     "namespace": "normal",
@@ -62,8 +62,8 @@
     "atomic": 1,
     "threshold": 10000,
     "headline": 1940,
-    "post": 1924,
-    "delta": -16
+    "post": 1925,
+    "delta": -15
   },
   {
     "namespace": "normal",
@@ -106,8 +106,8 @@
     "atomic": 1,
     "threshold": 10000,
     "headline": 1457,
-    "post": 1425,
-    "delta": -32
+    "post": 1426,
+    "delta": -31
   },
   {
     "namespace": "normal",
@@ -150,8 +150,8 @@
     "atomic": 1,
     "threshold": 10000,
     "headline": 2067,
-    "post": 2051,
-    "delta": -16
+    "post": 2052,
+    "delta": -15
   },
   {
     "namespace": "normal",
@@ -194,8 +194,8 @@
     "atomic": 1,
     "threshold": 10000,
     "headline": 1920,
-    "post": 1888,
-    "delta": -32
+    "post": 1889,
+    "delta": -31
   },
   {
     "namespace": "normal",
@@ -238,8 +238,8 @@
     "atomic": 1,
     "threshold": 10000,
     "headline": 2530,
-    "post": 2514,
-    "delta": -16
+    "post": 2515,
+    "delta": -15
   },
   {
     "namespace": "normal",
@@ -414,8 +414,8 @@
     "atomic": 1,
     "threshold": 10000,
     "headline": 1209,
-    "post": 1174,
-    "delta": -35
+    "post": 1175,
+    "delta": -34
   },
   {
     "namespace": "db0",
@@ -458,8 +458,8 @@
     "atomic": 1,
     "threshold": 10000,
     "headline": 1432,
-    "post": 1416,
-    "delta": -16
+    "post": 1417,
+    "delta": -15
   },
   {
     "namespace": "db0",
@@ -502,8 +502,8 @@
     "atomic": 1,
     "threshold": 10000,
     "headline": 1344,
-    "post": 1310,
-    "delta": -34
+    "post": 1311,
+    "delta": -33
   },
   {
     "namespace": "db0",
@@ -546,8 +546,8 @@
     "atomic": 1,
     "threshold": 10000,
     "headline": 1567,
-    "post": 1551,
-    "delta": -16
+    "post": 1552,
+    "delta": -15
   },
   {
     "namespace": "db0",
@@ -590,8 +590,8 @@
     "atomic": 1,
     "threshold": 10000,
     "headline": 1703,
-    "post": 1669,
-    "delta": -34
+    "post": 1670,
+    "delta": -33
   },
   {
     "namespace": "db0",
@@ -634,8 +634,8 @@
     "atomic": 1,
     "threshold": 10000,
     "headline": 1926,
-    "post": 1910,
-    "delta": -16
+    "post": 1911,
+    "delta": -15
   },
   {
     "namespace": "db0",

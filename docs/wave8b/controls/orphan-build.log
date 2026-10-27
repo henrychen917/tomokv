@@ -1,0 +1,9 @@
+In file included from /home/user/Projects/cx-wave8b/build/wave8b/controls/orphan/unit.cc:6:
+/home/user/Projects/cx-wave8b/tests/wave8b_scope.cc: In instantiation of ‘static void tomo::CoreConcurrencyTest::run(const std::string&, unsigned int, bool, int64_t) [with bool Fused = true; std::string = std::__cxx11::basic_string<char>; int64_t = long int]’:
+/home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:205:62:   required from here
+/home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:70:55: warning: comparison of integer expressions of different signedness: ‘int32_t’ {aka ‘int’} and ‘unsigned int’ [-Wsign-compare]
+   70 |    if(server.router().shard_of(FlatStore::hash_key(s))==sid){keys.push_back(key);break;}
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~
+/home/user/Projects/cx-wave8b/tests/wave8b_scope.cc: In instantiation of ‘static void tomo::CoreConcurrencyTest::run(const std::string&, unsigned int, bool, int64_t) [with bool Fused = false; std::string = std::__cxx11::basic_string<char>; int64_t = long int]’:
+/home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:206:38:   required from here
+/home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:70:55: warning: comparison of integer expressions of different signedness: ‘int32_t’ {aka ‘int’} and ‘unsigned int’ [-Wsign-compare]

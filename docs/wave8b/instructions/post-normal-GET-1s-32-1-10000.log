@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-normal-GET-1s-32-1-10000.log
-SHA-256: c04fff512ee9ce3484f0cb9fc32f63001c98c115a90d755f9d59c602bf711003
+SHA-256: 6acc54b130c2945104795dea438eb246c9e4d0b9c1172c61904cbcc20092449b
 Exit: 0
-0x0000555555c8d2f8	2353	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
-0x0000555555c8d1c3 in tomo::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff61cf088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356
+0x0000555555c8d878	2353	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
+0x0000555555c8d743 in tomo::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff61cf088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356
 2356	    }
-0x0000555555c8d1c8	2356	    }
-0x0000555555c8d1d1	2356	    }
-0x0000555555c8d1d7	2356	    }
-0x0000555555c8d1db	2356	    }
-0x0000555555c8d1dc	2356	    }
-0x0000555555c8d1de	2356	    }
-0x0000555555c8d1e0	2356	    }
-0x0000555555c8d1e2	2356	    }
-0x0000555555c8d1e4	2356	    }
-0x0000555555c8d1e5	2356	    }
-0x0000555555d8cb78 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=10000) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:140
+0x0000555555c8d748	2356	    }
+0x0000555555c8d751	2356	    }
+0x0000555555c8d757	2356	    }
+0x0000555555c8d75b	2356	    }
+0x0000555555c8d75c	2356	    }
+0x0000555555c8d75e	2356	    }
+0x0000555555c8d760	2356	    }
+0x0000555555c8d762	2356	    }
+0x0000555555c8d764	2356	    }
+0x0000555555c8d765	2356	    }
+0x0000555555d8d4e8 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=10000) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:140
 140	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
 30	[[gnu::noinline]] void scope_end(){
-[Inferior 1 (process 292103) exited normally]
+[Inferior 1 (process 1821542) exited normally]
 COUNT 18650
