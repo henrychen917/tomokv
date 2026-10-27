@@ -52,7 +52,7 @@ def main():
     results = json.loads(results_file.read_text()) if results_file.exists() else []
     for phase in args.phases:
         jobs, extra = PHASES[phase]
-        env = dict(os.environ, REDIS74_ROOT='/home/user/Projects/redis74',
+        env = dict(os.environ, REDIS74_ROOT='/home/user/Projects/redis74', GATE_TEST_PORT='20299',
                    GATE_ONLY_JOBS=' '.join(jobs), **extra)
         cmd = ['taskset','-c','48-63','bash','tests/gate.sh',
                'full' if phase.startswith('differ-') else 'quick',
@@ -60,7 +60,7 @@ def main():
                '--server-smt','','--load-smt','','--ports','20200-20279']
         log = OUT/f'{phase}-{len(results)}.log'
         row = dict(phase=phase, command=cmd, environment={k:env[k] for k in
-                   ['REDIS74_ROOT','GATE_ONLY_JOBS',*extra]},
+                   ['REDIS74_ROOT','GATE_TEST_PORT','GATE_ONLY_JOBS',*extra]},
                    source=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
                    sha256=hashlib.sha256((ROOT/'build/tomokv').read_bytes()).hexdigest(),
                    log=str(log), began=time.time())
