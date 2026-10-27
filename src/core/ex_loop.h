@@ -2396,7 +2396,13 @@ private:
         TimedBatch timed_batch_ = exec_batch_timed<IofusedPrivateQueue>;
 
     template <bool IofusedPrivateQueue = false>
-    __attribute__((noinline)) bool execute_resumed(const Task& task);
+    __attribute__((noinline, cold)) bool execute_resumed_latency(const Task& task);
+    template <bool IofusedPrivateQueue = false>
+    __attribute__((always_inline)) bool execute_resumed(const Task& task) {
+        if (__builtin_expect(slowlog_arm_.latency_tracking, false))
+            return execute_resumed_latency<IofusedPrivateQueue>(task);
+        return execute<IofusedPrivateQueue>(task);
+    }
 
     template <bool IofusedPrivateQueue = false>
     __attribute__((noinline)) uint32_t service_xshard_retries() {

@@ -482,8 +482,7 @@ void ExLoopT<Fused>::exec_batch_latency(ExLoopT* loop, const Task* batch, uint32
 }
 template<bool Fused>
 template<bool IofusedPrivateQueue>
-bool ExLoopT<Fused>::execute_resumed(const Task& task) {
-    if (!slowlog_arm_.latency_tracking) return execute<IofusedPrivateQueue>(task);
+bool ExLoopT<Fused>::execute_resumed_latency(const Task& task) {
     Client* client = task.client;
     SlowlogTiming timing(client ? &client->rob().at(task.op_id) : nullptr,
                          client ? client->id() : 0, self_->id(), now_ns(),
@@ -495,7 +494,7 @@ bool ExLoopT<Fused>::execute_resumed(const Task& task) {
 template void ExLoopT<false>::exec_batch_latency<false>(ExLoopT*, const Task*, uint32_t);
 template void ExLoopT<true>::exec_batch_latency<false>(ExLoopT*, const Task*, uint32_t);
 template void ExLoopT<true>::exec_batch_latency<true>(ExLoopT*, const Task*, uint32_t);
-template bool ExLoopT<false>::execute_resumed<false>(const Task&);
-template bool ExLoopT<true>::execute_resumed<false>(const Task&);
-template bool ExLoopT<true>::execute_resumed<true>(const Task&);
+template bool ExLoopT<false>::execute_resumed_latency<false>(const Task&);
+template bool ExLoopT<true>::execute_resumed_latency<false>(const Task&);
+template bool ExLoopT<true>::execute_resumed_latency<true>(const Task&);
 } // namespace tomo

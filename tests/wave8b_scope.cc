@@ -103,6 +103,10 @@ struct CoreConcurrencyTest {
     }
    }
    need(remaining.empty());
+#ifdef TOMO_LATENCY_SCAN_WITNESS
+   // The real latency_multi_retire wrapper retires the carrier before its children.
+   if(wave8b_tracking)latency_tracking_retire(io,*carrier);
+#endif
    multi_retire(client,*carrier,deferred);
    // Logical retirement can defer destruction until owner records are reclaimed.
    // Include that production cleanup so the forget hook cannot escape the trace.
@@ -116,7 +120,7 @@ struct CoreConcurrencyTest {
    need(wave8b_tracking ? wave8b_scans > 0 : wave8b_scans == 0);
    uint64_t samples = 0;
    for(const auto& row:collect())samples += row.second.calls;
-   need(samples == (wave8b_tracking ? n : 0));
+   need(samples == (wave8b_tracking ? n + 1 : 0));
    std::printf("PASS wave8b mode=%s ns=%s atomic=%d children=%u tracking=%d slots=%llu samples=%llu\n",
        Fused?"1s":"2s",TOMO_SINGLE_DATABASE?"db0":"normal",int(atomic),n,int(wave8b_tracking),
        (unsigned long long)wave8b_scans,(unsigned long long)samples);

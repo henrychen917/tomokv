@@ -21,6 +21,7 @@ OUT.mkdir(parents=True,exist_ok=True)
 BUILD.mkdir(parents=True,exist_ok=True)
 ARMS = {a: (ROOT / f"build/wave8b/{a}-source", ROOT / f"build/wave8b/{a}-source/build") for a in ("headline", "execindex", "pre")}
 ARMS["post"] = (ROOT, ROOT / "build")
+ARMS["context"] = (ROOT, ROOT / "build")
 
 
 def save(path, value):

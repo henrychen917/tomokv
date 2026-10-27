@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-db0-MSET-1s-32-1--1.log
+SHA-256: 54f17d608345336751aa00353d27138723e27c20c4005b65bd7b165668c31cf9
+Exit: 0
+0x0000555555686e19	569	}
+0x0000555555686e1a	569	}
+0x0000555555686e1c	569	}
+0x0000555555686e1e	569	}
+0x0000555555686e20	569	}
+0x0000555555d8c517 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
+180	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
+163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8c523	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8c52a	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8c532	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8c539	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8c53f	183	   std::string want="+OK\r\n";
+0x0000555555d8c546	183	   std::string want="+OK\r\n";
+0x0000555555d8c54d	182	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
+30	[[gnu::noinline]] void scope_end(){
+[Inferior 1 (process 3013076) exited normally]
+COUNT 955046

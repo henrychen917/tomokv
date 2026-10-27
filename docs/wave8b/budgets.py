@@ -26,6 +26,8 @@ def trial(job):
  receipt=OUT/(tag+'.json');dest=OUT/(tag+'.o')
  if receipt.exists():return json.loads(receipt.read_text())
  cmd=recipe(arm,obj);cmd=['-g0' if x=='-g' else 'large-unit-insns='+str(value) if x.startswith('large-unit-insns=') else x for x in cmd]
+
+ if not any(x.startswith('large-unit-insns=') for x in cmd): cmd+=['--param','large-unit-insns='+str(value)]
  cmd[cmd.index('-o')+1]=str(dest);cmd+=['-fdump-ipa-inline','-dumpbase',str(OUT/tag)]
  with (OUT/(tag+'.log')).open('w') as log:
   subprocess.run(cmd,cwd=PRE if arm=='pre' else ROOT,stdout=log,stderr=subprocess.STDOUT,check=True)

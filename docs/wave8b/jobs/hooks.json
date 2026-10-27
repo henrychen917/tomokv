@@ -1,0 +1,41 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-71",
+    "--load-cores",
+    "72-79",
+    "--load-smt",
+    "",
+    "--ports",
+    "20020-20029",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave8b/build/tomokv-wave8b-hooks"
+  ],
+  "cwd": "/home/user/Projects/cx-wave8b",
+  "env": {
+    "LANG": "en_US.UTF-8",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "wave8b_off latencyfix_shape latencyfix_off execfair",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_ZC_NET_IO": "uring",
+    "GATE_SHUTDOWN_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TEST_PORT": "20098",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave8b/docs/wave8b/jobs/hooks.tsv",
+    "GATE_PROOF_NO_RATES": "1"
+  },
+  "binary_sha256": "54026fefe6af9a10b18a3f7198589b0c6e56193b1dad54780788748a84b4d4f8",
+  "source_commit": "e5ff7fb372ff17ce08df6c6dcdae9652ed2fa94d",
+  "gate_sha256": "0d3f5db288d63ee8ba9d60ea6a6d699651cba797fae0d671d772ab34a90acfcf",
+  "started": 1793091273.48519,
+  "exit": 2,
+  "seconds": 0.577784538269043,
+  "artifacts": "/home/user/Projects/cx-wave8b/build/gate-run.S6XjbC",
+  "summary": [],
+  "binary_unchanged": true
+}

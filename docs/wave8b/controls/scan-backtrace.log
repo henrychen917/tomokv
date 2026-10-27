@@ -1,0 +1,20 @@
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Enable debuginfod for this session? (y or [n]) [answered N; input not from terminal]
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+
+Program received signal SIGABRT, Aborted.
+__pthread_kill_implementation (no_tid=0, signo=6, threadid=<optimized out>) at ./nptl/pthread_kill.c:44
+#0  __pthread_kill_implementation (no_tid=0, signo=6, threadid=<optimized out>) at ./nptl/pthread_kill.c:44
+#1  __pthread_kill_internal (signo=6, threadid=<optimized out>) at ./nptl/pthread_kill.c:78
+#2  __GI___pthread_kill (threadid=<optimized out>, signo=signo@entry=6) at ./nptl/pthread_kill.c:89
+#3  0x00007ffff6e4527e in __GI_raise (sig=sig@entry=6) at ../sysdeps/posix/raise.c:26
+#4  0x00007ffff6e288ff in __GI_abort () at ./stdlib/abort.c:79
+#5  0x0000555555d8e967 in tomo::CoreConcurrencyTest::need (v=<optimized out>) at tests/wave8b_scope.cc:38
+#6  tomo::CoreConcurrencyTest::run<false> (command="EXEC-single", n=n@entry=4, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at tests/wave8b_scope.cc:41
+#7  0x00005555555c8fa1 in main () at /usr/include/c++/13/bits/basic_string.tcc:242
+warning: 44	./nptl/pthread_kill.c: No such file or directory

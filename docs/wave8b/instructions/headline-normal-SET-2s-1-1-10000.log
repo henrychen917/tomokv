@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/headline-normal-SET-2s-1-1-10000.log
+SHA-256: 8304678d59588f5de1d548910420986c44614ab724099e73a68cc33fa0970c20
+Exit: 0
+0x0000555555a22ee8	2345	                }
+0x0000555555a22db3 in tomo::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff61d7b48, batch=batch@entry=0x7ffffffda080, n=n@entry=1) at src/core/ex_loop.h:2348
+2348	        // One publish per batch, covering every shard this batch touched. Cheaper than tracking
+0x0000555555a22db8	2348	        // One publish per batch, covering every shard this batch touched. Cheaper than tracking
+0x0000555555a22dc1	2348	        // One publish per batch, covering every shard this batch touched. Cheaper than tracking
+0x0000555555a22dc7	2348	        // One publish per batch, covering every shard this batch touched. Cheaper than tracking
+0x0000555555a22dcb	2348	        // One publish per batch, covering every shard this batch touched. Cheaper than tracking
+0x0000555555a22dcc	2348	        // One publish per batch, covering every shard this batch touched. Cheaper than tracking
+0x0000555555a22dce	2348	        // One publish per batch, covering every shard this batch touched. Cheaper than tracking
+0x0000555555a22dd0	2348	        // One publish per batch, covering every shard this batch touched. Cheaper than tracking
+0x0000555555a22dd2	2348	        // One publish per batch, covering every shard this batch touched. Cheaper than tracking
+0x0000555555a22dd4	2348	        // One publish per batch, covering every shard this batch touched. Cheaper than tracking
+0x0000555555a22dd5	2348	        // One publish per batch, covering every shard this batch touched. Cheaper than tracking
+0x0000555555d63e80 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=10000) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:140
+140	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
+30	[[gnu::noinline]] void scope_end(){
+[Inferior 1 (process 2921558) exited normally]
+COUNT 2067

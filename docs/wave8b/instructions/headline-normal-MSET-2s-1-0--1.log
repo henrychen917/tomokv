@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/headline-normal-MSET-2s-1-0--1.log
+SHA-256: 6c067d096b276d2ee3cf7bf66e1442a8ac6a0c7413aa085588c72fe27f860af9
+Exit: 0
+PASS bounded production command scope
+97	    { return ::new((void*)__location) _Tp(std::forward<_Args>(__args)...); }
+tomo::ScatterArenaPool::release (pooled=true, ptr=0x7ffff6363080, this=0x7ffffffd9bb0) at src/cmd/xshard.cc:1590
+0x0000555555a5c4ec in tomo::xshard_destroy (state=0x7ffff6363080, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2311
+0x0000555555a5c4ed	0x0000555555a5c4ee	0x0000555555a5c4f0	0x0000555555a5c4f2	0x0000555555a5c4f4	0x0000555555d644d6 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
+180	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
+163	   for(unsigned i=0;i<n;i++){
+0x0000555555d644e1	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d644e9	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d644f0	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d644f8	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d644fb	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d64501	183	   std::string want="+OK\r\n";
+0x0000555555d64508	183	   std::string want="+OK\r\n";
+0x0000555555d6450f	182	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
+30	[[gnu::noinline]] void scope_end(){
+[Inferior 1 (process 2932812) exited normally]
+COUNT 10690
