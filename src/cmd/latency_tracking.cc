@@ -97,9 +97,20 @@ ExecutorHistograms& store(uint32_t executor) {
     }
     return *value;
 }
+// A slice begun before the last disabling CONFIG cannot be resurrected by a
+// subsequent yes. This is cold tracking state, outside every locked layout.
+std::atomic<uint64_t> disabled_cut_ns{0};
+void record_generation(uint32_t executor, const Op& op, uint64_t ns, uint64_t cut);
+#ifdef TOMO_LATENCY_SCAN_WITNESS
+uint64_t latency_scan_slots = 0;
+inline void note_latency_slot() { ++latency_scan_slots; }
+#else
+inline void note_latency_slot() {}
+#endif
 Histograms collect() {
     Histograms result;
     for (auto& slot : stores) {
+        note_latency_slot();
         auto* value = slot.value.load(std::memory_order_acquire);
         if (!value) continue;
         std::lock_guard lock(value->mutex);
@@ -134,8 +145,10 @@ void record_tracked(uint32_t executor, uint64_t client, const Op& op, uint64_t n
                     int64_t ms, const SlowlogArm& arm, bool exact) {
     // Disabling CONFIG SET must not insert itself after disabling the feature.
     if (!op.has_scatter_state() && !op.has_multi_state() && !op.has_blocking_state())
-        if (auto* server = command_server(); server && server->latency_tracking())
-            latency_tracking_record(executor, op, ns);
+        if (auto* server = command_server(); server && server->latency_tracking()) {
+            const uint64_t cut = disabled_cut_ns.load(std::memory_order_acquire);
+            if (now_ns() - ns > cut) record_generation(executor, op, ns, cut);
+        }
     slowlog_record(executor, client, op, ns, ms, arm, exact);
 }
 }
@@ -225,17 +238,20 @@ void latency_tracking_part(uint32_t executor, const Op& op, uint64_t started) {
     auto& local = store(executor);
     std::lock_guard lock(local.mutex);
     if (auto* server = command_server(); !server || !server->latency_tracking()) return;
+    if (started <= disabled_cut_ns.load(std::memory_order_acquire)) return;
     local.pending[&op] += duration;
 }
 void latency_tracking_retire(uint32_t executor, const Op& op) {
     // CONFIG's off transition clears every pending slice before returning.
     // Disabled command hooks must never walk the physical executor slots.
     if (auto* server = command_server(); !server || !server->latency_tracking()) return;
+    const uint64_t cut = disabled_cut_ns.load(std::memory_order_acquire);
     uint64_t duration = 0;
     bool found = false;
     // All participants have published completion before ROB retirement. Histogram
     // writes remain owner-private; only a resumable command's private slices join here.
     for (auto& slot : stores) {
+        note_latency_slot();
         auto* local = slot.value.load(std::memory_order_acquire);
         if (!local) continue;
         std::lock_guard lock(local->mutex);
@@ -248,9 +264,7 @@ void latency_tracking_retire(uint32_t executor, const Op& op) {
         found = true;
         local->pending.erase(row);
     }
-    if (found)
-        if (auto* server = command_server(); server && server->latency_tracking())
-            latency_tracking_record(executor, op, duration);
+    if (found) record_generation(executor, op, duration, cut);
 }
 void latency_tracking_retry(const Op& previous, const Op& next) {
     // Disabling tracking clears all pending slices. The default-off retry path
@@ -260,6 +274,7 @@ void latency_tracking_retry(const Op& previous, const Op& next) {
     // joined; new owners may already accumulate slices, but only IO can retire
     // the replacement. Reuse the node so a retry needs no extra allocation.
     for (auto& slot : stores) {
+        note_latency_slot();
         auto* local = slot.value.load(std::memory_order_acquire);
         if (!local) continue;
         std::lock_guard lock(local->mutex);
@@ -275,6 +290,7 @@ void latency_tracking_forget(const Op& op) {
     // Disabled command hooks must never walk the physical executor slots.
     if (auto* server = command_server(); !server || !server->latency_tracking()) return;
     for (auto& slot : stores) {
+        note_latency_slot();
         auto* local = slot.value.load(std::memory_order_acquire);
         if (!local) continue;
         std::lock_guard lock(local->mutex);
@@ -287,6 +303,7 @@ void latency_tracking_forget_client(Client& client) {
     // Disabled command hooks must never walk the physical executor slots.
     if (auto* server = command_server(); !server || !server->latency_tracking()) return;
     for (auto& slot : stores) {
+        note_latency_slot();
         auto* local = slot.value.load(std::memory_order_acquire);
         if (!local) continue;
         std::lock_guard lock(local->mutex);
@@ -297,7 +314,9 @@ void latency_tracking_forget_client(Client& client) {
     }
 }
 void latency_tracking_discard_pending() {
+    disabled_cut_ns.store(now_ns(), std::memory_order_release);
     for (auto& slot : stores) {
+        note_latency_slot();
         auto* local = slot.value.load(std::memory_order_acquire);
         if (!local) continue;
         std::lock_guard lock(local->mutex);
@@ -312,6 +331,7 @@ void latency_tracking_script_begin(const Op& parent) {
     // activation's nested calls belong to the externally visible execution;
     // the parent's active slices still include all retry work.
     for (auto& slot : stores) {
+        note_latency_slot();
         auto* local = slot.value.load(std::memory_order_acquire);
         if (!local) continue;
         std::lock_guard lock(local->mutex);
@@ -328,6 +348,7 @@ void latency_tracking_script_part(uint32_t executor, const Op& parent,
     auto& local = store(executor);
     std::lock_guard lock(local.mutex);
     if (auto* server = command_server(); !server || !server->latency_tracking()) return;
+    if (started <= disabled_cut_ns.load(std::memory_order_acquire)) return;
     local.script_children[&parent].emplace_back(command_metadata_index(*metadata), duration);
 }
 
@@ -337,12 +358,14 @@ uint64_t latency_tracking_start() {
 void latency_tracking_finish(uint32_t executor, const Op& op, uint64_t started) {
     if (started) {
         const uint64_t duration = now_ns() - started;
-        if (auto* server = command_server(); server && server->latency_tracking())
-            latency_tracking_record(executor, op, duration);
+        const uint64_t cut = disabled_cut_ns.load(std::memory_order_acquire);
+        if (started > cut) record_generation(executor, op, duration, cut);
     }
 }
 
-void latency_tracking_record(uint32_t executor, const Op& op, uint64_t duration_ns) {
+namespace {
+void record_generation(uint32_t executor, const Op& op, uint64_t duration_ns, uint64_t cut) {
+    if (auto* server = command_server(); !server || !server->latency_tracking()) return;
     if (executor >= stores.size() || !op.spec) return;
     // The metadata resolver only reads Op; its existing API predates const use.
     // Unknown container children are rejected commands, not parent executions.
@@ -351,9 +374,16 @@ void latency_tracking_record(uint32_t executor, const Op& op, uint64_t duration_
     auto& local = store(executor);
     std::lock_guard lock(local.mutex);
     if (auto* server = command_server(); !server || !server->latency_tracking()) return;
+    if (cut != disabled_cut_ns.load(std::memory_order_acquire)) return;
     retire_script_children(local, op);
     // Redis's timer produces integral microseconds before conversion to nanoseconds.
     local.values[command_metadata_index(*metadata)].add((duration_ns / 1000) * 1000);
+}
+
+} // namespace
+void latency_tracking_record(uint32_t executor, const Op& op, uint64_t duration_ns) {
+    record_generation(executor, op, duration_ns,
+                      disabled_cut_ns.load(std::memory_order_acquire));
 }
 
 void latency_tracking_histogram(Op& op) {
@@ -402,6 +432,7 @@ void latency_tracking_info(std::string& out, const std::vector<double>& percenti
 
 void latency_tracking_reset() {
     for (auto& slot : stores) {
+        note_latency_slot();
         auto* value = slot.value.load(std::memory_order_acquire);
         if (!value) continue;
         std::lock_guard lock(value->mutex);
@@ -411,6 +442,7 @@ void latency_tracking_reset() {
 uint64_t latency_tracking_allocated_histograms() {
     uint64_t count = 0;
     for (auto& slot : stores) {
+        note_latency_slot();
         auto* value = slot.value.load(std::memory_order_acquire);
         if (!value) continue;
         std::lock_guard lock(value->mutex);

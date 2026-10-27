@@ -17,8 +17,22 @@ extern "C" void production_split(void*, const Task*, unsigned)
     asm("_ZN" NSM "7ExLoopTILb0EE21exec_batch_prefetchedILb0EEEvPKNS_4TaskEj");
 extern "C" void production_fused(void*, const Task*, unsigned)
     asm("_ZN" NSM "7ExLoopTILb1EE21exec_batch_prefetchedILb0EEEvPKNS_4TaskEj");
-[[gnu::noinline]] void scope_begin(){asm volatile("" ::: "memory");}
-[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+#ifdef TOMO_LATENCY_SCAN_WITNESS
+bool wave8b_tracking = false;
+uint64_t wave8b_scans = 0;
+#endif
+[[gnu::noinline]] void scope_begin(){
+#ifdef TOMO_LATENCY_SCAN_WITNESS
+ tomo::latency_scan_slots = 0;
+#endif
+ asm volatile("" ::: "memory");
+}
+[[gnu::noinline]] void scope_end(){
+ asm volatile("" ::: "memory");
+#ifdef TOMO_LATENCY_SCAN_WITNESS
+ wave8b_scans = tomo::latency_scan_slots;
+#endif
+}
 namespace tomo {
 struct CoreConcurrencyTest {
  static void need(bool v){if(!v)std::abort();}
@@ -36,6 +50,9 @@ struct CoreConcurrencyTest {
   Config cfg;cfg.databases=TOMO_SINGLE_DATABASE?1:16;cfg.shards=16;cfg.atomic=atomic;cfg.key_lb=cfg.client_lb=cfg.flip_auto=0;
   cfg.thread_mode=Fused?ThreadMode::Fused:ThreadMode::Split;cfg.read_local=0;cfg.save.clear();
   cfg.slowlog_log_slower_than=slowlog;cfg.latency_monitor_threshold=0;
+#ifdef TOMO_LATENCY_SCAN_WITNESS
+  cfg.latency_tracking = wave8b_tracking;
+#endif
   need(server.init(cfg));command_bind_server(&server);
   auto loops=std::make_unique<ExLoopT<Fused>[]>(8);
   for(unsigned tid=0;tid<8;tid++){
@@ -95,6 +112,15 @@ struct CoreConcurrencyTest {
    std::string expected="*"+std::to_string(n)+"\r\n";
    for(unsigned i=0;i<n;i++)expected+=":"+std::to_string(command=="EXEC-cross"?1:i+1)+"\r\n";
    need(std::string(carrier->reply.data(),carrier->reply.size())==expected);
+#ifdef TOMO_LATENCY_SCAN_WITNESS
+   need(wave8b_tracking ? wave8b_scans > 0 : wave8b_scans == 0);
+   uint64_t samples = 0;
+   for(const auto& row:collect())samples += row.second.calls;
+   need(samples == (wave8b_tracking ? n : 0));
+   std::printf("PASS wave8b mode=%s ns=%s atomic=%d children=%u tracking=%d slots=%llu samples=%llu\n",
+       Fused?"1s":"2s",TOMO_SINGLE_DATABASE?"db0":"normal",int(atomic),n,int(wave8b_tracking),
+       (unsigned long long)wave8b_scans,(unsigned long long)samples);
+#endif
   }else if(command=="GET"||command=="SET"||command=="INCR"){
    Task tasks[32];need(n<=32);
    for(unsigned i=0;i<n;i++){
@@ -174,4 +200,5 @@ int main(int argc,char**argv){
  if(!command_registry_init(false))return 3;
  if(std::string(argv[2])=="1s")CoreConcurrencyTest::run<true>(argv[1],std::stoul(argv[3]),std::stoi(argv[4]),std::stoll(argv[5]));
  else CoreConcurrencyTest::run<false>(argv[1],std::stoul(argv[3]),std::stoi(argv[4]),std::stoll(argv[5]));
+ return 0;
 }

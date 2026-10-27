@@ -1888,13 +1888,23 @@ void finish_command(MultiCommand& command, uint32_t stage, uint32_t /*owner_thre
     command.finished.store(true, std::memory_order_release);
 }
 
+// The tracked instantiation retains active-slice nesting. The ordinary EXEC
+// body has no timing object, TLS stack update, clock call or per-child test.
+struct MultiLatencyOff {
+    MultiLatencyOff(uint32_t, const Op*) {}
+    void finish() {}
+};
+template<bool Tracked>
+using MultiLatencyPart = std::conditional_t<Tracked, LatencyTrackingPart, MultiLatencyOff>;
+
+template<bool Tracked>
 void assemble_ownerless_replies(MultiExecState& state, uint32_t owner_thread_id) {
     for (const auto& command : state.commands) {
         if (command_has_owner_work(*command) ||
             command->kind == MultiCommandKind::IoLocal ||
             command->kind == MultiCommandKind::Prebuilt)
             continue;
-        LatencyTrackingPart latency(owner_thread_id, command->op.get());
+        MultiLatencyPart<Tracked> latency(owner_thread_id, command->op.get());
         assemble_cross_reply(*command);
     }
 }
@@ -2329,7 +2339,8 @@ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t co
     if (was_queueing && op_id != queue_session->next_queue_op_id)
         queue_session->queue_error = true;
     MultiExecState* dispatch = nullptr;
-    const uint64_t latency_started = latency_tracking_start();
+    const uint64_t latency_started = __builtin_expect(loop.srv_->latency_tracking(), false)
+        ? latency_tracking_start() : 0;
     const MultiIoAction action =
         multi_handle_io(*loop.srv_, client, op, loop.self_->id(), dispatch);
     if (action == MultiIoAction::NotHandled) return false;
@@ -2339,7 +2350,7 @@ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t co
     }
     if (was_queueing) queue_session->next_queue_op_id = op_id + 1;
     if (action == MultiIoAction::LocalDone) {
-        if (op.spec->flags & CmdFlags::Transaction)
+        if (latency_started && (op.spec->flags & CmdFlags::Transaction))
             latency_tracking_finish(loop.self_->id(), op, latency_started);
         client.advance_parse(consumed);
         loop.self_->note_command(op.spec->id);
@@ -2568,8 +2579,9 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
                 multi_enqueue_retry(*previous);
                 continue;
             }
-            for (size_t i = 0; i < previous->commands.size(); ++i)
-                latency_tracking_retry(*previous->commands[i]->op, *next->commands[i]->op);
+            if (__builtin_expect(loop.srv_->latency_tracking(), false))
+                for (size_t i = 0; i < previous->commands.size(); ++i)
+                    latency_tracking_retry(*previous->commands[i]->op, *next->commands[i]->op);
             previous->watched.clear();
             previous->retired = true;
             loop.multi_deferred_.push_back(previous);
@@ -2774,7 +2786,9 @@ MultiOwnerRetryNode& multi_owner_retry_node(const Task& task) {
     return state.owner_retries[task.shard];
 }
 
-MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shard,
+template<bool Tracked>
+__attribute__((always_inline)) inline
+MultiTaskResult multi_execute_task_impl(Server& server, const Task& task, Shard& shard,
                                    uint32_t owner_thread_id, uint32_t owner_domain,
                                    AofOwnerContext* aof_context,
                                    const MultiRetryPromoter* promoter) {
@@ -2788,7 +2802,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
     // fragment with no client raises no notifications, so it takes the pointer form.
     Op* carrier = task.client && task.op_id != UINT64_MAX
         ? &task.client->rob().at(task.op_id) : nullptr;
-    LatencyTrackingPart latency_parent(owner_thread_id, carrier);
+    MultiLatencyPart<Tracked> latency_parent(owner_thread_id, carrier);
     const bool notify = carrier && (carrier->spec->flags & CmdFlags::NotifySelected);
     NotifyExecutionScope notify_scope(shard, carrier, notify);
     const uintptr_t tagged = reinterpret_cast<uintptr_t>(task.scatter);
@@ -2926,7 +2940,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
             }
             ScatterTaskResult executed = ScatterTaskResult::Complete;
             if (execute_child) {
-                LatencyTrackingPart latency_child(owner_thread_id, command.op.get());
+                MultiLatencyPart<Tracked> latency_child(owner_thread_id, command.op.get());
                 if (command.scatter->kind == Kind::DatabaseInfo)
                     multi_collect_database_stats(state, command, shard);
                 else executed = shard.has_watches()
@@ -2985,7 +2999,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
             if (command.finished.load(std::memory_order_acquire)) continue;
             return retry();
         }
-        LatencyTrackingPart latency_child(owner_thread_id,
+        MultiLatencyPart<Tracked> latency_child(owner_thread_id,
             command.kind == MultiCommandKind::IoLocal ? nullptr : command.op.get());
         bool executed = true;
         if (state.decision.aborted.load(std::memory_order_acquire)) {
@@ -3025,7 +3039,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                     state.decision.aborted.store(true, std::memory_order_release);
                 if (!state.decision.aborted.load(std::memory_order_acquire) &&
                     state.final_reply == MultiFinalReply::Exec) {
-                    assemble_ownerless_replies(state, owner_thread_id);
+                    assemble_ownerless_replies<Tracked>(state, owner_thread_id);
                     const uint64_t ticket = server.atomic_commit_group_cas(
                         state.decision.epoch,
                         [&](uint64_t shared) {
@@ -3098,6 +3112,21 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
     return MultiTaskResult::Final;
 }
 
+__attribute__((noinline, cold)) static
+MultiTaskResult multi_execute_task_tracked(Server& server, const Task& task, Shard& shard,
+        uint32_t owner, uint32_t domain, AofOwnerContext* aof,
+        const MultiRetryPromoter* promoter) {
+    return multi_execute_task_impl<true>(server, task, shard, owner, domain, aof, promoter);
+}
+
+MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shard,
+        uint32_t owner, uint32_t domain, AofOwnerContext* aof,
+        const MultiRetryPromoter* promoter) {
+    if (__builtin_expect(server.latency_tracking(), false))
+        return multi_execute_task_tracked(server, task, shard, owner, domain, aof, promoter);
+    return multi_execute_task_impl<false>(server, task, shard, owner, domain, aof, promoter);
+}
+
 void multi_retire(Client& client, Op& op, std::vector<MultiExecState*>& deferred) {
     auto* state = static_cast<MultiExecState*>(op.multi_state());
     if (!state) return;
@@ -3114,8 +3143,10 @@ void multi_retire(Client& client, Op& op, std::vector<MultiExecState*>& deferred
                 !(state->publication_started &&
                   (has_name(command->queued, "publish") || has_name(command->queued, "spublish"))))
             {
-                LatencyTrackingScope latency(state->owner_io, *command->op);
-                command->op->spec->handler(state->server->shard(0), *command->op);
+                if (__builtin_expect(state->server->latency_tracking(), false)) {
+                    LatencyTrackingScope latency(state->owner_io, *command->op);
+                    command->op->spec->handler(state->server->shard(0), *command->op);
+                } else command->op->spec->handler(state->server->shard(0), *command->op);
             }
     }
     // A completed child can belong to an internally wounded attempt. Publish

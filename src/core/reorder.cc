@@ -915,8 +915,8 @@ void IoLoop::r7_run_loop() {
             }
         }
         if constexpr (!Fused) {
-            wb_idle.observe(pass_ns, wb_completions != 0);
-            if (!did && !pending_serve_.empty() && wb_idle.active(pass_ns)) did = 1;
+            if (wb_config_.policy) wb_idle.observe(pass_ns, wb_completions != 0);
+            if (!did && wb_config_.policy && !pending_serve_.empty() && wb_idle.active(pass_ns)) did = 1;
         }
         // Flush prepared SQEs before looping. Recv re-arms and cross-ring wakes are
         // PREPARED during the work section but only reach the kernel on submit; taking
@@ -952,7 +952,7 @@ void IoLoop::r7_run_loop() {
         // Preserve the established classification: publication, inbound recheck,
         // epoll callbacks, the wait and resume/clear are ALL inside this idle span.
         Span idle(sig.idle_ns);
-        wb_idle.park();
+        if constexpr (!Fused) { if (wb_config_.policy) wb_idle.park(); }
         const unsigned wait_ms = idle_timeout_ms();
         if constexpr (Fused) {
             if (__builtin_expect(srv_->read_local_enabled(), false))

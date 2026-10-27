@@ -43,3 +43,32 @@ These are instruction counts only. The initial one-child normal trace enters
 despite tracking being off and all stores empty. The scope constructors,
 destructors and explicit finish add 92 more instructions. Final attribution,
 correctness, identities, artifacts and the owner's merit request follow below.
+
+### Off-path repair and transition audit
+
+The first scan-guard build passed `latencyfix_shape`, `latencyfix_off` and
+`execfair` through the gate job interface (four public rows, all eight
+mode/engine/atomic timing-interaction legs). Receipt: docs/wave8b/jobs/guards.json.
+This is intermediate evidence, not final-source proof.
+
+EXEC now has an untracked instantiation with no latency scope object. The
+tracked instantiation retains the original nested active-slice boundaries,
+logical-child retirement and retry transfer. One predicted feature branch selects
+it at the fragment entry. Retirement and attempt destruction guard the entire
+child walk. Blocking/script callers avoid constructing disabled scopes; blocking
+completion still pauses any *already active* slice before releasing its Op,
+including when CONFIG has just disabled tracking. This is necessary for lifetime
+safety and must not be replaced by a check of the current global knob.
+
+CONFIG no clears all pending slices and script children. A cold disable timestamp
+rejects an old slice which finishes after no/yes; writers recheck the knob under
+the store lock. Histogram retirement verifies its configuration generation before
+publishing a combined sample. No locked server layout grows. WB policy 0 skips
+grace-window observation; fused instantiations omit that bookkeeping. Slowlog's
+existing per-batch arm and readability assertions retain their semantics.
+
+`wave8b_off` adds one serverless scan/sample/transition witness row. Its
+`collect_job` line is before the quick-tier exit: **DQ=+1, DF=+1**. Wave 8 is
++8/+8, so total over headline 798/815 is **+9/+9 → 807/824**. Neither EXPECT
+constant is edited. Landing count/label adjustments for abba_selftest are confined
+to a throwaway source copy.

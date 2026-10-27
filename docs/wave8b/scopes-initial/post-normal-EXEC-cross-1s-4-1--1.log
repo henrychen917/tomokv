@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-normal-EXEC-cross-1s-4-1--1.log
+SHA-256: 2a753c991c9b9f6ba28b40cd510b7535c92dc9dbf86ca688ccd65d9a75d487d8
+Exit: 0
+0x0000555555a7bceb	3185	}
+0x0000555555a7bcef	3185	}
+0x0000555555a7bcf2	3185	}
+0x0000555555a7bcf3	3185	}
+0x0000555555a7bcf4	3185	}
+0x0000555555a7bcf6	3185	}
+0x0000555555a7bcf8	3185	}
+tomo::CoreConcurrencyTest::need (v=true) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:24
+24	 static void need(bool v){if(!v)std::abort();}
+0x0000555555d8b6e4	24	 static void need(bool v){if(!v)std::abort();}
+0x0000555555d8b6eb	24	 static void need(bool v){if(!v)std::abort();}
+0x0000555555d8b6f1 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=4, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:94
+94	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scopeTomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+.cc:21
+21	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 1440616) exited normally]
+COUNT 42586

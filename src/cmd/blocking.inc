@@ -687,7 +687,9 @@ void blocking_fail_registration_oom(BlockingState& state, Op& op,
 }
 
 bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ring& ring) {
-    LatencyTrackingPart latency_direct(self.id(), &state.client->rob().at(state.op_id));
+    std::optional<LatencyTrackingPart> latency_direct;
+    if (__builtin_expect(state.server->latency_tracking(), false))
+        latency_direct.emplace(self.id(), &state.client->rob().at(state.op_id));
     BlockingKey& key = state.keys[state.selected];
     const Slice key_slice = blocking_key_slice(key);
     Op& op = state.client->rob().at(state.op_id);
@@ -1180,7 +1182,9 @@ bool blocking_execute_impl(Server&, ThreadCtx& self, Ring& ring, const Task& tas
     const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0;
     NotifyExecutionScope notify_scope(shard, op, notify);
     BlockingState& state = *op.blocking_state();
-    LatencyTrackingPart latency_part(self.id(), &op);
+    std::optional<LatencyTrackingPart> latency_part;
+    if (__builtin_expect(state.server->latency_tracking(), false))
+        latency_part.emplace(self.id(), &op);
     if (state.cancel_requested.load(std::memory_order_acquire)) {
         state.phase.store(BlockingPhase::Cancelled, std::memory_order_release);
         blocking_task_done(state, self, ring);

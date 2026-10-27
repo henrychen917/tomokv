@@ -3059,6 +3059,7 @@ job_execfair(){
       py tests/wave6_exec.py "$PORT" >"$log-wave6.log" 2>&1 || passed=0
       py tests/wave7.py "$PORT" >"$log-wave7.log" 2>&1 || passed=0
       py tests/wave8.py "$PORT" >"$log-wave8.log" 2>&1 || passed=0
+      py tests/wave8b.py "$PORT" >"$log-wave8b.log" 2>&1 || passed=0
     else passed=0; fi
     stop
     shutdown_clean || passed=0
@@ -3309,6 +3310,20 @@ job_latencyfix_off(){
       --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/latencyfix-off" \
       >"$TMPDIR/latencyfix-off.log" 2>&1 \
       && ok "$label" || bad "$label" "see $TMPDIR/latencyfix-off.log"
+}
+
+# wave8b: one serverless witness row, collected before the quick-tier exit.
+# DQ=DF=+1. Landing totals belong to the maintainer: 807/824.
+job_wave8b_off(){
+  local label="wave8b tracking-off EXEC scans and transitions" passed=1 unit
+  row_begin "$label"
+  pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" -f Makefile -f tools/wave8b.mk \
+      build/wave8b-latency-unit build/wave8b-latency-db0-unit >"$TMPDIR/build.log" 2>&1 || passed=0
+  for unit in wave8b-latency-unit wave8b-latency-db0-unit; do
+    make -q -f Makefile -f tools/wave8b.mk "build/$unit" && \
+      taskset -c "$CORES" "./build/$unit" >"$TMPDIR/$unit.log" 2>&1 || passed=0
+  done
+  [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/build.log and unit logs"
 }
 
 job_serverfix_config(){
@@ -5672,6 +5687,7 @@ collect_job serverfix_scalar
 collect_job latencyfix_grammar
 collect_job latencyfix_shape
 collect_job latencyfix_off
+collect_job wave8b_off
 collect_job serverfix_config
 collect_job serverfix_hello
 collect_job serverfix_waitaof
