@@ -107,8 +107,10 @@ void slowlog_record_captured(uint32_t thread_id, const std::shared_ptr<const Slo
 // Records one completed operation. `duration_ns` is the measured span; `exact` says whether it is
 // this op's own time (batch of one, or escalated per-op timing) or the enclosing batch's time.
 // Called only from the armed arm of the executor batch loop.
+// Preserve the actual start for the bound histogram recorder: callback delay
+// must not reconstruct an old span into a newer CONFIG tracking generation.
 void slowlog_record(uint32_t thread_id, uint64_t client_id, const Op& op, uint64_t duration_ns,
-                    int64_t now_ms, const SlowlogArm& arm, bool exact);
+                    int64_t now_ms, const SlowlogArm& arm, bool exact, uint64_t started);
 
 // Chosen only at a committed configuration boundary. Replaces an existing call,
 // rather than adding an off-state predicate to a command's execution path.

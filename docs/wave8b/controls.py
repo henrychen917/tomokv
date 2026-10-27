@@ -11,7 +11,7 @@ cmds=[shlex.split(s) for s in recipe.splitlines() if s.startswith('g++ ')]
 compile=next(c for c in cmds if '-c' in c and 'tests/wave8b_latency_unit.cc' in c)
 link=next(c for c in cmds if '-c' not in c and 'build/wave8b-latency-unit' in c)
 receipts=[]
-for case in ('scan','stale'):
+for case in ('scan','stale','callback'):
  d=OUT/case;d.mkdir(exist_ok=True);binary=d/'broken';obj=d/'broken.o'
  if case=='scan':
   source=(ROOT/'src/cmd/multi.inc').read_text().replace('void multi_retire(Client& client, Op& op, std::vector<MultiExecState*>& deferred) {','void multi_retire(Client& client, Op& op, std::vector<MultiExecState*>& deferred) {\n    latency_tracking_discard_pending();')
@@ -22,7 +22,9 @@ for case in ('scan','stale'):
   cmd[cmd.index('src/cmd/xshard.cc')]=str(cc);cmd+=['-I'+str(ROOT/'src/cmd'),'-g0']
   replacement='build/src/cmd/xshard.o'
  else:
-  source=(ROOT/'src/cmd/latency_tracking.cc').read_text().replace('    if (started <= disabled_cut_ns.load(std::memory_order_acquire)) return;\n','')
+  source=(ROOT/'src/cmd/latency_tracking.cc').read_text()
+  if case=='stale': source=source.replace('    if (started <= disabled_cut_ns.load(std::memory_order_acquire)) return;\n','')
+  else: source=source.replace('if (started > cut) record_generation(executor, op, ns, cut);','if (now_ns() - ns > cut) record_generation(executor, op, ns, cut);')
   cc=d/'latency_tracking.cc';cc.write_text(source)
   unit=d/'unit.cc';unit.write_text((ROOT/'tests/wave8b_latency_unit.cc').read_text().replace('#include "src/cmd/latency_tracking.cc"','#include "'+str(cc)+'"'))
   cmd=compile.copy();cmd[cmd.index('tests/wave8b_latency_unit.cc')]=str(unit)
@@ -38,6 +40,6 @@ for case in ('scan','stale'):
  trace=subprocess.run(['gdb','-nx','-batch','-ex','run','-ex','bt',str(binary)],capture_output=True,text=True)
  (DOC/(case+'-backtrace.log')).write_text(trace.stdout+trace.stderr)
  assert 'SIGABRT' in trace.stdout
- receipts.append(dict(case=case,compile=cmd,link=ld,exit=result.returncode,sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),reason='Unconditional retirement scan' if case=='scan' else 'Reintroduced stale pending slice after no/yes'))
+ receipts.append(dict(case=case,compile=cmd,link=ld,exit=result.returncode,sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),reason={'scan':'Unconditional retirement scan','stale':'Reintroduced stale pending slice after no/yes','callback':'Delayed callback reconstructs old beginning after no/yes'}[case]))
  print('EXPECTED RED',case,result.returncode,flush=True)
 (DOC/'receipts.json').write_text(json.dumps(receipts,indent=2)+'\n')

@@ -2,6 +2,7 @@
 """CONFIG transitions while EXEC/script fragments are demonstrably pending."""
 from concurrent.futures import ThreadPoolExecutor
 import sys
+import time
 import uuid
 from authfix import Resp
 from _lib import encode
@@ -71,6 +72,36 @@ def run(port):
             actual = dict(histogram(admin, 'exec', 'incr', 'eval', 'incrby', 'mget'))
             assert actual == dict(exec=1, incr=2, eval=1, incrby=2, mget=1), actual
             print('PASS wave8b pending', case, 'CONFIG no/yes; exact off/on samples', actual, flush=True)
+        assert admin.cmd('CONFIG', 'SET', 'latency-tracking', 'no') == b'OK'
+
+        for enabled_at_wake in (False, True):
+            for attempt in range(3):
+                assert admin.cmd('CONFIG', 'SET', 'latency-tracking', 'yes') == b'OK'
+                assert admin.cmd('CONFIG', 'RESETSTAT') == b'OK'
+                with Resp(port) as client, ThreadPoolExecutor(1) as pool:
+                    client.sock.sendall(encode('WAIT', 1, 500))
+                    pending = pool.submit(client.read)
+                    deadline = time.monotonic() + 1
+                    blocked = False
+                    while not pending.done() and time.monotonic() < deadline:
+                        fields = dict(line.split(':', 1) for line in
+                                      admin.cmd('INFO', 'clients').decode().splitlines() if ':' in line)
+                        if int(fields['blocked_clients']) > 0:
+                            blocked = True
+                            break
+                        time.sleep(.001)
+                    assert admin.cmd('CONFIG', 'SET', 'latency-tracking', 'no') == b'OK'
+                    if enabled_at_wake:
+                        assert admin.cmd('CONFIG', 'SET', 'latency-tracking', 'yes') == b'OK'
+                    switched_pending = not pending.done()
+                    assert pending.result(timeout=3) == 0
+                if blocked and switched_pending:
+                    expected = dict(wait=1) if enabled_at_wake else {}
+                    assert dict(histogram(admin, 'wait')) == expected
+                    break
+            else:
+                raise AssertionError('WAIT transition window absent on three fresh connections')
+            print('PASS wave8b WAIT pending CONFIG transition, enabled at wake', enabled_at_wake)
         assert admin.cmd('CONFIG', 'SET', 'latency-tracking', 'no') == b'OK'
 
 

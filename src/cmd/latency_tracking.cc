@@ -142,14 +142,16 @@ void reply_histogram(Op& op, uint32_t id, const Histogram& histogram) {
 
 namespace {
 void record_tracked(uint32_t executor, uint64_t client, const Op& op, uint64_t ns,
-                    int64_t ms, const SlowlogArm& arm, bool exact) {
+                    int64_t ms, const SlowlogArm& arm, bool exact, uint64_t started) {
     // Disabling CONFIG SET must not insert itself after disabling the feature.
     if (!op.has_scatter_state() && !op.has_multi_state() && !op.has_blocking_state())
         if (auto* server = command_server(); server && server->latency_tracking()) {
             const uint64_t cut = disabled_cut_ns.load(std::memory_order_acquire);
-            if (now_ns() - ns > cut) record_generation(executor, op, ns, cut);
+            // A delayed callback cannot reconstruct its beginning from a new
+            // clock read minus the old duration: no/yes may occupy that gap.
+            if (started > cut) record_generation(executor, op, ns, cut);
         }
-    slowlog_record(executor, client, op, ns, ms, arm, exact);
+    slowlog_record(executor, client, op, ns, ms, arm, exact, started);
 }
 }
 namespace {

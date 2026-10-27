@@ -2,6 +2,10 @@
 
 ## wave8b
 
+**Revalidation in progress:** the arm hashes and counts below describe v1, now
+superseded by an exact-start callback fix and discardable WAIT slices. V1 binaries
+are retained with `-v1` suffixes. Corrected arms and proof will replace this notice.
+
 **Landing held:** disabled EXEC has no latency hooks/store scans, but exact
 execindex instruction/body parity is not attained. POST remains +62..258 named
 instructions per measured EXEC scope. Merit is NOT RUN; no throughput claim.

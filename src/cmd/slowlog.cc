@@ -602,7 +602,7 @@ __attribute__((noinline, cold)) void slowlog_complete(const Op& op) {
     // slowlog_record tests the measured duration before copying argv or taking
     // the directory reference. The caller still owns the unpublished operation.
     slowlog_recorder(timing.thread_id, timing.client_id, op, elapsed,
-                   timing.now_ms, timing.arm, true);
+                   timing.now_ms, timing.arm, true, timing.started);
 }
 
 std::shared_ptr<const SlowlogIdentity> slowlog_capture(
@@ -635,7 +635,7 @@ std::shared_ptr<const SlowlogIdentity> slowlog_capture(
 // The connection-local path. Safe to read argv directly: the IO loop stores Done only AFTER this
 // returns, so the op cannot have retired.
 void slowlog_record(uint32_t thread_id, uint64_t client_id, const Op& op, uint64_t duration_ns,
-                    int64_t now_ms, const SlowlogArm& arm, bool exact) {
+                    int64_t now_ms, const SlowlogArm& arm, bool exact, uint64_t /*started*/) {
     const uint64_t duration_us = duration_ns / 1000;
     // Skip the capture entirely unless this op will actually be logged.
     const bool wants_entry = arm.slowlog_us >= 0 &&

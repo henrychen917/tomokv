@@ -2453,7 +2453,7 @@ subscriber_checks_done:
                         slowlog_recorder(self_id, c->id(), *op, now_ns() - slow_started,
                                        static_cast<int64_t>(wall.tv_sec) * 1000 +
                                            wall.tv_nsec / 1000000,
-                                       slowlog_arm_, true);
+                                       slowlog_arm_, true, slow_started);
                     }
                     conn.advance_parse(consumed);
                     self_->note_command(spec->id);
@@ -2472,13 +2472,17 @@ subscriber_checks_done:
             // IoLocal child calls cmd_wait at retirement and receives :0 immediately.
             if (__builtin_expect((spec->flags & CmdFlags::DeferredLocal) != 0, false)) {
                 uint64_t timeout_ms = 0;
-                const uint64_t latency_started = latency_tracking_start();
+                const uint64_t latency_started = __builtin_expect(srv_->latency_tracking(), false)
+                    ? latency_tracking_start() : 0;
                 const WaitCommandResult wait = server_tail_prepare_wait(*op, timeout_ms);
                 if (wait == WaitCommandResult::Unsatisfied) {
+                    // CONFIG no discards this probe along with every other pending slice.
+                    if (latency_started) latency_tracking_part(self_id, *op, latency_started);
                     if (!deferred_timer_start(c, rob.dispatch_id(),
                                               DeferredTimerKind::WaitZero, timeout_ms,
-                                              latency_started ? now_ns() - latency_started : 0,
+                                              0,
                                               slowlog_arm_)) {
+                        if (latency_started) latency_tracking_forget(*op);
                         reply_err(op->sink(), "ERR out of memory");
                     } else {
                         conn.advance_parse(consumed);
@@ -2536,7 +2540,7 @@ subscriber_checks_done:
                 slowlog_recorder(self_id, c->id(), *op, now_ns() - slow_started,
                                static_cast<int64_t>(wall.tv_sec) * 1000 +
                                    wall.tv_nsec / 1000000,
-                               slowlog_arm_, true);
+                               slowlog_arm_, true, slow_started);
             }
             snapshot_bind_io(nullptr, nullptr);
             command_set_local_context(nullptr, nullptr);
