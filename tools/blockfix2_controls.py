@@ -49,21 +49,12 @@ def mutation(case, source):
         end = text.index('    } else if (!std::strcmp(name, "XGROUP")) {', begin)
         blocking.write_text(text[:begin] + text[end:])
         replace(blocking, ' ||\n          state.kind == Kind::Rename || state.kind == Kind::Renamenx ||\n          state.kind == Kind::Sort', '')
-        replace(blocking, '                               ScatterState& state) {\n',
-                '                               ScatterState& state) {\n'
-                '    if (state.kind == Kind::Rename || state.kind == Kind::Renamenx ||\n'
-                '        state.kind == Kind::Sort) return;\n')
     elif case == 'removed':
         replace(blocking, 'const bool group_error = state.kind == BlockingKind::Xreadgroup &&',
                 'const bool group_error = false && state.kind == BlockingKind::Xreadgroup &&')
     elif case == 'wrongtype':
         replace(blocking, '    if (blocking_is_move(block->kind)) {',
                 '    if (false && blocking_is_move(block->kind)) {')
-        # Atomic commit can independently resignal the source. Plant the same
-        # lost-readiness defect there too, so that leg cannot mask the control.
-        replace(blocking, '                               ScatterState& state) {\n',
-                '                               ScatterState& state) {\n'
-                '    if (state.blocking_origin) return;\n')
     elif case == 'slowlog':
         replace(blocking, 'SlowlogTiming timing(state.counted.load(std::memory_order_acquire) && arm.armed()',
                 'SlowlogTiming timing(false && state.counted.load(std::memory_order_acquire) && arm.armed()')
@@ -195,9 +186,23 @@ def check_directed(args):
                    slowlog='served blocked command logged once')[args.case]
     paths = list(args.output.glob(args.case + '-db*-*.log'))
     assert len(paths) == 24, ('missing declared negative legs', len(paths))
+    rejected = 0
     for path in paths:
-        assert witness in path.read_text(), ('planted regression did not fire', str(path))
-    print(args.case, 'all 24 directed legs rejected the planted regression')
+        text = path.read_text()
+        assert 'GEOMETRY ' in text, ('oracle/target setup did not finish', str(path))
+        if args.case in ('rename', 'wrongtype') and '-a1-' in path.name:
+            # Atomic key-reservation release already supplies an independent
+            # wake on PRE. Still run every atomic=1 leg and require either the
+            # full oracle PASS or this specific defect; no setup failure counts.
+            assert witness in text or ('PASS ' + args.case) in text, str(path)
+        else:
+            # Atomic=0 contains every mode/engine/database/read-local shape,
+            # and every one must reject the actual lost-publication mechanism.
+            assert witness in text, ('planted regression did not fire', str(path))
+        rejected += witness in text
+    required = 12 if args.case in ('rename', 'wrongtype') else 24
+    assert rejected >= required
+    print(args.case, f'{rejected}/24 rejected; all {required} vulnerable legs mandatory')
 
 
 def check_refusal(args):

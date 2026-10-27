@@ -1,0 +1,4 @@
+wrongtype 1s POST PASS
+wrongtype 1s BROKEN REJECTED
+wrongtype 2s POST PASS
+wrongtype 2s BROKEN REJECTED

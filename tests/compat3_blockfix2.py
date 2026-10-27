@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Redis 7.4 blocking compatibility, with actual parking and exact oracle replies."""
-from _lib import Conn, RespError, info
+from _lib import Conn, RespError, encode, info
 from compat3_lib import equal, run
 from compat3_blockfix import parked
 
@@ -72,6 +72,21 @@ def removed(c, clients):
     got = b.read(); assert isinstance(got, RespError) and str(got).startswith("NOGROUP"), repr(got)
     parked(c, 1); c.cmd("RPUSH", "mixed", "x")
     equal(a.read(), [b"mixed", b"x"], "list waiter survives stream removal")
+    parked(c, 0); out.append(got)
+    # Deletion is a command boundary even when recreation is already pipelined.
+    # Keep this assertion red until the owner chooses how to carry that boundary
+    # through stream retirement; a later dirty sweep can observe the new group.
+    c.cmd("XGROUP", "CREATE", "boundary", "g", "$", "MKSTREAM")
+    w = waiter(c, clients, "XREADGROUP", "GROUP", "g", "c", "BLOCK", 0,
+               "STREAMS", "boundary", ">")
+    c.raw(b"".join(encode(*command) for command in (
+        ("DEL", "boundary"),
+        ("XGROUP", "CREATE", "boundary", "g", "$", "MKSTREAM"),
+        ("XADD", "boundary", "1-0", "f", "v"))))
+    equal([c.read(), c.read(), c.read()], [1, b"OK", b"1-0"], "pipeline replies")
+    got = w.read()
+    assert isinstance(got, RespError) and str(got).startswith("NOGROUP"), (
+        "deleted group's waiter must not consume recreated stream", got)
     parked(c, 0); out.append(got)
     return out
 

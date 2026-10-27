@@ -1,0 +1,83 @@
+{
+  "PRE": {
+    "path": "build/blockfix2/pre-source/build/tomokv",
+    "text_bytes": 8435415,
+    "sha256": "cbd6ed78f4625bcd24d6b26a1e99130de05bc552b96546271775e64307e24f1f",
+    "sections": {
+      ".plt": {
+        "address": 118816,
+        "bytes": 5248
+      },
+      ".plt.sec": {
+        "address": 124096,
+        "bytes": 5232
+      },
+      ".text": {
+        "address": 129328,
+        "bytes": 8435415
+      },
+      ".tdata": {
+        "address": 9569152,
+        "bytes": 384
+      },
+      ".tbss": {
+        "address": 9569536,
+        "bytes": 520
+      }
+    }
+  },
+  "POST": {
+    "path": "build/blockfix2/post/tomokv",
+    "text_bytes": 8470039,
+    "sha256": "d79738936b83882fdf06de1f83f77ffa9e7674726eab8a231c9cd4eb199f48d3",
+    "sections": {
+      ".plt": {
+        "address": 118816,
+        "bytes": 5248
+      },
+      ".plt.sec": {
+        "address": 124096,
+        "bytes": 5232
+      },
+      ".text": {
+        "address": 129328,
+        "bytes": 8470039
+      },
+      ".tdata": {
+        "address": 9606016,
+        "bytes": 384
+      },
+      ".tbss": {
+        "address": 9606400,
+        "bytes": 520
+      }
+    }
+  },
+  "PAD-A": {
+    "path": "build/blockfix2/pad-a/tomokv",
+    "text_bytes": 8470039,
+    "sha256": "82b6c78bb924015581e78e9397a2137f21ee015266d8aed2352c79e05a4e0d3d",
+    "sections": {
+      ".plt": {
+        "address": 118816,
+        "bytes": 5248
+      },
+      ".plt.sec": {
+        "address": 124096,
+        "bytes": 5232
+      },
+      ".text": {
+        "address": 129328,
+        "bytes": 8470039
+      },
+      ".tdata": {
+        "address": 9601920,
+        "bytes": 384
+      },
+      ".tbss": {
+        "address": 9602304,
+        "bytes": 520
+      }
+    }
+  }
+}
