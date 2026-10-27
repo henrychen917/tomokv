@@ -74,8 +74,7 @@ bool blocking_cancel_client(Server& server, ThreadCtx& self, Ring& ring, Client&
 // CLIENT UNBLOCK: arm the reply shape the cancel is about to need. Owner-io only.
 bool blocking_request_unblock(Client& client, bool error_flavor);
 void blocking_retire(Server& server, Client& client, Op& op, ThreadCtx& thread);
-void blocking_scatter_retire(Server& server, Client& client, ScatterState& state,
-                            ThreadCtx* self = nullptr, Ring* ring = nullptr);
+void blocking_scatter_retire(Server& server, Client& client, ScatterState& state);
 void blocking_key_counts(const Server& server, uint64_t& keys, uint64_t& on_nokey);
 bool blocking_stream_bounds(const BlockingState* state, uint32_t key_index, StreamID& cursor,
                             StreamID& upper, bool& bounded);

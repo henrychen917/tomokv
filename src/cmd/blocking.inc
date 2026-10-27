@@ -565,10 +565,6 @@ BlockingProbe blocking_probe_key(Shard& shard, BlockingState& state,
 // and a later waiter must not jump it. Stream waiters (XREAD BLOCK, later) are SKIPPED: each
 // waits on its own cursor into the same collection, so "not ready" is a property of the waiter,
 // not the key, and a stalled cursor must not strand an already-satisfiable waiter behind it.
-bool blocking_skip_when_not_ready(BlockingKind kind) {
-    return kind == BlockingKind::Xread || kind == BlockingKind::Xreadgroup;
-}
-
 bool blocking_pick(const BlockingState& state, uint32_t& selected, bool& wrong_type,
                    bool& missing_group, bool& oom) {
     selected = UINT32_MAX;
@@ -991,13 +987,11 @@ private:
             const bool group_error = state.kind == BlockingKind::Xreadgroup &&
                 (probe == BlockingProbe::MissingGroup || probe == BlockingProbe::WrongType);
             if (probe != BlockingProbe::Ready && !group_error) {
-                // Tri-state, not boolean: FIFO kinds stop the queue here (the front waiter owns
-                // the next push); skip-kinds (streams, later) step past a waiter whose own cursor
-                // is not satisfiable without stranding the ones behind it.
-                if (blocking_skip_when_not_ready(state.kind) || probe == BlockingProbe::WrongType) {
-                    i++; continue;
-                }
-                return work;
+                // One key may have list and group readers. An absent list must
+                // not hide a later XREADGROUP's missing-group error. Skipping
+                // an ineligible type/cursor preserves FIFO among ready peers.
+                i++;
+                continue;
             }
             if (phase == BlockingPhase::Registering) {
                 blocking_atomic_min(state.candidate, entry.key_index);
@@ -1431,7 +1425,8 @@ uint32_t blocking_owner_cycle(Server&, ThreadCtx& self, Ring& ring, int64_t now_
 
 void blocking_atomic_published(Server& server, ThreadCtx& self, Ring& ring,
                                ScatterState& state) {
-    if (!state.atomic_apply || state.epoch.load(std::memory_order_acquire) == 0 ||
+    if (!(state.atomic_apply || state.atomic_write || state.atomic_pop) ||
+        state.epoch.load(std::memory_order_acquire) == 0 ||
         state.aborted.load(std::memory_order_acquire)) return;
     bool owners[kMaxThreads] = {};
     for (uint32_t i = 0; i < state.nsub; i++) {
@@ -1675,19 +1670,19 @@ void blocking_retire(Server& server, Client& client, Op& op, ThreadCtx& thread) 
     blocking_state_release(state);
 }
 
-void blocking_scatter_retire(Server& server, Client& client, ScatterState& state,
-                            ThreadCtx* self, Ring* ring) {
+void blocking_scatter_retire(Server& server, Client& client, ScatterState& state) {
     BlockingState* block = state.blocking_origin;
     if (!block) return;
     // A refused destination leaves the source unchanged. Retiring the attempted
     // move is the point at which its successor may try that same ready element.
     if (blocking_is_move(block->kind)) {
+        ThreadCtx& sender = server.thread(client.ifid_thread());
         for (const auto& key : block->keys) {
             auto& shard = server.shard(key.shard);
             if (!shard.has_blocking_waiters()) continue;
             shard.set_blocking_dirty();
-            if (self && ring)
-                server.thread(server.worker_of_shard(key.shard)).wake_if_parked(*ring, self->sig());
+            if (Ring* ring = sender.ring())
+                server.thread(server.worker_of_shard(key.shard)).wake_if_parked(*ring, sender.sig());
         }
     }
     // blocking_resume_move_impl checked the live ACL immediately before this scatter executed.

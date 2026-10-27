@@ -84,12 +84,17 @@ class Controls(unittest.TestCase):
                 'odd argument list': lambda m: spec(m).update(extra_args=['--tags']),
                 'malformed setup error': lambda m: spec(m).update(known_setup_errors=[dict(command='', reply='x', count=1)]),
                 'zero-count setup error': lambda m: spec(m).update(known_setup_errors=[dict(command='c', reply='x', count=0)]),
+                'isolation hides an unknown test': lambda m: spec(m).update(isolated_tests={'missing': 'setup'}),
+                'isolation without reason': lambda m: spec(m).update(isolated_tests={'a': ''}),
             }
             for name, mutate in mutations.items():
                 bad = copy.deepcopy(good); mutate(bad)
                 path.write_text(json.dumps(bad))
                 with self.subTest(name=name), self.assertRaises(ValueError):
                     load_manifest(path, root, inventory)
+            good['files']['unit/fixture']['isolated_tests'] = {'a': 'earlier skipped test changes setup'}
+            path.write_text(json.dumps(good))
+            load_manifest(path, root, inventory)
 
     def test_histogram_setup_only_enables_the_explicit_feature(self):
         with tempfile.TemporaryDirectory(dir=ROOT / 'build') as directory:

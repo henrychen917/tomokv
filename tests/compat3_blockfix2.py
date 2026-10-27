@@ -58,7 +58,8 @@ def removed(c, clients):
             result = c.cmd("EXEC")
             equal(result, [1, 1], "transaction reply")
         else: result = c.cmd(*action)
-        got = w.read()
+        try: got = w.read()
+        except TimeoutError as exc: raise AssertionError(f"{action} never woke its group reader") from exc
         prefix = "WRONGTYPE" if action[0] in ("SET", "MSET", "transaction") else "NOGROUP"
         assert isinstance(got, RespError) and str(got).startswith(prefix), (action, got)
         out.append([result, got, c.cmd("TYPE", "stream")]); parked(c, 0)

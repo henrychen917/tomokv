@@ -20,7 +20,7 @@ BUILD = ROOT / "build/blockfix2/commands"
 OUT.mkdir(exist_ok=True)
 BUILD.mkdir(exist_ok=True)
 ARMS = {"pre": (ROOT / "build/blockfix2/pre-source", ROOT / "build/blockfix2/pre-source/build"),
-        "post": (ROOT, ROOT / "build"), "initial": (ROOT, ROOT / "build")}
+        "post": (ROOT, ROOT / "build"), "final": (ROOT, ROOT / "build")}
 
 
 def save(path, value):
@@ -161,6 +161,7 @@ end
 def main():
     p = argparse.ArgumentParser();p.add_argument("--build-only", action="store_true")
     p.add_argument("--trace-only", action="store_true");p.add_argument("--arms", default="pre,post")
+    p.add_argument("--batches", default="1,32")
     a = p.parse_args();arms=a.arms.split(",")
     if not a.trace_only:
         for arm in arms:
@@ -170,7 +171,7 @@ def main():
         return
     cases = [(arm, ns, command, mode, batch, atomic, -1) for arm in arms
              for ns in ("normal", "db0") for command in ("GET", "SET", "INCR", "MGET", "MSET")
-             for mode in ("1s", "2s") for batch in (1, 32)
+             for mode in ("1s", "2s") for batch in map(int, a.batches.split(','))
              for atomic in ((0, 1) if command == "MSET" else (1,))]
     with concurrent.futures.ThreadPoolExecutor(4) as pool:
         rows = list(pool.map(trace, cases))
