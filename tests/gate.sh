@@ -1141,7 +1141,7 @@ plan_jobs(){
   for section in lruclock lfu; do
     for atomic in 0 1; do for mode in split armed; do JOB_NAMES+=("evict-$section-$mode-$atomic"); done; done
   done
-  JOB_NAMES+=(flipctl)
+  JOB_NAMES+=(flipctl inline_quoted)
   local resp_case resp_engine
   for resp_case in fragment cpu neighbour; do for mode in 1s 2s; do
     for resp_engine in epoll uring; do JOB_NAMES+=("respresume-$resp_case-$mode-$resp_engine"); done
@@ -1906,6 +1906,22 @@ iofix_legs(){
   done; done
   [ "$failed" = 0 ] && ok "$label" || bad "$label" "see $TMPDIR/$feature-*.log"
 }
+
+job_inline_quoted(){
+  local mode engine boot_fn failed
+  for mode in 1s 2s; do for engine in epoll uring; do
+    row_begin "inline quoted argument decoding ($mode, $engine)"
+    failed=0
+    boot_fn=boot; [ "$mode" != 1s ] || boot_fn=boot_fused
+    if "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine"; then
+      py tests/inline_quoted.py 127.0.0.1 "$PORT" >"$TMPDIR/$mode-$engine.log" 2>&1 || failed=1
+    else failed=1; fi
+    stop
+    [ "$failed" = 0 ] && ok "inline quoted argument decoding ($mode, $engine)" \
+        || bad "inline quoted argument decoding ($mode, $engine)" "see $TMPDIR/$mode-$engine.log"
+  done; done
+}
+
 
 job_iofix_deferred(){
   row_begin "iofix WB4.1 deferred IO parks"
@@ -5529,6 +5545,7 @@ collect_job wbland_units
 
 # gaterows: eight independent rows, all ABOVE the quick-tier exit. EXPECT stays
 # maintainer-owned: +8 quick, +8 full. The 32-cell feature product is unchanged.
+collect_job inline_quoted
 collect_job reorder_sync
 collect_job reorder_engagement
 collect_job reorder_identity
