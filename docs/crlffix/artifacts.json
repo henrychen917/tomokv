@@ -1,0 +1,22 @@
+{
+  "PRE": {
+    "file": "build/crlffix/arms/PRE",
+    "sha256": "739ba423d86c3872a8a1906abf33d064262d9f7a2551137555dd1930c6e83eca",
+    "text_bytes": 8435415
+  },
+  "POST": {
+    "file": "build/crlffix/arms/POST",
+    "sha256": "6e9080a219a3f62dcc11838c7420bd4fe222e3c9e7f7cf3557e196affaa0ca25",
+    "text_bytes": 8428631
+  },
+  "PAD-A": {
+    "file": "build/crlffix/arms/PAD-A",
+    "sha256": "f03e247e6d97a547b659df3338a65a8654a97557cec6cb0f9fa81de81c455b06",
+    "text_bytes": 8428631
+  },
+  "BROKEN": {
+    "file": "build/crlffix/arms/BROKEN",
+    "sha256": "2c7ae7892d9b6629f81d1f2019ad6830115f9f98c99dc627dc2d06d097e397b2",
+    "text_bytes": 8428631
+  }
+}

@@ -9,6 +9,8 @@ import argparse
 import concurrent.futures
 import gzip
 import hashlib
+import io
+import tarfile
 import json
 from pathlib import Path
 import shlex
@@ -19,8 +21,8 @@ OUT = ROOT / "docs/crlffix/instructions"
 BUILD = ROOT / "build/crlffix/commands"
 OUT.mkdir(exist_ok=True, parents=True)
 BUILD.mkdir(exist_ok=True, parents=True)
-ARMS = {"pre": (ROOT, ROOT / "build"),
-        "post": (ROOT, ROOT / "build"), "initial": (ROOT, ROOT / "build")}
+ARMS = {"pre": (ROOT / "build/crlffix/pre-source", ROOT / "build/crlffix/pre-source/build"),
+        "post": (ROOT, ROOT / "build")}
 
 
 def save(path, value):
@@ -29,6 +31,13 @@ def save(path, value):
 
 def build(arm, ns):
     source, objects = ARMS[arm]
+    if arm == "pre" and not (objects / "tomokv").exists():
+        source.mkdir(parents=True, exist_ok=True)
+        archive = subprocess.check_output(["git", "archive", "83e0b809d", "Makefile", "src", "third_party", "tools/assert_map.py"], cwd=ROOT)
+        with tarfile.open(fileobj=io.BytesIO(archive)) as files:
+            files.extractall(source, filter="data")
+        with (OUT / "pre-production-build.log").open("w") as log:
+            subprocess.run(["make", "-C", str(source), "-j16", "all"], stdout=log, stderr=subprocess.STDOUT, check=True)
     dest = BUILD / (arm + "-" + ns)
     dest.mkdir(exist_ok=True)
     recipe = subprocess.check_output(["make", "-C", str(source), "BUILD_ROOT=" + str(objects),

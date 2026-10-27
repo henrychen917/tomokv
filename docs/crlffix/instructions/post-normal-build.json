@@ -11,14 +11,14 @@
     "-c",
     "/home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc",
     "-o",
-    "/home/user/Projects/cx-crlffix/build/crlffix/commands/post-normal/probe.o"
+    "/home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal/probe.o"
   ],
   "rename": [
     "objcopy",
     "--redefine-sym",
     "main=execfair_original_main",
     "/home/user/Projects/cx-crlffix/build/db0/src/main.o",
-    "/home/user/Projects/cx-crlffix/build/crlffix/commands/post-normal/original-main.o"
+    "/home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal/original-main.o"
   ],
   "link": [
     "g++",
@@ -29,7 +29,7 @@
     "-Wextra",
     "-march=native",
     "-pthread",
-    "/home/user/Projects/cx-crlffix/build/crlffix/commands/post-normal/original-main.o",
+    "/home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal/original-main.o",
     "/home/user/Projects/cx-crlffix/build/db0/src/net/tls.o",
     "/home/user/Projects/cx-crlffix/build/db0/src/cmd/commands.o",
     "/home/user/Projects/cx-crlffix/build/db0/src/cmd/glob.o",
@@ -148,7 +148,7 @@
     "/home/user/Projects/cx-crlffix/build/third_party/lua/helpers/fpconv.o",
     "/home/user/Projects/cx-crlffix/build/src/core/version.o",
     "-o",
-    "/home/user/Projects/cx-crlffix/build/crlffix/commands/post-normal/probe",
+    "/home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal/probe",
     "-Wl,--wrap=main",
     "-ljemalloc",
     "-luring",
@@ -156,7 +156,7 @@
     "-lssl",
     "-lcrypto",
     "-lm",
-    "/home/user/Projects/cx-crlffix/build/crlffix/commands/post-normal/probe.o"
+    "/home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal/probe.o"
   ],
-  "sha256": "a969dca37469786f18e0f9e5e02c07e88194944c7ca527013f365c719ed0d232"
+  "sha256": "650a18a3c26fc204cacbe36fe537ca481021fec6c6b212748ca371b83bc4eed1"
 }

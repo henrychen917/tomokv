@@ -1,0 +1,12 @@
+[
+  "build/crlffix/pre-src-objects",
+  "build/crlffix/pre-db0-objects",
+  {
+    "file": "build/crlffix/arms/POST-initial",
+    "sha256": "3774085e86d67a1e3a4ba85b216220ccd029e4d843d78cb91021a57b461583ec"
+  },
+  {
+    "file": "build/crlffix/arms/POST-v2",
+    "sha256": "6e9080a219a3f62dcc11838c7420bd4fe222e3c9e7f7cf3557e196affaa0ca25"
+  }
+]

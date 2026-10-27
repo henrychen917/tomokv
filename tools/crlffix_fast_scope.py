@@ -71,7 +71,7 @@ def run(case, prepared):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('--arms', default='pre,initial')
+    p.add_argument('--arms', default='pre,post')
     p.add_argument('--smoke', action='store_true')
     args = p.parse_args()
     arms = args.arms.split(',')
