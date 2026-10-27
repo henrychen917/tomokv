@@ -33,13 +33,17 @@ if a.asan_binary is not None:
 argv=['bash','tests/gate.sh','full','--server-cores',server_cores,
     '--load-cores',load_cores,'--load-smt','',
     '--ports',f'{a.port}-{a.port+9}','--candidate-binary',str(binary)]
-receipt=dict(argv=argv,cwd=str(a.root),env={k:v for k,v in env.items() if k.startswith('GATE_') or k in ('LANG','REDIS74_ROOT')},
+proof_files=['src/cmd/t_stream.cc','src/cmd/t_stream_groups.cc','src/cmd/t_stream.h','src/cmd/blocking.inc','src/cmd/xshard_commands.inc','src/store/typeval.h','tests/gate.sh','tests/compat3_streamfix.py','tests/stream.py','tests/netcmd.py','tests/redis_tcl_passing.json']
+def proof_hashes():
+    return {p:hashlib.sha256((ROOT/p).read_bytes()).hexdigest() for p in proof_files}
+receipt=dict(proof_file_hashes=proof_hashes(),argv=argv,cwd=str(a.root),env={k:v for k,v in env.items() if k.startswith('GATE_') or k in ('LANG','REDIS74_ROOT')},
     binary_sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),
     source_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
     gate_sha256=hashlib.sha256((a.root/'tests/gate.sh').read_bytes()).hexdigest(),started=time.time())
 with log.open('w') as f:
     result=subprocess.run(argv,cwd=a.root,env=env,stdout=f,stderr=subprocess.STDOUT)
-receipt.update(exit=result.returncode,seconds=time.time()-receipt['started'])
+receipt.update(exit=result.returncode,seconds=time.time()-receipt['started'],proof_file_hashes_after=proof_hashes())
+receipt['proof_files_unchanged']=receipt['proof_file_hashes']==receipt['proof_file_hashes_after']
 text=log.read_text();match=re.search(r'  artifacts: (.+)',text)
 if match:receipt['artifacts']=match[1]
 receipt['summary']=[line for line in text.splitlines() if line.startswith('GATE(PARTIAL)')]

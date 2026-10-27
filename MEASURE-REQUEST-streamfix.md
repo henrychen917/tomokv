@@ -71,7 +71,10 @@ Proof status and all failed/intermediate attempts are recorded in
 [docs/streamfix/jobs](docs/streamfix/jobs), and compressed Tcl transcripts under
 [docs/streamfix/proof-tcl](docs/streamfix/proof-tcl). `run_jobs.py` uses only gate.sh's
 `GATE_ONLY_JOBS` interface; `full` selects the job inventory, while PARTIAL forbids the
-full iteration/ABBA measurement flow. Final proof results are being collected.
+full iteration/ABBA measurement flow. Final proof results are being collected. On the final candidate, both modes passed all
+21 promoted Tcl assertions; the first 2s whole-job attempt failed the pre-existing
+MONITOR blocked-command ordering assertion during concurrent verification. The whole
+Tcl job is queued for an otherwise idle allocated-CPU rerun, without assertion changes.
 
 PRE and PAD-A fail all six directed rows. The throwaway mutant restores one or more
 wrong decisions for each active root, while retaining the final candidate layout and all
@@ -79,12 +82,20 @@ other code. Its source substitutions, exact candidate comparison and binary hash
 [mutant-rebuild.json](docs/streamfix/mutant-rebuild.json). It is a correctness negative
 control, never a measurement arm. The Tcl job must report a named promoted failure for
 each active root in both modes; absence of a terminal test result is not accepted as proof.
+That check passes: 20 of the 21 promoted names fail in each mode, covering all six roots.
+The default-cap Tcl check remains green because this mutant retains the outer default-cap
+stop while breaking node granularity and explicit LIMIT handling. PRE/PAD-A/mutant each
+fail all 144 directed legs after geometry and oracle checks; final POST passes 144/144.
 
 `make all`, every production-unit target, the concrete mdbqsbr live arms and the paired
 blockfix witness pass, with 49 successful `make -q` checks and an unchanged candidate
 hash: [build receipt](docs/streamfix/build/receipt.json). The first standalone
 `python3 tests/gates_test.py` run had nine scheduler timeout failures during concurrent
-verification. Its original log is retained; a quiet allocated-CPU rerun remains required.
+verification. Its original log is retained; a quiet allocated-CPU rerun is queued after the other verification jobs finish.
+The first feature-split-0 run also exposed the old netcmd expectation that an oversized
+XAUTOCLAIM COUNT succeeds on an empty PEL. That test now requires the exact Redis
+error and no consumer creation. Its whole owning job is queued for a fresh run; later
+feature-mode jobs use the corrected test. No production code changed after freezing POST.
 
 Command-scope proof uses linked production objects, preserving production link order and
 placing the fixture object last. It opens no server or load generator. GET/SET/INCR/MGET/MSET
@@ -97,6 +108,17 @@ All **72/72 final pairs have exactly zero added instructions**, equal per-functi
 and equal external/fixture-call counts. [Counts summary](docs/streamfix/instructions/counts-summary.json),
 [full comparisons](docs/streamfix/instructions/comparison.json), and
 [production linkage](docs/streamfix/instructions/linkage.json).
+
+Instruction counts below are the normal namespace, one command per scope, atomic=1,
+slowlog disabled. The linked JSON retains all batch/database/threshold variants.
+
+| Command | 1s PRE | 1s POST | 2s PRE | 2s POST |
+| --- | ---: | ---: | ---: | ---: |
+| GET | 939 | 939 | 1559 | 1559 |
+| SET | 1068 | 1068 | 1688 | 1688 |
+| INCR | 1531 | 1531 | 2151 | 2151 |
+| MGET | 10243 | 10243 | 10243 | 10243 |
+| MSET | 17080 | 17080 | 16726 | 16726 |
 
 DQ=+6, DF=+6. Row declarations are at tests/gate.sh lines 3801, 3804, 3807, 3810,
 3813 and 3816; collection is line 5617, before the quick exit at line 5785.

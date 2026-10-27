@@ -108,5 +108,6 @@
       "candidate_sha256": "b2a370f6c3e936ed288a44e0ab4333fa434b580a229424082e0a1aaeaf1980ea",
       "mutant_sha256": "cdc8417e0ef76cf3cb92f04c00914fc6c5b0e1493a9647fcf5a059ddf6881686"
     }
-  }
+  },
+  "complete_source_audit": "Only src/cmd/blocking.inc, xshard_commands.inc, t_stream.cc and t_stream_groups.cc differ from final candidate source; every difference is a recorded mutation."
 }

@@ -1,0 +1,43 @@
+controls-mutant 1 ['GATE(PARTIAL): 1 ok, 8 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-streamfix/docs/streamfix/jobs/controls-mutant.tsv.partial']
+  STREAM-TRIM-APPROX-LIMIT 0 / 24
+  XREAD-PLUS-LAST 0 / 24
+  XRANGE-EXCLUSIVE-SENTINEL 0 / 24
+  STREAM-GROUP-ID-DASH 0 / 24
+  XAUTOCLAIM-COUNT-RANGE 0 / 24
+  MPOP-ARG-ERROR-TEXT 0 / 24
+  1s promoted: {'err': 20, 'ok': 1}
+  2s promoted: {'err': 20, 'ok': 1}
+controls-pad 1 ['GATE(PARTIAL): 1 ok, 6 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-streamfix/docs/streamfix/jobs/controls-pad.tsv.partial']
+  STREAM-TRIM-APPROX-LIMIT 0 / 24
+  XREAD-PLUS-LAST 0 / 24
+  XRANGE-EXCLUSIVE-SENTINEL 0 / 24
+  STREAM-GROUP-ID-DASH 0 / 24
+  XAUTOCLAIM-COUNT-RANGE 0 / 24
+  MPOP-ARG-ERROR-TEXT 0 / 24
+controls-pre 1 ['GATE(PARTIAL): 1 ok, 6 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-streamfix/docs/streamfix/jobs/controls-pre.tsv.partial']
+  STREAM-TRIM-APPROX-LIMIT 0 / 24
+  XREAD-PLUS-LAST 0 / 24
+  XRANGE-EXCLUSIVE-SENTINEL 0 / 24
+  STREAM-GROUP-ID-DASH 0 / 24
+  XAUTOCLAIM-COUNT-RANGE 0 / 24
+  MPOP-ARG-ERROR-TEXT 0 / 24
+final-correctness 2 []
+final-correctness2 130 []
+  1s promoted: {'ok': 21}
+  2s promoted: {'ok': 21}
+final-directed 0 ['GATE(PARTIAL): 7 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-streamfix/docs/streamfix/jobs/final-directed.tsv.partial']
+  STREAM-TRIM-APPROX-LIMIT 24 / 24
+  XREAD-PLUS-LAST 24 / 24
+  XRANGE-EXCLUSIVE-SENTINEL 24 / 24
+  STREAM-GROUP-ID-DASH 24 / 24
+  XAUTOCLAIM-COUNT-RANGE 24 / 24
+  MPOP-ARG-ERROR-TEXT 24 / 24
+final-main 1 ['GATE(PARTIAL): 324 ok, 2 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-streamfix/docs/streamfix/jobs/final-main.tsv.partial']
+  STREAM-TRIM-APPROX-LIMIT 24 / 24
+  XREAD-PLUS-LAST 24 / 24
+  XRANGE-EXCLUSIVE-SENTINEL 24 / 24
+  STREAM-GROUP-ID-DASH 24 / 24
+  XAUTOCLAIM-COUNT-RANGE 24 / 24
+  MPOP-ARG-ERROR-TEXT 24 / 24
+  1s promoted: {'ok': 21}
+  2s promoted: {'ok': 21}
