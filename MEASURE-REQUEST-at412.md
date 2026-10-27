@@ -228,3 +228,10 @@ same `--atomic` and ratio per cell; check `script_crossshard_window_refusals == 
 | `script_window_release` instruction count at Final | Outside the activation scope as the probe drives it |
 | A fix for XS-SHUT-1 / SNAP-STORM-1 / XS-NOTIFY-1 / FLIP-MULTI-1 | Pre-existing, outside AT4.12; flagged, not fixed |
 | A fix for AT4-WOUND-1 | Owned by woundfix |
+
+## at412c
+
+Continuation from `5591449e2`, branch `cx-at412c`; no push. CPUs 48-63 and
+ports 20200-20299 only. T7's incorrect waiter/holder assumption is fixed;
+`docs/at412c/t7/` contains the reproduced failure and corrected 27-leg run.
+Final-source proof and arm tables below will supersede the at412 WIP tables.

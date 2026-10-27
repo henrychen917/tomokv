@@ -672,8 +672,9 @@ def same_shard(c, key, oracle):
 
 def episode(c, port, keys, call, oracle, disconnect=False):
     """T7 (T15 reuses it with a disconnect): a writer episode between escalated scripts.
-    H (EXEC: MGET k j; SET k 0) holds a started Write claim on k, parked by ATOMIC-FANOUT-DEFER.
-    E_old yields to H at its APPLY (H6), escalates and waits behind H. W = MSET k 100 k' 100
+    H (EXEC: MGET k' j; SET k' 0) holds k' and j, parked by ATOMIC-FANOUT-DEFER.
+    E_old yields to H at its APPLY (H6), escalates, places k and waits behind H on j.
+    W = MSET k 100 k' 100
     (k' shares k's shard: localfast) is blocked by H and opens an episode that marks k and k'
     with a stamp later than E_old's age. E_young escalates after that stamp. When H commits,
     E_old passes W's mark (age <= stamp), W waits for E_old's claim, and E_young waits for W's
@@ -681,7 +682,7 @@ def episode(c, port, keys, call, oracle, disconnect=False):
     k, j = keys
     peer = same_shard(c, k, oracle)
     c.must('MSET', k, 0, j, 0, peer, 0)
-    hold = [('MGET', k, j), ('SET', k, 0)]
+    hold = [('MGET', peer, j), ('SET', peer, 0)]
     with contextlib.ExitStack() as stack:
         h, old, writer, young = [stack.enter_context(contextlib.closing(
             Conn('127.0.0.1', port, timeout=6))) for _ in range(4)]
@@ -702,11 +703,14 @@ def episode(c, port, keys, call, oracle, disconnect=False):
             old.send(*call)
             wait(lambda: stats(c)['script_escalations'] > base['script_escalations'],
                  'E_old did not escalate at its APPLY conflict with H')
-            # The counter moves at the EX hand-off; E_old's age is drawn later, on the IO at its
-            # first escalated dispatch (C1). Wait until E_old is placing behind H, so W's stamp is
-            # certainly later than E_old's age (and a disconnect hits a dispatched E).
+            # A waiter behind H on k would NOT keep W behind E_old: the writer gate blocks on
+            # started holders, not waiter marks. Hold k' instead, and prove E_old both waits on
+            # j and has read k under its started claim before W draws its stamp. Two stage tasks
+            # belong to the optimistic READ; the third is the escalated read of unblocked k.
             wait(lambda: stats(c)['atomic_txn_place_waits'] > base['atomic_txn_place_waits'],
                  'E_old never placed behind H')
+            wait(lambda: stats(c)['script_stage_owner_tasks'] >= base['script_stage_owner_tasks']+3,
+                 'E_old never read k under its started claim')
             if disconnect:
                 old.close()
             else:
@@ -720,7 +724,8 @@ def episode(c, port, keys, call, oracle, disconnect=False):
             assert c.must('PING') == b'PONG' and time.monotonic()-now < 1, 'PING stalled'
             assert h.read() == [[b'0', b'0'], b'OK']
             if not disconnect:
-                assert old.read() == [1, 1]
+                old_reply = old.read()
+                assert old_reply == [1, 1], ('E_old', old_reply)
                 assert writer.read() == b'OK'
                 assert young.read() == [101, 2]
             else:
