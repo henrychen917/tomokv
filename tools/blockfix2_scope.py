@@ -20,7 +20,8 @@ BUILD = ROOT / "build/blockfix2/commands"
 OUT.mkdir(exist_ok=True)
 BUILD.mkdir(exist_ok=True)
 ARMS = {"pre": (ROOT / "build/blockfix2/pre-source", ROOT / "build/blockfix2/pre-source/build"),
-        "post": (ROOT, ROOT / "build"), "final": (ROOT, ROOT / "build")}
+        "post": (ROOT, ROOT / "build"), "final": (ROOT, ROOT / "build"),
+        "verified": (ROOT, ROOT / "build")}
 
 
 def save(path, value):
@@ -53,12 +54,14 @@ def build(arm, ns):
         subprocess.run(rename_cmd, stdout=log, stderr=subprocess.STDOUT, check=True)
         subprocess.run(link, stdout=log, stderr=subprocess.STDOUT, check=True)
     save(OUT / (arm + "-" + ns + "-build.json"), {"compile": compile_cmd, "rename": rename_cmd, "link": link,
-         "sha256": hashlib.sha256((dest / "probe").read_bytes()).hexdigest()})
+         "sha256": hashlib.sha256((dest / "probe").read_bytes()).hexdigest(),
+         "server_sha256": hashlib.sha256((objects / "tomokv").read_bytes()).hexdigest()})
 
 
 def trace(case):
     arm, ns, command, mode, batch, atomic, threshold = case
     binary = BUILD / (arm + "-" + ns) / "probe"
+    binary_sha256 = hashlib.sha256(binary.read_bytes()).hexdigest()
     label = "-".join(map(str, case))
     symbols = []
     for line in subprocess.check_output(["nm", "-S", "--defined-only", str(binary)], text=True).splitlines():
@@ -77,9 +80,8 @@ def trace(case):
     compressed_log = Path(str(existing_log) + ".gz")
     log_text = existing_log.read_text() if existing_log.exists() else (
         gzip.open(compressed_log, "rt").read() if compressed_log.exists() else "")
-    if output.exists() and "COUNT " in log_text:
-        receipt = json.loads((OUT / (arm + "-" + ns + "-build.json")).read_text())
-        assert receipt["sha256"] == hashlib.sha256(binary.read_bytes()).hexdigest()
+    if (output.exists() and "COUNT " in log_text and
+            json.loads(output.read_text()).get("binary_sha256") == binary_sha256):
         row = dict(zip(("arm", "namespace", "command", "mode", "batch", "atomic", "threshold"), case))
         row.update(json.loads(output.read_text()))
         print(label, row["total"], "cached completed trace", flush=True)
@@ -132,7 +134,7 @@ for step in range(2000000):
  else:gdb.execute('stepi',to_string=True)
 else:raise RuntimeError('bounded instruction trace exhausted')
 assert sum(counts.values()) > 0, 'named production scope did not fire'
-json.dump(dict(total=sum(counts.values()),functions=dict(counts),bodies=dict(bodies),excluded=dict(excluded),clock_calls=clocks),open({str(output)!r},'w'),indent=2)
+json.dump(dict(total=sum(counts.values()),functions=dict(counts),bodies=dict(bodies),excluded=dict(excluded),clock_calls=clocks,binary_sha256={binary_sha256!r}),open({str(output)!r},'w'),indent=2)
 end.delete();gdb.execute('continue',to_string=True)
 assert int(gdb.parse_and_eval('$_exitcode'))==0,'fixture exact-data assertion failed'
 print('COUNT',sum(counts.values()))
@@ -140,7 +142,7 @@ end
 """
     script_file = BUILD / (label + ".gdb")
     script_file.write_text(script)
-    cmd = ["taskset", "-c", "16-23", "gdb", "-nx", "-batch", "-x", str(script_file), str(binary)]
+    cmd = ["taskset", "-c", "24-31", "gdb", "-nx", "-batch", "-x", str(script_file), str(binary)]
     full_log = BUILD / (label + ".log")
     with full_log.open("w") as log:
         result = subprocess.run(cmd, stdout=log, stderr=subprocess.STDOUT, timeout=1200)

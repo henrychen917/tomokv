@@ -3761,20 +3761,42 @@ job_blockfix_registry(){
   else bad "blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4" "see $TMPDIR/{instructions,registry-*}.log"; fi
 }
 
+# Optional lane proof: the same counted rows must also reject their private
+# planted regressions. Build controls first with tools/blockfix2_controls.py.
+# No production flag is added, and ordinary gate runs keep the full positive matrix.
+blockfix2_case(){
+  local case=$1 negative="$TMPDIR/control-$1"
+  compat3_case blockfix2 "$case" || return 1
+  [ "${GATE_BLOCKFIX2_CONTROLS:-0}" != 1 ] || {
+    mkdir -p "$negative"
+    if ( CANDIDATE_BINARY="$PWD/build/blockfix2/controls/$case/tomokv"
+         TMPDIR="$negative"
+         compat3_case blockfix2 "$case" ); then
+      echo "blockfix2 $case: planted regression unexpectedly passed" >&2
+      return 1
+    fi
+    py tools/blockfix2_controls.py check-directed --case "$case" --binary "$CANDIDATE_BINARY" \
+        --output "$negative" >"$negative/verdict.log" 2>&1 || return 1
+    py tools/blockfix2_controls.py check-tcl --case "$case" --binary "$CANDIDATE_BINARY" \
+        --cores "$CORES" --port "$PORT" --redis-root "$REDIS74_ROOT" \
+        --output "$negative/tcl" >"$negative/tcl.log" 2>&1 || return 1
+  }
+}
+
 # Seven rows before quick exit. The owner updates EXPECT_QUICK/FULL (+7/+7).
 job_blockfix2(){
   row_begin "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE"
-  compat3_case blockfix2 rename && ok "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE" || bad "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE"
+  blockfix2_case rename && ok "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE" || bad "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE"
   row_begin "blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK"
-  compat3_case blockfix2 removed && ok "blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK" || bad "blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK"
+  blockfix2_case removed && ok "blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK" || bad "blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK"
   row_begin "blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS"
-  compat3_case blockfix2 wrongtype && ok "blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS" || bad "blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS"
+  blockfix2_case wrongtype && ok "blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS" || bad "blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS"
   row_begin "blockfix2 MULTI-XREADGROUP-BLOCK-HANG"
-  compat3_case blockfix2 multi && ok "blockfix2 MULTI-XREADGROUP-BLOCK-HANG" || bad "blockfix2 MULTI-XREADGROUP-BLOCK-HANG"
+  blockfix2_case multi && ok "blockfix2 MULTI-XREADGROUP-BLOCK-HANG" || bad "blockfix2 MULTI-XREADGROUP-BLOCK-HANG"
   row_begin "blockfix2 INFO-TOTAL-BLOCKING-KEYS"
-  compat3_case blockfix2 counts && ok "blockfix2 INFO-TOTAL-BLOCKING-KEYS" || bad "blockfix2 INFO-TOTAL-BLOCKING-KEYS"
+  blockfix2_case counts && ok "blockfix2 INFO-TOTAL-BLOCKING-KEYS" || bad "blockfix2 INFO-TOTAL-BLOCKING-KEYS"
   row_begin "blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED"
-  compat3_case blockfix2 slowlog && ok "blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED" || bad "blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED"
+  blockfix2_case slowlog && ok "blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED" || bad "blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED"
   row_begin "blockfix2 BLOCK-SERVE-REFUSED-DROP"
   local failed=0 mode target unitdir
   unitdir=$(dirname "$CANDIDATE_BINARY")
@@ -3784,6 +3806,11 @@ job_blockfix2(){
       taskset -c "$CORES" "$unitdir/$target" "$mode" >"$TMPDIR/$target-$mode.log" 2>&1 || failed=1
     done
   done
+  if [ "${GATE_BLOCKFIX2_CONTROLS:-0}" = 1 ]; then
+    py tools/blockfix2_controls.py check-refusal --binary "$CANDIDATE_BINARY" \
+        --cores "$CORES" --output "$TMPDIR/control-refusal" \
+        >"$TMPDIR/control-refusal.log" 2>&1 || failed=1
+  fi
   if [ "$failed" = 0 ]; then ok "blockfix2 BLOCK-SERVE-REFUSED-DROP"
   else bad "blockfix2 BLOCK-SERVE-REFUSED-DROP"; fi
 }

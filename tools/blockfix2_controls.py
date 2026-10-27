@@ -113,6 +113,8 @@ def build_all(cases):
             (source / 'tests').mkdir()
             for name in ('blockfix2_unit.cc', 'atomic_survivors_unit.cc'):
                 shutil.copy2(ROOT / 'tests' / name, source / 'tests' / name)
+            for include in (ROOT / 'tests').glob('*.inc'):
+                shutil.copy2(include, source / 'tests' / include.name)
             for name in ('blockfix2-unit', 'blockfix2-db0-unit'):
                 command = recipe('build/' + name, 'tools/blockfix2.mk')
                 command = [str(source / arg) if arg == 'tests/blockfix2_unit.cc' else arg
@@ -143,7 +145,8 @@ def build_all(cases):
 def check_tcl(args):
     unit, name = TCL[args.case]
     manifest = json.loads((ROOT / 'tests/redis_tcl_passing.json').read_text())
-    expected = [label for label in manifest['files'][unit]['passed_tests']
+    spec = manifest['files'][unit]
+    expected = [label for label in spec['passed_tests']
                 if label.split(' in tests/')[0] == name]
     assert expected, 'control must exercise a required upstream test'
     dest = args.output.resolve()
@@ -157,9 +160,9 @@ def check_tcl(args):
             run = argparse.Namespace(output=dest / mode / arm, binary=binary.resolve(),
                 cores=args.cores, port=args.port, baseport=args.port + 2, mode=mode,
                 ratio='6:2', idle_timeout=15, file_timeout=45)
-            row = redis_tcl.run_file(run, tree, unit, only=[name])
+            row = redis_tcl.run_file(run, tree, unit, only=[name], extra=spec.get('extra_args', ()))
             passed = True
-            try: redis_tcl.validate_passing(row, expected)
+            try: redis_tcl.validate_passing(row, expected, spec.get('known_setup_errors', ()))
             except ValueError: passed = False
             row.update(arm=arm, required_test=name, validated=passed,
                        binary_sha256=redis_tcl.sha(binary))
@@ -168,13 +171,43 @@ def check_tcl(args):
             # A broken boot or wrong selection is not a planted-regression witness.
             started = any(e['status'] in ('testing', 'ok', 'err') and
                           name in (e['test'] + e['data']) for e in row['events'])
-            assert passed if arm == 'POST' else (not passed and started), (arm, mode, name, row['error'])
+            target_passed = any(e['status'] == 'ok' and e['test'] in expected for e in row['events'])
+            assert passed if arm == 'POST' else (not passed and started and not target_passed), (arm, mode, name, row['error'])
             print(args.case, mode, arm, 'PASS' if passed else 'REJECTED', flush=True)
+
+
+def check_directed(args):
+    record = json.loads((OUT / args.case / 'receipt.json').read_text())
+    assert record['post_sha256'] == redis_tcl.sha(args.binary), 'POST control binding changed'
+    assert record['binary_sha256'] == redis_tcl.sha(OUT / args.case / 'tomokv')
+    witness = dict(rename='TimeoutError', removed='never woke its group reader',
+                   wrongtype='TimeoutError', multi='TimeoutError',
+                   counts='distinct blocking keys',
+                   slowlog='served blocked command logged once')[args.case]
+    paths = list(args.output.glob(args.case + '-db*-*.log'))
+    assert len(paths) == 24, ('missing declared negative legs', len(paths))
+    for path in paths:
+        assert witness in path.read_text(), ('planted regression did not fire', str(path))
+    print(args.case, 'all 24 directed legs rejected the planted regression')
+
+
+def check_refusal(args):
+    receipt = json.loads((OUT / 'refusal/receipt.json').read_text())
+    assert receipt['post_sha256'] == redis_tcl.sha(args.binary), 'POST control binding changed'
+    args.output.mkdir(parents=True, exist_ok=True)
+    for target in ('blockfix2-unit', 'blockfix2-db0-unit'):
+        for mode in ('1s', '2s'):
+            result = subprocess.run(['taskset', '-c', args.cores, str(OUT / 'refusal' / target), mode],
+                                    text=True, capture_output=True, timeout=30)
+            output = result.stdout + result.stderr
+            (args.output / (target + '-' + mode + '.log')).write_text(output)
+            assert result.returncode != 0 and 'refused serve retains its registry entry' in output
+    print('refusal', 'both namespaces and modes rejected the planted regression')
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('action', choices=('build', 'check-tcl'))
+    parser.add_argument('action', choices=('build', 'check-tcl', 'check-directed', 'check-refusal'))
     parser.add_argument('--cases', default=','.join([*TCL, 'refusal']))
     parser.add_argument('--case', choices=TCL)
     parser.add_argument('--binary', type=Path, default=ROOT / 'build/tomokv')
@@ -184,7 +217,9 @@ def main():
     parser.add_argument('--output', type=Path)
     args = parser.parse_args()
     if args.action == 'build': build_all(args.cases.split(','))
-    else: check_tcl(args)
+    elif args.action == 'check-tcl': check_tcl(args)
+    elif args.action == 'check-directed': check_directed(args)
+    else: check_refusal(args)
 
 
 if __name__ == '__main__': main()

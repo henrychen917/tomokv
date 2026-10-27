@@ -1,7 +1,56 @@
 {
   "kind": "A: behaviour twin",
-  "padding_bytes": 34736,
-  "limitation": "PRE behaviour with POST total .text size; not an exact per-function layout twin.",
+  "padding_bytes": 34544,
+  "blocking_state_bytes": {
+    "PRE": 216,
+    "POST": 240,
+    "PAD_A": 240
+  },
+  "limitation": "PRE behaviour with POST BlockingState layout and total .text size; not an exact per-function text-layout twin.",
+  "pad_compile": [
+    [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=148537",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "/home/user/Projects/cx-blockfix2/build/blockfix2/pad-a/source/src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-blockfix2/build/blockfix2/pad-a/normal-xshard.o"
+    ],
+    [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=147343",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "/home/user/Projects/cx-blockfix2/build/blockfix2/pad-a/source/src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-blockfix2/build/blockfix2/pad-a/db0-xshard.o"
+    ]
+  ],
   "pad_link": [
     "g++",
     "-std=c++20",
@@ -15,7 +64,7 @@
     "/home/user/Projects/cx-blockfix2/build/blockfix2/pre-source/build/db0/src/net/tls.o",
     "/home/user/Projects/cx-blockfix2/build/blockfix2/pre-source/build/db0/src/cmd/commands.o",
     "/home/user/Projects/cx-blockfix2/build/blockfix2/pre-source/build/db0/src/cmd/glob.o",
-    "/home/user/Projects/cx-blockfix2/build/blockfix2/pre-source/build/db0/src/cmd/xshard.o",
+    "/home/user/Projects/cx-blockfix2/build/blockfix2/pad-a/db0-xshard.o",
     "/home/user/Projects/cx-blockfix2/build/blockfix2/pre-source/build/db0/src/cmd/acl.o",
     "/home/user/Projects/cx-blockfix2/build/blockfix2/pre-source/build/db0/src/cmd/hll.o",
     "/home/user/Projects/cx-blockfix2/build/blockfix2/pre-source/build/db0/src/cmd/t_server.o",
@@ -71,7 +120,7 @@
     "/home/user/Projects/cx-blockfix2/build/blockfix2/pre-source/build/src/net/tls.o",
     "/home/user/Projects/cx-blockfix2/build/blockfix2/pre-source/build/src/cmd/commands.o",
     "/home/user/Projects/cx-blockfix2/build/blockfix2/pre-source/build/src/cmd/glob.o",
-    "/home/user/Projects/cx-blockfix2/build/blockfix2/pre-source/build/src/cmd/xshard.o",
+    "/home/user/Projects/cx-blockfix2/build/blockfix2/pad-a/normal-xshard.o",
     "/home/user/Projects/cx-blockfix2/build/blockfix2/pre-source/build/src/cmd/acl.o",
     "/home/user/Projects/cx-blockfix2/build/blockfix2/pre-source/build/src/cmd/hll.o",
     "/home/user/Projects/cx-blockfix2/build/blockfix2/pre-source/build/src/cmd/t_server.o",
@@ -169,9 +218,9 @@
       }
     },
     "POST": {
-      "path": "build/tomokv",
-      "text_bytes": 8470151,
-      "sha256": "3fc9cdee9ce1ee929a695d9a7566e90c419fff5cc39a3f6fb6029cb4c732ccab",
+      "path": "build/blockfix2/post/tomokv",
+      "text_bytes": 8470039,
+      "sha256": "d79738936b83882fdf06de1f83f77ffa9e7674726eab8a231c9cd4eb199f48d3",
       "sections": {
         ".plt": {
           "address": 118816,
@@ -183,7 +232,7 @@
         },
         ".text": {
           "address": 129328,
-          "bytes": 8470151
+          "bytes": 8470039
         },
         ".tdata": {
           "address": 9606016,
@@ -197,8 +246,8 @@
     },
     "PAD-A": {
       "path": "build/blockfix2/pad-a/tomokv",
-      "text_bytes": 8470151,
-      "sha256": "b50ddb055e0d29d14968e2df7a7f1ad6c8e65aa8903e85aee76ed475bd0cacfe",
+      "text_bytes": 8470039,
+      "sha256": "82b6c78bb924015581e78e9397a2137f21ee015266d8aed2352c79e05a4e0d3d",
       "sections": {
         ".plt": {
           "address": 118816,
@@ -210,7 +259,7 @@
         },
         ".text": {
           "address": 129328,
-          "bytes": 8470151
+          "bytes": 8470039
         },
         ".tdata": {
           "address": 9601920,
