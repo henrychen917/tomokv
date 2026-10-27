@@ -1,0 +1,19 @@
+GATE(full): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-wave8b/build/gate-run.rN4SvI
+PARTIAL jobs (including prerequisites): release production_units source_identity reorder_sync wbland_units splitlocal_units wave8b_off
+PARTIAL jobs (including prerequisites): release production_units source_identity reorder_sync wbland_units splitlocal_units wave8b_off
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=126.805s; correctness-plan-fallback; production source identity + stable assertion ids
+  production source identity + stable assertion ids    ok
+  row budget: 900s; median=0.95s; correctness-plan-fallback; R7 generated envelope parity
+  R7 generated envelope parity                         ok
+  row budget: 900s; median=-s; correctness-plan-fallback; writeback policy clauses witnesses + negative controls
+  writeback policy clauses witnesses + negative controls ok
+  row budget: 900s; median=2.02s; correctness-plan-fallback; writeback policy paths witnesses + negative controls
+  writeback policy paths witnesses + negative controls ok
+  row budget: 900s; median=-s; correctness-plan-fallback; splitlocal template forwarding + old-argument controls
+  splitlocal template forwarding + old-argument controls ok
+  row budget: 900s; median=0.285s; correctness-plan-fallback; wave8b tracking-off EXEC scans and transitions
+  wave8b tracking-off EXEC scans and transitions       ok
+GATE(PARTIAL): 7 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8b/docs/wave8b/jobs/final-source-repair.tsv.partial

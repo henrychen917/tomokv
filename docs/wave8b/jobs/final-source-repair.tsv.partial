@@ -1,0 +1,8 @@
+PARTIAL	0	GATE_ONLY_JOBS=source_identity reorder_sync splitlocal_units wbland_units wave8b_off; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	127.700000	production source identity + stable assertion ids
+ok	0.940000	R7 generated envelope parity
+ok	7.030000	writeback policy clauses witnesses + negative controls
+ok	2.010000	writeback policy paths witnesses + negative controls
+ok	0.920000	splitlocal template forwarding + old-argument controls
+ok	15.590000	wave8b tracking-off EXEC scans and transitions
