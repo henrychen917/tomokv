@@ -30,5 +30,9 @@
   {
     "name": "verified-fused-epoll",
     "exit": 0
+  },
+  {
+    "name": "verified-differ-epoll",
+    "exit": 0
   }
 ]
