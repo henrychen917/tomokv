@@ -14,8 +14,10 @@ def main():
     p.add_argument("--binary", type=Path, required=True)
     p.add_argument("--output", type=Path, required=True)
     p.add_argument("--expect-pre", action="store_true")
+    p.add_argument("--port", type=int, default=20600)
     a = p.parse_args()
     a.binary = a.binary.resolve()
+    assert 20600 <= a.port <= 20699
     oracle = Path("/home/user/Projects/redis74/src/redis-server")
     cases = json.loads((ROOT / "docs/harness5/redis-tcl-repros.json").read_text())["cases"]
     out = dict(binary_sha256=h5.hashlib.sha256(a.binary.read_bytes()).hexdigest(),
@@ -23,7 +25,7 @@ def main():
     for root in ROOTS:
         key, case = next((k,v) for k,v in cases.items() if k.endswith(root))
         original = dict(steps=case["steps"], server_args=case.get("server_args", []))
-        options = SimpleNamespace(port=20600, cores="96-103", ratio="6:2")
+        options = SimpleNamespace(port=a.port, cores="96-103", ratio="6:2")
         results = {"redis": h5.play(original, "redis", oracle, options,
                     ROOT / "build/streamfix/repro" / a.output.stem / root / "redis")}
         for engine in ("uring", "epoll"):

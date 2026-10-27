@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-"""PAD-A: headline behavior with merged .text origin and total size.
+"""PAD-A: PRE behavior and candidate StreamNode layout, .text origin and total size.
 
-This controls section placement/size, not every function's position or the lazy
-log data structures. The receipt states that limitation rather than implying an
+This controls section placement/size, not every function's position or data section placement. The receipt states that limitation rather than implying an
 exact per-symbol layout twin.
 """
 import hashlib
@@ -17,8 +16,8 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'tools'))
 from lbstall_artifacts import Elf
 os.sched_setaffinity(0, os.sched_getaffinity(0) & set(range(96, 112)))
-PRE = ROOT / 'build/streamfix/pre-source'
-OBJECTS = ROOT / 'build/streamfix/pre'
+PRE = ROOT / 'build/streamfix/pad-layout-source'
+OBJECTS = ROOT / 'build/streamfix/pad-layout-objects'
 OUT = ROOT / 'build/streamfix/pad-a'
 OUT.mkdir(parents=True, exist_ok=True)
 
@@ -33,7 +32,7 @@ def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-post = ROOT / 'build/tomokv'
+post = ROOT / 'build/streamfix/post-final/tomokv'
 baseline = OBJECTS / 'tomokv'
 output = ROOT / 'build/streamfix/PAD-A'
 recipes = subprocess.check_output(['make', 'BUILD_ROOT=' + str(OBJECTS), '-n', '-W', str(OBJECTS / 'src/main.o'), 'all'],
@@ -64,13 +63,13 @@ for attempt in range(5):
     padding += wanted['size'] - actual['size']
 else:
     raise AssertionError((actual, wanted))
-report = dict(kind='A: behaviour twin', behavior='unmodified PRE 83e0b809d',
-    matched='POST .text start address and total byte size; layout locks unchanged',
+report = dict(kind='A: behaviour twin', behavior='PRE 83e0b809d with unused StreamNode members matching the candidate layout',
+    matched='POST .text start address and total byte size, StreamNode 120 bytes; layout locks unchanged',
     limitation='Individual function offsets and data sections retain PRE layout; this is not an exact per-symbol/data-layout twin.',
     pre_text=before, post_text=wanted, pad_text=actual, padding_bytes=padding,
     source=assembly.read_text(), link=link,
     inputs=[dict(path=arg, sha256=sha(arg)) for arg in link if arg.endswith('.o')],
     arms={name: dict(path=str(path), sha256=sha(path))
-          for name, path in [('PRE', baseline), ('POST', post), ('PAD-A', output)]})
+          for name, path in [('PRE', ROOT/'build/streamfix/pre/tomokv'), ('PRE-layout', baseline), ('POST', post), ('PAD-A', output)]})
 (ROOT / 'docs/streamfix/pad-a.json').write_text(json.dumps(report, indent=2) + '\n')
 print(json.dumps(report['arms'], indent=2), flush=True)

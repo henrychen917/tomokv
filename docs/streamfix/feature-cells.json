@@ -1,0 +1,112 @@
+{
+  "status": "MEASUREMENT REQUEST ONLY; no rates measured",
+  "geometry": {
+    "server_cores": "maintainer-assigned eight physical cores",
+    "split_ratio": "6:2",
+    "shards": 16,
+    "connections": 512,
+    "atomic": [
+      0,
+      1
+    ],
+    "databases": [
+      1,
+      16
+    ],
+    "modes": [
+      "1s",
+      "2s"
+    ],
+    "depths": [
+      1,
+      32
+    ],
+    "engines": [
+      "uring",
+      "epoll"
+    ]
+  },
+  "workloads": [
+    {
+      "name": "stream-append-bounded",
+      "commands": [
+        "XADD MAXLEN ~ 10000"
+      ],
+      "node_entries": [
+        1,
+        100
+      ],
+      "node_bytes": [
+        0,
+        4096
+      ],
+      "limit": [
+        "default",
+        0,
+        100
+      ],
+      "witness": "XLEN and retained IDs match the matching oracle shape; sustained bounded stream and whole-node eviction"
+    },
+    {
+      "name": "stream-trim-refill",
+      "commands": [
+        "XADD",
+        "XTRIM MAXLEN ~",
+        "XTRIM MINID ~"
+      ],
+      "witness": "Refill from fresh deterministic IDs between trims; record removed entries and nodes per command; do not time repeated empty no-ops"
+    },
+    {
+      "name": "stream-last-read",
+      "commands": [
+        "XREAD STREAMS k +"
+      ],
+      "witness": "Last entry returned on each command; deleted latest-ID and mixed-stream cases separately"
+    },
+    {
+      "name": "stream-group-claim",
+      "commands": [
+        "XAUTOCLAIM COUNT 1",
+        "XAUTOCLAIM COUNT 100"
+      ],
+      "witness": "Seed bounded PEL then alternate consumer owners; pending claims must execute"
+    },
+    {
+      "name": "mpop-success",
+      "commands": [
+        "LMPOP",
+        "ZMPOP",
+        "BLMPOP",
+        "BZMPOP"
+      ],
+      "witness": "Separate ready-data and actually-blocked producer/consumer arms; refill lists/zsets and show blocked_clients registration before publishing"
+    },
+    {
+      "name": "stream-range-and-setid",
+      "commands": [
+        "XRANGE k - + COUNT 1",
+        "XREVRANGE k + - COUNT 1",
+        "XGROUP SETID k g -"
+      ],
+      "witness": "Nonempty stream and existing group; validate exact range/order and cursor after rewind"
+    },
+    {
+      "name": "argument-errors",
+      "commands": [
+        "XRANGE k (- +",
+        "XAUTOCLAIM k g c 0 - COUNT 8070450532247928833",
+        "LMPOP 1 k LEFT COUNT a",
+        "ZMPOP 1 k MIN COUNT a",
+        "BLMPOP 0 1 k LEFT COUNT a",
+        "BZMPOP 0 1 k MIN COUNT a"
+      ],
+      "witness": "Count exact expected error replies and no registered blocked clients; changed error semantics are not an equal-work PRE baseline"
+    }
+  ],
+  "comparisons": [
+    "PRE/POST null for unchanged successful paths",
+    "PRE/PAD-A layout control",
+    "For deliberately changed trim/XREAD semantics report semantic work alongside operation rate; PRE is not an equal-work throughput baseline"
+  ],
+  "decision": "Use the existing gate matched-offered-load null and identical-arm acceptance rule per cell; report cycles/op, instructions/op and IPC as explanations, never as a substitute for matched-load rate. Freeze the stream/pop load adapter and offered load before candidate measurement."
+}

@@ -1,0 +1,37 @@
+{
+  "kind": "pad-layout",
+  "changes": [
+    {
+      "file": "/home/user/Projects/cx-streamfix/build/streamfix/pad-layout-source/src/store/typeval.h",
+      "before": "    uint32_t physical_entries = 0;\n};\n\nstruct StreamNodeIndex",
+      "after": "    uint32_t physical_entries = 0;\n    uint32_t deleted_entries = 0;\n    uint64_t wire_bytes = 0;\n};\n\nstruct StreamNodeIndex"
+    }
+  ],
+  "command": [
+    "make",
+    "-j16",
+    "BUILD_ROOT=/home/user/Projects/cx-streamfix/build/streamfix/pad-layout-objects",
+    "all"
+  ],
+  "affinity": [
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111
+  ],
+  "exit": 0,
+  "binary": "/home/user/Projects/cx-streamfix/build/streamfix/pad-layout-objects/tomokv",
+  "sha256": "7d500b32bdb0e97fa64ca018b39f0abf5285bb1e65c912756c99748ab8ed8609"
+}

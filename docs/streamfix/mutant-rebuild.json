@@ -1,0 +1,112 @@
+{
+  "kind": "mutant",
+  "changes": [
+    {
+      "file": "/home/user/Projects/cx-streamfix/build/streamfix/mutant-source/src/cmd/t_stream.cc",
+      "before": "latest = input.n == 1 && (input.p[0] == '$' || input.p[0] == '+');",
+      "after": "latest = input.n == 1 && input.p[0] == '$';"
+    },
+    {
+      "file": "/home/user/Projects/cx-streamfix/build/streamfix/mutant-source/src/cmd/t_stream.cc",
+      "before": "parse_id_numeric(input, id, start ? 0 : UINT64_MAX, !exclusive)",
+      "after": "parse_id_numeric(input, id, start ? 0 : UINT64_MAX, true)"
+    },
+    {
+      "file": "/home/user/Projects/cx-streamfix/build/streamfix/mutant-source/src/cmd/t_stream.cc",
+      "before": "if (trim.limit && node_live > trim.limit) return {};",
+      "after": "if (false && trim.limit && node_live > trim.limit) return {};"
+    },
+    {
+      "file": "/home/user/Projects/cx-streamfix/build/streamfix/mutant-source/src/cmd/t_stream.cc",
+      "before": "    if (trim.approximate) return {};",
+      "after": "    if (false && trim.approximate) return {};"
+    },
+    {
+      "file": "/home/user/Projects/cx-streamfix/build/streamfix/mutant-source/src/cmd/t_stream_groups.cc",
+      "before": "else if (!parse_id(op.arg(4), id, 0, true))",
+      "after": "else if (!parse_id(op.arg(4), id))"
+    },
+    {
+      "file": "/home/user/Projects/cx-streamfix/build/streamfix/mutant-source/src/cmd/t_stream_groups.cc",
+      "before": "if (!parse_id(op.arg(5), start, 0, true))",
+      "after": "if (!parse_id(op.arg(5), start))"
+    },
+    {
+      "file": "/home/user/Projects/cx-streamfix/build/streamfix/mutant-source/src/cmd/t_stream_groups.cc",
+      "before": "static_cast<uint64_t>(parsed) > uint64_t{INT64_MAX} / sizeof(StreamID)",
+      "after": "(false && static_cast<uint64_t>(parsed) > uint64_t{INT64_MAX} / sizeof(StreamID))"
+    },
+    {
+      "file": "/home/user/Projects/cx-streamfix/build/streamfix/mutant-source/src/cmd/xshard_commands.inc",
+      "before": "if (!parse_i64(op.arg(++i), parsed_count) || parsed_count < 1) {\n            reply_err(op.sink(), \"ERR count should be greater than 0\");",
+      "after": "if (!parse_i64(op.arg(++i), parsed_count) || parsed_count < 1) {\n            reply_err(op.sink(), \"ERR value is not an integer or out of range\");"
+    },
+    {
+      "file": "/home/user/Projects/cx-streamfix/build/streamfix/mutant-source/src/cmd/blocking.inc",
+      "before": "if (!parse_i64(input, parsed) || parsed < 1) {\n        reply_err(op.sink(), \"ERR count should be greater than 0\");",
+      "after": "if (!parse_i64(input, parsed) || parsed < 1) {\n        reply_err(op.sink(), \"ERR value is not an integer or out of range\");"
+    },
+    {
+      "file": "/home/user/Projects/cx-streamfix/build/streamfix/mutant-source/src/cmd/blocking.inc",
+      "before": "if (!parse_i64(op.arg(2), parsed_keys) || parsed_keys < 1) {\n                reply_err(op.sink(), \"ERR numkeys should be greater than 0\");",
+      "after": "if (!parse_i64(op.arg(2), parsed_keys) || parsed_keys < 1) {\n                reply_err(op.sink(), \"ERR value is not an integer or out of range\");"
+    }
+  ],
+  "command": [
+    "make",
+    "-j16",
+    "BUILD_ROOT=/home/user/Projects/cx-streamfix/build/streamfix/mutant-objects",
+    "all"
+  ],
+  "affinity": [
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111
+  ],
+  "exit": 0,
+  "rebuild_command": [
+    "make",
+    "-j16",
+    "BUILD_ROOT=/home/user/Projects/cx-streamfix/build/streamfix/mutant-objects",
+    "all"
+  ],
+  "rebuild_log": "docs/streamfix/mutant-rebuild.log",
+  "sha256": "927bf4c07d71d466846c8d53a3be586573660494ac15a42c90d028911f0c3e8b",
+  "binary": "/home/user/Projects/cx-streamfix/build/streamfix/mutant-objects/tomokv",
+  "candidate_sha256": "c671ede82505dda0c62da963e5230ba8aea8cd0edd08d1c5accf8948ed95ccf1",
+  "source_differences": {
+    "src/cmd/t_stream.cc": {
+      "mutations": 4,
+      "candidate_sha256": "e05602e82ae4cd3aae87c042d6d6527abaa2930c3d2ca4bebf83cd70c02d1f3e",
+      "mutant_sha256": "b96919ce5f8d41dce726dd6f3fb07a6d65e743b9538c73256a42804f1f822342"
+    },
+    "src/cmd/t_stream_groups.cc": {
+      "mutations": 3,
+      "candidate_sha256": "3ca9d2a80a9009adf0d4bf12bf6ab0e88e4b262c2089c7b530d361dba64cdc8d",
+      "mutant_sha256": "a1f59ce44c5333e176195efe94da534f8b499e711ccaf976486b9708fd70e7e9"
+    },
+    "src/cmd/xshard_commands.inc": {
+      "mutations": 1,
+      "candidate_sha256": "c41141bf0ac71294499c52ec2c153d3ccaf1f556060e78b9d2639d89a4ad252b",
+      "mutant_sha256": "7c4786a3543ed734c553d8d6037d955dda50df7de9b6e9720413b8d169b60cc7"
+    },
+    "src/cmd/blocking.inc": {
+      "mutations": 2,
+      "candidate_sha256": "b2a370f6c3e936ed288a44e0ab4333fa434b580a229424082e0a1aaeaf1980ea",
+      "mutant_sha256": "cdc8417e0ef76cf3cb92f04c00914fc6c5b0e1493a9647fcf5a059ddf6881686"
+    }
+  }
+}

@@ -77,7 +77,8 @@ def trace(case):
     compressed_log = Path(str(existing_log) + ".gz")
     log_text = existing_log.read_text() if existing_log.exists() else (
         gzip.open(compressed_log, "rt").read() if compressed_log.exists() else "")
-    if output.exists() and "COUNT " in log_text:
+    binary_sha256 = hashlib.sha256(binary.read_bytes()).hexdigest()
+    if output.exists() and "COUNT " in log_text and json.loads(output.read_text()).get("binary_sha256") == binary_sha256:
         receipt = json.loads((OUT / (arm + "-" + ns + "-build.json")).read_text())
         assert receipt["sha256"] == hashlib.sha256(binary.read_bytes()).hexdigest()
         row = dict(zip(("arm", "namespace", "command", "mode", "batch", "atomic", "threshold"), case))
@@ -132,7 +133,7 @@ for step in range(2000000):
  else:gdb.execute('stepi',to_string=True)
 else:raise RuntimeError('bounded instruction trace exhausted')
 assert sum(counts.values()) > 0, 'named production scope did not fire'
-json.dump(dict(total=sum(counts.values()),functions=dict(counts),bodies=dict(bodies),excluded=dict(excluded),clock_calls=clocks),open({str(output)!r},'w'),indent=2)
+json.dump(dict(binary_sha256={binary_sha256!r},total=sum(counts.values()),functions=dict(counts),bodies=dict(bodies),excluded=dict(excluded),clock_calls=clocks),open({str(output)!r},'w'),indent=2)
 end.delete();gdb.execute('continue',to_string=True)
 assert int(gdb.parse_and_eval('$_exitcode'))==0,'fixture exact-data assertion failed'
 print('COUNT',sum(counts.values()))
