@@ -106,5 +106,6 @@
     "tomo_db0::CoreConcurrencyTest::run<false>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned int, bool, long)::{lambda(void*, tomo_db0::Client*)#1}::_FUN(void*, tomo_db0::Client*) in section .text of /home/user/Projects/cx-streamfix/build/streamfix/commands/pre-db0/probe": 1,
     "_Znwm@plt": 1
   },
-  "clock_calls": 1
+  "clock_calls": 1,
+  "binary_sha256": "8c696ddedd3133e6792658596030bc22b478d63b5b042cbabc2184bfb6180b56"
 }

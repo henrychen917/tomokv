@@ -27,5 +27,6 @@
   "excluded": {
     "memcpy@plt": 1
   },
-  "clock_calls": 1
+  "clock_calls": 1,
+  "binary_sha256": "8c696ddedd3133e6792658596030bc22b478d63b5b042cbabc2184bfb6180b56"
 }

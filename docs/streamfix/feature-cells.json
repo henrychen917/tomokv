@@ -5,14 +5,8 @@
     "split_ratio": "6:2",
     "shards": 16,
     "connections": 512,
-    "atomic": [
-      0,
-      1
-    ],
-    "databases": [
-      1,
-      16
-    ],
+    "atomic": 1,
+    "databases": 16,
     "modes": [
       "1s",
       "2s"
@@ -21,10 +15,8 @@
       1,
       32
     ],
-    "engines": [
-      "uring",
-      "epoll"
-    ]
+    "engine": "uring",
+    "read_local": 0
   },
   "workloads": [
     {

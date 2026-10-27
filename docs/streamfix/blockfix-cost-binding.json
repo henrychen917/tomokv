@@ -1,0 +1,5 @@
+{
+  "production_receipt": "c671ede82505dda0c62da963e5230ba8aea8cd0edd08d1c5accf8948ed95ccf1  /home/user/Projects/cx-streamfix/build/tomokv\n410d15aa5b70091818c7fb039fcc6beb197b059cb3d1ca8d288fc40d6887fa29  /home/user/Projects/cx-streamfix/build/blockfix-cost\n",
+  "frozen_receipt": "c671ede82505dda0c62da963e5230ba8aea8cd0edd08d1c5accf8948ed95ccf1  /home/user/Projects/cx-streamfix/build/streamfix/post-final/tomokv\n410d15aa5b70091818c7fb039fcc6beb197b059cb3d1ca8d288fc40d6887fa29  /home/user/Projects/cx-streamfix/build/streamfix/post-final/blockfix-cost\n",
+  "same_bytes": true
+}
