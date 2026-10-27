@@ -1,0 +1,106 @@
+[
+  {
+    "mode": "2s",
+    "files": 35,
+    "passed": 1643,
+    "failed": 5,
+    "skipped": 607,
+    "errors": [],
+    "known_setup_errors": [
+      {
+        "file": "unit/scripting",
+        "setup_errors": [
+          {
+            "command": "r debug set-disable-deny-scripts 1",
+            "reply": "ERR unknown subcommand or wrong number of arguments for 'debug' command",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "file": "unit/type/list",
+        "setup_errors": [
+          {
+            "command": "r config set list-compress-depth 2",
+            "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "file": "unit/type/list-3",
+        "setup_errors": [
+          {
+            "command": "config_set list-compress-depth $comp",
+            "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "file": "unit/type/stream-cgroups",
+        "setup_errors": [
+          {
+            "command": "r config set $param $val",
+            "reply": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config",
+            "count": 1
+          }
+        ]
+      }
+    ],
+    "path": "/home/user/Projects/cx-wave8b/build/gate-run.17DdZq/jobs/redis_tcl/redis-tcl-2s/summary.json",
+    "sha256": "76c4ff43fc804dfa517332d01ef230d6d1c3829ec2bb2d834ac3ea396059f0f4"
+  },
+  {
+    "mode": "1s",
+    "files": 35,
+    "passed": 1643,
+    "failed": 5,
+    "skipped": 607,
+    "errors": [],
+    "known_setup_errors": [
+      {
+        "file": "unit/scripting",
+        "setup_errors": [
+          {
+            "command": "r debug set-disable-deny-scripts 1",
+            "reply": "ERR unknown subcommand or wrong number of arguments for 'debug' command",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "file": "unit/type/list",
+        "setup_errors": [
+          {
+            "command": "r config set list-compress-depth 2",
+            "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "file": "unit/type/list-3",
+        "setup_errors": [
+          {
+            "command": "config_set list-compress-depth $comp",
+            "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "file": "unit/type/stream-cgroups",
+        "setup_errors": [
+          {
+            "command": "r config set $param $val",
+            "reply": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config",
+            "count": 1
+          }
+        ]
+      }
+    ],
+    "path": "/home/user/Projects/cx-wave8b/build/gate-run.17DdZq/jobs/redis_tcl/redis-tcl-1s/summary.json",
+    "sha256": "9bb762af946e80aa899e892ffbcc1743db4b1317af93fda82e7d5a8a7efb1ce7"
+  }
+]

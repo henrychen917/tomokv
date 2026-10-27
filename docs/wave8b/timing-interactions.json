@@ -1,0 +1,157 @@
+{
+  "binary_sha256": "4acdb9baab221726b46589a965802c4175439b9670077997690c20a0c37e040b",
+  "rows": [
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "engine": "uring",
+      "logs": [
+        {
+          "test": "wave8",
+          "path": "/home/user/Projects/cx-wave8b/build/gate-run.Wf7bsF/jobs/execfair/execfair-1s-0-uring-wave8.log",
+          "sha256": "e624f2d10ee1c935e8420c803c3438cfc663d2152e252c918c2cadfa03ee5486",
+          "output": "{\"attempt\": 0, \"histogram\": {\"multi\": 96, \"exec\": 96, \"eval\": 32, \"incr\": 192, \"incrby\": 64, \"mget\": 96}, \"counters\": {\"script_stage_owner_tasks\": 76, \"script_run_attempts\": 38, \"script_validate_owner_tasks\": 64, \"script_apply_owner_tasks\": 64, \"script_crossshard_activations\": 32, \"script_group_commits\": 32, \"script_group_occ_retries\": 6, \"script_group_occ_giveups\": 0, \"script_staged_bytes_total\": 7334, \"script_crossshard_window_refusals\": 0, \"script_group_aborts_oom\": 0, \"script_keys_armed\": 64, \"script_keys_released\": 64, \"script_intents_live\": 0, \"script_write_tickets_forced\": 0, \"script_flush_generation\": 0, \"script_interpreter_builds\": 2, \"script_chunk_cache_hits\": 36, \"script_chunk_cache_misses\": 2, \"script_readonly_rejections\": 0, \"script_effect_writes\": 76, \"script_failed_after_effects\": 0, \"atomic_txn_attempts\": 96, \"atomic_txn_retries\": 0, \"atomic_txn_dooms\": 0, \"atomic_txn_wounds\": 0, \"atomic_txn_waits\": 139, \"atomic_txn_intents\": 0, \"atomic_txn_intents_live\": 0, \"atomic_txn_executed\": 96, \"atomic_txn_place_waits\": 44, \"atomic_txn_writer_waits\": 0, \"atomic_txn_writer_marks\": 0, \"atomic_txn_blind_restarts\": 0, \"atomic_txn_readonly\": 0, \"atomic_txn_order_violations\": 0, \"atomic_txn_fast_polls\": 2345, \"atomic_txn_poll_skips\": 721}}\n{\"window\": \"exec\", \"attempt\": 0, \"retries\": 1, \"histogram\": {\"exec\": 2, \"incr\": 4, \"mget\": 2}}\n{\"window\": \"script\", \"attempt\": 0, \"retries\": 1, \"histogram\": {\"eval\": 1, \"incrby\": 2}}\nPASS wave8 contended EXEC, helper scripts, exact child histogram counts and off transition\n"
+        },
+        {
+          "test": "wave8b",
+          "path": "/home/user/Projects/cx-wave8b/build/gate-run.Wf7bsF/jobs/execfair/execfair-1s-0-uring-wave8b.log",
+          "sha256": "da4e1ec670d9a595ed5b29fab0086fb148d7b97911f19c085d62ee25e87e7c43",
+          "output": "PASS wave8b pending exec CONFIG no/yes; exact off/on samples {'exec': 1, 'incr': 2, 'eval': 1, 'incrby': 2, 'mget': 1}\nPASS wave8b pending script CONFIG no/yes; exact off/on samples {'exec': 1, 'incr': 2, 'eval': 1, 'incrby': 2, 'mget': 1}\nPASS wave8b WAIT pending CONFIG transition, enabled at wake False\nPASS wave8b WAIT pending CONFIG transition, enabled at wake True\n"
+        }
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "engine": "epoll",
+      "logs": [
+        {
+          "test": "wave8",
+          "path": "/home/user/Projects/cx-wave8b/build/gate-run.Wf7bsF/jobs/execfair/execfair-1s-0-epoll-wave8.log",
+          "sha256": "d684075cde20e5f1769356194534c37bf43408cd7298b688a0e329ace0638658",
+          "output": "{\"attempt\": 0, \"histogram\": {\"multi\": 96, \"exec\": 96, \"eval\": 32, \"incr\": 192, \"incrby\": 64, \"mget\": 96}, \"counters\": {\"script_stage_owner_tasks\": 70, \"script_run_attempts\": 35, \"script_validate_owner_tasks\": 64, \"script_apply_owner_tasks\": 64, \"script_crossshard_activations\": 32, \"script_group_commits\": 32, \"script_group_occ_retries\": 3, \"script_group_occ_giveups\": 0, \"script_staged_bytes_total\": 6720, \"script_crossshard_window_refusals\": 0, \"script_group_aborts_oom\": 0, \"script_keys_armed\": 64, \"script_keys_released\": 64, \"script_intents_live\": 0, \"script_write_tickets_forced\": 0, \"script_flush_generation\": 0, \"script_interpreter_builds\": 2, \"script_chunk_cache_hits\": 33, \"script_chunk_cache_misses\": 2, \"script_readonly_rejections\": 0, \"script_effect_writes\": 70, \"script_failed_after_effects\": 0, \"atomic_txn_attempts\": 97, \"atomic_txn_retries\": 1, \"atomic_txn_dooms\": 0, \"atomic_txn_wounds\": 1, \"atomic_txn_waits\": 315, \"atomic_txn_intents\": 0, \"atomic_txn_intents_live\": 0, \"atomic_txn_executed\": 96, \"atomic_txn_place_waits\": 68, \"atomic_txn_writer_waits\": 0, \"atomic_txn_writer_marks\": 0, \"atomic_txn_blind_restarts\": 0, \"atomic_txn_readonly\": 0, \"atomic_txn_order_violations\": 0, \"atomic_txn_fast_polls\": 3471, \"atomic_txn_poll_skips\": 577}}\n{\"window\": \"exec\", \"attempt\": 0, \"retries\": 1, \"histogram\": {\"exec\": 2, \"incr\": 4, \"mget\": 2}}\n{\"window\": \"script\", \"attempt\": 0, \"retries\": 1, \"histogram\": {\"eval\": 1, \"incrby\": 2}}\nPASS wave8 contended EXEC, helper scripts, exact child histogram counts and off transition\n"
+        },
+        {
+          "test": "wave8b",
+          "path": "/home/user/Projects/cx-wave8b/build/gate-run.Wf7bsF/jobs/execfair/execfair-1s-0-epoll-wave8b.log",
+          "sha256": "da4e1ec670d9a595ed5b29fab0086fb148d7b97911f19c085d62ee25e87e7c43",
+          "output": "PASS wave8b pending exec CONFIG no/yes; exact off/on samples {'exec': 1, 'incr': 2, 'eval': 1, 'incrby': 2, 'mget': 1}\nPASS wave8b pending script CONFIG no/yes; exact off/on samples {'exec': 1, 'incr': 2, 'eval': 1, 'incrby': 2, 'mget': 1}\nPASS wave8b WAIT pending CONFIG transition, enabled at wake False\nPASS wave8b WAIT pending CONFIG transition, enabled at wake True\n"
+        }
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "engine": "uring",
+      "logs": [
+        {
+          "test": "wave8",
+          "path": "/home/user/Projects/cx-wave8b/build/gate-run.Wf7bsF/jobs/execfair/execfair-1s-1-uring-wave8.log",
+          "sha256": "b7695c5b9271bba90ef60e626f0952af95da021301415447dd8a4b9bd50cb59f",
+          "output": "{\"attempt\": 0, \"histogram\": {\"multi\": 96, \"exec\": 96, \"eval\": 32, \"incr\": 192, \"incrby\": 64, \"mget\": 96}, \"counters\": {\"script_stage_owner_tasks\": 72, \"script_run_attempts\": 36, \"script_validate_owner_tasks\": 64, \"script_apply_owner_tasks\": 64, \"script_crossshard_activations\": 32, \"script_group_commits\": 32, \"script_group_occ_retries\": 4, \"script_group_occ_giveups\": 0, \"script_staged_bytes_total\": 6928, \"script_crossshard_window_refusals\": 0, \"script_group_aborts_oom\": 0, \"script_keys_armed\": 64, \"script_keys_released\": 64, \"script_intents_live\": 0, \"script_write_tickets_forced\": 0, \"script_flush_generation\": 0, \"script_interpreter_builds\": 2, \"script_chunk_cache_hits\": 34, \"script_chunk_cache_misses\": 2, \"script_readonly_rejections\": 0, \"script_effect_writes\": 72, \"script_failed_after_effects\": 0, \"atomic_txn_attempts\": 96, \"atomic_txn_retries\": 0, \"atomic_txn_dooms\": 0, \"atomic_txn_wounds\": 0, \"atomic_txn_waits\": 20, \"atomic_txn_intents\": 0, \"atomic_txn_intents_live\": 0, \"atomic_txn_executed\": 96, \"atomic_txn_place_waits\": 22, \"atomic_txn_writer_waits\": 0, \"atomic_txn_writer_marks\": 0, \"atomic_txn_blind_restarts\": 0, \"atomic_txn_readonly\": 0, \"atomic_txn_order_violations\": 0, \"atomic_txn_fast_polls\": 1178, \"atomic_txn_poll_skips\": 146}}\n{\"window\": \"exec\", \"attempt\": 0, \"retries\": 1, \"histogram\": {\"exec\": 2, \"incr\": 4, \"mget\": 2}}\n{\"window\": \"script\", \"attempt\": 0, \"retries\": 1, \"histogram\": {\"eval\": 1, \"incrby\": 2}}\nPASS wave8 contended EXEC, helper scripts, exact child histogram counts and off transition\n"
+        },
+        {
+          "test": "wave8b",
+          "path": "/home/user/Projects/cx-wave8b/build/gate-run.Wf7bsF/jobs/execfair/execfair-1s-1-uring-wave8b.log",
+          "sha256": "da4e1ec670d9a595ed5b29fab0086fb148d7b97911f19c085d62ee25e87e7c43",
+          "output": "PASS wave8b pending exec CONFIG no/yes; exact off/on samples {'exec': 1, 'incr': 2, 'eval': 1, 'incrby': 2, 'mget': 1}\nPASS wave8b pending script CONFIG no/yes; exact off/on samples {'exec': 1, 'incr': 2, 'eval': 1, 'incrby': 2, 'mget': 1}\nPASS wave8b WAIT pending CONFIG transition, enabled at wake False\nPASS wave8b WAIT pending CONFIG transition, enabled at wake True\n"
+        }
+      ]
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "engine": "epoll",
+      "logs": [
+        {
+          "test": "wave8",
+          "path": "/home/user/Projects/cx-wave8b/build/gate-run.Wf7bsF/jobs/execfair/execfair-1s-1-epoll-wave8.log",
+          "sha256": "71d1dbc309ba90a022f33564b0aa73c4f31cd1282437fa6ab7418cde3666e3cc",
+          "output": "{\"attempt\": 0, \"histogram\": {\"multi\": 96, \"exec\": 96, \"eval\": 32, \"incr\": 192, \"incrby\": 64, \"mget\": 96}, \"counters\": {\"script_stage_owner_tasks\": 68, \"script_run_attempts\": 34, \"script_validate_owner_tasks\": 64, \"script_apply_owner_tasks\": 64, \"script_crossshard_activations\": 32, \"script_group_commits\": 32, \"script_group_occ_retries\": 2, \"script_group_occ_giveups\": 0, \"script_staged_bytes_total\": 6544, \"script_crossshard_window_refusals\": 0, \"script_group_aborts_oom\": 0, \"script_keys_armed\": 64, \"script_keys_released\": 64, \"script_intents_live\": 0, \"script_write_tickets_forced\": 0, \"script_flush_generation\": 0, \"script_interpreter_builds\": 2, \"script_chunk_cache_hits\": 32, \"script_chunk_cache_misses\": 2, \"script_readonly_rejections\": 0, \"script_effect_writes\": 68, \"script_failed_after_effects\": 0, \"atomic_txn_attempts\": 96, \"atomic_txn_retries\": 0, \"atomic_txn_dooms\": 0, \"atomic_txn_wounds\": 0, \"atomic_txn_waits\": 55, \"atomic_txn_intents\": 0, \"atomic_txn_intents_live\": 0, \"atomic_txn_executed\": 96, \"atomic_txn_place_waits\": 43, \"atomic_txn_writer_waits\": 0, \"atomic_txn_writer_marks\": 0, \"atomic_txn_blind_restarts\": 0, \"atomic_txn_readonly\": 0, \"atomic_txn_order_violations\": 0, \"atomic_txn_fast_polls\": 2034, \"atomic_txn_poll_skips\": 761}}\n{\"window\": \"exec\", \"attempt\": 0, \"retries\": 1, \"histogram\": {\"exec\": 2, \"incr\": 4, \"mget\": 2}}\n{\"window\": \"script\", \"attempt\": 0, \"retries\": 1, \"histogram\": {\"eval\": 1, \"incrby\": 2}}\nPASS wave8 contended EXEC, helper scripts, exact child histogram counts and off transition\n"
+        },
+        {
+          "test": "wave8b",
+          "path": "/home/user/Projects/cx-wave8b/build/gate-run.Wf7bsF/jobs/execfair/execfair-1s-1-epoll-wave8b.log",
+          "sha256": "da4e1ec670d9a595ed5b29fab0086fb148d7b97911f19c085d62ee25e87e7c43",
+          "output": "PASS wave8b pending exec CONFIG no/yes; exact off/on samples {'exec': 1, 'incr': 2, 'eval': 1, 'incrby': 2, 'mget': 1}\nPASS wave8b pending script CONFIG no/yes; exact off/on samples {'exec': 1, 'incr': 2, 'eval': 1, 'incrby': 2, 'mget': 1}\nPASS wave8b WAIT pending CONFIG transition, enabled at wake False\nPASS wave8b WAIT pending CONFIG transition, enabled at wake True\n"
+        }
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "engine": "uring",
+      "logs": [
+        {
+          "test": "wave8",
+          "path": "/home/user/Projects/cx-wave8b/build/gate-run.Wf7bsF/jobs/execfair/execfair-2s-0-uring-wave8.log",
+          "sha256": "a0a43f789a940ca8ea288579118cdc86ae9c3e528622a3bfcc162a6b3d93c086",
+          "output": "{\"attempt\": 0, \"histogram\": {\"multi\": 96, \"exec\": 96, \"eval\": 32, \"incr\": 192, \"incrby\": 64, \"mget\": 96}, \"counters\": {\"script_stage_owner_tasks\": 66, \"script_run_attempts\": 33, \"script_validate_owner_tasks\": 64, \"script_apply_owner_tasks\": 64, \"script_crossshard_activations\": 32, \"script_group_commits\": 32, \"script_group_occ_retries\": 1, \"script_group_occ_giveups\": 0, \"script_staged_bytes_total\": 6336, \"script_crossshard_window_refusals\": 0, \"script_group_aborts_oom\": 0, \"script_keys_armed\": 64, \"script_keys_released\": 64, \"script_intents_live\": 0, \"script_write_tickets_forced\": 0, \"script_flush_generation\": 0, \"script_interpreter_builds\": 2, \"script_chunk_cache_hits\": 31, \"script_chunk_cache_misses\": 2, \"script_readonly_rejections\": 0, \"script_effect_writes\": 66, \"script_failed_after_effects\": 0, \"atomic_txn_attempts\": 96, \"atomic_txn_retries\": 0, \"atomic_txn_dooms\": 0, \"atomic_txn_wounds\": 0, \"atomic_txn_waits\": 7, \"atomic_txn_intents\": 0, \"atomic_txn_intents_live\": 0, \"atomic_txn_executed\": 96, \"atomic_txn_place_waits\": 23, \"atomic_txn_writer_waits\": 0, \"atomic_txn_writer_marks\": 0, \"atomic_txn_blind_restarts\": 0, \"atomic_txn_readonly\": 0, \"atomic_txn_order_violations\": 0, \"atomic_txn_fast_polls\": 1737, \"atomic_txn_poll_skips\": 322}}\n{\"window\": \"exec\", \"attempt\": 0, \"retries\": 1, \"histogram\": {\"exec\": 2, \"incr\": 4, \"mget\": 2}}\n{\"window\": \"script\", \"attempt\": 0, \"retries\": 1, \"histogram\": {\"eval\": 1, \"incrby\": 2}}\nPASS wave8 contended EXEC, helper scripts, exact child histogram counts and off transition\n"
+        },
+        {
+          "test": "wave8b",
+          "path": "/home/user/Projects/cx-wave8b/build/gate-run.Wf7bsF/jobs/execfair/execfair-2s-0-uring-wave8b.log",
+          "sha256": "da4e1ec670d9a595ed5b29fab0086fb148d7b97911f19c085d62ee25e87e7c43",
+          "output": "PASS wave8b pending exec CONFIG no/yes; exact off/on samples {'exec': 1, 'incr': 2, 'eval': 1, 'incrby': 2, 'mget': 1}\nPASS wave8b pending script CONFIG no/yes; exact off/on samples {'exec': 1, 'incr': 2, 'eval': 1, 'incrby': 2, 'mget': 1}\nPASS wave8b WAIT pending CONFIG transition, enabled at wake False\nPASS wave8b WAIT pending CONFIG transition, enabled at wake True\n"
+        }
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "engine": "epoll",
+      "logs": [
+        {
+          "test": "wave8",
+          "path": "/home/user/Projects/cx-wave8b/build/gate-run.Wf7bsF/jobs/execfair/execfair-2s-0-epoll-wave8.log",
+          "sha256": "2fa5476e9dfe0c80a4985f489bf2621797ddc511d744de5f8d74fd2528daa0d8",
+          "output": "{\"attempt\": 0, \"histogram\": {\"multi\": 96, \"exec\": 96, \"eval\": 32, \"incr\": 192, \"incrby\": 64, \"mget\": 96}, \"counters\": {\"script_stage_owner_tasks\": 70, \"script_run_attempts\": 35, \"script_validate_owner_tasks\": 64, \"script_apply_owner_tasks\": 64, \"script_crossshard_activations\": 32, \"script_group_commits\": 32, \"script_group_occ_retries\": 3, \"script_group_occ_giveups\": 0, \"script_staged_bytes_total\": 6720, \"script_crossshard_window_refusals\": 0, \"script_group_aborts_oom\": 0, \"script_keys_armed\": 64, \"script_keys_released\": 64, \"script_intents_live\": 0, \"script_write_tickets_forced\": 0, \"script_flush_generation\": 0, \"script_interpreter_builds\": 2, \"script_chunk_cache_hits\": 33, \"script_chunk_cache_misses\": 2, \"script_readonly_rejections\": 0, \"script_effect_writes\": 70, \"script_failed_after_effects\": 0, \"atomic_txn_attempts\": 96, \"atomic_txn_retries\": 0, \"atomic_txn_dooms\": 0, \"atomic_txn_wounds\": 0, \"atomic_txn_waits\": 173, \"atomic_txn_intents\": 0, \"atomic_txn_intents_live\": 0, \"atomic_txn_executed\": 96, \"atomic_txn_place_waits\": 22, \"atomic_txn_writer_waits\": 0, \"atomic_txn_writer_marks\": 0, \"atomic_txn_blind_restarts\": 0, \"atomic_txn_readonly\": 0, \"atomic_txn_order_violations\": 0, \"atomic_txn_fast_polls\": 2018, \"atomic_txn_poll_skips\": 425}}\n{\"window\": \"exec\", \"attempt\": 0, \"retries\": 1, \"histogram\": {\"exec\": 2, \"incr\": 4, \"mget\": 2}}\n{\"window\": \"script\", \"attempt\": 0, \"retries\": 1, \"histogram\": {\"eval\": 1, \"incrby\": 2}}\nPASS wave8 contended EXEC, helper scripts, exact child histogram counts and off transition\n"
+        },
+        {
+          "test": "wave8b",
+          "path": "/home/user/Projects/cx-wave8b/build/gate-run.Wf7bsF/jobs/execfair/execfair-2s-0-epoll-wave8b.log",
+          "sha256": "da4e1ec670d9a595ed5b29fab0086fb148d7b97911f19c085d62ee25e87e7c43",
+          "output": "PASS wave8b pending exec CONFIG no/yes; exact off/on samples {'exec': 1, 'incr': 2, 'eval': 1, 'incrby': 2, 'mget': 1}\nPASS wave8b pending script CONFIG no/yes; exact off/on samples {'exec': 1, 'incr': 2, 'eval': 1, 'incrby': 2, 'mget': 1}\nPASS wave8b WAIT pending CONFIG transition, enabled at wake False\nPASS wave8b WAIT pending CONFIG transition, enabled at wake True\n"
+        }
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "engine": "uring",
+      "logs": [
+        {
+          "test": "wave8",
+          "path": "/home/user/Projects/cx-wave8b/build/gate-run.Wf7bsF/jobs/execfair/execfair-2s-1-uring-wave8.log",
+          "sha256": "afee7695a675acf3ebdbe31c3764c91f3e7391c9e53570b41e570134b4a38280",
+          "output": "{\"attempt\": 0, \"histogram\": {\"multi\": 96, \"exec\": 96, \"eval\": 32, \"incr\": 192, \"incrby\": 64, \"mget\": 96}, \"counters\": {\"script_stage_owner_tasks\": 66, \"script_run_attempts\": 33, \"script_validate_owner_tasks\": 64, \"script_apply_owner_tasks\": 64, \"script_crossshard_activations\": 32, \"script_group_commits\": 32, \"script_group_occ_retries\": 1, \"script_group_occ_giveups\": 0, \"script_staged_bytes_total\": 6336, \"script_crossshard_window_refusals\": 0, \"script_group_aborts_oom\": 0, \"script_keys_armed\": 64, \"script_keys_released\": 64, \"script_intents_live\": 0, \"script_write_tickets_forced\": 0, \"script_flush_generation\": 0, \"script_interpreter_builds\": 2, \"script_chunk_cache_hits\": 31, \"script_chunk_cache_misses\": 2, \"script_readonly_rejections\": 0, \"script_effect_writes\": 66, \"script_failed_after_effects\": 0, \"atomic_txn_attempts\": 96, \"atomic_txn_retries\": 0, \"atomic_txn_dooms\": 0, \"atomic_txn_wounds\": 0, \"atomic_txn_waits\": 183, \"atomic_txn_intents\": 0, \"atomic_txn_intents_live\": 0, \"atomic_txn_executed\": 96, \"atomic_txn_place_waits\": 19, \"atomic_txn_writer_waits\": 0, \"atomic_txn_writer_marks\": 0, \"atomic_txn_blind_restarts\": 0, \"atomic_txn_readonly\": 0, \"atomic_txn_order_violations\": 0, \"atomic_txn_fast_polls\": 1831, \"atomic_txn_poll_skips\": 424}}\n{\"window\": \"exec\", \"attempt\": 0, \"retries\": 1, \"histogram\": {\"exec\": 2, \"incr\": 4, \"mget\": 2}}\n{\"window\": \"script\", \"attempt\": 0, \"retries\": 1, \"histogram\": {\"eval\": 1, \"incrby\": 2}}\nPASS wave8 contended EXEC, helper scripts, exact child histogram counts and off transition\n"
+        },
+        {
+          "test": "wave8b",
+          "path": "/home/user/Projects/cx-wave8b/build/gate-run.Wf7bsF/jobs/execfair/execfair-2s-1-uring-wave8b.log",
+          "sha256": "da4e1ec670d9a595ed5b29fab0086fb148d7b97911f19c085d62ee25e87e7c43",
+          "output": "PASS wave8b pending exec CONFIG no/yes; exact off/on samples {'exec': 1, 'incr': 2, 'eval': 1, 'incrby': 2, 'mget': 1}\nPASS wave8b pending script CONFIG no/yes; exact off/on samples {'exec': 1, 'incr': 2, 'eval': 1, 'incrby': 2, 'mget': 1}\nPASS wave8b WAIT pending CONFIG transition, enabled at wake False\nPASS wave8b WAIT pending CONFIG transition, enabled at wake True\n"
+        }
+      ]
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "engine": "epoll",
+      "logs": [
+        {
+          "test": "wave8",
+          "path": "/home/user/Projects/cx-wave8b/build/gate-run.Wf7bsF/jobs/execfair/execfair-2s-1-epoll-wave8.log",
+          "sha256": "ff2ef21ac9c0c86bc9b18bb27a6dc52ca3ddb1382ff52fa453730a5458cab9e9",
+          "output": "{\"attempt\": 0, \"histogram\": {\"multi\": 96, \"exec\": 96, \"eval\": 32, \"incr\": 192, \"incrby\": 64, \"mget\": 96}, \"counters\": {\"script_stage_owner_tasks\": 72, \"script_run_attempts\": 36, \"script_validate_owner_tasks\": 64, \"script_apply_owner_tasks\": 64, \"script_crossshard_activations\": 32, \"script_group_commits\": 32, \"script_group_occ_retries\": 4, \"script_group_occ_giveups\": 0, \"script_staged_bytes_total\": 6912, \"script_crossshard_window_refusals\": 0, \"script_group_aborts_oom\": 0, \"script_keys_armed\": 64, \"script_keys_released\": 64, \"script_intents_live\": 0, \"script_write_tickets_forced\": 0, \"script_flush_generation\": 0, \"script_interpreter_builds\": 2, \"script_chunk_cache_hits\": 34, \"script_chunk_cache_misses\": 2, \"script_readonly_rejections\": 0, \"script_effect_writes\": 72, \"script_failed_after_effects\": 0, \"atomic_txn_attempts\": 97, \"atomic_txn_retries\": 1, \"atomic_txn_dooms\": 0, \"atomic_txn_wounds\": 1, \"atomic_txn_waits\": 5, \"atomic_txn_intents\": 0, \"atomic_txn_intents_live\": 0, \"atomic_txn_executed\": 96, \"atomic_txn_place_waits\": 14, \"atomic_txn_writer_waits\": 0, \"atomic_txn_writer_marks\": 0, \"atomic_txn_blind_restarts\": 0, \"atomic_txn_readonly\": 0, \"atomic_txn_order_violations\": 0, \"atomic_txn_fast_polls\": 845, \"atomic_txn_poll_skips\": 104}}\n{\"window\": \"exec\", \"attempt\": 0, \"retries\": 1, \"histogram\": {\"exec\": 2, \"incr\": 4, \"mget\": 2}}\n{\"window\": \"script\", \"attempt\": 0, \"retries\": 1, \"histogram\": {\"eval\": 1, \"incrby\": 2}}\nPASS wave8 contended EXEC, helper scripts, exact child histogram counts and off transition\n"
+        },
+        {
+          "test": "wave8b",
+          "path": "/home/user/Projects/cx-wave8b/build/gate-run.Wf7bsF/jobs/execfair/execfair-2s-1-epoll-wave8b.log",
+          "sha256": "da4e1ec670d9a595ed5b29fab0086fb148d7b97911f19c085d62ee25e87e7c43",
+          "output": "PASS wave8b pending exec CONFIG no/yes; exact off/on samples {'exec': 1, 'incr': 2, 'eval': 1, 'incrby': 2, 'mget': 1}\nPASS wave8b pending script CONFIG no/yes; exact off/on samples {'exec': 1, 'incr': 2, 'eval': 1, 'incrby': 2, 'mget': 1}\nPASS wave8b WAIT pending CONFIG transition, enabled at wake False\nPASS wave8b WAIT pending CONFIG transition, enabled at wake True\n"
+        }
+      ]
+    }
+  ]
+}

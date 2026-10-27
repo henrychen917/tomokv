@@ -24,5 +24,17 @@ arms={name:dict(path=str((ROOT/path).resolve()),sha256=sha(path))for name,path i
 Path('docs/wave8b/arms.json').write_text(json.dumps(arms,indent=2)+'\n')
 print('FROZEN',digest,flush=True)
 subprocess.run(['python3','docs/wave8b/run_final.py'],check=True)
+subprocess.run(['python3','docs/wave8b/sync_comment.py'],check=True)
+subprocess.run(['python3','docs/wave8b/run_jobs.py','final-source-repair',
+    'source_identity','reorder_sync','splitlocal_units','wbland_units','wave8b_off',
+    '--single-slot'],check=True)
+subprocess.run(['python3','docs/wave8b/identity.py'],check=True)
+subprocess.run(['python3','docs/wave8b/pad_a.py'],check=True)
+subprocess.run(['python3','docs/wave8b/pad_identity.py'],check=True)
+shutil.copy2('build/tomokv','build/tomokv-wave8b-POST')
+shutil.copy2('build/tomokv.asserts.tsv','build/tomokv-wave8b-POST.asserts.tsv')
+for arm in arms.values():arm['sha256']=sha(arm['path'])
+Path('docs/wave8b/arms.json').write_text(json.dumps(arms,indent=2)+'\n')
+digest=sha('build/tomokv')
 subprocess.run(['python3','docs/wave8b/quiet_checks.py'],check=True)
 assert sha('build/tomokv')==digest
