@@ -62,6 +62,12 @@ def inherited(tool, args, scripts=False):
     scope = {'__name__': 'at412_instrument', '__file__': str(ROOT / ('tools/at412_'+tool+'.py'))}
     exec(compile(source, str(saved), 'exec'), scope)
     scope['main']()
+    if tool == 'scope' and not scripts:
+        compared = scope['OUT'] / 'comparison.json'
+        if '--arms' not in args or {'pre', 'post'} <= set(args[args.index('--arms')+1].split(',')):
+            if '--build-only' not in args:
+                rows = json.loads(compared.read_text())
+                assert len(rows) == 48 and all(r['delta'] <= 0 for r in rows), rows
 
 
 def identity():
@@ -104,6 +110,7 @@ def identity():
                    linked_sections_equal=result.returncode == 0)
     (dest/'summary.json').write_text(json.dumps(summary, indent=2)+'\n')
     print(json.dumps(summary, indent=2))
+    assert summary['command_bodies'] == summary['command_equal'] == 24, summary
 
 
 def main():
