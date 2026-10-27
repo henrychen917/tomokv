@@ -159,7 +159,7 @@ def main():
         keys = 'read.second->keys' if 'auto& receipt = *read->second;' in (source / 'src/cmd/tracking.cc').read_text() else 'read.second'
         text = text.replace(anchor, anchor + hold.replace('READ_KEYS', keys))
     path.write_text(text)
-    dry = subprocess.check_output(['make', '-n', '-B', f'BUILD_ROOT={objects}', 'all'], cwd=source, text=True)
+    dry = subprocess.check_output(['make', '-n', '-B', f'BUILD_ROOT={objects}', str(objects / 'tomokv')], cwd=source, text=True)
     commands = [shlex.split(line) for line in dry.splitlines() if line.startswith(('g++ ', 'c++ ', 'clang++ '))]
     compiles = [cmd for cmd in commands if '-c' in cmd and any(p in cmd for p in ('src/cmd/tracking.cc', 'src/cmd/climon.cc'))]
     assert len(compiles) == 4
