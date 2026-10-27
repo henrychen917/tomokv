@@ -1,0 +1,27 @@
+[
+  {
+    "path": "gate-srv-main.b6uI1x",
+    "bytes": 6727,
+    "sha256": "f94979a03045565d6d004510de6f092e4c32252cf28591dec6399637441cce04"
+  },
+  {
+    "path": "gate-srv-main.jz0zh9",
+    "bytes": 6778,
+    "sha256": "dfd34e7c79a00813ecdbdb3a1ff7583e77a01b7745c2ebf09852a952165e9e72"
+  },
+  {
+    "path": "gate-xscript-limit.txt",
+    "bytes": 386,
+    "sha256": "e533577350048d42dce7a03a0f6e757a2b9d8aeb60a3f1ec0ad24c9e8fd82449"
+  },
+  {
+    "path": "gate-xscript-window.txt",
+    "bytes": 479,
+    "sha256": "f200f58618a551d3f38fedf727bd56759531cfe0ca1607fafe0c89e9f55cea1c"
+  },
+  {
+    "path": "output.log",
+    "bytes": 283,
+    "sha256": "7095172db651e8c2878ad861ad42ae3862121c9934041f1981d56b5eb35d0e83"
+  }
+]

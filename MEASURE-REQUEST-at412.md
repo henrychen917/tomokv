@@ -298,6 +298,7 @@ mechanism cost from compiler allocation or estimate contention throughput.
 | Historical 54JIbr, saved POST 931130b2 | All at412 rows | 15 ok / 4 FAIL (T7/T11b/T15/T16); preserved, superseded by the final directed run |
 | CXwo22, POST b179853b | All 18 at412 rows, release prerequisite, production_units | **19 ok / 0 FAIL**, 423/423 server/oracle legs and 8/8 owner legs |
 | LwEpq1, POST b179853b | Broad native transaction, scripting/functions, persistence, FLIP and notification jobs; default uring boots plus each job's complete internal matrix | **420 ok / 0 FAIL** |
+| 2U0RnS, POST b179853b | Epoll transaction-order, scriptatomic/xscript, scripting/functions and notification jobs, including their internal matrices | **203 ok / 0 FAIL** |
 
 Further engine/mode and differential runs are still running; this table will be
 completed from their actual partial ledgers. It is not a full gate receipt. All commands, hashes,
