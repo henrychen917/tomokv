@@ -1,0 +1,162 @@
+{
+  "binary": "/home/user/Projects/redis74/src/redis-server",
+  "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "checks": [
+    {
+      "label": "redis-redis immediate",
+      "passed": true,
+      "actual": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "redis-redis finite blocked witness",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "redis-redis no premature reply",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "redis-redis deadline reply",
+      "passed": true,
+      "actual": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "redis-redis finite next command",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "redis-redis finite observation window opened",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "redis-redis forever parked TIMEOUT",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "redis-redis forever has no reply TIMEOUT",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "redis-redis unblock TIMEOUT",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "redis-redis unblock reply TIMEOUT",
+      "passed": true,
+      "actual": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "redis-redis resumed TIMEOUT",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "redis-redis no lingering waiter",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "redis-redis forever parked ERROR",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "redis-redis forever has no reply ERROR",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "redis-redis unblock ERROR",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "redis-redis unblock reply ERROR",
+      "passed": true,
+      "actual": {
+        "error": "UNBLOCKED client unblocked via CLIENT UNBLOCK"
+      }
+    },
+    {
+      "label": "redis-redis resumed ERROR",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "redis-redis no lingering waiter",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "redis-redis disconnect parked",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "redis-redis disconnected waiter removed",
+      "passed": true,
+      "actual": {}
+    },
+    {
+      "label": "redis-redis disconnected cannot unblock",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "redis-redis MULTI",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "redis-redis queued WAITAOF",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "redis-redis EXEC never parks",
+      "passed": true,
+      "actual": [
+        [
+          0,
+          0
+        ]
+      ]
+    }
+  ],
+  "slowlog": {
+    "0": {
+      "error": "ERR value is out of range, must be positive"
+    },
+    "1": {
+      "error": "ERR timeout is negative"
+    },
+    "2": {
+      "error": "ERR timeout is not an integer or out of range"
+    },
+    "3": {
+      "error": "ERR value is not an integer or out of range"
+    },
+    "4": {
+      "error": "ERR timeout is out of range"
+    },
+    "5": {
+      "error": "ERR WAITAOF cannot be used when numlocal is set but appendonly is disabled."
+    }
+  }
+}

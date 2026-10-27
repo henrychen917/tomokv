@@ -1,0 +1,6 @@
+ok	2.080000	MULTI feature battery
+ok	1.630000	blocking feature battery
+ok	0.880000	pubsub feature battery
+ok	0.030000	Lua feature battery
+ok	46.320000	keyspace notification battery (atomic 0/1)
+ok	0.020000	feature battery shutdown invariants

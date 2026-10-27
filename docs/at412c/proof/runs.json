@@ -788,5 +788,203 @@
         "source": "/home/user/Projects/cx-at412c/build/gate-run.2U0RnS/jobs/txnorder-split-1"
       }
     ]
+  },
+  {
+    "phase": "fused-uring",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20200-20279"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_TEST_PORT": "20299",
+      "GATE_ONLY_JOBS": "debug-0 debug-1 notify notifycompat notify_order notify_aof tracking_redirect trackfix_accounting trackfix_order snapshot-epoll snapshot-uring aof-epoll aof-uring aof_frame aoforder persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors dump_restore serverfix_waitaof",
+      "GATE_TXN_FUSED": "1"
+    },
+    "source": "f2e872d38f1acd7b34bc4358565655c854588f1c",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "log": "/home/user/Projects/cx-at412c/build/at412c/proof/fused-uring-3.log",
+    "began": 1793103527.370003,
+    "rc": 0,
+    "seconds": 1370.08,
+    "run_dir": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv",
+    "archived": "docs/at412c/proof/fused-uring-3-gate-run.JMYoLv",
+    "jobs": [
+      {
+        "name": "aof-epoll",
+        "returncode": 0,
+        "passed": 54,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/aof-epoll"
+      },
+      {
+        "name": "aof-uring",
+        "returncode": 0,
+        "passed": 54,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/aof-uring"
+      },
+      {
+        "name": "aof_frame",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/aof_frame"
+      },
+      {
+        "name": "aoforder",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/aoforder"
+      },
+      {
+        "name": "debug-0",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/debug-0"
+      },
+      {
+        "name": "debug-1",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/debug-1"
+      },
+      {
+        "name": "dump_restore",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/dump_restore"
+      },
+      {
+        "name": "notify",
+        "returncode": 0,
+        "passed": 6,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/notify"
+      },
+      {
+        "name": "notify_aof",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/notify_aof"
+      },
+      {
+        "name": "notify_order",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/notify_order"
+      },
+      {
+        "name": "notifycompat",
+        "returncode": 0,
+        "passed": 7,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/notifycompat"
+      },
+      {
+        "name": "persistfix2_commands",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/persistfix2_commands"
+      },
+      {
+        "name": "persistfix2_errors",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/persistfix2_errors"
+      },
+      {
+        "name": "persistfix2_lastsave",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/persistfix2_lastsave"
+      },
+      {
+        "name": "persistfix2_shutdown",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/persistfix2_shutdown"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/release"
+      },
+      {
+        "name": "serverfix_waitaof",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/serverfix_waitaof"
+      },
+      {
+        "name": "snapshot-epoll",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/snapshot-epoll"
+      },
+      {
+        "name": "snapshot-uring",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/snapshot-uring"
+      },
+      {
+        "name": "trackfix_accounting",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/trackfix_accounting"
+      },
+      {
+        "name": "trackfix_order",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/trackfix_order"
+      },
+      {
+        "name": "tracking_redirect",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/tracking_redirect"
+      }
+    ]
   }
 ]
