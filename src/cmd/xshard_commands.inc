@@ -1352,9 +1352,10 @@ bool finish_phase1(ScatterState& state, Op& op) {
             const Slice member = op.arg(3);
             if (!contains(src, member)) { state.final_reply = FinalReply::Integer; state.final_integer = 0; return true; }
             if (same_key(op)) { state.final_reply = FinalReply::Integer; state.final_integer = 1; return true; }
+            const bool add_destination = !contains(dst, member);
             try {
                 erase_member(src, member);
-                if (!contains(dst, member)) dst.emplace_back(member.p, member.n);
+                if (add_destination) dst.emplace_back(member.p, member.n);
             } catch (const std::bad_alloc&) {
                 state.final_reply = FinalReply::Work; state.final_error = WorkError::Oom; return true;
             }
@@ -1363,12 +1364,13 @@ bool finish_phase1(ScatterState& state, Op& op) {
                                       source.reserve_ttl_slot)) {
                 state.final_reply = FinalReply::Work; state.final_error = WorkError::Oom; return true;
             }
-            if (!encode_elements(dst, state.apply[1], Type::Set,
+            if (add_destination && !encode_elements(dst, state.apply[1], Type::Set,
                                  dest.present ? dest.expire_at_ms : -1,
                                  dest.present && dest.reserve_ttl_slot)) {
                 state.final_reply = FinalReply::Work; state.final_error = WorkError::Oom; return true;
             }
-            state.final_integer = 1; state.hop2[0] = 0; state.hop2[1] = 1; state.hop2_count = 2;
+            state.final_integer = 1; state.hop2[0] = 0; state.hop2[1] = 1;
+            state.hop2_count = add_destination ? 2 : 1;
             return false;
         }
         case Kind::Lmove:
@@ -2319,22 +2321,26 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         }
         if (!contains(src, op.arg(3))) { reply_int(op.sink(), 0); return; }
         if (same_key(op)) { reply_int(op.sink(), 1); return; }
-        try { erase_member(src, op.arg(3)); if (!contains(dst, op.arg(3))) dst.emplace_back(op.arg(3).p, op.arg(3).n); }
+        const bool add_destination = !contains(dst, op.arg(3));
+        try { erase_member(src, op.arg(3)); if (add_destination) dst.emplace_back(op.arg(3).p, op.arg(3).n); }
         catch (const std::bad_alloc&) { set_oom(op); return; }
         if (src.empty()) apply[1] = ObjectImage{};
         else if (!encode_elements(src, apply[1], Type::Set, images[1].expire_at_ms,
                                   images[1].reserve_ttl_slot)) { set_oom(op); return; }
-        if (!encode_elements(dst, apply[2], Type::Set,
+        if (add_destination && !encode_elements(dst, apply[2], Type::Set,
                              images[2].present ? images[2].expire_at_ms : -1,
                              images[2].present && images[2].reserve_ttl_slot)) {
             set_oom(op); return;
         }
-        local_apply<kNotify>(shard, op, apply, {1, 2}, error);
+        local_apply<kNotify>(shard, op, apply,
+            add_destination ? std::initializer_list<uint32_t>{1, 2}
+                            : std::initializer_list<uint32_t>{1}, error);
         if (error != WorkError::None) reply_work_error(op, error);
         else {
             if constexpr (kNotify) {
                 notify_record(shard, op, NOTIFY_SET, NotifyEventId::Srem, op.arg(1));
-                notify_record(shard, op, NOTIFY_SET, NotifyEventId::Sadd, op.arg(2));
+                if (add_destination)
+                    notify_record(shard, op, NOTIFY_SET, NotifyEventId::Sadd, op.arg(2));
             }
             reply_int(op.sink(), 1);
         }

@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-multifix/tests/multifix.py", line 68, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/home/user/Projects/cx-multifix/tests/multifix.py", line 64, in main
+    CASES[args.case](a,b,args.oracle)
+  File "/home/user/Projects/cx-multifix/tests/multifix.py", line 17, in reset
+    expect(a.cmd('RESET'), b'RESET')
+  File "/home/user/Projects/cx-multifix/tests/multifix.py", line 11, in expect
+    assert actual == expected, (actual, expected)
+           ^^^^^^^^^^^^^^^^^^
+AssertionError: (b'QUEUED', b'RESET')

@@ -2321,6 +2321,14 @@ bool multi_dispatch_attempt(Server& server, ThreadCtx& self, ScatterArenaPool& p
 
 template <bool IofusedPrivateQueue>
 bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t consumed) {
+    // RESET is immediate even inside MULTI. Use the existing owner-routed
+    // WATCH cleanup before the ordinary connection-local RESET handler.
+    if (multi_name(op, "reset")) {
+        multi_close_entry(loop, client);
+        client.next_watch_generation();
+        client.clear_watch_dirty();
+        return false;
+    }
     MultiSession* queue_session = client.multi_session();
     const bool was_queueing = queue_session && queue_session->active;
     const uint64_t op_id = client.rob().dispatch_id();
