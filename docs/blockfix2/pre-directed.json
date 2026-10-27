@@ -1,0 +1,1041 @@
+{
+  "source": "build/gate-run.e2zylv/jobs/blockfix2",
+  "rows": [
+    {
+      "case": "rename",
+      "file": "rename-db1-1s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "5c5547bc8139fc03a84c7d08917be24f475bb902055da05bae8b7bcdefe4b1c4"
+    },
+    {
+      "case": "rename",
+      "file": "rename-db1-1s-epoll-a0-rl1.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "25cd0c5ad785f96c5e07c41d19ae619596a8154586e88195b27fdea8b454f8e4"
+    },
+    {
+      "case": "rename",
+      "file": "rename-db1-1s-epoll-a1-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "e9b8a150f9b45051d8f922bf818cdb4710ce76d3fe43d2c95446ee77e1399bff"
+    },
+    {
+      "case": "rename",
+      "file": "rename-db1-1s-epoll-a1-rl1.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "6750a6de40f5488ebc30e8b5d080843c57c3280cd0a947bc88433144da99b88a"
+    },
+    {
+      "case": "rename",
+      "file": "rename-db1-1s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "f9afeb8bd78e0ed078710fb91fb4818231c707cc9428bb40d00dcc2692b4f3e3"
+    },
+    {
+      "case": "rename",
+      "file": "rename-db1-1s-uring-a0-rl1.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "f1d3d5bf9263fb755a632ccee22b9d8431f227fda205687307113581c13a8817"
+    },
+    {
+      "case": "rename",
+      "file": "rename-db1-1s-uring-a1-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "cf91535a65a49c881f556dad1e41ef4a0c3a3caf1cbf9f16e4c4b092982c2b9d"
+    },
+    {
+      "case": "rename",
+      "file": "rename-db1-1s-uring-a1-rl1.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "59f749c47a9ef921d53f0c74a4204bc18908c7f35647f682b37a8c867c3393a5"
+    },
+    {
+      "case": "rename",
+      "file": "rename-db1-2s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "5b317d3dcbc1dd7ac654f10cdac74d5bac422ba11102cc3d8adfb374a784a2d7"
+    },
+    {
+      "case": "rename",
+      "file": "rename-db1-2s-epoll-a1-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "215a592a32d37f17d6a9b94bcc7e2c94755520df7c4451fd0e9f15da4c01cb23"
+    },
+    {
+      "case": "rename",
+      "file": "rename-db1-2s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "968873e59e5b76cd937c15e67542e51e61eac7b96a061c9d9214f5ceb2c0bbd8"
+    },
+    {
+      "case": "rename",
+      "file": "rename-db1-2s-uring-a1-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "c420b31bd8da927654f93162173178ff25f4f476a95c01b3c27610cb84122600"
+    },
+    {
+      "case": "rename",
+      "file": "rename-db16-1s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "5c5547bc8139fc03a84c7d08917be24f475bb902055da05bae8b7bcdefe4b1c4"
+    },
+    {
+      "case": "rename",
+      "file": "rename-db16-1s-epoll-a0-rl1.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "25cd0c5ad785f96c5e07c41d19ae619596a8154586e88195b27fdea8b454f8e4"
+    },
+    {
+      "case": "rename",
+      "file": "rename-db16-1s-epoll-a1-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "0e3cc4e0785e583c6056cf8ea2197a02cd9c63feabfd2ba226b11113f5dfe474"
+    },
+    {
+      "case": "rename",
+      "file": "rename-db16-1s-epoll-a1-rl1.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "0097bc5b5838064f925f84a7ca9da9a49eae1605ec7d0de64e310b91bb602d77"
+    },
+    {
+      "case": "rename",
+      "file": "rename-db16-1s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "2f2baa277c27d27e23f4f731e144b3accd6bcaf58f3e20a6f44d79689b52bf74"
+    },
+    {
+      "case": "rename",
+      "file": "rename-db16-1s-uring-a0-rl1.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "028e6d2de6ad95450512badd2d93bc5f772edfc0e3d9ee69a45703499593f867"
+    },
+    {
+      "case": "rename",
+      "file": "rename-db16-1s-uring-a1-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "c157f53fb40dc9eb84aa7a898e89881d09047ec5794116b2235188c8f4c26672"
+    },
+    {
+      "case": "rename",
+      "file": "rename-db16-1s-uring-a1-rl1.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "1611cce78c83fa74c6f4fd47d07adb04fa1ed244cf1d58146cdbc82eb30526e1"
+    },
+    {
+      "case": "rename",
+      "file": "rename-db16-2s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "71796458ae722b78422452109dbc064cbaceb2b32da34d9f3f87154a16a924c5"
+    },
+    {
+      "case": "rename",
+      "file": "rename-db16-2s-epoll-a1-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "b9d4650cea2b7b74d6316b6dc8a48ce280970baa7f2bd8f807c1634a43b5bae1"
+    },
+    {
+      "case": "rename",
+      "file": "rename-db16-2s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "8d31201024a5f69151a98f74c997a2e710c4ef1e35f60b66c7912cd38153fb5b"
+    },
+    {
+      "case": "rename",
+      "file": "rename-db16-2s-uring-a1-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "bcd87c613de65fba5f8c74582197990ae31d30f88f753df8d115b05ae2f633bb"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db1-1s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "3f8dbe052ba6fafc96e8b131470541d09f6bccca767dda6103514e726324c998"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db1-1s-epoll-a0-rl1.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "ac0817d110a1193b5da9e4551664cc1b1ee92241a0d9ca08e42de595201f0ad5"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db1-1s-epoll-a1-rl0.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "cf7c2cca543b939adf3af3b83d2bb4f6cffb9ac27167b924cb287dd2515fffb6"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db1-1s-epoll-a1-rl1.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "ab7bf37278d0dc8cd00a9dcc0f2432be7462479be31dd62b7e5ee013400f307c"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db1-1s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "2736a356f210836179684e6edc3aa3a8e2384a047b2fc5809dc9bc2d8b09ec35"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db1-1s-uring-a0-rl1.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "c3ec01e26affc8854c5657d296315bd3711ab770b3d75ef2cda0039a40ebaf15"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db1-1s-uring-a1-rl0.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "e4255ddd75a8b211a81340c524e36edafbe9d1f067a40000b56efda9e1fc8280"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db1-1s-uring-a1-rl1.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "7f3c32ecbfae3275f073c47edb9d90dfca40a318b93f58762d9a2f79937b9212"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db1-2s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "73ea45773bf4506ba13c25b6114281031250b7e60ea14b17c985ad4c5dcbf744"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db1-2s-epoll-a1-rl0.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "c68cdb6a161a6974c6e63cf2129e18a492f7fe38bd550932d24dbd9a97302667"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db1-2s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "43cfea89a91aa60c3079bffc02a66c173357876d5a6d504fa835bc94bc087247"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db1-2s-uring-a1-rl0.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "a4aa4107d965ac2cb38c0c38e09f15c2ee7c58300208ce96bb4626693e7b22b5"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db16-1s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "3f8dbe052ba6fafc96e8b131470541d09f6bccca767dda6103514e726324c998"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db16-1s-epoll-a0-rl1.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "ac0817d110a1193b5da9e4551664cc1b1ee92241a0d9ca08e42de595201f0ad5"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db16-1s-epoll-a1-rl0.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "cf7c2cca543b939adf3af3b83d2bb4f6cffb9ac27167b924cb287dd2515fffb6"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db16-1s-epoll-a1-rl1.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "ab7bf37278d0dc8cd00a9dcc0f2432be7462479be31dd62b7e5ee013400f307c"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db16-1s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "2736a356f210836179684e6edc3aa3a8e2384a047b2fc5809dc9bc2d8b09ec35"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db16-1s-uring-a0-rl1.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "c3ec01e26affc8854c5657d296315bd3711ab770b3d75ef2cda0039a40ebaf15"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db16-1s-uring-a1-rl0.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "e4255ddd75a8b211a81340c524e36edafbe9d1f067a40000b56efda9e1fc8280"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db16-1s-uring-a1-rl1.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "7f3c32ecbfae3275f073c47edb9d90dfca40a318b93f58762d9a2f79937b9212"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db16-2s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "73ea45773bf4506ba13c25b6114281031250b7e60ea14b17c985ad4c5dcbf744"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db16-2s-epoll-a1-rl0.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "c68cdb6a161a6974c6e63cf2129e18a492f7fe38bd550932d24dbd9a97302667"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db16-2s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "43cfea89a91aa60c3079bffc02a66c173357876d5a6d504fa835bc94bc087247"
+    },
+    {
+      "case": "removed",
+      "file": "removed-db16-2s-uring-a1-rl0.log",
+      "passed": false,
+      "witness": "never woke its group reader",
+      "sha256": "a4aa4107d965ac2cb38c0c38e09f15c2ee7c58300208ce96bb4626693e7b22b5"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db1-1s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "ca9563632f06926d4951af04fdf065054478aba8180204dbfe1534a87f54ea1a"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db1-1s-epoll-a0-rl1.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "dc4953950200eb55a12095d1d7b02067d31e0f165b3da2d230abb06b9dab89a2"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db1-1s-epoll-a1-rl0.log",
+      "passed": true,
+      "witness": null,
+      "sha256": "5145dd6d2eff1baba6015c08e7a5ee31622dbd775d1150211d627fe50d9b1879"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db1-1s-epoll-a1-rl1.log",
+      "passed": true,
+      "witness": null,
+      "sha256": "2242812a1ca2b3993336e77078431960c06a58bb394cd3e7fb4e56654c4e9249"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db1-1s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "7adc53675c846d21f1bcee584ff29e99bb0cfb202560d1ca7b9e848dbd067eb0"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db1-1s-uring-a0-rl1.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "57798af629758b462ddc3cc0926d15af081f52fba72965e9432fe7f429d74298"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db1-1s-uring-a1-rl0.log",
+      "passed": true,
+      "witness": null,
+      "sha256": "9640823a08ca2a2da77c981dff0bb550693cb623340f603afc5907acf66b5833"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db1-1s-uring-a1-rl1.log",
+      "passed": true,
+      "witness": null,
+      "sha256": "25e3567968abc050e723c054977c761fe6c9e855c7ad337c72d0fb6ce50115d0"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db1-2s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "d0d38c3d5d574d4deb342e4b51817623e7ac7cbd53b001cc2efc0d2058e2586b"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db1-2s-epoll-a1-rl0.log",
+      "passed": true,
+      "witness": null,
+      "sha256": "c48346efb7b6bdd3016f6f34b5a7339064fcc5d54c3a4700032f43a638b593db"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db1-2s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "62b9d09036cd30171e07769dbe49a429a05daabf6c7c044df6d812728c3eddce"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db1-2s-uring-a1-rl0.log",
+      "passed": true,
+      "witness": null,
+      "sha256": "326e337c1179fc332735d08fcd387e92896773cf30f09bcd9882cce3ea89e1d3"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db16-1s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "ca9563632f06926d4951af04fdf065054478aba8180204dbfe1534a87f54ea1a"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db16-1s-epoll-a0-rl1.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "dc4953950200eb55a12095d1d7b02067d31e0f165b3da2d230abb06b9dab89a2"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db16-1s-epoll-a1-rl0.log",
+      "passed": true,
+      "witness": null,
+      "sha256": "5145dd6d2eff1baba6015c08e7a5ee31622dbd775d1150211d627fe50d9b1879"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db16-1s-epoll-a1-rl1.log",
+      "passed": true,
+      "witness": null,
+      "sha256": "2242812a1ca2b3993336e77078431960c06a58bb394cd3e7fb4e56654c4e9249"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db16-1s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "7adc53675c846d21f1bcee584ff29e99bb0cfb202560d1ca7b9e848dbd067eb0"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db16-1s-uring-a0-rl1.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "57798af629758b462ddc3cc0926d15af081f52fba72965e9432fe7f429d74298"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db16-1s-uring-a1-rl0.log",
+      "passed": true,
+      "witness": null,
+      "sha256": "9640823a08ca2a2da77c981dff0bb550693cb623340f603afc5907acf66b5833"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db16-1s-uring-a1-rl1.log",
+      "passed": true,
+      "witness": null,
+      "sha256": "25e3567968abc050e723c054977c761fe6c9e855c7ad337c72d0fb6ce50115d0"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db16-2s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "d0d38c3d5d574d4deb342e4b51817623e7ac7cbd53b001cc2efc0d2058e2586b"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db16-2s-epoll-a1-rl0.log",
+      "passed": true,
+      "witness": null,
+      "sha256": "c48346efb7b6bdd3016f6f34b5a7339064fcc5d54c3a4700032f43a638b593db"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db16-2s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "62b9d09036cd30171e07769dbe49a429a05daabf6c7c044df6d812728c3eddce"
+    },
+    {
+      "case": "wrongtype",
+      "file": "wrongtype-db16-2s-uring-a1-rl0.log",
+      "passed": true,
+      "witness": null,
+      "sha256": "326e337c1179fc332735d08fcd387e92896773cf30f09bcd9882cce3ea89e1d3"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db1-1s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "f49f4c31e7959392b8f606347ef0881e95e53cd252c70220fd0479aa2fe4ed7b"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db1-1s-epoll-a0-rl1.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "ce1ac0b1236e8780c7aee5ec258504cf9ab8e88cd79d09831f13b84cdaec7b58"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db1-1s-epoll-a1-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "c7fb8a0b8f326a91027170087f6acf5a16cf9e5640b64344558a195fc3002847"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db1-1s-epoll-a1-rl1.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "603ba19a666547a746fbd0bdd26b7b5a5a66b30517d2aab20c26a0584ee7b947"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db1-1s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "88b064b028e07b771db4112330bf1a6bafd85f84c2f3f7acfce5022cf2c255a4"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db1-1s-uring-a0-rl1.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "9b492d6b7f317bb085edb06f6a7fe9b75e9ac61f35f365cf811a7fefbbca7fde"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db1-1s-uring-a1-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "97a880dcf3e715eb7510dc33340dc630b86b25000c345f23cb1d833039c73741"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db1-1s-uring-a1-rl1.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "a8ff3c71bd9fd7ad34041ed1830c81c23f65cc12242acb6b73c7cdf4ef538f6f"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db1-2s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "be83815ec58f9b42ff38be9dc236014493caa79038e29780c4cf1f813ec15582"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db1-2s-epoll-a1-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "38ba7a98e498ecf6dbf009831c9028d97afee127f93fb7d78213383ec0c678f1"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db1-2s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "a7a276a2ccf08e87e1e7ab93cd2afa9f24619b6821b970f221fe746b8233a202"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db1-2s-uring-a1-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "70fcec6f6cafb779ed42799b9acaf45c358f0a3c1e1dc5e903905c36ecc37ce0"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db16-1s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "f49f4c31e7959392b8f606347ef0881e95e53cd252c70220fd0479aa2fe4ed7b"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db16-1s-epoll-a0-rl1.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "ce1ac0b1236e8780c7aee5ec258504cf9ab8e88cd79d09831f13b84cdaec7b58"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db16-1s-epoll-a1-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "c7fb8a0b8f326a91027170087f6acf5a16cf9e5640b64344558a195fc3002847"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db16-1s-epoll-a1-rl1.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "603ba19a666547a746fbd0bdd26b7b5a5a66b30517d2aab20c26a0584ee7b947"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db16-1s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "88b064b028e07b771db4112330bf1a6bafd85f84c2f3f7acfce5022cf2c255a4"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db16-1s-uring-a0-rl1.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "9b492d6b7f317bb085edb06f6a7fe9b75e9ac61f35f365cf811a7fefbbca7fde"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db16-1s-uring-a1-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "97a880dcf3e715eb7510dc33340dc630b86b25000c345f23cb1d833039c73741"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db16-1s-uring-a1-rl1.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "a8ff3c71bd9fd7ad34041ed1830c81c23f65cc12242acb6b73c7cdf4ef538f6f"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db16-2s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "be83815ec58f9b42ff38be9dc236014493caa79038e29780c4cf1f813ec15582"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db16-2s-epoll-a1-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "38ba7a98e498ecf6dbf009831c9028d97afee127f93fb7d78213383ec0c678f1"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db16-2s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "a7a276a2ccf08e87e1e7ab93cd2afa9f24619b6821b970f221fe746b8233a202"
+    },
+    {
+      "case": "multi",
+      "file": "multi-db16-2s-uring-a1-rl0.log",
+      "passed": false,
+      "witness": "TimeoutError",
+      "sha256": "70fcec6f6cafb779ed42799b9acaf45c358f0a3c1e1dc5e903905c36ecc37ce0"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db1-1s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "a2f9a500b8e2272e408fe41f89cd0739f358f19eac3804580e28071a874f1e62"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db1-1s-epoll-a0-rl1.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "27bc7b56177f6d72d5e9b872d766ab8e06ccddb3cf93e33404f33aad67bd414c"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db1-1s-epoll-a1-rl0.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "05e424cf238f8aab288f982a3f9ffcee6c24b4f028740999506d992ec72cd909"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db1-1s-epoll-a1-rl1.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "16d3c489bbce59bc8356104680c019d76bafd787f35f4b38a62efd2657482161"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db1-1s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "e78607dbdf578e69f1f5775922484e3357fdcb644522b9cd90c4b979bfe1202f"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db1-1s-uring-a0-rl1.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "eb84dd2c25373448c580b69b51a0e52a48f249a6851d4eb3257771f92212a893"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db1-1s-uring-a1-rl0.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "06ca8952144ff5c2cf54af3b0eb1bc069fe0a379023a14642fbc3097f55935d7"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db1-1s-uring-a1-rl1.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "e6d06f58631036275fa6f3ee10c856a9d2af3eb0bf6785f56beed4c029567a55"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db1-2s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "1e86fc0cee74226861be73b5b168103c8544f06d315d2a8635fe92893fcc9c26"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db1-2s-epoll-a1-rl0.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "a2cf27b7788d1e7dbe77a3c84dbd23c54d0951a8a0674af32811f8c3fb05fc69"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db1-2s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "202d0e45b0f18adc80b63b9f6bb05f367842da2f0a7402107cf0c9f2468ad503"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db1-2s-uring-a1-rl0.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "4f0d86b772c2c2ef3bcc9b7ea5d05dd9bab85d4967b3d4b3ee637c38e35b812a"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db16-1s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "a2f9a500b8e2272e408fe41f89cd0739f358f19eac3804580e28071a874f1e62"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db16-1s-epoll-a0-rl1.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "27bc7b56177f6d72d5e9b872d766ab8e06ccddb3cf93e33404f33aad67bd414c"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db16-1s-epoll-a1-rl0.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "05e424cf238f8aab288f982a3f9ffcee6c24b4f028740999506d992ec72cd909"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db16-1s-epoll-a1-rl1.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "16d3c489bbce59bc8356104680c019d76bafd787f35f4b38a62efd2657482161"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db16-1s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "e78607dbdf578e69f1f5775922484e3357fdcb644522b9cd90c4b979bfe1202f"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db16-1s-uring-a0-rl1.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "eb84dd2c25373448c580b69b51a0e52a48f249a6851d4eb3257771f92212a893"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db16-1s-uring-a1-rl0.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "06ca8952144ff5c2cf54af3b0eb1bc069fe0a379023a14642fbc3097f55935d7"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db16-1s-uring-a1-rl1.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "e6d06f58631036275fa6f3ee10c856a9d2af3eb0bf6785f56beed4c029567a55"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db16-2s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "1e86fc0cee74226861be73b5b168103c8544f06d315d2a8635fe92893fcc9c26"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db16-2s-epoll-a1-rl0.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "a2cf27b7788d1e7dbe77a3c84dbd23c54d0951a8a0674af32811f8c3fb05fc69"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db16-2s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "202d0e45b0f18adc80b63b9f6bb05f367842da2f0a7402107cf0c9f2468ad503"
+    },
+    {
+      "case": "counts",
+      "file": "counts-db16-2s-uring-a1-rl0.log",
+      "passed": false,
+      "witness": "KeyError: 'total_blocking_keys'",
+      "sha256": "4f0d86b772c2c2ef3bcc9b7ea5d05dd9bab85d4967b3d4b3ee637c38e35b812a"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db1-1s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "c63654e3fed7dd78f40a46a7c1bb891f80ab0ecf18c1b51533463e20228dbb85"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db1-1s-epoll-a0-rl1.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "c86faed183a2ff8914a71415da3f418725fffb83390d7b712a6e4a7ea0a5c7c7"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db1-1s-epoll-a1-rl0.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "d0d9f7e05b6727c00e291451dcb55b265950c625bd8e07592f4e4a9e8aba5d9c"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db1-1s-epoll-a1-rl1.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "26d6e4fe22c95f7f76a3de1ec2204f044f6280e05f0f593f36740c44729f9d5b"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db1-1s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "2c0feb0fa7ec5095c012124e048d4fb2767ec7694977bc6863f571f64ba69149"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db1-1s-uring-a0-rl1.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "11efdf0dcb16ec50d8bfdfe8c1bd1e161d744413d4f82a6160692b9547c99e89"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db1-1s-uring-a1-rl0.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "aecce86022c8a9ade4fac769b2f588f44484bcabc226c2877999139269535b75"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db1-1s-uring-a1-rl1.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "fe24c3f27a9a9179253d090f4fa6776747fd60605206f0d6c756e984d4884def"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db1-2s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "b1e6d975dde76fb193e23e808c287d4a3bdb9179013da2352b709ac27b840789"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db1-2s-epoll-a1-rl0.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "3b3926d2648c41269a8caec2a9d3e4368210f49d907da44892278989e7680da2"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db1-2s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "12468087a392f6d613c8b146de660347ab7fb3587e2a419069dc1eb927087c19"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db1-2s-uring-a1-rl0.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "76b19fd175e40f9cbad404a2117d11a3142f269da74af931f087b4099345261b"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db16-1s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "c63654e3fed7dd78f40a46a7c1bb891f80ab0ecf18c1b51533463e20228dbb85"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db16-1s-epoll-a0-rl1.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "c86faed183a2ff8914a71415da3f418725fffb83390d7b712a6e4a7ea0a5c7c7"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db16-1s-epoll-a1-rl0.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "d0d9f7e05b6727c00e291451dcb55b265950c625bd8e07592f4e4a9e8aba5d9c"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db16-1s-epoll-a1-rl1.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "26d6e4fe22c95f7f76a3de1ec2204f044f6280e05f0f593f36740c44729f9d5b"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db16-1s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "2c0feb0fa7ec5095c012124e048d4fb2767ec7694977bc6863f571f64ba69149"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db16-1s-uring-a0-rl1.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "11efdf0dcb16ec50d8bfdfe8c1bd1e161d744413d4f82a6160692b9547c99e89"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db16-1s-uring-a1-rl0.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "aecce86022c8a9ade4fac769b2f588f44484bcabc226c2877999139269535b75"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db16-1s-uring-a1-rl1.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "fe24c3f27a9a9179253d090f4fa6776747fd60605206f0d6c756e984d4884def"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db16-2s-epoll-a0-rl0.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "b1e6d975dde76fb193e23e808c287d4a3bdb9179013da2352b709ac27b840789"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db16-2s-epoll-a1-rl0.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "3b3926d2648c41269a8caec2a9d3e4368210f49d907da44892278989e7680da2"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db16-2s-uring-a0-rl0.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "12468087a392f6d613c8b146de660347ab7fb3587e2a419069dc1eb927087c19"
+    },
+    {
+      "case": "slowlog",
+      "file": "slowlog-db16-2s-uring-a1-rl0.log",
+      "passed": false,
+      "witness": "served blocked command logged once",
+      "sha256": "76b19fd175e40f9cbad404a2117d11a3142f269da74af931f087b4099345261b"
+    },
+    {
+      "case": "refusal",
+      "file": "blockfix2-unit-1s.log",
+      "passed": false,
+      "witness": "refused serve retains its registry entry and lifetime pin",
+      "sha256": "ba687f8df8a9bad623249e93a2250450b55738a381dfde9f705d8000ac33d885"
+    },
+    {
+      "case": "refusal",
+      "file": "blockfix2-unit-2s.log",
+      "passed": false,
+      "witness": "refused serve retains its registry entry and lifetime pin",
+      "sha256": "ba687f8df8a9bad623249e93a2250450b55738a381dfde9f705d8000ac33d885"
+    },
+    {
+      "case": "refusal",
+      "file": "blockfix2-db0-unit-1s.log",
+      "passed": false,
+      "witness": "refused serve retains its registry entry and lifetime pin",
+      "sha256": "ba687f8df8a9bad623249e93a2250450b55738a381dfde9f705d8000ac33d885"
+    },
+    {
+      "case": "refusal",
+      "file": "blockfix2-db0-unit-2s.log",
+      "passed": false,
+      "witness": "refused serve retains its registry entry and lifetime pin",
+      "sha256": "ba687f8df8a9bad623249e93a2250450b55738a381dfde9f705d8000ac33d885"
+    }
+  ]
+}
