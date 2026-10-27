@@ -2301,6 +2301,10 @@ for atomic in 0 1; do for mode in 1s 2s; do
       --oracle 127.0.0.1 "$oracle_port" >"$TMPDIR/gate-respcompat-$mode-a$atomic.txt" 2>&1; then
     compatible=0
   fi
+  if [ "$booted" != 1 ] || ! py tests/inline_protocol.py 127.0.0.1 "$PORT" \
+      --oracle 127.0.0.1 "$oracle_port" >"$TMPDIR/gate-inline-$mode-a$atomic.txt" 2>&1; then
+    compatible=0
+  fi
   stop
 done; done
 else

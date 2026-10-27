@@ -4,8 +4,8 @@
 // here is copied from our own Redis 8.6.2 fork, which carries RSALv2/SSPLv1 and would contaminate
 // the licence of this tree.
 //
-// The parser produces Slices INTO the read buffer and never copies. That is the point, and it is
-// also why Conn's read buffer is append-only while ops are in flight — see conn.h.
+// Ordinary requests produce Slices into the pinned read buffer. Quoted inline
+// requests alone own decoded bytes in the Op's argv allocation — see conn.h.
 #pragma once
 #include <cstdint>
 #include <cstdio>
@@ -24,27 +24,93 @@ enum class ParseResult { Ok, Incomplete, Error, Empty };
 // Redis 7.4's PROTO_INLINE_MAX_SIZE is a fixed protocol bound, not a CONFIG knob.
 inline constexpr uint32_t kProtoInlineMaxSize = 64 * 1024;
 
-// Only validate quoting here: decoding quoted/escaped argv needs separately owned
-// storage, outside this error-path change. Never rewrite pinned input or borrow the
-// reply buffer for argv: dispatch can retry, and the executor owns reply storage.
-__attribute__((noinline, cold)) inline bool resp_inline_quotes_valid(const char* p, const char* end) {
-    char quote = 0;
-    for (; p != end && *p; ++p) {
-        const char c = *p;
-        if (quote) {
-            if (c == '\\' && p + 1 != end && p[1] &&
-                (quote == '"' || p[1] == '\'')) { ++p; continue; }
-            if (c == quote) {
-                quote = 0;
-                if (p + 1 != end && p[1] && !std::isspace(static_cast<unsigned char>(p[1])))
-                    return false;
-            }
-        } else if (c == '"' || c == '\'') {
-            quote = c;
-        }
-    }
-    return quote == 0;
+// This replaces the existing validation scan. Backslashes outside quotes are
+// literal bytes, so only a quote needs the allocating decoder.
+__attribute__((noinline, cold)) inline bool resp_inline_plain(const char* p, const char* end) {
+    for (; p != end && *p; ++p)
+        if (*p == '"' || *p == '\'') return false;
+    return true;
 }
+
+struct RespInlineDecoder {
+    static bool space(unsigned char c) { return c == ' ' || (c >= '\t' && c <= '\r'); }
+    static int hex(unsigned char c) {
+        if (c >= '0' && c <= '9') return c - '0';
+        if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+        if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+        return -1;
+    }
+
+    // First pass validates and counts; second pass fills a single owned block.
+    // No receive byte or reply storage is ever changed. Args are immutable after
+    // parsing: commands that build another argv use a separate Op (e.g. EXEC).
+    static bool split(const char* p, const char* end, Slice* args, char* bytes,
+                      uint32_t& argc) {
+        argc = 0;
+        uint32_t written = 0;
+        while (p != end) {
+            while (p != end && space(*p)) ++p;
+            if (p == end) break;
+            const uint32_t begin = written;
+            char quote = 0;
+            for (;;) {
+                if (p == end) {
+                    if (quote) return false;
+                    break;
+                }
+                char c = *p++;
+                if (quote) {
+                    if (c == quote) {
+                        if (p != end && !space(*p)) return false;
+                        break;
+                    }
+                    if (c == '\\' && p != end) {
+                        if (quote == '"') {
+                            c = *p++;
+                            if (c == 'x' && end - p >= 2 && hex(p[0]) >= 0 && hex(p[1]) >= 0) {
+                                c = static_cast<char>(hex(p[0]) * 16 + hex(p[1]));
+                                p += 2;
+                            } else switch (c) {
+                                case 'n': c = '\n'; break;
+                                case 'r': c = '\r'; break;
+                                case 't': c = '\t'; break;
+                                case 'b': c = '\b'; break;
+                                case 'a': c = '\a'; break;
+                            }
+                        } else if (*p == '\'') c = *p++;
+                    }
+                } else {
+                    if (c == ' ' || c == '\t' || c == '\r' || c == '\n') break;
+                    if (c == '"' || c == '\'') { quote = c; continue; }
+                }
+                if (bytes) bytes[written] = c;
+                ++written;
+            }
+            if (args) args[argc] = Slice(bytes + begin, written - begin);
+            ++argc;
+        }
+        return true;
+    }
+
+    [[gnu::cold, gnu::noinline]] static ParseResult decode(
+            const char* p, const char* end, Op& op, const char** err) {
+        uint32_t argc;
+        if (!split(p, end, nullptr, nullptr, argc)) {
+            *err = "ERR Protocol error: unbalanced quotes in request";
+            return ParseResult::Error;
+        }
+        auto* args = static_cast<Slice*>(std::malloc(size_t(argc) * sizeof(Slice) + (end - p)));
+        if (!args) {
+            *err = "ERR out of memory parsing inline command";
+            return ParseResult::Error;
+        }
+        split(p, end, args, reinterpret_cast<char*>(args + argc), argc);
+        std::free(op.argv_heap_);
+        op.argv_heap_ = args;
+        op.argv_cap_ = op.argc_ = argc;
+        return argc ? ParseResult::Ok : ParseResult::Empty;
+    }
+};
 
 // `scanned` is relative to the unconsumed request, so quiescent buffer compaction and
 // connection migration preserve it. Scan for LF, trimming an optional CR. No bytes
@@ -71,15 +137,16 @@ inline ParseResult resp_parse_inline(const char* buf, uint32_t len, uint32_t& po
     const uint32_t next = pos + i + 1;
     const uint32_t eol = pos + i - (i && buf[pos + i - 1] == '\r');
     scanned = 0; // A dispatch refusal may parse this complete frame again.
-    if (!resp_inline_quotes_valid(buf + pos, buf + eol)) {
-        *err = "ERR Protocol error: unbalanced quotes in request";
-        return ParseResult::Error;
+    if (!resp_inline_plain(buf + pos, buf + eol)) {
+        const auto result = RespInlineDecoder::decode(buf + pos, buf + eol, op, err);
+        if (result != ParseResult::Error) pos = next;
+        return result;
     }
     i = pos;
     while (i < eol) {
-        while (i < eol && (buf[i] == ' ' || buf[i] == '\t')) ++i;
+        while (i < eol && RespInlineDecoder::space(buf[i])) ++i;
         const uint32_t begin = i;
-        while (i < eol && buf[i] != ' ' && buf[i] != '\t') ++i;
+        while (i < eol && buf[i] != ' ' && buf[i] != '\t' && buf[i] != '\r') ++i;
         if (i > begin && !op.push_arg(Slice(buf + begin, i - begin))) {
             *err = "ERR out of memory parsing inline command";
             return ParseResult::Error;
