@@ -30,8 +30,14 @@ def run(host, port):
             require(c.read() == b"nogroup", "NOGROUP preserves frame boundaries")
         c.cmd("DEL", "netcmd:stream")
         require(c.cmd("XGROUP", "CREATE", "netcmd:stream", "g", "0", "MKSTREAM") == b"OK", "empty group exists")
-        require(c.cmd("XAUTOCLAIM", "netcmd:stream", "g", "c", 0, 0, "COUNT", 9223372036854775807)
-                == [b"0-0", [], []], "huge COUNT bounded by empty PEL")
+        oversized = c.cmd("XAUTOCLAIM", "netcmd:stream", "g", "too-large", 0, 0,
+                          "COUNT", 9223372036854775807)
+        require(isinstance(oversized, RespError) and oversized.message == b"ERR COUNT must be > 0",
+                "Redis COUNT allocation bound applies even to an empty PEL")
+        require(c.cmd("XINFO", "CONSUMERS", "netcmd:stream", "g") == [],
+                "rejected COUNT cannot create a consumer")
+        require(c.cmd("XAUTOCLAIM", "netcmd:stream", "g", "c", 0, 0, "COUNT", 100)
+                == [b"0-0", [], []], "valid COUNT on empty PEL")
         c.raw(encode("XPENDING", "netcmd:stream", "g", "(18446744073709551615-18446744073709551615", "+", 1) +
               encode("PING", "pending"))
         require(c.read() == [] and c.read() == b"pending", "exclusive max XPENDING has an empty reply")
