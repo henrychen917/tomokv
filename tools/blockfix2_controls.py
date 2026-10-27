@@ -49,12 +49,21 @@ def mutation(case, source):
         end = text.index('    } else if (!std::strcmp(name, "XGROUP")) {', begin)
         blocking.write_text(text[:begin] + text[end:])
         replace(blocking, ' ||\n          state.kind == Kind::Rename || state.kind == Kind::Renamenx ||\n          state.kind == Kind::Sort', '')
+        replace(blocking, '                               ScatterState& state) {\n',
+                '                               ScatterState& state) {\n'
+                '    if (state.kind == Kind::Rename || state.kind == Kind::Renamenx ||\n'
+                '        state.kind == Kind::Sort) return;\n')
     elif case == 'removed':
         replace(blocking, 'const bool group_error = state.kind == BlockingKind::Xreadgroup &&',
                 'const bool group_error = false && state.kind == BlockingKind::Xreadgroup &&')
     elif case == 'wrongtype':
         replace(blocking, '    if (blocking_is_move(block->kind)) {',
                 '    if (false && blocking_is_move(block->kind)) {')
+        # Atomic commit can independently resignal the source. Plant the same
+        # lost-readiness defect there too, so that leg cannot mask the control.
+        replace(blocking, '                               ScatterState& state) {\n',
+                '                               ScatterState& state) {\n'
+                '    if (state.blocking_origin) return;\n')
     elif case == 'slowlog':
         replace(blocking, 'SlowlogTiming timing(state.counted.load(std::memory_order_acquire) && arm.armed()',
                 'SlowlogTiming timing(false && state.counted.load(std::memory_order_acquire) && arm.armed()')
