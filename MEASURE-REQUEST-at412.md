@@ -351,6 +351,11 @@ arms are 16,560,407 bytes. Data/BSS sizes also match within the control pair.
 These static sizes do not predict the rate verdict; the merit request keeps the
 ordinary and common-image comparisons separate.
 
+Final common-image smoke: **16/16 cells passed**, POST-layout/PAD-A × 1s/2s ×
+io_uring/epoll × databases 1/16, with clean exits. Each checks EXEC, WATCH,
+exact data, zero transaction-order violations, and EVAL/EVALSHA/FCALL on a
+DEBUG-witnessed distinct-owner pair (`docs/at412c/pad-smoke.json`).
+
 `docs/at412c/freshness.json` records 51 successful make -q checks: PRE and POST
 all, all 46 primary job_production_units targets, the two mdbqsbr live-arm
 build roots, and blockfix-cost with its server/hash receipt. The native helper
