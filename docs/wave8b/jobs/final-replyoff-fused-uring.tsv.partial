@@ -1,0 +1,4 @@
+PARTIAL	0	GATE_ONLY_JOBS=replyoff; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+ok	1.230000	CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)
+ok	1.240000	CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)
