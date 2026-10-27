@@ -14,5 +14,13 @@
   {
     "name": "verified-features-uring",
     "exit": 0
+  },
+  {
+    "name": "verified-fused-uring",
+    "exit": 1
+  },
+  {
+    "name": "verified-differ-uring",
+    "exit": 0
   }
 ]

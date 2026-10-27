@@ -76,6 +76,10 @@ All gate invocations are **selected whole jobs** via `GATE_ONLY_JOBS`; the posit
 
 Earlier diagnostic attempts are retained: both servers rejected an incorrectly written single-quote fixture (corrected without changing production behavior); an intermediate build's broad run passed 111 rows and failed the DEBUG SLEEP window witness while compiler trials were active. The final matrix reruns that complete job without concurrent compile trials. These attempts are not final-binary pass claims.
 
+The final fused/uring batch has a real reply failure: `debug-1` / `txn_nx` returned `[1, ERR no such key]` instead of `[1, 0]` at bare round 5,712 of 8,192. Values were `[nil, winner-b, winner-a]`; its 8,192 transactional rounds passed. Source/destination geometry was `[[10,2],[10,2],[3,3]]`. All requests in this battery are RESP. The full batch finished **50 passed / 1 failed**, retained under `docs/protofix/jobs/verified-fused-uring.*` and `build/gate-run.yUxg0h`. PRE and POST whole `debug-1` comparisons are queued; a later pass will not erase this failure.
+
+The register's 2026-10-26 execindex addendum identifies the same live signature as **AT4-WOUND-1**, assigned to `woundfix`. The existing analysis, `docs/execindex/wound-window/DEFECT.md`, describes the D2 violation: a fragment can see `Wounded` and finish with an empty source image before the epoch cancellation is published, then commit a terminal `NoSuchKey` reply. `tests/txnorder_wound_window.cc` is its deterministic, serverless witness. This lane is running that unchanged witness on PRE and POST in both modes and both namespaces; source identity and results will be retained in `docs/protofix/wound-window/`.
+
 ### Maintainer merit request — NOT RUN
 
 Use the gate's own ABBA instrument on the quiet box, with its normal cell geometry, matched offered load and contemporary identical-arm controls. The exact 18 cells are in `docs/protofix/null-cells.txt`:
