@@ -309,7 +309,7 @@ mechanism cost from compiler allocation or estimate contention throughput.
 | SVpV0r / tpQWzJ | Initial io_uring / epoll differential attempts with binary-only Redis prefix | **Preflight rc 2; comparisons NOT RUN**: required Redis source headers absent; retained and queued again with the full checkout |
 | zLdqei, POST b179853b | EXEC fairness across both modes/engines/atomic settings; io_uring fused batteries | **20 ok / 0 FAIL** |
 | reErX1, POST b179853b | Epoll FLIP, controller, saturated hand-off and fused batteries | **31 ok / 0 FAIL** |
-| nx4Shz, POST b179853b | Standard io_uring differential matrix and mode equivalence, using the full Redis checkout | **6 ok / 0 FAIL**; 930 executed suite legs and 16/16 equivalence cells |
+| nx4Shz, POST b179853b | Standard io_uring differential matrix and mode equivalence, using the full Redis checkout | **6 ok / 0 FAIL**; 938 executed suite legs (930 combinations + eight MULTI repeats) and 16/16 equivalence cells |
 
 Further engine/mode and differential runs are still running; this table will be
 completed from their actual partial ledgers. It is not a full gate receipt. All commands, hashes,
@@ -327,9 +327,10 @@ failed attempts are retained. The retry runner uses the complete
 SHA-256 (`docs/at412c/provenance.json`).
 
 The io_uring differential plan freezes permanent seeds 7, 19, 20 and 23 plus
-rotating seed 21, all 47 suites and the standard four MULTI repeats. Split
-atomic 0/1 each execute 235 comparisons; armed-fused atomic 0/1 each execute
-230. The standard armed-fused matrix explicitly skips its five SORT seed legs
+rotating seed 21, all 47 suites and the standard four extra atomic-1/seed-19
+MULTI repeats per geometry. Split atomic 0/1 execute 235/239 comparisons;
+armed-fused atomic 0/1 execute 230/234. The standard armed-fused matrix
+explicitly skips its five SORT seed legs
 per atomic setting because that suite requires split 6:2; those seeded SORT
 comparisons execute in split. Dedicated fused SORT jobs are queued separately.
 All four completed parts report comparison coverage of 232/245 registered
