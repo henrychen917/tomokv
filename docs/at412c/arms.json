@@ -1,0 +1,30 @@
+[
+  {
+    "arm": "PRE",
+    "path": "build/at412/pre/tomokv",
+    "source": "7ae703778e854a7b76945af5792a5ec5e88061a6",
+    "sha256": "6582b6ccacf8a58a46e5204c808fbbb262cbb9d3238bb0eb01c57ea2d2674bdc",
+    "bytes": 213272392
+  },
+  {
+    "arm": "POST",
+    "path": "build/at412/POST",
+    "source": "f7204660ef5651ad0ae14de14e13a693b2db0f8c",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "bytes": 213891368
+  },
+  {
+    "arm": "POST-layout",
+    "path": "build/at412/POST-layout",
+    "source": "f7204660e plus symbol-isolated 7ae703778 objects",
+    "sha256": "b263595804d2e3cd95b7cbaa22e0424766d87388b0b75f7edca2f24919e49237",
+    "bytes": 414557960
+  },
+  {
+    "arm": "PAD-A",
+    "path": "build/at412/PAD-A",
+    "source": "type A: PRE behaviour in POST-layout common image",
+    "sha256": "019b5fc64e7171c642f806f7d77eafee1586915d61b9c7618f384fe26ed12296",
+    "bytes": 414557960
+  }
+]

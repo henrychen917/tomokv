@@ -40,6 +40,9 @@ PHASES = {
     'differ-uring': (['differ-split','differ-armed','differ-equivalence'], {}),
     'differ-epoll': (['differ-split','differ-armed','differ-equivalence'],
                      {'GATE_DIFFER_NET_IO':'epoll'}),
+    'extra-uring': (['execfair','fused-0','fused-1'], {}),
+    'extra-epoll': (['fused-0','fused-1','flip','flipctl','flip_saturated'],
+                    {'GATE_PROOF_NET_IO':'epoll'}),
 }
 
 
@@ -52,7 +55,7 @@ def main():
     results = json.loads(results_file.read_text()) if results_file.exists() else []
     for phase in args.phases:
         jobs, extra = PHASES[phase]
-        env = dict(os.environ, REDIS74_ROOT='/home/user/Projects/redis74', GATE_TEST_PORT='20299',
+        env = dict(os.environ, REDIS74_ROOT='/home/user/Projects/redis', GATE_TEST_PORT='20299',
                    GATE_ONLY_JOBS=' '.join(jobs), **extra)
         cmd = ['taskset','-c','48-63','bash','tests/gate.sh',
                'full' if phase.startswith('differ-') else 'quick',

@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-at412c/build/at412/commands/post-db0-EVAL-2s-1-1--1.log
+SHA-256: 1673db2327d471801b680c81b918e9dc7bcdf3aec46c583e056095a04116c74b
+Exit: 0
+0x0000555555675d7a	569	}
+0x0000555555675d7c	569	}
+0x0000555555675d7e	569	}
+0x0000555555675d80	569	}
+0x0000555555d694ec in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-at412c/tests/txnorder_command_scope.cc:94
+94	    if(activation&&command=="EVAL")scope_end();
+0x0000555555d694f3	93	    xshard_retire(server,server.thread(io),ring,client,*op,pool,io,nullptr,nullptr,nullptr);
+0x0000555555d694f7	94	    if(activation&&command=="EVAL")scope_end();
+0x0000555555d694fa	94	    if(activation&&command=="EVAL")scope_end();
+0x0000555555d694fc	94	    if(activation&&command=="EVAL")scope_end();
+0x0000555555d69503	94	    if(activation&&command=="EVAL")scope_end();
+0x0000555555d6950a	94	    if(activation&&command=="EVAL")scope_end();
+0x0000555555d6950f	94	    if(activation&&command=="EVAL")scope_end();
+0x0000555555d69511	94	    if(activation&&command=="EVAL")scope_end();
+0x0000555555d6a4fd	94	    if(activation&&command=="EVAL")scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-at412c/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 1853093) exited normally]
+COUNT 35374

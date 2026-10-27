@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-at412c/build/at412/commands/pre-normal-MSET-1s-32-0--1.log
+SHA-256: cc243fc1001ebf13943a03093b290410015af51ee38aa1e7e0f7f10c13c56fbe
+Exit: 0
+0x0000555555a592c1	0x0000555555a592c3	0x0000555555a592c5	94	    construct_at(_Tp* __location, _Args&&... __args)
+0x0000555555a592cd in std::construct_at<void*, void*> (__location=0x7ffff6366080) at /usr/include/c++/13/bits/stl_construct.h:97
+97	    { return ::new((void*)__location) _Tp(std::forward<_Args>(__args)...); }
+tomo::ScatterArenaPool::release (pooled=true, ptr=0x7ffff6366080, this=0x7ffffffd9bb0) at src/cmd/xshard.cc:1590
+0x0000555555a592dc in tomo::xshard_destroy (state=0x7ffff6366080, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2311
+0x0000555555a592dd	0x0000555555a592de	0x0000555555a592e0	0x0000555555a592e2	0x0000555555a592e4	0x0000555555d5fb33 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-at412c/tests/txnorder_command_scope.cc:152
+152	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
+135	   for(unsigned i=0;i<n;i++){
+0x0000555555d5fb3f	135	   for(unsigned i=0;i<n;i++){
+0x0000555555d5fb46	135	   for(unsigned i=0;i<n;i++){
+0x0000555555d5fb4e	135	   for(unsigned i=0;i<n;i++){
+0x0000555555d5fb55	135	   for(unsigned i=0;i<n;i++){
+0x0000555555d5fb5b	155	   std::string want="+OK\r\n";
+0x0000555555d5fb62	155	   std::string want="+OK\r\n";
+0x0000555555d5fb69	154	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-at412c/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 1526890) exited normally]
+COUNT 348453

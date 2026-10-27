@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-at412c/build/at412/commands/post-normal-MSET-2s-1-1--1.log
+SHA-256: 1d0b561f0837ea25e9c76d1d9099da5bfe732fe84202fa2f9ba7635c0bbd3893
+Exit: 0
+0x0000555555a41824	569	}
+0x0000555555a41826	569	}
+0x0000555555a41828	569	}
+0x0000555555d69eb2 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-at412c/tests/txnorder_command_scope.cc:152
+152	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
+135	   for(unsigned i=0;i<n;i++){
+0x0000555555d69ebe	135	 TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+  for(unsigned i=0;i<n;i++){
+0x0000555555d69ec5	135	   for(unsigned i=0;i<n;i++){
+0x0000555555d69ecd	135	   for(unsigned i=0;i<n;i++){
+0x0000555555d69ed4	135	   for(unsigned i=0;i<n;i++){
+0x0000555555d69eda	155	   std::string want="+OK\r\n";
+0x0000555555d69ee1	155	   std::string want="+OK\r\n";
+0x0000555555d69ee8	154	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-at412c/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 1631318) exited normally]
+COUNT 16704

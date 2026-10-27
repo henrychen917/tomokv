@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-at412c/build/at412/commands/post-normal-MGET-1s-32-1--1.log
+SHA-256: 59757d82a1b26e6c43138f434634731bee2858b7b75e9233d8ac62d8d186c85f
+Exit: 0
+97	    { return ::new((void*)__location) _Tp(std::forward<_Args>(__args)...); }
+tomo::ScatterArenaPool::release (pooled=true, ptr=0x7ffff6364080, this=0x7ffffffd9b70) at src/cmd/xshard.cc:1614
+0x0000555555a5d54c in tomo::xshard_destroy TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+(state=0x7ffff6364080, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2373
+0x0000555555a5d54d	0x0000555555a5d54e	0x0000555555a5d550	0x0000555555a5d552	0x0000555555a5d554	0x0000555555d65e03 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-at412c/tests/txnorder_command_scope.cc:152
+152	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
+135	   for(unsigned i=0;i<n;i++){
+0x0000555555d65e0f	135	   for(unsigned i=0;i<n;i++){
+0x0000555555d65e16	135	   for(unsigned i=0;i<n;i++){
+0x0000555555d65e1e	135	   for(unsigned i=0;i<n;i++){
+0x0000555555d65e25	135	   for(unsigned i=0;i<n;i++){
+0x0000555555d65e2b	155	   std::string want="+OK\r\n";
+0x0000555555d65e32	155	   std::string want="+OK\r\n";
+0x0000555555d65e39	154	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-at412c/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 1555157) exited normally]
+COUNT 325350
