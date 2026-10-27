@@ -369,6 +369,8 @@ public:
         return fused_pass_impl<kGenthreadExBatchOps, true>();
     }
 
+#include "fused_owner_turn.inc"
+
     template <uint32_t BatchOps, bool ConsumeTasks,
               bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
     uint32_t fused_pass_impl() {
@@ -2478,11 +2480,15 @@ private:
 
     __attribute__((noinline)) void queue_fast_multi_retry(const Task& task) {
         multi_retries_.enqueue(multi_owner_retry_node(task), task, true);
+        ring_fused_owner();
     }
     __attribute__((noinline)) void queue_multi_retry(const Task& task) {
         multi_retries_.enqueue(multi_owner_retry_node(task), task, false);
     }
-    void promote_multi_retry(MultiOwnerRetryNode& node) { multi_retries_.promote(node); }
+    void promote_multi_retry(MultiOwnerRetryNode& node) {
+        multi_retries_.promote(node);
+        ring_fused_owner();
+    }
 
     template <bool IofusedPrivateQueue = false>
     uint32_t service_multi_retries() {

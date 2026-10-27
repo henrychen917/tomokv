@@ -877,6 +877,10 @@ void IoLoop::r7_run_loop() {
             did += drain_client_transfers<kEp>();
             did += scatter_pool_.refresh_snapshot_floor(*srv_, self_->id());
             if constexpr (HasUnix) did += flush_handoffs();
+            if constexpr (Fused && !SplitLocal) {
+                if (fused_executor_->fused_owner_ready())
+                    did += fused_executor_->fused_owner_turn<true>();
+            }
             did += multi_owner_pass_entry(*this);
             if (aof_writer_bound())
                 did += srv_->aof().writer_pass(*self_, ring_);
@@ -902,6 +906,10 @@ void IoLoop::r7_run_loop() {
                 if (__builtin_expect(!routing_forward_.empty(), false))
                     client_routing_cleanup_pass();
                 did += r7_flush_ready<HasTls, kEp>();
+            }
+            if constexpr (Fused && !SplitLocal) {
+                if (fused_executor_->fused_owner_ready())
+                    did += fused_executor_->fused_owner_turn<true>();
             }
             did += flip_control_pass<kEp>();
             if (__builtin_expect(client_lb_signal_armed &&

@@ -2,6 +2,7 @@
 // Keep cold observations outside all footprint-locked hot structures.
 #pragma once
 #include <array>
+#include <atomic>
 #include <cstdint>
 #include <cstdio>
 namespace tomo {
@@ -14,6 +15,10 @@ struct alignas(64) Exec1sCounters {
     uint64_t blind_clear = 0, record_visits = 0;
 };
 inline std::array<Exec1sCounters, 128> exec1s_counters{};
+// Scheduling hints contain no shard/client pointer and survive ownership moves
+// harmlessly. The ordinary pass remains the liveness backstop.
+struct alignas(64) FusedOwnerBell { std::atomic<bool> runnable{false}; };
+inline std::array<FusedOwnerBell, 128> fused_owner_bells{};
 // Each ring has one issuer. Adjacent thread IDs must not share counter lines.
 struct alignas(64) Exec1sRingCounters { uint64_t enters = 0, waits = 0; };
 inline std::array<Exec1sRingCounters, 256> exec1s_ring_counters{};

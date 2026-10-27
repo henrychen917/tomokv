@@ -236,6 +236,13 @@ struct alignas(8) MultiExecState : SnapshotCut {
 
 namespace {
 
+void multi_ring_participants(MultiExecState& state) {
+    if (state.server->thread_mode() != ThreadMode::Fused) return;
+    for (int32_t sid : state.shards)
+        fused_owner_bells[state.server->worker_of_shard(sid)].runnable.store(
+            true, std::memory_order_release);
+}
+
 void multi_enqueue_node(Server& server, uint32_t io, MultiRetryNode& node) {
     auto& lane = server.multi_retry_lane(io);
     auto* prior = lane.head.load(std::memory_order_relaxed);
@@ -1754,6 +1761,7 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard,
                 return false;
             noted |= 4u;
             state.watch_arrived.fetch_add(1, std::memory_order_acq_rel);
+            multi_ring_participants(state);
         }
         if (state.shards.size() != 1 &&
             state.watch_arrived.load(std::memory_order_acquire) != state.shards.size()) return false;
@@ -1825,6 +1833,7 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard,
             else state.decision.aborted.store(true, std::memory_order_release);
         }
         state.watch_phase_done.store(true, std::memory_order_release);
+        multi_ring_participants(state);
     }
     return true;
 }
@@ -3007,6 +3016,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
         done = static_cast<uint8_t>(stage + 1);
         latency_child.finish();
         finish_command(command, stage, owner_thread_id);
+        multi_ring_participants(state);
     }
 
     uint8_t& joined = state.execution_joined[shard_id];
@@ -3070,6 +3080,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                 state.doomed = state.decision.epoch.load(std::memory_order_acquire) ==
                                kAtomicCancelledEpoch;
                 state.finalized.store(true, std::memory_order_release);
+                multi_ring_participants(state);
                 // Every owner has joined and the one commit decision is made: nothing this
                 // transaction writes can land on a shard after this point, so it can no longer
                 // straddle a snapshot cut. Closed here, on an OWNER, not at reply retirement.
