@@ -306,37 +306,46 @@ mechanism cost from compiler allocation or estimate contention throughput.
 | 2U0RnS, POST b179853b | Epoll transaction-order, scriptatomic/xscript, scripting/functions and notification jobs, including their internal matrices | **203 ok / 0 FAIL** |
 | JMYoLv, POST b179853b | Fused io_uring DEBUG, snapshot/SAVE, AOF and notification jobs, including their internal matrices | **204 ok / 0 FAIL** |
 | R5aocp, POST b179853b | Fused epoll DEBUG and notification jobs, including their internal matrices | **51 ok / 0 FAIL** |
-| SVpV0r / tpQWzJ | Initial io_uring / epoll differential attempts with binary-only Redis prefix | **Preflight rc 2; comparisons NOT RUN**: required Redis source headers absent; retained and queued again with the full checkout |
+| SVpV0r / tpQWzJ | Initial io_uring / epoll differential attempts with binary-only Redis prefix | **Preflight rc 2; comparisons NOT RUN**: required Redis source headers absent; retained, with successful retries below |
 | zLdqei, POST b179853b | EXEC fairness across both modes/engines/atomic settings; io_uring fused batteries | **20 ok / 0 FAIL** |
 | reErX1, POST b179853b | Epoll FLIP, controller, saturated hand-off and fused batteries | **31 ok / 0 FAIL** |
 | nx4Shz, POST b179853b | Standard io_uring differential matrix and mode equivalence, using the full Redis checkout | **6 ok / 0 FAIL**; 938 executed suite legs (930 combinations + eight MULTI repeats) and 16/16 equivalence cells |
+| HwG8Uc, POST b179853b | Standard epoll differential matrix and mode equivalence, using the full Redis checkout | **6 ok / 0 FAIL**; 938 executed suite legs (930 combinations + eight MULTI repeats) and 16/16 equivalence cells |
+| CBHlT3, POST b179853b | Dedicated fused SORT job, io_uring, atomic 0/1 | **3 ok / 0 FAIL** (two SORT batteries plus release prerequisite) |
+| qLENvD, POST b179853b | Dedicated fused SORT job, epoll, atomic 0/1 | **3 ok / 0 FAIL** (two SORT batteries plus release prerequisite) |
 
-Further engine/mode and differential runs are still running; this table will be
-completed from their actual partial ledgers. It is not a full gate receipt. All commands, hashes,
+All final selected-job runs are complete. These are partial ledgers, not a full
+gate receipt. All commands, hashes,
 job outcomes and per-leg inventories are archived by tools/at412c_record.py in
 `docs/at412c/proof/`. The FLIP saturation job uses its existing memtier process
 only as correctness stress: rates are discarded and no PRE/POST performance
 comparison is run. No SKIP/NOT RUN appeared in the completed broad run's logs.
 
-The first queued phases use the binary-only /home/user/Projects/redis74 prefix.
+The initial queued phases used the binary-only /home/user/Projects/redis74 prefix.
 Quick-tier preflight warns about absent Redis source files for the unselected
 ACL-metadata job; its selected jobs use the valid 7.4.10 oracle binary. Full-tier
 preflight refuses that prefix before running differential comparisons. Both
-failed attempts are retained. The retry runner uses the complete
+failed attempts are retained. Both successful retries used the complete
 /home/user/Projects/redis checkout; both binaries have the same
 SHA-256 (`docs/at412c/provenance.json`).
 
-The io_uring differential plan freezes permanent seeds 7, 19, 20 and 23 plus
-rotating seed 21, all 47 suites and the standard four extra atomic-1/seed-19
-MULTI repeats per geometry. Split atomic 0/1 execute 235/239 comparisons;
-armed-fused atomic 0/1 execute 230/234. The standard armed-fused matrix
-explicitly skips its five SORT seed legs
-per atomic setting because that suite requires split 6:2; those seeded SORT
-comparisons execute in split. Dedicated fused SORT jobs are queued separately.
-All four completed parts report comparison coverage of 232/245 registered
-commands, with the harness's unobserved-command lists retained. Mode equivalence
-compares 6,137 replies per cell over all 16 mode/read-local/reorder/atomic cells,
-with 105 script-drain boundaries and mechanism witnesses (seed 21).
+Both differential plans retain permanent seeds 7, 19, 20 and 23, all 47 suites,
+and the standard four extra atomic-1/seed-19 MULTI repeats per geometry.
+
+| Engine | Rotating seed | Split atomic 0 / 1 legs | Armed-fused atomic 0 / 1 legs | Mode-equivalence cells | Exact replies per cell | Script-drain boundaries |
+|---|---:|---:|---:|---:|---:|---:|
+| io_uring | 21 | 235 / 239 | 230 / 234 | 16/16 | 6,137 | 105 |
+| epoll | 22 | 235 / 239 | 230 / 234 | 16/16 | 6,208 | 99 |
+
+Total: **1,876 executed suite legs**, including 16 MULTI repeats, and **32/32
+mode-equivalence cells**, all passed. The standard armed-fused matrix explicitly
+skips its five SORT seed legs per atomic setting because that suite requires
+split 6:2; those seeded SORT comparisons execute in split. The dedicated fused
+SORT jobs also pass both atomic settings on both engines. All eight differential
+parts report comparison coverage of 232/245 registered commands, with the
+harness's unobserved-command lists retained. Mode equivalence checks every
+mode/read-local/reorder/atomic combination with mechanism witnesses; its exact-byte
+exclusions are retained in each stream.json.
 
 ### 11. DQ / DF
 
@@ -437,6 +446,12 @@ changing claim admission, epoch rules, layouts or ordinary command algorithms.
 All 48 final ordinary scopes have no added instructions; all 24 requested handler
 bodies match PRE. The script trace now includes Final release. All four arms are
 rebuilt with full digests. Merit remains a request for the maintainer.
+
+All final selected-job runs passed, including 423/423 directed server/oracle
+legs, 8/8 owner legs, 1,876 differential suite legs and 32/32 mode-equivalence
+cells. The standard armed-fused SORT exclusion and the passing dedicated fused
+SORT jobs are explicit in §10. All 51 freshness checks and all four arm digests
+were rechecked; no production source changed after f7204660e.
 
 This continuation adds no rows: **at412c DQ/DF = +0/+0; cumulative at412 = +18/+18**.
 EXPECT_QUICK/EXPECT_FULL remain untouched. The final port-bounded harness self-test

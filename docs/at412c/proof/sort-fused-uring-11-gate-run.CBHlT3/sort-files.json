@@ -1,0 +1,27 @@
+[
+  {
+    "path": "gate-sort-0.txt",
+    "bytes": 724,
+    "sha256": "ee15d513532c607b2ae1aade661dd2c9235d7244e996bba124f01dffabca5038"
+  },
+  {
+    "path": "gate-sort-1.txt",
+    "bytes": 724,
+    "sha256": "f9f5ff4cbf243a413e3f91e79819dc6024c403a11d28d60c66ead2c298331d8a"
+  },
+  {
+    "path": "gate-srv-fused.XPYhLo",
+    "bytes": 7653,
+    "sha256": "e7470b6dc1808120ec6c4bd43436272358f53490316c899350724e7a73daf46c"
+  },
+  {
+    "path": "gate-srv-fused.nO4fHB",
+    "bytes": 7653,
+    "sha256": "b57dab75ca3e2d1f0cf169abc2e75db35aaff2722599f13d0f2e01828d4e10fd"
+  },
+  {
+    "path": "output.log",
+    "bytes": 316,
+    "sha256": "b2d97ed1d2a62ca7e4d2554db69592f7386038fe2aa357b8ad86d08329529f09"
+  }
+]

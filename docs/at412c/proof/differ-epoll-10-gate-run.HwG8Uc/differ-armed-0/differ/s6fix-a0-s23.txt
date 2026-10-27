@@ -1,0 +1,9 @@
+  A4 target distinct=200 missing=0 unexpected=0 nulls=0
+  A4 oracle distinct=200 missing=0 unexpected=0 nulls=0
+  A5 stream target calls=16 keys=[b's6d:stream']
+  A5 stream oracle calls=1 keys=[b's6d:stream']
+  A5 unknown control target calls=16 keys=[]
+  A5 unknown control oracle calls=1 keys=[]
+  A6 target lastsave=1793109780 future_control=0
+  A6 oracle lastsave=1793109780 future_control=0
+DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS

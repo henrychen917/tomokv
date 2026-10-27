@@ -1,0 +1,7 @@
+PARTIAL	0	GATE_ONLY_JOBS=differ-split differ-armed differ-equivalence; NOT A RECEIPT
+ok	0.030000	release build (+footprint locks)
+ok	528.080000	Redis 7.4 differential part (split, atomic 0)
+ok	528.940000	Redis 7.4 differential part (split, atomic 1)
+ok	522.240000	Redis 7.4 differential part (armed fused, atomic 0)
+ok	524.640000	Redis 7.4 differential part (armed fused, atomic 1)
+ok	21.410000	mode equivalence part (all execution modes and knobs)

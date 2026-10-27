@@ -1525,5 +1525,305 @@
         "source": "/home/user/Projects/cx-at412c/build/gate-run.nx4Shz/jobs/release"
       }
     ]
+  },
+  {
+    "phase": "differ-epoll",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "bash",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20200-20279"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_TEST_PORT": "20299",
+      "GATE_ONLY_JOBS": "differ-split differ-armed differ-equivalence",
+      "GATE_DIFFER_NET_IO": "epoll"
+    },
+    "source": "31efcb861c9c006b057b357c583b429cea1205b3",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "log": "/home/user/Projects/cx-at412c/build/at412c/proof/differ-epoll-10.log",
+    "began": 1793108405.5091279,
+    "rc": 0,
+    "seconds": 2128.38,
+    "run_dir": "/home/user/Projects/cx-at412c/build/gate-run.HwG8Uc",
+    "archived": "docs/at412c/proof/differ-epoll-10-gate-run.HwG8Uc",
+    "jobs": [
+      {
+        "name": "differ-armed-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.HwG8Uc/jobs/differ-armed-0",
+        "differ_complete": {
+          "schema": 1,
+          "part": "armed-0",
+          "run": "full:gate-run.HwG8Uc",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            22
+          ],
+          "comparisons": 230,
+          "complete": true
+        },
+        "skipped_legs": [
+          "differ sort (atomic=0 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=0 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=0 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=0 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=0 seed=22)                             SKIP (suite requires the split 6:2 geometry)"
+        ],
+        "coverage_summary": [
+          "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1040791 recorded comparison witnesses, 230 legs)"
+        ],
+        "equivalence": []
+      },
+      {
+        "name": "differ-armed-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.HwG8Uc/jobs/differ-armed-1",
+        "differ_complete": {
+          "schema": 1,
+          "part": "armed-1",
+          "run": "full:gate-run.HwG8Uc",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            22
+          ],
+          "comparisons": 234,
+          "complete": true
+        },
+        "skipped_legs": [
+          "differ sort (atomic=1 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=1 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=1 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=1 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=1 seed=22)                             SKIP (suite requires the split 6:2 geometry)"
+        ],
+        "coverage_summary": [
+          "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1057846 recorded comparison witnesses, 234 legs)"
+        ],
+        "equivalence": []
+      },
+      {
+        "name": "differ-equivalence",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.HwG8Uc/jobs/differ-equivalence",
+        "differ_complete": {
+          "schema": 1,
+          "part": "equivalence",
+          "run": "full:gate-run.HwG8Uc",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            22
+          ],
+          "comparisons": 16,
+          "complete": true
+        },
+        "skipped_legs": [],
+        "coverage_summary": [],
+        "equivalence": [
+          {
+            "seed": 22,
+            "cells": 16,
+            "passed": 16,
+            "reached": 16,
+            "engines": [
+              "epoll"
+            ],
+            "replies_per_cell": 6208,
+            "script_drain_boundaries": 99,
+            "stream_sha256": "a35d44931284a030d0bac16c44995e6e3b5a8183931117d8b2d60a02730f7350"
+          }
+        ]
+      },
+      {
+        "name": "differ-split-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.HwG8Uc/jobs/differ-split-0",
+        "differ_complete": {
+          "schema": 1,
+          "part": "split-0",
+          "run": "full:gate-run.HwG8Uc",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            22
+          ],
+          "comparisons": 235,
+          "complete": true
+        },
+        "skipped_legs": [],
+        "coverage_summary": [
+          "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1068214 recorded comparison witnesses, 235 legs)"
+        ],
+        "equivalence": []
+      },
+      {
+        "name": "differ-split-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.HwG8Uc/jobs/differ-split-1",
+        "differ_complete": {
+          "schema": 1,
+          "part": "split-1",
+          "run": "full:gate-run.HwG8Uc",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            22
+          ],
+          "comparisons": 239,
+          "complete": true
+        },
+        "skipped_legs": [],
+        "coverage_summary": [
+          "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1081186 recorded comparison witnesses, 239 legs)"
+        ],
+        "equivalence": []
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.HwG8Uc/jobs/release"
+      }
+    ]
+  },
+  {
+    "phase": "sort-fused-uring",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20200-20279"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_TEST_PORT": "20299",
+      "GATE_ONLY_JOBS": "sort",
+      "GATE_TXN_FUSED": "1"
+    },
+    "source": "612017736ec1ab47c7fb31e2a174876a85e0c288",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "log": "/home/user/Projects/cx-at412c/build/at412c/proof/sort-fused-uring-11.log",
+    "began": 1793110542.860659,
+    "rc": 0,
+    "seconds": 4.55,
+    "run_dir": "/home/user/Projects/cx-at412c/build/gate-run.CBHlT3",
+    "archived": "docs/at412c/proof/sort-fused-uring-11-gate-run.CBHlT3",
+    "jobs": [
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CBHlT3/jobs/release"
+      },
+      {
+        "name": "sort",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CBHlT3/jobs/sort"
+      }
+    ]
+  },
+  {
+    "phase": "sort-fused-epoll",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20200-20279"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_TEST_PORT": "20299",
+      "GATE_ONLY_JOBS": "sort",
+      "GATE_TXN_FUSED": "1",
+      "GATE_PROOF_NET_IO": "epoll"
+    },
+    "source": "612017736ec1ab47c7fb31e2a174876a85e0c288",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "log": "/home/user/Projects/cx-at412c/build/at412c/proof/sort-fused-epoll-12.log",
+    "began": 1793110547.6342814,
+    "rc": 0,
+    "seconds": 4.558,
+    "run_dir": "/home/user/Projects/cx-at412c/build/gate-run.qLENvD",
+    "archived": "docs/at412c/proof/sort-fused-epoll-12-gate-run.qLENvD",
+    "jobs": [
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.qLENvD/jobs/release"
+      },
+      {
+        "name": "sort",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.qLENvD/jobs/sort"
+      }
+    ]
   }
 ]
