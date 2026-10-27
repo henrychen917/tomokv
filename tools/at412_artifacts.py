@@ -2,8 +2,9 @@
 """AT4.12 offline identity, bounded instruction counts and PAD-A artifacts.
 
 Reuses the execindex lane's instruments with recorded path/CPU substitutions.
-No server or load generator is started. The scope fixture links the saved PRE
-objects and current production objects, including both physical namespaces.
+The scope fixture links the saved PRE objects and current production objects,
+including both physical namespaces. Only control_smoke starts correctness
+servers; none of these modes runs a load generator or measures throughput.
 """
 import argparse
 import hashlib
@@ -14,7 +15,7 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / 'docs/at412'
+OUT = ROOT / 'docs/at412c'
 BUILD = ROOT / 'build/at412'
 
 
@@ -22,16 +23,33 @@ def inherited(tool, args, scripts=False):
     original = ROOT / ('tools/execindex_'+tool+'.py')
     source = original.read_text()
     source = source.replace('execindex', 'at412')
+    source = source.replace('docs/at412', 'docs/at412c')
+    if tool == 'scope':
+        # A rebuilt probe invalidates its earlier traces. The inherited tool's
+        # receipt was overwritten at build time and did not bind cached counts.
+        source = source.replace('if output.exists() and "COUNT " in log_text:',
+            'if output.exists() and "COUNT " in log_text and '
+            'json.loads(output.read_text()).get("probe_sha256") == '
+            'hashlib.sha256(binary.read_bytes()).hexdigest():')
+        source = source.replace('json.dump(dict(total=sum(counts.values()),',
+            'json.dump(dict(probe_sha256={hashlib.sha256(binary.read_bytes()).hexdigest()!r},'
+            'total=sum(counts.values()),')
     # Instruction traces run at nice 19 on 56-63, away from the gate's server cores 48-55.
-    cpus = '56-63' if tool == 'scope' else '48-63'  # the probe needs 8 CPUs in its affinity
+    cpus = '56-63' if tool == 'scope' else '48-55' if tool == 'control_smoke' else '48-63'
     source = source.replace('96-103', cpus).replace('96-111', cpus)
     if tool == 'control_smoke':
         source = source.replace('PORT=46890', 'PORT=20290')  # this lane's port range
     if tool == 'scope' and scripts:
-        source = source.replace('docs/at412/instructions', 'docs/at412/script-instructions')
+        source = source.replace('docs/at412c/instructions', 'docs/at412c/script-instructions')
         source = source.replace('("GET", "SET", "INCR", "MGET", "MSET")', '("EVAL", "EVAL-ADMIT")')
         source = source.replace('for batch in (1, 32)', 'for batch in (1,)')
         source = source.replace('command == "MSET"', 'command.startswith("EVAL")')
+        # Follow fixture callbacks so later script waves and the Final release
+        # are visited, while still counting production instructions only.
+        source = source.replace('if prefix in name and "CoreConcurrencyTest::" not in name',
+                                'if prefix in name')
+        source = source.replace(' if fn:\n  counts[fn[3]]+=1',
+                                ' if fn and "CoreConcurrencyTest::" not in fn[3]:\n  counts[fn[3]]+=1')
     saved = BUILD / ('instrument-'+tool+('-scripts' if scripts else '')+'.py')
     saved.write_text(source)
     (OUT / (saved.stem+'.json')).write_text(json.dumps(dict(
