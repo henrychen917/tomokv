@@ -118,6 +118,9 @@ struct MultiSession {
     bool active = false;
     bool queue_error = false;
     uint64_t next_queue_op_id = 0;
+#ifdef TOMO_EXEC1S_WB
+    uint64_t wb_block_start = 0, wb_exec_id = UINT64_MAX;
+#endif
     uint32_t last_attempts = 0;
     std::vector<MultiQueuedCommand> queue;
     uint64_t query_bytes = 0; // Redis query accounting: argv payload plus one pointer per arg
@@ -1957,6 +1960,28 @@ bool multi_queueing(const Client& client) {
     return client.multi_session() && client.multi_session()->active;
 }
 
+#ifdef TOMO_EXEC1S_WB
+// The current Op has no free flag bit. An IO-private ROB generation interval
+// proves block membership without changing any footprint or resetting plain Ops.
+// The unchanged EXEC barrier prevents a second block sharing this interval.
+bool multi_wb_prefix_hold(Client& client) {
+    auto* session = client.multi_session();
+    if (!session || session->active || session->wb_exec_id == UINT64_MAX) return false;
+    auto& rob = client.rob();
+    const auto head = rob.flush_id(), exec = session->wb_exec_id;
+    if (head < session->wb_block_start || exec < head || exec >= rob.dispatch_id()) return false;
+    for (auto id = head; id < exec; ++id)
+        if (rob.at(id).state.load(std::memory_order_acquire) != OpState::Done) return false;
+    // Do not read executor-written fields before Done. has_multi_state is
+    // captured by IO before dispatch and stays stable through retirement.
+    auto& op = rob.at(exec);
+    if (!op.has_multi_state() || op.state.load(std::memory_order_acquire) == OpState::Done)
+        return false;
+    ++exec1s_counters[client.ifid_thread()].wb_exec_holds;
+    return true;
+}
+#endif
+
 void multi_mark_queue_error(Client& client) {
     MultiSession* session = client.multi_session();
     if (session && session->active) session->queue_error = true;
@@ -1981,6 +2006,10 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
             session->active = true;
             session->queue_error = false;
             session->next_queue_op_id = client.rob().dispatch_id() + 1;
+#ifdef TOMO_EXEC1S_WB
+            session->wb_block_start = client.rob().dispatch_id();
+            session->wb_exec_id = UINT64_MAX;
+#endif
             session->clear_queue();
             reply_ok(op.sink());
         }
@@ -2081,6 +2110,9 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
     }
 
     if (multi_name(op, "exec")) {
+#ifdef TOMO_EXEC1S_WB
+        if (session && session->active) session->wb_exec_id = client.rob().dispatch_id();
+#endif
         if (!session || !session->active) {
             reply_err(op.sink(), "ERR EXEC without MULTI");
             return MultiIoAction::LocalDone;
