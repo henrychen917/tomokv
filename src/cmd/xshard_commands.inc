@@ -178,11 +178,7 @@ bool parse_mpop(Op& op, Kind kind, uint32_t& numkeys, bool& edge, uint64_t& coun
             return false;
         }
         int64_t parsed_count = 0;
-        if (!parse_i64(op.arg(++i), parsed_count)) {
-            reply_invalid_integer(op);
-            return false;
-        }
-        if (parsed_count < 1) {
+        if (!parse_i64(op.arg(++i), parsed_count) || parsed_count < 1) {
             reply_err(op.sink(), "ERR count should be greater than 0");
             return false;
         }

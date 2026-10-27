@@ -1154,7 +1154,7 @@ plan_jobs(){
               iofix-deferred iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               atomfix5_watch atomfix5_accounting core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat boot_grammar dbdefault wait_units readonly
-              release_batteries atomic_batteries moverfix hexpread compat2 compat3 datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_watch datafix2_idle dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus rlfix3_zc rlfix3_info acl_recheck aclfix sort script_bounds scriptfix lualibs
+              release_batteries atomic_batteries moverfix hexpread compat2 compat3 streamfix datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_watch datafix2_idle dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus rlfix3_zc rlfix3_info acl_recheck aclfix sort script_bounds scriptfix lualibs
               efficiency dump_restore auth authfix latencyfix_grammar latencyfix_shape latencyfix_off serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
               execfair txnorder_index txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
@@ -3797,6 +3797,27 @@ job_datafix2_idle(){
       || bad "datafix2 SO4.2 OBJECT IDLETIME vs Redis 7.4" "see $TMPDIR/idle-*.log"
 }
 
+job_streamfix(){
+  row_begin "streamfix STREAM-TRIM-APPROX-LIMIT vs Redis 7.4"
+  compat3_case streamfix trim && ok "streamfix STREAM-TRIM-APPROX-LIMIT vs Redis 7.4" \
+      || bad "streamfix STREAM-TRIM-APPROX-LIMIT vs Redis 7.4" "see $TMPDIR/trim-*.log"
+  row_begin "streamfix XREAD-PLUS-LAST vs Redis 7.4"
+  compat3_case streamfix xread && ok "streamfix XREAD-PLUS-LAST vs Redis 7.4" \
+      || bad "streamfix XREAD-PLUS-LAST vs Redis 7.4" "see $TMPDIR/xread-*.log"
+  row_begin "streamfix XRANGE-EXCLUSIVE-SENTINEL vs Redis 7.4"
+  compat3_case streamfix ranges && ok "streamfix XRANGE-EXCLUSIVE-SENTINEL vs Redis 7.4" \
+      || bad "streamfix XRANGE-EXCLUSIVE-SENTINEL vs Redis 7.4" "see $TMPDIR/ranges-*.log"
+  row_begin "streamfix STREAM-GROUP-ID-DASH vs Redis 7.4"
+  compat3_case streamfix groupdash && ok "streamfix STREAM-GROUP-ID-DASH vs Redis 7.4" \
+      || bad "streamfix STREAM-GROUP-ID-DASH vs Redis 7.4" "see $TMPDIR/groupdash-*.log"
+  row_begin "streamfix XAUTOCLAIM-COUNT-RANGE vs Redis 7.4"
+  compat3_case streamfix claimcount && ok "streamfix XAUTOCLAIM-COUNT-RANGE vs Redis 7.4" \
+      || bad "streamfix XAUTOCLAIM-COUNT-RANGE vs Redis 7.4" "see $TMPDIR/claimcount-*.log"
+  row_begin "streamfix MPOP-ARG-ERROR-TEXT vs Redis 7.4"
+  compat3_case streamfix mpop && ok "streamfix MPOP-ARG-ERROR-TEXT vs Redis 7.4" \
+      || bad "streamfix MPOP-ARG-ERROR-TEXT vs Redis 7.4" "see $TMPDIR/mpop-*.log"
+}
+
 job_compat3(){
   row_begin "compat3 CC4.12 pubsub vs Redis 7.4"
   compat3_case pubsub pubsub && ok "compat3 CC4.12 pubsub vs Redis 7.4" \
@@ -5592,6 +5613,8 @@ collect_job compat2
 collect_job bugs5
 # Six oracle regressions before the quick exit: DQ=+6, DF=+6. EXPECT is owner-owned.
 collect_job compat3
+# streamfix rows are counted here, before the quick-tier exit.
+collect_job streamfix
 # blockfix: counted here before the quick exit; EXPECT remains owner-maintained.
 collect_job blockfix_registry
 collect_job blockfix_mkstream
