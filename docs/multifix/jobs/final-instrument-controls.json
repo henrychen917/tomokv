@@ -1,0 +1,51 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "32-39",
+    "--load-cores",
+    "40-47",
+    "--load-smt",
+    "",
+    "--ports",
+    "20580-20589",
+    "--candidate-binary",
+    "/home/user/Projects/cx-multifix/build/multifix/tomokv-post"
+  ],
+  "cwd": "/home/user/Projects/cx-multifix",
+  "env": {
+    "LANG": "en_US.UTF-8",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_ONLY_JOBS": "abba_selftest",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_ZC_NET_IO": "uring",
+    "GATE_SHUTDOWN_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TEST_PORT": "20598",
+    "GATE_LEDGER": "/home/user/Projects/cx-multifix/docs/multifix/jobs/final-instrument-controls.tsv"
+  },
+  "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+  "source_commit": "79556e88003c716fd403ef9efc8b59805df17c58",
+  "gate_sha256": "81e88029b86c013f6aac852fe752c543ac7a2795142c6433da2cad27edf77ae7",
+  "started": 1793097798.6677403,
+  "input_sha256": {
+    "tests/multifix.py": "83387a4bbf4f4b6155beeae332ab9c0ed789d9a70ff5025b9e3e12fee6e692e8",
+    "tests/redis_tcl.py": "e285b006f8edbe3366771af9c9edca2c09c5b0352e2696624032322496d8bf82",
+    "tests/redis_tcl_passing.json": "626cdc2364e57ed0af5a6776796359a1b4b6ead573cff9ffab3ba65a051e97b4",
+    "tests/differ_gate.sh": "e741f837fb9bed5a0927fefe38aa3361d29ec699964f140a93a05fb9f17e8c63",
+    "tests/differ.py": "a8c12ee2e5179b1f10d57506e2636d94d84f6c21660187b1bae8dc8df21ea71b",
+    "tests/mode_equivalence.py": "2b2702bbcb9382258e631bd2e0c832beadfebbd7f9c5cdd9a795ee478ef9c02f"
+  },
+  "exit": 1,
+  "seconds": 200.31255507469177,
+  "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.a8uIkB",
+  "summary": [
+    "GATE(PARTIAL): 0 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-instrument-controls.tsv.partial"
+  ],
+  "binary_unchanged": true
+}

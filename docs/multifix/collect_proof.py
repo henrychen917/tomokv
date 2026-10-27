@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Collect complete gate receipts without converting failed attempts into passes."""
-import json
+import hashlib,json
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 OUT=ROOT/'docs/multifix'
@@ -58,7 +58,7 @@ report['affected_jobs']={
     'unresolved_failures':[],
 }
 
-final_names=['final-differ-uring','final-differ-epoll','final-instrument-controls']
+final_names=['final-differ-uring','final-differ-epoll']
 final_names += [f'final-atomic-{mode}-{engine}' for mode in ('1s','2s') for engine in ('uring','epoll')]
 report['final_jobs']={}
 for name in final_names:
@@ -67,6 +67,43 @@ for name in final_names:
     job=read(receipt)
     assert job['exit']==0 and job['binary_unchanged'],(name,job)
     report['final_jobs'][name]={key:job[key] for key in ('binary_sha256','summary','artifacts')}
+    if name.startswith('final-atomic-'):
+        mode,engine=name.removeprefix('final-atomic-').split('-')
+        assert job['env']['GATE_PROOF_NO_RATES']=='1'
+        assert job['env']['GATE_TXN_FUSED']==str(int(mode=='1s'))
+        assert job['env']['GATE_PROOF_NET_IO']==engine
+        rows=ledger(name)
+        assert len(rows)==5 and all(row['status']=='ok' for row in rows)
+        base=Path(job['artifacts'])/'jobs/atomic_batteries'
+        output_hashes={}
+        for leaf,terminal in [('torn','ATOMIC_TORN PASS'),('ryow','ATOMIC_RYOW PASS'),('hazards','FAIL=0')]:
+            output=base/f'gate-atomic-{leaf}.txt'
+            raw=output.read_text()
+            assert terminal in raw,(name,leaf)
+            if leaf=='ryow':assert 'rate comparison disabled by --no-rate-assertions' in raw
+            output_hashes[str(output.relative_to(ROOT))]=hashlib.sha256(output.read_bytes()).hexdigest()
+        report['final_jobs'][name]['correctness_output_sha256']=output_hashes
+        report['final_jobs'][name]['throughput_experiment']='NOT RUN: GATE_PROOF_NO_RATES=1'
+
+report['unresolved_required_checks']=[]
+receipt=OUT/'jobs/final-instrument-controls.json'
+if receipt.exists():
+    job=read(receipt)
+    log=Path(job['artifacts'])/'jobs/abba_selftest/gate-abbagate-unit.txt'
+    raw=log.read_text()
+    refusal='RECEIPT FIXTURE REFUSED: tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=815, fixture=847, source declarations=847'
+    assert job['exit']==1 and job['binary_unchanged'] and refusal in raw
+    assert 'Missing fixture labels: none\nExtra fixture labels: none' in raw
+    assert not any(line.startswith(('FAIL:','ERROR:','FAILED (')) for line in raw.splitlines())
+    report['unresolved_required_checks'].append({
+        'job':'final-instrument-controls',
+        'status':'FAIL',
+        'reason':refusal,
+        'owner_action':'Review DQ=DF=+24 and set the owner-managed counts to 830 quick / 847 full.',
+        'output':str(log.relative_to(ROOT)),
+        'output_sha256':hashlib.sha256(log.read_bytes()).hexdigest(),
+        'summary':job['summary'],
+    })
 
 (OUT/'proof-summary.json').write_text(json.dumps(report,indent=2)+'\n')
 print(json.dumps({
@@ -75,6 +112,7 @@ print(json.dumps({
     'directed_rows':{name:len(rows) for name,rows in report['directed'].items()},
     'affected_jobs':report['affected_jobs'],
     'final_jobs':list(report['final_jobs']),
+    'unresolved_required_checks':report['unresolved_required_checks'],
     'instructions':report['instructions'],
     'freshness':report.get('freshness'),
 },indent=2))

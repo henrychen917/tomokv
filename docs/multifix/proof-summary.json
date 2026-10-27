@@ -33,6 +33,54 @@
       "name": "final-affected"
     },
     {
+      "source_commit": "a13d010bdbeda92c26d2a220496bf57170b6a66b",
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "binary_unchanged": true,
+      "exit": 0,
+      "seconds": 36.5833375453949,
+      "summary": [
+        "GATE(PARTIAL): 5 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-atomic-1s-epoll.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.77APFB",
+      "name": "final-atomic-1s-epoll"
+    },
+    {
+      "source_commit": "a13d010bdbeda92c26d2a220496bf57170b6a66b",
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "binary_unchanged": true,
+      "exit": 0,
+      "seconds": 36.56701731681824,
+      "summary": [
+        "GATE(PARTIAL): 5 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-atomic-1s-uring.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.KPmCKc",
+      "name": "final-atomic-1s-uring"
+    },
+    {
+      "source_commit": "a13d010bdbeda92c26d2a220496bf57170b6a66b",
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "binary_unchanged": true,
+      "exit": 0,
+      "seconds": 44.04888963699341,
+      "summary": [
+        "GATE(PARTIAL): 5 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-atomic-2s-epoll.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.9sUgfj",
+      "name": "final-atomic-2s-epoll"
+    },
+    {
+      "source_commit": "a13d010bdbeda92c26d2a220496bf57170b6a66b",
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "binary_unchanged": true,
+      "exit": 0,
+      "seconds": 44.04581880569458,
+      "summary": [
+        "GATE(PARTIAL): 5 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-atomic-2s-uring.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.taK8SX",
+      "name": "final-atomic-2s-uring"
+    },
+    {
       "source_commit": "79556e88003c716fd403ef9efc8b59805df17c58",
       "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
       "binary_unchanged": true,
@@ -65,6 +113,18 @@
       "summary": [],
       "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.pZMWk4",
       "name": "final-epoll"
+    },
+    {
+      "source_commit": "79556e88003c716fd403ef9efc8b59805df17c58",
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "binary_unchanged": true,
+      "exit": 1,
+      "seconds": 200.31255507469177,
+      "summary": [
+        "GATE(PARTIAL): 0 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-instrument-controls.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.a8uIkB",
+      "name": "final-instrument-controls"
     },
     {
       "source_commit": "7b40601639fd7485fd03fb361f0ffaff757ebd0b",
@@ -1369,6 +1429,71 @@
         "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-differ-epoll.tsv.partial"
       ],
       "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.vrnAfA"
+    },
+    "final-atomic-1s-uring": {
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "summary": [
+        "GATE(PARTIAL): 5 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-atomic-1s-uring.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.KPmCKc",
+      "correctness_output_sha256": {
+        "build/gate-run.KPmCKc/jobs/atomic_batteries/gate-atomic-torn.txt": "3f1e0b38a1b0fdfcad16d7aa03b1c11e642e439525b651be023e29fda32233f5",
+        "build/gate-run.KPmCKc/jobs/atomic_batteries/gate-atomic-ryow.txt": "5c7cc1c51c839e5557374adce15b5bbe069a574c4443fe7df20da6a1af58f24b",
+        "build/gate-run.KPmCKc/jobs/atomic_batteries/gate-atomic-hazards.txt": "68e1606400b91875caf1552b63902a256e66eea0f2b06e6150f7294b9e8b16c2"
+      },
+      "throughput_experiment": "NOT RUN: GATE_PROOF_NO_RATES=1"
+    },
+    "final-atomic-1s-epoll": {
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "summary": [
+        "GATE(PARTIAL): 5 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-atomic-1s-epoll.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.77APFB",
+      "correctness_output_sha256": {
+        "build/gate-run.77APFB/jobs/atomic_batteries/gate-atomic-torn.txt": "6dde10b519a5e71e859633dfa5fab5429c24e2452d1b4b8d559ce1c137fa12a3",
+        "build/gate-run.77APFB/jobs/atomic_batteries/gate-atomic-ryow.txt": "7f62105aa8dd402750a972258f65d1f05bb7e1c0c23a82c7fbf34aa933259b1c",
+        "build/gate-run.77APFB/jobs/atomic_batteries/gate-atomic-hazards.txt": "1a74d49b5be4849f50e7b24a6aaddfcba8c96f369d11d390011b1901b300d62e"
+      },
+      "throughput_experiment": "NOT RUN: GATE_PROOF_NO_RATES=1"
+    },
+    "final-atomic-2s-uring": {
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "summary": [
+        "GATE(PARTIAL): 5 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-atomic-2s-uring.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.taK8SX",
+      "correctness_output_sha256": {
+        "build/gate-run.taK8SX/jobs/atomic_batteries/gate-atomic-torn.txt": "d72144e61885b5bcf10f7994e9bc2269bb79fa7c70cc24e6de60677f24463a30",
+        "build/gate-run.taK8SX/jobs/atomic_batteries/gate-atomic-ryow.txt": "925cf4f8129e9a12bf0b2986dd2dca58f48cf3d9bbcbb80181762216348846c8",
+        "build/gate-run.taK8SX/jobs/atomic_batteries/gate-atomic-hazards.txt": "051e81b8d004d4d8c330715f2654b557e0017d2cf9a549517d97415c7ca0c2ab"
+      },
+      "throughput_experiment": "NOT RUN: GATE_PROOF_NO_RATES=1"
+    },
+    "final-atomic-2s-epoll": {
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "summary": [
+        "GATE(PARTIAL): 5 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-atomic-2s-epoll.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.9sUgfj",
+      "correctness_output_sha256": {
+        "build/gate-run.9sUgfj/jobs/atomic_batteries/gate-atomic-torn.txt": "d169cf1458ecd1f554f9d544efb420f059f740405b80b301185305e50a688fde",
+        "build/gate-run.9sUgfj/jobs/atomic_batteries/gate-atomic-ryow.txt": "82a5560fd6b7e3fef9fdfd942df0328e824ad4f9c85894a7eb8c09686854a20d",
+        "build/gate-run.9sUgfj/jobs/atomic_batteries/gate-atomic-hazards.txt": "e41293d2de049c1fd5c5aee77017fe72f6d2fa14d633745c870816f67f88e652"
+      },
+      "throughput_experiment": "NOT RUN: GATE_PROOF_NO_RATES=1"
     }
-  }
+  },
+  "unresolved_required_checks": [
+    {
+      "job": "final-instrument-controls",
+      "status": "FAIL",
+      "reason": "RECEIPT FIXTURE REFUSED: tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=815, fixture=847, source declarations=847",
+      "owner_action": "Review DQ=DF=+24 and set the owner-managed counts to 830 quick / 847 full.",
+      "output": "build/gate-run.a8uIkB/jobs/abba_selftest/gate-abbagate-unit.txt",
+      "output_sha256": "854d4949b3702559d3cf36ce78d3bcb4197c8431dd08840bfcc308d7f933e1ff",
+      "summary": [
+        "GATE(PARTIAL): 0 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-instrument-controls.tsv.partial"
+      ]
+    }
+  ]
 }
