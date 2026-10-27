@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-GET-2s-1-1--1.log
+SHA-256: d26ddd7313b92f006a53ee3ff8afcbe5dcc3e6f9968daa78b17c56b6641dba4c
+Exit: 0
+0x0000555555a00258	2353	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
+0x0000555555a00123 in tomo::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff61d79c8, batch=batch@entry=0x7ffffffda040, n=n@entry=1) at src/core/ex_loop.h:2356
+2356	    }
+0x0000555555a00128	2356	    }
+0x0000555555a00131	2356	    }
+0x0000555555a00137	2356	    }
+0x0000555555a0013b	2356	    }
+0x0000555555a0013c	2356	    }
+0x0000555555a0013e	2356	    }
+0x0000555555a00140	2356	    }
+0x0000555555a00142	2356	    }
+0x0000555555a00144	2356	    }
+0x0000555555a00145	2356	    }
+0x0000555555d890b4 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72
+72	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 265557) exited normally]
+COUNT 1559

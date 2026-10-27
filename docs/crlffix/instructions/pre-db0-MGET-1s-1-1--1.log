@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-MGET-1s-1-1--1.log
+SHA-256: c843c8fad64631e972044f0c5f78d563e0cea8d0dafdb152c6a3e67c06898bf1
+Exit: 0
+PASS bounded production command scope
+e	2284	}
+0x000055555569fca0	2284	}
+0x000055555569fca2	2284	}
+0x000055555569fca4	2284	}
+0x0000555555d87d07 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112
+112	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
+95	   for(unsigned i=0;i<n;i++){
+0x0000555555d87d13	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d87d1a	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d87d22	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d87d29	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d87d2f	115	   std::string want="+OK\r\n";
+0x0000555555d87d36	115	   std::string want="+OK\r\n";
+0x0000555555d87d3d	114	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 3821545) exited normally]
+COUNT 10370
