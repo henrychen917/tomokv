@@ -108,6 +108,8 @@ def wrongtype(c, clients):
 
 
 def multi(c, clients):
+    # EXEC must finish immediately; a broken BLOCK 0 must hit a bounded deadline.
+    c.sock.settimeout(3)
     c.cmd("XGROUP", "CREATE", "stream", "g", "$", "MKSTREAM")
     out = []
     for timeout in (0, 50000):
