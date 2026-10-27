@@ -11,6 +11,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 
@@ -61,6 +62,16 @@ def inherited(tool, args, scripts=False):
     # Keep the instrument's ROOT discovery anchored at the actual tools dir.
     scope = {'__name__': 'at412_instrument', '__file__': str(ROOT / ('tools/at412_'+tool+'.py'))}
     exec(compile(source, str(saved), 'exec'), scope)
+    if tool == 'scope' and scripts and '--trace-only' in args:
+        arms = args[args.index('--arms')+1].split(',') if '--arms' in args else ['pre', 'post']
+        for arm in arms:
+            for ns in ('normal', 'db0'):
+                receipt = OUT / 'instructions' / f'{arm}-{ns}-build.json'
+                binary = BUILD / 'commands' / f'{arm}-{ns}' / 'probe'
+                assert json.loads(receipt.read_text())['sha256'] == hashlib.sha256(binary.read_bytes()).hexdigest()
+                for suffix in ('.json', '.log'):
+                    src = receipt.with_suffix(suffix)
+                    shutil.copy2(src, OUT / 'script-instructions' / src.name)
     scope['main']()
     if tool == 'scope' and not scripts:
         compared = scope['OUT'] / 'comparison.json'
