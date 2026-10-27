@@ -1,0 +1,399 @@
+{
+  "BLOCK-WAKE-ORDER-MULTI": {
+    "redis": {
+      "argv": [
+        "taskset",
+        "-c",
+        "16-23",
+        "/home/user/Projects/redis74/src/redis-server",
+        "--port",
+        "20400",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-blockfix2/build/blockfix2/pre-order-0/BLOCK-WAKE-ORDER-MULTI/redis",
+        "--enable-debug-command",
+        "yes"
+      ],
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+      "transcript": [
+        {
+          "c": "b",
+          "send": [
+            "BLMPOP",
+            "0",
+            "2",
+            "blist{t}",
+            "blist2{t}",
+            "LEFT",
+            "COUNT",
+            "1"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "c",
+          "send": [
+            "BLMPOP",
+            "0",
+            "2",
+            "blist{t}",
+            "blist2{t}",
+            "RIGHT",
+            "COUNT",
+            "10"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "MULTI"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "a",
+          "send": [
+            "LPUSH",
+            "blist{t}",
+            "a",
+            "b",
+            "c",
+            "d",
+            "e"
+          ],
+          "reply": "QUEUED"
+        },
+        {
+          "c": "a",
+          "send": [
+            "LPUSH",
+            "blist2{t}",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ],
+          "reply": "QUEUED"
+        },
+        {
+          "c": "a",
+          "send": [
+            "EXEC"
+          ],
+          "reply": [
+            5,
+            5
+          ]
+        },
+        {
+          "c": "b",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": [
+            "blist{t}",
+            [
+              "e"
+            ]
+          ]
+        },
+        {
+          "c": "c",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": [
+            "blist{t}",
+            [
+              "a",
+              "b",
+              "c",
+              "d"
+            ]
+          ]
+        }
+      ]
+    },
+    "2s": {
+      "argv": [
+        "taskset",
+        "-c",
+        "16-23",
+        "/home/user/Projects/cx-blockfix2/build/blockfix2/pre-source/build/tomokv",
+        "--port",
+        "20400",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-blockfix2/build/blockfix2/pre-order-0/BLOCK-WAKE-ORDER-MULTI/2s",
+        "--enable-debug-command",
+        "yes",
+        "--thread-mode",
+        "2s",
+        "--shards",
+        "16",
+        "--databases",
+        "16",
+        "--net-io",
+        "uring",
+        "--ratio",
+        "6:2"
+      ],
+      "sha256": "cbd6ed78f4625bcd24d6b26a1e99130de05bc552b96546271775e64307e24f1f",
+      "transcript": [
+        {
+          "c": "b",
+          "send": [
+            "BLMPOP",
+            "0",
+            "2",
+            "blist{t}",
+            "blist2{t}",
+            "LEFT",
+            "COUNT",
+            "1"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "c",
+          "send": [
+            "BLMPOP",
+            "0",
+            "2",
+            "blist{t}",
+            "blist2{t}",
+            "RIGHT",
+            "COUNT",
+            "10"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "MULTI"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "a",
+          "send": [
+            "LPUSH",
+            "blist{t}",
+            "a",
+            "b",
+            "c",
+            "d",
+            "e"
+          ],
+          "reply": "QUEUED"
+        },
+        {
+          "c": "a",
+          "send": [
+            "LPUSH",
+            "blist2{t}",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ],
+          "reply": "QUEUED"
+        },
+        {
+          "c": "a",
+          "send": [
+            "EXEC"
+          ],
+          "reply": [
+            5,
+            5
+          ]
+        },
+        {
+          "c": "b",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": [
+            "blist{t}",
+            [
+              "e"
+            ]
+          ]
+        },
+        {
+          "c": "c",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": [
+            "blist2{t}",
+            [
+              "1",
+              "2",
+              "3",
+              "4",
+              "5"
+            ]
+          ]
+        }
+      ]
+    },
+    "1s": {
+      "argv": [
+        "taskset",
+        "-c",
+        "16-23",
+        "/home/user/Projects/cx-blockfix2/build/blockfix2/pre-source/build/tomokv",
+        "--port",
+        "20400",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-blockfix2/build/blockfix2/pre-order-0/BLOCK-WAKE-ORDER-MULTI/1s",
+        "--enable-debug-command",
+        "yes",
+        "--thread-mode",
+        "1s",
+        "--shards",
+        "16",
+        "--databases",
+        "16",
+        "--net-io",
+        "uring"
+      ],
+      "sha256": "cbd6ed78f4625bcd24d6b26a1e99130de05bc552b96546271775e64307e24f1f",
+      "transcript": [
+        {
+          "c": "b",
+          "send": [
+            "BLMPOP",
+            "0",
+            "2",
+            "blist{t}",
+            "blist2{t}",
+            "LEFT",
+            "COUNT",
+            "1"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "c",
+          "send": [
+            "BLMPOP",
+            "0",
+            "2",
+            "blist{t}",
+            "blist2{t}",
+            "RIGHT",
+            "COUNT",
+            "10"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "MULTI"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "a",
+          "send": [
+            "LPUSH",
+            "blist{t}",
+            "a",
+            "b",
+            "c",
+            "d",
+            "e"
+          ],
+          "reply": "QUEUED"
+        },
+        {
+          "c": "a",
+          "send": [
+            "LPUSH",
+            "blist2{t}",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ],
+          "reply": "QUEUED"
+        },
+        {
+          "c": "a",
+          "send": [
+            "EXEC"
+          ],
+          "reply": [
+            5,
+            5
+          ]
+        },
+        {
+          "c": "b",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": [
+            "blist2{t}",
+            [
+              "5"
+            ]
+          ]
+        },
+        {
+          "c": "c",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": [
+            "blist{t}",
+            [
+              "a",
+              "b",
+              "c",
+              "d",
+              "e"
+            ]
+          ]
+        }
+      ]
+    }
+  }
+}
