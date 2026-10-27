@@ -21,6 +21,42 @@
       "name": "directed-tcl2"
     },
     {
+      "source_commit": "7b40601639fd7485fd03fb361f0ffaff757ebd0b",
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "binary_unchanged": true,
+      "exit": 1,
+      "seconds": 1660.7847082614899,
+      "summary": [
+        "GATE(PARTIAL): 143 ok, 8 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-affected.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.XW8cZW",
+      "name": "final-affected"
+    },
+    {
+      "source_commit": "79556e88003c716fd403ef9efc8b59805df17c58",
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "binary_unchanged": true,
+      "exit": 0,
+      "seconds": 2145.46572804451,
+      "summary": [
+        "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-differ-epoll.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.vrnAfA",
+      "name": "final-differ-epoll"
+    },
+    {
+      "source_commit": "79556e88003c716fd403ef9efc8b59805df17c58",
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "binary_unchanged": true,
+      "exit": 0,
+      "seconds": 2158.3664417266846,
+      "summary": [
+        "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-differ-uring.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.6145vi",
+      "name": "final-differ-uring"
+    },
+    {
       "source_commit": "01fabda27b09b528c995fa2339e98154e9f975ae",
       "binary_sha256": "b46977828bc7bbacb73a02243a7966a9f3a9afb59ad326740aea3c6d88b91c3c",
       "binary_unchanged": true,
@@ -136,6 +172,329 @@
     }
   ],
   "promotions": {
+    "final-affected": {
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "assertions": [
+        {
+          "mode": "1s",
+          "unit": "unit/other",
+          "name": "RESET clears and discards MULTI state",
+          "status": "ok",
+          "data": "RESET clears and discards MULTI state"
+        },
+        {
+          "mode": "1s",
+          "unit": "unit/type/set",
+          "name": "SMOVE only notify dstset when the addition is successful",
+          "status": "ok",
+          "data": "SMOVE only notify dstset when the addition is successful"
+        },
+        {
+          "mode": "1s",
+          "unit": "unit/slowlog",
+          "name": "SLOWLOG - EXEC is not logged, just executed commands",
+          "status": "ok",
+          "data": "SLOWLOG - EXEC is not logged, just executed commands"
+        },
+        {
+          "mode": "1s",
+          "unit": "unit/pause",
+          "name": "Test both active and passive expires are skipped during client pause",
+          "status": "ok",
+          "data": "Test both active and passive expires are skipped during client pause"
+        },
+        {
+          "mode": "1s",
+          "unit": "unit/pause",
+          "name": "Test that client pause starts at the end of a transaction",
+          "status": "ok",
+          "data": "Test that client pause starts at the end of a transaction"
+        },
+        {
+          "mode": "1s",
+          "unit": "unit/pause",
+          "name": "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write",
+          "status": "ok",
+          "data": "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write"
+        },
+        {
+          "mode": "1s",
+          "unit": "unit/pause",
+          "name": "Test write multi-execs are blocked by pause RO",
+          "status": "ok",
+          "data": "Test write multi-execs are blocked by pause RO"
+        },
+        {
+          "mode": "1s",
+          "unit": "unit/pause",
+          "name": "Test write scripts in multi-exec are blocked by pause RO",
+          "status": "ok",
+          "data": "Test write scripts in multi-exec are blocked by pause RO"
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/other",
+          "name": "RESET clears and discards MULTI state",
+          "status": "ok",
+          "data": "RESET clears and discards MULTI state"
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/type/set",
+          "name": "SMOVE only notify dstset when the addition is successful",
+          "status": "ok",
+          "data": "SMOVE only notify dstset when the addition is successful"
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/slowlog",
+          "name": "SLOWLOG - EXEC is not logged, just executed commands",
+          "status": "ok",
+          "data": "SLOWLOG - EXEC is not logged, just executed commands"
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/pause",
+          "name": "Test both active and passive expires are skipped during client pause",
+          "status": "ok",
+          "data": "Test both active and passive expires are skipped during client pause"
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/pause",
+          "name": "Test that client pause starts at the end of a transaction",
+          "status": "ok",
+          "data": "Test that client pause starts at the end of a transaction"
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/pause",
+          "name": "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write",
+          "status": "ok",
+          "data": "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write"
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/pause",
+          "name": "Test write multi-execs are blocked by pause RO",
+          "status": "ok",
+          "data": "Test write multi-execs are blocked by pause RO"
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/pause",
+          "name": "Test write scripts in multi-exec are blocked by pause RO",
+          "status": "ok",
+          "data": "Test write scripts in multi-exec are blocked by pause RO"
+        }
+      ],
+      "arming": {
+        "1s": [
+          {
+            "attempt": 1,
+            "shards": [
+              14,
+              10
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 2,
+            "shards": [
+              8,
+              2
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 3,
+            "shards": [
+              12,
+              1
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 4,
+            "shards": [
+              7,
+              0
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 5,
+            "shards": [
+              1,
+              7
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 6,
+            "shards": [
+              13,
+              4
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 7,
+            "shards": [
+              13,
+              8
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 8,
+            "shards": [
+              12,
+              7
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 9,
+            "shards": [
+              2,
+              1
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 10,
+            "shards": [
+              12,
+              15
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 11,
+            "shards": [
+              13,
+              3
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 12,
+            "shards": [
+              3,
+              7
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 13,
+            "shards": [
+              10,
+              14
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 14,
+            "shards": [
+              12,
+              4
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 15,
+            "shards": [
+              8,
+              11
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 16,
+            "shards": [
+              10,
+              9
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 17,
+            "shards": [
+              3,
+              7
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 18,
+            "shards": [
+              4,
+              3
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 19,
+            "shards": [
+              13,
+              3
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 20,
+            "shards": [
+              1,
+              6
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 21,
+            "shards": [
+              0,
+              12
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 22,
+            "shards": [
+              15,
+              1
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 23,
+            "shards": [
+              4,
+              8
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 24,
+            "shards": [
+              7,
+              7
+            ],
+            "armed": true
+          }
+        ],
+        "2s": [
+          {
+            "attempt": 1,
+            "shards": [
+              15,
+              15
+            ],
+            "armed": true
+          }
+        ]
+      }
+    },
     "final-planted-tcl": {
       "binary_sha256": "1e5222abadeadf68bcd878b084c11c9d5be094aaf6fb9aa8220898dbf7c71009",
       "assertions": [
@@ -565,5 +924,451 @@
     }
   },
   "instructions": true,
-  "freshness": true
+  "freshness": true,
+  "directed": {
+    "final-roots": [
+      {
+        "status": "ok",
+        "seconds": 14.49,
+        "label": "multifix RESET-IN-MULTI (1s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 16.26,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 19.78,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 22.33,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 33.29,
+        "label": "multifix PAUSE-IN-MULTI (1s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 18.36,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (1s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 15.52,
+        "label": "multifix RESET-IN-MULTI (1s epoll)"
+      },
+      {
+        "status": "ok",
+        "seconds": 16.52,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s epoll)"
+      },
+      {
+        "status": "ok",
+        "seconds": 16.29,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s epoll)"
+      },
+      {
+        "status": "ok",
+        "seconds": 20.57,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)"
+      },
+      {
+        "status": "ok",
+        "seconds": 33.8,
+        "label": "multifix PAUSE-IN-MULTI (1s epoll)"
+      },
+      {
+        "status": "ok",
+        "seconds": 16.47,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (1s epoll)"
+      },
+      {
+        "status": "ok",
+        "seconds": 13.59,
+        "label": "multifix RESET-IN-MULTI (2s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 13.74,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 14.12,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 17.1,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 30.35,
+        "label": "multifix PAUSE-IN-MULTI (2s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 13.33,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (2s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 12.36,
+        "label": "multifix RESET-IN-MULTI (2s epoll)"
+      },
+      {
+        "status": "ok",
+        "seconds": 12.35,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s epoll)"
+      },
+      {
+        "status": "ok",
+        "seconds": 13.16,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s epoll)"
+      },
+      {
+        "status": "ok",
+        "seconds": 16.52,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)"
+      },
+      {
+        "status": "ok",
+        "seconds": 29.6,
+        "label": "multifix PAUSE-IN-MULTI (2s epoll)"
+      },
+      {
+        "status": "ok",
+        "seconds": 12.24,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (2s epoll)"
+      }
+    ],
+    "pre-directed": [
+      {
+        "status": "FAIL",
+        "seconds": 14.77,
+        "label": "multifix RESET-IN-MULTI (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 14.15,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 58.35,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 16.12,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 14.78,
+        "label": "multifix PAUSE-IN-MULTI (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 25.22,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 16.03,
+        "label": "multifix RESET-IN-MULTI (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 16.57,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 76.51,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 16.08,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 14.09,
+        "label": "multifix PAUSE-IN-MULTI (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 21.54,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 13.27,
+        "label": "multifix RESET-IN-MULTI (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 13.96,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 70.71,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 15.26,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 13.86,
+        "label": "multifix PAUSE-IN-MULTI (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 22.75,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 13.38,
+        "label": "multifix RESET-IN-MULTI (2s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 13.95,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 40.42,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 13.27,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 11.61,
+        "label": "multifix PAUSE-IN-MULTI (2s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 19.83,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (2s epoll)"
+      }
+    ],
+    "planted-directed": [
+      {
+        "status": "FAIL",
+        "seconds": 12.99,
+        "label": "multifix RESET-IN-MULTI (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 11.71,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 49.36,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 13.98,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 12.65,
+        "label": "multifix PAUSE-IN-MULTI (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 25.38,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 16.72,
+        "label": "multifix RESET-IN-MULTI (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 15.85,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 66.58,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 14.64,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 12.21,
+        "label": "multifix PAUSE-IN-MULTI (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 20.12,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 11.91,
+        "label": "multifix RESET-IN-MULTI (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 12.06,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 39.86,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 13.64,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 12.1,
+        "label": "multifix PAUSE-IN-MULTI (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 23.15,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 14.53,
+        "label": "multifix RESET-IN-MULTI (2s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 14.29,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 47.76,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 13.42,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 11.87,
+        "label": "multifix PAUSE-IN-MULTI (2s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 20.11,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (2s epoll)"
+      }
+    ]
+  },
+  "affected_jobs": {
+    "original_passes": 143,
+    "resolved_failures": [
+      {
+        "status": "FAIL",
+        "seconds": 2.52,
+        "label": "moverfix conservation (1s, uring, databases 1, atomic 0)",
+        "rerun": "final-moverfix-paired",
+        "rerun_status": "ok"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 2.5,
+        "label": "moverfix conservation (1s, uring, databases 16, atomic 0)",
+        "rerun": "final-moverfix-paired",
+        "rerun_status": "ok"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 2.48,
+        "label": "moverfix conservation (1s, epoll, databases 1, atomic 0)",
+        "rerun": "final-moverfix-paired",
+        "rerun_status": "ok"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 2.5,
+        "label": "moverfix conservation (1s, epoll, databases 16, atomic 0)",
+        "rerun": "final-moverfix-paired",
+        "rerun_status": "ok"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 2.51,
+        "label": "moverfix conservation (2s, uring, databases 1, atomic 0)",
+        "rerun": "final-moverfix-paired",
+        "rerun_status": "ok"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 2.51,
+        "label": "moverfix conservation (2s, uring, databases 16, atomic 0)",
+        "rerun": "final-moverfix-paired",
+        "rerun_status": "ok"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 2.51,
+        "label": "moverfix conservation (2s, epoll, databases 1, atomic 0)",
+        "rerun": "final-moverfix-paired",
+        "rerun_status": "ok"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 2.5,
+        "label": "moverfix conservation (2s, epoll, databases 16, atomic 0)",
+        "rerun": "final-moverfix-paired",
+        "rerun_status": "ok"
+      }
+    ],
+    "unresolved_failures": []
+  },
+  "final_jobs": {
+    "final-differ-uring": {
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "summary": [
+        "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-differ-uring.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.6145vi"
+    },
+    "final-differ-epoll": {
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "summary": [
+        "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-differ-epoll.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.vrnAfA"
+    }
+  }
 }

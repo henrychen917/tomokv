@@ -16,6 +16,7 @@ rows=[]
 for key,a in pre.items():
     b=post[key]
     rows.append(dict(zip(FIELDS,key),pre=a['total'],post=b['total'],delta=b['total']-a['total'],
+                     pre_clock_calls=a['clock_calls'],post_clock_calls=b['clock_calls'],
                      pre_probe_sha256=json.loads((OUT/('pre-'+a['namespace']+'-build.json')).read_text())['sha256'],post_probe_sha256=b['binary_sha256']))
 summary=[]
 for command in ('GET','SET','INCR','MGET','MSET'):
@@ -26,7 +27,9 @@ for command in ('GET','SET','INCR','MGET','MSET'):
 report=dict(scope='Linked production exec_batch_prefetched through named tomo/tomo_db0 routines; excludes fixture, network parse, read-local lane and out-of-scope library callees.',
             modes=['1s','2s'],batch_sizes=[1,32],read_local=0,
             atomic='1, plus 0 for MSET',slowlog_threshold='-1/10000 for single-key commands; -1 for MGET/MSET',
-            cases=len(rows),all_zero_added_instructions=all(r['delta']<=0 for r in rows),summary=summary,rows=rows)
+            cases=len(rows),all_zero_added_instructions=all(r['delta']<=0 for r in rows),
+            all_clock_calls_unchanged=all(r['pre_clock_calls']==r['post_clock_calls'] for r in rows),
+            summary=summary,rows=rows)
 (OUT/'comparison.json').write_text(json.dumps(report,indent=2)+'\n')
 print(json.dumps({k:v for k,v in report.items() if k!='rows'},indent=2))
-raise SystemExit(0 if report['all_zero_added_instructions'] else 1)
+raise SystemExit(0 if report['all_zero_added_instructions'] and report['all_clock_calls_unchanged'] else 1)

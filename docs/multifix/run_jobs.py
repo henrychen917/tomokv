@@ -20,7 +20,7 @@ load_cores = '40-47' if a.server_start is None else ','.join(
     str(c) for c in range(32,48) if not a.server_start <= c <= a.server_start+7)
 os.sched_setaffinity(0, set(range(32,48)))
 output=ROOT/'docs/multifix/jobs';output.mkdir(parents=True,exist_ok=True)
-log=output/(a.name+'.log'); assert not log.exists(), 'preserve the earlier attempt'
+log=output/(a.name+'.log')
 binary=(ROOT/a.binary).resolve()
 env=dict(os.environ,LANG='en_US.UTF-8',REDIS74_ROOT='/home/user/Projects/redis',
     GATE_DIFFER_ORACLE_BIN='/home/user/Projects/redis74/src/redis-server',GATE_ONLY_JOBS=' '.join(a.jobs),GATE_NET_IO=a.engine,GATE_PROOF_NET_IO=a.engine,
@@ -38,7 +38,31 @@ receipt=dict(argv=argv,cwd=str(a.root),env={k:v for k,v in env.items() if k.star
     source_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
     gate_sha256=hashlib.sha256((a.root/'tests/gate.sh').read_bytes()).hexdigest(),started=time.time())
 receipt['input_sha256']={name:hashlib.sha256((a.root/name).read_bytes()).hexdigest()
-                        for name in ('tests/multifix.py','tests/redis_tcl.py','tests/redis_tcl_passing.json')}
+                        for name in ('tests/multifix.py','tests/redis_tcl.py','tests/redis_tcl_passing.json',
+                                     'tests/differ_gate.sh','tests/differ.py','tests/mode_equivalence.py')}
+saved=output/(a.name+'.json'); running=output/(a.name+'.running.json')
+if log.exists():
+    # Two correctness matrices may use the two permitted eight-core halves.
+    # A sequential caller can join that same named run, retaining its actual
+    # CPU/port argv and exact source/binary receipts instead of overwriting it.
+    if not saved.exists():
+        assert running.exists(), 'earlier incomplete attempt has no live owner receipt'
+        owner=json.loads(running.read_text())
+        for _ in range(900):
+            if saved.exists(): break
+            stat=Path('/proc')/str(owner['pid'])/'stat'
+            assert stat.exists() and stat.read_text().split()[21]==owner['start_ticks'], 'earlier run owner exited'
+            time.sleep(10)
+        else: raise RuntimeError('existing run did not finish within its join deadline')
+    prior=json.loads(saved.read_text())
+    assert prior['binary_sha256']==receipt['binary_sha256'] and prior['binary_unchanged']
+    assert prior['gate_sha256']==receipt['gate_sha256'] and prior['input_sha256']==receipt['input_sha256']
+    for key in ('GATE_ONLY_JOBS','GATE_NET_IO','GATE_TXN_FUSED'):
+        assert prior['env'][key]==receipt['env'][key], 'existing run has a different selection'
+    print('Joined existing named correctness run; actual invocation follows.',flush=True)
+    print(json.dumps(prior),flush=True)
+    raise SystemExit(prior['exit'])
+running.write_text(json.dumps(dict(pid=os.getpid(),start_ticks=Path('/proc/self/stat').read_text().split()[21]))+'\n')
 with log.open('w') as f:
     result=subprocess.run(argv,cwd=a.root,env=env,stdout=f,stderr=subprocess.STDOUT)
 receipt.update(exit=result.returncode,seconds=time.time()-receipt['started'])
@@ -47,5 +71,6 @@ if match:receipt['artifacts']=match[1]
 receipt['summary']=[line for line in text.splitlines() if line.startswith('GATE(PARTIAL)')]
 receipt['binary_unchanged']=receipt['binary_sha256']==hashlib.sha256(binary.read_bytes()).hexdigest()
 (output/(a.name+'.json')).write_text(json.dumps(receipt,indent=2)+'\n')
+running.unlink()
 print(json.dumps(receipt),flush=True)
 raise SystemExit(result.returncode)

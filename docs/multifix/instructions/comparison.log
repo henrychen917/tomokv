@@ -13,6 +13,7 @@
   "slowlog_threshold": "-1/10000 for single-key commands; -1 for MGET/MSET",
   "cases": 72,
   "all_zero_added_instructions": true,
+  "all_clock_calls_unchanged": true,
   "summary": [
     {
       "command": "GET",

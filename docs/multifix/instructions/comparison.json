@@ -13,6 +13,7 @@
   "slowlog_threshold": "-1/10000 for single-key commands; -1 for MGET/MSET",
   "cases": 72,
   "all_zero_added_instructions": true,
+  "all_clock_calls_unchanged": true,
   "summary": [
     {
       "command": "GET",
@@ -96,6 +97,8 @@
       "pre": 939,
       "post": 936,
       "delta": -3,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -109,6 +112,8 @@
       "pre": 1297,
       "post": 1294,
       "delta": -3,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -122,6 +127,8 @@
       "pre": 18578,
       "post": 18482,
       "delta": -96,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -135,6 +142,8 @@
       "pre": 18650,
       "post": 18554,
       "delta": -96,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -148,6 +157,8 @@
       "pre": 1559,
       "post": 1556,
       "delta": -3,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -161,6 +172,8 @@
       "pre": 1924,
       "post": 1921,
       "delta": -3,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -174,6 +187,8 @@
       "pre": 18423,
       "post": 18327,
       "delta": -96,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -187,6 +202,8 @@
       "pre": 18459,
       "post": 18363,
       "delta": -96,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -200,6 +217,8 @@
       "pre": 1068,
       "post": 1054,
       "delta": -14,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -213,6 +232,8 @@
       "pre": 1425,
       "post": 1411,
       "delta": -14,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -226,6 +247,8 @@
       "pre": 22706,
       "post": 22258,
       "delta": -448,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -239,6 +262,8 @@
       "pre": 22778,
       "post": 22330,
       "delta": -448,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -252,6 +277,8 @@
       "pre": 1688,
       "post": 1674,
       "delta": -14,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -265,6 +292,8 @@
       "pre": 2051,
       "post": 2037,
       "delta": -14,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -278,6 +307,8 @@
       "pre": 22551,
       "post": 22103,
       "delta": -448,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -291,6 +322,8 @@
       "pre": 22587,
       "post": 22139,
       "delta": -448,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -304,6 +337,8 @@
       "pre": 1531,
       "post": 1528,
       "delta": -3,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -317,6 +352,8 @@
       "pre": 1888,
       "post": 1885,
       "delta": -3,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -330,6 +367,8 @@
       "pre": 38051,
       "post": 37955,
       "delta": -96,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -343,6 +382,8 @@
       "pre": 38123,
       "post": 38027,
       "delta": -96,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -356,6 +397,8 @@
       "pre": 2151,
       "post": 2148,
       "delta": -3,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -369,6 +412,8 @@
       "pre": 2514,
       "post": 2511,
       "delta": -3,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -382,6 +427,8 @@
       "pre": 37896,
       "post": 37800,
       "delta": -96,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -395,6 +442,8 @@
       "pre": 37932,
       "post": 37836,
       "delta": -96,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -408,6 +457,8 @@
       "pre": 10243,
       "post": 10219,
       "delta": -24,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -421,6 +472,8 @@
       "pre": 326598,
       "post": 325830,
       "delta": -768,
+      "pre_clock_calls": 32,
+      "post_clock_calls": 32,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -434,6 +487,8 @@
       "pre": 10243,
       "post": 10219,
       "delta": -24,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -447,6 +502,8 @@
       "pre": 326598,
       "post": 325830,
       "delta": -768,
+      "pre_clock_calls": 32,
+      "post_clock_calls": 32,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -460,6 +517,8 @@
       "pre": 10894,
       "post": 10782,
       "delta": -112,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -473,6 +532,8 @@
       "pre": 17080,
       "post": 17064,
       "delta": -16,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -486,6 +547,8 @@
       "pre": 348453,
       "post": 344869,
       "delta": -3584,
+      "pre_clock_calls": 32,
+      "post_clock_calls": 32,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -499,6 +562,8 @@
       "pre": 964774,
       "post": 964262,
       "delta": -512,
+      "pre_clock_calls": 32,
+      "post_clock_calls": 32,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -512,6 +577,8 @@
       "pre": 10690,
       "post": 10578,
       "delta": -112,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -525,6 +592,8 @@
       "pre": 16726,
       "post": 16710,
       "delta": -16,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -538,6 +607,8 @@
       "pre": 341925,
       "post": 338341,
       "delta": -3584,
+      "pre_clock_calls": 32,
+      "post_clock_calls": 32,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -551,6 +622,8 @@
       "pre": 953446,
       "post": 952934,
       "delta": -512,
+      "pre_clock_calls": 32,
+      "post_clock_calls": 32,
       "pre_probe_sha256": "202a81357a8f9ddaedb3d6715eceaec32d8410879d9320acb4de50deda370045",
       "post_probe_sha256": "42b6e426bf0f8530a8fa98fa57495463365a64d7675801b6e7a23492c9e260ac"
     },
@@ -564,6 +637,8 @@
       "pre": 818,
       "post": 818,
       "delta": 0,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -577,6 +652,8 @@
       "pre": 1174,
       "post": 1174,
       "delta": 0,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -590,6 +667,8 @@
       "pre": 18705,
       "post": 18705,
       "delta": 0,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -603,6 +682,8 @@
       "pre": 18773,
       "post": 18773,
       "delta": 0,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -616,6 +697,8 @@
       "pre": 1051,
       "post": 1051,
       "delta": 0,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -629,6 +712,8 @@
       "pre": 1416,
       "post": 1416,
       "delta": 0,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -642,6 +727,8 @@
       "pre": 18163,
       "post": 18163,
       "delta": 0,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -655,6 +742,8 @@
       "pre": 18199,
       "post": 18199,
       "delta": 0,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -668,6 +757,8 @@
       "pre": 955,
       "post": 943,
       "delta": -12,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -681,6 +772,8 @@
       "pre": 1310,
       "post": 1298,
       "delta": -12,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -694,6 +787,8 @@
       "pre": 23089,
       "post": 22705,
       "delta": -384,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -707,6 +802,8 @@
       "pre": 23157,
       "post": 22773,
       "delta": -384,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -720,6 +817,8 @@
       "pre": 1188,
       "post": 1176,
       "delta": -12,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -733,6 +832,8 @@
       "pre": 1551,
       "post": 1539,
       "delta": -12,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -746,6 +847,8 @@
       "pre": 22547,
       "post": 22163,
       "delta": -384,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -759,6 +862,8 @@
       "pre": 22583,
       "post": 22199,
       "delta": -384,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -772,6 +877,8 @@
       "pre": 1314,
       "post": 1314,
       "delta": 0,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -785,6 +892,8 @@
       "pre": 1669,
       "post": 1669,
       "delta": 0,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -798,6 +907,8 @@
       "pre": 35106,
       "post": 35106,
       "delta": 0,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -811,6 +922,8 @@
       "pre": 35174,
       "post": 35174,
       "delta": 0,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -824,6 +937,8 @@
       "pre": 1547,
       "post": 1547,
       "delta": 0,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -837,6 +952,8 @@
       "pre": 1910,
       "post": 1910,
       "delta": 0,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -850,6 +967,8 @@
       "pre": 34564,
       "post": 34564,
       "delta": 0,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -863,6 +982,8 @@
       "pre": 34600,
       "post": 34600,
       "delta": 0,
+      "pre_clock_calls": 3,
+      "post_clock_calls": 3,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -876,6 +997,8 @@
       "pre": 10370,
       "post": 10362,
       "delta": -8,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -889,6 +1012,8 @@
       "pre": 330662,
       "post": 330406,
       "delta": -256,
+      "pre_clock_calls": 32,
+      "post_clock_calls": 32,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -902,6 +1027,8 @@
       "pre": 10370,
       "post": 10362,
       "delta": -8,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -915,6 +1042,8 @@
       "pre": 330662,
       "post": 330406,
       "delta": -256,
+      "pre_clock_calls": 32,
+      "post_clock_calls": 32,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -928,6 +1057,8 @@
       "pre": 11143,
       "post": 11039,
       "delta": -104,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -941,6 +1072,8 @@
       "pre": 16497,
       "post": 16489,
       "delta": -8,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -954,6 +1087,8 @@
       "pre": 356421,
       "post": 353093,
       "delta": -3328,
+      "pre_clock_calls": 32,
+      "post_clock_calls": 32,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -967,6 +1102,8 @@
       "pre": 955046,
       "post": 954046,
       "delta": -1000,
+      "pre_clock_calls": 32,
+      "post_clock_calls": 32,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -980,6 +1117,8 @@
       "pre": 10962,
       "post": 10858,
       "delta": -104,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -993,6 +1132,8 @@
       "pre": 16166,
       "post": 16158,
       "delta": -8,
+      "pre_clock_calls": 1,
+      "post_clock_calls": 1,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -1006,6 +1147,8 @@
       "pre": 350629,
       "post": 347301,
       "delta": -3328,
+      "pre_clock_calls": 32,
+      "post_clock_calls": 32,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     },
@@ -1019,6 +1162,8 @@
       "pre": 944454,
       "post": 943454,
       "delta": -1000,
+      "pre_clock_calls": 32,
+      "post_clock_calls": 32,
       "pre_probe_sha256": "e87bd4a0f76d9b2da0be49019b8fcbbeaf42a45dde412839f9fe1c56e27b7805",
       "post_probe_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263"
     }
