@@ -2,9 +2,10 @@
 
 ## wave8b
 
-**Correctness campaign in progress:** final offline counts, build/freshness,
-negative controls and frozen arms are complete. Final live job receipts will be
-listed below. Superseded v1 binaries remain available with `-v1` suffixes.
+**Correctness proof completed:** individual gate jobs, both oracle engines,
+the frozen Tcl subset, harness self-tests and all production build targets passed
+after the explicitly retained repairs below. Superseded v1 binaries remain
+available with `-v1` suffixes.
 
 **Landing held:** disabled EXEC has no latency hooks/store scans, but exact
 execindex instruction/body parity is not attained. POST remains +62..258 named
@@ -98,6 +99,23 @@ function delta sums exactly to its scope delta. These are named production
 instructions; standard-library callees, IO parsing/dispatch wrappers and socket
 work remain outside the scope. The uncontended scopes do not exercise retry
 scheduling, blocking wakeup, Lua or IO idle grace. No rate inference is valid.
+
+The original 144 baseline traces remain byte-identical to commit `fe065d3bd`.
+Four original probe binaries were retained; the two headline probes were later
+rebuilt for main-command checks, so the original fixtures were reconstructed and
+required to match their **original full SHA-256s exactly**. Both did; see
+[baseline-probes.json](docs/wave8b/baseline-probes.json). Later trace receipts
+embed their probe SHA directly.
+
+[scope-identity.json](docs/wave8b/scope-identity.json) checks every entered body
+across all 336 retained trace cases against its frozen release arm. Thirteen
+function instances have operand labels that the strict normalizer does not
+resolve: immutable 64-bit loads and six-entry type switches with a memory-byte
+bound. Their sizes and normalized opcode bytes are identical. All 15 relocated
+operands are verified separately: the constant bytes match, and every bounded
+switch destination matches an actual instruction boundary at the same relative
+offset. See [scope-relocations.json](docs/wave8b/scope-relocations.json). The gate
+normalizer is unchanged; these are explicit supplementary checks.
 
 Representative 2s, atomic=1 cells (all modes/atomic values are in the linked table):
 
@@ -217,7 +235,7 @@ Identical instruction counts do not imply identical bodies or rates.
 ### Frozen arms and PAD semantics
 
 - **PRE**: `/home/user/Projects/cx-wave8b/build/tomokv-wave8b-PRE`; SHA-256 `f94fbd1d57873ff32bdf279b796139e0dd94e8cd7f613d9a7f17832ef86af359`.
-- **POST**: `/home/user/Projects/cx-wave8b/build/tomokv-wave8b-POST`; SHA-256 `4acdb9baab221726b46589a965802c4175439b9670077997690c20a0c37e040b`.
+- **POST**: `/home/user/Projects/cx-wave8b/build/tomokv-wave8b-POST`; SHA-256 `8c150a28fd2ef2e1e5b63b7b92e2c61f5e76824e22398835c9bab04ae708f6d7`.
 - **PAD-A**: `/home/user/Projects/cx-wave8b/build/tomokv-wave8b-PAD-A`; SHA-256 `af25884a6904fb0400e120fde7d88ee1976da20f421ca6fcda6b28ddf576aa24`.
 - **headline**: `/home/user/Projects/bench-bins/tomokv-headline-3700b51d7`; SHA-256 `56ec64d13cf87d97d75ad955311a44c77ffc87a6798b548d5c4330b6713cd97c`.
 - **execindex**: `/home/user/Projects/bins/execindex-post-aee04885`; SHA-256 `aee048859f6f8d84d5aa4e0b30767ad1e8dac4595d383ff634a8226027d1566a`.
@@ -265,14 +283,64 @@ are **NOT RUN — reserved to the maintainer**. Append results as MEASURE-RESULT
 
 ### Correctness proof
 
-Final individual gate jobs are running. Their argv, binary hashes, engine/mode,
-exits and raw artifact directories are recorded under docs/wave8b/jobs. This is
-not a completed full gate and does not produce a landing receipt.
+The [proof summary](docs/wave8b/proof-summary.md) and its
+[machine-readable receipts](docs/wave8b/proof-summary.json) cover **22 whole-job
+invocations, 954 successful row executions and four retained failed-attempt
+rows, all resolved**. Repeated prerequisites and private rows are included in
+that execution count; it is not the EXPECT tally or a full-gate landing receipt.
+Every invocation records argv, binary hash, mode/engine, exit and raw artifacts.
 
-`make all`, every job_production_units target, both live-arms builds and the
-blockfix cost fixture built successfully; all 49 make-q freshness checks passed
-with the release SHA unchanged (docs/wave8b/build/receipt.json). Final planted
-scan and stale-generation controls both abort as required; controls.py records
-the exact mutants and failure witnesses. Earlier failed attempts remain in the
-job receipts: the unregistered-job attempt and three existing wave8 Lua TRYAGAIN
-assertions during the intermediate compile-concurrent run are not hidden.
+| Required proof | Result |
+|---|---|
+| Latency, slowlog, INFO, lane hooks and execindex oracle/complexity | Passed; includes all eight wave-8 timing-interaction legs and wave8b's pending EXEC/script/WAIT transitions |
+| Feature, txnorder, multirace, EXEC, WATCH, scripting, xscript, blocking and writeback | Passed through their owning jobs; both modes and engines, including armed read-local and atomic 0/1 legs |
+| Redis differential | Both engines passed fixed seeds 7/19/20/23 and the rotating seed (uring 21, epoll 22), including mode equivalence |
+| AOF and delayed-fsync latency | 109 passing rows in each mode invocation, covering both engines |
+| Tcl compatibility job | Both modes passed the unchanged frozen manifest; details below |
+| `python3 tests/gates_test.py` | 73 tests passed |
+| `abba_selftest` | Passed the complete job in the corrected disposable copy |
+| `make all` and every `job_production_units` target | Built successfully; all 49 `make -q` checks passed |
+| Directed falsifiers | Four planted binaries abort as required; all 22 source controls pass |
+
+The Tcl job runs 35 files per mode: **1,643 required passes, 607 existing skips,
+and five explicitly named setup errors** per mode, with no unexpected errors.
+The named errors are two unsupported `DEBUG set-disable-deny-scripts` setups,
+one `list-compress-depth` setup in each of list/list-3, and one immutable
+appendonly setup in stream-cgroups. This is the existing gate's frozen passing
+subset, not a claim that every upstream Redis Tcl test passes. Its manifest and
+expectations were not weakened; see [tcl-summary.json](docs/wave8b/tcl-summary.json).
+
+Three first-pass failures were source checks: one generated WAIT comment was
+out of sync, which also failed template-forwarding parity, and the writeback
+checker still required the old unconditional grace bookkeeping. Regeneration
+and updated positive/negative source witnesses fixed them; the complete owning
+jobs passed in `final-source-repair` (7/7). The initial disposable ABBA copy
+also missed FULL's trailing comment, omitted required documentation fixtures,
+and used a build symlink that invalidated exact-path controls. Its failed job is
+retained. A complete fresh copy with a real build directory verifies 807/824
+and passes the whole job. The real EXPECT constants and landing fixture remain
+unchanged. See [selftest-setup-error.json](docs/wave8b/selftest-setup-error.json).
+
+Runtime jobs used SHA `4acdb9baab221726b46589a965802c4175439b9670077997690c20a0c37e040b`
+before the generated-comment repair. Final POST is the SHA listed above.
+[comment-sync.json](docs/wave8b/comment-sync.json) proves identical C++ tokens,
+every allocated section except GNU build-id, every program header, the entry
+point, and all 13,008 symbols' names/addresses/sizes. Only non-runtime debug/linker
+metadata and GNU build-id may differ. The final source checks and corrected
+ABBA job ran against the final SHA. The final build/freshness checks also retain
+that SHA throughout ([build/receipt.json](docs/wave8b/build/receipt.json)).
+The [final read-only checks](docs/wave8b/final-check.json) reverify all 49
+freshness queries, all five arm hashes, unchanged EXPECT/fixture files, and
+cleanup of lane servers and listeners.
+
+Earlier intermediate attempts remain available too: the unregistered-job attempt,
+the interrupted v1 campaign, and three wave-8 Lua TRYAGAIN assertions during a
+compile-concurrent run. The final quiet eight-leg timing run passed; see
+[timing-interactions.json](docs/wave8b/timing-interactions.json). All four final
+native falsifiers—scan, stale slice, delayed callback and orphan script child—
+abort as required in [controls/receipts.json](docs/wave8b/controls/receipts.json).
+
+**NOT RUN:** performance benchmarks, load generators and the full gate iteration
+are reserved to the maintainer. Exact EXEC instruction parity and complete hot
+body identity remain unmet as quantified above; landing is held for the requested
+merit decision. No throughput claim is made.

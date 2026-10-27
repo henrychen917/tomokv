@@ -87,6 +87,12 @@ assert {row['case'] for row in controls} == {'scan', 'stale', 'callback', 'orpha
 assert all(row['exit'] == -6 for row in controls), 'planted native failures did not abort'
 source_controls = json.loads((OUT / 'source-controls.json').read_text())
 assert len(source_controls) == 22 and all(row['passed'] for row in source_controls)
+scope = json.loads((OUT / 'scope-identity.json').read_text())
+relocations = json.loads((OUT / 'scope-relocations.json').read_text())
+required_relocations = {(row['probe_sha256'], diff['name']) for row in scope['rows'] for diff in row['differences']}
+verified_relocations = {(row['probe_sha256'], row['name']) for row in relocations['rows'] if row['verified']}
+assert required_relocations == verified_relocations
+assert sum(len(row['traces']) for row in scope['rows']) == 336
 result = dict(post_sha256=arms['POST']['sha256'], runtime_identity_bridge='docs/wave8b/comment-sync.json',
               whole_job_invocations=len(rows), successful_row_executions=sum(r['passed'] for r in rows if not r['invalid_setup']),
               failed_attempt_rows=sum(r['failed'] for r in rows), unresolved_failures=failures,
@@ -94,6 +100,8 @@ result = dict(post_sha256=arms['POST']['sha256'], runtime_identity_bridge='docs/
               rows=rows, gates_test=gates, make_freshness_checks=len(build['freshness']),
               timing_interaction_legs=len(timing['rows']), native_negative_controls=len(controls),
               source_controls=len(source_controls),
+              counted_trace_cases=336, strict_counted_body_matches=sum(row['matching_bodies'] for row in scope['rows']),
+              separately_verified_body_relocations=len(verified_relocations),
               not_run=['Full gate iteration and performance/load-generator merit: maintainer reserved'],
               dq=1, df=1, wave8_dq=8, wave8_df=8, expected_after_landing={'quick':807,'full':824})
 (OUT / 'proof-summary.json').write_text(json.dumps(result, indent=2) + '\n')

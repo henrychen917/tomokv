@@ -42,4 +42,6 @@ digest=sha('build/tomokv')
 subprocess.run(['python3','docs/wave8b/quiet_checks.py'],check=True)
 subprocess.run(['python3','docs/wave8b/baseline_probes.py'],check=True)
 subprocess.run(['python3','docs/wave8b/scope_identity.py'],check=True)
+subprocess.run(['python3','docs/wave8b/scope_differences.py'],check=True)
+subprocess.run(['python3','docs/wave8b/scope_relocations.py'],check=True)
 assert sha('build/tomokv')==digest
