@@ -140,7 +140,7 @@ end
 """
     script_file = BUILD / (label + ".gdb")
     script_file.write_text(script)
-    cmd = ["taskset", "-c", "108-111", "gdb", "-nx", "-batch", "-x", str(script_file), str(binary)]
+    cmd = ["taskset", "-c", "104-111", "gdb", "-nx", "-batch", "-x", str(script_file), str(binary)]
     full_log = BUILD / (label + ".log")
     with full_log.open("w") as log:
         result = subprocess.run(cmd, stdout=log, stderr=subprocess.STDOUT, timeout=1200)

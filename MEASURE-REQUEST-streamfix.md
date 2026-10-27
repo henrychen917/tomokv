@@ -25,4 +25,23 @@ Owner decisions required (stopped under the task's architecture/restriction rule
   actual eviction/access behavior. The owner must choose full-width LFU metadata and its
   hot-path/layout budget. No partial fix or known-failure removal is claimed.
 
-Remaining implementation and proof are in progress. Final gate counts and artifacts follow.
+- **DUMP-STREAM-REFUSED:** stopped for an owner ruling on an explicit restriction.
+  `tests/dumprestore.py:292–293` requires the refusal and calls it the “stream DUMP scope
+  cut”; `MEASURE-REQUEST-perfio.md` also documents unsupported stream DUMP. The owner was
+  asked whether to replace that restriction with a stream RDB codec. It remains unchanged
+  pending that decision; its named Tcl failure remains on the list.
+
+Implemented: whole-node approximate trimming and LIMIT, XREAD + with immediate/blocking
+resolution, exclusive-sentinel rejection, group/claim sentinel acceptance, XAUTOCLAIM
+COUNT grammar/range/allocation replies, and all four MPOP argument-error paths. The new
+job has six literal rows, each owning 24 mode/engine/database/atomic/read-local legs.
+The first full directed run passed 144/144 legs (`trim-gate.log`). The follow-up byte
+boundary coverage and full Tcl job are running. Twenty-one named Tcl failures were
+promoted to required passes; see `docs/streamfix/tcl-promotions.json`.
+
+DQ=+6, DF=+6, by the six `row_begin` declarations in `job_streamfix`, collected before
+`if [ "$TIER" = quick ]; then`. Actual wave8 inventory was 806/823, so the required
+counts become **812/829**. The standing constants remain **798/815**, unchanged.
+The explicit source-label fixture includes the six additions and totals 829.
+
+Remaining proof and final artifacts are in progress.

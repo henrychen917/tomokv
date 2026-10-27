@@ -730,6 +730,8 @@ struct StreamNode {
     StreamID base_id{};
     StreamID last_id{};
     uint32_t physical_entries = 0;
+    uint32_t deleted_entries = 0;
+    uint64_t wire_bytes = 0;             // Redis listpack size; native records remain Compact
 };
 
 struct StreamNodeIndex {

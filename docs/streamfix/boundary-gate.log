@@ -1,0 +1,23 @@
+GATE(quick): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 8 load SMT threads (automatic available siblings), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-streamfix/build/gate-run.chAo4v
+PARTIAL jobs (including prerequisites): release redis_tcl streamfix
+PARTIAL jobs (including prerequisites): release redis_tcl streamfix
+  row budget: 900s; median=0.005s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; Redis 7.4.10 Tcl passing subset (2s)
+  Redis 7.4.10 Tcl passing subset (2s)                 FAIL
+  row budget: 900s; median=-s; no-history-conservative-default; Redis 7.4.10 Tcl passing subset (1s)
+  Redis 7.4.10 Tcl passing subset (1s)                 FAIL
+  row budget: 900s; median=69.06s; correctness-plan-fallback; streamfix STREAM-TRIM-APPROX-LIMIT vs Redis 7.4
+  streamfix STREAM-TRIM-APPROX-LIMIT vs Redis 7.4      ok
+  row budget: 900s; median=40.145s; correctness-plan-fallback; streamfix XREAD-PLUS-LAST vs Redis 7.4
+  streamfix XREAD-PLUS-LAST vs Redis 7.4               ok
+  row budget: 900s; median=33.685s; correctness-plan-fallback; streamfix XRANGE-EXCLUSIVE-SENTINEL vs Redis 7.4
+  streamfix XRANGE-EXCLUSIVE-SENTINEL vs Redis 7.4     ok
+  row budget: 900s; median=33.665s; correctness-plan-fallback; streamfix STREAM-GROUP-ID-DASH vs Redis 7.4
+  streamfix STREAM-GROUP-ID-DASH vs Redis 7.4          ok
+  row budget: 900s; median=33.8s; correctness-plan-fallback; streamfix XAUTOCLAIM-COUNT-RANGE vs Redis 7.4
+  streamfix XAUTOCLAIM-COUNT-RANGE vs Redis 7.4        ok
+  row budget: 900s; median=34.15s; correctness-plan-fallback; streamfix MPOP-ARG-ERROR-TEXT vs Redis 7.4
+  streamfix MPOP-ARG-ERROR-TEXT vs Redis 7.4           ok
+GATE(PARTIAL): 7 ok, 2 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-streamfix/build/streamfix/boundary-ledger.txt.partial

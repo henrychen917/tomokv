@@ -362,6 +362,42 @@ uint64_t stream_lp_string_bytes(Slice value) {
                       encoded < 2097151 ? 3 : encoded < 268435455 ? 4 : 5);
 }
 
+template <typename Field, typename Value>
+uint64_t stream_lp_entry_bytes(const StreamID& id, const StreamID& master,
+                               const std::vector<Slice>& master_fields, size_t count,
+                               Field field, Value value) {
+    bool same = master_fields.size() == count;
+    for (size_t i = 0; same && i < count; i++) {
+        const Slice item = field(i);
+        same = master_fields[i].n == item.n &&
+               std::memcmp(master_fields[i].p, item.p, item.n) == 0;
+    }
+    uint64_t bytes = 2 + stream_lp_integer_bytes(static_cast<int64_t>(id.ms - master.ms)) +
+                         stream_lp_integer_bytes(static_cast<int64_t>(id.seq - master.seq));
+    if (!same) {
+        bytes += stream_lp_integer_bytes(count);
+        for (size_t i = 0; i < count; i++) bytes += stream_lp_string_bytes(field(i));
+    }
+    for (size_t i = 0; i < count; i++) bytes += stream_lp_string_bytes(value(i));
+    return bytes + stream_lp_integer_bytes(count * (same ? 1 : 2) + (same ? 3 : 4));
+}
+
+bool stream_node_full(const StreamNode& node, uint64_t incoming_bytes,
+                      const StreamLimits& limits) {
+    const uint64_t maximum = limits.node_max_bytes
+        ? std::min<uint64_t>(limits.node_max_bytes, 1ull << 30) : 1ull << 30;
+    return node.wire_bytes + incoming_bytes >= maximum ||
+           (limits.node_max_entries && node.physical_entries >= limits.node_max_entries);
+}
+
+void stream_node_delete_count(StreamNode& node, uint64_t removed) {
+    const uint64_t live = node.physical_entries - node.deleted_entries;
+    node.wire_bytes = node.wire_bytes - stream_lp_integer_bytes(live) -
+        stream_lp_integer_bytes(node.deleted_entries) + stream_lp_integer_bytes(live - removed) +
+        stream_lp_integer_bytes(node.deleted_entries + removed);
+    node.deleted_entries += static_cast<uint32_t>(removed);
+}
+
 bool stream_node_rollover(CompactView compact, const StreamID& base,
                           const std::vector<std::string>* base_fields,
                           uint64_t incoming_bytes, const StreamLimits& limits, bool& roll) {
@@ -381,18 +417,8 @@ bool stream_node_rollover(CompactView compact, const StreamID& base,
             bytes += stream_lp_integer_bytes(master_fields.size()) + 2; // fields, terminator
             for (Slice field : master_fields) bytes += stream_lp_string_bytes(field);
         }
-        bool same = master_fields.size() == record.fields.size();
-        for (size_t i = 0; same && i < master_fields.size(); i++)
-            same = master_fields[i].n == record.fields[i].n &&
-                   std::memcmp(master_fields[i].p, record.fields[i].p, master_fields[i].n) == 0;
-        bytes += 2 + stream_lp_integer_bytes(static_cast<int64_t>(record.id.ms - master.ms)) +
-                     stream_lp_integer_bytes(static_cast<int64_t>(record.id.seq - master.seq));
-        if (!same) {
-            bytes += stream_lp_integer_bytes(record.fields.size());
-            for (Slice field : record.fields) bytes += stream_lp_string_bytes(field);
-        }
-        for (Slice value : record.values) bytes += stream_lp_string_bytes(value);
-        bytes += stream_lp_integer_bytes(record.fields.size() * (same ? 1 : 2) + (same ? 3 : 4));
+        bytes += stream_lp_entry_bytes(record.id, master, master_fields, record.fields.size(),
+            [&](size_t i) { return record.fields[i]; }, [&](size_t i) { return record.values[i]; });
         if (record.flags & kDeleted) deleted++; else live++;
         return true;
     }, base_fields)) return false;
@@ -597,6 +623,13 @@ bool start_node(StreamVal& value, const OwnedRecord& record) {
     StreamNode node;
     node.base_id = node.last_id = record.id;
     node.physical_entries = 1;
+    node.deleted_entries = record.deleted;
+    node.wire_bytes = 7 + 2 + 2 + stream_lp_integer_bytes(record.fields.size()) + 2 +
+                      2 + 2 + 2 + stream_lp_integer_bytes(record.fields.size() + 3);
+    for (const std::string& field : record.fields)
+        node.wire_bytes += stream_lp_string_bytes(Slice(field.data(), field.size()));
+    for (const std::string& item : record.values)
+        node.wire_bytes += stream_lp_string_bytes(Slice(item.data(), item.size()));
     StreamHeader local = value.header;
     local.base_id = local.last_id = record.id;
     local.entries_added = 1;
@@ -627,14 +660,18 @@ bool append_owned_external(StreamVal& value, const OwnedRecord& record,
     uint64_t incoming = 0;
     for (const std::string& field : record.fields) incoming += field.size();
     for (const std::string& item : record.values) incoming += item.size();
-    bool rollover = false;
-    if (!stream_node_rollover(CompactView(&tail.log), tail.base_id,
-            value.nodes.size() == 1 && !value.head_fields.empty() ? &value.head_fields : nullptr,
-            incoming, limits, rollover)) return false;
-    if (rollover) return start_node(value, record);
+    if (stream_node_full(tail, incoming, limits)) return start_node(value, record);
+    Compact::Entry first; RecordView master;
+    if (!tail.log.at(1, first) || !decode_record(first.value, tail.base_id, {}, master)) return false;
+    const uint64_t extra = stream_lp_entry_bytes(record.id, master.id, master.fields,
+        record.fields.size(), [&](size_t i) { return Slice(record.fields[i].data(), record.fields[i].size()); },
+        [&](size_t i) { return Slice(record.values[i].data(), record.values[i].size()); });
     if (!tail.log.append(Slice(encoded.data(), encoded.size()))) return false;
+    const uint64_t before = record.deleted ? tail.deleted_entries : tail.physical_entries - tail.deleted_entries;
+    tail.wire_bytes += extra + stream_lp_integer_bytes(before + 1) - stream_lp_integer_bytes(before);
     tail.last_id = record.id;
     tail.physical_entries++;
+    tail.deleted_entries += record.deleted;
     value.tail_fields = record.fields;
     return write_node_header(tail, value.header);
 }
@@ -719,11 +756,7 @@ bool append_op_external(StreamVal& value, const StreamID& id, Op& op, uint32_t f
     std::string encoded;
     if (!encode_record_from_op(id, tail.last_id, op, first_field, value.tail_fields, false,
                                encoded)) return false;
-    bool rollover = false;
-    if (!stream_node_rollover(CompactView(&tail.log), tail.base_id,
-            value.nodes.size() == 1 && !value.head_fields.empty() ? &value.head_fields : nullptr,
-            stream_append_raw_bytes(op, first_field), limits, rollover)) return false;
-    if (rollover) {
+    if (stream_node_full(tail, stream_append_raw_bytes(op, first_field), limits)) {
         OwnedRecord owned; owned.id = id;
         const uint32_t nfields = (op.argc() - first_field) / 2;
         try {
@@ -735,7 +768,14 @@ bool append_op_external(StreamVal& value, const StreamID& id, Op& op, uint32_t f
         } catch (const std::bad_alloc&) { return false; }
         return start_node(value, owned);
     }
+    Compact::Entry first; RecordView master;
+    if (!tail.log.at(1, first) || !decode_record(first.value, tail.base_id, {}, master)) return false;
+    const uint64_t extra = stream_lp_entry_bytes(id, master.id, master.fields,
+        (op.argc() - first_field) / 2, [&](size_t i) { return op.arg(first_field + i * 2); },
+        [&](size_t i) { return op.arg(first_field + i * 2 + 1); });
     if (!tail.log.append(Slice(encoded.data(), encoded.size()))) return false;
+    const uint64_t live = tail.physical_entries - tail.deleted_entries;
+    tail.wire_bytes += extra + stream_lp_integer_bytes(live + 1) - stream_lp_integer_bytes(live);
     tail.last_id = id; tail.physical_entries++;
     update_tail_fields_from_op(value, op, first_field);
     return write_node_header(tail, value.header);
@@ -956,6 +996,7 @@ bool trim_stream(KvObj* object, TrimSpec trim, const StreamLimits& limits,
         apply_trim_cut(records, cut);
         // Re-encode the same physical entries so node and master-field boundaries survive.
         if (!rebuild_compact(node.log, local, records)) return false;
+        stream_node_delete_count(node, cut.live);
         node.base_id = records.front().id;
         value->index.front().base_id = node.base_id;
         value->head_fields.clear();
@@ -1398,6 +1439,7 @@ bool delete_one(KvObj* object, const StreamID& wanted) {
             std::string replacement(raw.value.p, raw.value.n);
             replacement[record.flags_offset] = static_cast<char>(record.flags | kDeleted);
             if (!node.log.replace(raw, Slice(replacement.data(), replacement.size()))) return false;
+            stream_node_delete_count(node, 1);
             value->note_expanded_delete(0, value->node_allocation_bytes);
             return true;
         }
