@@ -256,11 +256,13 @@ void IoLoop::climon_refresh_armed() {
     // UNPAUSE caller, or any owner whose clock passed the deadline) clears the global bit; EVERY
     // owner observes that here on its next batch and puts its own connections back.
     if ((before & Server::kClimonPause) && !(climon_armed_cached_ & Server::kClimonPause)) {
-        for (auto& [id, state] : climon_conn_) {
-            if (state.pause_blocked) {
-                state.pause_blocked = false;
+        for (auto it = climon_conn_.begin(); it != climon_conn_.end();) {
+            if (it->second.pause_blocked) {
+                it->second.pause_blocked = false;
                 srv_->blocking_client_unparked();
             }
+            if (it->second.idle()) it = climon_conn_.erase(it);
+            else ++it;
         }
         for (Client* c : self_->clients())
             if (c && !c->dead()) { enqueue_serve(c); mark_active(c); }
