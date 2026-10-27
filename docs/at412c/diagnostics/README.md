@@ -31,10 +31,11 @@ uring, atomic 0, shards 16; split uses 6:2. No rates are reported.
 
 Fresh PRE reproductions in this directory: XS-SHUT-1 aborts with rc -6;
 XS-NOTIFY-1 commits both writes but produces zero keyspace events and zero
-tracking invalidations. The archived snapshot reproduction remains in
-`docs/at412/deviations/bgsave-storm-stall.json` (including EXEC + writers
-without scripts). Fresh snapshot attempts and final-source results are in the
-lane report. A failure is never relabelled as a gate pass.
+tracking invalidations. SNAP-STORM-1 times out in BGSAVE on the first 30-second
+mixed run (five cuts, four completed saves). The script-free variant did not
+reproduce in ten 5-second and five 30-second attempts here; the earlier
+script-free witness remains in `docs/at412/deviations/bgsave-storm-stall.json`.
+A failure is never relabelled as a gate pass.
 
 Gate geometry changes:
 

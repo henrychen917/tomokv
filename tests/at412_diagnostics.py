@@ -31,7 +31,7 @@ def shutdown(c, port, keys, call, oracle):
         c.send('SHUTDOWN', 'NOSAVE')
         try:
             reply = c.read()
-        except (EOFError, ConnectionError, OSError):
+        except (EOFError, ConnectionError):
             reply = None
         assert reply is None or reply == b'OK', reply
     # boot() requires a clean exit and records a crash or forced kill as failure.

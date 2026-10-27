@@ -946,7 +946,7 @@ def disconnect_shutdown(c, port, keys, call, command, oracle, mode):
         c.send('SHUTDOWN', 'NOSAVE')
         try:
             reply = c.read()
-        except (EOFError, ConnectionError, OSError):
+        except (EOFError, ConnectionError):
             reply = None
         assert reply is None or reply == b'OK', reply
     finally:
