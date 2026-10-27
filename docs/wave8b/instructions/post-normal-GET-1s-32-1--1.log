@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-normal-GET-1s-32-1--1.log
-SHA-256: b863b89a0e0355601e24fb85c493b6ca15e7983518546dbe9e1471b2c9b24492
+SHA-256: 72d0d6d337e07969531d057477260128bbea0692fa54a910d7b1e6df4926b1cc
 Exit: 0
-0x0000555555c8d878	2353	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
-0x0000555555c8d743 in tomo::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff61cf088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356
+0x0000555555c8d898	2353	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
+0x0000555555c8d763 in tomo::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff61cf088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356
 2356	    }
-0x0000555555c8d748	2356	    }
-0x0000555555c8d751	2356	    }
-0x0000555555c8d757	2356	    }
-0x0000555555c8d75b	2356	    }
-0x0000555555c8d75c	2356	    }
-0x0000555555c8d75e	2356	    }
-0x0000555555c8d760	2356	    }
-0x0000555555c8d762	2356	    }
-0x0000555555c8d764	2356	    }
-0x0000555555c8d765	2356	    }
-0x0000555555d8d4e8 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:140
+0x0000555555c8d768	2356	    }
+0x0000555555c8d771	2356	    }
+0x0000555555c8d777	2356	    }
+0x0000555555c8d77b	2356	    }
+0x0000555555c8d77c	2356	    }
+0x0000555555c8d77e	2356	    }
+0x0000555555c8d780	2356	    }
+0x0000555555c8d782	2356	    }
+0x0000555555c8d784	2356	    }
+0x0000555555c8d785	2356	    }
+0x0000555555d8d528 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:140
 140	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
 30	[[gnu::noinline]] void scope_end(){
-[Inferior 1 (process 1821536) exited normally]
+[Inferior 1 (process 2356353) exited normally]
 COUNT 18578

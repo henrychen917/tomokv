@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-normal-MGET-1s-32-1--1.log
-SHA-256: 214f67b8954be94b556d6785669439cabf73d383eec7ab6a0266dbe15392f038
+SHA-256: 482b5c594e3adafe6cb3c82ad7a585dd093100c1efe0ea1393da4bb212a5e523
 Exit: 0
-0x0000555555a78f4d	2284	}
-0x0000555555a78f4e	2284	}
-0x0000555555a78f50	2284	}
-0x0000555555a78f52	2284	}
-0x0000555555a78f54	2284	}
-0x0000555555d8db07 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
+0x0000555555a78f6d	2284	}
+0x0000555555a78f6e	2284	}
+0x0000555555a78f70	2284	}
+0x0000555555a78f72	2284	}
+0x0000555555a78f74	2284	}
+0x0000555555d8db47 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
 180	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
 163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8db13	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8db1a	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8db22	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8db29	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8db2f	183	   std::string want="+OK\r\n";
-0x0000555555d8db36	183	   std::string want="+OK\r\n";
-0x0000555555d8db3d	182	   scope_end();
+0x0000555555d8db53	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8db5a	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8db62	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8db69	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8db6f	183	   std::string want="+OK\r\n";
+0x0000555555d8db76	183	   std::string want="+OK\r\n";
+0x0000555555d8db7d	182	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
 30	[[gnu::noinline]] void scope_end(){
-[Inferior 1 (process 1822386) exited normally]
+[Inferior 1 (process 2356940) exited normally]
 COUNT 326598

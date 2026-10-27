@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Strict PRE/PAD inventory followed by the four fence relocation proofs."""
+"""Strict PRE/PAD inventory followed by explicit relocation proofs."""
 import subprocess,sys
 import identity
 identity.REFS={'headline':'build/tomokv-wave8b-PRE','execindex':'build/tomokv-wave8b-PRE'}

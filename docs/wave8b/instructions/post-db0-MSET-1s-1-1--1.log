@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-db0-MSET-1s-1-1--1.log
-SHA-256: 2674e3a536fa042c6b097e671854e0e37f764e7b9c9a650e77c8c2472604e0b6
+SHA-256: b4e2dae91b28bffb94bbd183e969b4f2e6992f2724344b4f5c064b285a341fee
 Exit: 0
 0x0000555555688ed4	569	}
 0x0000555555688ed6	569	}
 0x0000555555688ed8	569	}
-0x0000555555d8dd77 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
+0x0000555555d8ddb7 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
 180	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
 163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8dd83	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8dd8a	163	   for(unsigned i=0;i<n;i++){TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+0x0000555555d8ddc3	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8ddca	163	   for(unsigned i=0;i<n;i++){TomoKV 1.0-cpp (Redis 7.4.10 compatible)
 PASS bounded production command scope
 
-0x0000555555d8dd92	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8dd99	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8dd9f	183	   std::string want="+OK\r\n";
-0x0000555555d8dda6	183	   std::string want="+OK\r\n";
-0x0000555555d8ddad	182	   scope_end();
+0x0000555555d8ddd2	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8ddd9	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8dddf	183	   std::string want="+OK\r\n";
+0x0000555555d8dde6	183	   std::string want="+OK\r\n";
+0x0000555555d8dded	182	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
 30	[[gnu::noinline]] void scope_end(){
-[Inferior 1 (process 1842620) exited normally]
+[Inferior 1 (process 2365908) exited normally]
 COUNT 16497

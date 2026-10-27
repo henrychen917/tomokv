@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-normal-MSET-2s-1-1--1.log
-SHA-256: 3af56f4914b5a956406b5c1291bb3228f6b7524d128cea8713201a553323fb6b
+SHA-256: d0e0238669ce6833f7a69d07566610eb2223ca542a8825c68864a1c1c0cc5dcd
 Exit: 0
-0x0000555555a5ded2	569	}
-0x0000555555a5ded4	569	}
-0x0000555555a5ded6	569	}
-0x0000555555a5ded8	569	}
-0x0000555555d91726 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
+0x0000555555a5def2	569	}
+0x0000555555a5def4	569	}
+0x0000555555a5def6	569	}
+0x0000555555a5def8	569	}
+0x0000555555d91766 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
 180	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
 163	   for(unsigned i=0;i<n;i++){
-0x0000555555d91731	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d91739	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d91740	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d91748	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d9174b	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d91751	183	   std::string want="+OK\r\n";
-0x0000555555d91758	183	   std::string want="+OK\r\n";
-0x0000555555d9175f	182	   scope_end();
+0x0000555555d91771	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d91779	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d91780	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d91788	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d9178b	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d91791	183	   std::string want="+OK\r\n";
+0x0000555555d91798	183	   std::string want="+OK\r\n";
+0x0000555555d9179f	182	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
 30	[[gnu::noinline]] void scope_end(){
-[Inferior 1 (process 1826699) exited normally]
+[Inferior 1 (process 2357976) exited normally]
 COUNT 16726

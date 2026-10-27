@@ -1,5 +1,5 @@
 {
-  "binary_sha256": "79d2a1e5f2498fa4b6d2d8227ca1c6f53f137ce17be83d6ef3c189c8f655a6ad",
+  "binary_sha256": "fa46002eb7cc2caf43c7f4aeff3713ff0c2feca115ef9ade60d1e7dabfa38449",
   "total": 1688,
   "functions": {
     "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 121,
@@ -21,23 +21,23 @@
     "tomo::FlatStore::publish_database_counts() const": 588
   },
   "bodies": {
-    "0x4b0af0 void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 121,
-    "0x4ad3a0 bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)": 223,
-    "0x50baf0 tomo::multi_task_tagged(tomo::Task const&)": 4,
-    "0x466470 tomo::FlatStore::budget_admit(tomo::Slice)": 20,
-    "0x5c1c60 void tomo::(anonymous namespace)::cmd_set<false>(tomo::Shard&, tomo::Op&)": 69,
-    "0x5c6e20 tomo::Op::key() const": 11,
-    "0x5c1180 tomo::(anonymous namespace)::store_string(tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool) [clone .isra.0]": 181,
-    "0x5bcfb0 tomo::(anonymous namespace)::parse_i64(tomo::Slice, long&) [clone .constprop.0] [clone .isra.0]": 7,
-    "0x55b840 tomo::KvObj::key() const": 39,
-    "0x55aa30 tomo::Slice::key_eq(tomo::Slice const&) const": 29,
-    "0x563000 tomo::FlatStore::live_or_expire(int, unsigned long, tomo::Slice, tomo::KvObj*)": 6,
-    "0x5c6dc0 tomo::good_size(unsigned long)": 24,
-    "0x5c6e60 tomo::KvObj::val_ptr()": 16,
-    "0x55b3a0 tomo::Op::Sink::reserve(unsigned long)": 24,
-    "0x4a4060 tomo::ExLoopT<false>::flush_notify_batch()": 94,
-    "0x7cb270 tomo::Shard::publish_size()": 232,
-    "0x7cb170 tomo::FlatStore::publish_database_counts() const": 588
+    "0x4b0b10 void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 121,
+    "0x4ad3c0 bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)": 223,
+    "0x50bb10 tomo::multi_task_tagged(tomo::Task const&)": 4,
+    "0x466490 tomo::FlatStore::budget_admit(tomo::Slice)": 20,
+    "0x5c1c80 void tomo::(anonymous namespace)::cmd_set<false>(tomo::Shard&, tomo::Op&)": 69,
+    "0x5c6e40 tomo::Op::key() const": 11,
+    "0x5c11a0 tomo::(anonymous namespace)::store_string(tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool) [clone .isra.0]": 181,
+    "0x5bcfd0 tomo::(anonymous namespace)::parse_i64(tomo::Slice, long&) [clone .constprop.0] [clone .isra.0]": 7,
+    "0x55b860 tomo::KvObj::key() const": 39,
+    "0x55aa50 tomo::Slice::key_eq(tomo::Slice const&) const": 29,
+    "0x563020 tomo::FlatStore::live_or_expire(int, unsigned long, tomo::Slice, tomo::KvObj*)": 6,
+    "0x5c6de0 tomo::good_size(unsigned long)": 24,
+    "0x5c6e80 tomo::KvObj::val_ptr()": 16,
+    "0x55b3c0 tomo::Op::Sink::reserve(unsigned long)": 24,
+    "0x4a4080 tomo::ExLoopT<false>::flush_notify_batch()": 94,
+    "0x7cb290 tomo::Shard::publish_size()": 232,
+    "0x7cb190 tomo::FlatStore::publish_database_counts() const": 588
   },
   "excluded": {
     "memcpy@plt": 1

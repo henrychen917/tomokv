@@ -1767,6 +1767,2613 @@
     "changed_return_rejected": true,
     "changed_opcode_rejected": true
   },
+  "tomo::IoLoop::pubsub_handle_event(tomo::PubSubEvent&)": {
+    "proof": {
+      "instructions": [
+        [
+          0,
+          4,
+          "endbr64",
+          "f3 0f 1e fa"
+        ],
+        [
+          4,
+          1,
+          "push   %rbp",
+          "55"
+        ],
+        [
+          5,
+          3,
+          "mov    %rsp,%rbp",
+          "48 89 e5"
+        ],
+        [
+          8,
+          2,
+          "push   %r15",
+          "41 57"
+        ],
+        [
+          10,
+          2,
+          "push   %r14",
+          "41 56"
+        ],
+        [
+          12,
+          2,
+          "push   %r13",
+          "41 55"
+        ],
+        [
+          14,
+          2,
+          "push   %r12",
+          "41 54"
+        ],
+        [
+          16,
+          1,
+          "push   %rbx",
+          "53"
+        ],
+        [
+          17,
+          3,
+          "mov    %rsi,%r14",
+          "49 89 f6"
+        ],
+        [
+          20,
+          3,
+          "mov    %rdi,%rbx",
+          "48 89 fb"
+        ],
+        [
+          23,
+          4,
+          "and    $0xffffffffffffffe0,%rsp",
+          "48 83 e4 e0"
+        ],
+        [
+          27,
+          4,
+          "sub    $0x20,%rsp",
+          "48 83 ec 20"
+        ],
+        [
+          31,
+          5,
+          "call   <tomo::IoLoop::climon_handle_event(tomo::PubSubEvent&)>",
+          "e8 ?? ?? ?? ??"
+        ],
+        [
+          36,
+          2,
+          "test   %al,%al",
+          "84 c0"
+        ],
+        [
+          38,
+          2,
+          "jne    <+0x94>",
+          "75 6c"
+        ],
+        [
+          40,
+          4,
+          "movzbl (%r14),%eax",
+          "41 0f b6 06"
+        ],
+        [
+          44,
+          2,
+          "cmp    $0x6,%al",
+          "3c 06"
+        ],
+        [
+          46,
+          6,
+          "ja     <+0xb0>",
+          "0f 87 7c 00 00 00"
+        ],
+        [
+          52,
+          7,
+          "lea    <rip>(%rip),%rdx        # <local-switch-0x260,0x360,0x260,0x2c0,0x260,0x2a0,0x50>",
+          "48 8d 15 ?? ?? ?? ??"
+        ],
+        [
+          59,
+          4,
+          "movslq (%rdx,%rax,4),%rax",
+          "48 63 04 82"
+        ],
+        [
+          63,
+          3,
+          "add    %rdx,%rax",
+          "48 01 d0"
+        ],
+        [
+          66,
+          3,
+          "notrack jmp *%rax",
+          "3e ff e0"
+        ],
+        [
+          69,
+          11,
+          "data16 cs nopw 0x0(%rax,%rax,1)",
+          "66 66 2e 0f 1f 84 00 00 00 00 00"
+        ],
+        [
+          80,
+          7,
+          "lea    0x150(%r14),%rsi",
+          "49 8d b6 50 01 00 00"
+        ],
+        [
+          87,
+          3,
+          "mov    %rbx,%rdi",
+          "48 89 df"
+        ],
+        [
+          90,
+          5,
+          "call   <tomo::IoLoop::pubsub_deliver_batch(std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> >&)>",
+          "e8 ?? ?? ?? ??"
+        ],
+        [
+          95,
+          7,
+          "mov    0x168(%r14),%r12",
+          "4d 8b a6 68 01 00 00"
+        ],
+        [
+          102,
+          7,
+          "mov    0x170(%r14),%r13",
+          "4d 8b ae 70 01 00 00"
+        ],
+        [
+          109,
+          3,
+          "cmp    %r13,%r12",
+          "4d 39 ec"
+        ],
+        [
+          112,
+          2,
+          "je     <+0x94>",
+          "74 22"
+        ],
+        [
+          114,
+          11,
+          "data16 cs nopw 0x0(%rax,%rax,1)",
+          "66 66 2e 0f 1f 84 00 00 00 00 00"
+        ],
+        [
+          125,
+          3,
+          "nopl   (%rax)",
+          "0f 1f 00"
+        ],
+        [
+          128,
+          3,
+          "mov    %r12,%rsi",
+          "4c 89 e6"
+        ],
+        [
+          131,
+          3,
+          "mov    %rbx,%rdi",
+          "48 89 df"
+        ],
+        [
+          134,
+          4,
+          "add    $0x18,%r12",
+          "49 83 c4 18"
+        ],
+        [
+          138,
+          5,
+          "call   <tomo::IoLoop::pubsub_finish_publish(tomo::PubSubResult const&)>",
+          "e8 ?? ?? ?? ??"
+        ],
+        [
+          143,
+          3,
+          "cmp    %r12,%r13",
+          "4d 39 e5"
+        ],
+        [
+          146,
+          2,
+          "jne    <+0x80>",
+          "75 ec"
+        ],
+        [
+          148,
+          4,
+          "lea    -0x28(%rbp),%rsp",
+          "48 8d 65 d8"
+        ],
+        [
+          152,
+          1,
+          "pop    %rbx",
+          "5b"
+        ],
+        [
+          153,
+          2,
+          "pop    %r12",
+          "41 5c"
+        ],
+        [
+          155,
+          2,
+          "pop    %r13",
+          "41 5d"
+        ],
+        [
+          157,
+          2,
+          "pop    %r14",
+          "41 5e"
+        ],
+        [
+          159,
+          2,
+          "pop    %r15",
+          "41 5f"
+        ],
+        [
+          161,
+          1,
+          "pop    %rbp",
+          "5d"
+        ],
+        [
+          162,
+          1,
+          "ret",
+          "c3"
+        ],
+        [
+          163,
+          11,
+          "data16 cs nopw 0x0(%rax,%rax,1)",
+          "66 66 2e 0f 1f 84 00 00 00 00 00"
+        ],
+        [
+          174,
+          2,
+          "xchg   %ax,%ax",
+          "66 90"
+        ],
+        [
+          176,
+          3,
+          "lea    -0x7(%rax),%edx",
+          "8d 50 f9"
+        ],
+        [
+          179,
+          3,
+          "cmp    $0xb,%dl",
+          "80 fa 0b"
+        ],
+        [
+          182,
+          6,
+          "ja     <+0x360>",
+          "0f 87 a4 02 00 00"
+        ],
+        [
+          188,
+          5,
+          "mov    $0x1,%edx",
+          "ba 01 00 00 00"
+        ],
+        [
+          193,
+          5,
+          "shlx   %rax,%rdx,%rdx",
+          "c4 e2 f9 f7 d2"
+        ],
+        [
+          198,
+          6,
+          "test   $0xaa80,%edx",
+          "f7 c2 80 aa 00 00"
+        ],
+        [
+          204,
+          6,
+          "jne    <+0x260>",
+          "0f 85 8e 01 00 00"
+        ],
+        [
+          210,
+          6,
+          "and    $0x60000,%edx",
+          "81 e2 00 00 06 00"
+        ],
+        [
+          216,
+          3,
+          "mov    %rdx,%r11",
+          "49 89 d3"
+        ],
+        [
+          219,
+          6,
+          "jne    <+0x280>",
+          "0f 85 9f 01 00 00"
+        ],
+        [
+          225,
+          2,
+          "cmp    $0x10,%al",
+          "3c 10"
+        ],
+        [
+          227,
+          6,
+          "jne    <+0x360>",
+          "0f 85 77 02 00 00"
+        ],
+        [
+          233,
+          4,
+          "mov    0x10(%r14),%rsi",
+          "49 8b 76 10"
+        ],
+        [
+          237,
+          7,
+          "lea    0x88(%rbx),%rdi",
+          "48 8d bb 88 00 00 00"
+        ],
+        [
+          244,
+          5,
+          "call   <std::_Hashtable<unsigned long, std::pair<unsigned long const, tomo::IoLoop::PubSubLocalConn>, std::allocator<std::pair<unsigned long const, tomo::IoLoop::PubSubLocalConn> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(unsigned long const&) [clone .isra.0]>",
+          "e8 ?? ?? ?? ??"
+        ],
+        [
+          249,
+          3,
+          "mov    %rax,%r12",
+          "49 89 c4"
+        ],
+        [
+          252,
+          3,
+          "test   %rax,%rax",
+          "48 85 c0"
+        ],
+        [
+          255,
+          2,
+          "je     <+0x94>",
+          "74 93"
+        ],
+        [
+          257,
+          7,
+          "cmpb   $0x0,0xc8(%rax)",
+          "80 b8 c8 00 00 00 00"
+        ],
+        [
+          264,
+          2,
+          "je     <+0x94>",
+          "74 8a"
+        ],
+        [
+          266,
+          6,
+          "mov    0xc4(%rax),%eax",
+          "8b 80 c4 00 00 00"
+        ],
+        [
+          272,
+          2,
+          "test   %eax,%eax",
+          "85 c0"
+        ],
+        [
+          274,
+          2,
+          "je     <+0x94>",
+          "74 80"
+        ],
+        [
+          276,
+          2,
+          "dec    %eax",
+          "ff c8"
+        ],
+        [
+          278,
+          8,
+          "mov    %eax,0xc4(%r12)",
+          "41 89 84 24 c4 00 00 00"
+        ],
+        [
+          286,
+          6,
+          "jne    <+0x94>",
+          "0f 85 70 ff ff ff"
+        ],
+        [
+          292,
+          2,
+          "xor    %edx,%edx",
+          "31 d2"
+        ],
+        [
+          294,
+          6,
+          "cmpq   $0x0,0x30(%r12)",
+          "49 83 7c 24 30 00"
+        ],
+        [
+          300,
+          2,
+          "je     <+0x15a>",
+          "74 2c"
+        ],
+        [
+          302,
+          2,
+          "xchg   %ax,%ax",
+          "66 90"
+        ],
+        [
+          304,
+          7,
+          "mov    0x188(%rbx),%rax",
+          "48 8b 83 88 01 00 00"
+        ],
+        [
+          311,
+          7,
+          "mov    $0xffffffffffffffff,%rcx",
+          "48 c7 c1 ff ff ff ff"
+        ],
+        [
+          318,
+          9,
+          "lock xadd %rcx,0x17670(%rax)",
+          "f0 48 0f c1 88 70 76 01 00"
+        ],
+        [
+          327,
+          3,
+          "test   %rcx,%rcx",
+          "48 85 c9"
+        ],
+        [
+          330,
+          6,
+          "je     <+0x738>",
+          "0f 84 e8 05 00 00"
+        ],
+        [
+          336,
+          3,
+          "inc    %rdx",
+          "48 ff c2"
+        ],
+        [
+          339,
+          5,
+          "cmp    0x30(%r12),%rdx",
+          "49 3b 54 24 30"
+        ],
+        [
+          344,
+          2,
+          "jb     <+0x130>",
+          "72 d6"
+        ],
+        [
+          346,
+          2,
+          "xor    %edx,%edx",
+          "31 d2"
+        ],
+        [
+          348,
+          6,
+          "cmpq   $0x0,0x68(%r12)",
+          "49 83 7c 24 68 00"
+        ],
+        [
+          354,
+          2,
+          "je     <+0x19a>",
+          "74 36"
+        ],
+        [
+          356,
+          11,
+          "data16 cs nopw 0x0(%rax,%rax,1)",
+          "66 66 2e 0f 1f 84 00 00 00 00 00"
+        ],
+        [
+          367,
+          1,
+          "nop",
+          "90"
+        ],
+        [
+          368,
+          7,
+          "mov    0x188(%rbx),%rax",
+          "48 8b 83 88 01 00 00"
+        ],
+        [
+          375,
+          7,
+          "mov    $0xffffffffffffffff,%rcx",
+          "48 c7 c1 ff ff ff ff"
+        ],
+        [
+          382,
+          9,
+          "lock xadd %rcx,0x17678(%rax)",
+          "f0 48 0f c1 88 78 76 01 00"
+        ],
+        [
+          391,
+          3,
+          "test   %rcx,%rcx",
+          "48 85 c9"
+        ],
+        [
+          394,
+          6,
+          "je     <+0x738>",
+          "0f 84 a8 05 00 00"
+        ],
+        [
+          400,
+          3,
+          "inc    %rdx",
+          "48 ff c2"
+        ],
+        [
+          403,
+          5,
+          "cmp    0x68(%r12),%rdx",
+          "49 3b 54 24 68"
+        ],
+        [
+          408,
+          2,
+          "jb     <+0x170>",
+          "72 d6"
+        ],
+        [
+          410,
+          9,
+          "cmpq   $0x0,0xa0(%r12)",
+          "49 83 bc 24 a0 00 00 00 00"
+        ],
+        [
+          419,
+          2,
+          "je     <+0x1dd>",
+          "74 38"
+        ],
+        [
+          421,
+          11,
+          "data16 cs nopw 0x0(%rax,%rax,1)",
+          "66 66 2e 0f 1f 84 00 00 00 00 00"
+        ],
+        [
+          432,
+          7,
+          "mov    0x188(%rbx),%rax",
+          "48 8b 83 88 01 00 00"
+        ],
+        [
+          439,
+          7,
+          "mov    $0xffffffffffffffff,%rdx",
+          "48 c7 c2 ff ff ff ff"
+        ],
+        [
+          446,
+          9,
+          "lock xadd %rdx,0x17688(%rax)",
+          "f0 48 0f c1 90 88 76 01 00"
+        ],
+        [
+          455,
+          3,
+          "test   %rdx,%rdx",
+          "48 85 d2"
+        ],
+        [
+          458,
+          6,
+          "je     <+0x738>",
+          "0f 84 68 05 00 00"
+        ],
+        [
+          464,
+          3,
+          "inc    %r11",
+          "49 ff c3"
+        ],
+        [
+          467,
+          8,
+          "cmp    0xa0(%r12),%r11",
+          "4d 3b 9c 24 a0 00 00 00"
+        ],
+        [
+          475,
+          2,
+          "jb     <+0x1b0>",
+          "72 d3"
+        ],
+        [
+          477,
+          5,
+          "lea    0x18(%r12),%rdi",
+          "49 8d 7c 24 18"
+        ],
+        [
+          482,
+          5,
+          "call   <std::_Hashtable<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Identity, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::clear()>",
+          "e8 ?? ?? ?? ??"
+        ],
+        [
+          487,
+          5,
+          "lea    0x50(%r12),%rdi",
+          "49 8d 7c 24 50"
+        ],
+        [
+          492,
+          5,
+          "call   <std::_Hashtable<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Identity, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::clear()>",
+          "e8 ?? ?? ?? ??"
+        ],
+        [
+          497,
+          8,
+          "lea    0x88(%r12),%rdi",
+          "49 8d bc 24 88 00 00 00"
+        ],
+        [
+          505,
+          5,
+          "call   <std::_Hashtable<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Identity, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::clear()>",
+          "e8 ?? ?? ?? ??"
+        ],
+        [
+          510,
+          5,
+          "mov    0x10(%r12),%rdi",
+          "49 8b 7c 24 10"
+        ],
+        [
+          515,
+          3,
+          "test   %rdi,%rdi",
+          "48 85 ff"
+        ],
+        [
+          518,
+          6,
+          "je     <+0x5c8>",
+          "0f 84 bc 03 00 00"
+        ],
+        [
+          524,
+          2,
+          "xor    %esi,%esi",
+          "31 f6"
+        ],
+        [
+          526,
+          2,
+          "xor    %ecx,%ecx",
+          "31 c9"
+        ],
+        [
+          528,
+          2,
+          "xor    %edx,%edx",
+          "31 d2"
+        ],
+        [
+          530,
+          5,
+          "call   <tomo::command_client_set_subscriptions(tomo::Client*, unsigned int, unsigned int, unsigned int)>",
+          "e8 ?? ?? ?? ??"
+        ],
+        [
+          535,
+          5,
+          "mov    0x10(%r12),%rsi",
+          "49 8b 74 24 10"
+        ],
+        [
+          540,
+          3,
+          "test   %rsi,%rsi",
+          "48 85 f6"
+        ],
+        [
+          543,
+          6,
+          "je     <+0x5c8>",
+          "0f 84 a3 03 00 00"
+        ],
+        [
+          549,
+          4,
+          "movb   $0x0,0x36(%rsi)",
+          "c6 46 36 00"
+        ],
+        [
+          553,
+          9,
+          "movb   $0x1,0xc9(%r12)",
+          "41 c6 84 24 c9 00 00 00 01"
+        ],
+        [
+          562,
+          4,
+          "cmpb   $0x0,0x33(%rsi)",
+          "80 7e 33 00"
+        ],
+        [
+          566,
+          6,
+          "jne    <+0x94>",
+          "0f 85 58 fe ff ff"
+        ],
+        [
+          572,
+          4,
+          "lea    -0x28(%rbp),%rsp",
+          "48 8d 65 d8"
+        ],
+        [
+          576,
+          3,
+          "mov    %rbx,%rdi",
+          "48 89 df"
+        ],
+        [
+          579,
+          1,
+          "pop    %rbx",
+          "5b"
+        ],
+        [
+          580,
+          2,
+          "pop    %r12",
+          "41 5c"
+        ],
+        [
+          582,
+          2,
+          "pop    %r13",
+          "41 5d"
+        ],
+        [
+          584,
+          2,
+          "pop    %r14",
+          "41 5e"
+        ],
+        [
+          586,
+          2,
+          "pop    %r15",
+          "41 5f"
+        ],
+        [
+          588,
+          1,
+          "pop    %rbp",
+          "5d"
+        ],
+        [
+          589,
+          5,
+          "jmp    <tomo::IoLoop::mark_active(tomo::Client*)>",
+          "e9 ?? ?? ?? ??"
+        ],
+        [
+          594,
+          11,
+          "data16 cs nopw 0x0(%rax,%rax,1)",
+          "66 66 2e 0f 1f 84 00 00 00 00 00"
+        ],
+        [
+          605,
+          3,
+          "nopl   (%rax)",
+          "0f 1f 00"
+        ],
+        [
+          608,
+          4,
+          "lea    -0x28(%rbp),%rsp",
+          "48 8d 65 d8"
+        ],
+        [
+          612,
+          3,
+          "mov    %r14,%rsi",
+          "4c 89 f6"
+        ],
+        [
+          615,
+          3,
+          "mov    %rbx,%rdi",
+          "48 89 df"
+        ],
+        [
+          618,
+          1,
+          "pop    %rbx",
+          "5b"
+        ],
+        [
+          619,
+          2,
+          "pop    %r12",
+          "41 5c"
+        ],
+        [
+          621,
+          2,
+          "pop    %r13",
+          "41 5d"
+        ],
+        [
+          623,
+          2,
+          "pop    %r14",
+          "41 5e"
+        ],
+        [
+          625,
+          2,
+          "pop    %r15",
+          "41 5f"
+        ],
+        [
+          627,
+          1,
+          "pop    %rbp",
+          "5d"
+        ],
+        [
+          628,
+          5,
+          "jmp    <tomo::IoLoop::pubsub_handle_home_request(tomo::PubSubEvent&)>",
+          "e9 ?? ?? ?? ??"
+        ],
+        [
+          633,
+          7,
+          "nopl   0x0(%rax)",
+          "0f 1f 80 00 00 00 00"
+        ],
+        [
+          640,
+          4,
+          "lea    -0x28(%rbp),%rsp",
+          "48 8d 65 d8"
+        ],
+        [
+          644,
+          3,
+          "mov    %r14,%rsi",
+          "4c 89 f6"
+        ],
+        [
+          647,
+          3,
+          "mov    %rbx,%rdi",
+          "48 89 df"
+        ],
+        [
+          650,
+          1,
+          "pop    %rbx",
+          "5b"
+        ],
+        [
+          651,
+          2,
+          "pop    %r12",
+          "41 5c"
+        ],
+        [
+          653,
+          2,
+          "pop    %r13",
+          "41 5d"
+        ],
+        [
+          655,
+          2,
+          "pop    %r14",
+          "41 5e"
+        ],
+        [
+          657,
+          2,
+          "pop    %r15",
+          "41 5f"
+        ],
+        [
+          659,
+          1,
+          "pop    %rbp",
+          "5d"
+        ],
+        [
+          660,
+          5,
+          "jmp    <tomo::IoLoop::pubsub_handle_acl_event(tomo::PubSubEvent&)>",
+          "e9 ?? ?? ?? ??"
+        ],
+        [
+          665,
+          7,
+          "nopl   0x0(%rax)",
+          "0f 1f 80 00 00 00 00"
+        ],
+        [
+          672,
+          4,
+          "lea    -0x28(%rbp),%rsp",
+          "48 8d 65 d8"
+        ],
+        [
+          676,
+          3,
+          "mov    %r14,%rsi",
+          "4c 89 f6"
+        ],
+        [
+          679,
+          3,
+          "mov    %rbx,%rdi",
+          "48 89 df"
+        ],
+        [
+          682,
+          1,
+          "pop    %rbx",
+          "5b"
+        ],
+        [
+          683,
+          2,
+          "pop    %r12",
+          "41 5c"
+        ],
+        [
+          685,
+          2,
+          "pop    %r13",
+          "41 5d"
+        ],
+        [
+          687,
+          2,
+          "pop    %r14",
+          "41 5e"
+        ],
+        [
+          689,
+          2,
+          "pop    %r15",
+          "41 5f"
+        ],
+        [
+          691,
+          1,
+          "pop    %rbp",
+          "5d"
+        ],
+        [
+          692,
+          5,
+          "jmp    <tomo::IoLoop::pubsub_notification_continue(tomo::PubSubEvent&)>",
+          "e9 ?? ?? ?? ??"
+        ],
+        [
+          697,
+          7,
+          "nopl   0x0(%rax)",
+          "0f 1f 80 00 00 00 00"
+        ],
+        [
+          704,
+          7,
+          "mov    0x180(%r14),%r13",
+          "4d 8b ae 80 01 00 00"
+        ],
+        [
+          711,
+          7,
+          "mov    0x188(%r14),%r12",
+          "4d 8b a6 88 01 00 00"
+        ],
+        [
+          718,
+          11,
+          "movq   $0x0,0x180(%r14)",
+          "49 c7 86 80 01 00 00 00 00 00 00"
+        ],
+        [
+          729,
+          11,
+          "movq   $0x0,0x188(%r14)",
+          "49 c7 86 88 01 00 00 00 00 00 00"
+        ],
+        [
+          740,
+          3,
+          "test   %r13,%r13",
+          "4d 85 ed"
+        ],
+        [
+          743,
+          6,
+          "je     <+0x480>",
+          "0f 84 93 01 00 00"
+        ],
+        [
+          749,
+          4,
+          "mov    0x8(%r13),%rax",
+          "49 8b 45 08"
+        ],
+        [
+          753,
+          4,
+          "cmp    %rax,0x10(%r13)",
+          "49 39 45 10"
+        ],
+        [
+          757,
+          6,
+          "je     <+0x480>",
+          "0f 84 85 01 00 00"
+        ],
+        [
+          763,
+          7,
+          "mov    0x190(%rbx),%rax",
+          "48 8b 83 90 01 00 00"
+        ],
+        [
+          770,
+          7,
+          "mov    0x1a40(%rbx),%r14",
+          "4c 8b b3 40 1a 00 00"
+        ],
+        [
+          777,
+          7,
+          "mov    0x1a20(%rbx),%r15",
+          "4c 8b bb 20 1a 00 00"
+        ],
+        [
+          784,
+          2,
+          "mov    (%rax),%eax",
+          "8b 00"
+        ],
+        [
+          786,
+          4,
+          "mov    %eax,0x0(%r13)",
+          "41 89 45 00"
+        ],
+        [
+          790,
+          7,
+          "mov    0x1a50(%rbx),%rax",
+          "48 8b 83 50 1a 00 00"
+        ],
+        [
+          797,
+          4,
+          "sub    $0x10,%rax",
+          "48 83 e8 10"
+        ],
+        [
+          801,
+          3,
+          "cmp    %rax,%r14",
+          "49 39 c6"
+        ],
+        [
+          804,
+          2,
+          "je     <+0x379>",
+          "74 53"
+        ],
+        [
+          806,
+          5,
+          "vmovq  %r13,%xmm2",
+          "c4 c1 f9 6e d5"
+        ],
+        [
+          811,
+          4,
+          "lea    0x10(%r14),%rax",
+          "49 8d 46 10"
+        ],
+        [
+          815,
+          6,
+          "vpinsrq $0x1,%r12,%xmm2,%xmm0",
+          "c4 c3 e9 22 c4 01"
+        ],
+        [
+          821,
+          5,
+          "vmovdqu %xmm0,(%r14)",
+          "c4 c1 7a 7f 06"
+        ],
+        [
+          826,
+          7,
+          "mov    %rax,0x1a40(%rbx)",
+          "48 89 83 40 1a 00 00"
+        ],
+        [
+          833,
+          3,
+          "cmp    %r15,%r14",
+          "4d 39 fe"
+        ],
+        [
+          836,
+          6,
+          "jne    <+0x94>",
+          "0f 85 4a fd ff ff"
+        ],
+        [
+          842,
+          3,
+          "mov    %r15,%rsi",
+          "4c 89 fe"
+        ],
+        [
+          845,
+          3,
+          "mov    %rbx,%rdi",
+          "48 89 df"
+        ],
+        [
+          848,
+          5,
+          "call   <tomo::IoLoop::pubsub_notification_send(std::shared_ptr<tomo::PubSubNotificationChain> const&)>",
+          "e8 ?? ?? ?? ??"
+        ],
+        [
+          853,
+          5,
+          "jmp    <+0x94>",
+          "e9 3a fd ff ff"
+        ],
+        [
+          858,
+          6,
+          "nopw   0x0(%rax,%rax,1)",
+          "66 0f 1f 44 00 00"
+        ],
+        [
+          864,
+          4,
+          "lea    -0x28(%rbp),%rsp",
+          "48 8d 65 d8"
+        ],
+        [
+          868,
+          3,
+          "mov    %r14,%rsi",
+          "4c 89 f6"
+        ],
+        [
+          871,
+          3,
+          "mov    %rbx,%rdi",
+          "48 89 df"
+        ],
+        [
+          874,
+          1,
+          "pop    %rbx",
+          "5b"
+        ],
+        [
+          875,
+          2,
+          "pop    %r12",
+          "41 5c"
+        ],
+        [
+          877,
+          2,
+          "pop    %r13",
+          "41 5d"
+        ],
+        [
+          879,
+          2,
+          "pop    %r14",
+          "41 5e"
+        ],
+        [
+          881,
+          2,
+          "pop    %r15",
+          "41 5f"
+        ],
+        [
+          883,
+          1,
+          "pop    %rbp",
+          "5d"
+        ],
+        [
+          884,
+          5,
+          "jmp    <tomo::IoLoop::pubsub_handle_result(tomo::PubSubEvent&)>",
+          "e9 ?? ?? ?? ??"
+        ],
+        [
+          889,
+          7,
+          "mov    0x1a58(%rbx),%rax",
+          "48 8b 83 58 1a 00 00"
+        ],
+        [
+          896,
+          7,
+          "mov    0x1a38(%rbx),%rsi",
+          "48 8b b3 38 1a 00 00"
+        ],
+        [
+          903,
+          3,
+          "mov    %r14,%rdx",
+          "4c 89 f2"
+        ],
+        [
+          906,
+          10,
+          "movabs $0xfffffffffffffff,%rdi",
+          "48 bf ff ff ff ff ff ff ff 0f"
+        ],
+        [
+          916,
+          3,
+          "mov    %rax,%rcx",
+          "48 89 c1"
+        ],
+        [
+          919,
+          5,
+          "mov    %rax,0x18(%rsp)",
+          "48 89 44 24 18"
+        ],
+        [
+          924,
+          3,
+          "sub    %rsi,%rcx",
+          "48 29 f1"
+        ],
+        [
+          927,
+          5,
+          "mov    %rcx,0x10(%rsp)",
+          "48 89 4c 24 10"
+        ],
+        [
+          932,
+          4,
+          "sar    $0x3,%rcx",
+          "48 c1 f9 03"
+        ],
+        [
+          936,
+          4,
+          "cmp    $0x1,%rax",
+          "48 83 f8 01"
+        ],
+        [
+          940,
+          3,
+          "mov    %rcx,%rax",
+          "48 89 c8"
+        ],
+        [
+          943,
+          4,
+          "adc    $0xffffffffffffffff,%rax",
+          "48 83 d0 ff"
+        ],
+        [
+          947,
+          7,
+          "sub    0x1a48(%rbx),%rdx",
+          "48 2b 93 48 1a 00 00"
+        ],
+        [
+          954,
+          4,
+          "shl    $0x5,%rax",
+          "48 c1 e0 05"
+        ],
+        [
+          958,
+          4,
+          "sar    $0x4,%rdx",
+          "48 c1 fa 04"
+        ],
+        [
+          962,
+          3,
+          "add    %rdx,%rax",
+          "48 01 d0"
+        ],
+        [
+          965,
+          7,
+          "mov    0x1a30(%rbx),%rdx",
+          "48 8b 93 30 1a 00 00"
+        ],
+        [
+          972,
+          3,
+          "sub    %r15,%rdx",
+          "4c 29 fa"
+        ],
+        [
+          975,
+          4,
+          "sar    $0x4,%rdx",
+          "48 c1 fa 04"
+        ],
+        [
+          979,
+          3,
+          "add    %rdx,%rax",
+          "48 01 d0"
+        ],
+        [
+          982,
+          3,
+          "cmp    %rdi,%rax",
+          "48 39 f8"
+        ],
+        [
+          985,
+          6,
+          "je     <+0x723>",
+          "0f 84 44 03 00 00"
+        ],
+        [
+          991,
+          7,
+          "mov    0x1a10(%rbx),%r8",
+          "4c 8b 83 10 1a 00 00"
+        ],
+        [
+          998,
+          5,
+          "mov    0x18(%rsp),%rax",
+          "48 8b 44 24 18"
+        ],
+        [
+          1003,
+          7,
+          "mov    0x1a18(%rbx),%rdx",
+          "48 8b 93 18 1a 00 00"
+        ],
+        [
+          1010,
+          3,
+          "sub    %r8,%rax",
+          "4c 29 c0"
+        ],
+        [
+          1013,
+          3,
+          "mov    %rdx,%r9",
+          "49 89 d1"
+        ],
+        [
+          1016,
+          4,
+          "sar    $0x3,%rax",
+          "48 c1 f8 03"
+        ],
+        [
+          1020,
+          3,
+          "sub    %rax,%r9",
+          "49 29 c1"
+        ],
+        [
+          1023,
+          4,
+          "cmp    $0x1,%r9",
+          "49 83 f9 01"
+        ],
+        [
+          1027,
+          6,
+          "jbe    <+0x51e>",
+          "0f 86 15 01 00 00"
+        ],
+        [
+          1033,
+          5,
+          "mov    $0x200,%edi",
+          "bf 00 02 00 00"
+        ],
+        [
+          1038,
+          5,
+          "call   <_Znwm@plt>",
+          "e8 ?? ?? ?? ??"
+        ],
+        [
+          1043,
+          5,
+          "mov    0x18(%rsp),%rcx",
+          "48 8b 4c 24 18"
+        ],
+        [
+          1048,
+          5,
+          "vmovq  %r13,%xmm3",
+          "c4 c1 f9 6e dd"
+        ],
+        [
+          1053,
+          6,
+          "vpinsrq $0x1,%r12,%xmm3,%xmm0",
+          "c4 c3 e1 22 c4 01"
+        ],
+        [
+          1059,
+          4,
+          "mov    %rax,0x8(%rcx)",
+          "48 89 41 08"
+        ],
+        [
+          1063,
+          7,
+          "mov    0x1a40(%rbx),%rax",
+          "48 8b 83 40 1a 00 00"
+        ],
+        [
+          1070,
+          4,
+          "vmovdqu %xmm0,(%rax)",
+          "c5 fa 7f 00"
+        ],
+        [
+          1074,
+          7,
+          "mov    0x1a58(%rbx),%rdx",
+          "48 8b 93 58 1a 00 00"
+        ],
+        [
+          1081,
+          4,
+          "mov    0x8(%rdx),%rax",
+          "48 8b 42 08"
+        ],
+        [
+          1085,
+          4,
+          "add    $0x8,%rdx",
+          "48 83 c2 08"
+        ],
+        [
+          1089,
+          7,
+          "lea    0x200(%rax),%rcx",
+          "48 8d 88 00 02 00 00"
+        ],
+        [
+          1096,
+          6,
+          "vpbroadcastq %rax,%xmm0",
+          "62 f2 fd 08 7c c0"
+        ],
+        [
+          1102,
+          5,
+          "vmovq  %rcx,%xmm1",
+          "c4 e1 f9 6e c9"
+        ],
+        [
+          1107,
+          6,
+          "vpinsrq $0x1,%rdx,%xmm1,%xmm1",
+          "c4 e3 f1 22 ca 01"
+        ],
+        [
+          1113,
+          6,
+          "vinserti128 $0x1,%xmm1,%ymm0,%ymm0",
+          "c4 e3 7d 38 c1 01"
+        ],
+        [
+          1119,
+          8,
+          "vmovdqu %ymm0,0x1a40(%rbx)",
+          "c5 fe 7f 83 40 1a 00 00"
+        ],
+        [
+          1127,
+          3,
+          "cmp    %r15,%r14",
+          "4d 39 fe"
+        ],
+        [
+          1130,
+          6,
+          "je     <+0x68a>",
+          "0f 84 1a 02 00 00"
+        ],
+        [
+          1136,
+          3,
+          "vzeroupper",
+          "c5 f8 77"
+        ],
+        [
+          1139,
+          5,
+          "jmp    <+0x94>",
+          "e9 1c fc ff ff"
+        ],
+        [
+          1144,
+          8,
+          "nopl   0x0(%rax,%rax,1)",
+          "0f 1f 84 00 00 00 00 00"
+        ],
+        [
+          1152,
+          3,
+          "test   %r12,%r12",
+          "4d 85 e4"
+        ],
+        [
+          1155,
+          6,
+          "je     <+0x94>",
+          "0f 84 0b fc ff ff"
+        ],
+        [
+          1161,
+          5,
+          "mov    0x8(%r12),%rdx",
+          "49 8b 54 24 08"
+        ],
+        [
+          1166,
+          10,
+          "movabs $0x100000001,%rax",
+          "48 b8 01 00 00 00 01 00 00 00"
+        ],
+        [
+          1176,
+          5,
+          "lea    0x8(%r12),%rcx",
+          "49 8d 4c 24 08"
+        ],
+        [
+          1181,
+          3,
+          "cmp    %rax,%rdx",
+          "48 39 c2"
+        ],
+        [
+          1184,
+          2,
+          "je     <+0x4f0>",
+          "74 4e"
+        ],
+        [
+          1186,
+          7,
+          "cmpb   $0x0,<rip>(%rip)        # <__libc_single_threaded@GLIBC_2.32>",
+          "80 3d ?? ?? ?? ?? 00"
+        ],
+        [
+          1193,
+          2,
+          "je     <+0x4e0>",
+          "74 35"
+        ],
+        [
+          1195,
+          5,
+          "mov    0x8(%r12),%eax",
+          "41 8b 44 24 08"
+        ],
+        [
+          1200,
+          3,
+          "lea    -0x1(%rax),%edx",
+          "8d 50 ff"
+        ],
+        [
+          1203,
+          5,
+          "mov    %edx,0x8(%r12)",
+          "41 89 54 24 08"
+        ],
+        [
+          1208,
+          3,
+          "cmp    $0x1,%eax",
+          "83 f8 01"
+        ],
+        [
+          1211,
+          6,
+          "jne    <+0x94>",
+          "0f 85 d3 fb ff ff"
+        ],
+        [
+          1217,
+          4,
+          "lea    -0x28(%rbp),%rsp",
+          "48 8d 65 d8"
+        ],
+        [
+          1221,
+          3,
+          "mov    %r12,%rdi",
+          "4c 89 e7"
+        ],
+        [
+          1224,
+          1,
+          "pop    %rbx",
+          "5b"
+        ],
+        [
+          1225,
+          2,
+          "pop    %r12",
+          "41 5c"
+        ],
+        [
+          1227,
+          2,
+          "pop    %r13",
+          "41 5d"
+        ],
+        [
+          1229,
+          2,
+          "pop    %r14",
+          "41 5e"
+        ],
+        [
+          1231,
+          2,
+          "pop    %r15",
+          "41 5f"
+        ],
+        [
+          1233,
+          1,
+          "pop    %rbp",
+          "5d"
+        ],
+        [
+          1234,
+          5,
+          "jmp    <std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release_last_use_cold()>",
+          "e9 ?? ?? ?? ??"
+        ],
+        [
+          1239,
+          9,
+          "nopw   0x0(%rax,%rax,1)",
+          "66 0f 1f 84 00 00 00 00 00"
+        ],
+        [
+          1248,
+          5,
+          "mov    $0xffffffff,%eax",
+          "b8 ff ff ff ff"
+        ],
+        [
+          1253,
+          4,
+          "lock xadd %eax,(%rcx)",
+          "f0 0f c1 01"
+        ],
+        [
+          1257,
+          2,
+          "jmp    <+0x4b8>",
+          "eb cd"
+        ],
+        [
+          1259,
+          5,
+          "nopl   0x0(%rax,%rax,1)",
+          "0f 1f 44 00 00"
+        ],
+        [
+          1264,
+          4,
+          "mov    (%r12),%rax",
+          "49 8b 04 24"
+        ],
+        [
+          1268,
+          3,
+          "mov    %r12,%rdi",
+          "4c 89 e7"
+        ],
+        [
+          1271,
+          9,
+          "movq   $0x0,0x8(%r12)",
+          "49 c7 44 24 08 00 00 00 00"
+        ],
+        [
+          1280,
+          3,
+          "call   *0x10(%rax)",
+          "ff 50 10"
+        ],
+        [
+          1283,
+          4,
+          "mov    (%r12),%rax",
+          "49 8b 04 24"
+        ],
+        [
+          1287,
+          3,
+          "mov    %r12,%rdi",
+          "4c 89 e7"
+        ],
+        [
+          1290,
+          4,
+          "mov    0x18(%rax),%rax",
+          "48 8b 40 18"
+        ],
+        [
+          1294,
+          4,
+          "lea    -0x28(%rbp),%rsp",
+          "48 8d 65 d8"
+        ],
+        [
+          1298,
+          1,
+          "pop    %rbx",
+          "5b"
+        ],
+        [
+          1299,
+          2,
+          "pop    %r12",
+          "41 5c"
+        ],
+        [
+          1301,
+          2,
+          "pop    %r13",
+          "41 5d"
+        ],
+        [
+          1303,
+          2,
+          "pop    %r14",
+          "41 5e"
+        ],
+        [
+          1305,
+          2,
+          "pop    %r15",
+          "41 5f"
+        ],
+        [
+          1307,
+          1,
+          "pop    %rbp",
+          "5d"
+        ],
+        [
+          1308,
+          2,
+          "jmp    *%rax",
+          "ff e0"
+        ],
+        [
+          1310,
+          4,
+          "add    $0x2,%rcx",
+          "48 83 c1 02"
+        ],
+        [
+          1314,
+          4,
+          "lea    (%rcx,%rcx,1),%rax",
+          "48 8d 04 09"
+        ],
+        [
+          1318,
+          5,
+          "mov    %rcx,0x8(%rsp)",
+          "48 89 4c 24 08"
+        ],
+        [
+          1323,
+          3,
+          "cmp    %rdx,%rax",
+          "48 39 d0"
+        ],
+        [
+          1326,
+          6,
+          "jae    <+0x5d6>",
+          "0f 83 a2 00 00 00"
+        ],
+        [
+          1332,
+          3,
+          "mov    %rdx,%rax",
+          "48 89 d0"
+        ],
+        [
+          1335,
+          5,
+          "mov    0x18(%rsp),%rdx",
+          "48 8b 54 24 18"
+        ],
+        [
+          1340,
+          3,
+          "sub    %rcx,%rax",
+          "48 29 c8"
+        ],
+        [
+          1343,
+          3,
+          "shr    $1,%rax",
+          "48 d1 e8"
+        ],
+        [
+          1346,
+          4,
+          "lea    (%r8,%rax,8),%rcx",
+          "49 8d 0c c0"
+        ],
+        [
+          1350,
+          4,
+          "add    $0x8,%rdx",
+          "48 83 c2 08"
+        ],
+        [
+          1354,
+          3,
+          "sub    %rsi,%rdx",
+          "48 29 f2"
+        ],
+        [
+          1357,
+          3,
+          "cmp    %rsi,%rcx",
+          "48 39 f1"
+        ],
+        [
+          1360,
+          6,
+          "jae    <+0x699>",
+          "0f 83 43 01 00 00"
+        ],
+        [
+          1366,
+          4,
+          "cmp    $0x8,%rdx",
+          "48 83 fa 08"
+        ],
+        [
+          1370,
+          6,
+          "jle    <+0x6ea>",
+          "0f 8e 8a 01 00 00"
+        ],
+        [
+          1376,
+          3,
+          "mov    %rcx,%rdi",
+          "48 89 cf"
+        ],
+        [
+          1379,
+          5,
+          "call   <memmove@plt>",
+          "e8 ?? ?? ?? ??"
+        ],
+        [
+          1384,
+          3,
+          "mov    %rax,%rcx",
+          "48 89 c1"
+        ],
+        [
+          1387,
+          4,
+          "vmovq  (%rcx),%xmm4",
+          "c5 fa 7e 21"
+        ],
+        [
+          1391,
+          3,
+          "mov    (%rcx),%rax",
+          "48 8b 01"
+        ],
+        [
+          1394,
+          7,
+          "mov    %rcx,0x1a38(%rbx)",
+          "48 89 8b 38 1a 00 00"
+        ],
+        [
+          1401,
+          6,
+          "add    $0x200,%rax",
+          "48 05 00 02 00 00"
+        ],
+        [
+          1407,
+          6,
+          "vpinsrq $0x1,%rax,%xmm4,%xmm0",
+          "c4 e3 d9 22 c0 01"
+        ],
+        [
+          1413,
+          5,
+          "mov    0x10(%rsp),%rax",
+          "48 8b 44 24 10"
+        ],
+        [
+          1418,
+          8,
+          "vmovdqu %xmm0,0x1a28(%rbx)",
+          "c5 fa 7f 83 28 1a 00 00"
+        ],
+        [
+          1426,
+          3,
+          "add    %rcx,%rax",
+          "48 01 c8"
+        ],
+        [
+          1429,
+          5,
+          "mov    %rax,0x18(%rsp)",
+          "48 89 44 24 18"
+        ],
+        [
+          1434,
+          7,
+          "mov    %rax,0x1a58(%rbx)",
+          "48 89 83 58 1a 00 00"
+        ],
+        [
+          1441,
+          3,
+          "mov    (%rax),%rax",
+          "48 8b 00"
+        ],
+        [
+          1444,
+          5,
+          "mov    %rax,0x10(%rsp)",
+          "48 89 44 24 10"
+        ],
+        [
+          1449,
+          6,
+          "vmovq  0x10(%rsp),%xmm5",
+          "c5 fa 7e 6c 24 10"
+        ],
+        [
+          1455,
+          6,
+          "add    $0x200,%rax",
+          "48 05 00 02 00 00"
+        ],
+        [
+          1461,
+          6,
+          "vpinsrq $0x1,%rax,%xmm5,%xmm0",
+          "c4 e3 d1 22 c0 01"
+        ],
+        [
+          1467,
+          8,
+          "vmovdqu %xmm0,0x1a48(%rbx)",
+          "c5 fa 7f 83 48 1a 00 00"
+        ],
+        [
+          1475,
+          5,
+          "jmp    <+0x409>",
+          "e9 41 fe ff ff"
+        ],
+        [
+          1480,
+          9,
+          "movb   $0x1,0xc9(%r12)",
+          "41 c6 84 24 c9 00 00 00 01"
+        ],
+        [
+          1489,
+          5,
+          "jmp    <+0x94>",
+          "e9 be fa ff ff"
+        ],
+        [
+          1494,
+          3,
+          "test   %rdx,%rdx",
+          "48 85 d2"
+        ],
+        [
+          1497,
+          6,
+          "je     <+0x6c3>",
+          "0f 84 e4 00 00 00"
+        ],
+        [
+          1503,
+          5,
+          "lea    0x2(%rdx,%rdx,1),%rax",
+          "48 8d 44 12 02"
+        ],
+        [
+          1508,
+          5,
+          "mov    %rax,0x18(%rsp)",
+          "48 89 44 24 18"
+        ],
+        [
+          1513,
+          3,
+          "cmp    %rax,%rdi",
+          "48 39 c7"
+        ],
+        [
+          1516,
+          6,
+          "jb     <+0x6d1>",
+          "0f 82 df 00 00 00"
+        ],
+        [
+          1522,
+          5,
+          "mov    0x18(%rsp),%rax",
+          "48 8b 44 24 18"
+        ],
+        [
+          1527,
+          8,
+          "lea    0x0(,%rax,8),%rdi",
+          "48 8d 3c c5 00 00 00 00"
+        ],
+        [
+          1535,
+          5,
+          "call   <_Znwm@plt>",
+          "e8 ?? ?? ?? ??"
+        ],
+        [
+          1540,
+          5,
+          "mov    0x8(%rsp),%rdx",
+          "48 8b 54 24 08"
+        ],
+        [
+          1545,
+          3,
+          "mov    %rax,%rcx",
+          "48 89 c1"
+        ],
+        [
+          1548,
+          4,
+          "mov    %rax,(%rsp)",
+          "48 89 04 24"
+        ],
+        [
+          1552,
+          5,
+          "mov    0x18(%rsp),%rax",
+          "48 8b 44 24 18"
+        ],
+        [
+          1557,
+          7,
+          "mov    0x1a38(%rbx),%rsi",
+          "48 8b b3 38 1a 00 00"
+        ],
+        [
+          1564,
+          3,
+          "sub    %rdx,%rax",
+          "48 29 d0"
+        ],
+        [
+          1567,
+          3,
+          "shr    $1,%rax",
+          "48 d1 e8"
+        ],
+        [
+          1570,
+          4,
+          "lea    (%rcx,%rax,8),%rcx",
+          "48 8d 0c c1"
+        ],
+        [
+          1574,
+          7,
+          "mov    0x1a58(%rbx),%rax",
+          "48 8b 83 58 1a 00 00"
+        ],
+        [
+          1581,
+          4,
+          "lea    0x8(%rax),%rdx",
+          "48 8d 50 08"
+        ],
+        [
+          1585,
+          3,
+          "sub    %rsi,%rdx",
+          "48 29 f2"
+        ],
+        [
+          1588,
+          4,
+          "cmp    $0x8,%rdx",
+          "48 83 fa 08"
+        ],
+        [
+          1592,
+          6,
+          "jle    <+0x712>",
+          "0f 8e d4 00 00 00"
+        ],
+        [
+          1598,
+          3,
+          "mov    %rcx,%rdi",
+          "48 89 cf"
+        ],
+        [
+          1601,
+          5,
+          "call   <memmove@plt>",
+          "e8 ?? ?? ?? ??"
+        ],
+        [
+          1606,
+          3,
+          "mov    %rax,%rcx",
+          "48 89 c1"
+        ],
+        [
+          1609,
+          7,
+          "mov    0x1a18(%rbx),%rax",
+          "48 8b 83 18 1a 00 00"
+        ],
+        [
+          1616,
+          7,
+          "mov    0x1a10(%rbx),%rdi",
+          "48 8b bb 10 1a 00 00"
+        ],
+        [
+          1623,
+          5,
+          "mov    %rcx,0x8(%rsp)",
+          "48 89 4c 24 08"
+        ],
+        [
+          1628,
+          8,
+          "lea    0x0(,%rax,8),%rsi",
+          "48 8d 34 c5 00 00 00 00"
+        ],
+        [
+          1636,
+          5,
+          "call   <_ZdlPvm@plt>",
+          "e8 ?? ?? ?? ??"
+        ],
+        [
+          1641,
+          4,
+          "mov    (%rsp),%rax",
+          "48 8b 04 24"
+        ],
+        [
+          1645,
+          5,
+          "mov    0x8(%rsp),%rcx",
+          "48 8b 4c 24 08"
+        ],
+        [
+          1650,
+          7,
+          "mov    %rax,0x1a10(%rbx)",
+          "48 89 83 10 1a 00 00"
+        ],
+        [
+          1657,
+          5,
+          "mov    0x18(%rsp),%rax",
+          "48 8b 44 24 18"
+        ],
+        [
+          1662,
+          7,
+          "mov    %rax,0x1a18(%rbx)",
+          "48 89 83 18 1a 00 00"
+        ],
+        [
+          1669,
+          5,
+          "jmp    <+0x56b>",
+          "e9 e1 fe ff ff"
+        ],
+        [
+          1674,
+          7,
+          "mov    0x1a20(%rbx),%r15",
+          "4c 8b bb 20 1a 00 00"
+        ],
+        [
+          1681,
+          3,
+          "vzeroupper",
+          "c5 f8 77"
+        ],
+        [
+          1684,
+          5,
+          "jmp    <+0x34a>",
+          "e9 b1 fc ff ff"
+        ],
+        [
+          1689,
+          5,
+          "mov    0x10(%rsp),%rax",
+          "48 8b 44 24 10"
+        ],
+        [
+          1694,
+          5,
+          "lea    0x8(%rcx,%rax,1),%rax",
+          "48 8d 44 01 08"
+        ],
+        [
+          1699,
+          4,
+          "cmp    $0x8,%rdx",
+          "48 83 fa 08"
+        ],
+        [
+          1703,
+          2,
+          "jle    <+0x700>",
+          "7e 57"
+        ],
+        [
+          1705,
+          3,
+          "sub    %rdx,%rax",
+          "48 29 d0"
+        ],
+        [
+          1708,
+          5,
+          "mov    %rcx,0x18(%rsp)",
+          "48 89 4c 24 18"
+        ],
+        [
+          1713,
+          3,
+          "mov    %rax,%rdi",
+          "48 89 c7"
+        ],
+        [
+          1716,
+          5,
+          "call   <memmove@plt>",
+          "e8 ?? ?? ?? ??"
+        ],
+        [
+          1721,
+          5,
+          "mov    0x18(%rsp),%rcx",
+          "48 8b 4c 24 18"
+        ],
+        [
+          1726,
+          5,
+          "jmp    <+0x56b>",
+          "e9 a8 fe ff ff"
+        ],
+        [
+          1731,
+          9,
+          "movq   $0x3,0x18(%rsp)",
+          "48 c7 44 24 18 03 00 00 00"
+        ],
+        [
+          1740,
+          5,
+          "jmp    <+0x5f2>",
+          "e9 21 ff ff ff"
+        ],
+        [
+          1745,
+          5,
+          "mov    0x18(%rsp),%rcx",
+          "48 8b 4c 24 18"
+        ],
+        [
+          1750,
+          10,
+          "movabs $0x1fffffffffffffff,%rax",
+          "48 b8 ff ff ff ff ff ff ff 1f"
+        ],
+        [
+          1760,
+          3,
+          "cmp    %rcx,%rax",
+          "48 39 c8"
+        ],
+        [
+          1763,
+          2,
+          "jae    <+0x6fb>",
+          "73 16"
+        ],
+        [
+          1765,
+          5,
+          "call   <_ZSt28__throw_bad_array_new_lengthv@plt>",
+          "e8 ?? ?? ?? ??"
+        ],
+        [
+          1770,
+          6,
+          "jne    <+0x56b>",
+          "0f 85 7b fe ff ff"
+        ],
+        [
+          1776,
+          3,
+          "mov    (%rsi),%rax",
+          "48 8b 06"
+        ],
+        [
+          1779,
+          3,
+          "mov    %rax,(%rcx)",
+          "48 89 01"
+        ],
+        [
+          1782,
+          5,
+          "jmp    <+0x56b>",
+          "e9 70 fe ff ff"
+        ],
+        [
+          1787,
+          5,
+          "call   <_ZSt17__throw_bad_allocv@plt>",
+          "e8 ?? ?? ?? ??"
+        ],
+        [
+          1792,
+          6,
+          "jne    <+0x56b>",
+          "0f 85 65 fe ff ff"
+        ],
+        [
+          1798,
+          3,
+          "mov    (%rsi),%rdx",
+          "48 8b 16"
+        ],
+        [
+          1801,
+          4,
+          "mov    %rdx,-0x8(%rax)",
+          "48 89 50 f8"
+        ],
+        [
+          1805,
+          5,
+          "jmp    <+0x56b>",
+          "e9 59 fe ff ff"
+        ],
+        [
+          1810,
+          6,
+          "jne    <+0x649>",
+          "0f 85 31 ff ff ff"
+        ],
+        [
+          1816,
+          3,
+          "mov    (%rsi),%rax",
+          "48 8b 06"
+        ],
+        [
+          1819,
+          3,
+          "mov    %rax,(%rcx)",
+          "48 89 01"
+        ],
+        [
+          1822,
+          5,
+          "jmp    <+0x649>",
+          "e9 26 ff ff ff"
+        ],
+        [
+          1827,
+          7,
+          "lea    <rip>(%rip),%rdi        # <literal-string-63616e6e6f7420637265617465207374643a3a6465717565206c6172676572207468616e206d61785f73697a65282900>",
+          "48 8d 3d ?? ?? ?? ??"
+        ],
+        [
+          1834,
+          5,
+          "call   <_ZSt20__throw_length_errorPKc@plt>",
+          "e8 ?? ?? ?? ??"
+        ],
+        [
+          1839,
+          4,
+          "endbr64",
+          "f3 0f 1e fa"
+        ],
+        [
+          1843,
+          3,
+          "mov    %rax,%rbx",
+          "48 89 c3"
+        ],
+        [
+          1846,
+          2,
+          "jmp    <+0x73d>",
+          "eb 05"
+        ],
+        [
+          1848,
+          5,
+          "call   <abort@plt>",
+          "e8 ?? ?? ?? ??"
+        ],
+        [
+          1853,
+          3,
+          "test   %r12,%r12",
+          "4d 85 e4"
+        ],
+        [
+          1856,
+          2,
+          "je     <+0x755>",
+          "74 13"
+        ],
+        [
+          1858,
+          3,
+          "mov    %r12,%rdi",
+          "4c 89 e7"
+        ],
+        [
+          1861,
+          3,
+          "vzeroupper",
+          "c5 f8 77"
+        ],
+        [
+          1864,
+          5,
+          "call   <std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release()>",
+          "e8 ?? ?? ?? ??"
+        ],
+        [
+          1869,
+          3,
+          "mov    %rbx,%rdi",
+          "48 89 df"
+        ],
+        [
+          1872,
+          5,
+          "call   <_Unwind_Resume@plt>",
+          "e8 ?? ?? ?? ??"
+        ],
+        [
+          1877,
+          3,
+          "vzeroupper",
+          "c5 f8 77"
+        ],
+        [
+          1880,
+          2,
+          "jmp    <+0x74d>",
+          "eb f3"
+        ]
+      ],
+      "tables": [
+        {
+          "offset": 52,
+          "destinations": "local-switch-0x260,0x360,0x260,0x2c0,0x260,0x2a0,0x50"
+        }
+      ]
+    },
+    "changed_case_rejected": true,
+    "changed_opcode_rejected": true,
+    "reason": "Relocated bounded switch begins with printable p/NUL bytes; all seven destinations verified."
+  },
   "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": {
     "proof": {
       "instructions": [

@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-db0-MGET-2s-32-1--1.log
-SHA-256: a11a9d3bfb5b3896fd23cc15dde38e460053b23875dfd30be33c8d5f24e0a46a
+SHA-256: 7c83dcfd5f5fab34539cae80f2518528dee458bd4df3a882dc26f8014e00b494
 Exit: 0
 0x00005555556a411d	2284	}
 0x00005555556a411e	2284	}
 0x00005555556a4120	2284	}
 0x00005555556a4122	2284	}
 0x00005555556a4124	2284	}
-0x0000555555d91896 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
+0x0000555555d918d6 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
 180	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
 163	   for(unsigned i=0;i<n;i++){
-0x0000555555d918a2	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d918a9	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d918b1	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d918b8	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d918be	183	   std::string want="+OK\r\n";
-0x0000555555d918c5	183	   std::string want="+OK\r\n";
-0x0000555555d918cc	182	   scope_end();
+0x0000555555d918e2	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d918e9	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d918f1	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d918f8	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d918fe	183	   std::string want="+OK\r\n";
+0x0000555555d91905	183	   std::string want="+OK\r\n";
+0x0000555555d9190c	182	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
 30	[[gnu::noinline]] void scope_end(){
-[Inferior 1 (process 1842397) exited normally]
+[Inferior 1 (process 2365846) exited normally]
 COUNT 330662

@@ -19,6 +19,12 @@ for fused in (False,True):
  campaign += [('final-aof-'+('1s' if fused else '2s'),['aof-epoll','aof-uring'],['--fused'] if fused else [])]
 for engine in ('uring','epoll'):
  campaign += [('final-replyoff-fused-'+engine,['replyoff'],['--engine',engine,'--fused'])]
+campaign += [('final-script-aof',['notify_aof'],[])]
+for engine in ('uring','epoll'):
+ campaign += [('final-watch-blocking-'+engine,['exbatch_live','acl_recheck'],['--engine',engine])]
+ campaign += [('final-multidb-'+engine,
+     [f'multidb-{mode}-{read_local}-{atomic}' for mode in ('1s','2s')
+      for read_local in (0,1) for atomic in (0,1)], ['--engine',engine])]
 sha=hashlib.sha256((ROOT/'build/tomokv').read_bytes()).hexdigest();out=[]
 for name,jobs,opts in campaign:
  assert hashlib.sha256((ROOT/'build/tomokv').read_bytes()).hexdigest()==sha

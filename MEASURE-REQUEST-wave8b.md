@@ -2,9 +2,9 @@
 
 ## wave8b
 
-**Revalidation in progress:** the arm hashes and counts below describe v1, now
-superseded by an exact-start callback fix and discardable WAIT slices. V1 binaries
-are retained with `-v1` suffixes. Corrected arms and proof will replace this notice.
+**Correctness campaign in progress:** final offline counts, build/freshness,
+negative controls and frozen arms are complete. Final live job receipts will be
+listed below. Superseded v1 binaries remain available with `-v1` suffixes.
 
 **Landing held:** disabled EXEC has no latency hooks/store scans, but exact
 execindex instruction/body parity is not attained. POST remains +62..258 named
@@ -71,7 +71,14 @@ safety and must not be replaced by a check of the current global knob.
 CONFIG no clears all pending slices and script children. A cold disable timestamp
 rejects an old slice which finishes after no/yes; writers recheck the knob under
 the store lock. Histogram retirement verifies its configuration generation before
-publishing a combined sample. No locked server layout grows. WB policy 0 skips
+publishing a combined sample. Bound slowlog callbacks carry the exact start,
+instead of reconstructing it after a delayed callback. WAIT stores its initial
+probe as a discardable slice; no/yes cannot resurrect an old timer duration.
+An ordinary script parent rejected across no/yes consumes any post-enable nested
+children before its ROB slot can be reused. Four throwaway broken builds verify
+that the scan, stale-slice, delayed-callback and orphan-child checks all fail;
+see [controls/receipts.json](docs/wave8b/controls/receipts.json).
+No locked server layout grows. WB policy 0 skips
 grace-window observation; fused instantiations omit that bookkeeping. Slowlog's
 existing per-batch arm and readability assertions retain their semantics.
 
@@ -169,22 +176,35 @@ handling/fragment/retirement routines described above.
   code omits it. Policy 1 retains the selected grace and requires null merit.
 
 Every affected translation unit was re-derived: 14 pinned namespace variants
-(main, xshard, acl, climon, genthread, rl2s, reorder) plus 12 default-budget
-variants (scripting, latency_tracking, tracking, fliplisten, shutdown, lbplanner).
-Final trial recipes, IPA starting sizes, linked scores and choices are in
-[budgets-helpers/selected.json](docs/wave8b/budgets-helpers/selected.json);
-[unpinned-budgets.json](docs/wave8b/unpinned-budgets.json) records all 36 default
-budget trials (9992/10000/10008), which produce the same bodies per unit.
-Earlier trials are retained. Eight xshard candidates also have command-scope
-counts. Selection is compile-only and does not establish merit.
+(main, xshard, acl, climon, genthread, rl2s, reorder) plus 14 default-budget
+variants (scripting, latency_tracking, slowlog, tracking, fliplisten, shutdown,
+lbplanner). Final pinned recipes, IPA starting sizes, linked scores and choices
+are in [budgets-exact/selected.json](docs/wave8b/budgets-exact/selected.json).
+[unpinned-budgets.json](docs/wave8b/unpinned-budgets.json) records the 42 default
+budget trials (9992/10000/10008). Three variants had different bodies and were
+scored explicitly in unpinned-exact-selected.json; 10000 remains selected.
+After the final orphan-child correction, six fresh latency_tracking trials also
+selected 10000 (budgets-orphan/selected.json). Earlier trials are retained.
+Eight xshard candidates also have command-scope counts. Selection is compile-only
+and does not establish merit.
+
+| Pinned unit | normal | db0 |
+|---|---:|---:|
+| climon | 26265 | 26780 |
+| xshard | 148585 | 147391 |
+| acl | 35758 | 35705 |
+| main | 147838 | 146080 |
+| genthread | 131218 | 132012 |
+| rl2s | 164621 | 167496 |
+| reorder | 149103 | 150092 |
 
 A throwaway single-body optional-RAII alternative was counted and rejected:
 normal cross-shard four-child EXEC was 42,395 instructions versus selected
 42,271 (execindex 42,020). Evidence: optional-counts.json and optional_trial.py.
 No experimental implementation is compiled into POST.
 
-The strict gate normalizer inventories **9,893 function groups**: 8,130 equal
-headline, 1,032 additional groups equal an isolated lane, and 731 residual groups.
+The strict gate normalizer inventories **9,897 function groups**: 8,126 equal
+headline, 1,007 additional groups equal an isolated lane, and 764 residual groups.
 Among 280 EXEC/WATCH groups, 214 equal execindex. Of 78 GET/SET/MGET/MSET and
 scatter hot groups, 64 equal headline, eight equal a lane, and six remain
 composites. Thus the requested complete body identity is **not achieved**.
@@ -196,19 +216,22 @@ Identical instruction counts do not imply identical bodies or rates.
 ### Frozen arms and PAD semantics
 
 - **PRE**: `/home/user/Projects/cx-wave8b/build/tomokv-wave8b-PRE`; SHA-256 `f94fbd1d57873ff32bdf279b796139e0dd94e8cd7f613d9a7f17832ef86af359`.
-- **POST**: `/home/user/Projects/cx-wave8b/build/tomokv-wave8b-POST`; SHA-256 `6165ac2d17e50182aadaf2e9a1de08e53c266ccb900455869598a4e47c76db1d`.
-- **PAD-A**: `/home/user/Projects/cx-wave8b/build/tomokv-wave8b-PAD-A`; SHA-256 `7c9de24ce951aa375208e559c63e7bd9de856952a5f623abd86b97923914474a`.
+- **POST**: `/home/user/Projects/cx-wave8b/build/tomokv-wave8b-POST`; SHA-256 `4acdb9baab221726b46589a965802c4175439b9670077997690c20a0c37e040b`.
+- **PAD-A**: `/home/user/Projects/cx-wave8b/build/tomokv-wave8b-PAD-A`; SHA-256 `af25884a6904fb0400e120fde7d88ee1976da20f421ca6fcda6b28ddf576aa24`.
 - **headline**: `/home/user/Projects/bench-bins/tomokv-headline-3700b51d7`; SHA-256 `56ec64d13cf87d97d75ad955311a44c77ffc87a6798b548d5c4330b6713cd97c`.
 - **execindex**: `/home/user/Projects/bins/execindex-post-aee04885`; SHA-256 `aee048859f6f8d84d5aa4e0b30767ad1e8dac4595d383ff634a8226027d1566a`.
 
 **PAD-A is kind (A), a behaviour twin**: unmodified PRE behavior, with POST's
-`.text` start (0x1f930) and total size (8,454,615 bytes). PRE's `.text` is
+`.text` start (0x1f930) and total size (8,457,095 bytes). PRE's `.text` is
 8,435,415 bytes. Padding is unreachable. Individual function positions and data/
 TLS layout retain PRE, so this is an aggregate text-layout control, not a claim
 of exact per-symbol layout identity. The full link and object hashes are in
-pad-a.json. PRE/PAD has 9,759 strictly identical groups, four read-local fence
+pad-a.json. PRE/PAD has 9,758 strictly identical groups, four read-local fence
 relocations verified instruction-for-instruction including the return target,
-and one unreachable padding symbol (pad-identity/provenance.json).
+one pub/sub switch table whose seven destinations are verified, and one
+unreachable padding symbol (pad-identity/provenance.json). The strict normalizer
+misclassifies that relocated table's first two bytes, `p\0`, as a string; it is
+unchanged, and the separate provenance check resolves the difference explicitly.
 
 ### Maintainer measurement request (NOT RUN in this lane)
 

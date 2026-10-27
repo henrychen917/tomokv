@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-normal-MSET-1s-1-0--1.log
-SHA-256: 2522c26dc4bccc50281958c622ff0754f9f791eec085ef6f58c6f91dbe68e4b8
+SHA-256: 8348d07f4d39370df5a585af451df9c7542d5574184996f04de113528f7f5ccd
 Exit: 0
-0x0000555555a78f4d	2284	}
-0x0000555555a78f4e	2284	}
-0x0000555555a78f50	2284	}
-0x0000555555a78f52	2284	}
-0x0000555555a78f54	2284	}
-0x0000555555d8db07 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
+0x0000555555a78f6d	2284	}
+0x0000555555a78f6e	2284	}
+0x0000555555a78f70	2284	}
+0x0000555555a78f72	2284	}
+0x0000555555a78f74	2284	}
+0x0000555555d8db47 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:180
 180	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
 163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8db13	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8db1a	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8db22	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8db29	163	   for(unsigned i=0;i<n;i++){
-0x0000555555d8db2f	183	   std::string want="+OK\r\n";
-0x0000555555d8db36	183	   std::string want="+OK\r\n";
-0x0000555555d8db3d	182	   scope_end();
+0x0000555555d8db53	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8db5a	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8db62	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8db69	163	   for(unsigned i=0;i<n;i++){
+0x0000555555d8db6f	183	   std::string want="+OK\r\n";
+0x0000555555d8db76	183	   std::string want="+OK\r\n";
+0x0000555555d8db7d	182	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
 30	[[gnu::noinline]] void scope_end(){
-[Inferior 1 (process 1822424) exited normally]
+[Inferior 1 (process 2356989) exited normally]
 COUNT 10894

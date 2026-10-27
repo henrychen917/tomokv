@@ -1,9 +1,9 @@
 {
   "function_groups": 9764,
-  "unchanged": 9759,
-  "changed": 5,
+  "unchanged": 9758,
+  "changed": 6,
   "lane_equal": 0,
-  "residual": 5,
+  "residual": 6,
   "hot_groups": 1110,
   "hot_headline": 1110,
   "hot_lane": 0,
@@ -26,6 +26,6 @@
   },
   "post": {
     "path": "build/tomokv-wave8b-PAD-A",
-    "sha256": "7c9de24ce951aa375208e559c63e7bd9de856952a5f623abd86b97923914474a"
+    "sha256": "af25884a6904fb0400e120fde7d88ee1976da20f421ca6fcda6b28ddf576aa24"
   }
 }

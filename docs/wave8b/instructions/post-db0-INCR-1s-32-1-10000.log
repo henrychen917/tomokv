@@ -1,5 +1,5 @@
 Full bounded GDB trace: /home/user/Projects/cx-wave8b/build/wave8b/commands/post-db0-INCR-1s-32-1-10000.log
-SHA-256: 7bc20dd9d64ac7d44003280cb79af2398cd3b94a4414818bf2f43971fe247a7d
+SHA-256: ce2c4f69bac6a4b0753cccd681d880de0ceb6726366e0f650159013d1e17ae72
 Exit: 0
 2356	    }
 0x00005555558aecb8	2356	    }
@@ -12,12 +12,12 @@ Exit: 0
 0x00005555558aecd2	2356	    }
 0x00005555558aecd4	2356	    }
 0x00005555558aecd5	2356	    }
-0x0000555555d8d778 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=10000) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:140
+0x0000555555d8d7b8 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=10000) at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:140
 140	   scope_end();
 
 Breakpoint 2, scTomoKV 1.0-cpp (Redis 7.4.10 compatible)
 PASS bounded production command scope
 ope_end () at /home/user/Projects/cx-wave8b/tests/wave8b_scope.cc:30
 30	[[gnu::noinline]] void scope_end(){
-[Inferior 1 (process 1841657) exited normally]
+[Inferior 1 (process 2365670) exited normally]
 COUNT 35174
