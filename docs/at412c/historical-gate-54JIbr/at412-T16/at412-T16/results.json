@@ -1,0 +1,372 @@
+[
+  {
+    "case": "T16",
+    "leg": "redis-redis-0-EVAL",
+    "value": {
+      "events": 12,
+      "script_events": [
+        1,
+        1
+      ],
+      "deviation": null,
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "redis-redis-0-EVALSHA",
+    "value": {
+      "events": 12,
+      "script_events": [
+        1,
+        1
+      ],
+      "deviation": null,
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "redis-redis-0-FCALL",
+    "value": {
+      "events": 12,
+      "script_events": [
+        1,
+        1
+      ],
+      "deviation": null,
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "1s-uring-0-EVAL",
+    "value": {
+      "events": 10,
+      "script_events": [
+        0,
+        0
+      ],
+      "deviation": "XS-NOTIFY-1",
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "1s-uring-0-EVALSHA",
+    "value": {
+      "events": 10,
+      "script_events": [
+        0,
+        0
+      ],
+      "deviation": "XS-NOTIFY-1",
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "1s-uring-0-FCALL",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 993, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 950, in run_case\n    result = readonly_notifications(c, port, keys, call, command, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 880, in readonly_notifications\n    parallel(port, [writer, reader])\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 532, in parallel\n    assert not errors, errors\n           ^^^^^^^^^^\nAssertionError: ['Traceback (most recent call last):\\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 523, in run\\n    fn(conn)\\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 879, in reader\\n    assert isinstance(r, list) and len(r) == 2 and r[0] == r[1], r\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: [b\\'2\\', b\\'1\\']\\n']\n"
+  },
+  {
+    "case": "T16",
+    "leg": "1s-uring-1-EVAL",
+    "value": {
+      "events": 10,
+      "script_events": [
+        0,
+        0
+      ],
+      "deviation": "XS-NOTIFY-1",
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "1s-uring-1-EVALSHA",
+    "value": {
+      "events": 10,
+      "script_events": [
+        0,
+        0
+      ],
+      "deviation": "XS-NOTIFY-1",
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "1s-uring-1-FCALL",
+    "value": {
+      "events": 10,
+      "script_events": [
+        0,
+        0
+      ],
+      "deviation": "XS-NOTIFY-1",
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "1s-epoll-0-EVAL",
+    "value": {
+      "events": 10,
+      "script_events": [
+        0,
+        0
+      ],
+      "deviation": "XS-NOTIFY-1",
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "1s-epoll-0-EVALSHA",
+    "value": {
+      "events": 10,
+      "script_events": [
+        0,
+        0
+      ],
+      "deviation": "XS-NOTIFY-1",
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "1s-epoll-0-FCALL",
+    "value": {
+      "events": 10,
+      "script_events": [
+        0,
+        0
+      ],
+      "deviation": "XS-NOTIFY-1",
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "1s-epoll-1-EVAL",
+    "value": {
+      "events": 10,
+      "script_events": [
+        0,
+        0
+      ],
+      "deviation": "XS-NOTIFY-1",
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "1s-epoll-1-EVALSHA",
+    "value": {
+      "events": 10,
+      "script_events": [
+        0,
+        0
+      ],
+      "deviation": "XS-NOTIFY-1",
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "1s-epoll-1-FCALL",
+    "value": {
+      "events": 10,
+      "script_events": [
+        0,
+        0
+      ],
+      "deviation": "XS-NOTIFY-1",
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "2s-uring-0-EVAL",
+    "value": {
+      "events": 10,
+      "script_events": [
+        0,
+        0
+      ],
+      "deviation": "XS-NOTIFY-1",
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "2s-uring-0-EVALSHA",
+    "value": {
+      "events": 10,
+      "script_events": [
+        0,
+        0
+      ],
+      "deviation": "XS-NOTIFY-1",
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "2s-uring-0-FCALL",
+    "value": {
+      "events": 10,
+      "script_events": [
+        0,
+        0
+      ],
+      "deviation": "XS-NOTIFY-1",
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "2s-uring-1-EVAL",
+    "value": {
+      "events": 10,
+      "script_events": [
+        0,
+        0
+      ],
+      "deviation": "XS-NOTIFY-1",
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "2s-uring-1-EVALSHA",
+    "value": {
+      "events": 10,
+      "script_events": [
+        0,
+        0
+      ],
+      "deviation": "XS-NOTIFY-1",
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "2s-uring-1-FCALL",
+    "value": {
+      "events": 10,
+      "script_events": [
+        0,
+        0
+      ],
+      "deviation": "XS-NOTIFY-1",
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "2s-epoll-0-EVAL",
+    "value": {
+      "events": 10,
+      "script_events": [
+        0,
+        0
+      ],
+      "deviation": "XS-NOTIFY-1",
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "2s-epoll-0-EVALSHA",
+    "value": {
+      "events": 10,
+      "script_events": [
+        0,
+        0
+      ],
+      "deviation": "XS-NOTIFY-1",
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "2s-epoll-0-FCALL",
+    "value": {
+      "events": 10,
+      "script_events": [
+        0,
+        0
+      ],
+      "deviation": "XS-NOTIFY-1",
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "2s-epoll-1-EVAL",
+    "value": {
+      "events": 10,
+      "script_events": [
+        0,
+        0
+      ],
+      "deviation": "XS-NOTIFY-1",
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "2s-epoll-1-EVALSHA",
+    "value": {
+      "events": 10,
+      "script_events": [
+        0,
+        0
+      ],
+      "deviation": "XS-NOTIFY-1",
+      "readonly": 80
+    },
+    "pass": true
+  },
+  {
+    "case": "T16",
+    "leg": "2s-epoll-1-FCALL",
+    "value": {
+      "events": 10,
+      "script_events": [
+        0,
+        0
+      ],
+      "deviation": "XS-NOTIFY-1",
+      "readonly": 80
+    },
+    "pass": true
+  }
+]
