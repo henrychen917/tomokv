@@ -1,0 +1,12 @@
+[
+  {
+    "path": "gate-flipctl-unit.txt",
+    "bytes": 3940,
+    "sha256": "1672e938aa197446902597efa0f161ef30ce3f9f2c144767400f14687189300d"
+  },
+  {
+    "path": "output.log",
+    "bytes": 149,
+    "sha256": "b2916b9d2766c80c39b98effddfab8faeb8286a37636c89456c4695233e06534"
+  }
+]

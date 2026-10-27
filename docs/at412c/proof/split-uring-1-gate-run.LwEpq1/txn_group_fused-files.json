@@ -1,0 +1,22 @@
+[
+  {
+    "path": "gate-fused-txngroup.txt",
+    "bytes": 1677,
+    "sha256": "8e8a7aad382e40138cc18849f83ee6b8f41e1346280f18a0277a757aa945eb0c"
+  },
+  {
+    "path": "gate-srv-fused.DVj9c1",
+    "bytes": 7802,
+    "sha256": "88c03667fda4642bffda7e98a46c5323e8677dfd0eb58946417920eb0b858dae"
+  },
+  {
+    "path": "gate-srv-fused.otAICG",
+    "bytes": 7559,
+    "sha256": "6d74cd05ec883e376af8d3aea53f96ce0f9100bd93c6aac892aba7fd3eddf1fd"
+  },
+  {
+    "path": "output.log",
+    "bytes": 156,
+    "sha256": "2b793e239b35646d02607b669b26474630d3777015e68dce8db15c85933792dc"
+  }
+]

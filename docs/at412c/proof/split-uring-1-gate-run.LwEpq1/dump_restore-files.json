@@ -1,0 +1,22 @@
+[
+  {
+    "path": "gate-dumprestore-restart.txt",
+    "bytes": 174,
+    "sha256": "1b26f065f6d679e5a590de03b43477ee079c38aaaab8b59690219386f255c152"
+  },
+  {
+    "path": "gate-srv-main.KYhAYY",
+    "bytes": 6651,
+    "sha256": "7bcbef965a0c0d69f51d12bd8440c661706ddb7843a63a3d47605be3b50bf39f"
+  },
+  {
+    "path": "gate-srv-main.xvITVT",
+    "bytes": 6662,
+    "sha256": "af89c4c046d0a3c10e9e12dfb9bc231e9076c2e6d169849e1f2529604ab8866f"
+  },
+  {
+    "path": "output.log",
+    "bytes": 480,
+    "sha256": "4f8ed1724becf46ec8ee92dbb14d805b8a4227da4b5c30dc4eb13a0ab89725ac"
+  }
+]

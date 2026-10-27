@@ -1,0 +1,22 @@
+[
+  {
+    "path": "gate-srv-fused.SVIoWM",
+    "bytes": 7973,
+    "sha256": "2f82970b1b5f300febec35b7b7ca98c6e9543592b32905bc3e24062aed3cee84"
+  },
+  {
+    "path": "gate-srv-fused.yTmHo6",
+    "bytes": 7935,
+    "sha256": "05fe37775606335c366dee20e6debfad57b1d0234f2a3bb1bda0f9558b57d39a"
+  },
+  {
+    "path": "output.log",
+    "bytes": 157,
+    "sha256": "0ff2f8b69d24dd8f0953125cdd7e6358f0c22ec6ed84618ed9156bd06fe3c9e8"
+  },
+  {
+    "path": "txnorder-2s-1.txt",
+    "bytes": 4992,
+    "sha256": "f2e21a8e99cfac4f803ea7f957c53fc5a0c94733362a4bef967b70f9d1bffe20"
+  }
+]

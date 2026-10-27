@@ -1,0 +1,12 @@
+[
+  {
+    "path": "build.log",
+    "bytes": 104,
+    "sha256": "4ee0de15da996110f5ac0b8a4f73b0f80908701853c8eeac4b00b1d328799961"
+  },
+  {
+    "path": "output.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

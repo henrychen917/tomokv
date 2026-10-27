@@ -1,0 +1,3 @@
+ok	0.060000	DUMP/RESTORE prepare + native SAVE
+ok	0.050000	DUMP/RESTORE cross-restart round-trip
+ok	0.020000	DUMP/RESTORE restart shutdown invariants

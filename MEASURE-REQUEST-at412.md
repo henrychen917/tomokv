@@ -297,11 +297,14 @@ mechanism cost from compiler allocation or estimate contention throughput.
 |---|---|---|
 | Historical 54JIbr, saved POST 931130b2 | All at412 rows | 15 ok / 4 FAIL (T7/T11b/T15/T16); preserved, superseded by the final directed run |
 | CXwo22, POST b179853b | All 18 at412 rows, release prerequisite, production_units | **19 ok / 0 FAIL**, 423/423 server/oracle legs and 8/8 owner legs |
+| LwEpq1, POST b179853b | Broad native transaction, scripting/functions, persistence, FLIP and notification jobs; default uring boots plus each job's complete internal matrix | **420 ok / 0 FAIL** |
 
-The broader native proof is still running; this table will be completed from
-its actual partial ledgers. It is not a full gate receipt. All commands, hashes,
+Further engine/mode and differential runs are still running; this table will be
+completed from their actual partial ledgers. It is not a full gate receipt. All commands, hashes,
 job outcomes and per-leg inventories are archived by tools/at412c_record.py in
-`docs/at412c/proof/`.
+`docs/at412c/proof/`. The FLIP saturation job uses its existing memtier process
+only as correctness stress: rates are discarded and no PRE/POST performance
+comparison is run. No SKIP/NOT RUN appeared in the completed broad run's logs.
 
 The first queued phases use the binary-only /home/user/Projects/redis74 prefix,
 so preflight warns about absent Redis source files for the unselected ACL-metadata

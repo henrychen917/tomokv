@@ -225,5 +225,384 @@
         "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/release"
       }
     ]
+  },
+  {
+    "phase": "split-uring",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20200-20279"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_TEST_PORT": "20299",
+      "GATE_ONLY_JOBS": "debug-0 debug-1 txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 notify notifycompat notify_order notify_aof tracking_redirect trackfix_accounting trackfix_order snapshot-epoll snapshot-uring aof-epoll aof-uring aof_frame aoforder persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors dump_restore serverfix_waitaof txnorder_index txnorder2 txnorder_wake txn_group_fused txn_group_split script_bounds scriptfix flip fliplisten flipctl flip_saturated flip_unit flipfix_units persistfix_units compat2 compat3 clientfix"
+    },
+    "source": "c9e8ff2a14b34f346e72c469eccaae3abae7a0be",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "log": "/home/user/Projects/cx-at412c/build/at412c/proof/split-uring-1.log",
+    "began": 1793098947.002796,
+    "rc": 0,
+    "seconds": 2879.641,
+    "run_dir": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1",
+    "archived": "docs/at412c/proof/split-uring-1-gate-run.LwEpq1",
+    "jobs": [
+      {
+        "name": "aof-epoll",
+        "returncode": 0,
+        "passed": 54,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/aof-epoll"
+      },
+      {
+        "name": "aof-uring",
+        "returncode": 0,
+        "passed": 54,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/aof-uring"
+      },
+      {
+        "name": "aof_frame",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/aof_frame"
+      },
+      {
+        "name": "aoforder",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/aoforder"
+      },
+      {
+        "name": "clientfix",
+        "returncode": 0,
+        "passed": 14,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/clientfix"
+      },
+      {
+        "name": "compat2",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/compat2"
+      },
+      {
+        "name": "compat3",
+        "returncode": 0,
+        "passed": 6,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/compat3"
+      },
+      {
+        "name": "core_tsan_build",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/core_tsan_build"
+      },
+      {
+        "name": "debug-0",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/debug-0"
+      },
+      {
+        "name": "debug-1",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/debug-1"
+      },
+      {
+        "name": "dump_restore",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/dump_restore"
+      },
+      {
+        "name": "feature-armed-0",
+        "returncode": 0,
+        "passed": 35,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/feature-armed-0"
+      },
+      {
+        "name": "feature-armed-1",
+        "returncode": 0,
+        "passed": 35,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/feature-armed-1"
+      },
+      {
+        "name": "feature-split-0",
+        "returncode": 0,
+        "passed": 34,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/feature-split-0"
+      },
+      {
+        "name": "feature-split-1",
+        "returncode": 0,
+        "passed": 34,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/feature-split-1"
+      },
+      {
+        "name": "flip",
+        "returncode": 0,
+        "passed": 9,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/flip"
+      },
+      {
+        "name": "flip_saturated",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/flip_saturated"
+      },
+      {
+        "name": "flip_unit",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/flip_unit"
+      },
+      {
+        "name": "flipctl",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/flipctl"
+      },
+      {
+        "name": "flipfix_units",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/flipfix_units"
+      },
+      {
+        "name": "fliplisten",
+        "returncode": 0,
+        "passed": 4,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/fliplisten"
+      },
+      {
+        "name": "notify",
+        "returncode": 0,
+        "passed": 6,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/notify"
+      },
+      {
+        "name": "notify_aof",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/notify_aof"
+      },
+      {
+        "name": "notify_order",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/notify_order"
+      },
+      {
+        "name": "notifycompat",
+        "returncode": 0,
+        "passed": 7,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/notifycompat"
+      },
+      {
+        "name": "persistfix2_commands",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/persistfix2_commands"
+      },
+      {
+        "name": "persistfix2_errors",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/persistfix2_errors"
+      },
+      {
+        "name": "persistfix2_lastsave",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/persistfix2_lastsave"
+      },
+      {
+        "name": "persistfix2_shutdown",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/persistfix2_shutdown"
+      },
+      {
+        "name": "persistfix_units",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/persistfix_units"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/release"
+      },
+      {
+        "name": "script_bounds",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/script_bounds"
+      },
+      {
+        "name": "scriptfix",
+        "returncode": 0,
+        "passed": 8,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/scriptfix"
+      },
+      {
+        "name": "serverfix_waitaof",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/serverfix_waitaof"
+      },
+      {
+        "name": "snapshot-epoll",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/snapshot-epoll"
+      },
+      {
+        "name": "snapshot-uring",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/snapshot-uring"
+      },
+      {
+        "name": "trackfix_accounting",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/trackfix_accounting"
+      },
+      {
+        "name": "trackfix_order",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/trackfix_order"
+      },
+      {
+        "name": "tracking_redirect",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/tracking_redirect"
+      },
+      {
+        "name": "txn_group_fused",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/txn_group_fused"
+      },
+      {
+        "name": "txn_group_split",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/txn_group_split"
+      },
+      {
+        "name": "txnorder-fused-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/txnorder-fused-0"
+      },
+      {
+        "name": "txnorder-fused-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/txnorder-fused-1"
+      },
+      {
+        "name": "txnorder-split-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/txnorder-split-0"
+      },
+      {
+        "name": "txnorder-split-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/txnorder-split-1"
+      },
+      {
+        "name": "txnorder2",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/txnorder2"
+      },
+      {
+        "name": "txnorder_index",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/txnorder_index"
+      },
+      {
+        "name": "txnorder_wake",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/txnorder_wake"
+      }
+    ]
   }
 ]

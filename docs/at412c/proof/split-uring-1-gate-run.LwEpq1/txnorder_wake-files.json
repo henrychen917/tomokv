@@ -1,0 +1,12 @@
+[
+  {
+    "path": "output.log",
+    "bytes": 154,
+    "sha256": "43cfae5976d3be9963d1a4f15a00ce1cf67ca5170c73d1ddc3dafe794368eda0"
+  },
+  {
+    "path": "wake.log",
+    "bytes": 128,
+    "sha256": "91a6b394db0f99f70d2fa1530e5b6c2c5a1136550fce49849bb162fdae19bec7"
+  }
+]

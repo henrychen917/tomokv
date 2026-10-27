@@ -1,0 +1,12 @@
+[
+  {
+    "path": "output.log",
+    "bytes": 179,
+    "sha256": "6dcebff7c3268a7fd884926f2b375d3faf6f7f466d8d1c87f4105305b8bc6ff6"
+  },
+  {
+    "path": "persistfix-unit.log",
+    "bytes": 792,
+    "sha256": "3d505e48fafc37a73ce3ee2f390c3aa2bc996c29b496368bf680281824351639"
+  }
+]

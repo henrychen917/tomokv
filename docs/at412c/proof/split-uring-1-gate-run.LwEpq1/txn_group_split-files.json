@@ -1,0 +1,22 @@
+[
+  {
+    "path": "gate-srv-main.H8KQ94",
+    "bytes": 6638,
+    "sha256": "93e74875d014aed5332ed73ebabfeb9c105d250c6ae94ac2f3c033541552c90b"
+  },
+  {
+    "path": "gate-srv-main.nZnRKS",
+    "bytes": 6857,
+    "sha256": "ff39c53a7e150a9296d0d3381b4de1c8f4f08a2a8bfa88b275f41353c8456930"
+  },
+  {
+    "path": "gate-txngroup.txt",
+    "bytes": 1677,
+    "sha256": "4dd5548b82dd790a7eb700ec455fb4f0f1c8df70e7288b81556b4b129e0e804c"
+  },
+  {
+    "path": "output.log",
+    "bytes": 150,
+    "sha256": "90936d1428f3e9289ba7a558d1f7cda1fd7f606f1d42d2a2e4cd38b3ad96d682"
+  }
+]

@@ -1,0 +1,27 @@
+[
+  {
+    "path": "gate-flipfix-fingerprint.txt",
+    "bytes": 141,
+    "sha256": "dad7cdbe3f47e61a410b3bf0e05f89fbaa0267fbc45f9579b63959b04b238e74"
+  },
+  {
+    "path": "gate-flipfix-plan.txt",
+    "bytes": 244,
+    "sha256": "cd0fffbdabeaebc8dae45f3e1c9c83f3c9ba5fa45c9ca8a1230feac1626941f3"
+  },
+  {
+    "path": "output.log",
+    "bytes": 336,
+    "sha256": "0c6aee5523676a59f453026abccb492b9bc7f7ae4a83ccde820b8bcc538df25a"
+  },
+  {
+    "path": "tsan-core-concurrency-tsan-flipfix-fingerprint.log",
+    "bytes": 142,
+    "sha256": "8a828d900f81bdf2f2e104802b1f263edf194655e7a48d5e718269be51d3f928"
+  },
+  {
+    "path": "tsan-core-concurrency-tsan-flipfix-plan.log",
+    "bytes": 244,
+    "sha256": "cd0fffbdabeaebc8dae45f3e1c9c83f3c9ba5fa45c9ca8a1230feac1626941f3"
+  }
+]

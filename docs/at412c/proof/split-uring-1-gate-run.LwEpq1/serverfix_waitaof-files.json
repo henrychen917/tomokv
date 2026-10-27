@@ -1,0 +1,47 @@
+[
+  {
+    "path": "output.log",
+    "bytes": 161,
+    "sha256": "6d58a32cf05c3cb78abbc5be60df99408eef86099e3bc27b7e7dfce2ea132b56"
+  },
+  {
+    "path": "serverfix-waitaof/candidate/1s-epoll/server.log",
+    "bytes": 7645,
+    "sha256": "53f65724745fc9e21198502bca666d5b2012d5abbca30d649663ca54b0860b25"
+  },
+  {
+    "path": "serverfix-waitaof/candidate/1s-uring/server.log",
+    "bytes": 7555,
+    "sha256": "8b50ee804d30f072fccf4559af2ebf05c61d08c57202e6391e09acf40f6f635e"
+  },
+  {
+    "path": "serverfix-waitaof/candidate/2s-epoll/server.log",
+    "bytes": 6722,
+    "sha256": "2feb17cc41fc39eb50b513f6dadf83474dca475252902af01aeec7b16f6d6f18"
+  },
+  {
+    "path": "serverfix-waitaof/candidate/2s-uring/server.log",
+    "bytes": 6640,
+    "sha256": "1505ff9b20e856b2bb39c9d870534ed184349608eb37105e647da0ff7339ded4"
+  },
+  {
+    "path": "serverfix-waitaof/candidate/results.json",
+    "bytes": 15146,
+    "sha256": "ec51fa6b10d3bc623ff34beb03aa2a73eb4002abed6b9d857a410d5025189ca4"
+  },
+  {
+    "path": "serverfix-waitaof/oracle/redis-redis/server.log",
+    "bytes": 1203,
+    "sha256": "60bcd4a0d091499f9b97b552c5bda3a8b46b2641fa0223260e5c0c86869f13a9"
+  },
+  {
+    "path": "serverfix-waitaof/oracle/results.json",
+    "bytes": 3384,
+    "sha256": "cb73146f0620d262c0233e0455c1c49cc386008c5638c9e72af139095be86304"
+  },
+  {
+    "path": "serverfix-waitaof.log",
+    "bytes": 129,
+    "sha256": "8ae13a26522ffcb1e7f84bdbc99b423f0aa4b54fceaa20b4da45aff188fc109b"
+  }
+]
