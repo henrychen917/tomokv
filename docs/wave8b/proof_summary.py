@@ -107,7 +107,7 @@ for row in rows:
 lines += ['', f"Standalone gates_test exit: {gates['exit']}. Make freshness: {len(build['freshness'])}/{len(build['freshness'])}.", '',
           'The pre-comment and final POST binaries have identical runtime sections, program headers, entry point and symbols; only non-runtime debug/linker metadata and GNU build-id may differ. See comment-sync.json.', '',
           'The original three source-check failures remain in final-lanes. The final-source-repair job reruns their complete owning jobs.', '',
-          'The initial ABBA self-test copy incorrectly retained EXPECT_FULL=815 because of its trailing comment. Its attempt is retained but is not accepted as proof. A new copy verifies 807/824 and reruns the whole job; see selftest-setup-error.json and selftest-copy-count-repair.json.', '',
+          'The initial ABBA self-test copy missed the FULL constant\'s trailing comment, omitted required fixtures, and symlinked build/, breaking exact-path controls. Its failed attempt is retained but is not accepted as proof. A complete new copy uses a real build directory, verifies 807/824, and passes the whole job; see selftest-setup-error.json and selftest-copy-count-repair.json.', '',
           'NOT RUN: performance benchmarks, load generators and the full gate iteration are reserved to the maintainer.']
 (OUT / 'proof-summary.md').write_text('\n'.join(lines) + '\n')
 print(json.dumps({k:v for k,v in result.items() if k not in ('rows','gates_test')}), flush=True)
