@@ -4322,7 +4322,7 @@ void xshard_retire(Server& server, ThreadCtx& self, Ring& ring, Client& client, 
             pool.unregister_snapshot(server, state, owner_io);
         client.atomic_group_finished();
     }
-    if (state->blocking_origin) blocking_scatter_retire(server, client, *state);
+    if (state->blocking_origin) blocking_scatter_retire(server, client, *state, &self, &ring);
     op.detach_scatter_state();
     xshard_destroy(state, pool, owner_io);
 }

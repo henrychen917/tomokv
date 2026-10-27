@@ -41,13 +41,16 @@ struct BlockingGroup {
 };
 
 struct BlockingState {
-    ~BlockingState() { notify_discard_batch(notify.exchange(nullptr)); }
+    ~BlockingState();
     std::atomic<uint32_t> refs{1};       // the Op/scatter owner plus one per registry alias
     std::atomic<uint32_t> active_tasks{0};
     std::atomic<uint32_t> pending{0};
     std::atomic<uint32_t> candidate{UINT32_MAX};
     std::atomic<BlockingPhase> phase{BlockingPhase::Probe};
     std::atomic<bool> counted{false};
+    BlockingState* count_previous = nullptr;
+    BlockingState* count_next = nullptr;
+    bool count_linked = false;
     std::atomic<bool> cancel_requested{false};
     // CLIENT UNBLOCK (Lane F). 0 = nothing requested, 1 = TIMEOUT shape, 2 = the UNBLOCKED error.
     // The cancel path deliberately produces no bytes (it exists for connection teardown), so the
@@ -83,6 +86,30 @@ extern std::atomic<uint32_t> debug_xread_hold;
 extern std::atomic<uint32_t> debug_xread_stage;
 
 namespace {
+
+// INFO observes only blocking lifetimes, never owner-only queue containers.
+// Intrusive membership allocates nothing beyond the existing BlockingState.
+std::mutex blocking_count_mutex;
+BlockingState* blocking_count_head = nullptr;
+
+void blocking_link_count(BlockingState& state) {
+    std::lock_guard<std::mutex> lock(blocking_count_mutex);
+    if (state.count_linked) return;
+    state.count_next = blocking_count_head;
+    if (blocking_count_head) blocking_count_head->count_previous = &state;
+    blocking_count_head = &state;
+    state.count_linked = true;
+}
+
+void blocking_unlink_count(BlockingState& state) {
+    std::lock_guard<std::mutex> lock(blocking_count_mutex);
+    if (!state.count_linked) return;
+    if (state.count_previous) state.count_previous->count_next = state.count_next;
+    else blocking_count_head = state.count_next;
+    if (state.count_next) state.count_next->count_previous = state.count_previous;
+    state.count_previous = state.count_next = nullptr;
+    state.count_linked = false;
+}
 
 [[gnu::noinline]]
 bool blocking_debug_xread_hold(const BlockingState& state, BlockingPhase phase) {
@@ -405,8 +432,10 @@ constinit thread_local MultiRetrySignal multi_retry_signal;
 thread_local bool blocking_tls_defer_plain = false;
 
 void blocking_count_parked(BlockingState& state) {
-    if (!state.counted.exchange(true, std::memory_order_acq_rel))
+    if (!state.counted.exchange(true, std::memory_order_acq_rel)) {
+        blocking_link_count(state);
         state.server->blocking_client_parked();
+    }
 }
 
 bool blocking_request_remap(BlockingState& state, ThreadCtx& self, Ring& ring) {
@@ -691,6 +720,14 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
     BlockingKey& key = state.keys[state.selected];
     const Slice key_slice = blocking_key_slice(key);
     Op& op = state.client->rob().at(state.op_id);
+    // A resumed waiter is a different command from the producer's active
+    // timing frame. Own its execution slice until completion, excluding sleep.
+    const SlowlogArm arm{state.server->slowlog_log_slower_than(),
+                         state.server->latency_monitor_threshold()};
+    SlowlogTiming timing(state.counted.load(std::memory_order_acquire) && arm.armed()
+                             ? &op : nullptr,
+                         state.client->id(), self.id(), arm.armed() ? now_ns() : 0,
+                         shard.now_ms(), arm);
     // Redis re-runs processCommand's ACL check before a woken command executes. Check the live
     // permission here, before anything is popped or delivered: a denial leaves the data in place.
     state.acl_checked = true;
@@ -950,11 +987,16 @@ private:
             if (phase == BlockingPhase::Parked && state.server->database_boundary_active())
                 return work;
             BlockingKey& key = state.keys[entry.key_index];
-            if (blocking_probe_key(shard, state, key) != BlockingProbe::Ready) {
+            const BlockingProbe probe = blocking_probe_key(shard, state, key);
+            const bool group_error = state.kind == BlockingKind::Xreadgroup &&
+                (probe == BlockingProbe::MissingGroup || probe == BlockingProbe::WrongType);
+            if (probe != BlockingProbe::Ready && !group_error) {
                 // Tri-state, not boolean: FIFO kinds stop the queue here (the front waiter owns
                 // the next push); skip-kinds (streams, later) step past a waiter whose own cursor
                 // is not satisfiable without stranding the ones behind it.
-                if (blocking_skip_when_not_ready(state.kind)) { i++; continue; }
+                if (blocking_skip_when_not_ready(state.kind) || probe == BlockingProbe::WrongType) {
+                    i++; continue;
+                }
                 return work;
             }
             if (phase == BlockingPhase::Registering) {
@@ -967,20 +1009,25 @@ private:
             if (!state.phase.compare_exchange_strong(
                     expected, BlockingPhase::Claimed, std::memory_order_acq_rel)) continue;
             state.selected = entry.key_index;
-            remove_at_from_shard(shard, queue, i);
             if (blocking_is_move(state.kind)) {
+                remove_at_from_shard(shard, queue, i);
                 blocking_request_move(state, self, ring);
                 return work + 1;
             }
             if (state.kind == BlockingKind::Xread) {
+                remove_at_from_shard(shard, queue, i);
                 blocking_request_move(state, self, ring);
                 work++;
                 continue;
             }
             if (!blocking_run_direct(state, shard, self, ring)) {
+                // An undecided EXEC can refuse the pop. Keep its queue position
+                // and alias pin until a later owner turn can actually serve it.
                 state.phase.store(BlockingPhase::Parked, std::memory_order_release);
+                shard.set_blocking_dirty();
                 return work + 1;
             }
+            remove_at_from_shard(shard, queue, i);
             // Consume sequentially on the owner while the collection stays non-empty. This is
             // still FIFO handoff (one claimed context at a time), but a multi-element LPUSH/ZADD
             // does not strand later waiters behind data made ready by the same committed write.
@@ -1092,6 +1139,26 @@ bool blocking_finish_registration(BlockingState& state, Shard& shard,
 }
 
 }  // namespace
+
+BlockingState::~BlockingState() {
+    blocking_unlink_count(*this);
+    notify_discard_batch(notify.exchange(nullptr));
+}
+
+void blocking_key_counts(const Server& server, uint64_t& keys, uint64_t& on_nokey) {
+    std::unordered_map<std::string, bool> distinct;
+    std::lock_guard<std::mutex> lock(blocking_count_mutex);
+    for (auto* state = blocking_count_head; state; state = state->count_next) {
+        if (state->server != &server) continue;
+        for (const auto& key : state->keys) {
+            std::string identity(1, static_cast<char>(key.ns));
+            identity += key.key;
+            distinct[identity] |= state->kind == BlockingKind::Xreadgroup;
+        }
+    }
+    keys = distinct.size(); on_nokey = 0;
+    for (const auto& [key, missing] : distinct) on_nokey += missing;
+}
 
 Shard::~Shard() {
     blocking_registry_destroy(static_cast<BlockingRegistry*>(blocking_registry_));
@@ -1299,6 +1366,18 @@ void blocking_publish_key(Shard& shard, uint64_t hash, const char* key, uint32_t
     registry->publish(shard, hash, Slice(key, key_len, ns), now, *blocking_tls_self, *blocking_tls_ring);
 }
 
+void blocking_stream_removed(const void* store, Slice) {
+    if (!blocking_tls_self) return;
+    // This runs before the table replacement completes. Reprobe only from the
+    // next owner turn, never recursively from object retirement. Staging stores
+    // are deliberately absent from this list; atomic publication handles them.
+    for (Shard* shard : blocking_tls_self->shards())
+        if (&shard->store() == store && shard->has_blocking_waiters()) {
+            shard->set_blocking_dirty();
+            return;
+        }
+}
+
 void blocking_publish_list_op(Shard& shard, Op& op) {
     blocking_publish_key(shard, op.hash, op.key().p, op.key().n, op.key().ns);
 }
@@ -1315,12 +1394,24 @@ void blocking_plain_mutation_published(Shard& shard, Op& op) {
     if (!std::strcmp(name, "LPUSH") || !std::strcmp(name, "RPUSH") ||
         !std::strcmp(name, "LPUSHX") || !std::strcmp(name, "RPUSHX") ||
         !std::strcmp(name, "ZADD") || !std::strcmp(name, "ZINCRBY") ||
-        !std::strcmp(name, "XADD"))
+        !std::strcmp(name, "XADD") || !std::strcmp(name, "SET") ||
+        !std::strcmp(name, "DEL") || !std::strcmp(name, "UNLINK"))
         blocking_publish_key(shard, op.hash, op.key().p, op.key().n, op.key().ns);
-    else if (!std::strcmp(name, "LMOVE") || !std::strcmp(name, "RPOPLPUSH")) {
+    else if (!std::strcmp(name, "LMOVE") || !std::strcmp(name, "RPOPLPUSH") ||
+             !std::strcmp(name, "RENAME") || !std::strcmp(name, "RENAMENX")) {
         const Slice destination = op.arg(2);
         blocking_publish_key(shard, FlatStore::hash_key(destination),
                              destination.p, destination.n, destination.ns);
+        blocking_publish_key(shard, op.hash, op.key().p, op.key().n, op.key().ns);
+    } else if (!std::strcmp(name, "SORT")) {
+        SortOptions options;
+        if (parse_sort_options(op, options) && options.store) {
+            const Slice key = op.arg(options.store_arg);
+            blocking_publish_key(shard, FlatStore::hash_key(key), key.p, key.n, key.ns);
+        }
+    } else if (!std::strcmp(name, "XGROUP")) {
+        const Slice key = op.arg(2);
+        blocking_publish_key(shard, FlatStore::hash_key(key), key.p, key.n, key.ns);
     }
 }
 
@@ -1357,7 +1448,9 @@ void blocking_scatter_mutation_published(const Task& task, Shard& shard, Op& op)
     if (!task.scatter || !shard.has_blocking_waiters()) return;
     ScatterState& state = *task.scatter;
     if (state.atomic_group || state.phase != 2 ||
-        !(state.kind == Kind::Lmove || state.kind == Kind::Rpoplpush)) return;
+        !(state.kind == Kind::Lmove || state.kind == Kind::Rpoplpush ||
+          state.kind == Kind::Rename || state.kind == Kind::Renamenx ||
+          state.kind == Kind::Sort)) return;
     ShardGroup* group = group_for(state, shard.id());
     if (!group) return;
     for (uint32_t i = 0; i < group->count; i++) {
@@ -1405,6 +1498,8 @@ bool blocking_resume_move_impl(Server& server, ThreadCtx& self, Ring& ring, Clie
                 remap.state->keys[i].cursor_resolved = block->keys[i].cursor_resolved;
             }
             remap.state->counted.store(block->counted.exchange(false));
+            blocking_unlink_count(*block);
+            if (remap.state->counted.load()) blocking_link_count(*remap.state);
             op.detach_blocking_state();
             op.attach_blocking_state(remap.state);
             blocking_start(remap.state, remap.nshards);
@@ -1575,13 +1670,26 @@ void blocking_retire(Server& server, Client& client, Op& op, ThreadCtx& thread) 
     if (!client.barrier_release(BarrierOwner::Blocking)) server.note_barrier_release_held();
     if (state->counted.exchange(false, std::memory_order_acq_rel))
         server.blocking_client_unparked();
+    blocking_unlink_count(*state);
     op.detach_blocking_state();
     blocking_state_release(state);
 }
 
-void blocking_scatter_retire(Server& server, Client& client, ScatterState& state) {
+void blocking_scatter_retire(Server& server, Client& client, ScatterState& state,
+                            ThreadCtx* self, Ring* ring) {
     BlockingState* block = state.blocking_origin;
     if (!block) return;
+    // A refused destination leaves the source unchanged. Retiring the attempted
+    // move is the point at which its successor may try that same ready element.
+    if (blocking_is_move(block->kind)) {
+        for (const auto& key : block->keys) {
+            auto& shard = server.shard(key.shard);
+            if (!shard.has_blocking_waiters()) continue;
+            shard.set_blocking_dirty();
+            if (self && ring)
+                server.thread(server.worker_of_shard(key.shard)).wake_if_parked(*ring, self->sig());
+        }
+    }
     // blocking_resume_move_impl checked the live ACL immediately before this scatter executed.
     client.set_blocked(false);
     // The OTHER exit of the same parked lifetime: blocking_resume_move() converted this op from a
@@ -1591,6 +1699,7 @@ void blocking_scatter_retire(Server& server, Client& client, ScatterState& state
     if (!client.barrier_release(BarrierOwner::Blocking)) server.note_barrier_release_held();
     if (block->counted.exchange(false, std::memory_order_acq_rel))
         server.blocking_client_unparked();
+    blocking_unlink_count(*block);
     state.blocking_origin = nullptr;
     blocking_state_release(block);
 }

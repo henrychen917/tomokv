@@ -3258,6 +3258,14 @@ private:
         return static_cast<Enc>(object->enc) == Enc::Extern ? kvobj_external_bytes(object) : 0;
     }
 
+    // Logical retirement, before QSBR destruction: only the existing external
+    // stream type arm signals blocked group readers. String retirement retains
+    // its ordinary encoding test and adds no waiter test or callback.
+    size_t retiring_external_bytes(const KvObj* object) {
+        return static_cast<Enc>(object->enc) == Enc::Extern
+            ? kvobj_external_bytes<true>(object, this) : 0;
+    }
+
     // Decode the header ONCE, exactly as unarmed retire_obj() does: the size class computed for
     // accounting is also the sized-free length. It travels to the reclaim callback as the ring's
     // auxiliary word, so the free after the grace period does not re-derive it from a header that
@@ -3265,7 +3273,7 @@ private:
     // the layout bits, so the class cannot change between retire and reclaim.
     void retire_obj_read_local(KvObj* object) {
         const size_t capacity = kvobj_capacity(object);
-        const size_t bytes = capacity + read_local_external_bytes(object);
+        const size_t bytes = capacity + retiring_external_bytes(object);
         obj_bytes_ -= bytes;
         read_local_store_state_armed().retire_sink.retire(
             this, object, capacity, &FlatStore::read_local_reclaim_object);
@@ -3579,7 +3587,7 @@ private:
     // The header is decoded once: the class computed for accounting is the sized-free length.
     void retire_obj(KvObj* o) {
         const size_t capacity = kvobj_capacity(o);
-        const size_t bytes = capacity + kvobj_external_bytes(o);
+        const size_t bytes = capacity + retiring_external_bytes(o);
         obj_bytes_ -= bytes;
         if (outstanding_borrows_ == 0) { kvobj_free_with_capacity(o, capacity); return; }
         const char* ptr = (static_cast<Type>(o->type) == Type::String && !o->is_int())

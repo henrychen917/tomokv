@@ -1,0 +1,2270 @@
+{
+  "BLOCK-WAKE-RENAME-SORTSTORE": {
+    "redis": {
+      "argv": [
+        "taskset",
+        "-c",
+        "16-23",
+        "/home/user/Projects/redis74/src/redis-server",
+        "--port",
+        "20400",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-blockfix2/build/blockfix2/post-repros/BLOCK-WAKE-RENAME-SORTSTORE/redis",
+        "--enable-debug-command",
+        "yes"
+      ],
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+      "transcript": [
+        {
+          "c": "b",
+          "send": [
+            "BLPOP",
+            "foo{t}",
+            "0"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "LPUSH",
+            "bob{t}",
+            "abc",
+            "def",
+            "hij"
+          ],
+          "reply": 3
+        },
+        {
+          "c": "a",
+          "send": [
+            "RENAME",
+            "bob{t}",
+            "foo{t}"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "b",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": [
+            "foo{t}",
+            "hij"
+          ]
+        },
+        {
+          "c": "c",
+          "send": [
+            "BLPOP",
+            "bar{t}",
+            "0"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "LPUSH",
+            "notfoo{t}",
+            "hello",
+            "hola",
+            "aguacate"
+          ],
+          "reply": 3
+        },
+        {
+          "c": "a",
+          "send": [
+            "SORT",
+            "notfoo{t}",
+            "ALPHA",
+            "STORE",
+            "bar{t}"
+          ],
+          "reply": 3
+        },
+        {
+          "c": "c",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": [
+            "bar{t}",
+            "aguacate"
+          ]
+        },
+        {
+          "c": "a",
+          "send": [
+            "XGROUP",
+            "CREATE",
+            "ms{t}",
+            "mygroup",
+            "$",
+            "MKSTREAM"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "d",
+          "send": [
+            "XREADGROUP",
+            "GROUP",
+            "mygroup",
+            "Alice",
+            "BLOCK",
+            "0",
+            "STREAMS",
+            "ms{t}",
+            ">"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "XGROUP",
+            "CREATE",
+            "ms2{t}",
+            "mygroup",
+            "$",
+            "MKSTREAM"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "a",
+          "send": [
+            "XADD",
+            "ms2{t}",
+            "100",
+            "f1",
+            "v1"
+          ],
+          "reply": "100-0"
+        },
+        {
+          "c": "a",
+          "send": [
+            "RENAME",
+            "ms2{t}",
+            "ms{t}"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "d",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": [
+            [
+              "ms{t}",
+              [
+                [
+                  "100-0",
+                  [
+                    "f1",
+                    "v1"
+                  ]
+                ]
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    "2s": {
+      "argv": [
+        "taskset",
+        "-c",
+        "16-23",
+        "/home/user/Projects/cx-blockfix2/build/tomokv",
+        "--port",
+        "20400",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-blockfix2/build/blockfix2/post-repros/BLOCK-WAKE-RENAME-SORTSTORE/2s",
+        "--enable-debug-command",
+        "yes",
+        "--thread-mode",
+        "2s",
+        "--shards",
+        "16",
+        "--databases",
+        "16",
+        "--net-io",
+        "uring",
+        "--ratio",
+        "6:2"
+      ],
+      "sha256": "e998483cd240d2db1b89fcbd009daa78d2333a0d98c5de74df52721e6744aa7d",
+      "transcript": [
+        {
+          "c": "b",
+          "send": [
+            "BLPOP",
+            "foo{t}",
+            "0"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "LPUSH",
+            "bob{t}",
+            "abc",
+            "def",
+            "hij"
+          ],
+          "reply": 3
+        },
+        {
+          "c": "a",
+          "send": [
+            "RENAME",
+            "bob{t}",
+            "foo{t}"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "b",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": [
+            "foo{t}",
+            "hij"
+          ]
+        },
+        {
+          "c": "c",
+          "send": [
+            "BLPOP",
+            "bar{t}",
+            "0"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "LPUSH",
+            "notfoo{t}",
+            "hello",
+            "hola",
+            "aguacate"
+          ],
+          "reply": 3
+        },
+        {
+          "c": "a",
+          "send": [
+            "SORT",
+            "notfoo{t}",
+            "ALPHA",
+            "STORE",
+            "bar{t}"
+          ],
+          "reply": 3
+        },
+        {
+          "c": "c",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": [
+            "bar{t}",
+            "aguacate"
+          ]
+        },
+        {
+          "c": "a",
+          "send": [
+            "XGROUP",
+            "CREATE",
+            "ms{t}",
+            "mygroup",
+            "$",
+            "MKSTREAM"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "d",
+          "send": [
+            "XREADGROUP",
+            "GROUP",
+            "mygroup",
+            "Alice",
+            "BLOCK",
+            "0",
+            "STREAMS",
+            "ms{t}",
+            ">"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "XGROUP",
+            "CREATE",
+            "ms2{t}",
+            "mygroup",
+            "$",
+            "MKSTREAM"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "a",
+          "send": [
+            "XADD",
+            "ms2{t}",
+            "100",
+            "f1",
+            "v1"
+          ],
+          "reply": "100-0"
+        },
+        {
+          "c": "a",
+          "send": [
+            "RENAME",
+            "ms2{t}",
+            "ms{t}"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "d",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": [
+            [
+              "ms{t}",
+              [
+                [
+                  "100-0",
+                  [
+                    "f1",
+                    "v1"
+                  ]
+                ]
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    "1s": {
+      "argv": [
+        "taskset",
+        "-c",
+        "16-23",
+        "/home/user/Projects/cx-blockfix2/build/tomokv",
+        "--port",
+        "20400",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-blockfix2/build/blockfix2/post-repros/BLOCK-WAKE-RENAME-SORTSTORE/1s",
+        "--enable-debug-command",
+        "yes",
+        "--thread-mode",
+        "1s",
+        "--shards",
+        "16",
+        "--databases",
+        "16",
+        "--net-io",
+        "uring"
+      ],
+      "sha256": "e998483cd240d2db1b89fcbd009daa78d2333a0d98c5de74df52721e6744aa7d",
+      "transcript": [
+        {
+          "c": "b",
+          "send": [
+            "BLPOP",
+            "foo{t}",
+            "0"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "LPUSH",
+            "bob{t}",
+            "abc",
+            "def",
+            "hij"
+          ],
+          "reply": 3
+        },
+        {
+          "c": "a",
+          "send": [
+            "RENAME",
+            "bob{t}",
+            "foo{t}"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "b",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": [
+            "foo{t}",
+            "hij"
+          ]
+        },
+        {
+          "c": "c",
+          "send": [
+            "BLPOP",
+            "bar{t}",
+            "0"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "LPUSH",
+            "notfoo{t}",
+            "hello",
+            "hola",
+            "aguacate"
+          ],
+          "reply": 3
+        },
+        {
+          "c": "a",
+          "send": [
+            "SORT",
+            "notfoo{t}",
+            "ALPHA",
+            "STORE",
+            "bar{t}"
+          ],
+          "reply": 3
+        },
+        {
+          "c": "c",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": [
+            "bar{t}",
+            "aguacate"
+          ]
+        },
+        {
+          "c": "a",
+          "send": [
+            "XGROUP",
+            "CREATE",
+            "ms{t}",
+            "mygroup",
+            "$",
+            "MKSTREAM"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "d",
+          "send": [
+            "XREADGROUP",
+            "GROUP",
+            "mygroup",
+            "Alice",
+            "BLOCK",
+            "0",
+            "STREAMS",
+            "ms{t}",
+            ">"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "XGROUP",
+            "CREATE",
+            "ms2{t}",
+            "mygroup",
+            "$",
+            "MKSTREAM"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "a",
+          "send": [
+            "XADD",
+            "ms2{t}",
+            "100",
+            "f1",
+            "v1"
+          ],
+          "reply": "100-0"
+        },
+        {
+          "c": "a",
+          "send": [
+            "RENAME",
+            "ms2{t}",
+            "ms{t}"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "d",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": [
+            [
+              "ms{t}",
+              [
+                [
+                  "100-0",
+                  [
+                    "f1",
+                    "v1"
+                  ]
+                ]
+              ]
+            ]
+          ]
+        }
+      ]
+    }
+  },
+  "BLOCK-STREAM-REMOVED-NO-UNBLOCK": {
+    "redis": {
+      "argv": [
+        "taskset",
+        "-c",
+        "16-23",
+        "/home/user/Projects/redis74/src/redis-server",
+        "--port",
+        "20400",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-blockfix2/build/blockfix2/post-repros/BLOCK-STREAM-REMOVED-NO-UNBLOCK/redis",
+        "--enable-debug-command",
+        "yes"
+      ],
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+      "transcript": [
+        {
+          "c": "a",
+          "send": [
+            "XADD",
+            "s1",
+            "666",
+            "f",
+            "v"
+          ],
+          "reply": "666-0"
+        },
+        {
+          "c": "a",
+          "send": [
+            "XGROUP",
+            "CREATE",
+            "s1",
+            "g",
+            "$"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "b",
+          "send": [
+            "XREADGROUP",
+            "GROUP",
+            "g",
+            "Alice",
+            "BLOCK",
+            "0",
+            "STREAMS",
+            "s1",
+            ">"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "DEL",
+            "s1"
+          ],
+          "reply": 1
+        },
+        {
+          "c": "b",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": {
+            "error": "NOGROUP No such key 's1' or consumer group 'g' in XREADGROUP with GROUP option"
+          }
+        },
+        {
+          "c": "a",
+          "send": [
+            "XADD",
+            "s2",
+            "666",
+            "f",
+            "v"
+          ],
+          "reply": "666-0"
+        },
+        {
+          "c": "a",
+          "send": [
+            "XGROUP",
+            "CREATE",
+            "s2",
+            "g",
+            "$"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "c",
+          "send": [
+            "XREADGROUP",
+            "GROUP",
+            "g",
+            "Alice",
+            "BLOCK",
+            "0",
+            "STREAMS",
+            "s2",
+            ">"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "SET",
+            "s2",
+            "val1"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "c",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": {
+            "error": "WRONGTYPE Operation against a key holding the wrong kind of value"
+          }
+        },
+        {
+          "c": "a",
+          "send": [
+            "XGROUP",
+            "CREATE",
+            "s3",
+            "g",
+            "$",
+            "MKSTREAM"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "d",
+          "send": [
+            "XREADGROUP",
+            "GROUP",
+            "g",
+            "Alice",
+            "BLOCK",
+            "0",
+            "STREAMS",
+            "s3",
+            ">"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "XGROUP",
+            "DESTROY",
+            "s3",
+            "g"
+          ],
+          "reply": 1
+        },
+        {
+          "c": "d",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": {
+            "error": "NOGROUP No such key 's3' or consumer group 'g' in XREADGROUP with GROUP option"
+          }
+        }
+      ]
+    },
+    "2s": {
+      "argv": [
+        "taskset",
+        "-c",
+        "16-23",
+        "/home/user/Projects/cx-blockfix2/build/tomokv",
+        "--port",
+        "20400",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-blockfix2/build/blockfix2/post-repros/BLOCK-STREAM-REMOVED-NO-UNBLOCK/2s",
+        "--enable-debug-command",
+        "yes",
+        "--thread-mode",
+        "2s",
+        "--shards",
+        "16",
+        "--databases",
+        "16",
+        "--net-io",
+        "uring",
+        "--ratio",
+        "6:2"
+      ],
+      "sha256": "e998483cd240d2db1b89fcbd009daa78d2333a0d98c5de74df52721e6744aa7d",
+      "transcript": [
+        {
+          "c": "a",
+          "send": [
+            "XADD",
+            "s1",
+            "666",
+            "f",
+            "v"
+          ],
+          "reply": "666-0"
+        },
+        {
+          "c": "a",
+          "send": [
+            "XGROUP",
+            "CREATE",
+            "s1",
+            "g",
+            "$"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "b",
+          "send": [
+            "XREADGROUP",
+            "GROUP",
+            "g",
+            "Alice",
+            "BLOCK",
+            "0",
+            "STREAMS",
+            "s1",
+            ">"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "DEL",
+            "s1"
+          ],
+          "reply": 1
+        },
+        {
+          "c": "b",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": {
+            "error": "NOGROUP No such key 's1' or consumer group 'g' in XREADGROUP with GROUP option"
+          }
+        },
+        {
+          "c": "a",
+          "send": [
+            "XADD",
+            "s2",
+            "666",
+            "f",
+            "v"
+          ],
+          "reply": "666-0"
+        },
+        {
+          "c": "a",
+          "send": [
+            "XGROUP",
+            "CREATE",
+            "s2",
+            "g",
+            "$"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "c",
+          "send": [
+            "XREADGROUP",
+            "GROUP",
+            "g",
+            "Alice",
+            "BLOCK",
+            "0",
+            "STREAMS",
+            "s2",
+            ">"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "SET",
+            "s2",
+            "val1"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "c",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": {
+            "error": "WRONGTYPE Operation against a key holding the wrong kind of value"
+          }
+        },
+        {
+          "c": "a",
+          "send": [
+            "XGROUP",
+            "CREATE",
+            "s3",
+            "g",
+            "$",
+            "MKSTREAM"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "d",
+          "send": [
+            "XREADGROUP",
+            "GROUP",
+            "g",
+            "Alice",
+            "BLOCK",
+            "0",
+            "STREAMS",
+            "s3",
+            ">"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "XGROUP",
+            "DESTROY",
+            "s3",
+            "g"
+          ],
+          "reply": 1
+        },
+        {
+          "c": "d",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": {
+            "error": "NOGROUP No such key 's3' or consumer group 'g' in XREADGROUP with GROUP option"
+          }
+        }
+      ]
+    },
+    "1s": {
+      "argv": [
+        "taskset",
+        "-c",
+        "16-23",
+        "/home/user/Projects/cx-blockfix2/build/tomokv",
+        "--port",
+        "20400",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-blockfix2/build/blockfix2/post-repros/BLOCK-STREAM-REMOVED-NO-UNBLOCK/1s",
+        "--enable-debug-command",
+        "yes",
+        "--thread-mode",
+        "1s",
+        "--shards",
+        "16",
+        "--databases",
+        "16",
+        "--net-io",
+        "uring"
+      ],
+      "sha256": "e998483cd240d2db1b89fcbd009daa78d2333a0d98c5de74df52721e6744aa7d",
+      "transcript": [
+        {
+          "c": "a",
+          "send": [
+            "XADD",
+            "s1",
+            "666",
+            "f",
+            "v"
+          ],
+          "reply": "666-0"
+        },
+        {
+          "c": "a",
+          "send": [
+            "XGROUP",
+            "CREATE",
+            "s1",
+            "g",
+            "$"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "b",
+          "send": [
+            "XREADGROUP",
+            "GROUP",
+            "g",
+            "Alice",
+            "BLOCK",
+            "0",
+            "STREAMS",
+            "s1",
+            ">"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "DEL",
+            "s1"
+          ],
+          "reply": 1
+        },
+        {
+          "c": "b",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": {
+            "error": "NOGROUP No such key 's1' or consumer group 'g' in XREADGROUP with GROUP option"
+          }
+        },
+        {
+          "c": "a",
+          "send": [
+            "XADD",
+            "s2",
+            "666",
+            "f",
+            "v"
+          ],
+          "reply": "666-0"
+        },
+        {
+          "c": "a",
+          "send": [
+            "XGROUP",
+            "CREATE",
+            "s2",
+            "g",
+            "$"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "c",
+          "send": [
+            "XREADGROUP",
+            "GROUP",
+            "g",
+            "Alice",
+            "BLOCK",
+            "0",
+            "STREAMS",
+            "s2",
+            ">"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "SET",
+            "s2",
+            "val1"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "c",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": {
+            "error": "WRONGTYPE Operation against a key holding the wrong kind of value"
+          }
+        },
+        {
+          "c": "a",
+          "send": [
+            "XGROUP",
+            "CREATE",
+            "s3",
+            "g",
+            "$",
+            "MKSTREAM"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "d",
+          "send": [
+            "XREADGROUP",
+            "GROUP",
+            "g",
+            "Alice",
+            "BLOCK",
+            "0",
+            "STREAMS",
+            "s3",
+            ">"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "XGROUP",
+            "DESTROY",
+            "s3",
+            "g"
+          ],
+          "reply": 1
+        },
+        {
+          "c": "d",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": {
+            "error": "NOGROUP No such key 's3' or consumer group 'g' in XREADGROUP with GROUP option"
+          }
+        }
+      ]
+    }
+  },
+  "BLOCK-MOVE-WRONGTYPE-STRANDS": {
+    "redis": {
+      "argv": [
+        "taskset",
+        "-c",
+        "16-23",
+        "/home/user/Projects/redis74/src/redis-server",
+        "--port",
+        "20400",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-blockfix2/build/blockfix2/post-repros/BLOCK-MOVE-WRONGTYPE-STRANDS/redis",
+        "--enable-debug-command",
+        "yes"
+      ],
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+      "transcript": [
+        {
+          "c": "a",
+          "send": [
+            "SET",
+            "target1{t}",
+            "nolist"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "b",
+          "send": [
+            "BRPOPLPUSH",
+            "blist{t}",
+            "target1{t}",
+            "0"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "c",
+          "send": [
+            "BRPOPLPUSH",
+            "blist{t}",
+            "target2{t}",
+            "0"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "LPUSH",
+            "blist{t}",
+            "foo"
+          ],
+          "reply": 1
+        },
+        {
+          "c": "b",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": {
+            "error": "WRONGTYPE Operation against a key holding the wrong kind of value"
+          }
+        },
+        {
+          "c": "c",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": "foo"
+        },
+        {
+          "c": "a",
+          "send": [
+            "LRANGE",
+            "blist{t}",
+            "0",
+            "-1"
+          ],
+          "reply": []
+        }
+      ]
+    },
+    "2s": {
+      "argv": [
+        "taskset",
+        "-c",
+        "16-23",
+        "/home/user/Projects/cx-blockfix2/build/tomokv",
+        "--port",
+        "20400",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-blockfix2/build/blockfix2/post-repros/BLOCK-MOVE-WRONGTYPE-STRANDS/2s",
+        "--enable-debug-command",
+        "yes",
+        "--thread-mode",
+        "2s",
+        "--shards",
+        "16",
+        "--databases",
+        "16",
+        "--net-io",
+        "uring",
+        "--ratio",
+        "6:2"
+      ],
+      "sha256": "e998483cd240d2db1b89fcbd009daa78d2333a0d98c5de74df52721e6744aa7d",
+      "transcript": [
+        {
+          "c": "a",
+          "send": [
+            "SET",
+            "target1{t}",
+            "nolist"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "b",
+          "send": [
+            "BRPOPLPUSH",
+            "blist{t}",
+            "target1{t}",
+            "0"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "c",
+          "send": [
+            "BRPOPLPUSH",
+            "blist{t}",
+            "target2{t}",
+            "0"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "LPUSH",
+            "blist{t}",
+            "foo"
+          ],
+          "reply": 1
+        },
+        {
+          "c": "b",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": {
+            "error": "WRONGTYPE Operation against a key holding the wrong kind of value"
+          }
+        },
+        {
+          "c": "c",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": "foo"
+        },
+        {
+          "c": "a",
+          "send": [
+            "LRANGE",
+            "blist{t}",
+            "0",
+            "-1"
+          ],
+          "reply": []
+        }
+      ]
+    },
+    "1s": {
+      "argv": [
+        "taskset",
+        "-c",
+        "16-23",
+        "/home/user/Projects/cx-blockfix2/build/tomokv",
+        "--port",
+        "20400",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-blockfix2/build/blockfix2/post-repros/BLOCK-MOVE-WRONGTYPE-STRANDS/1s",
+        "--enable-debug-command",
+        "yes",
+        "--thread-mode",
+        "1s",
+        "--shards",
+        "16",
+        "--databases",
+        "16",
+        "--net-io",
+        "uring"
+      ],
+      "sha256": "e998483cd240d2db1b89fcbd009daa78d2333a0d98c5de74df52721e6744aa7d",
+      "transcript": [
+        {
+          "c": "a",
+          "send": [
+            "SET",
+            "target1{t}",
+            "nolist"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "b",
+          "send": [
+            "BRPOPLPUSH",
+            "blist{t}",
+            "target1{t}",
+            "0"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "c",
+          "send": [
+            "BRPOPLPUSH",
+            "blist{t}",
+            "target2{t}",
+            "0"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "LPUSH",
+            "blist{t}",
+            "foo"
+          ],
+          "reply": 1
+        },
+        {
+          "c": "b",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": {
+            "error": "WRONGTYPE Operation against a key holding the wrong kind of value"
+          }
+        },
+        {
+          "c": "c",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": "foo"
+        },
+        {
+          "c": "a",
+          "send": [
+            "LRANGE",
+            "blist{t}",
+            "0",
+            "-1"
+          ],
+          "reply": []
+        }
+      ]
+    }
+  },
+  "MULTI-XREADGROUP-BLOCK-HANG": {
+    "redis": {
+      "argv": [
+        "taskset",
+        "-c",
+        "16-23",
+        "/home/user/Projects/redis74/src/redis-server",
+        "--port",
+        "20400",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-blockfix2/build/blockfix2/post-repros/MULTI-XREADGROUP-BLOCK-HANG/redis",
+        "--enable-debug-command",
+        "yes"
+      ],
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+      "transcript": [
+        {
+          "c": "a",
+          "send": [
+            "XGROUP",
+            "CREATE",
+            "s",
+            "g",
+            "$",
+            "MKSTREAM"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "a",
+          "send": [
+            "MULTI"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "a",
+          "send": [
+            "XREADGROUP",
+            "GROUP",
+            "g",
+            "c",
+            "BLOCK",
+            "0",
+            "STREAMS",
+            "s",
+            ">"
+          ],
+          "reply": "QUEUED"
+        },
+        {
+          "c": "a",
+          "send": [
+            "EXEC"
+          ],
+          "read": 0
+        },
+        {
+          "c": "a",
+          "read": 1,
+          "timeout": 1.5,
+          "reply": [
+            null
+          ]
+        }
+      ]
+    },
+    "2s": {
+      "argv": [
+        "taskset",
+        "-c",
+        "16-23",
+        "/home/user/Projects/cx-blockfix2/build/tomokv",
+        "--port",
+        "20400",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-blockfix2/build/blockfix2/post-repros/MULTI-XREADGROUP-BLOCK-HANG/2s",
+        "--enable-debug-command",
+        "yes",
+        "--thread-mode",
+        "2s",
+        "--shards",
+        "16",
+        "--databases",
+        "16",
+        "--net-io",
+        "uring",
+        "--ratio",
+        "6:2"
+      ],
+      "sha256": "e998483cd240d2db1b89fcbd009daa78d2333a0d98c5de74df52721e6744aa7d",
+      "transcript": [
+        {
+          "c": "a",
+          "send": [
+            "XGROUP",
+            "CREATE",
+            "s",
+            "g",
+            "$",
+            "MKSTREAM"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "a",
+          "send": [
+            "MULTI"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "a",
+          "send": [
+            "XREADGROUP",
+            "GROUP",
+            "g",
+            "c",
+            "BLOCK",
+            "0",
+            "STREAMS",
+            "s",
+            ">"
+          ],
+          "reply": "QUEUED"
+        },
+        {
+          "c": "a",
+          "send": [
+            "EXEC"
+          ],
+          "read": 0
+        },
+        {
+          "c": "a",
+          "read": 1,
+          "timeout": 1.5,
+          "reply": [
+            null
+          ]
+        }
+      ]
+    },
+    "1s": {
+      "argv": [
+        "taskset",
+        "-c",
+        "16-23",
+        "/home/user/Projects/cx-blockfix2/build/tomokv",
+        "--port",
+        "20400",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-blockfix2/build/blockfix2/post-repros/MULTI-XREADGROUP-BLOCK-HANG/1s",
+        "--enable-debug-command",
+        "yes",
+        "--thread-mode",
+        "1s",
+        "--shards",
+        "16",
+        "--databases",
+        "16",
+        "--net-io",
+        "uring"
+      ],
+      "sha256": "e998483cd240d2db1b89fcbd009daa78d2333a0d98c5de74df52721e6744aa7d",
+      "transcript": [
+        {
+          "c": "a",
+          "send": [
+            "XGROUP",
+            "CREATE",
+            "s",
+            "g",
+            "$",
+            "MKSTREAM"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "a",
+          "send": [
+            "MULTI"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "a",
+          "send": [
+            "XREADGROUP",
+            "GROUP",
+            "g",
+            "c",
+            "BLOCK",
+            "0",
+            "STREAMS",
+            "s",
+            ">"
+          ],
+          "reply": "QUEUED"
+        },
+        {
+          "c": "a",
+          "send": [
+            "EXEC"
+          ],
+          "read": 0
+        },
+        {
+          "c": "a",
+          "read": 1,
+          "timeout": 1.5,
+          "reply": [
+            null
+          ]
+        }
+      ]
+    }
+  },
+  "INFO-TOTAL-BLOCKING-KEYS": {
+    "redis": {
+      "argv": [
+        "taskset",
+        "-c",
+        "16-23",
+        "/home/user/Projects/redis74/src/redis-server",
+        "--port",
+        "20400",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-blockfix2/build/blockfix2/post-repros/INFO-TOTAL-BLOCKING-KEYS/redis",
+        "--enable-debug-command",
+        "yes"
+      ],
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+      "transcript": [
+        {
+          "c": "b",
+          "send": [
+            "BLPOP",
+            "mylist",
+            "0"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "INFO",
+            "clients"
+          ],
+          "reply": "# Clients\r\nconnected_clients:2\r\ncluster_connections:0\r\nmaxclients:10000\r\nclient_recent_max_input_buffer:20516\r\nclient_recent_max_output_buffer:0\r\nblocked_clients:1\r\ntracking_clients:0\r\npubsub_clients:0\r\nwatching_clients:0\r\nclients_in_timeout_table:0\r\ntotal_watched_keys:0\r\ntotal_blocking_keys:1\r\ntotal_blocking_keys_on_nokey:0\r\n"
+        }
+      ]
+    },
+    "2s": {
+      "argv": [
+        "taskset",
+        "-c",
+        "16-23",
+        "/home/user/Projects/cx-blockfix2/build/tomokv",
+        "--port",
+        "20400",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-blockfix2/build/blockfix2/post-repros/INFO-TOTAL-BLOCKING-KEYS/2s",
+        "--enable-debug-command",
+        "yes",
+        "--thread-mode",
+        "2s",
+        "--shards",
+        "16",
+        "--databases",
+        "16",
+        "--net-io",
+        "uring",
+        "--ratio",
+        "6:2"
+      ],
+      "sha256": "e998483cd240d2db1b89fcbd009daa78d2333a0d98c5de74df52721e6744aa7d",
+      "transcript": [
+        {
+          "c": "b",
+          "send": [
+            "BLPOP",
+            "mylist",
+            "0"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "INFO",
+            "clients"
+          ],
+          "reply": "# Clients\r\nconnected_clients:2\r\nblocked_clients:1\r\ntracking_clients:0\r\nmonitor_clients:0\r\ntotal_blocking_keys:1\r\ntotal_blocking_keys_on_nokey:0\r\n"
+        }
+      ]
+    },
+    "1s": {
+      "argv": [
+        "taskset",
+        "-c",
+        "16-23",
+        "/home/user/Projects/cx-blockfix2/build/tomokv",
+        "--port",
+        "20400",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-blockfix2/build/blockfix2/post-repros/INFO-TOTAL-BLOCKING-KEYS/1s",
+        "--enable-debug-command",
+        "yes",
+        "--thread-mode",
+        "1s",
+        "--shards",
+        "16",
+        "--databases",
+        "16",
+        "--net-io",
+        "uring"
+      ],
+      "sha256": "e998483cd240d2db1b89fcbd009daa78d2333a0d98c5de74df52721e6744aa7d",
+      "transcript": [
+        {
+          "c": "b",
+          "send": [
+            "BLPOP",
+            "mylist",
+            "0"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "INFO",
+            "clients"
+          ],
+          "reply": "# Clients\r\nconnected_clients:2\r\nblocked_clients:1\r\ntracking_clients:0\r\nmonitor_clients:0\r\ntotal_blocking_keys:1\r\ntotal_blocking_keys_on_nokey:0\r\n"
+        }
+      ]
+    }
+  },
+  "SLOWLOG-BLOCKED-NOT-LOGGED": {
+    "redis": {
+      "argv": [
+        "taskset",
+        "-c",
+        "16-23",
+        "/home/user/Projects/redis74/src/redis-server",
+        "--port",
+        "20400",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-blockfix2/build/blockfix2/post-repros/SLOWLOG-BLOCKED-NOT-LOGGED/redis",
+        "--enable-debug-command",
+        "yes"
+      ],
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+      "transcript": [
+        {
+          "c": "a",
+          "send": [
+            "CONFIG",
+            "SET",
+            "slowlog-log-slower-than",
+            "0"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "b",
+          "send": [
+            "BLPOP",
+            "mylist",
+            "0"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.3
+        },
+        {
+          "c": "a",
+          "send": [
+            "SLOWLOG",
+            "RESET"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "a",
+          "send": [
+            "LPUSH",
+            "mylist",
+            "1"
+          ],
+          "reply": 1
+        },
+        {
+          "c": "b",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": [
+            "mylist",
+            "1"
+          ]
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "SLOWLOG",
+            "LEN"
+          ],
+          "reply": 3
+        },
+        {
+          "c": "a",
+          "send": [
+            "SLOWLOG",
+            "GET"
+          ],
+          "compare": false,
+          "reply": [
+            [
+              4,
+              1793090520,
+              3,
+              [
+                "SLOWLOG",
+                "LEN"
+              ],
+              "127.0.0.1:40706",
+              ""
+            ],
+            [
+              3,
+              1793090520,
+              19,
+              [
+                "BLPOP",
+                "mylist",
+                "0"
+              ],
+              "127.0.0.1:40712",
+              ""
+            ],
+            [
+              2,
+              1793090520,
+              12,
+              [
+                "LPUSH",
+                "mylist",
+                "1"
+              ],
+              "127.0.0.1:40706",
+              ""
+            ],
+            [
+              1,
+              1793090520,
+              4,
+              [
+                "SLOWLOG",
+                "RESET"
+              ],
+              "127.0.0.1:40706",
+              ""
+            ]
+          ]
+        }
+      ]
+    },
+    "2s": {
+      "argv": [
+        "taskset",
+        "-c",
+        "16-23",
+        "/home/user/Projects/cx-blockfix2/build/tomokv",
+        "--port",
+        "20400",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-blockfix2/build/blockfix2/post-repros/SLOWLOG-BLOCKED-NOT-LOGGED/2s",
+        "--enable-debug-command",
+        "yes",
+        "--thread-mode",
+        "2s",
+        "--shards",
+        "16",
+        "--databases",
+        "16",
+        "--net-io",
+        "uring",
+        "--ratio",
+        "6:2"
+      ],
+      "sha256": "e998483cd240d2db1b89fcbd009daa78d2333a0d98c5de74df52721e6744aa7d",
+      "transcript": [
+        {
+          "c": "a",
+          "send": [
+            "CONFIG",
+            "SET",
+            "slowlog-log-slower-than",
+            "0"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "b",
+          "send": [
+            "BLPOP",
+            "mylist",
+            "0"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.3
+        },
+        {
+          "c": "a",
+          "send": [
+            "SLOWLOG",
+            "RESET"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "a",
+          "send": [
+            "LPUSH",
+            "mylist",
+            "1"
+          ],
+          "reply": 1
+        },
+        {
+          "c": "b",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": [
+            "mylist",
+            "1"
+          ]
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "SLOWLOG",
+            "LEN"
+          ],
+          "reply": 3
+        },
+        {
+          "c": "a",
+          "send": [
+            "SLOWLOG",
+            "GET"
+          ],
+          "compare": false,
+          "reply": [
+            [
+              3,
+              1793090520,
+              3,
+              [
+                "SLOWLOG",
+                "LEN"
+              ],
+              "127.0.0.1:40726",
+              ""
+            ],
+            [
+              2,
+              1793090520,
+              63,
+              [
+                "LPUSH",
+                "mylist",
+                "1"
+              ],
+              "127.0.0.1:40726",
+              ""
+            ],
+            [
+              1,
+              1793090520,
+              23,
+              [
+                "BLPOP",
+                "mylist",
+                "0"
+              ],
+              "127.0.0.1:40740",
+              ""
+            ],
+            [
+              0,
+              1793090520,
+              3,
+              [
+                "SLOWLOG",
+                "RESET"
+              ],
+              "127.0.0.1:40726",
+              ""
+            ]
+          ]
+        }
+      ]
+    },
+    "1s": {
+      "argv": [
+        "taskset",
+        "-c",
+        "16-23",
+        "/home/user/Projects/cx-blockfix2/build/tomokv",
+        "--port",
+        "20400",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-blockfix2/build/blockfix2/post-repros/SLOWLOG-BLOCKED-NOT-LOGGED/1s",
+        "--enable-debug-command",
+        "yes",
+        "--thread-mode",
+        "1s",
+        "--shards",
+        "16",
+        "--databases",
+        "16",
+        "--net-io",
+        "uring"
+      ],
+      "sha256": "e998483cd240d2db1b89fcbd009daa78d2333a0d98c5de74df52721e6744aa7d",
+      "transcript": [
+        {
+          "c": "a",
+          "send": [
+            "CONFIG",
+            "SET",
+            "slowlog-log-slower-than",
+            "0"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "b",
+          "send": [
+            "BLPOP",
+            "mylist",
+            "0"
+          ],
+          "read": 0
+        },
+        {
+          "sleep": 0.3
+        },
+        {
+          "c": "a",
+          "send": [
+            "SLOWLOG",
+            "RESET"
+          ],
+          "reply": "OK"
+        },
+        {
+          "c": "a",
+          "send": [
+            "LPUSH",
+            "mylist",
+            "1"
+          ],
+          "reply": 1
+        },
+        {
+          "c": "b",
+          "read": 1,
+          "timeout": 1.0,
+          "reply": [
+            "mylist",
+            "1"
+          ]
+        },
+        {
+          "sleep": 0.2
+        },
+        {
+          "c": "a",
+          "send": [
+            "SLOWLOG",
+            "LEN"
+          ],
+          "reply": 3
+        },
+        {
+          "c": "a",
+          "send": [
+            "SLOWLOG",
+            "GET"
+          ],
+          "compare": false,
+          "reply": [
+            [
+              3,
+              1793090521,
+              3,
+              [
+                "SLOWLOG",
+                "LEN"
+              ],
+              "127.0.0.1:34230",
+              ""
+            ],
+            [
+              2,
+              1793090521,
+              51,
+              [
+                "LPUSH",
+                "mylist",
+                "1"
+              ],
+              "127.0.0.1:34230",
+              ""
+            ],
+            [
+              1,
+              1793090521,
+              16,
+              [
+                "BLPOP",
+                "mylist",
+                "0"
+              ],
+              "127.0.0.1:34238",
+              ""
+            ],
+            [
+              0,
+              1793090521,
+              2,
+              [
+                "SLOWLOG",
+                "RESET"
+              ],
+              "127.0.0.1:34230",
+              ""
+            ]
+          ]
+        }
+      ]
+    }
+  }
+}

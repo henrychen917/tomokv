@@ -4,6 +4,7 @@
 // IO-thread call. Client metadata lives in a cold, locked catalog here rather than enlarging the
 // 1984-byte Client. Store handlers still receive only (Shard&, Op&) and never touch a socket.
 #include "command.h"
+#include "blocking.h"
 #include "acl.h"
 #include "auth.h"
 #include "cmdmeta.h"
@@ -2505,13 +2506,18 @@ void cmd_info(Shard&, Op& op) {
         }
     }
     if (info_section(op, "CLIENTS")) {
+        uint64_t blocking_keys = 0, blocking_on_nokey = 0;
+        if (g_server) blocking_key_counts(*g_server, blocking_keys, blocking_on_nokey);
         appendf(body, "# Clients\r\nconnected_clients:%llu\r\nblocked_clients:%llu\r\n"
-                      "tracking_clients:%llu\r\nmonitor_clients:%llu\r\n",
+                      "tracking_clients:%llu\r\nmonitor_clients:%llu\r\n"
+                      "total_blocking_keys:%llu\r\ntotal_blocking_keys_on_nokey:%llu\r\n",
                 static_cast<unsigned long long>(g_server ? g_server->live_clients() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->blocked_clients() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->climon_tracking_clients() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->climon_monitors() : 0));
+                static_cast<unsigned long long>(g_server ? g_server->climon_monitors() : 0),
+                static_cast<unsigned long long>(blocking_keys),
+                static_cast<unsigned long long>(blocking_on_nokey));
     }
     if (want_memory) {
         // used_memory follows the same accounted basis that admits/evicts writes and that MEMORY

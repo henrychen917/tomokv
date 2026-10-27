@@ -5,6 +5,7 @@
 #include "command.h"
 #include "t_stream.h"
 #include "notify.h"
+#include "blocking.h"
 #include "../core/shard.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
@@ -498,6 +499,8 @@ void cmd_xgroup(Shard& shard, Op& op) {
         if constexpr (kNotify)
             notify_record(shard, op, NOTIFY_STREAM, NotifyEventId::XgroupDestroy, key);
         reply_int(op.sink(), 1);
+        if (shard.has_blocking_waiters())
+            blocking_publish_key(shard, FlatStore::hash_key(key), key.p, key.n, key.ns);
         return;
     }
     if (!group) { reply_nogroup_subcommand(op, key, op.arg(3)); return; }
@@ -562,7 +565,9 @@ void cmd_xgroup(Shard& shard, Op& op) {
 template <bool kNotify>
 void cmd_xreadgroup(Shard& shard, Op& op) {
     (void)kNotify;
-    (void)stream_xreadgroup_execute(shard, op);
+    // BLOCK is interpreted by blocking dispatch. A direct invocation (including
+    // an EXEC child) must complete now, while retaining full argument validation.
+    (void)stream_xreadgroup_execute(shard, op, false);
 }
 
 template <bool kNotify>
@@ -1316,7 +1321,7 @@ void stream_xreadgroup_reply_nogroup(Op& op) {
         reply_nogroup(op, op.arg(parsed.key_arg), op.arg(parsed.group_arg), true);
 }
 
-bool stream_xreadgroup_execute(Shard& shard, Op& op) {
+bool stream_xreadgroup_execute(Shard& shard, Op& op, bool may_block) {
     StreamXreadGroupArgs parsed;
     if (!stream_parse_xreadgroup(op, parsed)) return true;
     const Slice key = op.arg(parsed.key_arg);
@@ -1345,7 +1350,7 @@ bool stream_xreadgroup_execute(Shard& shard, Op& op) {
             reply_err(op.sink(), "ERR out of memory"); return true;
         }
         if (entries.empty()) {
-            if (parsed.block) return false;
+            if (parsed.block && may_block) return false;
             reply_null_array(op.sink(), op.resp3());
             return true;
         }

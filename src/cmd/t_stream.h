@@ -86,7 +86,7 @@ enum class StreamGroupProbe : uint8_t {
 StreamGroupProbe stream_group_probe(Shard& shard, Slice key, uint64_t hash, Slice group);
 StreamGroupProbe stream_group_prepare_waiter(Shard& shard, Slice key, uint64_t hash,
                                              Slice group, Slice consumer);
-bool stream_xreadgroup_execute(Shard& shard, Op& op);
+bool stream_xreadgroup_execute(Shard& shard, Op& op, bool may_block = true);
 void stream_xreadgroup_reply_nogroup(Op& op);
 
 uint64_t stream_groups_snapshot_size(const void* groups);
