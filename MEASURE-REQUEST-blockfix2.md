@@ -69,7 +69,9 @@ Correctness servers and oracle runs use CPUs 16–31 and ports 20400–20499. Th
 - PASS: first full POST directed job; storage_units, source_identity, blockfix_registry, blockfix_mkstream, blockfix_structure, release_batteries, sort, serverfix_slowlog, notify.
 - FAIL, retained: the first broad run has 102 passing and 19 failing rows. Seventeen failures explicitly refuse stale/missing production-unit readiness markers after the last source rebuild; the queued final run rebuilds and verifies these prerequisites. Two failures are the Tcl modes described below.
 - PASS: all 52 make -q freshness checks (`docs/blockfix2/production-freshness.json`); rebuilt debug-0/1 (32 rows), fused-0/1 (18 rows), atomic_units (27 rows).
-- PENDING final receipt: final directed/planted-control job; standard differential matrices on both engines; PRE/PAD directed jobs; full feature batteries, compat3 and fused notify/SORT.
+- PASS: uring standard differential matrix (seeds 7, 19, 20, 23, 21; split/fused-armed, atomic 0/1) and mode equivalence. The original suite skips SORT in fused parts; the separate fused SORT job covers that shape.
+- PENDING final receipt: final directed/planted-control job; epoll standard differential matrix; PRE/PAD directed jobs; full feature batteries, compat3 and fused notify/SORT.
+- Gate plans, exact per-row ledgers, stdout, Tcl events and individual differential transcripts are archived with file digests in `docs/blockfix2/gate-receipts/index.json`. Red initial runs remain in that index.
 
 The complete Tcl job ran 35 files plus one isolated required test in each mode. Each mode passed 1659/1661 required assertions. Both fail `XGROUP DESTROY should unblock XREADGROUP with -NOGROUP` at `errorrstat NOGROUP`; its later commandstats assertion also needs the documented INFO-CMDSTAT-FIELDS root. The source deliberately omits unimplemented failure/timing counters (`src/cmd/t_server.cc`), so this lane does not fabricate them. The waiter now gets the exact Redis NOGROUP reply.
 
