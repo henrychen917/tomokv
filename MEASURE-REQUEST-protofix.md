@@ -70,7 +70,7 @@ The four corresponding receipt-fixture labels are also copied from that gaterows
 
 All gate invocations are **selected whole jobs** via `GATE_ONLY_JOBS`; the positional `iteration` argument selects the gate's job interface, never the forbidden full iteration. Ordinary boots use eight server CPUs 0–7, ratio 6:2, 16 shards, load CPUs 8–15, and owned ports 20300–20329; a job's explicit specialized geometry is retained (for example, the 64-shard ownership-debug row). Extra native builds stay on 0–15 with `-j16`; gate self-tests use port 20398 and the isolated pipeorder supplement uses port 20350. The Redis oracle and every test server are confined to the authorized lane. The gate's existing correctness-only `GATE_PROOF_NO_RATES=1` is used for partial atomic batteries; their mechanism/window checks still run, and their rate assertion is explicitly skipped.
 
-`docs/protofix/matrix.py` and `supplement.py` declare the complete job selections. `docs/protofix/jobs/` retains every command, source/gate/binary hash, log, ledger and verdict; a failed earlier attempt is never overwritten. The uring differential job is complete with all standard seeds and repeats; the main uring and epoll feature batches each passed 207 rows. The remaining runtime outcomes are pending completion of this campaign.
+`docs/protofix/matrix.py` and `supplement.py` declare the complete job selections. `docs/protofix/jobs/` retains every command, source/gate/binary hash, log, ledger and verdict; a failed earlier attempt is never overwritten. The uring differential job is complete with all standard seeds and repeats; the main uring and epoll feature batches each passed 207 rows, and the separate fused/epoll batch passed 51 rows. The remaining runtime outcomes are pending completion of this campaign.
 
 `make all`, all 45 `job_production_units` targets, both MDB parked/no-wake arms and the blockfix target have built successfully. **49/49 concrete `make -q` checks pass** with the POST digest unchanged. The phony MDB entry is checked through each concrete build root with its actual flags. Commands, logs and hashes are in `docs/protofix/production/receipt.json`; `production_build.py` reproduces them.
 
@@ -82,7 +82,7 @@ The register's 2026-10-26 execindex addendum identifies the same live signature 
 
 ### Maintainer merit request — NOT RUN
 
-Use the gate's own ABBA instrument on the quiet box, with its normal cell geometry, matched offered load and contemporary identical-arm controls. The exact 18 cells are in `docs/protofix/null-cells.txt`:
+Use the gate's own ABBA instrument on the quiet box, with its normal cell geometry, matched offered load and contemporary identical-arm controls. The exact 18 complete cell definitions are in `docs/protofix/null-cells.txt`, copied unchanged from wave8 and accepted by `abbagate.read_cells` (definition parsing only; no benchmark). `merit-cells.json` records their provenance and workload fields:
 
 - Generic 14: `h05 h06 p8g p8s d1g_l0 d1s_l0 m8g_l0 v1g_l0 d128g_l0 d32g_l1 d8s_l1 d32s_l1 x9_32_l1 x9_32_l0`.
 - 2s GET/SET p1/p32: `h53 h54 h21 h22`.
