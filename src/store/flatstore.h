@@ -1565,7 +1565,6 @@ public:
     // Finding an object from its full hash follows only that hash's FlatStore probe run; it never
     // scans the table or keyspace.
     uint32_t active_expire(uint32_t budget) {
-        if (client_pause_expiry_held()) return 0;
         // Expiry after the cut is a post-cut deletion.  Leaving the object physically present lets
         // traversal serialize its absolute deadline; find() still reports it logically absent.
         if (snapshot_active_) return 0;
@@ -1574,6 +1573,8 @@ public:
         // Count structural work even without TTL keys, including the final step. Idle owners
         // must revisit an unfinished resize instead of parking until another command arrives.
         uint32_t removed = resizing ? 1 : 0;
+        // Pause expiry, not the resize progress needed by already admitted work.
+        if (client_pause_expiry_held()) return removed;
         expires_.sample(budget, [&](uint64_t h) {
             KvObj* o = find_hash_in(0, h);
             if (!o && rehashing()) o = find_hash_in(1, h);
@@ -2581,10 +2582,10 @@ private:
     void scan_visit(int t, uint64_t h, KvObj* o, Fn& fn, bool expire_on_visit) {
         if (!expire_on_visit) { fn(o); return; }
         if (deadline_elapsed(h, o, cached_now_ms_)) {
-            if (client_pause_expiry_held()) return;
             // An epoch record, not this physical candidate, owns logical expiry and pointer
             // lifetime. The walker callback resolves it at its registered cut.
             if (atomic_has_record(h, o->key())) { fn(o); return; }
+            if (client_pause_expiry_held()) return;
             // During capture the frozen table is the cut, not a normal mutable scan source.
             // Report the key logically absent but leave its slot for snapshot traversal, just
             // like find()/active_expire().  KEYS uses this bounded scan while capture runs.

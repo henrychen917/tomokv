@@ -79,6 +79,7 @@ struct MultiCommand {
     std::atomic<bool> finished{false};
     std::atomic<uint64_t> slow_ns{0};
     std::atomic<uint64_t> slow_sleep_started{0};
+    int64_t slow_threshold = -1; // published by command/attempt completion
     ScatterState* scatter = nullptr;
     // ScatterState::groups is rebuilt between an xshard child's waves.  A barrier-only shard must
     // decide whether it belongs to the PUBLISHED wave without consulting that mutable table: the
@@ -1534,15 +1535,16 @@ void multi_slowlog_part(MultiCommand& command, uint64_t started) {
     if (started && command.kind != MultiCommandKind::DebugSleep)
         command.slow_ns.fetch_add(now_ns() - started, std::memory_order_relaxed);
 }
+void multi_slowlog_finish(MultiExecState& state, MultiCommand& command, uint32_t owner) {
+    command.slow_threshold = state.server->live_config_snapshot(owner).slowlog_log_slower_than;
+    if (const uint64_t sleep = command.slow_sleep_started.exchange(0, std::memory_order_acq_rel))
+        command.slow_ns.fetch_add(now_ns() - sleep, std::memory_order_relaxed);
+}
 void multi_slowlog_record(MultiExecState& state, MultiCommand& command, uint32_t owner) {
-    const auto config = state.server->live_config_snapshot(owner);
-    if (config.slowlog_log_slower_than < 0) return;
-    uint64_t duration = command.slow_ns.load(std::memory_order_relaxed);
-    if (const uint64_t sleep = command.slow_sleep_started.load(std::memory_order_acquire))
-        duration += now_ns() - sleep;
-    const SlowlogArm arm{config.slowlog_log_slower_than, 0, false};
-    slowlog_record(owner, state.origin_conn_id, *command.op, duration,
-                  state.now_cut_ms, arm, true);
+    if (command.slow_threshold < 0) return;
+    const SlowlogArm arm{command.slow_threshold, 0, false};
+    slowlog_record(owner, state.origin_conn_id, *command.op,
+                  command.slow_ns.load(std::memory_order_relaxed), state.now_cut_ms, arm, true);
 }
 
 bool execute_local_command(Server& server, MultiExecState& state, MultiCommand& command,
@@ -1928,7 +1930,7 @@ void finish_command(MultiExecState& state, MultiCommand& command, uint32_t stage
         command.kind != MultiCommandKind::Swapdb &&
         command.kind != MultiCommandKind::Prebuilt) assemble_cross_reply(command);
     if (command.kind != MultiCommandKind::IoLocal)
-        multi_slowlog_record(state, command, owner_thread_id);
+        multi_slowlog_finish(state, command, owner_thread_id);
     command.finished.store(true, std::memory_order_release);
 }
 
@@ -1942,7 +1944,7 @@ void assemble_ownerless_replies(MultiExecState& state, uint32_t owner_thread_id)
         const uint64_t started = multi_slowlog_start(state, owner_thread_id);
         assemble_cross_reply(*command);
         multi_slowlog_part(*command, started);
-        multi_slowlog_record(state, *command, owner_thread_id);
+        multi_slowlog_finish(state, *command, owner_thread_id);
     }
 }
 
@@ -2632,8 +2634,12 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
                 multi_enqueue_retry(*previous);
                 continue;
             }
-            for (size_t i = 0; i < previous->commands.size(); ++i)
+            for (size_t i = 0; i < previous->commands.size(); ++i) {
                 latency_tracking_retry(*previous->commands[i]->op, *next->commands[i]->op);
+                next->commands[i]->slow_ns.fetch_add(
+                    previous->commands[i]->slow_ns.load(std::memory_order_relaxed),
+                    std::memory_order_relaxed);
+            }
             previous->watched.clear();
             previous->retired = true;
             loop.multi_deferred_.push_back(previous);
@@ -3043,7 +3049,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                     assemble_final(*state.client, *command.op, *command.scatter,
                                    nullptr, nullptr, nullptr);
                 }
-                multi_slowlog_record(state, command, owner_thread_id);
+                multi_slowlog_finish(state, command, owner_thread_id);
                 command.finished.store(true, std::memory_order_release);
             }
             continue;
@@ -3178,7 +3184,7 @@ void multi_retire(Client& client, Op& op, std::vector<MultiExecState*>& deferred
         !state->decision.aborted.load(std::memory_order_acquire)) {
         // Connection-local handlers deliberately return to their owning IO thread.  This preserves
         // their thread-local client/snapshot context and keeps every shard-owning handler on EX.
-        for (const auto& command : state->commands)
+        for (const auto& command : state->commands) {
             if (command->kind == MultiCommandKind::IoLocal &&
                 !(state->publication_started &&
                   (has_name(command->queued, "publish") || has_name(command->queued, "spublish"))))
@@ -3188,8 +3194,12 @@ void multi_retire(Client& client, Op& op, std::vector<MultiExecState*>& deferred
                 if (!command_client_pause(*state->server, *command->op))
                     command->op->spec->handler(state->server->shard(0), *command->op);
                 multi_slowlog_part(*command, started);
-                multi_slowlog_record(*state, *command, state->owner_io);
+                multi_slowlog_finish(*state, *command, state->owner_io);
             }
+            // Emit once, in EXEC order, after the logical transaction commits.
+            // Wounded attempts contribute time but cannot leak log entries.
+            multi_slowlog_record(*state, *command, state->owner_io);
+        }
     }
     // A completed child can belong to an internally wounded attempt. Publish
     // samples only at logical EXEC retirement; retries transfer their active
