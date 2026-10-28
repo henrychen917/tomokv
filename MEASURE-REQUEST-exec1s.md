@@ -53,7 +53,10 @@ All nine images (PRE, X1–X5, POST, POST-layout and PAD-A) are rebuilt. Records
 `tools/exec1s_build.py` builds one frozen source snapshot at a time, constructs
 its relevant probes, records hashes, then deletes that snapshot and object tree.
 The POST production objects remain for the gate’s unit builds and freshness
-checks. Step traces are deleted after recording counts, log hashes and tails.
+checks. Step traces and completed probes are deleted after recording counts,
+log hashes and probe-retirement bindings. X5 and POST match in all 30 allocated
+sections other than the build-ID note; their different file hashes reflect debug
+metadata/build ID (`docs/exec1s/x5-post-equivalence.json`).
 
 **PAD-A is type A (behaviour twin):** PRE behaviour in exactly the same combined
 text/data layout as POST-layout. POST is linked first, symbol-isolated PRE
@@ -64,8 +67,8 @@ release comparison; do not label PAD-A an exact-size twin of release POST.
 
 ### Replacement proof receipts
 
-X2 directed proof and the PRE/POST ordinary instruction proof are complete.
-PAD-A, lever instructions and live proof remain in progress.
+X2 directed proof, all ordinary counts and all 52 lever scopes are complete.
+POST live proof is in progress.
 
 - X2: production TSAN owner-word helper, the old overlapping-write negative
   control, actual 256-live-group wrap/decrement checks, pinned-floor cleanup,
@@ -79,12 +82,14 @@ PAD-A, lever instructions and live proof remain in progress.
   MSET, batches 1/32, 1s/2s, both namespaces, MSET atomic 0/1. Counts include
   named linked production bodies; library callees and fixture glue are excluded.
   Exact data assertions are mandatory. No surrounding network or WB cost is
-  implied by an ordinary-command result. **POST PASS, 48/48, max delta 0**
-  against fresh PRE; PAD-A remains in progress (`docs/exec1s/command-counts.json`).
+  implied by an ordinary-command result. **POST and PAD-A PASS, 48/48 each, max delta 0**
+  against fresh PRE; 144 ordinary cases total (`docs/exec1s/command-counts.json`).
 - Lever scopes: X1 idle rotation and EXEC owner; X2 eight same-shard EXECs through
   the linked production batch; X3 clear-hint idle rotation; X4 the parsed EXEC
   block’s WB decision after the ordinary visit allowance; X5 preparation/dispatch.
-  Allocation counts retain the complete `allocate_state`–`prepare_commands` scope.
+  All **52 lever scopes completed** (`docs/exec1s/lever-counts.json`). Allocation
+  counts retain the complete `allocate_state`–`prepare_commands` scope. Probe
+  hashes were checked before deletion (`docs/exec1s/probe-retirements.json`).
 - POST live proof: all selected families from `tools/exec1s_proof.py`, their
   supplementary fused and scripting atomic-0 legs, standard differential seeds
   on uring and epoll, AOF CQ observations, `python3 tests/gates_test.py`, and
@@ -166,6 +171,12 @@ made by this lane.
    as rotations. For X1 validate <=1.05 kernel entries per idle-EX rotation
    with a kernel-side count as well as counters. X4 requires holds >0 and
    sends/EXEC <=1.1 hot, <=1.05 uncontended, and remains owner-gated.
+
+Reproduction: `taskset -c 48-63 python3 tools/exec1s_build.py`, then
+`tools/exec1s_trace.py`, `tools/exec1s_directed.py`, and
+`tools/exec1s_finish_proof.py` under the same affinity. After tracing,
+`tools/exec1s_retire_probes.py` deletes completed probes; the collector’s
+`--collect-only` mode verifies their retained hash bindings without retracing.
 
 The decision is improvement outside the existing per-cell null with no ordinary
 cell regression. Instruction and allocation counts explain behaviour; they do

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Reduced re-proof: 48 ordinary scopes per PRE/POST/PAD-A, relevant lever scopes."""
 import concurrent.futures
+import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -10,6 +12,9 @@ ROOT=Path(__file__).resolve().parents[1]
 
 def main():
     assert os.sched_getaffinity(0)<=set(range(48,64))
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--collect-only',action='store_true',help='collect completed traces after hashed probe retirement')
+    args=parser.parse_args()
     ordinary=[(arm,ns,command,mode,batch,atomic,-1)
               for arm in ('PRE','POST','PAD-A') for ns in ('normal','db0')
               for command in ('GET','SET','INCR','MGET','MSET') for mode in ('1s','2s')
@@ -24,8 +29,28 @@ def main():
                    for ns in ('normal','db0') for mode in ('1s','2s')]
     for arm in ('PRE','X1','X2','X3'):
         levers += [('IDLE-'+arm,ns,'IDLE','1s',1,1,-1) for ns in ('normal','db0')]
-    with concurrent.futures.ThreadPoolExecutor(8) as pool:
-        rows=list(pool.map(s.trace,ordinary+levers))
+    if args.collect_only:
+        retired=json.loads((ROOT/'docs/exec1s/probe-retirements.json').read_text())
+        rows=[]
+        for case in ordinary+levers:
+            label='-'.join(map(str,case));arm,ns=case[:2]
+            row=json.loads((s.OUT/(label+'.json')).read_text())
+            log=(s.OUT/(label+'.log')).read_text()
+            build_path=s.OUT/(arm+'-'+ns+'-build.json')
+            build=json.loads(build_path.read_text())
+            assert 'Exit: 0\n' in log and ('COUNT '+str(row['total'])) in log
+            assert row['probe_sha256']==build['sha256']
+            binary=s.BUILD/(arm+'-'+ns)/'probe'
+            if binary.exists():
+                with binary.open('rb') as stream:assert hashlib.file_digest(stream,'sha256').hexdigest()==build['sha256']
+            else:
+                receipt=next(r for r in retired if r['probe']==arm+'-'+ns)
+                assert receipt['sha256']==build['sha256']
+                assert receipt['build_receipt_sha256']==hashlib.sha256(build_path.read_bytes()).hexdigest()
+            rows.append(dict(zip(('arm','namespace','command','mode','batch','atomic','threshold'),case))|row)
+    else:
+        with concurrent.futures.ThreadPoolExecutor(8) as pool:
+            rows=list(pool.map(s.trace,ordinary+levers))
     builds={arm+'-'+ns:json.loads((s.OUT/(arm+'-'+ns+'-build.json')).read_text())
             for arm,ns in sorted({(r['arm'],r['namespace']) for r in rows})}
     comparisons=[]
