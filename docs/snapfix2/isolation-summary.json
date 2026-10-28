@@ -16075,5 +16075,3829 @@
         "error": "AssertionError: ('torn atomic pair observed', 39, [(['snapfix:fe:0', 'snapfix:fe:2'], b'102', b'104'), (['snapfix:fe:0', 'snapfix:fe:2'], b'365', b'367'), (['snapfix:fe:0', 'snapfix:fe:2'], b'634', b'636'), (['snapfix:fe:0', 'snapfix:fe:2'], b'909', b'911'), (['snapfix:fe:0', 'snapfix:fe:2'], b'1177', b'1179')])"
       }
     ]
+  },
+  "script-minimal": {
+    "pre": [
+      {
+        "leg": "redis-redis-0",
+        "cycles": 86514,
+        "observations": 217970,
+        "torn": 0,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:1"
+        ],
+        "owners": null,
+        "examples": [],
+        "errors": [],
+        "pass": true,
+        "evidence": "docs/snapfix2/isolation/pre-script-minimal/redis-redis-0/observations.json"
+      },
+      {
+        "leg": "1s-uring-0",
+        "cycles": 45923,
+        "observations": 147395,
+        "torn": 10743,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:1"
+        ],
+        "owners": [
+          [
+            1,
+            1
+          ],
+          [
+            4,
+            4
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 45,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 85,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 93,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 114,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 158,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 164,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 184,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 222,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 243,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 253,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 259,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 269,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 342,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 398,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 457,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 460,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 495,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 511,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 551,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 557,
+            "values": [
+              null,
+              1
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/pre-script-minimal/1s-uring-0/observations.json"
+      },
+      {
+        "leg": "1s-uring-1",
+        "cycles": 46769,
+        "observations": 172101,
+        "torn": 1105,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:2"
+        ],
+        "owners": [
+          [
+            4,
+            4
+          ],
+          [
+            14,
+            6
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 77,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 92,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 144,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 321,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 412,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 421,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 443,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 484,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 492,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 623,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 757,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 774,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 819,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 1499,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 1527,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 1536,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 1823,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 2036,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 2102,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 2274,
+            "values": [
+              1,
+              null
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/pre-script-minimal/1s-uring-1/observations.json"
+      },
+      {
+        "leg": "1s-epoll-0",
+        "cycles": 54819,
+        "observations": 183471,
+        "torn": 245,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:1"
+        ],
+        "owners": [
+          [
+            2,
+            2
+          ],
+          [
+            7,
+            7
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 125,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 357,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 393,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 451,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 592,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 605,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 927,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 1223,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 1575,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 1763,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 2429,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 3566,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 4375,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 5579,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 5733,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 6102,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 7230,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 9613,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 10020,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 12023,
+            "values": [
+              1,
+              null
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/pre-script-minimal/1s-epoll-0/observations.json"
+      },
+      {
+        "leg": "1s-epoll-1",
+        "cycles": 55796,
+        "observations": 185248,
+        "torn": 45,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:1"
+        ],
+        "owners": [
+          [
+            7,
+            7
+          ],
+          [
+            13,
+            5
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 10,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 14,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 3491,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 10605,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 13484,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 16052,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 34976,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 44460,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 44463,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 45359,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 46570,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 46628,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 46802,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 48409,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 48488,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 49367,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 57523,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 58488,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 60952,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 63823,
+            "values": [
+              null,
+              1
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/pre-script-minimal/1s-epoll-1/observations.json"
+      },
+      {
+        "leg": "2s-uring-0",
+        "cycles": 94438,
+        "observations": 224896,
+        "torn": 3449,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:1"
+        ],
+        "owners": [
+          [
+            10,
+            6
+          ],
+          [
+            3,
+            7
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 8,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 125,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 230,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 254,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 297,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 383,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 390,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 434,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 444,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 485,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 497,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 553,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 675,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 749,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 756,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 788,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 802,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 898,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 1224,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 1308,
+            "values": [
+              1,
+              null
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/pre-script-minimal/2s-uring-0/observations.json"
+      },
+      {
+        "leg": "2s-uring-1",
+        "cycles": 94130,
+        "observations": 226577,
+        "torn": 6768,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:1"
+        ],
+        "owners": [
+          [
+            2,
+            6
+          ],
+          [
+            15,
+            7
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 7,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 36,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 43,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 48,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 83,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 90,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 95,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 123,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 240,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 264,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 269,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 279,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 380,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 421,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 428,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 433,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 450,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 497,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 538,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 550,
+            "values": [
+              null,
+              1
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/pre-script-minimal/2s-uring-1/observations.json"
+      },
+      {
+        "leg": "2s-epoll-0",
+        "cycles": 93297,
+        "observations": 212483,
+        "torn": 24,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:1"
+        ],
+        "owners": [
+          [
+            7,
+            7
+          ],
+          [
+            6,
+            6
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 1778,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 25260,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 33152,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 38440,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 45957,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 64849,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 86740,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 104237,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 107128,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 113303,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 119090,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 129283,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 161952,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 162038,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 163872,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 166698,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 169818,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 173680,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 178511,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 188317,
+            "values": [
+              null,
+              1
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/pre-script-minimal/2s-epoll-0/observations.json"
+      },
+      {
+        "leg": "2s-epoll-1",
+        "cycles": 94124,
+        "observations": 209171,
+        "torn": 107,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:5"
+        ],
+        "owners": [
+          [
+            6,
+            6
+          ],
+          [
+            11,
+            7
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 445,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 756,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 859,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 1568,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 1801,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 3217,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 3631,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 4762,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 6162,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 6989,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 11668,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 14825,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 15422,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 18128,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 25321,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 26970,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 28500,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 28896,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 31050,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 31309,
+            "values": [
+              null,
+              1
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/pre-script-minimal/2s-epoll-1/observations.json"
+      }
+    ],
+    "base": [
+      {
+        "leg": "redis-redis-0",
+        "cycles": 86967,
+        "observations": 217745,
+        "torn": 0,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:1"
+        ],
+        "owners": null,
+        "examples": [],
+        "errors": [],
+        "pass": true,
+        "evidence": "docs/snapfix2/isolation/base-script-minimal/redis-redis-0/observations.json"
+      },
+      {
+        "leg": "1s-uring-0",
+        "cycles": 45801,
+        "observations": 154661,
+        "torn": 797,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:4"
+        ],
+        "owners": [
+          [
+            3,
+            3
+          ],
+          [
+            15,
+            7
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 35,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 152,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 158,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 309,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 314,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 360,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 399,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 778,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 1731,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 2612,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 2790,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 3021,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 3827,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 4217,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 4245,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 4376,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 4460,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 4496,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 4759,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 5488,
+            "values": [
+              1,
+              null
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/base-script-minimal/1s-uring-0/observations.json"
+      },
+      {
+        "leg": "1s-uring-1",
+        "cycles": 44335,
+        "observations": 153436,
+        "torn": 2636,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:1"
+        ],
+        "owners": [
+          [
+            7,
+            7
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 102,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 275,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 376,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 467,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 574,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 624,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 675,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 769,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 891,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 909,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 935,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 1008,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 1034,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 1269,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 1342,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 1412,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 1460,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 1523,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 1660,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 1676,
+            "values": [
+              null,
+              1
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/base-script-minimal/1s-uring-1/observations.json"
+      },
+      {
+        "leg": "1s-epoll-0",
+        "cycles": 55524,
+        "observations": 183615,
+        "torn": 241,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:1"
+        ],
+        "owners": [
+          [
+            12,
+            4
+          ],
+          [
+            14,
+            6
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 150,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 1109,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 2066,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 2114,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 2176,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 2473,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 3343,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 4732,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 4755,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 4854,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 5154,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 5353,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 5605,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 6960,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 7180,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 7475,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 7632,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 9431,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 9786,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 10399,
+            "values": [
+              1,
+              null
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/base-script-minimal/1s-epoll-0/observations.json"
+      },
+      {
+        "leg": "1s-epoll-1",
+        "cycles": 55387,
+        "observations": 179201,
+        "torn": 27,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:1"
+        ],
+        "owners": [
+          [
+            0,
+            0
+          ],
+          [
+            12,
+            4
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 22784,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 23022,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 36214,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 47552,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 48882,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 51517,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 52186,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 52211,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 52293,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 52399,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 52678,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 54153,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 59195,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 65298,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 90476,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 91787,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 96326,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 99283,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 101124,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 106964,
+            "values": [
+              1,
+              null
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/base-script-minimal/1s-epoll-1/observations.json"
+      },
+      {
+        "leg": "2s-uring-0",
+        "cycles": 97262,
+        "observations": 231518,
+        "torn": 488,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:2"
+        ],
+        "owners": [
+          [
+            8,
+            6
+          ],
+          [
+            11,
+            7
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 698,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 1711,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 1891,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 2477,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 2637,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 2857,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 2957,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 3129,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 3668,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 3899,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 4437,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 4697,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 5120,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 5948,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 6036,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 7809,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 8242,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 8316,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 9826,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 10039,
+            "values": [
+              null,
+              1
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/base-script-minimal/2s-uring-0/observations.json"
+      },
+      {
+        "leg": "2s-uring-1",
+        "cycles": 96428,
+        "observations": 235301,
+        "torn": 539,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:2"
+        ],
+        "owners": [
+          [
+            7,
+            7
+          ],
+          [
+            4,
+            6
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 590,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 687,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 804,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 907,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 1047,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 1085,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 1249,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 1730,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 1779,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 1915,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 2525,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 2549,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 2983,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 4292,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 4388,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 5016,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 5284,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 5844,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 5937,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 6356,
+            "values": [
+              1,
+              null
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/base-script-minimal/2s-uring-1/observations.json"
+      },
+      {
+        "leg": "2s-epoll-0",
+        "cycles": 90927,
+        "observations": 181762,
+        "torn": 347,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:1"
+        ],
+        "owners": [
+          [
+            1,
+            7
+          ],
+          [
+            12,
+            6
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 3,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 5,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 7,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 671,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 946,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 1341,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 1602,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 2342,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 2897,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 4149,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 4281,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 4483,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 4728,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 4783,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 5205,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 5533,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 5741,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 6004,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 6190,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 8808,
+            "values": [
+              null,
+              1
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/base-script-minimal/2s-epoll-0/observations.json"
+      },
+      {
+        "leg": "2s-epoll-1",
+        "cycles": 99593,
+        "observations": 205215,
+        "torn": 128,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:3"
+        ],
+        "owners": [
+          [
+            5,
+            7
+          ],
+          [
+            10,
+            6
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 3038,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 3887,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 5341,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 6390,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 7612,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 7924,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 9128,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 9175,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 10282,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 11224,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 15074,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 15509,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 18683,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 19360,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 19805,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 21225,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 23450,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 23821,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 27335,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 27589,
+            "values": [
+              null,
+              1
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/base-script-minimal/2s-epoll-1/observations.json"
+      }
+    ],
+    "post": [
+      {
+        "leg": "redis-redis-0",
+        "cycles": 86911,
+        "observations": 214537,
+        "torn": 0,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:1"
+        ],
+        "owners": null,
+        "examples": [],
+        "errors": [],
+        "pass": true,
+        "evidence": "docs/snapfix2/isolation/post-script-minimal/redis-redis-0/observations.json"
+      },
+      {
+        "leg": "1s-uring-0",
+        "cycles": 47998,
+        "observations": 157435,
+        "torn": 5399,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:2"
+        ],
+        "owners": [
+          [
+            11,
+            3
+          ],
+          [
+            14,
+            6
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 20,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 35,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 59,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 186,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 221,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 233,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 236,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 265,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 271,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 315,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 318,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 327,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 333,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 339,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 361,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 373,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 382,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 385,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 391,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 406,
+            "values": [
+              null,
+              1
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/post-script-minimal/1s-uring-0/observations.json"
+      },
+      {
+        "leg": "1s-uring-1",
+        "cycles": 45458,
+        "observations": 158599,
+        "torn": 3113,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:1"
+        ],
+        "owners": [
+          [
+            8,
+            0
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 30,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 35,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 44,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 51,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 68,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 96,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 101,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 167,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 175,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 184,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 196,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 203,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 208,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 245,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 270,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 278,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 298,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 306,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 355,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 378,
+            "values": [
+              1,
+              null
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/post-script-minimal/1s-uring-1/observations.json"
+      },
+      {
+        "leg": "1s-epoll-0",
+        "cycles": 57113,
+        "observations": 201141,
+        "torn": 3,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:1"
+        ],
+        "owners": [
+          [
+            3,
+            3
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 47688,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 47689,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 178308,
+            "values": [
+              1,
+              null
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/post-script-minimal/1s-epoll-0/observations.json"
+      },
+      {
+        "leg": "1s-epoll-1",
+        "cycles": 56705,
+        "observations": 187233,
+        "torn": 10,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:1"
+        ],
+        "owners": [
+          [
+            11,
+            3
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 5644,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 10910,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 45822,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 71698,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 76084,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 139884,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 164112,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 164113,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 164114,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 164115,
+            "values": [
+              1,
+              null
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/post-script-minimal/1s-epoll-1/observations.json"
+      },
+      {
+        "leg": "2s-uring-0",
+        "cycles": 93591,
+        "observations": 189026,
+        "torn": 113,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:3"
+        ],
+        "owners": [
+          [
+            8,
+            6
+          ],
+          [
+            9,
+            7
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 811,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 1360,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 3968,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 10422,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 12586,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 12614,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 13423,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 20985,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 21198,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 22346,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 25013,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 25407,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 31852,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 32788,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 34880,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 35531,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 38308,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 39953,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 40767,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 43377,
+            "values": [
+              1,
+              null
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/post-script-minimal/2s-uring-0/observations.json"
+      },
+      {
+        "leg": "2s-uring-1",
+        "cycles": 95981,
+        "observations": 229855,
+        "torn": 153,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:2"
+        ],
+        "owners": [
+          [
+            11,
+            7
+          ],
+          [
+            10,
+            6
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 231,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 1076,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 2930,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 5106,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 7127,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 7691,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 11922,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 13542,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 20813,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 20827,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 22716,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 24186,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 28466,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 31042,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 32283,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 33982,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 34232,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 35666,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 36468,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 37777,
+            "values": [
+              null,
+              1
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/post-script-minimal/2s-uring-1/observations.json"
+      },
+      {
+        "leg": "2s-epoll-0",
+        "cycles": 96822,
+        "observations": 217213,
+        "torn": 73,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:1"
+        ],
+        "owners": [
+          [
+            11,
+            7
+          ],
+          [
+            12,
+            6
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 1899,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 1972,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 2761,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 4855,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 5959,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 9612,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 11707,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 11781,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 15672,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 16821,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 31107,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 37360,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 37932,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 38273,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 39519,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 39655,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 53168,
+            "values": [
+              1,
+              null
+            ]
+          },
+          {
+            "observation": 58992,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 65668,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 67647,
+            "values": [
+              1,
+              null
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/post-script-minimal/2s-epoll-0/observations.json"
+      },
+      {
+        "leg": "2s-epoll-1",
+        "cycles": 98888,
+        "observations": 208158,
+        "torn": 114,
+        "pair": [
+          "snapfix2:flush:0",
+          "snapfix2:flush:1"
+        ],
+        "owners": [
+          [
+            6,
+            6
+          ],
+          [
+            11,
+            7
+          ]
+        ],
+        "examples": [
+          {
+            "observation": 717,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 1506,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 4027,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 12698,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 15475,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 18905,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 19576,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 20484,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 21537,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 23351,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 23863,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 24077,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 25477,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 28091,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 28596,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 30158,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 31032,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 32258,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 33127,
+            "values": [
+              null,
+              1
+            ]
+          },
+          {
+            "observation": 33233,
+            "values": [
+              null,
+              1
+            ]
+          }
+        ],
+        "errors": [],
+        "pass": false,
+        "evidence": "docs/snapfix2/isolation/post-script-minimal/2s-epoll-1/observations.json"
+      }
+    ]
   }
 }

@@ -126,15 +126,21 @@ observations in those three corresponding runs.
 | EXEC-only mixture, no BGSAVE | 3 | 3 | 3 |
 | Script-only mixture, no BGSAVE | 0 | 0 | 0 |
 | Serial EXEC pair + FLUSHALL, dense observer | 8 | 8 | 8 |
+| Serial script pair + FLUSHALL, dense observer | 8 | 8 | 8 |
 | FLUSHALL-only observation window | 7 | 7 | 6 |
 
-Every Redis leg in this table is clean. These are bounded five-second diagnostic
-runs: zero observed tears means **NOT REPRODUCED**, not proof of absence. The
-original mixture samples only every 5 ms. PRE's BGSAVE-enabled run also encounters
+Every Redis leg in this table is clean. The original-mixture runs last five
+seconds; the minimal witnesses last six seconds. Zero observed tears means
+**NOT REPRODUCED**, not proof of absence. The original mixture samples only every
+5 ms. PRE's BGSAVE-enabled run also encounters
 the old stalls on five legs (one of those has a tear too); those failures are
 kept separate from the torn-pair counts. Exact per-leg counts, examples, worker
 errors and artifact paths are in `docs/snapfix2/isolation-summary.json` and the
 underlying `isolation/*/results.json` / `flushall-observations.json` files.
+The denser script witness resolves the sparse observer's non-reproduction:
+all eight TomoKV legs tear on every arm, versus zero tears in Redis's
+217,970 / 217,745 / 214,537 observations. `flush-script` alternates one EVAL that
+sets both keys to 1 with FLUSHALL; it contains no EXEC, BGSAVE or other writer.
 
 Root cause in unchanged production code:
 
@@ -192,13 +198,19 @@ binary digest. The main targeted pass completed: **53 jobs, 329 ok, 0 FAIL**, in
 snapfix rows and the new RSS row (`proof/proof-uring/record.json`). The idle RSS
 row passed all eight TomoKV legs plus Redis: 1s stayed at 18.79–18.87 MiB and 2s
 at 15.30–15.38 MiB over 12 saves. Both storm rows passed all nine legs.
-The million-key, 16-save/reload matrix passed all nine legs. at412's script +
+The million-key, 16-save/reload matrix passed all nine legs. All **12 long
+EXEC + writer storms** (6/30/60 seconds × both modes/engines, atomic 1) pass both
+the existing correctness/reload checks and an explicit RSS bound. Their sampled
+peak RSS ranges from 25.40 to 39.88 MiB; each 60-second leg completes 91–597 saves.
+See `long-summary.json` and each `long/*/{timeline,rss-check}.json`.
+The five additional neighbours—SHUTDOWN SAVE, SIGTERM, BGSAVE/FLIP, AOF rewrite
+with EXEC and AOF rewrite with scripts—pass **45/45 legs**, including their Redis
+controls (`neighbours/*/results.json`). at412's script +
 writer `SNAP-STORM-1` diagnostic has **0 failures in 20 attempts** (five 30-second
 attempts per mode/engine). As in snapfix's diagnostic, `--pre-control` permits
 the existing BUSY refusals and records their counts; successful scripts, writes
 and saves must still advance. This is a stall/correctness result, not a rate
-claim. The longer RSS storms, other engine pass and differential suites remain
-in progress. Initial
+claim. The other engine pass and differential suites remain in progress. Initial
 `tests/gates_test.py` hit three fixture timeout failures while compilation and
 instruction tracing overlapped; it will be repeated in isolation, with the
 original log retained. No assertion or timeout is weakened.

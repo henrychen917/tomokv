@@ -1,0 +1,70 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "8-15",
+    "python3",
+    "tests/snapfix_neighbours.py",
+    "--case",
+    "sigterm",
+    "--binary",
+    "build/tomokv",
+    "--oracle",
+    "/home/user/Projects/redis/src/redis-server",
+    "--cores",
+    "0-7",
+    "--port",
+    "20100",
+    "--output",
+    "/home/user/Projects/cx-snapfix2/docs/snapfix2/neighbours/sigterm"
+  ],
+  "environment": {},
+  "binary": "build/tomokv",
+  "binary_sha256": "dd169c2f10040c4b13cb87c3731e4ba1a2dbd74088635008e8512ba64e84021c",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "exit": 0,
+  "seconds": 0.765,
+  "log_sha256": "d29fd181f2b3f7f25da9467fab1f102251a53ca31097c04fc874968b41b6677c",
+  "removed_data": {
+    "1s-epoll-1/appendonlydir/appendonly.aof.1.incr.tomo": {
+      "bytes": 32912,
+      "sha256": "ab21cdc0932cadf36b2d79132cf54bbced8dbac50db259a8336d3a6e0318aad8"
+    },
+    "2s-uring-0/appendonlydir/appendonly.aof.1.incr.tomo": {
+      "bytes": 30380,
+      "sha256": "a32cac9e8b9b1f4064c736fe708f752a8f24590ff71b35695e9e4f2836ceb0d7"
+    },
+    "1s-epoll-0/appendonlydir/appendonly.aof.1.incr.tomo": {
+      "bytes": 29772,
+      "sha256": "a60445b802e066811653387347ccd12515e37614fd38c430d0c638a9474a4c6c"
+    },
+    "1s-uring-0/appendonlydir/appendonly.aof.1.incr.tomo": {
+      "bytes": 26732,
+      "sha256": "73e93e26a91e506330809c10f6bfaf191a5e28dee006abb6609fa2093c34ed87"
+    },
+    "2s-epoll-0/appendonlydir/appendonly.aof.1.incr.tomo": {
+      "bytes": 35548,
+      "sha256": "eeb01eb7986894176667f6cafbf2b17688e6ae7748c2b49f1dde883238fef6b5"
+    },
+    "redis-redis-0/appendonlydir/appendonly.aof.1.base.rdb": {
+      "bytes": 89,
+      "sha256": "7e9c5935decbf7ee7d82e103e86d1bb37e7d8efefce698df8534b3567d763ccd"
+    },
+    "redis-redis-0/appendonlydir/appendonly.aof.1.incr.aof": {
+      "bytes": 236802,
+      "sha256": "87213c44a2419ef9be312968b1d6fe27b31129fdb01456d32ba84b77e5cdca15"
+    },
+    "2s-epoll-1/appendonlydir/appendonly.aof.1.incr.tomo": {
+      "bytes": 33216,
+      "sha256": "8fda83534440d6aa794300574e315303dfdc25ee4bd9a20601e8eb2e4ad2f043"
+    },
+    "1s-uring-1/appendonlydir/appendonly.aof.1.incr.tomo": {
+      "bytes": 25008,
+      "sha256": "9bc139237e3f4eea02815e0cd7742547193f5a69e302bdc73748194a8b89f166"
+    },
+    "2s-uring-1/appendonlydir/appendonly.aof.1.incr.tomo": {
+      "bytes": 25920,
+      "sha256": "118a9e9c639fdc92bdb8d8b20e9128764483a702666679f6a563ad26f3729733"
+    }
+  }
+}
