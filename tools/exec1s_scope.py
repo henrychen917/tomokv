@@ -208,7 +208,7 @@ end
     with full_log.open("rb") as log:
         digest = hashlib.file_digest(log, "sha256").hexdigest()
     (OUT / (label + ".log")).write_text(
-        f"Full bounded GDB trace: {full_log}\nSHA-256: {digest}\nExit: {result.returncode}\n" + tail)
+        f"Deleted bounded GDB step trace: {full_log}\nSHA-256: {digest}\nExit: {result.returncode}\n" + tail)
     full_log.unlink()  # Counts and hashed tail retained; discard voluminous step trace.
     assert result.returncode == 0 and output.exists() and "COUNT " in tail, label
     row = dict(zip(("arm", "namespace", "command", "mode", "batch", "atomic", "threshold"), case))

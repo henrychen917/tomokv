@@ -64,12 +64,16 @@ release comparison; do not label PAD-A an exact-size twin of release POST.
 
 ### Replacement proof receipts
 
-Every item here remains pending until its current-image receipt is recorded.
+X2 directed proof is complete. Instruction and live proof remain in progress.
 
 - X2: production TSAN owner-word helper, the old overlapping-write negative
   control, actual 256-live-group wrap/decrement checks, pinned-floor cleanup,
   and same-key-count statistics publication in both modes × atomic 0/1.
-  Restoring only the old publication guard must fail the unchanged assertion.
+  **PASS:** repaired publication 4/4; restoring only the old guard fails the
+  unchanged assertion 4/4; TSAN production leg passes and its wide-write child
+  exits 66 with a data-race report; actual wrap/pinned-floor checks pass 8/8.
+  Receipts: `docs/exec1s/publication-negative.json`, `docs/exec1s/word-tsan.json`.
+  Temporary broken source and binary were deleted.
 - Ordinary instructions: PRE, POST and PAD-A, 48 scopes each: GET/SET/INCR/MGET/
   MSET, batches 1/32, 1s/2s, both namespaces, MSET atomic 0/1. Counts include
   named linked production bodies; library callees and fixture glue are excluded.

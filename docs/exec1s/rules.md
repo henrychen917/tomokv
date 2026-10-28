@@ -40,5 +40,6 @@ The separate Opus-max audit is retained in `opus-audit-initial.md` with model
 and source provenance in `opus-audit-initial.json`. Its C2 overlapping-write race
 and C3 publication omission required repair; the old x86 value-preserving write
 was not acceptable under the C++ memory model. X1's private tag collision and
-X5's incidental WATCH-first discovery order were also removed. A follow-up audit
-and refreshed runtime receipts remain pending.
+X5's incidental WATCH-first discovery order were also removed. The inherited focused follow-up audits accepted those repairs. The exec1s-c
+TSAN and publication controls freshly re-prove both fixes; see
+`word-tsan.json` and `publication-negative.json`. Broader live proof is separate.
