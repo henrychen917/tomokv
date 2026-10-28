@@ -55,6 +55,7 @@ BlockingSnapshotPrepare blocking_snapshot_prepare(const Task& task, Shard& shard
 void blocking_publish_key(Shard& shard, uint64_t hash, const char* key, uint32_t key_len, uint8_t ns);
 void blocking_publish_list_op(Shard& shard, Op& op);
 void blocking_publish_zset_op(Shard& shard, Op& op);
+void blocking_publish_deleted(Shard& shard, Op& op);
 void blocking_defer_plain_publication(bool defer);
 void blocking_plain_mutation_published(Shard& shard, Op& op);
 

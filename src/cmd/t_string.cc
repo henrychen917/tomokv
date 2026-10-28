@@ -624,12 +624,7 @@ void cmd_del(Shard& sh, Op& op) {
     // Deletion is a readiness boundary, even if the next pipelined command
     // recreates the same stream and group. EXEC/plain MVCC defer this through
     // their existing publication boundary; never serve inside table retirement.
-    if (removed && sh.has_blocking_waiters())
-        for (uint32_t i = 1; i < op.argc(); i++) {
-            const Slice key = op.arg(i);
-            blocking_publish_key(sh, i == 1 ? op.hash : FlatStore::hash_key(key),
-                                 key.p, key.n, key.ns);
-        }
+    if (removed) blocking_publish_deleted(sh, op);
 }
 
 template <bool kNotify>

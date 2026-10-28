@@ -1380,6 +1380,15 @@ void blocking_publish_zset_op(Shard& shard, Op& op) {
     blocking_publish_key(shard, op.hash, op.key().p, op.key().n, op.key().ns);
 }
 
+void blocking_publish_deleted(Shard& shard, Op& op) {
+    if (!shard.has_blocking_waiters()) return;
+    for (uint32_t i = 1; i < op.argc(); i++) {
+        const Slice key = op.arg(i);
+        blocking_publish_key(shard, i == 1 ? op.hash : FlatStore::hash_key(key),
+                             key.p, key.n, key.ns);
+    }
+}
+
 void blocking_defer_plain_publication(bool defer) { blocking_tls_defer_plain = defer; }
 
 void blocking_plain_mutation_published(Shard& shard, Op& op) {

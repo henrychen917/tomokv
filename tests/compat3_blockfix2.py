@@ -109,6 +109,33 @@ def removed(c, clients):
     got = w.read()
     equal(got, [[b"boundary", [[b"1-0", [b"f", b"v"]]]]], "EXEC publication boundary")
     parked(c, 0); out.append(got)
+    # Accounting belongs to each failed command, not its producer or key. A
+    # surviving group on the same stream must neither fail nor be charged.
+    c.cmd("CONFIG", "RESETSTAT")
+    c.cmd("XGROUP", "CREATE", "accounting", "gone", "$", "MKSTREAM")
+    c.cmd("XGROUP", "CREATE", "accounting", "live", "$")
+    failed = [waiter(c, clients, "XREADGROUP", "GROUP", "gone", who, "BLOCK", 0,
+                     "STREAMS", "accounting", ">") for who in ("one", "two")]
+    live = waiter(c, clients, "XREADGROUP", "GROUP", "live", "three", "BLOCK", 0,
+                  "STREAMS", "accounting", ">")
+    equal(c.cmd("XGROUP", "DESTROY", "accounting", "gone"), 1, "destroy one group")
+    for w in failed:
+        got = w.read()
+        assert isinstance(got, RespError) and str(got).startswith("NOGROUP"), got
+    parked(c, 1)
+    c.cmd("XADD", "accounting", "1-0", "f", "v")
+    equal(live.read(), [[b"accounting", [[b"1-0", [b"f", b"v"]]]]], "other group survives")
+    parked(c, 0)
+    equal(info(c, "errorstats").get("errorstat_NOGROUP"), "count=2", "NOGROUP replies counted once")
+    equal(info(c, "stats").get("total_error_replies"), "2", "total NOGROUP errors")
+    stats = dict(field.split("=", 1) for field in info(c, "commandstats")["cmdstat_xreadgroup"].split(","))
+    equal([stats.get(k) for k in ("calls", "rejected_calls", "failed_calls")], ["3", "0", "2"],
+          "failed blocked commands counted once")
+    c.cmd("CONFIG", "RESETSTAT")
+    equal(info(c, "errorstats").get("errorstat_NOGROUP"), None, "RESETSTAT clears NOGROUP")
+    equal(info(c, "stats").get("total_error_replies"), "0", "RESETSTAT clears total errors")
+    equal(info(c, "commandstats").get("cmdstat_xreadgroup"), None, "RESETSTAT clears command failures")
+    out.append(["NOGROUP", 2, "xreadgroup", 3, 0, 2])
     return out
 
 
