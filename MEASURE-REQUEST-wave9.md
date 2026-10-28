@@ -136,3 +136,10 @@ Unsupported file setup errors are still matched exactly by the frozen manifest;
 they do not explain this failure. No assertion or known-failure name was hidden
 to make the integration green. The full compatibility job and planted regression
 will retain this limitation in their receipts.
+
+- The gaterows5 R7 bounds row inherited the gate worker's two-CPU load affinity.
+  Its real-parser fixture explicitly requires eight CPUs and correctly failed.
+  The job now invokes that fixture on its own eight-CPU server slot, matching
+  the existing R7 engagement job. Quadratic/eager negative controls are unchanged.
+  `make -q` passes for all 55 enumerated production targets/aggregate targets;
+  target commands and binary hashes are in `docs/wave9/build-freshness.json`.

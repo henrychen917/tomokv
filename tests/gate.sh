@@ -5195,7 +5195,7 @@ job_feature_cell(){
 
 job_reorder_bounds(){
   row_begin "R7 linear scan and lazy construction bounds (both databases)"
-  if unit_ready gaterows5-units && py tests/reorderscan_gate.py >"$TMPDIR/scan.log" 2>&1; then
+  if unit_ready gaterows5-units && taskset -c "$CORES" python3 tests/reorderscan_gate.py >"$TMPDIR/scan.log" 2>&1; then
     ok "R7 linear scan and lazy construction bounds (both databases)"
   else bad "R7 linear scan and lazy construction bounds (both databases)" "see $TMPDIR/scan.log"; fi
 }
