@@ -184,6 +184,23 @@ def integers(reply):
     return [int(v) for v in reply]
 
 
+class Latency:
+    """Largest observed single-operation wait per worker class (evidence of the stall margin)."""
+
+    def __init__(self):
+        self.lock = threading.Lock()
+        self.max = {}
+
+    def observe(self, kind, began):
+        waited = time.monotonic() - began
+        with self.lock:
+            if waited > self.max.get(kind, 0.0):
+                self.max[kind] = waited
+
+    def report(self):
+        return {k: round(v, 3) for k, v in sorted(self.max.items())}
+
+
 def run_storm(seconds, workers, stall):
     """Run worker callables until `seconds` elapse or one fails; a socket timeout is a stall."""
     stop = threading.Event()
@@ -370,12 +387,15 @@ def case_bgsave_script(args, directory, mode, engine, atomic, oracle):
         refused = [0]
         writes = [0, 0]
         saves = [0]
+        latency = Latency()
 
         def scripter(i):
             def run(stop):
                 with contextlib.closing(Conn('127.0.0.1', b.port, timeout=args.stall)) as x:
                     while not stop.is_set():
+                        began = time.monotonic()
                         reply = x.cmd('EVAL', WRITE, 2, *keys)
+                        latency.observe('script', began)
                         if isinstance(reply, RespError) and str(reply).startswith(REFUSALS):
                             refused[0] += 1
                             continue
@@ -388,7 +408,9 @@ def case_bgsave_script(args, directory, mode, engine, atomic, oracle):
             def run(stop):
                 with contextlib.closing(Conn('127.0.0.1', b.port, timeout=args.stall)) as x:
                     while not stop.is_set():
+                        began = time.monotonic()
                         x.must('INCR', writer_keys[i % 2])
+                        latency.observe('writer', began)
                         writes[i % 2] += 1
             run.__name__ = f'writer-{i}'
             return run
@@ -406,7 +428,8 @@ def case_bgsave_script(args, directory, mode, engine, atomic, oracle):
             s = stats(c)
             assert s.get('atomic_txn_order_violations', 0) == 0, s
             assert s['script_keys_armed'] == s['script_keys_released'], 'script PINs leaked'
-        result['storm'] = dict(activations=sum(done), refused=refused[0], writes=writes, saves=saves[0])
+        result['storm'] = dict(activations=sum(done), refused=refused[0], writes=writes, saves=saves[0],
+                               max_latency=latency.report())
         result['snapshot'] = storm_snapshot_check(args, directory / 'storm', mode, engine, atomic,
                                                   oracle, b, keys, final[0], 'storm')
     finally:
@@ -463,15 +486,18 @@ def case_bgsave_exec(args, directory, mode, engine, atomic, oracle):
         aborted = [0]
         probe_max = [0.0]
         saves = [0]
+        latency = Latency()
         burst = encode('INCR', hot) * args.burst
 
         def writer(i):
             def run(stop):
                 x = writer_conns[i]
                 while not stop.is_set():
+                    began = time.monotonic()
                     x.raw(burst)
                     for _ in range(args.burst):
                         assert isinstance(x.read(), int)
+                    latency.observe('writer-burst', began)
                     incr[i] += args.burst
             run.__name__ = f'writer-{i}'
             return run
@@ -480,6 +506,7 @@ def case_bgsave_exec(args, directory, mode, engine, atomic, oracle):
             def run(stop):
                 x = exec_conns[i]
                 while not stop.is_set():
+                    began = time.monotonic()
                     if i % 2:
                         x.must('WATCH', *pair)
                     x.raw(encode('MULTI') + encode('INCR', hot) + encode('INCR', pair[0]) +
@@ -487,6 +514,7 @@ def case_bgsave_exec(args, directory, mode, engine, atomic, oracle):
                     head = [x.read() for _ in range(4)]
                     assert head == [b'OK', b'QUEUED', b'QUEUED', b'QUEUED'], head
                     reply = x.read()
+                    latency.observe('exec', began)
                     if reply is None and i % 2:
                         aborted[0] += 1
                         continue
@@ -507,7 +535,8 @@ def case_bgsave_exec(args, directory, mode, engine, atomic, oracle):
                            [execer(i) for i in range(len(exec_conns))] + [prober] +
                            [bgsave_loop(saver, saves, args.stall)], args.stall)
         result.update(probe_max=round(probe_max[0], 3), saves=saves[0], writes=sum(incr),
-                      execs=sum(committed), aborted=aborted[0], lanes=lanes)
+                      execs=sum(committed), aborted=aborted[0], lanes=lanes,
+                      max_latency=latency.report())
         for x in writer_conns + exec_conns + [probe, saver]:
             x.close()
         assert not errors, (errors, result)
