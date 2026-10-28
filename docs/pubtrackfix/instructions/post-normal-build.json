@@ -84,6 +84,7 @@
     "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/fliplisten.o",
     "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/shutdown.o",
     "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/latency_tracking.o",
+    "/home/user/Projects/cx-pubtrackfix/build/db0/src/store/eviction.o",
     "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/version.o",
     "/home/user/Projects/cx-pubtrackfix/build/src/main.o",
     "/home/user/Projects/cx-pubtrackfix/build/src/net/tls.o",
@@ -140,6 +141,7 @@
     "/home/user/Projects/cx-pubtrackfix/build/src/core/fliplisten.o",
     "/home/user/Projects/cx-pubtrackfix/build/src/core/shutdown.o",
     "/home/user/Projects/cx-pubtrackfix/build/src/cmd/latency_tracking.o",
+    "/home/user/Projects/cx-pubtrackfix/build/src/store/eviction.o",
     "/home/user/Projects/cx-pubtrackfix/build/third_party/lua/helpers/lua_cjson.o",
     "/home/user/Projects/cx-pubtrackfix/build/third_party/lua/helpers/lua_cmsgpack.o",
     "/home/user/Projects/cx-pubtrackfix/build/third_party/lua/helpers/lua_bit.o",
@@ -158,5 +160,5 @@
     "-lm",
     "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/counts/post-normal/probe.o"
   ],
-  "sha256": "13eb2965a8ecf03784247c8d3323d2668605b5b6b7d21b8d91026316368d6db0"
+  "sha256": "b42199304ed9bf1a53856cd3f9e34179b6750a61065692480fda5b3e29f323a5"
 }

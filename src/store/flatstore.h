@@ -1677,28 +1677,8 @@ public:
     }
 
 
-    // Owner maintenance, independent of admission: lowering maxmemory must also
-    // evict on an idle server. No protected command key (the empty key is valid).
-    // Keep the ordinary victim rules, snapshot exclusion and QSBR erase path.
-    [[gnu::noinline]] uint32_t evict_over_limit() {
-        if (!maxmemory_enabled_ || maxmemory_policy_ == MaxmemoryPolicy::NoEviction ||
-            snapshot_active_) return 0;
-        uint32_t removed = 0;
-        for (uint32_t attempt = 0; attempt < kEvictionsPerOp &&
-             accounted_bytes() > maxmemory_limit_; ++attempt) {
-            KvObj* victim = choose_victim<false>(Slice());
-            if (!victim) break; // pinned or sparse: the next owner beat tries again
-            const Slice key = victim->key();
-            const uint64_t hash = hash_key(key);
-            (void)aof_.record_delete(key);
-            const uint32_t before = size();
-            const bool live = erase(hash, key);
-            if (size() == before) break;
-            if (live && evicted_counter_) ++*evicted_counter_;
-            ++removed;
-        }
-        return removed;
-    }
+    // Cold owner maintenance; ordinary admission keeps its existing instruction path.
+    uint32_t evict_over_limit();
 
     // Takes ownership of `o` only on success; frees anything it displaces.
     InsertResult insert(uint64_t h, KvObj* o) {
