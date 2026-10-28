@@ -106,7 +106,7 @@
         "--ratio",
         "6:2"
       ],
-      "binary_sha256": "9d5a27dfa78bc29844aeb1ce72cce2862459d02a9f7170352ce55f4751fd3dea",
+      "binary_sha256": "3c523290eeb529f70e79a827a09dbd18190e371fd46e5b4fb1c16388542a2f29",
       "transcript": [
         {
           "c": "a",
@@ -192,7 +192,7 @@
         "--net-io",
         "uring"
       ],
-      "binary_sha256": "9d5a27dfa78bc29844aeb1ce72cce2862459d02a9f7170352ce55f4751fd3dea",
+      "binary_sha256": "3c523290eeb529f70e79a827a09dbd18190e371fd46e5b4fb1c16388542a2f29",
       "transcript": [
         {
           "c": "a",
@@ -373,7 +373,7 @@
         "--ratio",
         "6:2"
       ],
-      "binary_sha256": "9d5a27dfa78bc29844aeb1ce72cce2862459d02a9f7170352ce55f4751fd3dea",
+      "binary_sha256": "3c523290eeb529f70e79a827a09dbd18190e371fd46e5b4fb1c16388542a2f29",
       "transcript": [
         {
           "c": "a",
@@ -473,7 +473,7 @@
         "--net-io",
         "uring"
       ],
-      "binary_sha256": "9d5a27dfa78bc29844aeb1ce72cce2862459d02a9f7170352ce55f4751fd3dea",
+      "binary_sha256": "3c523290eeb529f70e79a827a09dbd18190e371fd46e5b4fb1c16388542a2f29",
       "transcript": [
         {
           "c": "a",
@@ -683,7 +683,7 @@
         "--ratio",
         "6:2"
       ],
-      "binary_sha256": "9d5a27dfa78bc29844aeb1ce72cce2862459d02a9f7170352ce55f4751fd3dea",
+      "binary_sha256": "3c523290eeb529f70e79a827a09dbd18190e371fd46e5b4fb1c16388542a2f29",
       "transcript": [
         {
           "c": "a",
@@ -798,7 +798,7 @@
         "--net-io",
         "uring"
       ],
-      "binary_sha256": "9d5a27dfa78bc29844aeb1ce72cce2862459d02a9f7170352ce55f4751fd3dea",
+      "binary_sha256": "3c523290eeb529f70e79a827a09dbd18190e371fd46e5b4fb1c16388542a2f29",
       "transcript": [
         {
           "c": "a",
@@ -997,7 +997,7 @@
         "--ratio",
         "6:2"
       ],
-      "binary_sha256": "9d5a27dfa78bc29844aeb1ce72cce2862459d02a9f7170352ce55f4751fd3dea",
+      "binary_sha256": "3c523290eeb529f70e79a827a09dbd18190e371fd46e5b4fb1c16388542a2f29",
       "transcript": [
         {
           "c": "a",
@@ -1086,7 +1086,7 @@
         "--net-io",
         "uring"
       ],
-      "binary_sha256": "9d5a27dfa78bc29844aeb1ce72cce2862459d02a9f7170352ce55f4751fd3dea",
+      "binary_sha256": "3c523290eeb529f70e79a827a09dbd18190e371fd46e5b4fb1c16388542a2f29",
       "transcript": [
         {
           "c": "a",
@@ -1196,14 +1196,14 @@
           "compare": false,
           "read": 1,
           "timeout": 1.0,
-          "raw_reply": "1793208027.052503 [0 127.0.0.1:57766] \"EVAL\" \"redis.call('set', KEYS[1], ARGV[1])\" \"1\" \"foo\" \"bar\"",
+          "raw_reply": "1793208858.504842 [0 127.0.0.1:33532] \"EVAL\" \"redis.call('set', KEYS[1], ARGV[1])\" \"1\" \"foo\" \"bar\"",
           "reply": "<time> [0 <client>] \"EVAL\" \"redis.call('set', KEYS[1], ARGV[1])\" \"1\" \"foo\" \"bar\""
         },
         {
           "c": "m",
           "read": 1,
           "timeout": 1.0,
-          "raw_reply": "1793208027.052545 [0 lua] \"set\" \"foo\" \"bar\"",
+          "raw_reply": "1793208858.504887 [0 lua] \"set\" \"foo\" \"bar\"",
           "reply": "<time> [0 lua] \"set\" \"foo\" \"bar\""
         }
       ]
@@ -1237,7 +1237,7 @@
         "--ratio",
         "6:2"
       ],
-      "binary_sha256": "9d5a27dfa78bc29844aeb1ce72cce2862459d02a9f7170352ce55f4751fd3dea",
+      "binary_sha256": "3c523290eeb529f70e79a827a09dbd18190e371fd46e5b4fb1c16388542a2f29",
       "transcript": [
         {
           "c": "m",
@@ -1264,7 +1264,7 @@
           "compare": false,
           "read": 1,
           "timeout": 1.0,
-          "raw_reply": "1793208027.208462 [0 127.0.0.1:57804] \"EVAL\" \"redis.call('set', KEYS[1], ARGV[1])\" \"1\" \"foo\" \"bar\"",
+          "raw_reply": "1793208858.660153 [0 127.0.0.1:33564] \"EVAL\" \"redis.call('set', KEYS[1], ARGV[1])\" \"1\" \"foo\" \"bar\"",
           "reply": "<time> [0 <client>] \"EVAL\" \"redis.call('set', KEYS[1], ARGV[1])\" \"1\" \"foo\" \"bar\""
         },
         {
@@ -1308,7 +1308,7 @@
         "--net-io",
         "uring"
       ],
-      "binary_sha256": "9d5a27dfa78bc29844aeb1ce72cce2862459d02a9f7170352ce55f4751fd3dea",
+      "binary_sha256": "3c523290eeb529f70e79a827a09dbd18190e371fd46e5b4fb1c16388542a2f29",
       "transcript": [
         {
           "c": "m",
@@ -1335,7 +1335,7 @@
           "compare": false,
           "read": 1,
           "timeout": 1.0,
-          "raw_reply": "1793208028.473717 [0 127.0.0.1:57834] \"EVAL\" \"redis.call('set', KEYS[1], ARGV[1])\" \"1\" \"foo\" \"bar\"",
+          "raw_reply": "1793208859.930156 [0 127.0.0.1:33612] \"EVAL\" \"redis.call('set', KEYS[1], ARGV[1])\" \"1\" \"foo\" \"bar\"",
           "reply": "<time> [0 <client>] \"EVAL\" \"redis.call('set', KEYS[1], ARGV[1])\" \"1\" \"foo\" \"bar\""
         },
         {
@@ -1417,7 +1417,7 @@
             "CLIENT",
             "INFO"
           ],
-          "raw_reply": "id=4 addr=127.0.0.1:57870 laddr=127.0.0.1:20290 fd=11 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=26 qbuf-free=20448 argv-mem=10 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=37786 events=r cmd=client|info user=default redir=-1 resp=2 lib-name=redis.py lib-ver=1.0\n",
+          "raw_reply": "id=4 addr=127.0.0.1:58052 laddr=127.0.0.1:20290 fd=11 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=26 qbuf-free=20448 argv-mem=10 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=37786 events=r cmd=client|info user=default redir=-1 resp=2 lib-name=redis.py lib-ver=1.0\n",
           "reply": "lib-name=redis.py lib-ver=1.0"
         }
       ]
@@ -1451,7 +1451,7 @@
         "--ratio",
         "6:2"
       ],
-      "binary_sha256": "9d5a27dfa78bc29844aeb1ce72cce2862459d02a9f7170352ce55f4751fd3dea",
+      "binary_sha256": "3c523290eeb529f70e79a827a09dbd18190e371fd46e5b4fb1c16388542a2f29",
       "transcript": [
         {
           "c": "a",
@@ -1495,7 +1495,7 @@
             "CLIENT",
             "INFO"
           ],
-          "raw_reply": "id=2 addr=127.0.0.1:57900 laddr=127.0.0.1:20290 fd=35 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=0 qbuf-free=16235 argv-mem=0 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=18368 events=r cmd=reset user=default redir=-1 resp=2 lib-name= lib-ver=\n",
+          "raw_reply": "id=2 addr=127.0.0.1:58090 laddr=127.0.0.1:20290 fd=35 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=0 qbuf-free=16235 argv-mem=0 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=18368 events=r cmd=reset user=default redir=-1 resp=2 lib-name= lib-ver=\n",
           "reply": "lib-name= lib-ver="
         }
       ],
@@ -1528,7 +1528,7 @@
         "--net-io",
         "uring"
       ],
-      "binary_sha256": "9d5a27dfa78bc29844aeb1ce72cce2862459d02a9f7170352ce55f4751fd3dea",
+      "binary_sha256": "3c523290eeb529f70e79a827a09dbd18190e371fd46e5b4fb1c16388542a2f29",
       "transcript": [
         {
           "c": "a",
@@ -1572,7 +1572,7 @@
             "CLIENT",
             "INFO"
           ],
-          "raw_reply": "id=2 addr=127.0.0.1:57934 laddr=127.0.0.1:20290 fd=37 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=0 qbuf-free=16235 argv-mem=0 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=18368 events=r cmd=reset user=default redir=-1 resp=2 lib-name= lib-ver=\n",
+          "raw_reply": "id=2 addr=127.0.0.1:58130 laddr=127.0.0.1:20290 fd=37 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=0 qbuf-free=16235 argv-mem=0 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=18368 events=r cmd=reset user=default redir=-1 resp=2 lib-name= lib-ver=\n",
           "reply": "lib-name= lib-ver="
         }
       ],
@@ -1659,7 +1659,7 @@
         "--ratio",
         "6:2"
       ],
-      "binary_sha256": "9d5a27dfa78bc29844aeb1ce72cce2862459d02a9f7170352ce55f4751fd3dea",
+      "binary_sha256": "3c523290eeb529f70e79a827a09dbd18190e371fd46e5b4fb1c16388542a2f29",
       "transcript": [
         {
           "c": "a",
@@ -1674,7 +1674,7 @@
           "send": [
             "RESET"
           ],
-          "raw_reply": "1793208031.076499 [0 127.0.0.1:46482] \"RESET\"",
+          "raw_reply": "1793208862.554458 [0 127.0.0.1:58184] \"RESET\"",
           "reply": "<time> [0 <client>] \"RESET\""
         },
         {
@@ -1714,7 +1714,7 @@
         "--net-io",
         "uring"
       ],
-      "binary_sha256": "9d5a27dfa78bc29844aeb1ce72cce2862459d02a9f7170352ce55f4751fd3dea",
+      "binary_sha256": "3c523290eeb529f70e79a827a09dbd18190e371fd46e5b4fb1c16388542a2f29",
       "transcript": [
         {
           "c": "a",
@@ -1729,7 +1729,7 @@
           "send": [
             "RESET"
           ],
-          "raw_reply": "1793208031.341456 [0 127.0.0.1:46508] \"RESET\"",
+          "raw_reply": "1793208862.821131 [0 127.0.0.1:58216] \"RESET\"",
           "reply": "<time> [0 <client>] \"RESET\""
         },
         {
@@ -1777,7 +1777,7 @@
             "CLIENT",
             "INFO"
           ],
-          "raw_reply": "id=4 addr=127.0.0.1:46538 laddr=127.0.0.1:20290 fd=11 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=26 qbuf-free=20448 argv-mem=10 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=37786 events=r cmd=client|info user=default redir=-1 resp=2 lib-name= lib-ver=\n",
+          "raw_reply": "id=4 addr=127.0.0.1:58246 laddr=127.0.0.1:20290 fd=11 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=26 qbuf-free=20448 argv-mem=10 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=37786 events=r cmd=client|info user=default redir=-1 resp=2 lib-name= lib-ver=\n",
           "reply": "cmd=client|info"
         },
         {
@@ -1792,7 +1792,7 @@
             "CLIENT",
             "LIST"
           ],
-          "raw_reply": "id=4 addr=127.0.0.1:46538 laddr=127.0.0.1:20290 fd=11 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=26 qbuf-free=20448 argv-mem=10 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=37786 events=r cmd=client|list user=default redir=-1 resp=2 lib-name= lib-ver=\n",
+          "raw_reply": "id=4 addr=127.0.0.1:58246 laddr=127.0.0.1:20290 fd=11 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=26 qbuf-free=20448 argv-mem=10 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=37786 events=r cmd=client|list user=default redir=-1 resp=2 lib-name= lib-ver=\n",
           "reply": "cmd=client|list"
         }
       ]
@@ -1826,7 +1826,7 @@
         "--ratio",
         "6:2"
       ],
-      "binary_sha256": "9d5a27dfa78bc29844aeb1ce72cce2862459d02a9f7170352ce55f4751fd3dea",
+      "binary_sha256": "3c523290eeb529f70e79a827a09dbd18190e371fd46e5b4fb1c16388542a2f29",
       "transcript": [
         {
           "c": "a",
@@ -1840,7 +1840,7 @@
             "CLIENT",
             "INFO"
           ],
-          "raw_reply": "id=2 addr=127.0.0.1:46564 laddr=127.0.0.1:20290 fd=35 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=0 qbuf-free=16358 argv-mem=0 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=18368 events=r cmd=NULL user=default redir=-1 resp=2 lib-name= lib-ver=\n",
+          "raw_reply": "id=2 addr=127.0.0.1:58274 laddr=127.0.0.1:20290 fd=35 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=0 qbuf-free=16358 argv-mem=0 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=18368 events=r cmd=NULL user=default redir=-1 resp=2 lib-name= lib-ver=\n",
           "reply": "cmd=NULL"
         },
         {
@@ -1855,7 +1855,7 @@
             "CLIENT",
             "LIST"
           ],
-          "raw_reply": "id=2 addr=127.0.0.1:46564 laddr=127.0.0.1:20290 fd=35 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=0 qbuf-free=16332 argv-mem=0 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=18368 events=r cmd=client user=default redir=-1 resp=2 lib-name= lib-ver=\n",
+          "raw_reply": "id=2 addr=127.0.0.1:58274 laddr=127.0.0.1:20290 fd=35 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=0 qbuf-free=16332 argv-mem=0 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=18368 events=r cmd=client user=default redir=-1 resp=2 lib-name= lib-ver=\n",
           "reply": "cmd=client"
         }
       ],
@@ -1888,7 +1888,7 @@
         "--net-io",
         "uring"
       ],
-      "binary_sha256": "9d5a27dfa78bc29844aeb1ce72cce2862459d02a9f7170352ce55f4751fd3dea",
+      "binary_sha256": "3c523290eeb529f70e79a827a09dbd18190e371fd46e5b4fb1c16388542a2f29",
       "transcript": [
         {
           "c": "a",
@@ -1902,7 +1902,7 @@
             "CLIENT",
             "INFO"
           ],
-          "raw_reply": "id=2 addr=127.0.0.1:46584 laddr=127.0.0.1:20290 fd=37 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=0 qbuf-free=16358 argv-mem=0 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=18368 events=r cmd=NULL user=default redir=-1 resp=2 lib-name= lib-ver=\n",
+          "raw_reply": "id=2 addr=127.0.0.1:58304 laddr=127.0.0.1:20290 fd=37 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=0 qbuf-free=16358 argv-mem=0 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=18368 events=r cmd=NULL user=default redir=-1 resp=2 lib-name= lib-ver=\n",
           "reply": "cmd=NULL"
         },
         {
@@ -1917,7 +1917,7 @@
             "CLIENT",
             "LIST"
           ],
-          "raw_reply": "id=2 addr=127.0.0.1:46584 laddr=127.0.0.1:20290 fd=37 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=0 qbuf-free=16332 argv-mem=0 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=18368 events=r cmd=client user=default redir=-1 resp=2 lib-name= lib-ver=\n",
+          "raw_reply": "id=2 addr=127.0.0.1:58304 laddr=127.0.0.1:20290 fd=37 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=0 qbuf-free=16332 argv-mem=0 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=18368 events=r cmd=client user=default redir=-1 resp=2 lib-name= lib-ver=\n",
           "reply": "cmd=client"
         }
       ],
@@ -2031,7 +2031,7 @@
         "--ratio",
         "6:2"
       ],
-      "binary_sha256": "9d5a27dfa78bc29844aeb1ce72cce2862459d02a9f7170352ce55f4751fd3dea",
+      "binary_sha256": "3c523290eeb529f70e79a827a09dbd18190e371fd46e5b4fb1c16388542a2f29",
       "transcript": [
         {
           "c": "b",
@@ -2121,7 +2121,7 @@
         "--net-io",
         "uring"
       ],
-      "binary_sha256": "9d5a27dfa78bc29844aeb1ce72cce2862459d02a9f7170352ce55f4751fd3dea",
+      "binary_sha256": "3c523290eeb529f70e79a827a09dbd18190e371fd46e5b4fb1c16388542a2f29",
       "transcript": [
         {
           "c": "b",

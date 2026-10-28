@@ -28,8 +28,12 @@ def main():
  replace('src/cmd/t_server.cc', '    bool no_touch = false;',
          '    bool no_touch = false;\n    bool pause_blocked = false;\n'
          '    const CommandMetadata* last_command = nullptr;\n    uint64_t last_command_id = UINT64_MAX;')
+ replace('src/cmd/notify.h', 'struct NotifyBatch;',
+         'struct NotifyBatch;\nstruct MonitorScriptLine { uint32_t multi_order; std::string line; };')
  replace('src/cmd/notify.inc', '    std::shared_ptr<NotifyExpiryCompletion> expiry_completion;',
-         '    std::shared_ptr<NotifyExpiryCompletion> expiry_completion;\n    std::vector<std::string> monitor_lines;')
+         '    std::shared_ptr<NotifyExpiryCompletion> expiry_completion;\n    std::vector<MonitorScriptLine> monitor_lines;')
+ replace('src/cmd/scripting.cc', '    uint32_t call_index = 0;',
+         '    uint32_t call_index = 0;\n    uint32_t monitor_multi_order = UINT32_MAX;')
  replace('src/cmd/climon.inc', '    struct ClimonConn {',
          '    struct ClimonConn {\n'
          '        struct MonitorPending { uint64_t id, excluded; bool script; uint32_t multi_order; std::string line; };')
@@ -61,7 +65,7 @@ def relink(changes,cmd):
   assert actual['address']==desired['address'];padding+=desired['size']-actual['size']
  else:raise AssertionError((actual,desired))
  result=dict(kind='A: behaviour twin',behavior='393d6ceb1 with inert candidate layout fields',
-   matched='ClientMeta, NotifyBatch and ClimonConn candidate member layout; POST .text origin and total size',
+   matched='ClientMeta, NotifyBatch, ClimonConn and ScriptContext candidate member layout; POST .text origin and total size',
    limitation='Individual function offsets and data sections retain PRE placement; text extent is matched, not every function address.',
    changes=changes,command=cmd,link=link,padding_bytes=padding,pre_layout_text=before,post_text=desired,pad_text=actual,
    inputs=[dict(path=x,sha256=sha(x)) for x in link if x.endswith('.o')],

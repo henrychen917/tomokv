@@ -42,7 +42,9 @@ The four collection sites expand at `tests/gate.sh:5835`, before the quick exit 
 
 ### Validation
 
-The final affected-job and differential campaigns are running. Their receipts will be appended here. The 92 instruction comparisons, final original reproductions, and all 16 paired Tcl controls are complete. Superseded runs are retained as diagnostic evidence and are not counted as final passes.
+The final affected-job and differential campaigns are running. Their receipts will be appended here. Completed checks: all 32 new directed POST rows (256 fresh configurations) pass and all 32 PRE rows fail; all 92 instruction comparisons have zero delta; all 16 paired Tcl controls pass their positive/negative contracts in both modes; original reproductions and the final PAD-A checks are complete. `python3 tests/gates_test.py` passes 73 tests and `python3 tests/redis_tcl_test.py` passes 9 tests ([logs and hashes](docs/climonfix4/self-tests.json)). Superseded runs are retained as diagnostic evidence and are not counted as final passes.
+
+An unchanged upstream PUBSUB assertion, `PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments`, failed intermittently during the first complete Tcl run. The [bounded full-file recheck](docs/climonfix4/pubsub-recheck-results.json) reproduced that same named failure on PRE as well as POST. The preceding test closes two subscribers without waiting for cross-owner disconnect processing. This attribution does not change or exclude the assertion; final full-suite results are reported separately.
 
 Required affected job selection:
 
@@ -56,7 +58,7 @@ cmd_metadata release_batteries fused-0 fused-1
 feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 flip
 ```
 
-The prerequisite `production_units` builds every target in that job; its readiness markers and independent `make -q` checks must all succeed. Differential runs select `differ-split` and `differ-armed`, which also include mode equivalence, with the standard seed allocator and no suite/seed overrides, separately for uring and epoll. Redis source/Tcl root is `/home/user/Projects/redis`; the differential oracle is `/home/user/Projects/redis74/src/redis-server` (Redis 7.4.10).
+The prerequisite `production_units` built all 53 named targets. [The independent audit](docs/climonfix4/production-units.json) passes all 58 build, freshness, marker and binding checks, including `make all` and `make -q all`. The recursive `mdbqsbr-live-arms` wrapper and both actual arm dependency graphs return 0 from `make -q`; every other target is fresh as well. Differential runs select `differ-split` and `differ-armed`, which also include mode equivalence, with the standard seed allocator and no suite/seed overrides, separately for uring and epoll. Redis source/Tcl root is `/home/user/Projects/redis`; the differential oracle is `/home/user/Projects/redis74/src/redis-server` (Redis 7.4.10).
 
 ### Command-scope instruction proof
 
@@ -70,11 +72,11 @@ These are finite serverless fixtures linked to production objects. Counts includ
 |---|---|---|
 | PRE | `build/climonfix4/tomokv-PRE` | `935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac` |
 | POST | `build/climonfix4/tomokv-POST` | `3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8` |
-| PAD-A | `build/climonfix4/pad-a/tomokv` | `9d5a27dfa78bc29844aeb1ce72cce2862459d02a9f7170352ce55f4751fd3dea` |
+| PAD-A | `build/climonfix4/pad-a/tomokv` | `3c523290eeb529f70e79a827a09dbd18190e371fd46e5b4fb1c16388542a2f29` |
 
 POST production source is commit `f86022ba4`; later commits record tests and evidence. PRE is the original `393d6ceb1` binary; source identities are recorded in [pre-source-identity.json](docs/climonfix4/pre-source-identity.json). POST is frozen in `build/climonfix4/tomokv-POST`. PAD-A is `build/climonfix4/pad-a/tomokv`.
 
-**PAD-A means (A), behaviour twin:** PRE behaviour with inert candidate cold-structure layouts and POST's `.text` origin/total size. It does not reproduce every POST function offset or data-section address. [pad-a.json](docs/climonfix4/pad-a.json) records the exact construction, link-input hashes and text extents. The unchanged harness reproductions verify PRE behaviour. Source/object trees are removed after the final binaries, identities and counts are recorded.
+**PAD-A means (A), behaviour twin:** PRE behaviour with inert candidate ClientMeta, ClimonConn, NotifyBatch and ScriptContext member layouts and POST's `.text` origin/total size. All field offsets and the monitor element layout match in the [offline debug-type check](docs/climonfix4/cold-layouts.json). It does not reproduce every POST function offset or data-section address, so it cannot by itself rule out an effect from individual function alignment. [pad-a.json](docs/climonfix4/pad-a.json) records the exact construction, link-input hashes and text extents. The unchanged harness reproductions verify PRE behaviour. Source/object trees are removed after the final binaries, identities and counts are recorded.
 
 ### Maintainer merit request — NOT RUN here
 

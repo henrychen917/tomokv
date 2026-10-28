@@ -37,10 +37,10 @@ def main():
     check('make -q all', ['make', '-q', 'all'])
     for target in targets:
         check(target, ['make', '-q', target], target.removeprefix('build/'))
-    # This phony wrapper has unconditional recursive recipes, so -q says it
-    # would run. Audit both actual arm dependency graphs for freshness below.
+    # Recursive $(MAKE) propagates -q to both arm builds. Also query each
+    # actual arm dependency graph independently below.
     check('mdbqsbr-live-arms wrapper', ['make', '-q', 'mdbqsbr-live-arms'],
-          'mdbqsbr-live-arms', expected=1)
+          'mdbqsbr-live-arms')
     for arm in ('park', 'no-wake'):
         check('mdbqsbr2-' + arm, ['make', '-q', 'BUILD_ROOT=build/mdbqsbr2-' + arm, 'all'])
     check('blockfix-cost', ['make', '-f', 'Makefile', '-f', 'tools/blockfix_cost.mk',

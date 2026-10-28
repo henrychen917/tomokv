@@ -1,0 +1,835 @@
+{
+  "run": "/home/user/Projects/cx-climonfix4/build/gate-run.IjpftY",
+  "binary_sha256": "3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8",
+  "targets": 53,
+  "rows": [
+    {
+      "name": "make all",
+      "command": [
+        "make",
+        "-j16",
+        "all"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "make: Nothing to be done for 'all'.\n",
+      "marker": null,
+      "ready": null,
+      "pass": true
+    },
+    {
+      "name": "make -q all",
+      "command": [
+        "make",
+        "-q",
+        "all"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": null,
+      "ready": null,
+      "pass": true
+    },
+    {
+      "name": "build/expire-notify-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/expire-notify-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "expire-notify-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/ktls-lifetime-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/ktls-lifetime-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "ktls-lifetime-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/moverfix-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/moverfix-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "moverfix-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/moverfix-db0-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/moverfix-db0-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "moverfix-db0-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/publishfix-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/publishfix-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "publishfix-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/at15-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/at15-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "at15-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/at15-db0-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/at15-db0-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "at15-db0-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/execabort-watch-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/execabort-watch-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "execabort-watch-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/execabort-watch-db0-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/execabort-watch-db0-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "execabort-watch-db0-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/core-concurrency-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/core-concurrency-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "core-concurrency-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/atomic-survivors-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/atomic-survivors-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "atomic-survivors-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/at412-owner",
+      "command": [
+        "make",
+        "-q",
+        "build/at412-owner"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "at412-owner",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/txnorder-index-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/txnorder-index-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "txnorder-index-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/txnorder-index-db0-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/txnorder-index-db0-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "txnorder-index-db0-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/txnorder-retry-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/txnorder-retry-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "txnorder-retry-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/txnorder-wound-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/txnorder-wound-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "txnorder-wound-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/txnorder-wound-db0-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/txnorder-wound-db0-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "txnorder-wound-db0-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/txnorder-wake-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/txnorder-wake-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "txnorder-wake-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/txnorder-episodes",
+      "command": [
+        "make",
+        "-q",
+        "build/txnorder-episodes"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "txnorder-episodes",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/txnorder-episodes-debug",
+      "command": [
+        "make",
+        "-q",
+        "build/txnorder-episodes-debug"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "txnorder-episodes-debug",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/txnorder-watch-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/txnorder-watch-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "txnorder-watch-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/txnorder-watch-db0-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/txnorder-watch-db0-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "txnorder-watch-db0-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/netcmd-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/netcmd-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "netcmd-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/encodingfix-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/encodingfix-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "encodingfix-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/netcap-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/netcap-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "netcap-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/waits-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/waits-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "waits-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/rehash-waits-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/rehash-waits-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "rehash-waits-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/multidb-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/multidb-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "multidb-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/multidb-boundary-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/multidb-boundary-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "multidb-boundary-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/storesize-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/storesize-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "storesize-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/respresume-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/respresume-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "respresume-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/respresume-migration",
+      "command": [
+        "make",
+        "-q",
+        "build/respresume-migration"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "respresume-migration",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/gaterows5-units",
+      "command": [
+        "make",
+        "-q",
+        "build/gaterows5-units"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "gaterows5-units",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/exbatch-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/exbatch-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "exbatch-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/exbatch-db0-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/exbatch-db0-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "exbatch-db0-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/wb-rule-units",
+      "command": [
+        "make",
+        "-q",
+        "build/wb-rule-units"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "wb-rule-units",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/wbland-units",
+      "command": [
+        "make",
+        "-q",
+        "build/wbland-units"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "wbland-units",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/rltopo-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/rltopo-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "rltopo-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/lbplanner-units",
+      "command": [
+        "make",
+        "-q",
+        "build/lbplanner-units"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "lbplanner-units",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/shutdown-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/shutdown-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "shutdown-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/persistfix-units",
+      "command": [
+        "make",
+        "-q",
+        "build/persistfix-units"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "persistfix-units",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/ktls-keyupdate",
+      "command": [
+        "make",
+        "-q",
+        "build/ktls-keyupdate"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "ktls-keyupdate",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/ktls-keyupdate-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/ktls-keyupdate-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "ktls-keyupdate-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/flushfix-units",
+      "command": [
+        "make",
+        "-q",
+        "build/flushfix-units"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "flushfix-units",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/splitlocal-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/splitlocal-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "splitlocal-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/reorder-engagement-unit",
+      "command": [
+        "make",
+        "-q",
+        "build/reorder-engagement-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "reorder-engagement-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/reorder-engagement-unit-db0",
+      "command": [
+        "make",
+        "-q",
+        "build/reorder-engagement-unit-db0"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "reorder-engagement-unit-db0",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/racefix-climon",
+      "command": [
+        "make",
+        "-q",
+        "build/racefix-climon"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "racefix-climon",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "build/aoforder-scheduled",
+      "command": [
+        "make",
+        "-q",
+        "build/aoforder-scheduled"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "aoforder-scheduled",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "mdbqsbr-live-arms wrapper",
+      "command": [
+        "make",
+        "-q",
+        "mdbqsbr-live-arms"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "make BUILD_ROOT=build/mdbqsbr2-park CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK' all\nmake[1]: Entering directory '/home/user/Projects/cx-climonfix4'\nmake[1]: Leaving directory '/home/user/Projects/cx-climonfix4'\nmake BUILD_ROOT=build/mdbqsbr2-no-wake CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE' all\nmake[1]: Entering directory '/home/user/Projects/cx-climonfix4'\nmake[1]: Leaving directory '/home/user/Projects/cx-climonfix4'\n",
+      "marker": "mdbqsbr-live-arms",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "mdbqsbr2-park",
+      "command": [
+        "make",
+        "-q",
+        "BUILD_ROOT=build/mdbqsbr2-park",
+        "all"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": null,
+      "ready": null,
+      "pass": true
+    },
+    {
+      "name": "mdbqsbr2-no-wake",
+      "command": [
+        "make",
+        "-q",
+        "BUILD_ROOT=build/mdbqsbr2-no-wake",
+        "all"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": null,
+      "ready": null,
+      "pass": true
+    },
+    {
+      "name": "blockfix-cost",
+      "command": [
+        "make",
+        "-f",
+        "Makefile",
+        "-f",
+        "tools/blockfix_cost.mk",
+        "-q",
+        "build/blockfix-cost",
+        "build/tomokv.blockfix-cost.sha256"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "blockfix-cost",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "blockfix-cost binding",
+      "command": [
+        "sha256sum",
+        "-c",
+        "build/tomokv.blockfix-cost.sha256"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "/home/user/Projects/cx-climonfix4/build/tomokv: OK\n/home/user/Projects/cx-climonfix4/build/blockfix-cost: OK\n",
+      "marker": null,
+      "ready": null,
+      "pass": true
+    },
+    {
+      "name": "blockfix2-unit",
+      "command": [
+        "make",
+        "-f",
+        "Makefile",
+        "-f",
+        "tools/blockfix2.mk",
+        "-q",
+        "build/blockfix2-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "blockfix2-unit",
+      "ready": true,
+      "pass": true
+    },
+    {
+      "name": "blockfix2-db0-unit",
+      "command": [
+        "make",
+        "-f",
+        "Makefile",
+        "-f",
+        "tools/blockfix2.mk",
+        "-q",
+        "build/blockfix2-db0-unit"
+      ],
+      "exit": 0,
+      "expected": 0,
+      "output": "",
+      "marker": "blockfix2-db0-unit",
+      "ready": true,
+      "pass": true
+    }
+  ],
+  "passed": true
+}

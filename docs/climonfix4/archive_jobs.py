@@ -26,15 +26,17 @@ for receipt_path in sorted((ROOT / 'docs/climonfix4/jobs').glob('*.json')):
     receipt = json.loads(receipt_path.read_text())
     row = dict(name=receipt_path.stem, receipt=str(receipt_path.relative_to(ROOT)),
                exit=receipt['exit'], binary_sha256=receipt['binary_sha256'])
+    old = previous.get(receipt_path.stem, {})
+    if 'archive' in old:
+        assert digest((ROOT / old['archive']).read_bytes()) == old['archive_sha256']
+        assert (old['exit'], old['binary_sha256']) == (row['exit'], row['binary_sha256'])
+        # Completed campaigns are immutable. Source checkouts may have been
+        # pruned after their original archive/hash was recorded.
+        index.append(old)
+        continue
     directory = Path(receipt.get('artifacts', '/does-not-exist'))
     if not directory.is_dir():
-        old = previous.get(receipt_path.stem, {})
-        if 'archive' in old:
-            assert digest((ROOT / old['archive']).read_bytes()) == old['archive_sha256']
-            assert (old['exit'], old['binary_sha256']) == (row['exit'], row['binary_sha256'])
-            row = dict(old, evidence_directory_removed_after_archive=True)
-        else:
-            row['note'] = 'Setup failed before a gate artifact directory was created.'
+        row['note'] = 'Setup failed before a gate artifact directory was created.'
         index.append(row)
         continue
     archive = OUT / (receipt_path.stem + '.tar.gz')

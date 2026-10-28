@@ -1,0 +1,58 @@
+{
+  "arm": "POST",
+  "attempt": 2,
+  "exit": 1,
+  "argv": [
+    "taskset",
+    "-c",
+    "16-31",
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "24-31",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20250-20259",
+    "--candidate-binary",
+    "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST"
+  ],
+  "binary_sha256": "3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8",
+  "artifacts": "/home/user/Projects/cx-climonfix4/build/gate-run.sR6F2s",
+  "env": {
+    "GATE_ONLY_JOBS": "redis_tcl",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_TCL_MANIFEST": "/home/user/Projects/cx-climonfix4/docs/climonfix4/tcl-controls/pubsub-recheck.json"
+  },
+  "modes": {
+    "1s": {
+      "complete": true,
+      "statuses": [
+        "testing",
+        "ok"
+      ],
+      "errors": []
+    },
+    "2s": {
+      "complete": true,
+      "statuses": [
+        "testing",
+        "err"
+      ],
+      "errors": [
+        {
+          "status": "err",
+          "file": "tests/unit/pubsub.tcl",
+          "test": "PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments in tests/unit/pubsub.tcl",
+          "data": "PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments in tests/unit/pubsub.tcl\nExpected '0' to be equal to '1' (context: type eval line 5 cmd {assert_equal 0 [r publish chan1 hello]} proc ::test)",
+          "milliseconds": "0"
+        }
+      ]
+    }
+  }
+}

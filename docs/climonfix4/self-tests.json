@@ -1,0 +1,18 @@
+[
+  {
+    "name": "gates-test",
+    "tests": 73,
+    "exit": 0,
+    "log": "docs/climonfix4/gates-test.log",
+    "sha256": "b1c7d6ed204118c2258200dea7d8968991d65a0485fc93e8e5924d334251d4fc",
+    "cpu_boundary": "16-31"
+  },
+  {
+    "name": "redis-tcl-test",
+    "tests": 9,
+    "exit": 0,
+    "log": "docs/climonfix4/redis-tcl-test.log",
+    "sha256": "08a1176388be1c732d009773efe5865b8e49c7f4c6f10896ed23fcc8ae11ef97",
+    "cpu_boundary": "16-31"
+  }
+]

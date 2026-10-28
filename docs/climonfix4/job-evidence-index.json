@@ -1,0 +1,1613 @@
+[
+  {
+    "name": "control-client-list-cmd-name-negative",
+    "receipt": "docs/climonfix4/jobs/control-client-list-cmd-name-negative.json",
+    "exit": 1,
+    "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "archive": "docs/climonfix4/job-evidence/control-client-list-cmd-name-negative.tar.gz",
+    "archive_sha256": "6cc66a15afcb72902b39f706521d4817ab67bfe9bf7884e3b4c3cfc1a1451e9a",
+    "files": 29,
+    "uncompressed_bytes": 158918,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "1.070000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "1.370000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "control-client-list-cmd-name-post",
+    "receipt": "docs/climonfix4/jobs/control-client-list-cmd-name-post.json",
+    "exit": 0,
+    "binary_sha256": "3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8",
+    "archive": "docs/climonfix4/job-evidence/control-client-list-cmd-name-post.tar.gz",
+    "archive_sha256": "67e9354234e041511143c0c65109a86de50cd5b6e6ece95e5511e90c2db88983",
+    "files": 29,
+    "uncompressed_bytes": 157497,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.720000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.720000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "control-connected-clients-lag-negative",
+    "receipt": "docs/climonfix4/jobs/control-connected-clients-lag-negative.json",
+    "exit": 1,
+    "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "archive": "docs/climonfix4/job-evidence/control-connected-clients-lag-negative.tar.gz",
+    "archive_sha256": "eb42008b28fd718558ad311f3f47375b9bacf8e8e4e138ebacaa14ec3309f9a5",
+    "files": 29,
+    "uncompressed_bytes": 140548,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "63.120000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "63.810000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "control-connected-clients-lag-post",
+    "receipt": "docs/climonfix4/jobs/control-connected-clients-lag-post.json",
+    "exit": 0,
+    "binary_sha256": "3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8",
+    "archive": "docs/climonfix4/job-evidence/control-connected-clients-lag-post.tar.gz",
+    "archive_sha256": "8e094887bd74c43fb4fb96b78f2c95c4384b6b6ebb2c4fffda34c5cc05de1312",
+    "files": 29,
+    "uncompressed_bytes": 204320,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "2.890000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.870000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "control-monitor-script-cmds-negative",
+    "receipt": "docs/climonfix4/jobs/control-monitor-script-cmds-negative.json",
+    "exit": 1,
+    "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "archive": "docs/climonfix4/job-evidence/control-monitor-script-cmds-negative.tar.gz",
+    "archive_sha256": "7776cf060fbc938ab1de8d55b17565a891a28eed4280822c40ff5be308b2b124",
+    "files": 29,
+    "uncompressed_bytes": 98561,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "61.090000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "60.800000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "control-monitor-script-cmds-post",
+    "receipt": "docs/climonfix4/jobs/control-monitor-script-cmds-post.json",
+    "exit": 0,
+    "binary_sha256": "3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8",
+    "archive": "docs/climonfix4/job-evidence/control-monitor-script-cmds-post.tar.gz",
+    "archive_sha256": "ab23eb0015f7f9be3797b709251e25bcc23013c8ab6906aea74bd357fa9fa4d4",
+    "files": 29,
+    "uncompressed_bytes": 158044,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.720000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.720000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "control-pause-blocked-count-negative",
+    "receipt": "docs/climonfix4/jobs/control-pause-blocked-count-negative.json",
+    "exit": 1,
+    "binary_sha256": "6dae05b536d6fec5dbc440e5ddfa3a55a2c603d724d314f599b9cc60ca9d8496",
+    "archive": "docs/climonfix4/job-evidence/control-pause-blocked-count-negative.tar.gz",
+    "archive_sha256": "069af34470fd33be653458a89084ea0ec29613bf486d44ff6d775e70c4056277",
+    "files": 29,
+    "uncompressed_bytes": 115367,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "5.740000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "5.740000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "control-pause-blocked-count-post",
+    "receipt": "docs/climonfix4/jobs/control-pause-blocked-count-post.json",
+    "exit": 0,
+    "binary_sha256": "3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8",
+    "archive": "docs/climonfix4/job-evidence/control-pause-blocked-count-post.tar.gz",
+    "archive_sha256": "81e5eba57d322a347e2519410683cd5fe6a798a4120ab51d075ed3d4c1204995",
+    "files": 29,
+    "uncompressed_bytes": 114382,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.730000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.770000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "control-pause-may-replicate-negative",
+    "receipt": "docs/climonfix4/jobs/control-pause-may-replicate-negative.json",
+    "exit": 1,
+    "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "archive": "docs/climonfix4/job-evidence/control-pause-may-replicate-negative.tar.gz",
+    "archive_sha256": "869767db382d9f1347c30c190e8d1681d6e2e48cfa7bd620ec8ec50aac8fd398",
+    "files": 29,
+    "uncompressed_bytes": 108452,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "5.710000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "5.710000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "control-pause-may-replicate-post",
+    "receipt": "docs/climonfix4/jobs/control-pause-may-replicate-post.json",
+    "exit": 0,
+    "binary_sha256": "3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8",
+    "archive": "docs/climonfix4/job-evidence/control-pause-may-replicate-post.tar.gz",
+    "archive_sha256": "52280cb5668f40586be9d98e1fe3f742f278e825cd2ebd040491a078cbefe700",
+    "files": 29,
+    "uncompressed_bytes": 114434,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.720000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.730000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "control-pause-script-flags-negative",
+    "receipt": "docs/climonfix4/jobs/control-pause-script-flags-negative.json",
+    "exit": 1,
+    "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "archive": "docs/climonfix4/job-evidence/control-pause-script-flags-negative.tar.gz",
+    "archive_sha256": "66fa32f865ca4422a5cb8e871d1a38c6aeebf66f94c59bd0c3f6890a2239ad19",
+    "files": 29,
+    "uncompressed_bytes": 90430,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "61.300000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "60.800000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "control-pause-script-flags-post",
+    "receipt": "docs/climonfix4/jobs/control-pause-script-flags-post.json",
+    "exit": 0,
+    "binary_sha256": "3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8",
+    "archive": "docs/climonfix4/job-evidence/control-pause-script-flags-post.tar.gz",
+    "archive_sha256": "ba6ce859daf8686aeda1e466652243e2ee453258981d6c4b20d654d3098e4912",
+    "files": 29,
+    "uncompressed_bytes": 114503,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.720000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.710000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "control-reset-clears-libname-negative",
+    "receipt": "docs/climonfix4/jobs/control-reset-clears-libname-negative.json",
+    "exit": 1,
+    "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "archive": "docs/climonfix4/job-evidence/control-reset-clears-libname-negative.tar.gz",
+    "archive_sha256": "5d539b8d8320898f74b42304b9c1459aabbd5e4926a2fdb1c0a6d49a12ac0af9",
+    "files": 29,
+    "uncompressed_bytes": 160130,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "0.970000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "1.060000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "control-reset-clears-libname-post",
+    "receipt": "docs/climonfix4/jobs/control-reset-clears-libname-post.json",
+    "exit": 0,
+    "binary_sha256": "3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8",
+    "archive": "docs/climonfix4/job-evidence/control-reset-clears-libname-post.tar.gz",
+    "archive_sha256": "1117d8a21111e51b4d8dc5b05961ccaddd8c41055bcb65c6d76d878a214d2d06",
+    "files": 29,
+    "uncompressed_bytes": 159800,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.720000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.720000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "control-reset-monitor-echo-negative",
+    "receipt": "docs/climonfix4/jobs/control-reset-monitor-echo-negative.json",
+    "exit": 1,
+    "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "archive": "docs/climonfix4/job-evidence/control-reset-monitor-echo-negative.tar.gz",
+    "archive_sha256": "357a324ffc8573cd645e7ee699ee66799a8ed0be0f094ff3655017140e047401",
+    "files": 29,
+    "uncompressed_bytes": 119470,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "0.960000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "1.300000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "control-reset-monitor-echo-post",
+    "receipt": "docs/climonfix4/jobs/control-reset-monitor-echo-post.json",
+    "exit": 0,
+    "binary_sha256": "3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8",
+    "archive": "docs/climonfix4/job-evidence/control-reset-monitor-echo-post.tar.gz",
+    "archive_sha256": "8b8ea9c5fdf46ea8fb2fc298eff1be750ff2b1690a04c50cdd43241ee14824bc",
+    "files": 29,
+    "uncompressed_bytes": 121148,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.710000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.710000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "diagnostic-complete-tcl",
+    "receipt": "docs/climonfix4/jobs/diagnostic-complete-tcl.json",
+    "exit": 1,
+    "binary_sha256": "3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8",
+    "archive": "docs/climonfix4/job-evidence/diagnostic-complete-tcl.tar.gz",
+    "archive_sha256": "9e68a711eb77306b13a024ff1019fd0daa7abab454813290e781e7e5106d0167",
+    "files": 387,
+    "uncompressed_bytes": 7164183,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "188.020000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "190.050000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "diagnostic-pre-neighbours",
+    "receipt": "docs/climonfix4/jobs/diagnostic-pre-neighbours.json",
+    "exit": 1,
+    "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "archive": "docs/climonfix4/job-evidence/diagnostic-pre-neighbours.tar.gz",
+    "archive_sha256": "b768db890bd1d61fb03e885c73a66cb11fdc96078ac7fbf85e2cb29d16165b54",
+    "files": 39,
+    "uncompressed_bytes": 1015447,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "10.990000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "10.920000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pre-directed",
+    "receipt": "docs/climonfix4/jobs/pre-directed.json",
+    "exit": 1,
+    "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "archive": "docs/climonfix4/job-evidence/pre-directed.tar.gz",
+    "archive_sha256": "cc011de4b73644f556757ff2254f3ab7948cdf4c115a50577e67ab45f5b0a8ce",
+    "files": 540,
+    "uncompressed_bytes": 2014561,
+    "jobs": [
+      {
+        "name": "climonfix4-1s-epoll",
+        "done": "0\t0\t8",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "11.790000",
+            "label": "climonfix4 PAUSE-BLOCKED-COUNT (1s epoll)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "27.980000",
+            "label": "climonfix4 PAUSE-MAY-REPLICATE (1s epoll)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "19.810000",
+            "label": "climonfix4 PAUSE-SCRIPT-FLAGS (1s epoll)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "27.810000",
+            "label": "climonfix4 MONITOR-SCRIPT-CMDS (1s epoll)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "11.770000",
+            "label": "climonfix4 RESET-CLEARS-LIBNAME (1s epoll)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "11.770000",
+            "label": "climonfix4 RESET-MONITOR-ECHO (1s epoll)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "11.780000",
+            "label": "climonfix4 CLIENT-LIST-CMD-NAME (1s epoll)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "11.580000",
+            "label": "climonfix4 CONNECTED-CLIENTS-LAG (1s epoll)"
+          }
+        ]
+      },
+      {
+        "name": "climonfix4-1s-uring",
+        "done": "0\t0\t8",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "12.030000",
+            "label": "climonfix4 PAUSE-BLOCKED-COUNT (1s uring)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "28.030000",
+            "label": "climonfix4 PAUSE-MAY-REPLICATE (1s uring)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "19.810000",
+            "label": "climonfix4 PAUSE-SCRIPT-FLAGS (1s uring)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "27.830000",
+            "label": "climonfix4 MONITOR-SCRIPT-CMDS (1s uring)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "11.790000",
+            "label": "climonfix4 RESET-CLEARS-LIBNAME (1s uring)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "11.780000",
+            "label": "climonfix4 RESET-MONITOR-ECHO (1s uring)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "11.780000",
+            "label": "climonfix4 CLIENT-LIST-CMD-NAME (1s uring)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "11.640000",
+            "label": "climonfix4 CONNECTED-CLIENTS-LAG (1s uring)"
+          }
+        ]
+      },
+      {
+        "name": "climonfix4-2s-epoll",
+        "done": "0\t0\t8",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "11.810000",
+            "label": "climonfix4 PAUSE-BLOCKED-COUNT (2s epoll)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "28.000000",
+            "label": "climonfix4 PAUSE-MAY-REPLICATE (2s epoll)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "19.800000",
+            "label": "climonfix4 PAUSE-SCRIPT-FLAGS (2s epoll)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "27.810000",
+            "label": "climonfix4 MONITOR-SCRIPT-CMDS (2s epoll)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "11.780000",
+            "label": "climonfix4 RESET-CLEARS-LIBNAME (2s epoll)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "11.770000",
+            "label": "climonfix4 RESET-MONITOR-ECHO (2s epoll)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "11.770000",
+            "label": "climonfix4 CLIENT-LIST-CMD-NAME (2s epoll)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "11.670000",
+            "label": "climonfix4 CONNECTED-CLIENTS-LAG (2s epoll)"
+          }
+        ]
+      },
+      {
+        "name": "climonfix4-2s-uring",
+        "done": "0\t0\t8",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "11.770000",
+            "label": "climonfix4 PAUSE-BLOCKED-COUNT (2s uring)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "27.950000",
+            "label": "climonfix4 PAUSE-MAY-REPLICATE (2s uring)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "19.810000",
+            "label": "climonfix4 PAUSE-SCRIPT-FLAGS (2s uring)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "27.860000",
+            "label": "climonfix4 MONITOR-SCRIPT-CMDS (2s uring)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "11.810000",
+            "label": "climonfix4 RESET-CLEARS-LIBNAME (2s uring)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "11.820000",
+            "label": "climonfix4 RESET-MONITOR-ECHO (2s uring)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "11.820000",
+            "label": "climonfix4 CLIENT-LIST-CMD-NAME (2s uring)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "11.670000",
+            "label": "climonfix4 CONNECTED-CLIENTS-LAG (2s uring)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pubsub-post-0",
+    "receipt": "docs/climonfix4/jobs/pubsub-post-0.json",
+    "exit": 1,
+    "binary_sha256": "3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8",
+    "archive": "docs/climonfix4/job-evidence/pubsub-post-0.tar.gz",
+    "archive_sha256": "5e3355e33ed1066f934d47b666c96707bbd300e5b4db3912d04ffcab6bcb4326",
+    "files": 29,
+    "uncompressed_bytes": 194310,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t1\t1",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "1.830000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.920000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pubsub-post-1",
+    "receipt": "docs/climonfix4/jobs/pubsub-post-1.json",
+    "exit": 1,
+    "binary_sha256": "3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8",
+    "archive": "docs/climonfix4/job-evidence/pubsub-post-1.tar.gz",
+    "archive_sha256": "2e7e155d09d20aa5b72dfa859314fed358c98fbb74bc4e3e7ca21aa1343732c1",
+    "files": 29,
+    "uncompressed_bytes": 195160,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t1\t1",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "1.980000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "2.010000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pubsub-post-2",
+    "receipt": "docs/climonfix4/jobs/pubsub-post-2.json",
+    "exit": 1,
+    "binary_sha256": "3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8",
+    "archive": "docs/climonfix4/job-evidence/pubsub-post-2.tar.gz",
+    "archive_sha256": "f874914f17f20157a0222d3113a6a0e5ae7ee465542b1f39f248be97c3f62b18",
+    "files": 29,
+    "uncompressed_bytes": 194272,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t1\t1",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "1.910000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.770000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pubsub-post-3",
+    "receipt": "docs/climonfix4/jobs/pubsub-post-3.json",
+    "exit": 1,
+    "binary_sha256": "3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8",
+    "archive": "docs/climonfix4/job-evidence/pubsub-post-3.tar.gz",
+    "archive_sha256": "aa88d40c3d7d22b508a903cbdb31edb0df3082b7a81133582a02ed689876f281",
+    "files": 29,
+    "uncompressed_bytes": 194318,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t1\t1",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "1.990000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "1.770000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pubsub-post-4",
+    "receipt": "docs/climonfix4/jobs/pubsub-post-4.json",
+    "exit": 1,
+    "binary_sha256": "3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8",
+    "archive": "docs/climonfix4/job-evidence/pubsub-post-4.tar.gz",
+    "archive_sha256": "8d2e3524b899eef8f4b83b36ee4eb39a82dd17a06760cd0b8861e23951230918",
+    "files": 29,
+    "uncompressed_bytes": 194402,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t1\t1",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "2.470000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "2.170000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pubsub-pre-0",
+    "receipt": "docs/climonfix4/jobs/pubsub-pre-0.json",
+    "exit": 0,
+    "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-0.tar.gz",
+    "archive_sha256": "7d1c39981d50cdd5f714d00610578c1ecbbb2ca195848cda98ec84333f6f8603",
+    "files": 29,
+    "uncompressed_bytes": 193311,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "1.320000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.370000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pubsub-pre-1",
+    "receipt": "docs/climonfix4/jobs/pubsub-pre-1.json",
+    "exit": 0,
+    "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-1.tar.gz",
+    "archive_sha256": "ce4ddcf1228b011f97129f2b0a94efadc5dd74c043ebff88565138e049952915",
+    "files": 29,
+    "uncompressed_bytes": 193315,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "1.320000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.380000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pubsub-pre-10",
+    "receipt": "docs/climonfix4/jobs/pubsub-pre-10.json",
+    "exit": 0,
+    "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-10.tar.gz",
+    "archive_sha256": "d94c70310599b8deb4ebdbe4b92641b8f455f21612ddba6085fea97f0c42a9ea",
+    "files": 29,
+    "uncompressed_bytes": 193311,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "1.370000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.270000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pubsub-pre-11",
+    "receipt": "docs/climonfix4/jobs/pubsub-pre-11.json",
+    "exit": 0,
+    "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-11.tar.gz",
+    "archive_sha256": "40e4f84aafbef9efda900824bc0d8d981c3c2b62bfe0358905d5de07f06ee828",
+    "files": 29,
+    "uncompressed_bytes": 193313,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "1.480000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.550000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pubsub-pre-12",
+    "receipt": "docs/climonfix4/jobs/pubsub-pre-12.json",
+    "exit": 1,
+    "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-12.tar.gz",
+    "archive_sha256": "c5a3499da53827124fbeaa682a9a53b90fb1605f0bf142f622343d32d81873e9",
+    "files": 29,
+    "uncompressed_bytes": 196093,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "1.970000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "2.040000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pubsub-pre-2",
+    "receipt": "docs/climonfix4/jobs/pubsub-pre-2.json",
+    "exit": 0,
+    "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-2.tar.gz",
+    "archive_sha256": "3863de71abced811348a3caaa41e727a0426d7841fde3183844ace0d9b40b58b",
+    "files": 29,
+    "uncompressed_bytes": 193314,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "1.470000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.370000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pubsub-pre-3",
+    "receipt": "docs/climonfix4/jobs/pubsub-pre-3.json",
+    "exit": 0,
+    "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-3.tar.gz",
+    "archive_sha256": "8182673476ae6f152cf8be586f80714b79f86761e44fcdc07021e1ac7e43b893",
+    "files": 29,
+    "uncompressed_bytes": 193318,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "1.330000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.380000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pubsub-pre-4",
+    "receipt": "docs/climonfix4/jobs/pubsub-pre-4.json",
+    "exit": 0,
+    "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-4.tar.gz",
+    "archive_sha256": "c8e47df8617c27a8714f2f031713bf0a8daf15bcd1bf0396984d43eb23bbe492",
+    "files": 29,
+    "uncompressed_bytes": 193295,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "1.470000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.370000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pubsub-pre-5",
+    "receipt": "docs/climonfix4/jobs/pubsub-pre-5.json",
+    "exit": 0,
+    "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-5.tar.gz",
+    "archive_sha256": "9176122186d4bbc5d909d9722c512802c8d1a140376e7e0ea32928a6d828f9a3",
+    "files": 29,
+    "uncompressed_bytes": 193301,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "1.380000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.370000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pubsub-pre-6",
+    "receipt": "docs/climonfix4/jobs/pubsub-pre-6.json",
+    "exit": 0,
+    "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-6.tar.gz",
+    "archive_sha256": "36abd13e41b70af0e9669b6a89deeb7465f591bfa53f79b4d87cd7142ab1bb13",
+    "files": 29,
+    "uncompressed_bytes": 193301,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "1.370000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.270000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pubsub-pre-7",
+    "receipt": "docs/climonfix4/jobs/pubsub-pre-7.json",
+    "exit": 0,
+    "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-7.tar.gz",
+    "archive_sha256": "123eb2582d8dacd0fe2ee7120659cbebc608ed7661a0bc26e2f02228b36f0e2f",
+    "files": 29,
+    "uncompressed_bytes": 193285,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "1.330000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.270000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pubsub-pre-8",
+    "receipt": "docs/climonfix4/jobs/pubsub-pre-8.json",
+    "exit": 0,
+    "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-8.tar.gz",
+    "archive_sha256": "e9e73c5ea4441df038044e863abf123ceaf4176a574f3474262cbcf8b1f1493e",
+    "files": 29,
+    "uncompressed_bytes": 193309,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "1.420000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.280000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pubsub-pre-9",
+    "receipt": "docs/climonfix4/jobs/pubsub-pre-9.json",
+    "exit": 0,
+    "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-9.tar.gz",
+    "archive_sha256": "b076e1516a94e281935df65207086115f962c8939492354b3f23f0bfa9a9076b",
+    "files": 29,
+    "uncompressed_bytes": 193300,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "1.320000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.280000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  }
+]
