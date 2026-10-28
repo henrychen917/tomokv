@@ -3507,10 +3507,10 @@ private:
                 __builtin_expect(climon_armed_gate(c, *op), false)) break;
             if (__builtin_expect(security_check, false) &&
                 acl_dispatch_entry(*this, conn, *op, consumed, security_flags)) continue;
-            // An admitted local GET/MGET is neither a metadata write nor PING,
+            // The registry's GET/MGET class is neither a metadata write nor PING,
             // the only commands deny_command can reject. Keep the live failure
             // probe for every other route, including queued transaction writes.
-            if ((!Fused || !read_local_eligible) &&
+            if ((!Fused || !(spec->flags & CmdFlags::ReadLocalEligible)) &&
                 __builtin_expect(srv_->aof().failed(), false) && srv_->aof().deny_command(*op)) {
                 multi_mark_queue_error(conn);
                 conn.advance_parse(consumed);

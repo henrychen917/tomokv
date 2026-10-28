@@ -18,7 +18,9 @@ def save(p,v):p.write_text(json.dumps(v,indent=2)+'\n')
 def compile_one(case):
  arm,rel=case;src=ARMS[arm];target=src/'build'/rel;dest=OUT/arm/rel;dest.parent.mkdir(parents=True,exist_ok=True)
  receipt=DOC/(arm+'-'+rel.replace('/','_')+'.json')
- if dest.exists() and receipt.exists():return json.loads(receipt.read_text())
+ if dest.exists() and receipt.exists():
+  cached=json.loads(receipt.read_text())
+  if cached['original_sha256']==sha(target) and cached['sha256']==sha(dest):return cached
  recipe=subprocess.check_output(['make','-C',str(src),'-n','-B','BUILD_ROOT='+str(src/'build'),str(target)],text=True)
  cmd=next(shlex.split(l) for l in recipe.splitlines() if ' -c ' in l and l.endswith(' -o '+str(target)))
  cmd.insert(1,'-ffunction-sections');cmd[-1]=str(dest)

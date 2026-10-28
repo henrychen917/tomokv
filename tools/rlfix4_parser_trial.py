@@ -3,7 +3,7 @@
 import argparse, concurrent.futures, hashlib, json, os, shlex, shutil, subprocess
 from pathlib import Path
 from rlfix4_scope import ROOT, OUT, BUILD, trace, save
-p=argparse.ArgumentParser();p.add_argument('name');p.add_argument('--original-aof',action='store_true');p.add_argument('--inline-room',action='store_true');p.add_argument('--normal-cmd-name',action='store_true');a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('name');p.add_argument('--original-aof',action='store_true');p.add_argument('--inline-room',action='store_true');p.add_argument('--normal-cmd-name',action='store_true');p.add_argument('--release-storage',action='store_true');p.add_argument('--flatten-dtor',action='store_true');p.add_argument('--metadata-aof',action='store_true');p.add_argument('--fused-metadata-aof',action='store_true');a=p.parse_args()
 os.sched_setaffinity(0,set(range(32,48)))
 src=ROOT/'build/rlfix4'/a.name;src.mkdir(exist_ok=True)
 shutil.copytree(ROOT/'src',src/'src',dirs_exist_ok=True);shutil.copy2(ROOT/'Makefile',src/'Makefile')
@@ -16,10 +16,18 @@ for path in [src/'src/core/io_loop.h',src/'src/core/reorder.cc']:
   if old not in s:old=old.replace('\n                ','\n            ')
   assert old in s;s=s.replace(old,'if (__builtin_expect(srv_->aof().failed(), false) && srv_->aof().deny_command(*op))')
  if a.normal_cmd_name:s=s.replace('command_lookup(op->arg(0))','command_lookup(kSingleDatabase ? op->arg(0) : op->cmd_name())')
+ if a.metadata_aof:s=s.replace('(!Fused || !read_local_eligible)','!(spec->flags & CmdFlags::ReadLocalEligible)')
+ if a.fused_metadata_aof:s=s.replace('(!Fused || !read_local_eligible)','(!Fused || !(spec->flags & CmdFlags::ReadLocalEligible))')
+ if a.release_storage:
+  s=s.replace('~ReadLocalDemotionPlan() { cancel(); }','~ReadLocalDemotionPlan() { cancel(); delete storage_.release(); }')
+  s=s.replace('~r7_ReadLocalDemotionPlan() { cancel(); }','~r7_ReadLocalDemotionPlan() { cancel(); delete storage_.release(); }')
+ if a.flatten_dtor:
+  s=s.replace('~ReadLocalDemotionPlan() { cancel(); }','__attribute__((flatten, always_inline)) ~ReadLocalDemotionPlan() { cancel(); }')
+  s=s.replace('~r7_ReadLocalDemotionPlan() { cancel(); }','__attribute__((flatten, always_inline)) ~r7_ReadLocalDemotionPlan() { cancel(); }')
  path.write_text(s)
 if a.inline_room:
  path=src/'src/core/ex_loop.h';s=path.read_text();s=s.replace('    bool local_read_lane_has_room(', '    __attribute__((always_inline)) bool local_read_lane_has_room(');path.write_text(s)
-units=[x+'/'+y for x in ('src','db0/src') for y in ('main.o','core/genthread.o','core/reorder.o')]
+units=[x+'/'+y for x in ('src','db0/src') for y in ('main.o','core/genthread.o','core/reorder.o','core/rl2s.o')]
 def compile_one(rel):
  target=ROOT/'build'/rel;dest=src/'build'/rel;dest.parent.mkdir(parents=True,exist_ok=True)
  recipe=subprocess.check_output(['make','-n','-B',str(target.relative_to(ROOT))],cwd=ROOT,text=True)
