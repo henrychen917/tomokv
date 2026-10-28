@@ -1736,18 +1736,14 @@ template<bool ScriptOnly>
                 reply_debug_command_denied(op);
                 return ScatterPrepare::Error;
             }
-            if (!server.aof().configured()) {
-                reply_err(op.sink(), "ERR appendonly is disabled");
-                return ScatterPrepare::Error;
-            }
             ThreadCtx& caller = server.thread(owner_io);
             Ring* caller_ring = caller.ring();
-            if (server.aof().writer_is(owner_io) && caller_ring) {
+            if (server.aof().configured() && server.aof().writer_is(owner_io) && caller_ring) {
                 while (server.aof().pending_chunks()) {
                     if (!server.aof().writer_pass(caller, *caller_ring, true))
                         std::this_thread::yield();
                 }
-            } else if (!server.aof().wait_until_drained(5000)) {
+            } else if (server.aof().configured() && !server.aof().wait_until_drained(5000)) {
                 reply_err(op.sink(), "ERR timed out flushing AOF before reload");
                 return ScatterPrepare::Error;
             }
@@ -1756,8 +1752,10 @@ template<bool ScriptOnly>
             if (!aof_read_recovery(server.cfg(), server.nshards(), aof_reload_base,
                                    aof_reload_increments, warning, error) ||
                 (!aof_reload_base && aof_reload_increments.empty())) {
-                reply_err(op.sink(), "ERR Error trying to load the AOF, check server logs.");
-                return ScatterPrepare::Error;
+                // DEBUG LOADAOF flushes even when recovery fails. Carry the
+                // outcome through the owner barrier, then report it at retire.
+                aof_reload_base.reset();
+                aof_reload_increments.clear();
             }
         } else {
             const bool valid = (op.spec->flags & CmdFlags::ConfigRoute)
@@ -3427,6 +3425,10 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 auto foreign_read_scope = shard.store().foreign_read_poison_guard();
                 if (!shard.store().atomic_tombstone_all()) return ScatterTaskResult::Retry;
                 shard.store().clear();
+                if (!state.aof_reload_base && state.aof_reload_increments.empty()) {
+                    group.error = WorkError::Corrupt;
+                    return ScatterTaskResult::Complete;
+                }
                 std::string error;
                 if (state.aof_reload_base &&
                     !snapshot_load_shard(*state.aof_reload_base, *state.server, shard, error)) {

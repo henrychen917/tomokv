@@ -9,9 +9,13 @@
 #include <cstdio>
 #include <cstdlib>
 #include <limits>
+#include <fstream>
 #include <mutex>
+#include <sstream>
 #include <string>
 #include <sys/random.h>
+#include <sys/resource.h>
+#include <link.h>
 #include <unistd.h>
 
 namespace tomo {
@@ -173,5 +177,72 @@ void info_stats_memory_fields(std::string& body, uint64_t allocated, uint64_t re
 const char* info_run_id() { return g_run_id.data(); }
 const char* info_executable() { return g_executable.c_str(); }
 const char* info_config_file() { return g_config_file.c_str(); }
+
+void info_stats_cpu_fields(std::string& body) {
+    rusage self{}, children{};
+    if (getrusage(RUSAGE_SELF, &self) || getrusage(RUSAGE_CHILDREN, &children)) std::abort();
+    const auto seconds = [](timeval t) { return double(t.tv_sec) + double(t.tv_usec) / 1000000; };
+    // INFO runs on a connection owner. RUSAGE_THREAD here would report that
+    // worker, not the process's main thread. Linux exposes the latter by TID.
+    std::ifstream file("/proc/self/task/" + std::to_string(getpid()) + "/stat");
+    std::string line, ignored;
+    std::getline(file, line);
+    const auto end = line.rfind(')');
+    if (end == std::string::npos) std::abort();
+    std::istringstream fields(line.substr(end + 2));
+    for (unsigned i = 0; i < 11; ++i) fields >> ignored;
+    uint64_t user = 0, system = 0;
+    fields >> user >> system;
+    const long ticks = sysconf(_SC_CLK_TCK);
+    if (!fields || ticks <= 0) std::abort();
+    char out[512];
+    const int size = std::snprintf(out, sizeof(out),
+        "# CPU\r\nused_cpu_sys:%.6f\r\nused_cpu_user:%.6f\r\n"
+        "used_cpu_sys_children:%.6f\r\nused_cpu_user_children:%.6f\r\n"
+        "used_cpu_sys_main_thread:%.6f\r\nused_cpu_user_main_thread:%.6f\r\n",
+        seconds(self.ru_stime), seconds(self.ru_utime),
+        seconds(children.ru_stime), seconds(children.ru_utime),
+        double(system) / ticks, double(user) / ticks);
+    body.append(out, size);
+}
+
+void info_stats_build_fields(std::string& body) {
+    // Redis's field names identify this executable, never the oracle's build.
+#ifndef TOMO_INFO_GIT_SHA1
+#define TOMO_INFO_GIT_SHA1 "00000000"
+#define TOMO_INFO_GIT_DIRTY "0"
+#endif
+    body += "redis_git_sha1:" TOMO_INFO_GIT_SHA1 "\r\nredis_git_dirty:" TOMO_INFO_GIT_DIRTY "\r\nredis_build_id:";
+    std::string id;
+    dl_iterate_phdr([](dl_phdr_info* image, size_t, void* context) {
+        if (image->dlpi_name && *image->dlpi_name) return 0;
+        auto& id = *static_cast<std::string*>(context);
+        for (unsigned i = 0; i < image->dlpi_phnum; ++i) {
+            const auto& segment = image->dlpi_phdr[i];
+            if (segment.p_type != PT_NOTE) continue;
+            const auto* p = reinterpret_cast<const unsigned char*>(image->dlpi_addr + segment.p_vaddr);
+            const auto* end = p + segment.p_memsz;
+            while (size_t(end - p) >= sizeof(ElfW(Nhdr))) {
+                const auto* note = reinterpret_cast<const ElfW(Nhdr)*>(p);
+                const size_t name = (size_t(note->n_namesz) + 3) & ~size_t{3};
+                const size_t data = (size_t(note->n_descsz) + 3) & ~size_t{3};
+                if (sizeof(*note) + name + data > size_t(end - p)) break;
+                if (note->n_type == NT_GNU_BUILD_ID && note->n_namesz == 4 &&
+                    !std::memcmp(p + sizeof(*note), "GNU", 4)) {
+                    constexpr char hex[] = "0123456789abcdef";
+                    const auto* bytes = p + sizeof(*note) + name;
+                    for (unsigned j = 0; j < note->n_descsz; ++j) {
+                        id += hex[bytes[j] >> 4]; id += hex[bytes[j] & 15];
+                    }
+                    return 1;
+                }
+                p += sizeof(*note) + name + data;
+            }
+        }
+        return 1;
+    }, &id);
+    body += id.empty() ? "0" : id;
+    body += "\r\n";
+}
 
 }  // namespace tomo

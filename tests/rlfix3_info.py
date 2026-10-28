@@ -15,8 +15,8 @@ from wave7 import selected_fields
 
 
 SECTIONS = ("server", "clients", "memory", "persistence", "stats", "replication",
-            "commandstats", "latencystats", "cluster", "keyspace", "writeback", "lb", "flipctl")
-DEFAULT = set(SECTIONS) - {"commandstats", "latencystats", "lb"}
+            "cpu", "commandstats", "latencystats", "cluster", "keyspace", "writeback", "lb", "flipctl")
+DEFAULT = set(SECTIONS) - {"cpu", "commandstats", "latencystats", "lb"}
 
 
 def headings(body):

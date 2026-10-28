@@ -1,0 +1,6 @@
+PARTIAL	0	GATE_ONLY_JOBS=infofix_compat-missing infofix_compat-docs infofix_compat-slowlog infofix_compat-loadaof; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	0.310000	Redis 7.4 infofix missing (both modes/engines/runtimes)
+FAIL	1.370000	Redis 7.4 infofix docs (both modes/engines/runtimes)
+FAIL	1.120000	Redis 7.4 infofix slowlog (both modes/engines/runtimes)
+FAIL	1.290000	Redis 7.4 infofix loadaof (both modes/engines/runtimes)

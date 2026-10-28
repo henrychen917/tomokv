@@ -226,8 +226,8 @@ def run():
     # Deliberate DOCS boundary: subcommands are discoverable, but prose remains the compact TomoKV
     # fallback rather than embedding Redis's large human-authored documentation corpus.
     docs = connection.cmd("COMMAND", "DOCS", "config|get")
-    expect("subcommand DOCS remains minimal and explicit", docs, lambda value:
-           value[0] == b"config|get" and b"tomokv compatible config|get command" in value[1])
+    expect("subcommand DOCS carries argument metadata", docs, lambda value:
+           value[0] == b"config|get" and b"arguments" in value[1])
     connection.close()
 
     resp3 = Connection(resp3=True)

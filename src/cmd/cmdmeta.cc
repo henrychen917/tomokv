@@ -61,6 +61,9 @@ namespace {
 
 #include "cmdmeta_generated.inc"
 
+struct CommandDocs { const char* name; const char* resp2; const char* resp3; };
+#include "cmddocs_generated.inc"
+
 // The generator already emits lexical order. Keep the assertion next to the
 // binary search so adding an unsorted row fails the build, not dispatch.
 static_assert([] {
@@ -449,6 +452,15 @@ bool command_metadata_is_subcommand(const CommandMetadata& metadata) {
 bool command_metadata_arity_ok(const CommandMetadata& metadata, uint32_t argc) {
     return metadata.arity > 0 ? argc == static_cast<uint32_t>(metadata.arity)
                               : argc >= static_cast<uint32_t>(-metadata.arity);
+}
+
+void command_metadata_reply_docs(Op& op, const CommandMetadata& metadata) {
+    const auto name = command_metadata_name(metadata).sv();
+    const auto* found = std::lower_bound(std::begin(kCommandDocs), std::end(kCommandDocs), name,
+        [](const CommandDocs& row, std::string_view key) { return row.name < key; });
+    if (found == std::end(kCommandDocs) || found->name != name) std::abort();
+    const char* reply = op.resp3() ? found->resp3 : found->resp2;
+    op.sink().append(reply, std::strlen(reply));
 }
 
 void command_metadata_reply_info(Op& op, const CommandMetadata* metadata) {
