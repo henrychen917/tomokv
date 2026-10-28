@@ -1,24 +1,24 @@
 exec1s-d checkpoint (2026-10-29)
 
-Final production cf3bdaa9e, frozen POST sha4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18. Later changes are proof tools/fixtures/evidence only. All frozen arms and PAD controls remain unchanged.
+Final production cf3bdaa9e, frozen POST sha4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18. Later changes are tooling, fixtures and evidence only. No push. CPU64-95, ports20000-20099; no benchmarks/load generators/full iteration.
 
-Counts complete: ordinary48 maxdelta0; read-local4 exact; allocation3348/13514=.247743; idle+7 bothnamespaces misses+2. Original INCR/depth72 scopes per arm complete. Added true MSET-child48 scopes for PRE/POST/X12/X3/X5/MERGE all PASS; includes actual two-owner one-child EXEC. Reconstructed inputs have exact matching allocated sections; all whole binaries identical except MERGE's debug/build-id. tools/exec1sd_receipts.py validates both matrices and bindings. All reconstruction trees/probes retired.
+Completed final proof:
+- Main chain63818 exited0. Both standard differential engines PASS, each split0 235, split1 239, armed0 230, armed1 234, equivalence16. Standard seeds7/19/20/23 plus21 uring,22 epoll. Exact native seed22 full235 passed C-PRE, MERGE, finalPOST too.
+- gates_test attempt3 ran alone and passed73tests plus14helpers. Prior2timeout receipts retained; no changes to assertions,45s watchdog or suite counts.
+- ZC session63070 completed all4mode/engine legs,24rows pass, normal quiet preflight+ASAN. Supersedes six preflight refusals in broad family; history retained.
+- Broad family832pass8fail (sixpreflight,slowlog,propagatedcompat2); fused215/0; atomic0script3/0each; AOF CQ57/0each zerooverflow/drop with positive samples.
+- Final latest-per-variant index251jobs,1083passing rows,2failing rows (preexisting slowlog and propagatedcompat2). proof-summary.json compact; live-proof.json full history.
+-57/57make-q freshness passed, including all51literalproductiontargets, all, MDBQSBRpair,cost+binding,blockfix2pair.
+- Lottery copiedimage and PAD controls passed gateexecfair bothmodes/engines. Seven bounded existing lottery multi_exec cases passed firstattempt withpositiveW16; fullnightlyNOTRUN(memtierrunnerresources).
 
-Active sessions:
-- 63818: family-attempt4 build/gate-run.q0JfME finished832ok8FAIL. Failures: Redis Tcl fused isolated slowlog assertion and propagated compat2 autharity; six zc failures because idle-core preflight refused to boot during concurrent work. No other family failures. Fused supplement215/0; script-a0 both3/0; AOF CQ both57/0, zero drop/overflow. Now standard differ uring (build/gate-run.QWIdhL), then epoll, then gates_test. No full iteration.
-- 36945: final4111 native exact original seed22 full split0 plan (POST --native --label=-final), using ports20000/1, active at seed22. Prior C-PRE and MERGE native full235/0; oldPOST22d235/0. Historical SAVE Busy still not reproduced/classified; bare psfix repeat6 timeout is a different pre-existing failure. Passive observer NOT RUN (uprobe EACCES; passwordless sudo unavailable); no system changes.
-- All other sessions completed (84110 scatter arms, 62469 receipts). Counts/probes/PAD/lottery done.
+Counts complete/bound: ordinary48maxdelta0, read-local4exact, allocation3348/13514=.247743, idle+7both fails+2. INCR/depth72perarm; genuine MSET-child48 for PRE/POST/X12/X3/X5/MERGE. Scatter includes two-owner one-childEXEC. Inputs exactly match allallocatedsections; wholebinaries identical exceptMERGEdebug/build-id. Reconstructedsource/probe/steptracesretired. build~27G.
 
-Remaining:
-1. Let63818 and36945 finish; inspect every failure and standard differential plan/legs.
-2. Run tools/exec1sd_proof.py zc ALONE after no other lane work is running. Four legs mode0/1 engineuring/epoll, release+ASAN, unchanged quiet preflight. Preserve original6failed startup rows. This should supersede the matching family zc verdict while keeping failure history.
-3. If gates_test still times out, diagnose and rerun alone; original harness is unchanged, earlier2runs failed2/73 because45s scheduler fixture timeouts under concurrent builds.
-4. Run tools/exec1sd_proof.py freshness (57make-q checks includingall51productiontargets) and tools/exec1sd_receipts.py.
-5. Finish MEASURE-REQUEST-exec1s-d.md PROOF_STATUS_PENDING, final live/differ/gates counts, nativefinalresult, zero-copy reruns, CQ proof. Keep SAVE unresolved and idle+7 explicit. State DQ+4DF+4; EXPECT881898 unchanged, owner should885902. Countcollector6008 beforequick6119.
-6. Retire completed passing payloads with tools/exec1sd_retire.py ROOT (current27G, about30G cap). Preserve failures. Commit all meaningful steps, clean worktree, no push.
+Only active session:30651 = tools/exec1sd_save_full.py C-PRE --busy-only. One full original seed22 plan with GDB traps at actual taken Busy branch destinations, offset0x150 in both namespaces, no traps on accepted admissions. Both traps armed. It was at218legs, noBusyobserved. After this run, run MERGE --busy-only once on same reservedports20000/1; noothercorrectnessserverjob active. Tool staticcodeverified branch destinations: source line alone wrongly points to accepted fallthrough, so it derives takenbranch from frozenassembly and records hash/sites. This new diagnostic seeks originalBusy cause, not a different repeat-timeout.
 
-Slowlog: unchanged isolated Tcl assertion expects newest BLPOP after EXEC(LPUSH,SLOWLOG RESET). FinalPOST2/8fused fail; PRE5/64fused fail afterinitial8passes; bothsplit8pass. Root source commit makes list visible/dirty before IO retirement executes queued RESET/records, allowing blocked log to be cleared. Pre-existing and unfixed; no assertion/manifest/retry change. Gate's five unnamed setup errors are existing manifest entries, not new failures. All evidence in slowlog-*.json.
+Then finish:
+1. Inspect C-PRE and MERGE diagnostic receipts; ifBusy captured classifywithactualerror, otherwise keepSAVEunresolved. Final nativefull4111passed235; existing barepsfixrepeat6timeoutonC-PRE/MERGE is a DIFFERENT failure and notproofhistoricalBusy preexisting.
+2. Update report diagnostic results and finalSTATE. Report coreproof already finalized; noPROOF_STATUS_PENDING. OriginalSAVE and idle+7 stayred unless newevidencechangesit.
+3. Retire onlycompletedpassinglargepayloads ifneeded via tools/exec1sd_retire.py ROOT;preservefailurelogs. No supersededarm source/scopes remain. Hash currentbinariesagainstmanifest once beforehandoff. All earlierfreshnessvalidunlessproductionchanges.
+4. Commitallmeaningfulsteps, finalgitstatusclean, no push. DQ+4DF+4, EXPECT881/898unchanged owner885/902, collectexec1sline6008beforequick6119.
 
-Important: user explicitly permits correctness servers/Redis7.4/selected jobs/serverless counts onCPUs64-95, ports20000-20099 only. No benchmarks/loadgenerators/fulliteration. Builds-j32. All commands taskset64-95. No subagents. Keep X4off/FIFOout/Dlaws. Report not a green landing request. Report gives actual benchtxn built+hash but neverexecuted. PAD-A is exact common-image twin of POST-layout, larger than releasePOST; that limitation is explicit.
-
-Update: final POST native original split0/seed22 full plan completed235/0, receipt committed. tools/exec1sd_lottery.py completed7/7 existing multi_exec occurrence cases, each first attempt withW16positive (session85928done), using64-71server72-79clients20002port. Report updated; not fullnightly, whichincludesmemtierandhardcodedmainrunnerresources. All sources/arms unchanged.
+Slowlog exact unchanged assertion reproduced PRE5/64fused afterinitial8passes,POST2/8; bothsplit8pass. Sourceownercommitmakeslistvisible/dirty beforeIOretirequeuedRESET/logging, allowingBLPOGlogtobecleared. Unfixedpreexisting, noassertion/manifestweakening. FiveunnamedTclsetuperrorsmatchfrozenmanifest. HistoricalSAVEBusy stillnotcaptured. PassivekernelobserverNOTRUN(EACCES, no passwordlesssudo), no systemchanges. Rateattribution/depththresholds/meritremainmaintainer-only. X4off, noFIFO, Dlawsunchanged. PAD-AexactcommonimagePREbehaviourtwinofPOST-layout; largerthanreleasePOST, limitationexplicit.
