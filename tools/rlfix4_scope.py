@@ -6,6 +6,7 @@ Count named tomo routines (including inlined code), exclude out-of-scope library
 callees and fixture glue. The fixture calls the linked production exec_batch_prefetched entry point. Atomic 1 (also 0 for MSET), slowlog -1/10000 for single-key commands, read-local 0.
 """
 import argparse
+import os
 import concurrent.futures
 import gzip
 import hashlib
@@ -74,6 +75,9 @@ def trace(case):
     save(ranges_file, ranges)
     anchor = next(row[0] for row in symbols if row[2] == "_Z11scope_beginv")
     output = OUT / (label + ".json")
+    if os.environ.get("RLFIX4_BACKEND", "native") == "native":
+        from rlfix4_native import trace as native_trace
+        return native_trace(binary, ranges, case, output)
     existing_log = OUT / (label + ".log")
     compressed_log = Path(str(existing_log) + ".gz")
     log_text = existing_log.read_text() if existing_log.exists() else (

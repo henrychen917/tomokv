@@ -1,0 +1,50 @@
+{
+  "object": "src/core/genthread.o",
+  "budget": 131346,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=131346",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/core/genthread.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/budgets/src_core_genthread.o-131346.o"
+  ],
+  "object_sha256": "435d6c264da07228ad9b0bf5c253a626c7ef806eea1543a5f06ea09fc3f9cf03",
+  "changes": [
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+      "pre_size": 19469,
+      "post_size": 19438
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, true, false>()",
+      "symbol": "_ZN4tomo6IoLoop11flush_readyILb0ELb1ELb1ELb1ELb1ELb0EEEjv",
+      "pre_size": 2497,
+      "post_size": 2574
+    }
+  ],
+  "parsers": [
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+      "size": 19438,
+      "calls": {
+        "cmd_name": 14,
+        "hash_key": 5,
+        "local_read_lane_has_room": 2
+      }
+    }
+  ]
+}

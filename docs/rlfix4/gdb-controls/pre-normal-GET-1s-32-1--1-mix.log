@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-rlfix4/build/rlfix4/commands/pre-normal-GET-1s-32-1--1-mix.log
+SHA-256: bf5d3085d7d64fd587f34f871abad08507a9ddd120f8e5f5709a3a95ed1ed7d9
+Exit: 0
+0x0000555555c9753a	1470	    }
+0x0000555555c97540	1470	    }
+0x0000555555c97547	1470	    }
+0x0000555555c97548	1470	    }
+0x0000555555c97549	1470	    }
+0x0000555555c9754b	1470	    }
+0x0000555555c975TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+WITNESS reads=29 pending_writes=3 keys_per_read=1
+PASS bounded production command scope
+4d	1470	    }
+0x0000555555c9754f	1470	    }
+0x0000555555c97551	1470	    }
+0x0000555555d91d88 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1, route=...) at /home/user/Projects/cx-rlfix4/tests/rlfix4_scope.cc:131
+131	   const auto done=production_local(&reader,32);
+0x0000555555d91d8b	132	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-rlfix4/tests/rlfix4_scope.cc:27
+27	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 265107) exited normally]
+COUNT 19433

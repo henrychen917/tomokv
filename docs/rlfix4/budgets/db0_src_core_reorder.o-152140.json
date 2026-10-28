@@ -1,0 +1,303 @@
+{
+  "object": "db0/src/core/reorder.o",
+  "budget": 152140,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=152140",
+    "--param",
+    "max-inline-insns-auto=14",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/core/reorder.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/budgets/db0_src_core_reorder.o-152140.o"
+  ],
+  "object_sha256": "fb4c01c9567ef7532e83565fac91f42687ddcc6bebe80eabebdb49cba6d97b1c",
+  "changes": [
+    {
+      "name": "tomo_db0::FlatStore::find_hash_in(int, unsigned long) const",
+      "symbol": "_ZNK8tomo_db09FlatStore12find_hash_inEim",
+      "pre_size": 425,
+      "post_size": 428
+    },
+    {
+      "name": "tomo_db0::FlatStore::erase_in_read_local(int, unsigned long, tomo_db0::Slice, bool*)",
+      "symbol": "_ZN8tomo_db09FlatStore19erase_in_read_localEimNS_5SliceEPb",
+      "pre_size": 1014,
+      "post_size": 1208
+    },
+    {
+      "name": "tomo_db0::FlatStore::insert_into_read_local(int, unsigned long, tomo_db0::KvObj*, bool)",
+      "symbol": "_ZN8tomo_db09FlatStore22insert_into_read_localEimPNS_5KvObjEb",
+      "pre_size": 1318,
+      "post_size": 1343
+    },
+    {
+      "name": "tomo_db0::Rob<64u>::read_local_owner_conflicts_before<tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const::{lambda(tomo_db0::Op const&)#1}>(unsigned long, tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
+      "symbol": "_ZZN8tomo_db03RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop21r7_parse_and_dispatchILb1ELj32ELb0EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E_clIZZNS4_ILb1ELj32ELb0EEES5_S7_ENKUlmE_clEmEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm",
+      "pre_size": 529,
+      "post_size": 513
+    },
+    {
+      "name": "tomo_db0::Rob<64u>::read_local_owner_conflicts_before<tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#4}::operator()<tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const::{lambda(tomo_db0::Op const&)#1}>(unsigned long, tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
+      "symbol": "_ZZN8tomo_db03RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop21r7_parse_and_dispatchILb1ELj32ELb0EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E2_clIZZNS4_ILb1ELj32ELb0EEES5_S7_ENKUlmE3_clEmEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm",
+      "pre_size": 529,
+      "post_size": 513
+    },
+    {
+      "name": "tomo_db0::Rob<64u>::read_local_owner_conflicts_before<tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}&&) const::{lambda(tomo_db0::Op const&)#1}>(unsigned long, tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
+      "symbol": "_ZZN8tomo_db03RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop21r7_parse_and_dispatchILb1ELj32ELb0EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E_clIZZNS4_ILb1ELj32ELb0EEES5_S7_ENKUlvE0_clEvEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm",
+      "pre_size": 1153,
+      "post_size": 1137
+    },
+    {
+      "name": "tomo_db0::Rob<64u>::read_local_owner_conflicts_before<tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#4}::operator()<tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda()#6}::operator()() const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda()#6}::operator()() const::{lambda(tomo_db0::Op const&)#1}&&) const::{lambda(tomo_db0::Op const&)#1}>(unsigned long, tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda()#6}::operator()() const::{lambda(tomo_db0::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
+      "symbol": "_ZZN8tomo_db03RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop21r7_parse_and_dispatchILb1ELj32ELb0EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E2_clIZZNS4_ILb1ELj32ELb0EEES5_S7_ENKUlvE4_clEvEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm",
+      "pre_size": 1153,
+      "post_size": 1137
+    },
+    {
+      "name": "tomo_db0::Rob<64u>::read_local_owner_conflicts_before<tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const::{lambda(tomo_db0::Op const&)#1}>(unsigned long, tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
+      "symbol": "_ZZN8tomo_db03RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop21r7_parse_and_dispatchILb0ELj32ELb0EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E_clIZZNS4_ILb0ELj32ELb0EEES5_S7_ENKUlmE_clEmEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm",
+      "pre_size": 529,
+      "post_size": 513
+    },
+    {
+      "name": "tomo_db0::Rob<64u>::read_local_owner_conflicts_before<tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#4}::operator()<tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const::{lambda(tomo_db0::Op const&)#1}>(unsigned long, tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
+      "symbol": "_ZZN8tomo_db03RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop21r7_parse_and_dispatchILb0ELj32ELb0EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E2_clIZZNS4_ILb0ELj32ELb0EEES5_S7_ENKUlmE3_clEmEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm",
+      "pre_size": 529,
+      "post_size": 513
+    },
+    {
+      "name": "tomo_db0::Rob<64u>::read_local_owner_conflicts_before<tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}&&) const::{lambda(tomo_db0::Op const&)#1}>(unsigned long, tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
+      "symbol": "_ZZN8tomo_db03RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop21r7_parse_and_dispatchILb0ELj32ELb0EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E_clIZZNS4_ILb0ELj32ELb0EEES5_S7_ENKUlvE0_clEvEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm",
+      "pre_size": 1153,
+      "post_size": 1137
+    },
+    {
+      "name": "tomo_db0::Rob<64u>::read_local_owner_conflicts_before<tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#4}::operator()<tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda()#6}::operator()() const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda()#6}::operator()() const::{lambda(tomo_db0::Op const&)#1}&&) const::{lambda(tomo_db0::Op const&)#1}>(unsigned long, tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda()#6}::operator()() const::{lambda(tomo_db0::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
+      "symbol": "_ZZN8tomo_db03RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop21r7_parse_and_dispatchILb0ELj32ELb0EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E2_clIZZNS4_ILb0ELj32ELb0EEES5_S7_ENKUlvE4_clEvEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm",
+      "pre_size": 1153,
+      "post_size": 1137
+    },
+    {
+      "name": "tomo_db0::Rob<64u>::read_local_owner_conflicts_before<tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const::{lambda(tomo_db0::Op const&)#1}>(unsigned long, tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
+      "symbol": "_ZZN8tomo_db03RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop18parse_and_dispatchILb1ELj32ELb0EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E_clIZZNS4_ILb1ELj32ELb0EEES5_S7_ENKUlmE_clEmEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm",
+      "pre_size": 529,
+      "post_size": 513
+    },
+    {
+      "name": "tomo_db0::Rob<64u>::read_local_owner_conflicts_before<tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#4}::operator()<tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const::{lambda(tomo_db0::Op const&)#1}>(unsigned long, tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
+      "symbol": "_ZZN8tomo_db03RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop18parse_and_dispatchILb1ELj32ELb0EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E2_clIZZNS4_ILb1ELj32ELb0EEES5_S7_ENKUlmE3_clEmEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm",
+      "pre_size": 529,
+      "post_size": 513
+    },
+    {
+      "name": "tomo_db0::Rob<64u>::read_local_owner_conflicts_before<tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}&&) const::{lambda(tomo_db0::Op const&)#1}>(unsigned long, tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
+      "symbol": "_ZZN8tomo_db03RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop18parse_and_dispatchILb1ELj32ELb0EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E_clIZZNS4_ILb1ELj32ELb0EEES5_S7_ENKUlvE0_clEvEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm",
+      "pre_size": 1153,
+      "post_size": 1137
+    },
+    {
+      "name": "tomo_db0::Rob<64u>::read_local_owner_conflicts_before<tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#4}::operator()<tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda()#6}::operator()() const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda()#6}::operator()() const::{lambda(tomo_db0::Op const&)#1}&&) const::{lambda(tomo_db0::Op const&)#1}>(unsigned long, tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda()#6}::operator()() const::{lambda(tomo_db0::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
+      "symbol": "_ZZN8tomo_db03RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop18parse_and_dispatchILb1ELj32ELb0EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E2_clIZZNS4_ILb1ELj32ELb0EEES5_S7_ENKUlvE4_clEvEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm",
+      "pre_size": 1153,
+      "post_size": 1137
+    },
+    {
+      "name": "tomo_db0::Rob<64u>::read_local_owner_conflicts_before<tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const::{lambda(tomo_db0::Op const&)#1}>(unsigned long, tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
+      "symbol": "_ZZN8tomo_db03RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop18parse_and_dispatchILb0ELj32ELb0EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E_clIZZNS4_ILb0ELj32ELb0EEES5_S7_ENKUlmE_clEmEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm",
+      "pre_size": 529,
+      "post_size": 513
+    },
+    {
+      "name": "tomo_db0::Rob<64u>::read_local_owner_conflicts_before<tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#4}::operator()<tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const::{lambda(tomo_db0::Op const&)#1}>(unsigned long, tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
+      "symbol": "_ZZN8tomo_db03RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop18parse_and_dispatchILb0ELj32ELb0EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E2_clIZZNS4_ILb0ELj32ELb0EEES5_S7_ENKUlmE3_clEmEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm",
+      "pre_size": 529,
+      "post_size": 513
+    },
+    {
+      "name": "tomo_db0::Rob<64u>::read_local_owner_conflicts_before<tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}&&) const::{lambda(tomo_db0::Op const&)#1}>(unsigned long, tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
+      "symbol": "_ZZN8tomo_db03RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop18parse_and_dispatchILb0ELj32ELb0EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E_clIZZNS4_ILb0ELj32ELb0EEES5_S7_ENKUlvE0_clEvEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm",
+      "pre_size": 1153,
+      "post_size": 1137
+    },
+    {
+      "name": "tomo_db0::Rob<64u>::read_local_owner_conflicts_before<tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#4}::operator()<tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda()#6}::operator()() const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda()#6}::operator()() const::{lambda(tomo_db0::Op const&)#1}&&) const::{lambda(tomo_db0::Op const&)#1}>(unsigned long, tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda()#6}::operator()() const::{lambda(tomo_db0::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
+      "symbol": "_ZZN8tomo_db03RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop18parse_and_dispatchILb0ELj32ELb0EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E2_clIZZNS4_ILb0ELj32ELb0EEES5_S7_ENKUlvE4_clEvEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm",
+      "pre_size": 1153,
+      "post_size": 1137
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE",
+      "pre_size": 3656,
+      "post_size": 3699
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+      "pre_size": 3807,
+      "post_size": 3865
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_snapshot_task<false>(tomo_db0::Task const&, bool)",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE21execute_snapshot_taskILb0EEEbRKNS_4TaskEb",
+      "pre_size": 745,
+      "post_size": 823
+    },
+    {
+      "name": "unsigned int tomo_db0::ThreadCtx::drain_tasks<false, tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
+      "symbol": "_ZN8tomo_db09ThreadCtx11drain_tasksILb0ERZNS_7ExLoopTILb1EE11drain_tasksILj32ELb0EEEjbEUlRKNS_4TaskEE_EEjOT0_",
+      "pre_size": 1833,
+      "post_size": 2604
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute<true, true>(tomo_db0::Task const&)",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE7executeILb1ELb1EEEbRKNS_4TaskE",
+      "pre_size": 3656,
+      "post_size": 3699
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute<true, false>(tomo_db0::Task const&)",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE7executeILb1ELb0EEEbRKNS_4TaskE",
+      "pre_size": 3807,
+      "post_size": 3865
+    },
+    {
+      "name": "tomo_db0::ThreadCtx::drain_task_producer_chunks<false, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&>(unsigned int, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "symbol": "_ZZN8tomo_db09ThreadCtx26drain_task_producer_chunksILb0ERZNS_7ExLoopTILb1EE34drain_tasks_read_local_interleavedILb0EEEjbRbEUlRKNS_4TaskEE_RZNS4_ILb0EEEjbS5_EUlvE_EEjjOT0_OT1_bENKUljE_clEj",
+      "pre_size": 1861,
+      "post_size": 1915
+    },
+    {
+      "name": "tomo_db0::ThreadCtx::drain_task_producer_chunks<false, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&>(unsigned int, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "symbol": "_ZZN8tomo_db09ThreadCtx26drain_task_producer_chunksILb0ERZNS_7ExLoopTILb1EE34drain_tasks_read_local_interleavedILb0EEEjbRbEUlRKNS_4TaskEE_RZNS4_ILb0EEEjbS5_EUlvE0_EEjjOT0_OT1_bENKUljE_clEj",
+      "pre_size": 1861,
+      "post_size": 1915
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE15fused_pass_implILj32ELb1ELb0ELb0EEEjv",
+      "pre_size": 3718,
+      "post_size": 3742
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_sweep<32u, true, false, true>()",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE8r7_sweepILj32ELb1ELb0ELb1EEEjv",
+      "pre_size": 1475,
+      "post_size": 1651
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::sweep<32u, true, false, true>()",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE5sweepILj32ELb1ELb0ELb1EEEjv",
+      "pre_size": 1475,
+      "post_size": 1651
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE15fused_pass_implILj32ELb1ELb0ELb1EEEjv",
+      "pre_size": 4013,
+      "post_size": 4045
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "symbol": "_ZN8tomo_db06IoLoop18parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+      "pre_size": 19033,
+      "post_size": 19050
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "symbol": "_ZN8tomo_db06IoLoop21r7_parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+      "pre_size": 19014,
+      "post_size": 19032
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+      "symbol": "_ZN8tomo_db06IoLoop18parse_and_dispatchILb1ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+      "pre_size": 18982,
+      "post_size": 19054
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+      "symbol": "_ZN8tomo_db06IoLoop21r7_parse_and_dispatchILb1ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+      "pre_size": 18792,
+      "post_size": 18819
+    },
+    {
+      "name": "void tomo_db0::r7::ShadowReorderQueues<32ul>::submit<tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}>(tomo_db0::Task const*, unsigned int, tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}&)",
+      "symbol": "_ZN8tomo_db02r719ShadowReorderQueuesILm32EE6submitIZNS_7ExLoopTILb1EE19r7_drain_tasks_implILb1ELj32ELb0EEEjbEUlPKNS_4TaskEjNS_13ReorderResultEE_EEvS9_jRT_",
+      "pre_size": 2772,
+      "post_size": 3165
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE18r7_fused_pass_implILj32ELb1ELb0ELb1EEEjv",
+      "pre_size": 4013,
+      "post_size": 4045
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE18r7_fused_pass_implILj32ELb1ELb0ELb0EEEjv",
+      "pre_size": 3718,
+      "post_size": 3742
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, true, true, false>()",
+      "symbol": "_ZN8tomo_db06IoLoop14r7_flush_readyILb0ELb0ELb1ELb1ELb1ELb0EEEjv",
+      "pre_size": 2318,
+      "post_size": 2372
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, false, true, false>()",
+      "symbol": "_ZN8tomo_db06IoLoop14r7_flush_readyILb0ELb0ELb1ELb0ELb1ELb0EEEjv",
+      "pre_size": 2318,
+      "post_size": 2372
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, true, false, false>()",
+      "symbol": "_ZN8tomo_db06IoLoop14r7_flush_readyILb0ELb0ELb1ELb1ELb0ELb0EEEjv",
+      "pre_size": 2318,
+      "post_size": 2372
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, false, false, false>()",
+      "symbol": "_ZN8tomo_db06IoLoop14r7_flush_readyILb0ELb0ELb1ELb0ELb0ELb0EEEjv",
+      "pre_size": 2318,
+      "post_size": 2372
+    }
+  ],
+  "parsers": [
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "size": 19050,
+      "calls": {
+        "cmd_name": 13,
+        "hash_key": 5,
+        "local_read_lane_has_room": 2
+      }
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "size": 19032,
+      "calls": {
+        "cmd_name": 14,
+        "hash_key": 5,
+        "local_read_lane_has_room": 2
+      }
+    }
+  ]
+}

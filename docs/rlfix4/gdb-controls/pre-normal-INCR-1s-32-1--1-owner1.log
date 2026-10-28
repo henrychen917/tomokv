@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-rlfix4/build/rlfix4/commands/pre-normal-INCR-1s-32-1--1-owner1.log
+SHA-256: 96018e79d4ca2eb471676855286c856a469b779b7896b811bfda7051abaf6a27
+Exit: 0
+0x0000555555c8f928	2353	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
+0x0000555555c8f7f3 in tomo::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff62bfc48, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356
+2356	    }
+0x0000555555c8f7f8	2356	    }
+0x0000555555c8f801	2356	    }
+0x0000555555c8f807	2356	    }
+0x0000555555c8f80b	2356	    }
+0x0000555555c8f80c	2356	    }
+0x0000555555c8f80e	2356	    }
+0x0000555555c8f810	2356	    }
+0x0000555555c8f812	2356	    }
+0x0000555555c8f814	2356	    }
+0x0000555555c8f815	2356	    }
+0x0000555555d94397 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1, route=...) at /home/user/Projects/cx-rlfix4/tests/rlfix4_scope.cc:159
+159	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-rlfix4/tests/rlfix4_scope.cc:27
+27	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 276332) exited normally]
+COUNT 40515

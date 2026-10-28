@@ -1,0 +1,5 @@
+/home/user/Projects/cx-rlfix4/build/rlfix4/trace /home/user/Projects/cx-rlfix4/build/rlfix4/commands/anchor-normal/probe /home/user/Projects/cx-rlfix4/build/rlfix4/commands/anchor-normal-GET-1s-32-1--1-parsemix.ranges 769b40 769b50 1d8f0 GET 1s 32 1 -1 parsemix
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+WITNESS reads=29 pending_writes=3 keys_per_read=1
+PASS bounded production command scope
+COUNT 48432

@@ -1,0 +1,107 @@
+{
+  "object": "src/core/reorder.o",
+  "budget": 150127,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=150127",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/core/reorder.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/budgets/src_core_reorder.o-150127.o"
+  ],
+  "object_sha256": "5cb1ab88ebff6629043b875b4a4023d6a7fc72befd9678d33eb01a1c910a0190",
+  "changes": [
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+      "pre_size": 10604,
+      "post_size": 10620
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0.cold",
+      "pre_size": 166,
+      "post_size": 166
+    },
+    {
+      "name": "unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+      "symbol": "_ZN4tomo7ExLoopTILb1EE15fused_pass_implILj32ELb1ELb0ELb0EEEjv",
+      "pre_size": 3273,
+      "post_size": 3430
+    },
+    {
+      "name": "unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()",
+      "symbol": "_ZN4tomo7ExLoopTILb1EE15fused_pass_implILj32ELb1ELb0ELb1EEEjv",
+      "pre_size": 3640,
+      "post_size": 3656
+    },
+    {
+      "name": "unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()",
+      "symbol": "_ZN4tomo7ExLoopTILb1EE18r7_fused_pass_implILj32ELb1ELb0ELb1EEEjv",
+      "pre_size": 3640,
+      "post_size": 3656
+    },
+    {
+      "name": "unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+      "symbol": "_ZN4tomo7ExLoopTILb1EE18r7_fused_pass_implILj32ELb1ELb0ELb0EEEjv",
+      "pre_size": 3273,
+      "post_size": 3318
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, false, false>()",
+      "symbol": "_ZN4tomo6IoLoop14r7_flush_readyILb1ELb1ELb1ELb0ELb0ELb0EEEjv",
+      "pre_size": 3511,
+      "post_size": 3591
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, true, false>()",
+      "symbol": "_ZN4tomo6IoLoop14r7_flush_readyILb1ELb1ELb1ELb1ELb1ELb0EEEjv",
+      "pre_size": 3511,
+      "post_size": 3591
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, true, false>()",
+      "symbol": "_ZN4tomo6IoLoop14r7_flush_readyILb1ELb1ELb1ELb0ELb1ELb0EEEjv",
+      "pre_size": 3511,
+      "post_size": 3591
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, false, false>()",
+      "symbol": "_ZN4tomo6IoLoop14r7_flush_readyILb1ELb1ELb1ELb1ELb0ELb0EEEjv",
+      "pre_size": 3511,
+      "post_size": 3591
+    }
+  ],
+  "parsers": [
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+      "size": 19042,
+      "calls": {
+        "cmd_name": 14,
+        "hash_key": 5,
+        "local_read_lane_has_room": 2
+      }
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+      "size": 19052,
+      "calls": {
+        "cmd_name": 14,
+        "hash_key": 5,
+        "local_read_lane_has_room": 2
+      }
+    }
+  ]
+}

@@ -1,0 +1,141 @@
+{
+  "object": "db0/src/core/reorder.o",
+  "budget": 151116,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=151116",
+    "--param",
+    "max-inline-insns-auto=14",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/core/reorder.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/budgets/db0_src_core_reorder.o-151116.o"
+  ],
+  "object_sha256": "4dbda8a0843e5c7933df272979cdc43f9531338bb283c031c311f2fe6a1575ca",
+  "changes": [
+    {
+      "name": "tomo_db0::FlatStore::erase_in_read_local(int, unsigned long, tomo_db0::Slice, bool*)",
+      "symbol": "_ZN8tomo_db09FlatStore19erase_in_read_localEimNS_5SliceEPb",
+      "pre_size": 1014,
+      "post_size": 1208
+    },
+    {
+      "name": "tomo_db0::FlatStore::insert_into_read_local(int, unsigned long, tomo_db0::KvObj*, bool)",
+      "symbol": "_ZN8tomo_db09FlatStore22insert_into_read_localEimPNS_5KvObjEb",
+      "pre_size": 1318,
+      "post_size": 1343
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE",
+      "pre_size": 3656,
+      "post_size": 3699
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+      "pre_size": 3807,
+      "post_size": 3865
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_snapshot_task<false>(tomo_db0::Task const&, bool)",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE21execute_snapshot_taskILb0EEEbRKNS_4TaskEb",
+      "pre_size": 745,
+      "post_size": 823
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute<true, true>(tomo_db0::Task const&)",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE7executeILb1ELb1EEEbRKNS_4TaskE",
+      "pre_size": 3656,
+      "post_size": 3699
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute<true, false>(tomo_db0::Task const&)",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE7executeILb1ELb0EEEbRKNS_4TaskE",
+      "pre_size": 3807,
+      "post_size": 3865
+    },
+    {
+      "name": "tomo_db0::ThreadCtx::drain_task_producer_chunks<false, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&>(unsigned int, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "symbol": "_ZZN8tomo_db09ThreadCtx26drain_task_producer_chunksILb0ERZNS_7ExLoopTILb1EE34drain_tasks_read_local_interleavedILb0EEEjbRbEUlRKNS_4TaskEE_RZNS4_ILb0EEEjbS5_EUlvE_EEjjOT0_OT1_bENKUljE_clEj",
+      "pre_size": 1861,
+      "post_size": 1915
+    },
+    {
+      "name": "tomo_db0::ThreadCtx::drain_task_producer_chunks<false, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&>(unsigned int, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "symbol": "_ZZN8tomo_db09ThreadCtx26drain_task_producer_chunksILb0ERZNS_7ExLoopTILb1EE34drain_tasks_read_local_interleavedILb0EEEjbRbEUlRKNS_4TaskEE_RZNS4_ILb0EEEjbS5_EUlvE0_EEjjOT0_OT1_bENKUljE_clEj",
+      "pre_size": 1861,
+      "post_size": 1915
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE15fused_pass_implILj32ELb1ELb0ELb0EEEjv",
+      "pre_size": 3718,
+      "post_size": 3742
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE15fused_pass_implILj32ELb1ELb0ELb1EEEjv",
+      "pre_size": 4013,
+      "post_size": 4045
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "symbol": "_ZN8tomo_db06IoLoop18parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+      "pre_size": 19033,
+      "post_size": 19050
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+      "symbol": "_ZN8tomo_db06IoLoop18parse_and_dispatchILb1ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+      "pre_size": 18982,
+      "post_size": 19054
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE18r7_fused_pass_implILj32ELb1ELb0ELb1EEEjv",
+      "pre_size": 4013,
+      "post_size": 4045
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE18r7_fused_pass_implILj32ELb1ELb0ELb0EEEjv",
+      "pre_size": 3718,
+      "post_size": 3742
+    }
+  ],
+  "parsers": [
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "size": 19050,
+      "calls": {
+        "cmd_name": 13,
+        "hash_key": 5,
+        "local_read_lane_has_room": 2
+      }
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "size": 19014,
+      "calls": {
+        "cmd_name": 14,
+        "hash_key": 5,
+        "local_read_lane_has_room": 2
+      }
+    }
+  ]
+}

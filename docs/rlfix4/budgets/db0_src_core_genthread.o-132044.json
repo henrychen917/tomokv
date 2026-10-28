@@ -1,0 +1,53 @@
+{
+  "object": "db0/src/core/genthread.o",
+  "budget": 132044,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=132044",
+    "-Wa,--defsym,tomo_rlfence_text_pad=16",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/core/genthread.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/budgets/db0_src_core_genthread.o-132044.o"
+  ],
+  "object_sha256": "d3d47cf215bd16d5478745bf292d17d6d5d58642988fad9a9a7f286fb86eef76",
+  "changes": [
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "symbol": "_ZN8tomo_db06IoLoop18parse_and_dispatchILb1ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+      "pre_size": 10546,
+      "post_size": 10516
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "symbol": "_ZN8tomo_db06IoLoop18parse_and_dispatchILb1ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0.cold",
+      "pre_size": 166,
+      "post_size": 166
+    }
+  ],
+  "parsers": [
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "size": 19211,
+      "calls": {
+        "cmd_name": 14,
+        "hash_key": 5,
+        "local_read_lane_has_room": 2
+      }
+    }
+  ]
+}

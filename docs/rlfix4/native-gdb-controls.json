@@ -1,0 +1,121 @@
+[
+  {
+    "case": [
+      "pre",
+      "normal",
+      "GET",
+      "1s",
+      1,
+      1,
+      -1,
+      "local"
+    ],
+    "sha256": "d70f072425ff8a5207b2c84a16b7302d53d8d0bf6e586b20d6e36b7d46c677f3",
+    "gdb": 925,
+    "native": 925,
+    "raw": 925,
+    "clocks": 0
+  },
+  {
+    "case": [
+      "pre",
+      "normal",
+      "GET",
+      "1s",
+      32,
+      1,
+      -1,
+      "mix"
+    ],
+    "sha256": "d70f072425ff8a5207b2c84a16b7302d53d8d0bf6e586b20d6e36b7d46c677f3",
+    "gdb": 19433,
+    "native": 19433,
+    "raw": 19433,
+    "clocks": 0
+  },
+  {
+    "case": [
+      "pre",
+      "normal",
+      "SET",
+      "1s",
+      32,
+      1,
+      -1,
+      "owner0"
+    ],
+    "sha256": "d70f072425ff8a5207b2c84a16b7302d53d8d0bf6e586b20d6e36b7d46c677f3",
+    "gdb": 22706,
+    "native": 22706,
+    "raw": 22706,
+    "clocks": 1
+  },
+  {
+    "case": [
+      "pre",
+      "normal",
+      "INCR",
+      "1s",
+      32,
+      1,
+      -1,
+      "owner1"
+    ],
+    "sha256": "d70f072425ff8a5207b2c84a16b7302d53d8d0bf6e586b20d6e36b7d46c677f3",
+    "gdb": 40515,
+    "native": 40515,
+    "raw": 40515,
+    "clocks": 1
+  },
+  {
+    "case": [
+      "pre",
+      "normal",
+      "MGET",
+      "1s",
+      1,
+      1,
+      -1,
+      "owner0"
+    ],
+    "sha256": "d70f072425ff8a5207b2c84a16b7302d53d8d0bf6e586b20d6e36b7d46c677f3",
+    "gdb": 10243,
+    "native": 10243,
+    "raw": 10243,
+    "clocks": 1
+  },
+  {
+    "case": [
+      "pre",
+      "normal",
+      "MSET",
+      "1s",
+      1,
+      1,
+      -1,
+      "owner1"
+    ],
+    "sha256": "d70f072425ff8a5207b2c84a16b7302d53d8d0bf6e586b20d6e36b7d46c677f3",
+    "gdb": 18392,
+    "native": 18392,
+    "raw": 18392,
+    "clocks": 1
+  },
+  {
+    "case": [
+      "pre",
+      "normal",
+      "MSET",
+      "1s",
+      32,
+      0,
+      -1,
+      "owner0"
+    ],
+    "sha256": "d70f072425ff8a5207b2c84a16b7302d53d8d0bf6e586b20d6e36b7d46c677f3",
+    "gdb": 348453,
+    "native": 348453,
+    "raw": 348453,
+    "clocks": 32
+  }
+]
