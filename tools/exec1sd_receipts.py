@@ -81,6 +81,23 @@ def proof():
    ('full gate iteration / performance merit','Maintainer-only; all invoked gates use GATE_ONLY_JOBS.'),
    ('flip_saturated and atomic_floor','Invoke memtier, which is outside lane runtime authorization.'),
    ('atomic_ryow rate assertion','Existing GATE_PROOF_NO_RATES=1 partial interface; finite correctness schedules retained.')]]))
+ summary=dict(production_sha256=manifest['POST']['sha256'],
+  scope='Latest completed final-POST job per mode/atomic/engine variant; selected jobs only, not an EXPECT tally.',
+  completed_job_variants=len(final_jobs),passed_rows=sum(j.get('passed',0) for j in final_jobs.values()),
+  failed_rows=[dict(job=name,row=row) for name,job in final_jobs.items()
+               for row in job.get('rows',[]) if row[0]=='FAIL'],differentials=[])
+ for run in runs:
+  if not run['bound_to_final_post'] or not run.get('differ_plan'):continue
+  parts=[dict(job=job['name'],**json.loads(job['differ/complete.json']['data']))
+         for job in run['jobs'] if 'differ/complete.json' in job]
+  if parts:summary['differentials'].append(dict(receipt=run['receipt'],success=run['success'],
+      engine=run['proof_environment']['GATE_DIFFER_NET_IO'],plan=run['differ_plan'],parts=parts))
+ harness=[r for r in runs if Path(r['receipt']).stem.startswith('gates-test')]
+ if harness:
+  latest=max(harness,key=lambda r:r['started_utc'])
+  summary['gates_test']=dict(receipt=latest['receipt'],success=latest['success'],
+      log_sha256=latest['log_sha256'],source_sha256=d.sha(d.ROOT/'tests/gates_test.py'))
+ d.save(d.DOCS/'proof-summary.json',summary)
  print('proof invocations',len(runs),'completed final jobs',len(final_jobs),'failed final rows',sum(j.get('failed',0) for j in final_jobs.values()))
 
 def scatter():

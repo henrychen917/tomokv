@@ -585,6 +585,5 @@
       "output": ""
     }
   ],
-  "passed": true,
-  "all_build_log_sha256": "fbffd24bc691fc5488e912d093301709d4f0a07484d3da09195dbf75d9b504e6"
+  "passed": true
 }

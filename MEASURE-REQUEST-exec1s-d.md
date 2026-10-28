@@ -244,7 +244,34 @@ failed gate row remains red. The frozen Tcl manifest, assertions and retry
 policy are unchanged. The five unnamed setup errors printed elsewhere in the
 Tcl log exactly match its existing manifest entries; they are not new failures.
 
-PROOF_STATUS_PENDING
+The final selected-job index contains **251 completed job/variant entries,
+1,083 passing rows and two failing rows**. Both failing rows come from the
+pre-existing slowlog assertion described above: `redis_tcl`, and its propagated
+`compat2` prerequisite result. These are selected-job totals; no full iteration
+or EXPECT tally was run. [proof-summary.json](docs/exec1s-d/proof-summary.json)
+provides a compact index; the complete history remains in `live-proof.json`.
+
+The broad final invocation reported 832 passing rows and eight failures. Six were
+zero-copy boots refused by the idle-core preflight during concurrent lane work.
+All **24 zero-copy rows** then passed in an isolated rerun: release/ASAN,
+split/fused, io_uring/epoll, with that preflight unchanged. The fused supplement
+passed 215/215 rows, and the two atomic-0 script supplements passed 3/3 each.
+The AOF CQ-observed jobs passed 57/57 in each mode, with positive completion
+samples and fused-executor ring observations; both recorded zero overflow and
+dropped completions.
+
+Both standard differential plans completed unchanged against Redis 7.4.10:
+
+| Engine | Standard seeds | split a0 | split a1 | armed a0 | armed a1 | Equivalence |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| io_uring | 7,19,20,23,21 | 235/235 | 239/239 | 230/230 | 234/234 | 16/16 |
+| epoll | 7,19,20,23,22 | 235/235 | 239/239 | 230/230 | 234/234 | 16/16 |
+
+`python3 tests/gates_test.py` passed **73/73**, plus its 14 persistence helper
+checks, on an isolated invocation. The earlier two attempts exceeded the
+unchanged 45-second synthetic scheduler deadline during overlapping work;
+those failure artifacts remain. No watchdog, assertion or suite count changed.
+
 
 The inventory includes txnorder, execfair, multirace/WATCH/blocking batteries,
 scripting/xscript/scriptatomic, atomics, FLIP, read-local, notifications,
@@ -359,6 +386,8 @@ taskset -c 64-95 python3 tools/exec1sd_proof.py families
 taskset -c 64-95 python3 tools/exec1sd_proof.py supplement
 taskset -c 64-95 python3 tools/exec1sd_proof.py differ
 taskset -c 64-95 python3 tools/exec1sd_proof.py harness
+taskset -c 64-95 python3 tools/exec1sd_proof.py zc
+taskset -c 64-95 python3 tools/exec1sd_proof.py freshness
 taskset -c 64-95 python3 tools/exec1sd_receipts.py
 ```
 

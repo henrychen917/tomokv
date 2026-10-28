@@ -54151,6 +54151,253 @@
       "bound_to_final_post": false
     },
     {
+      "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/differ-epoll.json",
+      "receipt_sha256": "8a3febc7dd4ac8023ed7bc2fcc111671c6a8eb6f6a32fd4bd38080a81ab4a6fa",
+      "log_sha256": "170a6c8a22227d1a4c05e057880c7a4228913b07cf03baef572a90a0445d86af",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "64-87",
+        "--load-cores",
+        "88-95",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "20010-20097",
+        "--candidate-binary",
+        "/home/user/Projects/cx-exec1s-d/build/tomokv"
+      ],
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/differ-epoll.log",
+      "selected_jobs": "differ-split differ-armed",
+      "started_utc": "2026-10-28T18:29:47.629844+00:00",
+      "ended_utc": "2026-10-28T18:47:18.564476+00:00",
+      "candidate_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+      "candidate_unchanged": true,
+      "proof_environment": {
+        "GATE_DIFFER_NET_IO": "epoll",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_TEST_PORT": "20098"
+      },
+      "artifacts": "/home/user/Projects/cx-exec1s-d/build/gate-run.ojk4iA",
+      "success": true,
+      "jobs": [
+        {
+          "name": "differ-armed-0",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "523.930000",
+              "Redis 7.4 differential part (armed fused, atomic 0)"
+            ]
+          ],
+          "ledger_sha256": "76fd2d3550bbe450cd2364171d098e5e934c3cf17da54151955a2658fe0b170a",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0",
+          "differ/legs.tsv": {
+            "sha256": "cbc981944a39a5ac41db6ce8f296c622a916c0be247df60940cee43a3dfdd217",
+            "data": "string\t0\t7\t0\t0\tstring-a0-s7.txt\nlist\t0\t7\t0\t0\tlist-a0-s7.txt\nset\t0\t7\t0\t0\tset-a0-s7.txt\nzset\t0\t7\t0\t0\tzset-a0-s7.txt\nhash\t0\t7\t0\t0\thash-a0-s7.txt\nhexpire\t0\t7\t0\t0\thexpire-a0-s7.txt\nedgetime\t0\t7\t0\t0\tedgetime-a0-s7.txt\nxshard\t0\t7\t0\t0\txshard-a0-s7.txt\nxmove\t0\t7\t0\t0\txmove-a0-s7.txt\nbitmap\t0\t7\t0\t0\tbitmap-a0-s7.txt\nhll\t0\t7\t0\t0\thll-a0-s7.txt\nbitfield\t0\t7\t0\t0\tbitfield-a0-s7.txt\ncgaps\t0\t7\t0\t0\tcgaps-a0-s7.txt\nstream\t0\t7\t0\t0\tstream-a0-s7.txt\nscript\t0\t7\t0\t0\tscript-a0-s7.txt\nstreamgrp\t0\t7\t0\t0\tstreamgrp-a0-s7.txt\nzsetops\t0\t7\t0\t0\tzsetops-a0-s7.txt\ngeo\t0\t7\t0\t0\tgeo-a0-s7.txt\ndoubles\t0\t7\t0\t0\tdoubles-a0-s7.txt\nscan\t0\t7\t0\t0\tscan-a0-s7.txt\nmulti\t0\t7\t0\t0\tmulti-a0-s7.txt\nencodingfix\t0\t7\t0\t0\tencodingfix-a0-s7.txt\nedgeenc\t0\t7\t0\t0\tedgeenc-a0-s7.txt\nedgeproto\t0\t7\t0\t0\tedgeproto-a0-s7.txt\ncmdgap\t0\t7\t0\t0\tcmdgap-a0-s7.txt\ncmdgap2\t0\t7\t0\t0\tcmdgap2-a0-s7.txt\nservertail\t0\t7\t0\t0\tservertail-a0-s7.txt\narity\t0\t7\t0\t0\tarity-a0-s7.txt\nstoreorder\t0\t7\t0\t0\tstoreorder-a0-s7.txt\ninfofix\t0\t7\t0\t0\tinfofix-a0-s7.txt\nmultidb\t0\t7\t0\t0\tmultidb-a0-s7.txt\nblocking\t0\t7\t0\t0\tblocking-a0-s7.txt\npubsub\t0\t7\t0\t0\tpubsub-a0-s7.txt\nfanout\t0\t7\t0\t0\tfanout-a0-s7.txt\nspubsub\t0\t7\t0\t0\tspubsub-a0-s7.txt\nnotify\t0\t7\t0\t0\tnotify-a0-s7.txt\nwiredump\t0\t7\t0\t0\twiredump-a0-s7.txt\nclimon\t0\t7\t0\t0\tclimon-a0-s7.txt\ncompatintro\t0\t7\t0\t0\tcompatintro-a0-s7.txt\naclsel\t0\t7\t0\t0\taclsel-a0-s7.txt\naclkeys\t0\t7\t0\t0\taclkeys-a0-s7.txt\ncmdmeta\t0\t7\t0\t0\tcmdmeta-a0-s7.txt\ns6fix\t0\t7\t0\t0\ts6fix-a0-s7.txt\nccfix\t0\t7\t0\t0\tccfix-a0-s7.txt\npsfix\t0\t7\t0\t0\tpsfix-a0-s7.txt\nmonitor\t0\t7\t0\t0\tmonitor-a0-s7.txt\nstring\t0\t19\t0\t0\tstring-a0-s19.txt\nlist\t0\t19\t0\t0\tlist-a0-s19.txt\nset\t0\t19\t0\t0\tset-a0-s19.txt\nzset\t0\t19\t0\t0\tzset-a0-s19.txt\nhash\t0\t19\t0\t0\thash-a0-s19.txt\nhexpire\t0\t19\t0\t0\thexpire-a0-s19.txt\nedgetime\t0\t19\t0\t0\tedgetime-a0-s19.txt\nxshard\t0\t19\t0\t0\txshard-a0-s19.txt\nxmove\t0\t19\t0\t0\txmove-a0-s19.txt\nbitmap\t0\t19\t0\t0\tbitmap-a0-s19.txt\nhll\t0\t19\t0\t0\thll-a0-s19.txt\nbitfield\t0\t19\t0\t0\tbitfield-a0-s19.txt\ncgaps\t0\t19\t0\t0\tcgaps-a0-s19.txt\nstream\t0\t19\t0\t0\tstream-a0-s19.txt\nscript\t0\t19\t0\t0\tscript-a0-s19.txt\nstreamgrp\t0\t19\t0\t0\tstreamgrp-a0-s19.txt\nzsetops\t0\t19\t0\t0\tzsetops-a0-s19.txt\ngeo\t0\t19\t0\t0\tgeo-a0-s19.txt\ndoubles\t0\t19\t0\t0\tdoubles-a0-s19.txt\nscan\t0\t19\t0\t0\tscan-a0-s19.txt\nmulti\t0\t19\t0\t0\tmulti-a0-s19.txt\nencodingfix\t0\t19\t0\t0\tencodingfix-a0-s19.txt\nedgeenc\t0\t19\t0\t0\tedgeenc-a0-s19.txt\nedgeproto\t0\t19\t0\t0\tedgeproto-a0-s19.txt\ncmdgap\t0\t19\t0\t0\tcmdgap-a0-s19.txt\ncmdgap2\t0\t19\t0\t0\tcmdgap2-a0-s19.txt\nservertail\t0\t19\t0\t0\tservertail-a0-s19.txt\narity\t0\t19\t0\t0\tarity-a0-s19.txt\nstoreorder\t0\t19\t0\t0\tstoreorder-a0-s19.txt\ninfofix\t0\t19\t0\t0\tinfofix-a0-s19.txt\nmultidb\t0\t19\t0\t0\tmultidb-a0-s19.txt\nblocking\t0\t19\t0\t0\tblocking-a0-s19.txt\npubsub\t0\t19\t0\t0\tpubsub-a0-s19.txt\nfanout\t0\t19\t0\t0\tfanout-a0-s19.txt\nspubsub\t0\t19\t0\t0\tspubsub-a0-s19.txt\nnotify\t0\t19\t0\t0\tnotify-a0-s19.txt\nwiredump\t0\t19\t0\t0\twiredump-a0-s19.txt\nclimon\t0\t19\t0\t0\tclimon-a0-s19.txt\ncompatintro\t0\t19\t0\t0\tcompatintro-a0-s19.txt\naclsel\t0\t19\t0\t0\taclsel-a0-s19.txt\naclkeys\t0\t19\t0\t0\taclkeys-a0-s19.txt\ncmdmeta\t0\t19\t0\t0\tcmdmeta-a0-s19.txt\ns6fix\t0\t19\t0\t0\ts6fix-a0-s19.txt\nccfix\t0\t19\t0\t0\tccfix-a0-s19.txt\npsfix\t0\t19\t0\t0\tpsfix-a0-s19.txt\nmonitor\t0\t19\t0\t0\tmonitor-a0-s19.txt\nstring\t0\t20\t0\t0\tstring-a0-s20.txt\nlist\t0\t20\t0\t0\tlist-a0-s20.txt\nset\t0\t20\t0\t0\tset-a0-s20.txt\nzset\t0\t20\t0\t0\tzset-a0-s20.txt\nhash\t0\t20\t0\t0\thash-a0-s20.txt\nhexpire\t0\t20\t0\t0\thexpire-a0-s20.txt\nedgetime\t0\t20\t0\t0\tedgetime-a0-s20.txt\nxshard\t0\t20\t0\t0\txshard-a0-s20.txt\nxmove\t0\t20\t0\t0\txmove-a0-s20.txt\nbitmap\t0\t20\t0\t0\tbitmap-a0-s20.txt\nhll\t0\t20\t0\t0\thll-a0-s20.txt\nbitfield\t0\t20\t0\t0\tbitfield-a0-s20.txt\ncgaps\t0\t20\t0\t0\tcgaps-a0-s20.txt\nstream\t0\t20\t0\t0\tstream-a0-s20.txt\nscript\t0\t20\t0\t0\tscript-a0-s20.txt\nstreamgrp\t0\t20\t0\t0\tstreamgrp-a0-s20.txt\nzsetops\t0\t20\t0\t0\tzsetops-a0-s20.txt\ngeo\t0\t20\t0\t0\tgeo-a0-s20.txt\ndoubles\t0\t20\t0\t0\tdoubles-a0-s20.txt\nscan\t0\t20\t0\t0\tscan-a0-s20.txt\nmulti\t0\t20\t0\t0\tmulti-a0-s20.txt\nencodingfix\t0\t20\t0\t0\tencodingfix-a0-s20.txt\nedgeenc\t0\t20\t0\t0\tedgeenc-a0-s20.txt\nedgeproto\t0\t20\t0\t0\tedgeproto-a0-s20.txt\ncmdgap\t0\t20\t0\t0\tcmdgap-a0-s20.txt\ncmdgap2\t0\t20\t0\t0\tcmdgap2-a0-s20.txt\nservertail\t0\t20\t0\t0\tservertail-a0-s20.txt\narity\t0\t20\t0\t0\tarity-a0-s20.txt\nstoreorder\t0\t20\t0\t0\tstoreorder-a0-s20.txt\ninfofix\t0\t20\t0\t0\tinfofix-a0-s20.txt\nmultidb\t0\t20\t0\t0\tmultidb-a0-s20.txt\nblocking\t0\t20\t0\t0\tblocking-a0-s20.txt\npubsub\t0\t20\t0\t0\tpubsub-a0-s20.txt\nfanout\t0\t20\t0\t0\tfanout-a0-s20.txt\nspubsub\t0\t20\t0\t0\tspubsub-a0-s20.txt\nnotify\t0\t20\t0\t0\tnotify-a0-s20.txt\nwiredump\t0\t20\t0\t0\twiredump-a0-s20.txt\nclimon\t0\t20\t0\t0\tclimon-a0-s20.txt\ncompatintro\t0\t20\t0\t0\tcompatintro-a0-s20.txt\naclsel\t0\t20\t0\t0\taclsel-a0-s20.txt\naclkeys\t0\t20\t0\t0\taclkeys-a0-s20.txt\ncmdmeta\t0\t20\t0\t0\tcmdmeta-a0-s20.txt\ns6fix\t0\t20\t0\t0\ts6fix-a0-s20.txt\nccfix\t0\t20\t0\t0\tccfix-a0-s20.txt\npsfix\t0\t20\t0\t0\tpsfix-a0-s20.txt\nmonitor\t0\t20\t0\t0\tmonitor-a0-s20.txt\nstring\t0\t23\t0\t0\tstring-a0-s23.txt\nlist\t0\t23\t0\t0\tlist-a0-s23.txt\nset\t0\t23\t0\t0\tset-a0-s23.txt\nzset\t0\t23\t0\t0\tzset-a0-s23.txt\nhash\t0\t23\t0\t0\thash-a0-s23.txt\nhexpire\t0\t23\t0\t0\thexpire-a0-s23.txt\nedgetime\t0\t23\t0\t0\tedgetime-a0-s23.txt\nxshard\t0\t23\t0\t0\txshard-a0-s23.txt\nxmove\t0\t23\t0\t0\txmove-a0-s23.txt\nbitmap\t0\t23\t0\t0\tbitmap-a0-s23.txt\nhll\t0\t23\t0\t0\thll-a0-s23.txt\nbitfield\t0\t23\t0\t0\tbitfield-a0-s23.txt\ncgaps\t0\t23\t0\t0\tcgaps-a0-s23.txt\nstream\t0\t23\t0\t0\tstream-a0-s23.txt\nscript\t0\t23\t0\t0\tscript-a0-s23.txt\nstreamgrp\t0\t23\t0\t0\tstreamgrp-a0-s23.txt\nzsetops\t0\t23\t0\t0\tzsetops-a0-s23.txt\ngeo\t0\t23\t0\t0\tgeo-a0-s23.txt\ndoubles\t0\t23\t0\t0\tdoubles-a0-s23.txt\nscan\t0\t23\t0\t0\tscan-a0-s23.txt\nmulti\t0\t23\t0\t0\tmulti-a0-s23.txt\nencodingfix\t0\t23\t0\t0\tencodingfix-a0-s23.txt\nedgeenc\t0\t23\t0\t0\tedgeenc-a0-s23.txt\nedgeproto\t0\t23\t0\t0\tedgeproto-a0-s23.txt\ncmdgap\t0\t23\t0\t0\tcmdgap-a0-s23.txt\ncmdgap2\t0\t23\t0\t0\tcmdgap2-a0-s23.txt\nservertail\t0\t23\t0\t0\tservertail-a0-s23.txt\narity\t0\t23\t0\t0\tarity-a0-s23.txt\nstoreorder\t0\t23\t0\t0\tstoreorder-a0-s23.txt\ninfofix\t0\t23\t0\t0\tinfofix-a0-s23.txt\nmultidb\t0\t23\t0\t0\tmultidb-a0-s23.txt\nblocking\t0\t23\t0\t0\tblocking-a0-s23.txt\npubsub\t0\t23\t0\t0\tpubsub-a0-s23.txt\nfanout\t0\t23\t0\t0\tfanout-a0-s23.txt\nspubsub\t0\t23\t0\t0\tspubsub-a0-s23.txt\nnotify\t0\t23\t0\t0\tnotify-a0-s23.txt\nwiredump\t0\t23\t0\t0\twiredump-a0-s23.txt\nclimon\t0\t23\t0\t0\tclimon-a0-s23.txt\ncompatintro\t0\t23\t0\t0\tcompatintro-a0-s23.txt\naclsel\t0\t23\t0\t0\taclsel-a0-s23.txt\naclkeys\t0\t23\t0\t0\taclkeys-a0-s23.txt\ncmdmeta\t0\t23\t0\t0\tcmdmeta-a0-s23.txt\ns6fix\t0\t23\t0\t0\ts6fix-a0-s23.txt\nccfix\t0\t23\t0\t0\tccfix-a0-s23.txt\npsfix\t0\t23\t0\t0\tpsfix-a0-s23.txt\nmonitor\t0\t23\t0\t0\tmonitor-a0-s23.txt\nstring\t0\t22\t0\t0\tstring-a0-s22.txt\nlist\t0\t22\t0\t0\tlist-a0-s22.txt\nset\t0\t22\t0\t0\tset-a0-s22.txt\nzset\t0\t22\t0\t0\tzset-a0-s22.txt\nhash\t0\t22\t0\t0\thash-a0-s22.txt\nhexpire\t0\t22\t0\t0\thexpire-a0-s22.txt\nedgetime\t0\t22\t0\t0\tedgetime-a0-s22.txt\nxshard\t0\t22\t0\t0\txshard-a0-s22.txt\nxmove\t0\t22\t0\t0\txmove-a0-s22.txt\nbitmap\t0\t22\t0\t0\tbitmap-a0-s22.txt\nhll\t0\t22\t0\t0\thll-a0-s22.txt\nbitfield\t0\t22\t0\t0\tbitfield-a0-s22.txt\ncgaps\t0\t22\t0\t0\tcgaps-a0-s22.txt\nstream\t0\t22\t0\t0\tstream-a0-s22.txt\nscript\t0\t22\t0\t0\tscript-a0-s22.txt\nstreamgrp\t0\t22\t0\t0\tstreamgrp-a0-s22.txt\nzsetops\t0\t22\t0\t0\tzsetops-a0-s22.txt\ngeo\t0\t22\t0\t0\tgeo-a0-s22.txt\ndoubles\t0\t22\t0\t0\tdoubles-a0-s22.txt\nscan\t0\t22\t0\t0\tscan-a0-s22.txt\nmulti\t0\t22\t0\t0\tmulti-a0-s22.txt\nencodingfix\t0\t22\t0\t0\tencodingfix-a0-s22.txt\nedgeenc\t0\t22\t0\t0\tedgeenc-a0-s22.txt\nedgeproto\t0\t22\t0\t0\tedgeproto-a0-s22.txt\ncmdgap\t0\t22\t0\t0\tcmdgap-a0-s22.txt\ncmdgap2\t0\t22\t0\t0\tcmdgap2-a0-s22.txt\nservertail\t0\t22\t0\t0\tservertail-a0-s22.txt\narity\t0\t22\t0\t0\tarity-a0-s22.txt\nstoreorder\t0\t22\t0\t0\tstoreorder-a0-s22.txt\ninfofix\t0\t22\t0\t0\tinfofix-a0-s22.txt\nmultidb\t0\t22\t0\t0\tmultidb-a0-s22.txt\nblocking\t0\t22\t0\t0\tblocking-a0-s22.txt\npubsub\t0\t22\t0\t0\tpubsub-a0-s22.txt\nfanout\t0\t22\t0\t0\tfanout-a0-s22.txt\nspubsub\t0\t22\t0\t0\tspubsub-a0-s22.txt\nnotify\t0\t22\t0\t0\tnotify-a0-s22.txt\nwiredump\t0\t22\t0\t0\twiredump-a0-s22.txt\nclimon\t0\t22\t0\t0\tclimon-a0-s22.txt\ncompatintro\t0\t22\t0\t0\tcompatintro-a0-s22.txt\naclsel\t0\t22\t0\t0\taclsel-a0-s22.txt\naclkeys\t0\t22\t0\t0\taclkeys-a0-s22.txt\ncmdmeta\t0\t22\t0\t0\tcmdmeta-a0-s22.txt\ns6fix\t0\t22\t0\t0\ts6fix-a0-s22.txt\nccfix\t0\t22\t0\t0\tccfix-a0-s22.txt\npsfix\t0\t22\t0\t0\tpsfix-a0-s22.txt\nmonitor\t0\t22\t0\t0\tmonitor-a0-s22.txt\n"
+          },
+          "differ/complete.json": {
+            "sha256": "5e42943d5f633d71a8373fd966bb82b09f7c8785c490a756d4f6ea3ed0b618a4",
+            "data": "{\n  \"schema\": 1,\n  \"part\": \"armed-0\",\n  \"run\": \"iteration:gate-run.ojk4iA\",\n  \"seeds\": [\n    7,\n    19,\n    20,\n    23,\n    22\n  ],\n  \"comparisons\": 230,\n  \"complete\": true\n}\n"
+          }
+        },
+        {
+          "name": "differ-armed-1",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "524.650000",
+              "Redis 7.4 differential part (armed fused, atomic 1)"
+            ]
+          ],
+          "ledger_sha256": "924e3a0dd015d58fccc413ffaa85d2e2cc6784a1fa364b87d34a268b5e622009",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0",
+          "differ/legs.tsv": {
+            "sha256": "e06776ef54611de88b4f9bd5d97a3ef58615dc15cbe1e182b7d4f46503176d0a",
+            "data": "string\t1\t7\t0\t0\tstring-a1-s7.txt\nlist\t1\t7\t0\t0\tlist-a1-s7.txt\nset\t1\t7\t0\t0\tset-a1-s7.txt\nzset\t1\t7\t0\t0\tzset-a1-s7.txt\nhash\t1\t7\t0\t0\thash-a1-s7.txt\nhexpire\t1\t7\t0\t0\thexpire-a1-s7.txt\nedgetime\t1\t7\t0\t0\tedgetime-a1-s7.txt\nxshard\t1\t7\t0\t0\txshard-a1-s7.txt\nxmove\t1\t7\t0\t0\txmove-a1-s7.txt\nbitmap\t1\t7\t0\t0\tbitmap-a1-s7.txt\nhll\t1\t7\t0\t0\thll-a1-s7.txt\nbitfield\t1\t7\t0\t0\tbitfield-a1-s7.txt\ncgaps\t1\t7\t0\t0\tcgaps-a1-s7.txt\nstream\t1\t7\t0\t0\tstream-a1-s7.txt\nscript\t1\t7\t0\t0\tscript-a1-s7.txt\nstreamgrp\t1\t7\t0\t0\tstreamgrp-a1-s7.txt\nzsetops\t1\t7\t0\t0\tzsetops-a1-s7.txt\ngeo\t1\t7\t0\t0\tgeo-a1-s7.txt\ndoubles\t1\t7\t0\t0\tdoubles-a1-s7.txt\nscan\t1\t7\t0\t0\tscan-a1-s7.txt\nmulti\t1\t7\t0\t0\tmulti-a1-s7.txt\nencodingfix\t1\t7\t0\t0\tencodingfix-a1-s7.txt\nedgeenc\t1\t7\t0\t0\tedgeenc-a1-s7.txt\nedgeproto\t1\t7\t0\t0\tedgeproto-a1-s7.txt\ncmdgap\t1\t7\t0\t0\tcmdgap-a1-s7.txt\ncmdgap2\t1\t7\t0\t0\tcmdgap2-a1-s7.txt\nservertail\t1\t7\t0\t0\tservertail-a1-s7.txt\narity\t1\t7\t0\t0\tarity-a1-s7.txt\nstoreorder\t1\t7\t0\t0\tstoreorder-a1-s7.txt\ninfofix\t1\t7\t0\t0\tinfofix-a1-s7.txt\nmultidb\t1\t7\t0\t0\tmultidb-a1-s7.txt\nblocking\t1\t7\t0\t0\tblocking-a1-s7.txt\npubsub\t1\t7\t0\t0\tpubsub-a1-s7.txt\nfanout\t1\t7\t0\t0\tfanout-a1-s7.txt\nspubsub\t1\t7\t0\t0\tspubsub-a1-s7.txt\nnotify\t1\t7\t0\t0\tnotify-a1-s7.txt\nwiredump\t1\t7\t0\t0\twiredump-a1-s7.txt\nclimon\t1\t7\t0\t0\tclimon-a1-s7.txt\ncompatintro\t1\t7\t0\t0\tcompatintro-a1-s7.txt\naclsel\t1\t7\t0\t0\taclsel-a1-s7.txt\naclkeys\t1\t7\t0\t0\taclkeys-a1-s7.txt\ncmdmeta\t1\t7\t0\t0\tcmdmeta-a1-s7.txt\ns6fix\t1\t7\t0\t0\ts6fix-a1-s7.txt\nccfix\t1\t7\t0\t0\tccfix-a1-s7.txt\npsfix\t1\t7\t0\t0\tpsfix-a1-s7.txt\nmonitor\t1\t7\t0\t0\tmonitor-a1-s7.txt\nstring\t1\t19\t0\t0\tstring-a1-s19.txt\nlist\t1\t19\t0\t0\tlist-a1-s19.txt\nset\t1\t19\t0\t0\tset-a1-s19.txt\nzset\t1\t19\t0\t0\tzset-a1-s19.txt\nhash\t1\t19\t0\t0\thash-a1-s19.txt\nhexpire\t1\t19\t0\t0\thexpire-a1-s19.txt\nedgetime\t1\t19\t0\t0\tedgetime-a1-s19.txt\nxshard\t1\t19\t0\t0\txshard-a1-s19.txt\nxmove\t1\t19\t0\t0\txmove-a1-s19.txt\nbitmap\t1\t19\t0\t0\tbitmap-a1-s19.txt\nhll\t1\t19\t0\t0\thll-a1-s19.txt\nbitfield\t1\t19\t0\t0\tbitfield-a1-s19.txt\ncgaps\t1\t19\t0\t0\tcgaps-a1-s19.txt\nstream\t1\t19\t0\t0\tstream-a1-s19.txt\nscript\t1\t19\t0\t0\tscript-a1-s19.txt\nstreamgrp\t1\t19\t0\t0\tstreamgrp-a1-s19.txt\nzsetops\t1\t19\t0\t0\tzsetops-a1-s19.txt\ngeo\t1\t19\t0\t0\tgeo-a1-s19.txt\ndoubles\t1\t19\t0\t0\tdoubles-a1-s19.txt\nscan\t1\t19\t0\t0\tscan-a1-s19.txt\nmulti\t1\t19\t0\t0\tmulti-a1-s19.txt\nencodingfix\t1\t19\t0\t0\tencodingfix-a1-s19.txt\nedgeenc\t1\t19\t0\t0\tedgeenc-a1-s19.txt\nedgeproto\t1\t19\t0\t0\tedgeproto-a1-s19.txt\ncmdgap\t1\t19\t0\t0\tcmdgap-a1-s19.txt\ncmdgap2\t1\t19\t0\t0\tcmdgap2-a1-s19.txt\nservertail\t1\t19\t0\t0\tservertail-a1-s19.txt\narity\t1\t19\t0\t0\tarity-a1-s19.txt\nstoreorder\t1\t19\t0\t0\tstoreorder-a1-s19.txt\ninfofix\t1\t19\t0\t0\tinfofix-a1-s19.txt\nmultidb\t1\t19\t0\t0\tmultidb-a1-s19.txt\nblocking\t1\t19\t0\t0\tblocking-a1-s19.txt\npubsub\t1\t19\t0\t0\tpubsub-a1-s19.txt\nfanout\t1\t19\t0\t0\tfanout-a1-s19.txt\nspubsub\t1\t19\t0\t0\tspubsub-a1-s19.txt\nnotify\t1\t19\t0\t0\tnotify-a1-s19.txt\nwiredump\t1\t19\t0\t0\twiredump-a1-s19.txt\nclimon\t1\t19\t0\t0\tclimon-a1-s19.txt\ncompatintro\t1\t19\t0\t0\tcompatintro-a1-s19.txt\naclsel\t1\t19\t0\t0\taclsel-a1-s19.txt\naclkeys\t1\t19\t0\t0\taclkeys-a1-s19.txt\ncmdmeta\t1\t19\t0\t0\tcmdmeta-a1-s19.txt\ns6fix\t1\t19\t0\t0\ts6fix-a1-s19.txt\nccfix\t1\t19\t0\t0\tccfix-a1-s19.txt\npsfix\t1\t19\t0\t0\tpsfix-a1-s19.txt\nmonitor\t1\t19\t0\t0\tmonitor-a1-s19.txt\nstring\t1\t20\t0\t0\tstring-a1-s20.txt\nlist\t1\t20\t0\t0\tlist-a1-s20.txt\nset\t1\t20\t0\t0\tset-a1-s20.txt\nzset\t1\t20\t0\t0\tzset-a1-s20.txt\nhash\t1\t20\t0\t0\thash-a1-s20.txt\nhexpire\t1\t20\t0\t0\thexpire-a1-s20.txt\nedgetime\t1\t20\t0\t0\tedgetime-a1-s20.txt\nxshard\t1\t20\t0\t0\txshard-a1-s20.txt\nxmove\t1\t20\t0\t0\txmove-a1-s20.txt\nbitmap\t1\t20\t0\t0\tbitmap-a1-s20.txt\nhll\t1\t20\t0\t0\thll-a1-s20.txt\nbitfield\t1\t20\t0\t0\tbitfield-a1-s20.txt\ncgaps\t1\t20\t0\t0\tcgaps-a1-s20.txt\nstream\t1\t20\t0\t0\tstream-a1-s20.txt\nscript\t1\t20\t0\t0\tscript-a1-s20.txt\nstreamgrp\t1\t20\t0\t0\tstreamgrp-a1-s20.txt\nzsetops\t1\t20\t0\t0\tzsetops-a1-s20.txt\ngeo\t1\t20\t0\t0\tgeo-a1-s20.txt\ndoubles\t1\t20\t0\t0\tdoubles-a1-s20.txt\nscan\t1\t20\t0\t0\tscan-a1-s20.txt\nmulti\t1\t20\t0\t0\tmulti-a1-s20.txt\nencodingfix\t1\t20\t0\t0\tencodingfix-a1-s20.txt\nedgeenc\t1\t20\t0\t0\tedgeenc-a1-s20.txt\nedgeproto\t1\t20\t0\t0\tedgeproto-a1-s20.txt\ncmdgap\t1\t20\t0\t0\tcmdgap-a1-s20.txt\ncmdgap2\t1\t20\t0\t0\tcmdgap2-a1-s20.txt\nservertail\t1\t20\t0\t0\tservertail-a1-s20.txt\narity\t1\t20\t0\t0\tarity-a1-s20.txt\nstoreorder\t1\t20\t0\t0\tstoreorder-a1-s20.txt\ninfofix\t1\t20\t0\t0\tinfofix-a1-s20.txt\nmultidb\t1\t20\t0\t0\tmultidb-a1-s20.txt\nblocking\t1\t20\t0\t0\tblocking-a1-s20.txt\npubsub\t1\t20\t0\t0\tpubsub-a1-s20.txt\nfanout\t1\t20\t0\t0\tfanout-a1-s20.txt\nspubsub\t1\t20\t0\t0\tspubsub-a1-s20.txt\nnotify\t1\t20\t0\t0\tnotify-a1-s20.txt\nwiredump\t1\t20\t0\t0\twiredump-a1-s20.txt\nclimon\t1\t20\t0\t0\tclimon-a1-s20.txt\ncompatintro\t1\t20\t0\t0\tcompatintro-a1-s20.txt\naclsel\t1\t20\t0\t0\taclsel-a1-s20.txt\naclkeys\t1\t20\t0\t0\taclkeys-a1-s20.txt\ncmdmeta\t1\t20\t0\t0\tcmdmeta-a1-s20.txt\ns6fix\t1\t20\t0\t0\ts6fix-a1-s20.txt\nccfix\t1\t20\t0\t0\tccfix-a1-s20.txt\npsfix\t1\t20\t0\t0\tpsfix-a1-s20.txt\nmonitor\t1\t20\t0\t0\tmonitor-a1-s20.txt\nstring\t1\t23\t0\t0\tstring-a1-s23.txt\nlist\t1\t23\t0\t0\tlist-a1-s23.txt\nset\t1\t23\t0\t0\tset-a1-s23.txt\nzset\t1\t23\t0\t0\tzset-a1-s23.txt\nhash\t1\t23\t0\t0\thash-a1-s23.txt\nhexpire\t1\t23\t0\t0\thexpire-a1-s23.txt\nedgetime\t1\t23\t0\t0\tedgetime-a1-s23.txt\nxshard\t1\t23\t0\t0\txshard-a1-s23.txt\nxmove\t1\t23\t0\t0\txmove-a1-s23.txt\nbitmap\t1\t23\t0\t0\tbitmap-a1-s23.txt\nhll\t1\t23\t0\t0\thll-a1-s23.txt\nbitfield\t1\t23\t0\t0\tbitfield-a1-s23.txt\ncgaps\t1\t23\t0\t0\tcgaps-a1-s23.txt\nstream\t1\t23\t0\t0\tstream-a1-s23.txt\nscript\t1\t23\t0\t0\tscript-a1-s23.txt\nstreamgrp\t1\t23\t0\t0\tstreamgrp-a1-s23.txt\nzsetops\t1\t23\t0\t0\tzsetops-a1-s23.txt\ngeo\t1\t23\t0\t0\tgeo-a1-s23.txt\ndoubles\t1\t23\t0\t0\tdoubles-a1-s23.txt\nscan\t1\t23\t0\t0\tscan-a1-s23.txt\nmulti\t1\t23\t0\t0\tmulti-a1-s23.txt\nencodingfix\t1\t23\t0\t0\tencodingfix-a1-s23.txt\nedgeenc\t1\t23\t0\t0\tedgeenc-a1-s23.txt\nedgeproto\t1\t23\t0\t0\tedgeproto-a1-s23.txt\ncmdgap\t1\t23\t0\t0\tcmdgap-a1-s23.txt\ncmdgap2\t1\t23\t0\t0\tcmdgap2-a1-s23.txt\nservertail\t1\t23\t0\t0\tservertail-a1-s23.txt\narity\t1\t23\t0\t0\tarity-a1-s23.txt\nstoreorder\t1\t23\t0\t0\tstoreorder-a1-s23.txt\ninfofix\t1\t23\t0\t0\tinfofix-a1-s23.txt\nmultidb\t1\t23\t0\t0\tmultidb-a1-s23.txt\nblocking\t1\t23\t0\t0\tblocking-a1-s23.txt\npubsub\t1\t23\t0\t0\tpubsub-a1-s23.txt\nfanout\t1\t23\t0\t0\tfanout-a1-s23.txt\nspubsub\t1\t23\t0\t0\tspubsub-a1-s23.txt\nnotify\t1\t23\t0\t0\tnotify-a1-s23.txt\nwiredump\t1\t23\t0\t0\twiredump-a1-s23.txt\nclimon\t1\t23\t0\t0\tclimon-a1-s23.txt\ncompatintro\t1\t23\t0\t0\tcompatintro-a1-s23.txt\naclsel\t1\t23\t0\t0\taclsel-a1-s23.txt\naclkeys\t1\t23\t0\t0\taclkeys-a1-s23.txt\ncmdmeta\t1\t23\t0\t0\tcmdmeta-a1-s23.txt\ns6fix\t1\t23\t0\t0\ts6fix-a1-s23.txt\nccfix\t1\t23\t0\t0\tccfix-a1-s23.txt\npsfix\t1\t23\t0\t0\tpsfix-a1-s23.txt\nmonitor\t1\t23\t0\t0\tmonitor-a1-s23.txt\nstring\t1\t22\t0\t0\tstring-a1-s22.txt\nlist\t1\t22\t0\t0\tlist-a1-s22.txt\nset\t1\t22\t0\t0\tset-a1-s22.txt\nzset\t1\t22\t0\t0\tzset-a1-s22.txt\nhash\t1\t22\t0\t0\thash-a1-s22.txt\nhexpire\t1\t22\t0\t0\thexpire-a1-s22.txt\nedgetime\t1\t22\t0\t0\tedgetime-a1-s22.txt\nxshard\t1\t22\t0\t0\txshard-a1-s22.txt\nxmove\t1\t22\t0\t0\txmove-a1-s22.txt\nbitmap\t1\t22\t0\t0\tbitmap-a1-s22.txt\nhll\t1\t22\t0\t0\thll-a1-s22.txt\nbitfield\t1\t22\t0\t0\tbitfield-a1-s22.txt\ncgaps\t1\t22\t0\t0\tcgaps-a1-s22.txt\nstream\t1\t22\t0\t0\tstream-a1-s22.txt\nscript\t1\t22\t0\t0\tscript-a1-s22.txt\nstreamgrp\t1\t22\t0\t0\tstreamgrp-a1-s22.txt\nzsetops\t1\t22\t0\t0\tzsetops-a1-s22.txt\ngeo\t1\t22\t0\t0\tgeo-a1-s22.txt\ndoubles\t1\t22\t0\t0\tdoubles-a1-s22.txt\nscan\t1\t22\t0\t0\tscan-a1-s22.txt\nmulti\t1\t22\t0\t0\tmulti-a1-s22.txt\nencodingfix\t1\t22\t0\t0\tencodingfix-a1-s22.txt\nedgeenc\t1\t22\t0\t0\tedgeenc-a1-s22.txt\nedgeproto\t1\t22\t0\t0\tedgeproto-a1-s22.txt\ncmdgap\t1\t22\t0\t0\tcmdgap-a1-s22.txt\ncmdgap2\t1\t22\t0\t0\tcmdgap2-a1-s22.txt\nservertail\t1\t22\t0\t0\tservertail-a1-s22.txt\narity\t1\t22\t0\t0\tarity-a1-s22.txt\nstoreorder\t1\t22\t0\t0\tstoreorder-a1-s22.txt\ninfofix\t1\t22\t0\t0\tinfofix-a1-s22.txt\nmultidb\t1\t22\t0\t0\tmultidb-a1-s22.txt\nblocking\t1\t22\t0\t0\tblocking-a1-s22.txt\npubsub\t1\t22\t0\t0\tpubsub-a1-s22.txt\nfanout\t1\t22\t0\t0\tfanout-a1-s22.txt\nspubsub\t1\t22\t0\t0\tspubsub-a1-s22.txt\nnotify\t1\t22\t0\t0\tnotify-a1-s22.txt\nwiredump\t1\t22\t0\t0\twiredump-a1-s22.txt\nclimon\t1\t22\t0\t0\tclimon-a1-s22.txt\ncompatintro\t1\t22\t0\t0\tcompatintro-a1-s22.txt\naclsel\t1\t22\t0\t0\taclsel-a1-s22.txt\naclkeys\t1\t22\t0\t0\taclkeys-a1-s22.txt\ncmdmeta\t1\t22\t0\t0\tcmdmeta-a1-s22.txt\ns6fix\t1\t22\t0\t0\ts6fix-a1-s22.txt\nccfix\t1\t22\t0\t0\tccfix-a1-s22.txt\npsfix\t1\t22\t0\t0\tpsfix-a1-s22.txt\nmonitor\t1\t22\t0\t0\tmonitor-a1-s22.txt\nmulti\t1\t19\t1\t0\tmulti-a1-s19-rep1.txt\nmulti\t1\t19\t2\t0\tmulti-a1-s19-rep2.txt\nmulti\t1\t19\t3\t0\tmulti-a1-s19-rep3.txt\nmulti\t1\t19\t4\t0\tmulti-a1-s19-rep4.txt\n"
+          },
+          "differ/complete.json": {
+            "sha256": "0f49679878207e5087cab2f0ee4d2cc8da50163d41604be0e8fc6ca54006142b",
+            "data": "{\n  \"schema\": 1,\n  \"part\": \"armed-1\",\n  \"run\": \"iteration:gate-run.ojk4iA\",\n  \"seeds\": [\n    7,\n    19,\n    20,\n    23,\n    22\n  ],\n  \"comparisons\": 234,\n  \"complete\": true\n}\n"
+          }
+        },
+        {
+          "name": "differ-equivalence",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "21.470000",
+              "mode equivalence part (all execution modes and knobs)"
+            ]
+          ],
+          "ledger_sha256": "405b9189f0a3b57bc5d88d8ecaeb04383badbb271ac08dc6df30764469d2a541",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0",
+          "differ/legs.tsv": {
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "data": ""
+          },
+          "differ/complete.json": {
+            "sha256": "4ee8ddbc05ef6a40afb05c86bb97904dcfa016fac2252ba3d6da4f9f3dcfb242",
+            "data": "{\n  \"schema\": 1,\n  \"part\": \"equivalence\",\n  \"run\": \"iteration:gate-run.ojk4iA\",\n  \"seeds\": [\n    7,\n    19,\n    20,\n    23,\n    22\n  ],\n  \"comparisons\": 16,\n  \"complete\": true\n}\n"
+          }
+        },
+        {
+          "name": "differ-split-0",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "529.320000",
+              "Redis 7.4 differential part (split, atomic 0)"
+            ]
+          ],
+          "ledger_sha256": "3e558e80686fd7f079eb6a262e46a0a47dfca66bc634de44a6173acf07664a29",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0",
+          "differ/legs.tsv": {
+            "sha256": "1dc33d999f26af5537daa75b303dccc46327a76e3c30cff311f89b4094af35af",
+            "data": "string\t0\t7\t0\t0\tstring-a0-s7.txt\nlist\t0\t7\t0\t0\tlist-a0-s7.txt\nset\t0\t7\t0\t0\tset-a0-s7.txt\nzset\t0\t7\t0\t0\tzset-a0-s7.txt\nhash\t0\t7\t0\t0\thash-a0-s7.txt\nhexpire\t0\t7\t0\t0\thexpire-a0-s7.txt\nedgetime\t0\t7\t0\t0\tedgetime-a0-s7.txt\nxshard\t0\t7\t0\t0\txshard-a0-s7.txt\nxmove\t0\t7\t0\t0\txmove-a0-s7.txt\nbitmap\t0\t7\t0\t0\tbitmap-a0-s7.txt\nhll\t0\t7\t0\t0\thll-a0-s7.txt\nbitfield\t0\t7\t0\t0\tbitfield-a0-s7.txt\ncgaps\t0\t7\t0\t0\tcgaps-a0-s7.txt\nstream\t0\t7\t0\t0\tstream-a0-s7.txt\nscript\t0\t7\t0\t0\tscript-a0-s7.txt\nstreamgrp\t0\t7\t0\t0\tstreamgrp-a0-s7.txt\nzsetops\t0\t7\t0\t0\tzsetops-a0-s7.txt\ngeo\t0\t7\t0\t0\tgeo-a0-s7.txt\ndoubles\t0\t7\t0\t0\tdoubles-a0-s7.txt\nscan\t0\t7\t0\t0\tscan-a0-s7.txt\nmulti\t0\t7\t0\t0\tmulti-a0-s7.txt\nencodingfix\t0\t7\t0\t0\tencodingfix-a0-s7.txt\nedgeenc\t0\t7\t0\t0\tedgeenc-a0-s7.txt\nedgeproto\t0\t7\t0\t0\tedgeproto-a0-s7.txt\ncmdgap\t0\t7\t0\t0\tcmdgap-a0-s7.txt\ncmdgap2\t0\t7\t0\t0\tcmdgap2-a0-s7.txt\nsort\t0\t7\t0\t0\tsort-a0-s7.txt\nservertail\t0\t7\t0\t0\tservertail-a0-s7.txt\narity\t0\t7\t0\t0\tarity-a0-s7.txt\nstoreorder\t0\t7\t0\t0\tstoreorder-a0-s7.txt\ninfofix\t0\t7\t0\t0\tinfofix-a0-s7.txt\nmultidb\t0\t7\t0\t0\tmultidb-a0-s7.txt\nblocking\t0\t7\t0\t0\tblocking-a0-s7.txt\npubsub\t0\t7\t0\t0\tpubsub-a0-s7.txt\nfanout\t0\t7\t0\t0\tfanout-a0-s7.txt\nspubsub\t0\t7\t0\t0\tspubsub-a0-s7.txt\nnotify\t0\t7\t0\t0\tnotify-a0-s7.txt\nwiredump\t0\t7\t0\t0\twiredump-a0-s7.txt\nclimon\t0\t7\t0\t0\tclimon-a0-s7.txt\ncompatintro\t0\t7\t0\t0\tcompatintro-a0-s7.txt\naclsel\t0\t7\t0\t0\taclsel-a0-s7.txt\naclkeys\t0\t7\t0\t0\taclkeys-a0-s7.txt\ncmdmeta\t0\t7\t0\t0\tcmdmeta-a0-s7.txt\ns6fix\t0\t7\t0\t0\ts6fix-a0-s7.txt\nccfix\t0\t7\t0\t0\tccfix-a0-s7.txt\npsfix\t0\t7\t0\t0\tpsfix-a0-s7.txt\nmonitor\t0\t7\t0\t0\tmonitor-a0-s7.txt\nstring\t0\t19\t0\t0\tstring-a0-s19.txt\nlist\t0\t19\t0\t0\tlist-a0-s19.txt\nset\t0\t19\t0\t0\tset-a0-s19.txt\nzset\t0\t19\t0\t0\tzset-a0-s19.txt\nhash\t0\t19\t0\t0\thash-a0-s19.txt\nhexpire\t0\t19\t0\t0\thexpire-a0-s19.txt\nedgetime\t0\t19\t0\t0\tedgetime-a0-s19.txt\nxshard\t0\t19\t0\t0\txshard-a0-s19.txt\nxmove\t0\t19\t0\t0\txmove-a0-s19.txt\nbitmap\t0\t19\t0\t0\tbitmap-a0-s19.txt\nhll\t0\t19\t0\t0\thll-a0-s19.txt\nbitfield\t0\t19\t0\t0\tbitfield-a0-s19.txt\ncgaps\t0\t19\t0\t0\tcgaps-a0-s19.txt\nstream\t0\t19\t0\t0\tstream-a0-s19.txt\nscript\t0\t19\t0\t0\tscript-a0-s19.txt\nstreamgrp\t0\t19\t0\t0\tstreamgrp-a0-s19.txt\nzsetops\t0\t19\t0\t0\tzsetops-a0-s19.txt\ngeo\t0\t19\t0\t0\tgeo-a0-s19.txt\ndoubles\t0\t19\t0\t0\tdoubles-a0-s19.txt\nscan\t0\t19\t0\t0\tscan-a0-s19.txt\nmulti\t0\t19\t0\t0\tmulti-a0-s19.txt\nencodingfix\t0\t19\t0\t0\tencodingfix-a0-s19.txt\nedgeenc\t0\t19\t0\t0\tedgeenc-a0-s19.txt\nedgeproto\t0\t19\t0\t0\tedgeproto-a0-s19.txt\ncmdgap\t0\t19\t0\t0\tcmdgap-a0-s19.txt\ncmdgap2\t0\t19\t0\t0\tcmdgap2-a0-s19.txt\nsort\t0\t19\t0\t0\tsort-a0-s19.txt\nservertail\t0\t19\t0\t0\tservertail-a0-s19.txt\narity\t0\t19\t0\t0\tarity-a0-s19.txt\nstoreorder\t0\t19\t0\t0\tstoreorder-a0-s19.txt\ninfofix\t0\t19\t0\t0\tinfofix-a0-s19.txt\nmultidb\t0\t19\t0\t0\tmultidb-a0-s19.txt\nblocking\t0\t19\t0\t0\tblocking-a0-s19.txt\npubsub\t0\t19\t0\t0\tpubsub-a0-s19.txt\nfanout\t0\t19\t0\t0\tfanout-a0-s19.txt\nspubsub\t0\t19\t0\t0\tspubsub-a0-s19.txt\nnotify\t0\t19\t0\t0\tnotify-a0-s19.txt\nwiredump\t0\t19\t0\t0\twiredump-a0-s19.txt\nclimon\t0\t19\t0\t0\tclimon-a0-s19.txt\ncompatintro\t0\t19\t0\t0\tcompatintro-a0-s19.txt\naclsel\t0\t19\t0\t0\taclsel-a0-s19.txt\naclkeys\t0\t19\t0\t0\taclkeys-a0-s19.txt\ncmdmeta\t0\t19\t0\t0\tcmdmeta-a0-s19.txt\ns6fix\t0\t19\t0\t0\ts6fix-a0-s19.txt\nccfix\t0\t19\t0\t0\tccfix-a0-s19.txt\npsfix\t0\t19\t0\t0\tpsfix-a0-s19.txt\nmonitor\t0\t19\t0\t0\tmonitor-a0-s19.txt\nstring\t0\t20\t0\t0\tstring-a0-s20.txt\nlist\t0\t20\t0\t0\tlist-a0-s20.txt\nset\t0\t20\t0\t0\tset-a0-s20.txt\nzset\t0\t20\t0\t0\tzset-a0-s20.txt\nhash\t0\t20\t0\t0\thash-a0-s20.txt\nhexpire\t0\t20\t0\t0\thexpire-a0-s20.txt\nedgetime\t0\t20\t0\t0\tedgetime-a0-s20.txt\nxshard\t0\t20\t0\t0\txshard-a0-s20.txt\nxmove\t0\t20\t0\t0\txmove-a0-s20.txt\nbitmap\t0\t20\t0\t0\tbitmap-a0-s20.txt\nhll\t0\t20\t0\t0\thll-a0-s20.txt\nbitfield\t0\t20\t0\t0\tbitfield-a0-s20.txt\ncgaps\t0\t20\t0\t0\tcgaps-a0-s20.txt\nstream\t0\t20\t0\t0\tstream-a0-s20.txt\nscript\t0\t20\t0\t0\tscript-a0-s20.txt\nstreamgrp\t0\t20\t0\t0\tstreamgrp-a0-s20.txt\nzsetops\t0\t20\t0\t0\tzsetops-a0-s20.txt\ngeo\t0\t20\t0\t0\tgeo-a0-s20.txt\ndoubles\t0\t20\t0\t0\tdoubles-a0-s20.txt\nscan\t0\t20\t0\t0\tscan-a0-s20.txt\nmulti\t0\t20\t0\t0\tmulti-a0-s20.txt\nencodingfix\t0\t20\t0\t0\tencodingfix-a0-s20.txt\nedgeenc\t0\t20\t0\t0\tedgeenc-a0-s20.txt\nedgeproto\t0\t20\t0\t0\tedgeproto-a0-s20.txt\ncmdgap\t0\t20\t0\t0\tcmdgap-a0-s20.txt\ncmdgap2\t0\t20\t0\t0\tcmdgap2-a0-s20.txt\nsort\t0\t20\t0\t0\tsort-a0-s20.txt\nservertail\t0\t20\t0\t0\tservertail-a0-s20.txt\narity\t0\t20\t0\t0\tarity-a0-s20.txt\nstoreorder\t0\t20\t0\t0\tstoreorder-a0-s20.txt\ninfofix\t0\t20\t0\t0\tinfofix-a0-s20.txt\nmultidb\t0\t20\t0\t0\tmultidb-a0-s20.txt\nblocking\t0\t20\t0\t0\tblocking-a0-s20.txt\npubsub\t0\t20\t0\t0\tpubsub-a0-s20.txt\nfanout\t0\t20\t0\t0\tfanout-a0-s20.txt\nspubsub\t0\t20\t0\t0\tspubsub-a0-s20.txt\nnotify\t0\t20\t0\t0\tnotify-a0-s20.txt\nwiredump\t0\t20\t0\t0\twiredump-a0-s20.txt\nclimon\t0\t20\t0\t0\tclimon-a0-s20.txt\ncompatintro\t0\t20\t0\t0\tcompatintro-a0-s20.txt\naclsel\t0\t20\t0\t0\taclsel-a0-s20.txt\naclkeys\t0\t20\t0\t0\taclkeys-a0-s20.txt\ncmdmeta\t0\t20\t0\t0\tcmdmeta-a0-s20.txt\ns6fix\t0\t20\t0\t0\ts6fix-a0-s20.txt\nccfix\t0\t20\t0\t0\tccfix-a0-s20.txt\npsfix\t0\t20\t0\t0\tpsfix-a0-s20.txt\nmonitor\t0\t20\t0\t0\tmonitor-a0-s20.txt\nstring\t0\t23\t0\t0\tstring-a0-s23.txt\nlist\t0\t23\t0\t0\tlist-a0-s23.txt\nset\t0\t23\t0\t0\tset-a0-s23.txt\nzset\t0\t23\t0\t0\tzset-a0-s23.txt\nhash\t0\t23\t0\t0\thash-a0-s23.txt\nhexpire\t0\t23\t0\t0\thexpire-a0-s23.txt\nedgetime\t0\t23\t0\t0\tedgetime-a0-s23.txt\nxshard\t0\t23\t0\t0\txshard-a0-s23.txt\nxmove\t0\t23\t0\t0\txmove-a0-s23.txt\nbitmap\t0\t23\t0\t0\tbitmap-a0-s23.txt\nhll\t0\t23\t0\t0\thll-a0-s23.txt\nbitfield\t0\t23\t0\t0\tbitfield-a0-s23.txt\ncgaps\t0\t23\t0\t0\tcgaps-a0-s23.txt\nstream\t0\t23\t0\t0\tstream-a0-s23.txt\nscript\t0\t23\t0\t0\tscript-a0-s23.txt\nstreamgrp\t0\t23\t0\t0\tstreamgrp-a0-s23.txt\nzsetops\t0\t23\t0\t0\tzsetops-a0-s23.txt\ngeo\t0\t23\t0\t0\tgeo-a0-s23.txt\ndoubles\t0\t23\t0\t0\tdoubles-a0-s23.txt\nscan\t0\t23\t0\t0\tscan-a0-s23.txt\nmulti\t0\t23\t0\t0\tmulti-a0-s23.txt\nencodingfix\t0\t23\t0\t0\tencodingfix-a0-s23.txt\nedgeenc\t0\t23\t0\t0\tedgeenc-a0-s23.txt\nedgeproto\t0\t23\t0\t0\tedgeproto-a0-s23.txt\ncmdgap\t0\t23\t0\t0\tcmdgap-a0-s23.txt\ncmdgap2\t0\t23\t0\t0\tcmdgap2-a0-s23.txt\nsort\t0\t23\t0\t0\tsort-a0-s23.txt\nservertail\t0\t23\t0\t0\tservertail-a0-s23.txt\narity\t0\t23\t0\t0\tarity-a0-s23.txt\nstoreorder\t0\t23\t0\t0\tstoreorder-a0-s23.txt\ninfofix\t0\t23\t0\t0\tinfofix-a0-s23.txt\nmultidb\t0\t23\t0\t0\tmultidb-a0-s23.txt\nblocking\t0\t23\t0\t0\tblocking-a0-s23.txt\npubsub\t0\t23\t0\t0\tpubsub-a0-s23.txt\nfanout\t0\t23\t0\t0\tfanout-a0-s23.txt\nspubsub\t0\t23\t0\t0\tspubsub-a0-s23.txt\nnotify\t0\t23\t0\t0\tnotify-a0-s23.txt\nwiredump\t0\t23\t0\t0\twiredump-a0-s23.txt\nclimon\t0\t23\t0\t0\tclimon-a0-s23.txt\ncompatintro\t0\t23\t0\t0\tcompatintro-a0-s23.txt\naclsel\t0\t23\t0\t0\taclsel-a0-s23.txt\naclkeys\t0\t23\t0\t0\taclkeys-a0-s23.txt\ncmdmeta\t0\t23\t0\t0\tcmdmeta-a0-s23.txt\ns6fix\t0\t23\t0\t0\ts6fix-a0-s23.txt\nccfix\t0\t23\t0\t0\tccfix-a0-s23.txt\npsfix\t0\t23\t0\t0\tpsfix-a0-s23.txt\nmonitor\t0\t23\t0\t0\tmonitor-a0-s23.txt\nstring\t0\t22\t0\t0\tstring-a0-s22.txt\nlist\t0\t22\t0\t0\tlist-a0-s22.txt\nset\t0\t22\t0\t0\tset-a0-s22.txt\nzset\t0\t22\t0\t0\tzset-a0-s22.txt\nhash\t0\t22\t0\t0\thash-a0-s22.txt\nhexpire\t0\t22\t0\t0\thexpire-a0-s22.txt\nedgetime\t0\t22\t0\t0\tedgetime-a0-s22.txt\nxshard\t0\t22\t0\t0\txshard-a0-s22.txt\nxmove\t0\t22\t0\t0\txmove-a0-s22.txt\nbitmap\t0\t22\t0\t0\tbitmap-a0-s22.txt\nhll\t0\t22\t0\t0\thll-a0-s22.txt\nbitfield\t0\t22\t0\t0\tbitfield-a0-s22.txt\ncgaps\t0\t22\t0\t0\tcgaps-a0-s22.txt\nstream\t0\t22\t0\t0\tstream-a0-s22.txt\nscript\t0\t22\t0\t0\tscript-a0-s22.txt\nstreamgrp\t0\t22\t0\t0\tstreamgrp-a0-s22.txt\nzsetops\t0\t22\t0\t0\tzsetops-a0-s22.txt\ngeo\t0\t22\t0\t0\tgeo-a0-s22.txt\ndoubles\t0\t22\t0\t0\tdoubles-a0-s22.txt\nscan\t0\t22\t0\t0\tscan-a0-s22.txt\nmulti\t0\t22\t0\t0\tmulti-a0-s22.txt\nencodingfix\t0\t22\t0\t0\tencodingfix-a0-s22.txt\nedgeenc\t0\t22\t0\t0\tedgeenc-a0-s22.txt\nedgeproto\t0\t22\t0\t0\tedgeproto-a0-s22.txt\ncmdgap\t0\t22\t0\t0\tcmdgap-a0-s22.txt\ncmdgap2\t0\t22\t0\t0\tcmdgap2-a0-s22.txt\nsort\t0\t22\t0\t0\tsort-a0-s22.txt\nservertail\t0\t22\t0\t0\tservertail-a0-s22.txt\narity\t0\t22\t0\t0\tarity-a0-s22.txt\nstoreorder\t0\t22\t0\t0\tstoreorder-a0-s22.txt\ninfofix\t0\t22\t0\t0\tinfofix-a0-s22.txt\nmultidb\t0\t22\t0\t0\tmultidb-a0-s22.txt\nblocking\t0\t22\t0\t0\tblocking-a0-s22.txt\npubsub\t0\t22\t0\t0\tpubsub-a0-s22.txt\nfanout\t0\t22\t0\t0\tfanout-a0-s22.txt\nspubsub\t0\t22\t0\t0\tspubsub-a0-s22.txt\nnotify\t0\t22\t0\t0\tnotify-a0-s22.txt\nwiredump\t0\t22\t0\t0\twiredump-a0-s22.txt\nclimon\t0\t22\t0\t0\tclimon-a0-s22.txt\ncompatintro\t0\t22\t0\t0\tcompatintro-a0-s22.txt\naclsel\t0\t22\t0\t0\taclsel-a0-s22.txt\naclkeys\t0\t22\t0\t0\taclkeys-a0-s22.txt\ncmdmeta\t0\t22\t0\t0\tcmdmeta-a0-s22.txt\ns6fix\t0\t22\t0\t0\ts6fix-a0-s22.txt\nccfix\t0\t22\t0\t0\tccfix-a0-s22.txt\npsfix\t0\t22\t0\t0\tpsfix-a0-s22.txt\nmonitor\t0\t22\t0\t0\tmonitor-a0-s22.txt\n"
+          },
+          "differ/complete.json": {
+            "sha256": "77b920500e980765c9b666dacfdf720cede93cc8139efe0a3f2369039ea8cd52",
+            "data": "{\n  \"schema\": 1,\n  \"part\": \"split-0\",\n  \"run\": \"iteration:gate-run.ojk4iA\",\n  \"seeds\": [\n    7,\n    19,\n    20,\n    23,\n    22\n  ],\n  \"comparisons\": 235,\n  \"complete\": true\n}\n"
+          }
+        },
+        {
+          "name": "differ-split-1",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "532.220000",
+              "Redis 7.4 differential part (split, atomic 1)"
+            ]
+          ],
+          "ledger_sha256": "bbfca84901e03a97224fec98eafc380de3702eb97af0818b09885c3174834f95",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0",
+          "differ/legs.tsv": {
+            "sha256": "f6e4120f6ec425731c167c7bf4b6fedd4e664196a6e46cab3597a6d14bd20089",
+            "data": "string\t1\t7\t0\t0\tstring-a1-s7.txt\nlist\t1\t7\t0\t0\tlist-a1-s7.txt\nset\t1\t7\t0\t0\tset-a1-s7.txt\nzset\t1\t7\t0\t0\tzset-a1-s7.txt\nhash\t1\t7\t0\t0\thash-a1-s7.txt\nhexpire\t1\t7\t0\t0\thexpire-a1-s7.txt\nedgetime\t1\t7\t0\t0\tedgetime-a1-s7.txt\nxshard\t1\t7\t0\t0\txshard-a1-s7.txt\nxmove\t1\t7\t0\t0\txmove-a1-s7.txt\nbitmap\t1\t7\t0\t0\tbitmap-a1-s7.txt\nhll\t1\t7\t0\t0\thll-a1-s7.txt\nbitfield\t1\t7\t0\t0\tbitfield-a1-s7.txt\ncgaps\t1\t7\t0\t0\tcgaps-a1-s7.txt\nstream\t1\t7\t0\t0\tstream-a1-s7.txt\nscript\t1\t7\t0\t0\tscript-a1-s7.txt\nstreamgrp\t1\t7\t0\t0\tstreamgrp-a1-s7.txt\nzsetops\t1\t7\t0\t0\tzsetops-a1-s7.txt\ngeo\t1\t7\t0\t0\tgeo-a1-s7.txt\ndoubles\t1\t7\t0\t0\tdoubles-a1-s7.txt\nscan\t1\t7\t0\t0\tscan-a1-s7.txt\nmulti\t1\t7\t0\t0\tmulti-a1-s7.txt\nencodingfix\t1\t7\t0\t0\tencodingfix-a1-s7.txt\nedgeenc\t1\t7\t0\t0\tedgeenc-a1-s7.txt\nedgeproto\t1\t7\t0\t0\tedgeproto-a1-s7.txt\ncmdgap\t1\t7\t0\t0\tcmdgap-a1-s7.txt\ncmdgap2\t1\t7\t0\t0\tcmdgap2-a1-s7.txt\nsort\t1\t7\t0\t0\tsort-a1-s7.txt\nservertail\t1\t7\t0\t0\tservertail-a1-s7.txt\narity\t1\t7\t0\t0\tarity-a1-s7.txt\nstoreorder\t1\t7\t0\t0\tstoreorder-a1-s7.txt\ninfofix\t1\t7\t0\t0\tinfofix-a1-s7.txt\nmultidb\t1\t7\t0\t0\tmultidb-a1-s7.txt\nblocking\t1\t7\t0\t0\tblocking-a1-s7.txt\npubsub\t1\t7\t0\t0\tpubsub-a1-s7.txt\nfanout\t1\t7\t0\t0\tfanout-a1-s7.txt\nspubsub\t1\t7\t0\t0\tspubsub-a1-s7.txt\nnotify\t1\t7\t0\t0\tnotify-a1-s7.txt\nwiredump\t1\t7\t0\t0\twiredump-a1-s7.txt\nclimon\t1\t7\t0\t0\tclimon-a1-s7.txt\ncompatintro\t1\t7\t0\t0\tcompatintro-a1-s7.txt\naclsel\t1\t7\t0\t0\taclsel-a1-s7.txt\naclkeys\t1\t7\t0\t0\taclkeys-a1-s7.txt\ncmdmeta\t1\t7\t0\t0\tcmdmeta-a1-s7.txt\ns6fix\t1\t7\t0\t0\ts6fix-a1-s7.txt\nccfix\t1\t7\t0\t0\tccfix-a1-s7.txt\npsfix\t1\t7\t0\t0\tpsfix-a1-s7.txt\nmonitor\t1\t7\t0\t0\tmonitor-a1-s7.txt\nstring\t1\t19\t0\t0\tstring-a1-s19.txt\nlist\t1\t19\t0\t0\tlist-a1-s19.txt\nset\t1\t19\t0\t0\tset-a1-s19.txt\nzset\t1\t19\t0\t0\tzset-a1-s19.txt\nhash\t1\t19\t0\t0\thash-a1-s19.txt\nhexpire\t1\t19\t0\t0\thexpire-a1-s19.txt\nedgetime\t1\t19\t0\t0\tedgetime-a1-s19.txt\nxshard\t1\t19\t0\t0\txshard-a1-s19.txt\nxmove\t1\t19\t0\t0\txmove-a1-s19.txt\nbitmap\t1\t19\t0\t0\tbitmap-a1-s19.txt\nhll\t1\t19\t0\t0\thll-a1-s19.txt\nbitfield\t1\t19\t0\t0\tbitfield-a1-s19.txt\ncgaps\t1\t19\t0\t0\tcgaps-a1-s19.txt\nstream\t1\t19\t0\t0\tstream-a1-s19.txt\nscript\t1\t19\t0\t0\tscript-a1-s19.txt\nstreamgrp\t1\t19\t0\t0\tstreamgrp-a1-s19.txt\nzsetops\t1\t19\t0\t0\tzsetops-a1-s19.txt\ngeo\t1\t19\t0\t0\tgeo-a1-s19.txt\ndoubles\t1\t19\t0\t0\tdoubles-a1-s19.txt\nscan\t1\t19\t0\t0\tscan-a1-s19.txt\nmulti\t1\t19\t0\t0\tmulti-a1-s19.txt\nencodingfix\t1\t19\t0\t0\tencodingfix-a1-s19.txt\nedgeenc\t1\t19\t0\t0\tedgeenc-a1-s19.txt\nedgeproto\t1\t19\t0\t0\tedgeproto-a1-s19.txt\ncmdgap\t1\t19\t0\t0\tcmdgap-a1-s19.txt\ncmdgap2\t1\t19\t0\t0\tcmdgap2-a1-s19.txt\nsort\t1\t19\t0\t0\tsort-a1-s19.txt\nservertail\t1\t19\t0\t0\tservertail-a1-s19.txt\narity\t1\t19\t0\t0\tarity-a1-s19.txt\nstoreorder\t1\t19\t0\t0\tstoreorder-a1-s19.txt\ninfofix\t1\t19\t0\t0\tinfofix-a1-s19.txt\nmultidb\t1\t19\t0\t0\tmultidb-a1-s19.txt\nblocking\t1\t19\t0\t0\tblocking-a1-s19.txt\npubsub\t1\t19\t0\t0\tpubsub-a1-s19.txt\nfanout\t1\t19\t0\t0\tfanout-a1-s19.txt\nspubsub\t1\t19\t0\t0\tspubsub-a1-s19.txt\nnotify\t1\t19\t0\t0\tnotify-a1-s19.txt\nwiredump\t1\t19\t0\t0\twiredump-a1-s19.txt\nclimon\t1\t19\t0\t0\tclimon-a1-s19.txt\ncompatintro\t1\t19\t0\t0\tcompatintro-a1-s19.txt\naclsel\t1\t19\t0\t0\taclsel-a1-s19.txt\naclkeys\t1\t19\t0\t0\taclkeys-a1-s19.txt\ncmdmeta\t1\t19\t0\t0\tcmdmeta-a1-s19.txt\ns6fix\t1\t19\t0\t0\ts6fix-a1-s19.txt\nccfix\t1\t19\t0\t0\tccfix-a1-s19.txt\npsfix\t1\t19\t0\t0\tpsfix-a1-s19.txt\nmonitor\t1\t19\t0\t0\tmonitor-a1-s19.txt\nstring\t1\t20\t0\t0\tstring-a1-s20.txt\nlist\t1\t20\t0\t0\tlist-a1-s20.txt\nset\t1\t20\t0\t0\tset-a1-s20.txt\nzset\t1\t20\t0\t0\tzset-a1-s20.txt\nhash\t1\t20\t0\t0\thash-a1-s20.txt\nhexpire\t1\t20\t0\t0\thexpire-a1-s20.txt\nedgetime\t1\t20\t0\t0\tedgetime-a1-s20.txt\nxshard\t1\t20\t0\t0\txshard-a1-s20.txt\nxmove\t1\t20\t0\t0\txmove-a1-s20.txt\nbitmap\t1\t20\t0\t0\tbitmap-a1-s20.txt\nhll\t1\t20\t0\t0\thll-a1-s20.txt\nbitfield\t1\t20\t0\t0\tbitfield-a1-s20.txt\ncgaps\t1\t20\t0\t0\tcgaps-a1-s20.txt\nstream\t1\t20\t0\t0\tstream-a1-s20.txt\nscript\t1\t20\t0\t0\tscript-a1-s20.txt\nstreamgrp\t1\t20\t0\t0\tstreamgrp-a1-s20.txt\nzsetops\t1\t20\t0\t0\tzsetops-a1-s20.txt\ngeo\t1\t20\t0\t0\tgeo-a1-s20.txt\ndoubles\t1\t20\t0\t0\tdoubles-a1-s20.txt\nscan\t1\t20\t0\t0\tscan-a1-s20.txt\nmulti\t1\t20\t0\t0\tmulti-a1-s20.txt\nencodingfix\t1\t20\t0\t0\tencodingfix-a1-s20.txt\nedgeenc\t1\t20\t0\t0\tedgeenc-a1-s20.txt\nedgeproto\t1\t20\t0\t0\tedgeproto-a1-s20.txt\ncmdgap\t1\t20\t0\t0\tcmdgap-a1-s20.txt\ncmdgap2\t1\t20\t0\t0\tcmdgap2-a1-s20.txt\nsort\t1\t20\t0\t0\tsort-a1-s20.txt\nservertail\t1\t20\t0\t0\tservertail-a1-s20.txt\narity\t1\t20\t0\t0\tarity-a1-s20.txt\nstoreorder\t1\t20\t0\t0\tstoreorder-a1-s20.txt\ninfofix\t1\t20\t0\t0\tinfofix-a1-s20.txt\nmultidb\t1\t20\t0\t0\tmultidb-a1-s20.txt\nblocking\t1\t20\t0\t0\tblocking-a1-s20.txt\npubsub\t1\t20\t0\t0\tpubsub-a1-s20.txt\nfanout\t1\t20\t0\t0\tfanout-a1-s20.txt\nspubsub\t1\t20\t0\t0\tspubsub-a1-s20.txt\nnotify\t1\t20\t0\t0\tnotify-a1-s20.txt\nwiredump\t1\t20\t0\t0\twiredump-a1-s20.txt\nclimon\t1\t20\t0\t0\tclimon-a1-s20.txt\ncompatintro\t1\t20\t0\t0\tcompatintro-a1-s20.txt\naclsel\t1\t20\t0\t0\taclsel-a1-s20.txt\naclkeys\t1\t20\t0\t0\taclkeys-a1-s20.txt\ncmdmeta\t1\t20\t0\t0\tcmdmeta-a1-s20.txt\ns6fix\t1\t20\t0\t0\ts6fix-a1-s20.txt\nccfix\t1\t20\t0\t0\tccfix-a1-s20.txt\npsfix\t1\t20\t0\t0\tpsfix-a1-s20.txt\nmonitor\t1\t20\t0\t0\tmonitor-a1-s20.txt\nstring\t1\t23\t0\t0\tstring-a1-s23.txt\nlist\t1\t23\t0\t0\tlist-a1-s23.txt\nset\t1\t23\t0\t0\tset-a1-s23.txt\nzset\t1\t23\t0\t0\tzset-a1-s23.txt\nhash\t1\t23\t0\t0\thash-a1-s23.txt\nhexpire\t1\t23\t0\t0\thexpire-a1-s23.txt\nedgetime\t1\t23\t0\t0\tedgetime-a1-s23.txt\nxshard\t1\t23\t0\t0\txshard-a1-s23.txt\nxmove\t1\t23\t0\t0\txmove-a1-s23.txt\nbitmap\t1\t23\t0\t0\tbitmap-a1-s23.txt\nhll\t1\t23\t0\t0\thll-a1-s23.txt\nbitfield\t1\t23\t0\t0\tbitfield-a1-s23.txt\ncgaps\t1\t23\t0\t0\tcgaps-a1-s23.txt\nstream\t1\t23\t0\t0\tstream-a1-s23.txt\nscript\t1\t23\t0\t0\tscript-a1-s23.txt\nstreamgrp\t1\t23\t0\t0\tstreamgrp-a1-s23.txt\nzsetops\t1\t23\t0\t0\tzsetops-a1-s23.txt\ngeo\t1\t23\t0\t0\tgeo-a1-s23.txt\ndoubles\t1\t23\t0\t0\tdoubles-a1-s23.txt\nscan\t1\t23\t0\t0\tscan-a1-s23.txt\nmulti\t1\t23\t0\t0\tmulti-a1-s23.txt\nencodingfix\t1\t23\t0\t0\tencodingfix-a1-s23.txt\nedgeenc\t1\t23\t0\t0\tedgeenc-a1-s23.txt\nedgeproto\t1\t23\t0\t0\tedgeproto-a1-s23.txt\ncmdgap\t1\t23\t0\t0\tcmdgap-a1-s23.txt\ncmdgap2\t1\t23\t0\t0\tcmdgap2-a1-s23.txt\nsort\t1\t23\t0\t0\tsort-a1-s23.txt\nservertail\t1\t23\t0\t0\tservertail-a1-s23.txt\narity\t1\t23\t0\t0\tarity-a1-s23.txt\nstoreorder\t1\t23\t0\t0\tstoreorder-a1-s23.txt\ninfofix\t1\t23\t0\t0\tinfofix-a1-s23.txt\nmultidb\t1\t23\t0\t0\tmultidb-a1-s23.txt\nblocking\t1\t23\t0\t0\tblocking-a1-s23.txt\npubsub\t1\t23\t0\t0\tpubsub-a1-s23.txt\nfanout\t1\t23\t0\t0\tfanout-a1-s23.txt\nspubsub\t1\t23\t0\t0\tspubsub-a1-s23.txt\nnotify\t1\t23\t0\t0\tnotify-a1-s23.txt\nwiredump\t1\t23\t0\t0\twiredump-a1-s23.txt\nclimon\t1\t23\t0\t0\tclimon-a1-s23.txt\ncompatintro\t1\t23\t0\t0\tcompatintro-a1-s23.txt\naclsel\t1\t23\t0\t0\taclsel-a1-s23.txt\naclkeys\t1\t23\t0\t0\taclkeys-a1-s23.txt\ncmdmeta\t1\t23\t0\t0\tcmdmeta-a1-s23.txt\ns6fix\t1\t23\t0\t0\ts6fix-a1-s23.txt\nccfix\t1\t23\t0\t0\tccfix-a1-s23.txt\npsfix\t1\t23\t0\t0\tpsfix-a1-s23.txt\nmonitor\t1\t23\t0\t0\tmonitor-a1-s23.txt\nstring\t1\t22\t0\t0\tstring-a1-s22.txt\nlist\t1\t22\t0\t0\tlist-a1-s22.txt\nset\t1\t22\t0\t0\tset-a1-s22.txt\nzset\t1\t22\t0\t0\tzset-a1-s22.txt\nhash\t1\t22\t0\t0\thash-a1-s22.txt\nhexpire\t1\t22\t0\t0\thexpire-a1-s22.txt\nedgetime\t1\t22\t0\t0\tedgetime-a1-s22.txt\nxshard\t1\t22\t0\t0\txshard-a1-s22.txt\nxmove\t1\t22\t0\t0\txmove-a1-s22.txt\nbitmap\t1\t22\t0\t0\tbitmap-a1-s22.txt\nhll\t1\t22\t0\t0\thll-a1-s22.txt\nbitfield\t1\t22\t0\t0\tbitfield-a1-s22.txt\ncgaps\t1\t22\t0\t0\tcgaps-a1-s22.txt\nstream\t1\t22\t0\t0\tstream-a1-s22.txt\nscript\t1\t22\t0\t0\tscript-a1-s22.txt\nstreamgrp\t1\t22\t0\t0\tstreamgrp-a1-s22.txt\nzsetops\t1\t22\t0\t0\tzsetops-a1-s22.txt\ngeo\t1\t22\t0\t0\tgeo-a1-s22.txt\ndoubles\t1\t22\t0\t0\tdoubles-a1-s22.txt\nscan\t1\t22\t0\t0\tscan-a1-s22.txt\nmulti\t1\t22\t0\t0\tmulti-a1-s22.txt\nencodingfix\t1\t22\t0\t0\tencodingfix-a1-s22.txt\nedgeenc\t1\t22\t0\t0\tedgeenc-a1-s22.txt\nedgeproto\t1\t22\t0\t0\tedgeproto-a1-s22.txt\ncmdgap\t1\t22\t0\t0\tcmdgap-a1-s22.txt\ncmdgap2\t1\t22\t0\t0\tcmdgap2-a1-s22.txt\nsort\t1\t22\t0\t0\tsort-a1-s22.txt\nservertail\t1\t22\t0\t0\tservertail-a1-s22.txt\narity\t1\t22\t0\t0\tarity-a1-s22.txt\nstoreorder\t1\t22\t0\t0\tstoreorder-a1-s22.txt\ninfofix\t1\t22\t0\t0\tinfofix-a1-s22.txt\nmultidb\t1\t22\t0\t0\tmultidb-a1-s22.txt\nblocking\t1\t22\t0\t0\tblocking-a1-s22.txt\npubsub\t1\t22\t0\t0\tpubsub-a1-s22.txt\nfanout\t1\t22\t0\t0\tfanout-a1-s22.txt\nspubsub\t1\t22\t0\t0\tspubsub-a1-s22.txt\nnotify\t1\t22\t0\t0\tnotify-a1-s22.txt\nwiredump\t1\t22\t0\t0\twiredump-a1-s22.txt\nclimon\t1\t22\t0\t0\tclimon-a1-s22.txt\ncompatintro\t1\t22\t0\t0\tcompatintro-a1-s22.txt\naclsel\t1\t22\t0\t0\taclsel-a1-s22.txt\naclkeys\t1\t22\t0\t0\taclkeys-a1-s22.txt\ncmdmeta\t1\t22\t0\t0\tcmdmeta-a1-s22.txt\ns6fix\t1\t22\t0\t0\ts6fix-a1-s22.txt\nccfix\t1\t22\t0\t0\tccfix-a1-s22.txt\npsfix\t1\t22\t0\t0\tpsfix-a1-s22.txt\nmonitor\t1\t22\t0\t0\tmonitor-a1-s22.txt\nmulti\t1\t19\t1\t0\tmulti-a1-s19-rep1.txt\nmulti\t1\t19\t2\t0\tmulti-a1-s19-rep2.txt\nmulti\t1\t19\t3\t0\tmulti-a1-s19-rep3.txt\nmulti\t1\t19\t4\t0\tmulti-a1-s19-rep4.txt\n"
+          },
+          "differ/complete.json": {
+            "sha256": "69740625fac77f81ad637a59520048f828e7dcb0f98395b8fd6f688a64ec12bc",
+            "data": "{\n  \"schema\": 1,\n  \"part\": \"split-1\",\n  \"run\": \"iteration:gate-run.ojk4iA\",\n  \"seeds\": [\n    7,\n    19,\n    20,\n    23,\n    22\n  ],\n  \"comparisons\": 239,\n  \"complete\": true\n}\n"
+          }
+        },
+        {
+          "name": "release",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.000000",
+              "release build (+footprint locks)"
+            ]
+          ],
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        }
+      ],
+      "plan_sha256": "a049484f3562ecbb4d63fa53e82bd2facdfff118c22df63a9103fbe031e256d2",
+      "differ_plan": {
+        "schema": 1,
+        "manifest": {
+          "run": "iteration:gate-run.ojk4iA",
+          "permanent": [
+            7,
+            19,
+            20,
+            23
+          ],
+          "failed": [],
+          "rotating": 22,
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            22
+          ],
+          "history": "/home/user/Projects/cx-exec1s-d/.gate-history/differ"
+        },
+        "suites": [
+          "string",
+          "list",
+          "set",
+          "zset",
+          "hash",
+          "hexpire",
+          "edgetime",
+          "xshard",
+          "xmove",
+          "bitmap",
+          "hll",
+          "bitfield",
+          "cgaps",
+          "stream",
+          "script",
+          "streamgrp",
+          "zsetops",
+          "geo",
+          "doubles",
+          "scan",
+          "multi",
+          "encodingfix",
+          "edgeenc",
+          "edgeproto",
+          "cmdgap",
+          "cmdgap2",
+          "sort",
+          "servertail",
+          "arity",
+          "storeorder",
+          "infofix",
+          "multidb",
+          "blocking",
+          "pubsub",
+          "fanout",
+          "spubsub",
+          "notify",
+          "wiredump",
+          "climon",
+          "compatintro",
+          "aclsel",
+          "aclkeys",
+          "cmdmeta",
+          "s6fix",
+          "ccfix",
+          "psfix",
+          "monitor"
+        ],
+        "repeats": 4,
+        "equivalence_seeds": [
+          22
+        ]
+      },
+      "bound_to_final_post": true
+    },
+    {
       "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/differ-uring.json",
       "receipt_sha256": "f8d37edcfcbb1f662b0a913827cf71380f2814782f06e24a2014c143e2ad85f2",
       "log_sha256": "befef202e7b7418dbfef70bd4fce01f38e73cee521ccb13d71b3f06c80c542f5",
@@ -66931,6 +67178,31 @@
       "bound_to_final_post": false
     },
     {
+      "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/gates-test-attempt-3.json",
+      "receipt_sha256": "832a1b4074a53fdc088017e60eedee8ac7589492963c2aa4959783716755f0f8",
+      "log_sha256": "7e5ef27acae0816b9d98f730d9982c564b48d6b1f85778d07da29f80f55d54d6",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "python3",
+        "tests/gates_test.py"
+      ],
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/gates-test-attempt-3.log",
+      "selected_jobs": null,
+      "started_utc": "2026-10-28T18:47:18.775501+00:00",
+      "ended_utc": "2026-10-28T18:49:32.261877+00:00",
+      "candidate_sha256": null,
+      "candidate_unchanged": true,
+      "proof_environment": {
+        "GATE_TEST_PORT": "20098"
+      },
+      "success": true,
+      "jobs": [],
+      "bound_to_final_post": false
+    },
+    {
       "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/gates-test.json",
       "receipt_sha256": "9316bec7bd00d4effa582e9c7b368d1015daafa4748f5bcc7dc0c31f65ca9569",
       "log_sha256": "6a406c4066665cac5befa357bb7673fd915ea67f91191885eba2b6fbc2b6fe05",
@@ -67425,6 +67697,422 @@
       ],
       "plan_sha256": "a049484f3562ecbb4d63fa53e82bd2facdfff118c22df63a9103fbe031e256d2",
       "bound_to_final_post": true
+    },
+    {
+      "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/zc-0-epoll.json",
+      "receipt_sha256": "dcf8a9172aa7ea9e4c9698122275cc70c0bf9b721fefe61d88aef27d4e248e88",
+      "log_sha256": "d5d3c97d1d54872dee7d1302e6600f599999ad34ab9f6384d056b3baded5a815",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "64-71",
+        "--load-cores",
+        "72-95",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "20002-20009",
+        "--candidate-binary",
+        "/home/user/Projects/cx-exec1s-d/build/tomokv"
+      ],
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/zc-0-epoll.log",
+      "selected_jobs": "zc",
+      "started_utc": "2026-10-28T18:51:18.824749+00:00",
+      "ended_utc": "2026-10-28T18:51:29.336367+00:00",
+      "candidate_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+      "candidate_unchanged": true,
+      "proof_environment": {
+        "GATE_DIFFER_NET_IO": "epoll",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_TEST_PORT": "20098",
+        "GATE_TXN_FUSED": "0",
+        "GATE_ZC_NET_IO": "epoll"
+      },
+      "artifacts": "/home/user/Projects/cx-exec1s-d/build/gate-run.5nVVXO",
+      "success": true,
+      "jobs": [
+        {
+          "name": "asan",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "1.190000",
+              "ASAN build"
+            ]
+          ],
+          "ledger_sha256": "8a93582cc528c564fafa5b4f5b27f3a5b98c1aeb28a914f19181482100f5f4a6",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "release",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.000000",
+              "release build (+footprint locks)"
+            ]
+          ],
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "zc",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "1.350000",
+              "zc borrow battery"
+            ],
+            [
+              "ok",
+              "0.020000",
+              "zc fired (zc_sends=N)"
+            ],
+            [
+              "ok",
+              "1.410000",
+              "zc borrow battery under ASAN"
+            ],
+            [
+              "ok",
+              "0.020000",
+              "zc ASAN clean"
+            ]
+          ],
+          "ledger_sha256": "ebb8cef4b145934b74b8339fe1e69f6786c7737bd5f4abdd422ddcc0f09c5c19",
+          "passed": 4,
+          "failed": 0,
+          "done": "0\t4\t0"
+        }
+      ],
+      "plan_sha256": "f9191015f158e6d12bd3fd7328425f1f7c4c00f3ab6d2da86bd8d470ff409925",
+      "bound_to_final_post": true
+    },
+    {
+      "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/zc-0-uring.json",
+      "receipt_sha256": "400440a2e355bfa157fd0f230659c2f2dbf040f1b11491dc9d2a458c091766b6",
+      "log_sha256": "d6b8781bb08a4d6b174a4ca0d19f5660416f75b19531f7e9f6b163263a9ada21",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "64-71",
+        "--load-cores",
+        "72-95",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "20002-20009",
+        "--candidate-binary",
+        "/home/user/Projects/cx-exec1s-d/build/tomokv"
+      ],
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/zc-0-uring.log",
+      "selected_jobs": "zc",
+      "started_utc": "2026-10-28T18:51:07.979897+00:00",
+      "ended_utc": "2026-10-28T18:51:18.499216+00:00",
+      "candidate_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+      "candidate_unchanged": true,
+      "proof_environment": {
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_TEST_PORT": "20098",
+        "GATE_TXN_FUSED": "0",
+        "GATE_ZC_NET_IO": "uring"
+      },
+      "artifacts": "/home/user/Projects/cx-exec1s-d/build/gate-run.XKExZH",
+      "success": true,
+      "jobs": [
+        {
+          "name": "asan",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "1.210000",
+              "ASAN build"
+            ]
+          ],
+          "ledger_sha256": "3d0fa69957c41cbd84e8cfe7d8fa2624f7803ca763e0445194f16b2510e2f8a2",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "release",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.000000",
+              "release build (+footprint locks)"
+            ]
+          ],
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "zc",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "1.360000",
+              "zc borrow battery"
+            ],
+            [
+              "ok",
+              "0.030000",
+              "zc fired (zc_sends=N)"
+            ],
+            [
+              "ok",
+              "1.400000",
+              "zc borrow battery under ASAN"
+            ],
+            [
+              "ok",
+              "0.020000",
+              "zc ASAN clean"
+            ]
+          ],
+          "ledger_sha256": "ccf0eb47a587ecd1b5c53ebb71ffb545366b38bd2723ede938dbe29a80cb1aa6",
+          "passed": 4,
+          "failed": 0,
+          "done": "0\t4\t0"
+        }
+      ],
+      "plan_sha256": "f9191015f158e6d12bd3fd7328425f1f7c4c00f3ab6d2da86bd8d470ff409925",
+      "bound_to_final_post": true
+    },
+    {
+      "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/zc-1-epoll.json",
+      "receipt_sha256": "ad2afa430cac8eb07ae738c94132af809149a7a3a67e02fd8c468298be2280bc",
+      "log_sha256": "8b61492460542e8420b09599741587b6a614d9433dcbc5e0c7ce82928c1e4e7d",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "64-71",
+        "--load-cores",
+        "72-95",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "20002-20009",
+        "--candidate-binary",
+        "/home/user/Projects/cx-exec1s-d/build/tomokv"
+      ],
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/zc-1-epoll.log",
+      "selected_jobs": "zc",
+      "started_utc": "2026-10-28T18:51:40.501016+00:00",
+      "ended_utc": "2026-10-28T18:51:51.004889+00:00",
+      "candidate_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+      "candidate_unchanged": true,
+      "proof_environment": {
+        "GATE_DIFFER_NET_IO": "epoll",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_TEST_PORT": "20098",
+        "GATE_TXN_FUSED": "1",
+        "GATE_ZC_NET_IO": "epoll"
+      },
+      "artifacts": "/home/user/Projects/cx-exec1s-d/build/gate-run.ADKDhW",
+      "success": true,
+      "jobs": [
+        {
+          "name": "asan",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "1.190000",
+              "ASAN build"
+            ]
+          ],
+          "ledger_sha256": "8a93582cc528c564fafa5b4f5b27f3a5b98c1aeb28a914f19181482100f5f4a6",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "release",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.000000",
+              "release build (+footprint locks)"
+            ]
+          ],
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "zc",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "1.350000",
+              "zc borrow battery"
+            ],
+            [
+              "ok",
+              "0.020000",
+              "zc fired (zc_sends=N)"
+            ],
+            [
+              "ok",
+              "1.400000",
+              "zc borrow battery under ASAN"
+            ],
+            [
+              "ok",
+              "0.030000",
+              "zc ASAN clean"
+            ]
+          ],
+          "ledger_sha256": "9531993556b938bf1acf2cba7dab705cfe5ea6fdaec9a8908bf364d59b82a10f",
+          "passed": 4,
+          "failed": 0,
+          "done": "0\t4\t0"
+        }
+      ],
+      "plan_sha256": "f9191015f158e6d12bd3fd7328425f1f7c4c00f3ab6d2da86bd8d470ff409925",
+      "bound_to_final_post": true
+    },
+    {
+      "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/zc-1-uring.json",
+      "receipt_sha256": "00ac61e126b430d1a7b4b9ffc39073b2e34573cdf0a0618a53e80fb72166b028",
+      "log_sha256": "5d3eb527e3740fb79d24538fd23dd60a651676b9b99e6ae649448071f2290dfb",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "64-71",
+        "--load-cores",
+        "72-95",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "20002-20009",
+        "--candidate-binary",
+        "/home/user/Projects/cx-exec1s-d/build/tomokv"
+      ],
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/zc-1-uring.log",
+      "selected_jobs": "zc",
+      "started_utc": "2026-10-28T18:51:29.661620+00:00",
+      "ended_utc": "2026-10-28T18:51:40.175743+00:00",
+      "candidate_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+      "candidate_unchanged": true,
+      "proof_environment": {
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_TEST_PORT": "20098",
+        "GATE_TXN_FUSED": "1",
+        "GATE_ZC_NET_IO": "uring"
+      },
+      "artifacts": "/home/user/Projects/cx-exec1s-d/build/gate-run.nLQLDm",
+      "success": true,
+      "jobs": [
+        {
+          "name": "asan",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "1.190000",
+              "ASAN build"
+            ]
+          ],
+          "ledger_sha256": "8a93582cc528c564fafa5b4f5b27f3a5b98c1aeb28a914f19181482100f5f4a6",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "release",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.000000",
+              "release build (+footprint locks)"
+            ]
+          ],
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "zc",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "1.360000",
+              "zc borrow battery"
+            ],
+            [
+              "ok",
+              "0.020000",
+              "zc fired (zc_sends=N)"
+            ],
+            [
+              "ok",
+              "1.410000",
+              "zc borrow battery under ASAN"
+            ],
+            [
+              "ok",
+              "0.020000",
+              "zc ASAN clean"
+            ]
+          ],
+          "ledger_sha256": "3053d730d3553f5bf38daca4b4ad1f237a62c8b7e40a483cfb62efcb8b92e825",
+          "passed": 4,
+          "failed": 0,
+          "done": "0\t4\t0"
+        }
+      ],
+      "plan_sha256": "f9191015f158e6d12bd3fd7328425f1f7c4c00f3ab6d2da86bd8d470ff409925",
+      "bound_to_final_post": true
     }
   ],
   "final_jobs": {
@@ -67619,7 +68307,7 @@
       "done": "0\t0\t0"
     },
     "release [fused=0,atomic=1,engine=uring]": {
-      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/differ-uring.json",
+      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/zc-0-uring.json",
       "variant": "fused=0,atomic=1,engine=uring",
       "name": "release",
       "completed": true,
@@ -68343,18 +69031,18 @@
       "done": "0\t3\t0"
     },
     "asan [fused=0,atomic=1,engine=uring]": {
-      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/families-attempt-4.json",
+      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/zc-0-uring.json",
       "variant": "fused=0,atomic=1,engine=uring",
       "name": "asan",
       "completed": true,
       "rows": [
         [
           "ok",
-          "99.490000",
+          "1.210000",
           "ASAN build"
         ]
       ],
-      "ledger_sha256": "440891950f18ec98dcdd4242b5cddce11db7fd026e741a465c0b090c5ba6a8e9",
+      "ledger_sha256": "3d0fa69957c41cbd84e8cfe7d8fa2624f7803ca763e0445194f16b2510e2f8a2",
       "passed": 1,
       "failed": 0,
       "done": "0\t1\t0"
@@ -74115,46 +74803,36 @@
       "done": "0\t2\t0"
     },
     "zc [fused=0,atomic=1,engine=uring]": {
-      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/families-attempt-4.json",
+      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/zc-0-uring.json",
       "variant": "fused=0,atomic=1,engine=uring",
       "name": "zc",
       "completed": true,
       "rows": [
         [
-          "FAIL",
-          "0",
-          "zc boot"
-        ],
-        [
-          "FAIL",
-          "0.170000",
+          "ok",
+          "1.360000",
           "zc borrow battery"
         ],
         [
-          "FAIL",
-          "0.050000",
+          "ok",
+          "0.030000",
           "zc fired (zc_sends=N)"
         ],
         [
-          "FAIL",
-          "0",
-          "zc ASAN boot"
-        ],
-        [
-          "FAIL",
-          "0.100000",
+          "ok",
+          "1.400000",
           "zc borrow battery under ASAN"
         ],
         [
-          "FAIL",
-          "0.030000",
+          "ok",
+          "0.020000",
           "zc ASAN clean"
         ]
       ],
-      "ledger_sha256": "3e6fb1d3f1486b8a06a187bb14a419af4ff00f2d1945196c6e8eba1d12b485a9",
-      "passed": 0,
-      "failed": 6,
-      "done": "0\t0\t6"
+      "ledger_sha256": "ccf0eb47a587ecd1b5c53ebb71ffb545366b38bd2723ede938dbe29a80cb1aa6",
+      "passed": 4,
+      "failed": 0,
+      "done": "0\t4\t0"
     },
     "aof-epoll [fused=1,atomic=1,engine=uring]": {
       "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/fused-legs.json",
@@ -74743,18 +75421,18 @@
       "done": "0\t2\t0"
     },
     "asan [fused=1,atomic=1,engine=uring]": {
-      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/fused-legs.json",
+      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/zc-1-uring.json",
       "variant": "fused=1,atomic=1,engine=uring",
       "name": "asan",
       "completed": true,
       "rows": [
         [
           "ok",
-          "2.030000",
+          "1.190000",
           "ASAN build"
         ]
       ],
-      "ledger_sha256": "48f700ac98768b74dd34e0150fe2e0c00fbbf5f78806e6d19b2f526a485b9a8f",
+      "ledger_sha256": "8a93582cc528c564fafa5b4f5b27f3a5b98c1aeb28a914f19181482100f5f4a6",
       "passed": 1,
       "failed": 0,
       "done": "0\t1\t0"
@@ -75140,18 +75818,18 @@
       "done": "0\t0\t0"
     },
     "release [fused=1,atomic=1,engine=uring]": {
-      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/aof-cq-1.json",
+      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/zc-1-uring.json",
       "variant": "fused=1,atomic=1,engine=uring",
       "name": "release",
       "completed": true,
       "rows": [
         [
           "ok",
-          "0.010000",
+          "0.000000",
           "release build (+footprint locks)"
         ]
       ],
-      "ledger_sha256": "309c13c2922aae5ea759e31f5aee12f47b67cb6b06c5e43555af42a805f491c5",
+      "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
       "passed": 1,
       "failed": 0,
       "done": "0\t1\t0"
@@ -75660,6 +76338,295 @@
         "sha256": "6e59c2a95fe0854745d0a20ab8bd7cb216d2ec6dd2430fbd1f0707f5793b2443",
         "data": "{\n  \"schema\": 1,\n  \"part\": \"split-1\",\n  \"run\": \"iteration:gate-run.QWIdhL\",\n  \"seeds\": [\n    7,\n    19,\n    20,\n    23,\n    21\n  ],\n  \"comparisons\": 239,\n  \"complete\": true\n}\n"
       }
+    },
+    "differ-armed-0 [fused=0,atomic=1,engine=epoll]": {
+      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/differ-epoll.json",
+      "variant": "fused=0,atomic=1,engine=epoll",
+      "name": "differ-armed-0",
+      "completed": true,
+      "rows": [
+        [
+          "ok",
+          "523.930000",
+          "Redis 7.4 differential part (armed fused, atomic 0)"
+        ]
+      ],
+      "ledger_sha256": "76fd2d3550bbe450cd2364171d098e5e934c3cf17da54151955a2658fe0b170a",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0",
+      "differ/legs.tsv": {
+        "sha256": "cbc981944a39a5ac41db6ce8f296c622a916c0be247df60940cee43a3dfdd217",
+        "data": "string\t0\t7\t0\t0\tstring-a0-s7.txt\nlist\t0\t7\t0\t0\tlist-a0-s7.txt\nset\t0\t7\t0\t0\tset-a0-s7.txt\nzset\t0\t7\t0\t0\tzset-a0-s7.txt\nhash\t0\t7\t0\t0\thash-a0-s7.txt\nhexpire\t0\t7\t0\t0\thexpire-a0-s7.txt\nedgetime\t0\t7\t0\t0\tedgetime-a0-s7.txt\nxshard\t0\t7\t0\t0\txshard-a0-s7.txt\nxmove\t0\t7\t0\t0\txmove-a0-s7.txt\nbitmap\t0\t7\t0\t0\tbitmap-a0-s7.txt\nhll\t0\t7\t0\t0\thll-a0-s7.txt\nbitfield\t0\t7\t0\t0\tbitfield-a0-s7.txt\ncgaps\t0\t7\t0\t0\tcgaps-a0-s7.txt\nstream\t0\t7\t0\t0\tstream-a0-s7.txt\nscript\t0\t7\t0\t0\tscript-a0-s7.txt\nstreamgrp\t0\t7\t0\t0\tstreamgrp-a0-s7.txt\nzsetops\t0\t7\t0\t0\tzsetops-a0-s7.txt\ngeo\t0\t7\t0\t0\tgeo-a0-s7.txt\ndoubles\t0\t7\t0\t0\tdoubles-a0-s7.txt\nscan\t0\t7\t0\t0\tscan-a0-s7.txt\nmulti\t0\t7\t0\t0\tmulti-a0-s7.txt\nencodingfix\t0\t7\t0\t0\tencodingfix-a0-s7.txt\nedgeenc\t0\t7\t0\t0\tedgeenc-a0-s7.txt\nedgeproto\t0\t7\t0\t0\tedgeproto-a0-s7.txt\ncmdgap\t0\t7\t0\t0\tcmdgap-a0-s7.txt\ncmdgap2\t0\t7\t0\t0\tcmdgap2-a0-s7.txt\nservertail\t0\t7\t0\t0\tservertail-a0-s7.txt\narity\t0\t7\t0\t0\tarity-a0-s7.txt\nstoreorder\t0\t7\t0\t0\tstoreorder-a0-s7.txt\ninfofix\t0\t7\t0\t0\tinfofix-a0-s7.txt\nmultidb\t0\t7\t0\t0\tmultidb-a0-s7.txt\nblocking\t0\t7\t0\t0\tblocking-a0-s7.txt\npubsub\t0\t7\t0\t0\tpubsub-a0-s7.txt\nfanout\t0\t7\t0\t0\tfanout-a0-s7.txt\nspubsub\t0\t7\t0\t0\tspubsub-a0-s7.txt\nnotify\t0\t7\t0\t0\tnotify-a0-s7.txt\nwiredump\t0\t7\t0\t0\twiredump-a0-s7.txt\nclimon\t0\t7\t0\t0\tclimon-a0-s7.txt\ncompatintro\t0\t7\t0\t0\tcompatintro-a0-s7.txt\naclsel\t0\t7\t0\t0\taclsel-a0-s7.txt\naclkeys\t0\t7\t0\t0\taclkeys-a0-s7.txt\ncmdmeta\t0\t7\t0\t0\tcmdmeta-a0-s7.txt\ns6fix\t0\t7\t0\t0\ts6fix-a0-s7.txt\nccfix\t0\t7\t0\t0\tccfix-a0-s7.txt\npsfix\t0\t7\t0\t0\tpsfix-a0-s7.txt\nmonitor\t0\t7\t0\t0\tmonitor-a0-s7.txt\nstring\t0\t19\t0\t0\tstring-a0-s19.txt\nlist\t0\t19\t0\t0\tlist-a0-s19.txt\nset\t0\t19\t0\t0\tset-a0-s19.txt\nzset\t0\t19\t0\t0\tzset-a0-s19.txt\nhash\t0\t19\t0\t0\thash-a0-s19.txt\nhexpire\t0\t19\t0\t0\thexpire-a0-s19.txt\nedgetime\t0\t19\t0\t0\tedgetime-a0-s19.txt\nxshard\t0\t19\t0\t0\txshard-a0-s19.txt\nxmove\t0\t19\t0\t0\txmove-a0-s19.txt\nbitmap\t0\t19\t0\t0\tbitmap-a0-s19.txt\nhll\t0\t19\t0\t0\thll-a0-s19.txt\nbitfield\t0\t19\t0\t0\tbitfield-a0-s19.txt\ncgaps\t0\t19\t0\t0\tcgaps-a0-s19.txt\nstream\t0\t19\t0\t0\tstream-a0-s19.txt\nscript\t0\t19\t0\t0\tscript-a0-s19.txt\nstreamgrp\t0\t19\t0\t0\tstreamgrp-a0-s19.txt\nzsetops\t0\t19\t0\t0\tzsetops-a0-s19.txt\ngeo\t0\t19\t0\t0\tgeo-a0-s19.txt\ndoubles\t0\t19\t0\t0\tdoubles-a0-s19.txt\nscan\t0\t19\t0\t0\tscan-a0-s19.txt\nmulti\t0\t19\t0\t0\tmulti-a0-s19.txt\nencodingfix\t0\t19\t0\t0\tencodingfix-a0-s19.txt\nedgeenc\t0\t19\t0\t0\tedgeenc-a0-s19.txt\nedgeproto\t0\t19\t0\t0\tedgeproto-a0-s19.txt\ncmdgap\t0\t19\t0\t0\tcmdgap-a0-s19.txt\ncmdgap2\t0\t19\t0\t0\tcmdgap2-a0-s19.txt\nservertail\t0\t19\t0\t0\tservertail-a0-s19.txt\narity\t0\t19\t0\t0\tarity-a0-s19.txt\nstoreorder\t0\t19\t0\t0\tstoreorder-a0-s19.txt\ninfofix\t0\t19\t0\t0\tinfofix-a0-s19.txt\nmultidb\t0\t19\t0\t0\tmultidb-a0-s19.txt\nblocking\t0\t19\t0\t0\tblocking-a0-s19.txt\npubsub\t0\t19\t0\t0\tpubsub-a0-s19.txt\nfanout\t0\t19\t0\t0\tfanout-a0-s19.txt\nspubsub\t0\t19\t0\t0\tspubsub-a0-s19.txt\nnotify\t0\t19\t0\t0\tnotify-a0-s19.txt\nwiredump\t0\t19\t0\t0\twiredump-a0-s19.txt\nclimon\t0\t19\t0\t0\tclimon-a0-s19.txt\ncompatintro\t0\t19\t0\t0\tcompatintro-a0-s19.txt\naclsel\t0\t19\t0\t0\taclsel-a0-s19.txt\naclkeys\t0\t19\t0\t0\taclkeys-a0-s19.txt\ncmdmeta\t0\t19\t0\t0\tcmdmeta-a0-s19.txt\ns6fix\t0\t19\t0\t0\ts6fix-a0-s19.txt\nccfix\t0\t19\t0\t0\tccfix-a0-s19.txt\npsfix\t0\t19\t0\t0\tpsfix-a0-s19.txt\nmonitor\t0\t19\t0\t0\tmonitor-a0-s19.txt\nstring\t0\t20\t0\t0\tstring-a0-s20.txt\nlist\t0\t20\t0\t0\tlist-a0-s20.txt\nset\t0\t20\t0\t0\tset-a0-s20.txt\nzset\t0\t20\t0\t0\tzset-a0-s20.txt\nhash\t0\t20\t0\t0\thash-a0-s20.txt\nhexpire\t0\t20\t0\t0\thexpire-a0-s20.txt\nedgetime\t0\t20\t0\t0\tedgetime-a0-s20.txt\nxshard\t0\t20\t0\t0\txshard-a0-s20.txt\nxmove\t0\t20\t0\t0\txmove-a0-s20.txt\nbitmap\t0\t20\t0\t0\tbitmap-a0-s20.txt\nhll\t0\t20\t0\t0\thll-a0-s20.txt\nbitfield\t0\t20\t0\t0\tbitfield-a0-s20.txt\ncgaps\t0\t20\t0\t0\tcgaps-a0-s20.txt\nstream\t0\t20\t0\t0\tstream-a0-s20.txt\nscript\t0\t20\t0\t0\tscript-a0-s20.txt\nstreamgrp\t0\t20\t0\t0\tstreamgrp-a0-s20.txt\nzsetops\t0\t20\t0\t0\tzsetops-a0-s20.txt\ngeo\t0\t20\t0\t0\tgeo-a0-s20.txt\ndoubles\t0\t20\t0\t0\tdoubles-a0-s20.txt\nscan\t0\t20\t0\t0\tscan-a0-s20.txt\nmulti\t0\t20\t0\t0\tmulti-a0-s20.txt\nencodingfix\t0\t20\t0\t0\tencodingfix-a0-s20.txt\nedgeenc\t0\t20\t0\t0\tedgeenc-a0-s20.txt\nedgeproto\t0\t20\t0\t0\tedgeproto-a0-s20.txt\ncmdgap\t0\t20\t0\t0\tcmdgap-a0-s20.txt\ncmdgap2\t0\t20\t0\t0\tcmdgap2-a0-s20.txt\nservertail\t0\t20\t0\t0\tservertail-a0-s20.txt\narity\t0\t20\t0\t0\tarity-a0-s20.txt\nstoreorder\t0\t20\t0\t0\tstoreorder-a0-s20.txt\ninfofix\t0\t20\t0\t0\tinfofix-a0-s20.txt\nmultidb\t0\t20\t0\t0\tmultidb-a0-s20.txt\nblocking\t0\t20\t0\t0\tblocking-a0-s20.txt\npubsub\t0\t20\t0\t0\tpubsub-a0-s20.txt\nfanout\t0\t20\t0\t0\tfanout-a0-s20.txt\nspubsub\t0\t20\t0\t0\tspubsub-a0-s20.txt\nnotify\t0\t20\t0\t0\tnotify-a0-s20.txt\nwiredump\t0\t20\t0\t0\twiredump-a0-s20.txt\nclimon\t0\t20\t0\t0\tclimon-a0-s20.txt\ncompatintro\t0\t20\t0\t0\tcompatintro-a0-s20.txt\naclsel\t0\t20\t0\t0\taclsel-a0-s20.txt\naclkeys\t0\t20\t0\t0\taclkeys-a0-s20.txt\ncmdmeta\t0\t20\t0\t0\tcmdmeta-a0-s20.txt\ns6fix\t0\t20\t0\t0\ts6fix-a0-s20.txt\nccfix\t0\t20\t0\t0\tccfix-a0-s20.txt\npsfix\t0\t20\t0\t0\tpsfix-a0-s20.txt\nmonitor\t0\t20\t0\t0\tmonitor-a0-s20.txt\nstring\t0\t23\t0\t0\tstring-a0-s23.txt\nlist\t0\t23\t0\t0\tlist-a0-s23.txt\nset\t0\t23\t0\t0\tset-a0-s23.txt\nzset\t0\t23\t0\t0\tzset-a0-s23.txt\nhash\t0\t23\t0\t0\thash-a0-s23.txt\nhexpire\t0\t23\t0\t0\thexpire-a0-s23.txt\nedgetime\t0\t23\t0\t0\tedgetime-a0-s23.txt\nxshard\t0\t23\t0\t0\txshard-a0-s23.txt\nxmove\t0\t23\t0\t0\txmove-a0-s23.txt\nbitmap\t0\t23\t0\t0\tbitmap-a0-s23.txt\nhll\t0\t23\t0\t0\thll-a0-s23.txt\nbitfield\t0\t23\t0\t0\tbitfield-a0-s23.txt\ncgaps\t0\t23\t0\t0\tcgaps-a0-s23.txt\nstream\t0\t23\t0\t0\tstream-a0-s23.txt\nscript\t0\t23\t0\t0\tscript-a0-s23.txt\nstreamgrp\t0\t23\t0\t0\tstreamgrp-a0-s23.txt\nzsetops\t0\t23\t0\t0\tzsetops-a0-s23.txt\ngeo\t0\t23\t0\t0\tgeo-a0-s23.txt\ndoubles\t0\t23\t0\t0\tdoubles-a0-s23.txt\nscan\t0\t23\t0\t0\tscan-a0-s23.txt\nmulti\t0\t23\t0\t0\tmulti-a0-s23.txt\nencodingfix\t0\t23\t0\t0\tencodingfix-a0-s23.txt\nedgeenc\t0\t23\t0\t0\tedgeenc-a0-s23.txt\nedgeproto\t0\t23\t0\t0\tedgeproto-a0-s23.txt\ncmdgap\t0\t23\t0\t0\tcmdgap-a0-s23.txt\ncmdgap2\t0\t23\t0\t0\tcmdgap2-a0-s23.txt\nservertail\t0\t23\t0\t0\tservertail-a0-s23.txt\narity\t0\t23\t0\t0\tarity-a0-s23.txt\nstoreorder\t0\t23\t0\t0\tstoreorder-a0-s23.txt\ninfofix\t0\t23\t0\t0\tinfofix-a0-s23.txt\nmultidb\t0\t23\t0\t0\tmultidb-a0-s23.txt\nblocking\t0\t23\t0\t0\tblocking-a0-s23.txt\npubsub\t0\t23\t0\t0\tpubsub-a0-s23.txt\nfanout\t0\t23\t0\t0\tfanout-a0-s23.txt\nspubsub\t0\t23\t0\t0\tspubsub-a0-s23.txt\nnotify\t0\t23\t0\t0\tnotify-a0-s23.txt\nwiredump\t0\t23\t0\t0\twiredump-a0-s23.txt\nclimon\t0\t23\t0\t0\tclimon-a0-s23.txt\ncompatintro\t0\t23\t0\t0\tcompatintro-a0-s23.txt\naclsel\t0\t23\t0\t0\taclsel-a0-s23.txt\naclkeys\t0\t23\t0\t0\taclkeys-a0-s23.txt\ncmdmeta\t0\t23\t0\t0\tcmdmeta-a0-s23.txt\ns6fix\t0\t23\t0\t0\ts6fix-a0-s23.txt\nccfix\t0\t23\t0\t0\tccfix-a0-s23.txt\npsfix\t0\t23\t0\t0\tpsfix-a0-s23.txt\nmonitor\t0\t23\t0\t0\tmonitor-a0-s23.txt\nstring\t0\t22\t0\t0\tstring-a0-s22.txt\nlist\t0\t22\t0\t0\tlist-a0-s22.txt\nset\t0\t22\t0\t0\tset-a0-s22.txt\nzset\t0\t22\t0\t0\tzset-a0-s22.txt\nhash\t0\t22\t0\t0\thash-a0-s22.txt\nhexpire\t0\t22\t0\t0\thexpire-a0-s22.txt\nedgetime\t0\t22\t0\t0\tedgetime-a0-s22.txt\nxshard\t0\t22\t0\t0\txshard-a0-s22.txt\nxmove\t0\t22\t0\t0\txmove-a0-s22.txt\nbitmap\t0\t22\t0\t0\tbitmap-a0-s22.txt\nhll\t0\t22\t0\t0\thll-a0-s22.txt\nbitfield\t0\t22\t0\t0\tbitfield-a0-s22.txt\ncgaps\t0\t22\t0\t0\tcgaps-a0-s22.txt\nstream\t0\t22\t0\t0\tstream-a0-s22.txt\nscript\t0\t22\t0\t0\tscript-a0-s22.txt\nstreamgrp\t0\t22\t0\t0\tstreamgrp-a0-s22.txt\nzsetops\t0\t22\t0\t0\tzsetops-a0-s22.txt\ngeo\t0\t22\t0\t0\tgeo-a0-s22.txt\ndoubles\t0\t22\t0\t0\tdoubles-a0-s22.txt\nscan\t0\t22\t0\t0\tscan-a0-s22.txt\nmulti\t0\t22\t0\t0\tmulti-a0-s22.txt\nencodingfix\t0\t22\t0\t0\tencodingfix-a0-s22.txt\nedgeenc\t0\t22\t0\t0\tedgeenc-a0-s22.txt\nedgeproto\t0\t22\t0\t0\tedgeproto-a0-s22.txt\ncmdgap\t0\t22\t0\t0\tcmdgap-a0-s22.txt\ncmdgap2\t0\t22\t0\t0\tcmdgap2-a0-s22.txt\nservertail\t0\t22\t0\t0\tservertail-a0-s22.txt\narity\t0\t22\t0\t0\tarity-a0-s22.txt\nstoreorder\t0\t22\t0\t0\tstoreorder-a0-s22.txt\ninfofix\t0\t22\t0\t0\tinfofix-a0-s22.txt\nmultidb\t0\t22\t0\t0\tmultidb-a0-s22.txt\nblocking\t0\t22\t0\t0\tblocking-a0-s22.txt\npubsub\t0\t22\t0\t0\tpubsub-a0-s22.txt\nfanout\t0\t22\t0\t0\tfanout-a0-s22.txt\nspubsub\t0\t22\t0\t0\tspubsub-a0-s22.txt\nnotify\t0\t22\t0\t0\tnotify-a0-s22.txt\nwiredump\t0\t22\t0\t0\twiredump-a0-s22.txt\nclimon\t0\t22\t0\t0\tclimon-a0-s22.txt\ncompatintro\t0\t22\t0\t0\tcompatintro-a0-s22.txt\naclsel\t0\t22\t0\t0\taclsel-a0-s22.txt\naclkeys\t0\t22\t0\t0\taclkeys-a0-s22.txt\ncmdmeta\t0\t22\t0\t0\tcmdmeta-a0-s22.txt\ns6fix\t0\t22\t0\t0\ts6fix-a0-s22.txt\nccfix\t0\t22\t0\t0\tccfix-a0-s22.txt\npsfix\t0\t22\t0\t0\tpsfix-a0-s22.txt\nmonitor\t0\t22\t0\t0\tmonitor-a0-s22.txt\n"
+      },
+      "differ/complete.json": {
+        "sha256": "5e42943d5f633d71a8373fd966bb82b09f7c8785c490a756d4f6ea3ed0b618a4",
+        "data": "{\n  \"schema\": 1,\n  \"part\": \"armed-0\",\n  \"run\": \"iteration:gate-run.ojk4iA\",\n  \"seeds\": [\n    7,\n    19,\n    20,\n    23,\n    22\n  ],\n  \"comparisons\": 230,\n  \"complete\": true\n}\n"
+      }
+    },
+    "differ-armed-1 [fused=0,atomic=1,engine=epoll]": {
+      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/differ-epoll.json",
+      "variant": "fused=0,atomic=1,engine=epoll",
+      "name": "differ-armed-1",
+      "completed": true,
+      "rows": [
+        [
+          "ok",
+          "524.650000",
+          "Redis 7.4 differential part (armed fused, atomic 1)"
+        ]
+      ],
+      "ledger_sha256": "924e3a0dd015d58fccc413ffaa85d2e2cc6784a1fa364b87d34a268b5e622009",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0",
+      "differ/legs.tsv": {
+        "sha256": "e06776ef54611de88b4f9bd5d97a3ef58615dc15cbe1e182b7d4f46503176d0a",
+        "data": "string\t1\t7\t0\t0\tstring-a1-s7.txt\nlist\t1\t7\t0\t0\tlist-a1-s7.txt\nset\t1\t7\t0\t0\tset-a1-s7.txt\nzset\t1\t7\t0\t0\tzset-a1-s7.txt\nhash\t1\t7\t0\t0\thash-a1-s7.txt\nhexpire\t1\t7\t0\t0\thexpire-a1-s7.txt\nedgetime\t1\t7\t0\t0\tedgetime-a1-s7.txt\nxshard\t1\t7\t0\t0\txshard-a1-s7.txt\nxmove\t1\t7\t0\t0\txmove-a1-s7.txt\nbitmap\t1\t7\t0\t0\tbitmap-a1-s7.txt\nhll\t1\t7\t0\t0\thll-a1-s7.txt\nbitfield\t1\t7\t0\t0\tbitfield-a1-s7.txt\ncgaps\t1\t7\t0\t0\tcgaps-a1-s7.txt\nstream\t1\t7\t0\t0\tstream-a1-s7.txt\nscript\t1\t7\t0\t0\tscript-a1-s7.txt\nstreamgrp\t1\t7\t0\t0\tstreamgrp-a1-s7.txt\nzsetops\t1\t7\t0\t0\tzsetops-a1-s7.txt\ngeo\t1\t7\t0\t0\tgeo-a1-s7.txt\ndoubles\t1\t7\t0\t0\tdoubles-a1-s7.txt\nscan\t1\t7\t0\t0\tscan-a1-s7.txt\nmulti\t1\t7\t0\t0\tmulti-a1-s7.txt\nencodingfix\t1\t7\t0\t0\tencodingfix-a1-s7.txt\nedgeenc\t1\t7\t0\t0\tedgeenc-a1-s7.txt\nedgeproto\t1\t7\t0\t0\tedgeproto-a1-s7.txt\ncmdgap\t1\t7\t0\t0\tcmdgap-a1-s7.txt\ncmdgap2\t1\t7\t0\t0\tcmdgap2-a1-s7.txt\nservertail\t1\t7\t0\t0\tservertail-a1-s7.txt\narity\t1\t7\t0\t0\tarity-a1-s7.txt\nstoreorder\t1\t7\t0\t0\tstoreorder-a1-s7.txt\ninfofix\t1\t7\t0\t0\tinfofix-a1-s7.txt\nmultidb\t1\t7\t0\t0\tmultidb-a1-s7.txt\nblocking\t1\t7\t0\t0\tblocking-a1-s7.txt\npubsub\t1\t7\t0\t0\tpubsub-a1-s7.txt\nfanout\t1\t7\t0\t0\tfanout-a1-s7.txt\nspubsub\t1\t7\t0\t0\tspubsub-a1-s7.txt\nnotify\t1\t7\t0\t0\tnotify-a1-s7.txt\nwiredump\t1\t7\t0\t0\twiredump-a1-s7.txt\nclimon\t1\t7\t0\t0\tclimon-a1-s7.txt\ncompatintro\t1\t7\t0\t0\tcompatintro-a1-s7.txt\naclsel\t1\t7\t0\t0\taclsel-a1-s7.txt\naclkeys\t1\t7\t0\t0\taclkeys-a1-s7.txt\ncmdmeta\t1\t7\t0\t0\tcmdmeta-a1-s7.txt\ns6fix\t1\t7\t0\t0\ts6fix-a1-s7.txt\nccfix\t1\t7\t0\t0\tccfix-a1-s7.txt\npsfix\t1\t7\t0\t0\tpsfix-a1-s7.txt\nmonitor\t1\t7\t0\t0\tmonitor-a1-s7.txt\nstring\t1\t19\t0\t0\tstring-a1-s19.txt\nlist\t1\t19\t0\t0\tlist-a1-s19.txt\nset\t1\t19\t0\t0\tset-a1-s19.txt\nzset\t1\t19\t0\t0\tzset-a1-s19.txt\nhash\t1\t19\t0\t0\thash-a1-s19.txt\nhexpire\t1\t19\t0\t0\thexpire-a1-s19.txt\nedgetime\t1\t19\t0\t0\tedgetime-a1-s19.txt\nxshard\t1\t19\t0\t0\txshard-a1-s19.txt\nxmove\t1\t19\t0\t0\txmove-a1-s19.txt\nbitmap\t1\t19\t0\t0\tbitmap-a1-s19.txt\nhll\t1\t19\t0\t0\thll-a1-s19.txt\nbitfield\t1\t19\t0\t0\tbitfield-a1-s19.txt\ncgaps\t1\t19\t0\t0\tcgaps-a1-s19.txt\nstream\t1\t19\t0\t0\tstream-a1-s19.txt\nscript\t1\t19\t0\t0\tscript-a1-s19.txt\nstreamgrp\t1\t19\t0\t0\tstreamgrp-a1-s19.txt\nzsetops\t1\t19\t0\t0\tzsetops-a1-s19.txt\ngeo\t1\t19\t0\t0\tgeo-a1-s19.txt\ndoubles\t1\t19\t0\t0\tdoubles-a1-s19.txt\nscan\t1\t19\t0\t0\tscan-a1-s19.txt\nmulti\t1\t19\t0\t0\tmulti-a1-s19.txt\nencodingfix\t1\t19\t0\t0\tencodingfix-a1-s19.txt\nedgeenc\t1\t19\t0\t0\tedgeenc-a1-s19.txt\nedgeproto\t1\t19\t0\t0\tedgeproto-a1-s19.txt\ncmdgap\t1\t19\t0\t0\tcmdgap-a1-s19.txt\ncmdgap2\t1\t19\t0\t0\tcmdgap2-a1-s19.txt\nservertail\t1\t19\t0\t0\tservertail-a1-s19.txt\narity\t1\t19\t0\t0\tarity-a1-s19.txt\nstoreorder\t1\t19\t0\t0\tstoreorder-a1-s19.txt\ninfofix\t1\t19\t0\t0\tinfofix-a1-s19.txt\nmultidb\t1\t19\t0\t0\tmultidb-a1-s19.txt\nblocking\t1\t19\t0\t0\tblocking-a1-s19.txt\npubsub\t1\t19\t0\t0\tpubsub-a1-s19.txt\nfanout\t1\t19\t0\t0\tfanout-a1-s19.txt\nspubsub\t1\t19\t0\t0\tspubsub-a1-s19.txt\nnotify\t1\t19\t0\t0\tnotify-a1-s19.txt\nwiredump\t1\t19\t0\t0\twiredump-a1-s19.txt\nclimon\t1\t19\t0\t0\tclimon-a1-s19.txt\ncompatintro\t1\t19\t0\t0\tcompatintro-a1-s19.txt\naclsel\t1\t19\t0\t0\taclsel-a1-s19.txt\naclkeys\t1\t19\t0\t0\taclkeys-a1-s19.txt\ncmdmeta\t1\t19\t0\t0\tcmdmeta-a1-s19.txt\ns6fix\t1\t19\t0\t0\ts6fix-a1-s19.txt\nccfix\t1\t19\t0\t0\tccfix-a1-s19.txt\npsfix\t1\t19\t0\t0\tpsfix-a1-s19.txt\nmonitor\t1\t19\t0\t0\tmonitor-a1-s19.txt\nstring\t1\t20\t0\t0\tstring-a1-s20.txt\nlist\t1\t20\t0\t0\tlist-a1-s20.txt\nset\t1\t20\t0\t0\tset-a1-s20.txt\nzset\t1\t20\t0\t0\tzset-a1-s20.txt\nhash\t1\t20\t0\t0\thash-a1-s20.txt\nhexpire\t1\t20\t0\t0\thexpire-a1-s20.txt\nedgetime\t1\t20\t0\t0\tedgetime-a1-s20.txt\nxshard\t1\t20\t0\t0\txshard-a1-s20.txt\nxmove\t1\t20\t0\t0\txmove-a1-s20.txt\nbitmap\t1\t20\t0\t0\tbitmap-a1-s20.txt\nhll\t1\t20\t0\t0\thll-a1-s20.txt\nbitfield\t1\t20\t0\t0\tbitfield-a1-s20.txt\ncgaps\t1\t20\t0\t0\tcgaps-a1-s20.txt\nstream\t1\t20\t0\t0\tstream-a1-s20.txt\nscript\t1\t20\t0\t0\tscript-a1-s20.txt\nstreamgrp\t1\t20\t0\t0\tstreamgrp-a1-s20.txt\nzsetops\t1\t20\t0\t0\tzsetops-a1-s20.txt\ngeo\t1\t20\t0\t0\tgeo-a1-s20.txt\ndoubles\t1\t20\t0\t0\tdoubles-a1-s20.txt\nscan\t1\t20\t0\t0\tscan-a1-s20.txt\nmulti\t1\t20\t0\t0\tmulti-a1-s20.txt\nencodingfix\t1\t20\t0\t0\tencodingfix-a1-s20.txt\nedgeenc\t1\t20\t0\t0\tedgeenc-a1-s20.txt\nedgeproto\t1\t20\t0\t0\tedgeproto-a1-s20.txt\ncmdgap\t1\t20\t0\t0\tcmdgap-a1-s20.txt\ncmdgap2\t1\t20\t0\t0\tcmdgap2-a1-s20.txt\nservertail\t1\t20\t0\t0\tservertail-a1-s20.txt\narity\t1\t20\t0\t0\tarity-a1-s20.txt\nstoreorder\t1\t20\t0\t0\tstoreorder-a1-s20.txt\ninfofix\t1\t20\t0\t0\tinfofix-a1-s20.txt\nmultidb\t1\t20\t0\t0\tmultidb-a1-s20.txt\nblocking\t1\t20\t0\t0\tblocking-a1-s20.txt\npubsub\t1\t20\t0\t0\tpubsub-a1-s20.txt\nfanout\t1\t20\t0\t0\tfanout-a1-s20.txt\nspubsub\t1\t20\t0\t0\tspubsub-a1-s20.txt\nnotify\t1\t20\t0\t0\tnotify-a1-s20.txt\nwiredump\t1\t20\t0\t0\twiredump-a1-s20.txt\nclimon\t1\t20\t0\t0\tclimon-a1-s20.txt\ncompatintro\t1\t20\t0\t0\tcompatintro-a1-s20.txt\naclsel\t1\t20\t0\t0\taclsel-a1-s20.txt\naclkeys\t1\t20\t0\t0\taclkeys-a1-s20.txt\ncmdmeta\t1\t20\t0\t0\tcmdmeta-a1-s20.txt\ns6fix\t1\t20\t0\t0\ts6fix-a1-s20.txt\nccfix\t1\t20\t0\t0\tccfix-a1-s20.txt\npsfix\t1\t20\t0\t0\tpsfix-a1-s20.txt\nmonitor\t1\t20\t0\t0\tmonitor-a1-s20.txt\nstring\t1\t23\t0\t0\tstring-a1-s23.txt\nlist\t1\t23\t0\t0\tlist-a1-s23.txt\nset\t1\t23\t0\t0\tset-a1-s23.txt\nzset\t1\t23\t0\t0\tzset-a1-s23.txt\nhash\t1\t23\t0\t0\thash-a1-s23.txt\nhexpire\t1\t23\t0\t0\thexpire-a1-s23.txt\nedgetime\t1\t23\t0\t0\tedgetime-a1-s23.txt\nxshard\t1\t23\t0\t0\txshard-a1-s23.txt\nxmove\t1\t23\t0\t0\txmove-a1-s23.txt\nbitmap\t1\t23\t0\t0\tbitmap-a1-s23.txt\nhll\t1\t23\t0\t0\thll-a1-s23.txt\nbitfield\t1\t23\t0\t0\tbitfield-a1-s23.txt\ncgaps\t1\t23\t0\t0\tcgaps-a1-s23.txt\nstream\t1\t23\t0\t0\tstream-a1-s23.txt\nscript\t1\t23\t0\t0\tscript-a1-s23.txt\nstreamgrp\t1\t23\t0\t0\tstreamgrp-a1-s23.txt\nzsetops\t1\t23\t0\t0\tzsetops-a1-s23.txt\ngeo\t1\t23\t0\t0\tgeo-a1-s23.txt\ndoubles\t1\t23\t0\t0\tdoubles-a1-s23.txt\nscan\t1\t23\t0\t0\tscan-a1-s23.txt\nmulti\t1\t23\t0\t0\tmulti-a1-s23.txt\nencodingfix\t1\t23\t0\t0\tencodingfix-a1-s23.txt\nedgeenc\t1\t23\t0\t0\tedgeenc-a1-s23.txt\nedgeproto\t1\t23\t0\t0\tedgeproto-a1-s23.txt\ncmdgap\t1\t23\t0\t0\tcmdgap-a1-s23.txt\ncmdgap2\t1\t23\t0\t0\tcmdgap2-a1-s23.txt\nservertail\t1\t23\t0\t0\tservertail-a1-s23.txt\narity\t1\t23\t0\t0\tarity-a1-s23.txt\nstoreorder\t1\t23\t0\t0\tstoreorder-a1-s23.txt\ninfofix\t1\t23\t0\t0\tinfofix-a1-s23.txt\nmultidb\t1\t23\t0\t0\tmultidb-a1-s23.txt\nblocking\t1\t23\t0\t0\tblocking-a1-s23.txt\npubsub\t1\t23\t0\t0\tpubsub-a1-s23.txt\nfanout\t1\t23\t0\t0\tfanout-a1-s23.txt\nspubsub\t1\t23\t0\t0\tspubsub-a1-s23.txt\nnotify\t1\t23\t0\t0\tnotify-a1-s23.txt\nwiredump\t1\t23\t0\t0\twiredump-a1-s23.txt\nclimon\t1\t23\t0\t0\tclimon-a1-s23.txt\ncompatintro\t1\t23\t0\t0\tcompatintro-a1-s23.txt\naclsel\t1\t23\t0\t0\taclsel-a1-s23.txt\naclkeys\t1\t23\t0\t0\taclkeys-a1-s23.txt\ncmdmeta\t1\t23\t0\t0\tcmdmeta-a1-s23.txt\ns6fix\t1\t23\t0\t0\ts6fix-a1-s23.txt\nccfix\t1\t23\t0\t0\tccfix-a1-s23.txt\npsfix\t1\t23\t0\t0\tpsfix-a1-s23.txt\nmonitor\t1\t23\t0\t0\tmonitor-a1-s23.txt\nstring\t1\t22\t0\t0\tstring-a1-s22.txt\nlist\t1\t22\t0\t0\tlist-a1-s22.txt\nset\t1\t22\t0\t0\tset-a1-s22.txt\nzset\t1\t22\t0\t0\tzset-a1-s22.txt\nhash\t1\t22\t0\t0\thash-a1-s22.txt\nhexpire\t1\t22\t0\t0\thexpire-a1-s22.txt\nedgetime\t1\t22\t0\t0\tedgetime-a1-s22.txt\nxshard\t1\t22\t0\t0\txshard-a1-s22.txt\nxmove\t1\t22\t0\t0\txmove-a1-s22.txt\nbitmap\t1\t22\t0\t0\tbitmap-a1-s22.txt\nhll\t1\t22\t0\t0\thll-a1-s22.txt\nbitfield\t1\t22\t0\t0\tbitfield-a1-s22.txt\ncgaps\t1\t22\t0\t0\tcgaps-a1-s22.txt\nstream\t1\t22\t0\t0\tstream-a1-s22.txt\nscript\t1\t22\t0\t0\tscript-a1-s22.txt\nstreamgrp\t1\t22\t0\t0\tstreamgrp-a1-s22.txt\nzsetops\t1\t22\t0\t0\tzsetops-a1-s22.txt\ngeo\t1\t22\t0\t0\tgeo-a1-s22.txt\ndoubles\t1\t22\t0\t0\tdoubles-a1-s22.txt\nscan\t1\t22\t0\t0\tscan-a1-s22.txt\nmulti\t1\t22\t0\t0\tmulti-a1-s22.txt\nencodingfix\t1\t22\t0\t0\tencodingfix-a1-s22.txt\nedgeenc\t1\t22\t0\t0\tedgeenc-a1-s22.txt\nedgeproto\t1\t22\t0\t0\tedgeproto-a1-s22.txt\ncmdgap\t1\t22\t0\t0\tcmdgap-a1-s22.txt\ncmdgap2\t1\t22\t0\t0\tcmdgap2-a1-s22.txt\nservertail\t1\t22\t0\t0\tservertail-a1-s22.txt\narity\t1\t22\t0\t0\tarity-a1-s22.txt\nstoreorder\t1\t22\t0\t0\tstoreorder-a1-s22.txt\ninfofix\t1\t22\t0\t0\tinfofix-a1-s22.txt\nmultidb\t1\t22\t0\t0\tmultidb-a1-s22.txt\nblocking\t1\t22\t0\t0\tblocking-a1-s22.txt\npubsub\t1\t22\t0\t0\tpubsub-a1-s22.txt\nfanout\t1\t22\t0\t0\tfanout-a1-s22.txt\nspubsub\t1\t22\t0\t0\tspubsub-a1-s22.txt\nnotify\t1\t22\t0\t0\tnotify-a1-s22.txt\nwiredump\t1\t22\t0\t0\twiredump-a1-s22.txt\nclimon\t1\t22\t0\t0\tclimon-a1-s22.txt\ncompatintro\t1\t22\t0\t0\tcompatintro-a1-s22.txt\naclsel\t1\t22\t0\t0\taclsel-a1-s22.txt\naclkeys\t1\t22\t0\t0\taclkeys-a1-s22.txt\ncmdmeta\t1\t22\t0\t0\tcmdmeta-a1-s22.txt\ns6fix\t1\t22\t0\t0\ts6fix-a1-s22.txt\nccfix\t1\t22\t0\t0\tccfix-a1-s22.txt\npsfix\t1\t22\t0\t0\tpsfix-a1-s22.txt\nmonitor\t1\t22\t0\t0\tmonitor-a1-s22.txt\nmulti\t1\t19\t1\t0\tmulti-a1-s19-rep1.txt\nmulti\t1\t19\t2\t0\tmulti-a1-s19-rep2.txt\nmulti\t1\t19\t3\t0\tmulti-a1-s19-rep3.txt\nmulti\t1\t19\t4\t0\tmulti-a1-s19-rep4.txt\n"
+      },
+      "differ/complete.json": {
+        "sha256": "0f49679878207e5087cab2f0ee4d2cc8da50163d41604be0e8fc6ca54006142b",
+        "data": "{\n  \"schema\": 1,\n  \"part\": \"armed-1\",\n  \"run\": \"iteration:gate-run.ojk4iA\",\n  \"seeds\": [\n    7,\n    19,\n    20,\n    23,\n    22\n  ],\n  \"comparisons\": 234,\n  \"complete\": true\n}\n"
+      }
+    },
+    "differ-equivalence [fused=0,atomic=1,engine=epoll]": {
+      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/differ-epoll.json",
+      "variant": "fused=0,atomic=1,engine=epoll",
+      "name": "differ-equivalence",
+      "completed": true,
+      "rows": [
+        [
+          "ok",
+          "21.470000",
+          "mode equivalence part (all execution modes and knobs)"
+        ]
+      ],
+      "ledger_sha256": "405b9189f0a3b57bc5d88d8ecaeb04383badbb271ac08dc6df30764469d2a541",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0",
+      "differ/legs.tsv": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "data": ""
+      },
+      "differ/complete.json": {
+        "sha256": "4ee8ddbc05ef6a40afb05c86bb97904dcfa016fac2252ba3d6da4f9f3dcfb242",
+        "data": "{\n  \"schema\": 1,\n  \"part\": \"equivalence\",\n  \"run\": \"iteration:gate-run.ojk4iA\",\n  \"seeds\": [\n    7,\n    19,\n    20,\n    23,\n    22\n  ],\n  \"comparisons\": 16,\n  \"complete\": true\n}\n"
+      }
+    },
+    "differ-split-0 [fused=0,atomic=1,engine=epoll]": {
+      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/differ-epoll.json",
+      "variant": "fused=0,atomic=1,engine=epoll",
+      "name": "differ-split-0",
+      "completed": true,
+      "rows": [
+        [
+          "ok",
+          "529.320000",
+          "Redis 7.4 differential part (split, atomic 0)"
+        ]
+      ],
+      "ledger_sha256": "3e558e80686fd7f079eb6a262e46a0a47dfca66bc634de44a6173acf07664a29",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0",
+      "differ/legs.tsv": {
+        "sha256": "1dc33d999f26af5537daa75b303dccc46327a76e3c30cff311f89b4094af35af",
+        "data": "string\t0\t7\t0\t0\tstring-a0-s7.txt\nlist\t0\t7\t0\t0\tlist-a0-s7.txt\nset\t0\t7\t0\t0\tset-a0-s7.txt\nzset\t0\t7\t0\t0\tzset-a0-s7.txt\nhash\t0\t7\t0\t0\thash-a0-s7.txt\nhexpire\t0\t7\t0\t0\thexpire-a0-s7.txt\nedgetime\t0\t7\t0\t0\tedgetime-a0-s7.txt\nxshard\t0\t7\t0\t0\txshard-a0-s7.txt\nxmove\t0\t7\t0\t0\txmove-a0-s7.txt\nbitmap\t0\t7\t0\t0\tbitmap-a0-s7.txt\nhll\t0\t7\t0\t0\thll-a0-s7.txt\nbitfield\t0\t7\t0\t0\tbitfield-a0-s7.txt\ncgaps\t0\t7\t0\t0\tcgaps-a0-s7.txt\nstream\t0\t7\t0\t0\tstream-a0-s7.txt\nscript\t0\t7\t0\t0\tscript-a0-s7.txt\nstreamgrp\t0\t7\t0\t0\tstreamgrp-a0-s7.txt\nzsetops\t0\t7\t0\t0\tzsetops-a0-s7.txt\ngeo\t0\t7\t0\t0\tgeo-a0-s7.txt\ndoubles\t0\t7\t0\t0\tdoubles-a0-s7.txt\nscan\t0\t7\t0\t0\tscan-a0-s7.txt\nmulti\t0\t7\t0\t0\tmulti-a0-s7.txt\nencodingfix\t0\t7\t0\t0\tencodingfix-a0-s7.txt\nedgeenc\t0\t7\t0\t0\tedgeenc-a0-s7.txt\nedgeproto\t0\t7\t0\t0\tedgeproto-a0-s7.txt\ncmdgap\t0\t7\t0\t0\tcmdgap-a0-s7.txt\ncmdgap2\t0\t7\t0\t0\tcmdgap2-a0-s7.txt\nsort\t0\t7\t0\t0\tsort-a0-s7.txt\nservertail\t0\t7\t0\t0\tservertail-a0-s7.txt\narity\t0\t7\t0\t0\tarity-a0-s7.txt\nstoreorder\t0\t7\t0\t0\tstoreorder-a0-s7.txt\ninfofix\t0\t7\t0\t0\tinfofix-a0-s7.txt\nmultidb\t0\t7\t0\t0\tmultidb-a0-s7.txt\nblocking\t0\t7\t0\t0\tblocking-a0-s7.txt\npubsub\t0\t7\t0\t0\tpubsub-a0-s7.txt\nfanout\t0\t7\t0\t0\tfanout-a0-s7.txt\nspubsub\t0\t7\t0\t0\tspubsub-a0-s7.txt\nnotify\t0\t7\t0\t0\tnotify-a0-s7.txt\nwiredump\t0\t7\t0\t0\twiredump-a0-s7.txt\nclimon\t0\t7\t0\t0\tclimon-a0-s7.txt\ncompatintro\t0\t7\t0\t0\tcompatintro-a0-s7.txt\naclsel\t0\t7\t0\t0\taclsel-a0-s7.txt\naclkeys\t0\t7\t0\t0\taclkeys-a0-s7.txt\ncmdmeta\t0\t7\t0\t0\tcmdmeta-a0-s7.txt\ns6fix\t0\t7\t0\t0\ts6fix-a0-s7.txt\nccfix\t0\t7\t0\t0\tccfix-a0-s7.txt\npsfix\t0\t7\t0\t0\tpsfix-a0-s7.txt\nmonitor\t0\t7\t0\t0\tmonitor-a0-s7.txt\nstring\t0\t19\t0\t0\tstring-a0-s19.txt\nlist\t0\t19\t0\t0\tlist-a0-s19.txt\nset\t0\t19\t0\t0\tset-a0-s19.txt\nzset\t0\t19\t0\t0\tzset-a0-s19.txt\nhash\t0\t19\t0\t0\thash-a0-s19.txt\nhexpire\t0\t19\t0\t0\thexpire-a0-s19.txt\nedgetime\t0\t19\t0\t0\tedgetime-a0-s19.txt\nxshard\t0\t19\t0\t0\txshard-a0-s19.txt\nxmove\t0\t19\t0\t0\txmove-a0-s19.txt\nbitmap\t0\t19\t0\t0\tbitmap-a0-s19.txt\nhll\t0\t19\t0\t0\thll-a0-s19.txt\nbitfield\t0\t19\t0\t0\tbitfield-a0-s19.txt\ncgaps\t0\t19\t0\t0\tcgaps-a0-s19.txt\nstream\t0\t19\t0\t0\tstream-a0-s19.txt\nscript\t0\t19\t0\t0\tscript-a0-s19.txt\nstreamgrp\t0\t19\t0\t0\tstreamgrp-a0-s19.txt\nzsetops\t0\t19\t0\t0\tzsetops-a0-s19.txt\ngeo\t0\t19\t0\t0\tgeo-a0-s19.txt\ndoubles\t0\t19\t0\t0\tdoubles-a0-s19.txt\nscan\t0\t19\t0\t0\tscan-a0-s19.txt\nmulti\t0\t19\t0\t0\tmulti-a0-s19.txt\nencodingfix\t0\t19\t0\t0\tencodingfix-a0-s19.txt\nedgeenc\t0\t19\t0\t0\tedgeenc-a0-s19.txt\nedgeproto\t0\t19\t0\t0\tedgeproto-a0-s19.txt\ncmdgap\t0\t19\t0\t0\tcmdgap-a0-s19.txt\ncmdgap2\t0\t19\t0\t0\tcmdgap2-a0-s19.txt\nsort\t0\t19\t0\t0\tsort-a0-s19.txt\nservertail\t0\t19\t0\t0\tservertail-a0-s19.txt\narity\t0\t19\t0\t0\tarity-a0-s19.txt\nstoreorder\t0\t19\t0\t0\tstoreorder-a0-s19.txt\ninfofix\t0\t19\t0\t0\tinfofix-a0-s19.txt\nmultidb\t0\t19\t0\t0\tmultidb-a0-s19.txt\nblocking\t0\t19\t0\t0\tblocking-a0-s19.txt\npubsub\t0\t19\t0\t0\tpubsub-a0-s19.txt\nfanout\t0\t19\t0\t0\tfanout-a0-s19.txt\nspubsub\t0\t19\t0\t0\tspubsub-a0-s19.txt\nnotify\t0\t19\t0\t0\tnotify-a0-s19.txt\nwiredump\t0\t19\t0\t0\twiredump-a0-s19.txt\nclimon\t0\t19\t0\t0\tclimon-a0-s19.txt\ncompatintro\t0\t19\t0\t0\tcompatintro-a0-s19.txt\naclsel\t0\t19\t0\t0\taclsel-a0-s19.txt\naclkeys\t0\t19\t0\t0\taclkeys-a0-s19.txt\ncmdmeta\t0\t19\t0\t0\tcmdmeta-a0-s19.txt\ns6fix\t0\t19\t0\t0\ts6fix-a0-s19.txt\nccfix\t0\t19\t0\t0\tccfix-a0-s19.txt\npsfix\t0\t19\t0\t0\tpsfix-a0-s19.txt\nmonitor\t0\t19\t0\t0\tmonitor-a0-s19.txt\nstring\t0\t20\t0\t0\tstring-a0-s20.txt\nlist\t0\t20\t0\t0\tlist-a0-s20.txt\nset\t0\t20\t0\t0\tset-a0-s20.txt\nzset\t0\t20\t0\t0\tzset-a0-s20.txt\nhash\t0\t20\t0\t0\thash-a0-s20.txt\nhexpire\t0\t20\t0\t0\thexpire-a0-s20.txt\nedgetime\t0\t20\t0\t0\tedgetime-a0-s20.txt\nxshard\t0\t20\t0\t0\txshard-a0-s20.txt\nxmove\t0\t20\t0\t0\txmove-a0-s20.txt\nbitmap\t0\t20\t0\t0\tbitmap-a0-s20.txt\nhll\t0\t20\t0\t0\thll-a0-s20.txt\nbitfield\t0\t20\t0\t0\tbitfield-a0-s20.txt\ncgaps\t0\t20\t0\t0\tcgaps-a0-s20.txt\nstream\t0\t20\t0\t0\tstream-a0-s20.txt\nscript\t0\t20\t0\t0\tscript-a0-s20.txt\nstreamgrp\t0\t20\t0\t0\tstreamgrp-a0-s20.txt\nzsetops\t0\t20\t0\t0\tzsetops-a0-s20.txt\ngeo\t0\t20\t0\t0\tgeo-a0-s20.txt\ndoubles\t0\t20\t0\t0\tdoubles-a0-s20.txt\nscan\t0\t20\t0\t0\tscan-a0-s20.txt\nmulti\t0\t20\t0\t0\tmulti-a0-s20.txt\nencodingfix\t0\t20\t0\t0\tencodingfix-a0-s20.txt\nedgeenc\t0\t20\t0\t0\tedgeenc-a0-s20.txt\nedgeproto\t0\t20\t0\t0\tedgeproto-a0-s20.txt\ncmdgap\t0\t20\t0\t0\tcmdgap-a0-s20.txt\ncmdgap2\t0\t20\t0\t0\tcmdgap2-a0-s20.txt\nsort\t0\t20\t0\t0\tsort-a0-s20.txt\nservertail\t0\t20\t0\t0\tservertail-a0-s20.txt\narity\t0\t20\t0\t0\tarity-a0-s20.txt\nstoreorder\t0\t20\t0\t0\tstoreorder-a0-s20.txt\ninfofix\t0\t20\t0\t0\tinfofix-a0-s20.txt\nmultidb\t0\t20\t0\t0\tmultidb-a0-s20.txt\nblocking\t0\t20\t0\t0\tblocking-a0-s20.txt\npubsub\t0\t20\t0\t0\tpubsub-a0-s20.txt\nfanout\t0\t20\t0\t0\tfanout-a0-s20.txt\nspubsub\t0\t20\t0\t0\tspubsub-a0-s20.txt\nnotify\t0\t20\t0\t0\tnotify-a0-s20.txt\nwiredump\t0\t20\t0\t0\twiredump-a0-s20.txt\nclimon\t0\t20\t0\t0\tclimon-a0-s20.txt\ncompatintro\t0\t20\t0\t0\tcompatintro-a0-s20.txt\naclsel\t0\t20\t0\t0\taclsel-a0-s20.txt\naclkeys\t0\t20\t0\t0\taclkeys-a0-s20.txt\ncmdmeta\t0\t20\t0\t0\tcmdmeta-a0-s20.txt\ns6fix\t0\t20\t0\t0\ts6fix-a0-s20.txt\nccfix\t0\t20\t0\t0\tccfix-a0-s20.txt\npsfix\t0\t20\t0\t0\tpsfix-a0-s20.txt\nmonitor\t0\t20\t0\t0\tmonitor-a0-s20.txt\nstring\t0\t23\t0\t0\tstring-a0-s23.txt\nlist\t0\t23\t0\t0\tlist-a0-s23.txt\nset\t0\t23\t0\t0\tset-a0-s23.txt\nzset\t0\t23\t0\t0\tzset-a0-s23.txt\nhash\t0\t23\t0\t0\thash-a0-s23.txt\nhexpire\t0\t23\t0\t0\thexpire-a0-s23.txt\nedgetime\t0\t23\t0\t0\tedgetime-a0-s23.txt\nxshard\t0\t23\t0\t0\txshard-a0-s23.txt\nxmove\t0\t23\t0\t0\txmove-a0-s23.txt\nbitmap\t0\t23\t0\t0\tbitmap-a0-s23.txt\nhll\t0\t23\t0\t0\thll-a0-s23.txt\nbitfield\t0\t23\t0\t0\tbitfield-a0-s23.txt\ncgaps\t0\t23\t0\t0\tcgaps-a0-s23.txt\nstream\t0\t23\t0\t0\tstream-a0-s23.txt\nscript\t0\t23\t0\t0\tscript-a0-s23.txt\nstreamgrp\t0\t23\t0\t0\tstreamgrp-a0-s23.txt\nzsetops\t0\t23\t0\t0\tzsetops-a0-s23.txt\ngeo\t0\t23\t0\t0\tgeo-a0-s23.txt\ndoubles\t0\t23\t0\t0\tdoubles-a0-s23.txt\nscan\t0\t23\t0\t0\tscan-a0-s23.txt\nmulti\t0\t23\t0\t0\tmulti-a0-s23.txt\nencodingfix\t0\t23\t0\t0\tencodingfix-a0-s23.txt\nedgeenc\t0\t23\t0\t0\tedgeenc-a0-s23.txt\nedgeproto\t0\t23\t0\t0\tedgeproto-a0-s23.txt\ncmdgap\t0\t23\t0\t0\tcmdgap-a0-s23.txt\ncmdgap2\t0\t23\t0\t0\tcmdgap2-a0-s23.txt\nsort\t0\t23\t0\t0\tsort-a0-s23.txt\nservertail\t0\t23\t0\t0\tservertail-a0-s23.txt\narity\t0\t23\t0\t0\tarity-a0-s23.txt\nstoreorder\t0\t23\t0\t0\tstoreorder-a0-s23.txt\ninfofix\t0\t23\t0\t0\tinfofix-a0-s23.txt\nmultidb\t0\t23\t0\t0\tmultidb-a0-s23.txt\nblocking\t0\t23\t0\t0\tblocking-a0-s23.txt\npubsub\t0\t23\t0\t0\tpubsub-a0-s23.txt\nfanout\t0\t23\t0\t0\tfanout-a0-s23.txt\nspubsub\t0\t23\t0\t0\tspubsub-a0-s23.txt\nnotify\t0\t23\t0\t0\tnotify-a0-s23.txt\nwiredump\t0\t23\t0\t0\twiredump-a0-s23.txt\nclimon\t0\t23\t0\t0\tclimon-a0-s23.txt\ncompatintro\t0\t23\t0\t0\tcompatintro-a0-s23.txt\naclsel\t0\t23\t0\t0\taclsel-a0-s23.txt\naclkeys\t0\t23\t0\t0\taclkeys-a0-s23.txt\ncmdmeta\t0\t23\t0\t0\tcmdmeta-a0-s23.txt\ns6fix\t0\t23\t0\t0\ts6fix-a0-s23.txt\nccfix\t0\t23\t0\t0\tccfix-a0-s23.txt\npsfix\t0\t23\t0\t0\tpsfix-a0-s23.txt\nmonitor\t0\t23\t0\t0\tmonitor-a0-s23.txt\nstring\t0\t22\t0\t0\tstring-a0-s22.txt\nlist\t0\t22\t0\t0\tlist-a0-s22.txt\nset\t0\t22\t0\t0\tset-a0-s22.txt\nzset\t0\t22\t0\t0\tzset-a0-s22.txt\nhash\t0\t22\t0\t0\thash-a0-s22.txt\nhexpire\t0\t22\t0\t0\thexpire-a0-s22.txt\nedgetime\t0\t22\t0\t0\tedgetime-a0-s22.txt\nxshard\t0\t22\t0\t0\txshard-a0-s22.txt\nxmove\t0\t22\t0\t0\txmove-a0-s22.txt\nbitmap\t0\t22\t0\t0\tbitmap-a0-s22.txt\nhll\t0\t22\t0\t0\thll-a0-s22.txt\nbitfield\t0\t22\t0\t0\tbitfield-a0-s22.txt\ncgaps\t0\t22\t0\t0\tcgaps-a0-s22.txt\nstream\t0\t22\t0\t0\tstream-a0-s22.txt\nscript\t0\t22\t0\t0\tscript-a0-s22.txt\nstreamgrp\t0\t22\t0\t0\tstreamgrp-a0-s22.txt\nzsetops\t0\t22\t0\t0\tzsetops-a0-s22.txt\ngeo\t0\t22\t0\t0\tgeo-a0-s22.txt\ndoubles\t0\t22\t0\t0\tdoubles-a0-s22.txt\nscan\t0\t22\t0\t0\tscan-a0-s22.txt\nmulti\t0\t22\t0\t0\tmulti-a0-s22.txt\nencodingfix\t0\t22\t0\t0\tencodingfix-a0-s22.txt\nedgeenc\t0\t22\t0\t0\tedgeenc-a0-s22.txt\nedgeproto\t0\t22\t0\t0\tedgeproto-a0-s22.txt\ncmdgap\t0\t22\t0\t0\tcmdgap-a0-s22.txt\ncmdgap2\t0\t22\t0\t0\tcmdgap2-a0-s22.txt\nsort\t0\t22\t0\t0\tsort-a0-s22.txt\nservertail\t0\t22\t0\t0\tservertail-a0-s22.txt\narity\t0\t22\t0\t0\tarity-a0-s22.txt\nstoreorder\t0\t22\t0\t0\tstoreorder-a0-s22.txt\ninfofix\t0\t22\t0\t0\tinfofix-a0-s22.txt\nmultidb\t0\t22\t0\t0\tmultidb-a0-s22.txt\nblocking\t0\t22\t0\t0\tblocking-a0-s22.txt\npubsub\t0\t22\t0\t0\tpubsub-a0-s22.txt\nfanout\t0\t22\t0\t0\tfanout-a0-s22.txt\nspubsub\t0\t22\t0\t0\tspubsub-a0-s22.txt\nnotify\t0\t22\t0\t0\tnotify-a0-s22.txt\nwiredump\t0\t22\t0\t0\twiredump-a0-s22.txt\nclimon\t0\t22\t0\t0\tclimon-a0-s22.txt\ncompatintro\t0\t22\t0\t0\tcompatintro-a0-s22.txt\naclsel\t0\t22\t0\t0\taclsel-a0-s22.txt\naclkeys\t0\t22\t0\t0\taclkeys-a0-s22.txt\ncmdmeta\t0\t22\t0\t0\tcmdmeta-a0-s22.txt\ns6fix\t0\t22\t0\t0\ts6fix-a0-s22.txt\nccfix\t0\t22\t0\t0\tccfix-a0-s22.txt\npsfix\t0\t22\t0\t0\tpsfix-a0-s22.txt\nmonitor\t0\t22\t0\t0\tmonitor-a0-s22.txt\n"
+      },
+      "differ/complete.json": {
+        "sha256": "77b920500e980765c9b666dacfdf720cede93cc8139efe0a3f2369039ea8cd52",
+        "data": "{\n  \"schema\": 1,\n  \"part\": \"split-0\",\n  \"run\": \"iteration:gate-run.ojk4iA\",\n  \"seeds\": [\n    7,\n    19,\n    20,\n    23,\n    22\n  ],\n  \"comparisons\": 235,\n  \"complete\": true\n}\n"
+      }
+    },
+    "differ-split-1 [fused=0,atomic=1,engine=epoll]": {
+      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/differ-epoll.json",
+      "variant": "fused=0,atomic=1,engine=epoll",
+      "name": "differ-split-1",
+      "completed": true,
+      "rows": [
+        [
+          "ok",
+          "532.220000",
+          "Redis 7.4 differential part (split, atomic 1)"
+        ]
+      ],
+      "ledger_sha256": "bbfca84901e03a97224fec98eafc380de3702eb97af0818b09885c3174834f95",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0",
+      "differ/legs.tsv": {
+        "sha256": "f6e4120f6ec425731c167c7bf4b6fedd4e664196a6e46cab3597a6d14bd20089",
+        "data": "string\t1\t7\t0\t0\tstring-a1-s7.txt\nlist\t1\t7\t0\t0\tlist-a1-s7.txt\nset\t1\t7\t0\t0\tset-a1-s7.txt\nzset\t1\t7\t0\t0\tzset-a1-s7.txt\nhash\t1\t7\t0\t0\thash-a1-s7.txt\nhexpire\t1\t7\t0\t0\thexpire-a1-s7.txt\nedgetime\t1\t7\t0\t0\tedgetime-a1-s7.txt\nxshard\t1\t7\t0\t0\txshard-a1-s7.txt\nxmove\t1\t7\t0\t0\txmove-a1-s7.txt\nbitmap\t1\t7\t0\t0\tbitmap-a1-s7.txt\nhll\t1\t7\t0\t0\thll-a1-s7.txt\nbitfield\t1\t7\t0\t0\tbitfield-a1-s7.txt\ncgaps\t1\t7\t0\t0\tcgaps-a1-s7.txt\nstream\t1\t7\t0\t0\tstream-a1-s7.txt\nscript\t1\t7\t0\t0\tscript-a1-s7.txt\nstreamgrp\t1\t7\t0\t0\tstreamgrp-a1-s7.txt\nzsetops\t1\t7\t0\t0\tzsetops-a1-s7.txt\ngeo\t1\t7\t0\t0\tgeo-a1-s7.txt\ndoubles\t1\t7\t0\t0\tdoubles-a1-s7.txt\nscan\t1\t7\t0\t0\tscan-a1-s7.txt\nmulti\t1\t7\t0\t0\tmulti-a1-s7.txt\nencodingfix\t1\t7\t0\t0\tencodingfix-a1-s7.txt\nedgeenc\t1\t7\t0\t0\tedgeenc-a1-s7.txt\nedgeproto\t1\t7\t0\t0\tedgeproto-a1-s7.txt\ncmdgap\t1\t7\t0\t0\tcmdgap-a1-s7.txt\ncmdgap2\t1\t7\t0\t0\tcmdgap2-a1-s7.txt\nsort\t1\t7\t0\t0\tsort-a1-s7.txt\nservertail\t1\t7\t0\t0\tservertail-a1-s7.txt\narity\t1\t7\t0\t0\tarity-a1-s7.txt\nstoreorder\t1\t7\t0\t0\tstoreorder-a1-s7.txt\ninfofix\t1\t7\t0\t0\tinfofix-a1-s7.txt\nmultidb\t1\t7\t0\t0\tmultidb-a1-s7.txt\nblocking\t1\t7\t0\t0\tblocking-a1-s7.txt\npubsub\t1\t7\t0\t0\tpubsub-a1-s7.txt\nfanout\t1\t7\t0\t0\tfanout-a1-s7.txt\nspubsub\t1\t7\t0\t0\tspubsub-a1-s7.txt\nnotify\t1\t7\t0\t0\tnotify-a1-s7.txt\nwiredump\t1\t7\t0\t0\twiredump-a1-s7.txt\nclimon\t1\t7\t0\t0\tclimon-a1-s7.txt\ncompatintro\t1\t7\t0\t0\tcompatintro-a1-s7.txt\naclsel\t1\t7\t0\t0\taclsel-a1-s7.txt\naclkeys\t1\t7\t0\t0\taclkeys-a1-s7.txt\ncmdmeta\t1\t7\t0\t0\tcmdmeta-a1-s7.txt\ns6fix\t1\t7\t0\t0\ts6fix-a1-s7.txt\nccfix\t1\t7\t0\t0\tccfix-a1-s7.txt\npsfix\t1\t7\t0\t0\tpsfix-a1-s7.txt\nmonitor\t1\t7\t0\t0\tmonitor-a1-s7.txt\nstring\t1\t19\t0\t0\tstring-a1-s19.txt\nlist\t1\t19\t0\t0\tlist-a1-s19.txt\nset\t1\t19\t0\t0\tset-a1-s19.txt\nzset\t1\t19\t0\t0\tzset-a1-s19.txt\nhash\t1\t19\t0\t0\thash-a1-s19.txt\nhexpire\t1\t19\t0\t0\thexpire-a1-s19.txt\nedgetime\t1\t19\t0\t0\tedgetime-a1-s19.txt\nxshard\t1\t19\t0\t0\txshard-a1-s19.txt\nxmove\t1\t19\t0\t0\txmove-a1-s19.txt\nbitmap\t1\t19\t0\t0\tbitmap-a1-s19.txt\nhll\t1\t19\t0\t0\thll-a1-s19.txt\nbitfield\t1\t19\t0\t0\tbitfield-a1-s19.txt\ncgaps\t1\t19\t0\t0\tcgaps-a1-s19.txt\nstream\t1\t19\t0\t0\tstream-a1-s19.txt\nscript\t1\t19\t0\t0\tscript-a1-s19.txt\nstreamgrp\t1\t19\t0\t0\tstreamgrp-a1-s19.txt\nzsetops\t1\t19\t0\t0\tzsetops-a1-s19.txt\ngeo\t1\t19\t0\t0\tgeo-a1-s19.txt\ndoubles\t1\t19\t0\t0\tdoubles-a1-s19.txt\nscan\t1\t19\t0\t0\tscan-a1-s19.txt\nmulti\t1\t19\t0\t0\tmulti-a1-s19.txt\nencodingfix\t1\t19\t0\t0\tencodingfix-a1-s19.txt\nedgeenc\t1\t19\t0\t0\tedgeenc-a1-s19.txt\nedgeproto\t1\t19\t0\t0\tedgeproto-a1-s19.txt\ncmdgap\t1\t19\t0\t0\tcmdgap-a1-s19.txt\ncmdgap2\t1\t19\t0\t0\tcmdgap2-a1-s19.txt\nsort\t1\t19\t0\t0\tsort-a1-s19.txt\nservertail\t1\t19\t0\t0\tservertail-a1-s19.txt\narity\t1\t19\t0\t0\tarity-a1-s19.txt\nstoreorder\t1\t19\t0\t0\tstoreorder-a1-s19.txt\ninfofix\t1\t19\t0\t0\tinfofix-a1-s19.txt\nmultidb\t1\t19\t0\t0\tmultidb-a1-s19.txt\nblocking\t1\t19\t0\t0\tblocking-a1-s19.txt\npubsub\t1\t19\t0\t0\tpubsub-a1-s19.txt\nfanout\t1\t19\t0\t0\tfanout-a1-s19.txt\nspubsub\t1\t19\t0\t0\tspubsub-a1-s19.txt\nnotify\t1\t19\t0\t0\tnotify-a1-s19.txt\nwiredump\t1\t19\t0\t0\twiredump-a1-s19.txt\nclimon\t1\t19\t0\t0\tclimon-a1-s19.txt\ncompatintro\t1\t19\t0\t0\tcompatintro-a1-s19.txt\naclsel\t1\t19\t0\t0\taclsel-a1-s19.txt\naclkeys\t1\t19\t0\t0\taclkeys-a1-s19.txt\ncmdmeta\t1\t19\t0\t0\tcmdmeta-a1-s19.txt\ns6fix\t1\t19\t0\t0\ts6fix-a1-s19.txt\nccfix\t1\t19\t0\t0\tccfix-a1-s19.txt\npsfix\t1\t19\t0\t0\tpsfix-a1-s19.txt\nmonitor\t1\t19\t0\t0\tmonitor-a1-s19.txt\nstring\t1\t20\t0\t0\tstring-a1-s20.txt\nlist\t1\t20\t0\t0\tlist-a1-s20.txt\nset\t1\t20\t0\t0\tset-a1-s20.txt\nzset\t1\t20\t0\t0\tzset-a1-s20.txt\nhash\t1\t20\t0\t0\thash-a1-s20.txt\nhexpire\t1\t20\t0\t0\thexpire-a1-s20.txt\nedgetime\t1\t20\t0\t0\tedgetime-a1-s20.txt\nxshard\t1\t20\t0\t0\txshard-a1-s20.txt\nxmove\t1\t20\t0\t0\txmove-a1-s20.txt\nbitmap\t1\t20\t0\t0\tbitmap-a1-s20.txt\nhll\t1\t20\t0\t0\thll-a1-s20.txt\nbitfield\t1\t20\t0\t0\tbitfield-a1-s20.txt\ncgaps\t1\t20\t0\t0\tcgaps-a1-s20.txt\nstream\t1\t20\t0\t0\tstream-a1-s20.txt\nscript\t1\t20\t0\t0\tscript-a1-s20.txt\nstreamgrp\t1\t20\t0\t0\tstreamgrp-a1-s20.txt\nzsetops\t1\t20\t0\t0\tzsetops-a1-s20.txt\ngeo\t1\t20\t0\t0\tgeo-a1-s20.txt\ndoubles\t1\t20\t0\t0\tdoubles-a1-s20.txt\nscan\t1\t20\t0\t0\tscan-a1-s20.txt\nmulti\t1\t20\t0\t0\tmulti-a1-s20.txt\nencodingfix\t1\t20\t0\t0\tencodingfix-a1-s20.txt\nedgeenc\t1\t20\t0\t0\tedgeenc-a1-s20.txt\nedgeproto\t1\t20\t0\t0\tedgeproto-a1-s20.txt\ncmdgap\t1\t20\t0\t0\tcmdgap-a1-s20.txt\ncmdgap2\t1\t20\t0\t0\tcmdgap2-a1-s20.txt\nsort\t1\t20\t0\t0\tsort-a1-s20.txt\nservertail\t1\t20\t0\t0\tservertail-a1-s20.txt\narity\t1\t20\t0\t0\tarity-a1-s20.txt\nstoreorder\t1\t20\t0\t0\tstoreorder-a1-s20.txt\ninfofix\t1\t20\t0\t0\tinfofix-a1-s20.txt\nmultidb\t1\t20\t0\t0\tmultidb-a1-s20.txt\nblocking\t1\t20\t0\t0\tblocking-a1-s20.txt\npubsub\t1\t20\t0\t0\tpubsub-a1-s20.txt\nfanout\t1\t20\t0\t0\tfanout-a1-s20.txt\nspubsub\t1\t20\t0\t0\tspubsub-a1-s20.txt\nnotify\t1\t20\t0\t0\tnotify-a1-s20.txt\nwiredump\t1\t20\t0\t0\twiredump-a1-s20.txt\nclimon\t1\t20\t0\t0\tclimon-a1-s20.txt\ncompatintro\t1\t20\t0\t0\tcompatintro-a1-s20.txt\naclsel\t1\t20\t0\t0\taclsel-a1-s20.txt\naclkeys\t1\t20\t0\t0\taclkeys-a1-s20.txt\ncmdmeta\t1\t20\t0\t0\tcmdmeta-a1-s20.txt\ns6fix\t1\t20\t0\t0\ts6fix-a1-s20.txt\nccfix\t1\t20\t0\t0\tccfix-a1-s20.txt\npsfix\t1\t20\t0\t0\tpsfix-a1-s20.txt\nmonitor\t1\t20\t0\t0\tmonitor-a1-s20.txt\nstring\t1\t23\t0\t0\tstring-a1-s23.txt\nlist\t1\t23\t0\t0\tlist-a1-s23.txt\nset\t1\t23\t0\t0\tset-a1-s23.txt\nzset\t1\t23\t0\t0\tzset-a1-s23.txt\nhash\t1\t23\t0\t0\thash-a1-s23.txt\nhexpire\t1\t23\t0\t0\thexpire-a1-s23.txt\nedgetime\t1\t23\t0\t0\tedgetime-a1-s23.txt\nxshard\t1\t23\t0\t0\txshard-a1-s23.txt\nxmove\t1\t23\t0\t0\txmove-a1-s23.txt\nbitmap\t1\t23\t0\t0\tbitmap-a1-s23.txt\nhll\t1\t23\t0\t0\thll-a1-s23.txt\nbitfield\t1\t23\t0\t0\tbitfield-a1-s23.txt\ncgaps\t1\t23\t0\t0\tcgaps-a1-s23.txt\nstream\t1\t23\t0\t0\tstream-a1-s23.txt\nscript\t1\t23\t0\t0\tscript-a1-s23.txt\nstreamgrp\t1\t23\t0\t0\tstreamgrp-a1-s23.txt\nzsetops\t1\t23\t0\t0\tzsetops-a1-s23.txt\ngeo\t1\t23\t0\t0\tgeo-a1-s23.txt\ndoubles\t1\t23\t0\t0\tdoubles-a1-s23.txt\nscan\t1\t23\t0\t0\tscan-a1-s23.txt\nmulti\t1\t23\t0\t0\tmulti-a1-s23.txt\nencodingfix\t1\t23\t0\t0\tencodingfix-a1-s23.txt\nedgeenc\t1\t23\t0\t0\tedgeenc-a1-s23.txt\nedgeproto\t1\t23\t0\t0\tedgeproto-a1-s23.txt\ncmdgap\t1\t23\t0\t0\tcmdgap-a1-s23.txt\ncmdgap2\t1\t23\t0\t0\tcmdgap2-a1-s23.txt\nsort\t1\t23\t0\t0\tsort-a1-s23.txt\nservertail\t1\t23\t0\t0\tservertail-a1-s23.txt\narity\t1\t23\t0\t0\tarity-a1-s23.txt\nstoreorder\t1\t23\t0\t0\tstoreorder-a1-s23.txt\ninfofix\t1\t23\t0\t0\tinfofix-a1-s23.txt\nmultidb\t1\t23\t0\t0\tmultidb-a1-s23.txt\nblocking\t1\t23\t0\t0\tblocking-a1-s23.txt\npubsub\t1\t23\t0\t0\tpubsub-a1-s23.txt\nfanout\t1\t23\t0\t0\tfanout-a1-s23.txt\nspubsub\t1\t23\t0\t0\tspubsub-a1-s23.txt\nnotify\t1\t23\t0\t0\tnotify-a1-s23.txt\nwiredump\t1\t23\t0\t0\twiredump-a1-s23.txt\nclimon\t1\t23\t0\t0\tclimon-a1-s23.txt\ncompatintro\t1\t23\t0\t0\tcompatintro-a1-s23.txt\naclsel\t1\t23\t0\t0\taclsel-a1-s23.txt\naclkeys\t1\t23\t0\t0\taclkeys-a1-s23.txt\ncmdmeta\t1\t23\t0\t0\tcmdmeta-a1-s23.txt\ns6fix\t1\t23\t0\t0\ts6fix-a1-s23.txt\nccfix\t1\t23\t0\t0\tccfix-a1-s23.txt\npsfix\t1\t23\t0\t0\tpsfix-a1-s23.txt\nmonitor\t1\t23\t0\t0\tmonitor-a1-s23.txt\nstring\t1\t22\t0\t0\tstring-a1-s22.txt\nlist\t1\t22\t0\t0\tlist-a1-s22.txt\nset\t1\t22\t0\t0\tset-a1-s22.txt\nzset\t1\t22\t0\t0\tzset-a1-s22.txt\nhash\t1\t22\t0\t0\thash-a1-s22.txt\nhexpire\t1\t22\t0\t0\thexpire-a1-s22.txt\nedgetime\t1\t22\t0\t0\tedgetime-a1-s22.txt\nxshard\t1\t22\t0\t0\txshard-a1-s22.txt\nxmove\t1\t22\t0\t0\txmove-a1-s22.txt\nbitmap\t1\t22\t0\t0\tbitmap-a1-s22.txt\nhll\t1\t22\t0\t0\thll-a1-s22.txt\nbitfield\t1\t22\t0\t0\tbitfield-a1-s22.txt\ncgaps\t1\t22\t0\t0\tcgaps-a1-s22.txt\nstream\t1\t22\t0\t0\tstream-a1-s22.txt\nscript\t1\t22\t0\t0\tscript-a1-s22.txt\nstreamgrp\t1\t22\t0\t0\tstreamgrp-a1-s22.txt\nzsetops\t1\t22\t0\t0\tzsetops-a1-s22.txt\ngeo\t1\t22\t0\t0\tgeo-a1-s22.txt\ndoubles\t1\t22\t0\t0\tdoubles-a1-s22.txt\nscan\t1\t22\t0\t0\tscan-a1-s22.txt\nmulti\t1\t22\t0\t0\tmulti-a1-s22.txt\nencodingfix\t1\t22\t0\t0\tencodingfix-a1-s22.txt\nedgeenc\t1\t22\t0\t0\tedgeenc-a1-s22.txt\nedgeproto\t1\t22\t0\t0\tedgeproto-a1-s22.txt\ncmdgap\t1\t22\t0\t0\tcmdgap-a1-s22.txt\ncmdgap2\t1\t22\t0\t0\tcmdgap2-a1-s22.txt\nsort\t1\t22\t0\t0\tsort-a1-s22.txt\nservertail\t1\t22\t0\t0\tservertail-a1-s22.txt\narity\t1\t22\t0\t0\tarity-a1-s22.txt\nstoreorder\t1\t22\t0\t0\tstoreorder-a1-s22.txt\ninfofix\t1\t22\t0\t0\tinfofix-a1-s22.txt\nmultidb\t1\t22\t0\t0\tmultidb-a1-s22.txt\nblocking\t1\t22\t0\t0\tblocking-a1-s22.txt\npubsub\t1\t22\t0\t0\tpubsub-a1-s22.txt\nfanout\t1\t22\t0\t0\tfanout-a1-s22.txt\nspubsub\t1\t22\t0\t0\tspubsub-a1-s22.txt\nnotify\t1\t22\t0\t0\tnotify-a1-s22.txt\nwiredump\t1\t22\t0\t0\twiredump-a1-s22.txt\nclimon\t1\t22\t0\t0\tclimon-a1-s22.txt\ncompatintro\t1\t22\t0\t0\tcompatintro-a1-s22.txt\naclsel\t1\t22\t0\t0\taclsel-a1-s22.txt\naclkeys\t1\t22\t0\t0\taclkeys-a1-s22.txt\ncmdmeta\t1\t22\t0\t0\tcmdmeta-a1-s22.txt\ns6fix\t1\t22\t0\t0\ts6fix-a1-s22.txt\nccfix\t1\t22\t0\t0\tccfix-a1-s22.txt\npsfix\t1\t22\t0\t0\tpsfix-a1-s22.txt\nmonitor\t1\t22\t0\t0\tmonitor-a1-s22.txt\nmulti\t1\t19\t1\t0\tmulti-a1-s19-rep1.txt\nmulti\t1\t19\t2\t0\tmulti-a1-s19-rep2.txt\nmulti\t1\t19\t3\t0\tmulti-a1-s19-rep3.txt\nmulti\t1\t19\t4\t0\tmulti-a1-s19-rep4.txt\n"
+      },
+      "differ/complete.json": {
+        "sha256": "69740625fac77f81ad637a59520048f828e7dcb0f98395b8fd6f688a64ec12bc",
+        "data": "{\n  \"schema\": 1,\n  \"part\": \"split-1\",\n  \"run\": \"iteration:gate-run.ojk4iA\",\n  \"seeds\": [\n    7,\n    19,\n    20,\n    23,\n    22\n  ],\n  \"comparisons\": 239,\n  \"complete\": true\n}\n"
+      }
+    },
+    "release [fused=0,atomic=1,engine=epoll]": {
+      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/zc-0-epoll.json",
+      "variant": "fused=0,atomic=1,engine=epoll",
+      "name": "release",
+      "completed": true,
+      "rows": [
+        [
+          "ok",
+          "0.000000",
+          "release build (+footprint locks)"
+        ]
+      ],
+      "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "asan [fused=0,atomic=1,engine=epoll]": {
+      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/zc-0-epoll.json",
+      "variant": "fused=0,atomic=1,engine=epoll",
+      "name": "asan",
+      "completed": true,
+      "rows": [
+        [
+          "ok",
+          "1.190000",
+          "ASAN build"
+        ]
+      ],
+      "ledger_sha256": "8a93582cc528c564fafa5b4f5b27f3a5b98c1aeb28a914f19181482100f5f4a6",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "zc [fused=0,atomic=1,engine=epoll]": {
+      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/zc-0-epoll.json",
+      "variant": "fused=0,atomic=1,engine=epoll",
+      "name": "zc",
+      "completed": true,
+      "rows": [
+        [
+          "ok",
+          "1.350000",
+          "zc borrow battery"
+        ],
+        [
+          "ok",
+          "0.020000",
+          "zc fired (zc_sends=N)"
+        ],
+        [
+          "ok",
+          "1.410000",
+          "zc borrow battery under ASAN"
+        ],
+        [
+          "ok",
+          "0.020000",
+          "zc ASAN clean"
+        ]
+      ],
+      "ledger_sha256": "ebb8cef4b145934b74b8339fe1e69f6786c7737bd5f4abdd422ddcc0f09c5c19",
+      "passed": 4,
+      "failed": 0,
+      "done": "0\t4\t0"
+    },
+    "zc [fused=1,atomic=1,engine=uring]": {
+      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/zc-1-uring.json",
+      "variant": "fused=1,atomic=1,engine=uring",
+      "name": "zc",
+      "completed": true,
+      "rows": [
+        [
+          "ok",
+          "1.360000",
+          "zc borrow battery"
+        ],
+        [
+          "ok",
+          "0.020000",
+          "zc fired (zc_sends=N)"
+        ],
+        [
+          "ok",
+          "1.410000",
+          "zc borrow battery under ASAN"
+        ],
+        [
+          "ok",
+          "0.020000",
+          "zc ASAN clean"
+        ]
+      ],
+      "ledger_sha256": "3053d730d3553f5bf38daca4b4ad1f237a62c8b7e40a483cfb62efcb8b92e825",
+      "passed": 4,
+      "failed": 0,
+      "done": "0\t4\t0"
+    },
+    "asan [fused=1,atomic=1,engine=epoll]": {
+      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/zc-1-epoll.json",
+      "variant": "fused=1,atomic=1,engine=epoll",
+      "name": "asan",
+      "completed": true,
+      "rows": [
+        [
+          "ok",
+          "1.190000",
+          "ASAN build"
+        ]
+      ],
+      "ledger_sha256": "8a93582cc528c564fafa5b4f5b27f3a5b98c1aeb28a914f19181482100f5f4a6",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "release [fused=1,atomic=1,engine=epoll]": {
+      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/zc-1-epoll.json",
+      "variant": "fused=1,atomic=1,engine=epoll",
+      "name": "release",
+      "completed": true,
+      "rows": [
+        [
+          "ok",
+          "0.000000",
+          "release build (+footprint locks)"
+        ]
+      ],
+      "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "zc [fused=1,atomic=1,engine=epoll]": {
+      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/zc-1-epoll.json",
+      "variant": "fused=1,atomic=1,engine=epoll",
+      "name": "zc",
+      "completed": true,
+      "rows": [
+        [
+          "ok",
+          "1.350000",
+          "zc borrow battery"
+        ],
+        [
+          "ok",
+          "0.020000",
+          "zc fired (zc_sends=N)"
+        ],
+        [
+          "ok",
+          "1.400000",
+          "zc borrow battery under ASAN"
+        ],
+        [
+          "ok",
+          "0.030000",
+          "zc ASAN clean"
+        ]
+      ],
+      "ledger_sha256": "9531993556b938bf1acf2cba7dab705cfe5ea6fdaec9a8908bf364d59b82a10f",
+      "passed": 4,
+      "failed": 0,
+      "done": "0\t4\t0"
     }
   },
   "not_run": [
