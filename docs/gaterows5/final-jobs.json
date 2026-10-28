@@ -1,0 +1,177 @@
+[
+  {
+    "run": "Hxo2QZ",
+    "job": "witness_contracts",
+    "mode": "native",
+    "rows": 1,
+    "seconds": 0.67,
+    "failures": []
+  },
+  {
+    "run": "lrtS81",
+    "job": "reorder_bounds",
+    "mode": "native",
+    "rows": 1,
+    "seconds": 0.09,
+    "failures": []
+  },
+  {
+    "run": "RMK2vi",
+    "job": "rob_portable",
+    "mode": "native",
+    "rows": 1,
+    "seconds": 0.76,
+    "failures": []
+  },
+  {
+    "run": "lrtS81",
+    "job": "layout_placement",
+    "mode": "native",
+    "rows": 1,
+    "seconds": 0.0,
+    "failures": [
+      "cross-thread heap and vector line placement"
+    ]
+  },
+  {
+    "run": "RrUAHs",
+    "job": "inline_quoted",
+    "mode": "all declared legs",
+    "rows": 4,
+    "seconds": 5.97,
+    "failures": [
+      "inline quoted argument decoding (1s, epoll)",
+      "inline quoted argument decoding (1s, uring)",
+      "inline quoted argument decoding (2s, epoll)",
+      "inline quoted argument decoding (2s, uring)"
+    ]
+  },
+  {
+    "run": "pTil9S",
+    "job": "slotless",
+    "mode": "all declared legs",
+    "rows": 4,
+    "seconds": 8.1,
+    "failures": []
+  },
+  {
+    "run": "RrUAHs",
+    "job": "wb_mixed",
+    "mode": "all declared legs",
+    "rows": 4,
+    "seconds": 54.91,
+    "failures": []
+  },
+  {
+    "run": "1RFPQ3",
+    "job": "feature-split-0",
+    "mode": "2s",
+    "rows": 34,
+    "seconds": 149.91,
+    "failures": []
+  },
+  {
+    "run": "z8N2vl",
+    "job": "feature-split-1",
+    "mode": "2s",
+    "rows": 34,
+    "seconds": 104.09,
+    "failures": []
+  },
+  {
+    "run": "1RFPQ3",
+    "job": "feature-armed-0",
+    "mode": "1s/rl1",
+    "rows": 35,
+    "seconds": 119.24,
+    "failures": []
+  },
+  {
+    "run": "1RFPQ3",
+    "job": "feature-armed-1",
+    "mode": "1s/rl1",
+    "rows": 35,
+    "seconds": 112.96,
+    "failures": []
+  },
+  {
+    "run": "RMK2vi",
+    "job": "fused-0",
+    "mode": "1s/rl0",
+    "rows": 9,
+    "seconds": 18.56,
+    "failures": []
+  },
+  {
+    "run": "RMK2vi",
+    "job": "fused-1",
+    "mode": "1s/rl0",
+    "rows": 9,
+    "seconds": 20.42,
+    "failures": []
+  },
+  {
+    "run": "pTil9S",
+    "job": "debug-0",
+    "mode": "2s",
+    "rows": 16,
+    "seconds": 82.37,
+    "failures": []
+  },
+  {
+    "run": "pTil9S",
+    "job": "debug-1",
+    "mode": "2s",
+    "rows": 16,
+    "seconds": 79.67,
+    "failures": []
+  },
+  {
+    "run": "utbdOv",
+    "job": "debug-0",
+    "mode": "1s",
+    "rows": 16,
+    "seconds": 83.67,
+    "failures": []
+  },
+  {
+    "run": "utbdOv",
+    "job": "debug-1",
+    "mode": "1s",
+    "rows": 16,
+    "seconds": 86.92,
+    "failures": []
+  },
+  {
+    "run": "pTil9S",
+    "job": "atomic_batteries",
+    "mode": "2s",
+    "rows": 4,
+    "seconds": 40.89,
+    "failures": []
+  },
+  {
+    "run": "utbdOv",
+    "job": "atomic_batteries",
+    "mode": "1s",
+    "rows": 4,
+    "seconds": 35.83,
+    "failures": []
+  },
+  {
+    "run": "RMK2vi",
+    "job": "asan_batteries",
+    "mode": "2s",
+    "rows": 5,
+    "seconds": 37.11,
+    "failures": []
+  },
+  {
+    "run": "utbdOv",
+    "job": "asan_batteries",
+    "mode": "1s",
+    "rows": 5,
+    "seconds": 37.14,
+    "failures": []
+  }
+]

@@ -1108,3 +1108,32 @@ $(BUILD_ROOT)/moverfix-unit: tests/moverfix_unit.cc src/cmd/xshard.cc $(filter-o
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(filter-out $(BUILD_ROOT)/src/main.o $(BUILD_ROOT)/src/cmd/xshard.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
 $(BUILD_ROOT)/moverfix-db0-unit: tests/moverfix_unit.cc src/cmd/xshard.cc $(filter-out $(BUILD_ROOT)/db0/src/main.o $(BUILD_ROOT)/db0/src/cmd/xshard.o,$(DB0_OBJ)) $(filter-out $(BUILD_ROOT)/src/main.o,$(OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< $(filter-out $(BUILD_ROOT)/db0/src/main.o $(BUILD_ROOT)/db0/src/cmd/xshard.o,$(DB0_OBJ)) $(filter-out $(BUILD_ROOT)/src/main.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+
+# gaterows5: source-only witnesses; no production object gains a hook or control.
+GATEROWS_SCAN_UNITS := build/reorderscan-unit build/reorderscan-db0-unit build/reorderscan-quadratic build/reorderscan-db0-quadratic build/reorderscan-eager build/reorderscan-db0-eager
+$(GATEROWS_SCAN_UNITS): tests/reorderscan_unit.cc $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
+build/reorderscan-db0-unit build/reorderscan-db0-quadratic build/reorderscan-db0-eager: override CXXFLAGS += -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0
+build/reorderscan-quadratic build/reorderscan-db0-quadratic: override CXXFLAGS += -DTOMO_REORDERSCAN_OLD_DEMOTION
+build/reorderscan-eager build/reorderscan-db0-eager: override CXXFLAGS += -DTOMO_REORDERSCAN_EAGER
+$(filter-out build/reorderscan-unit,$(GATEROWS_SCAN_UNITS)):
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -I. $< -o $@
+build/gaterows5/reorder.o: src/core/reorder.cc tests/reorderscan_witness.h $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -include tests/reorderscan_witness.h -I. -c $< -o $@
+build/gaterows5/reorder-db0.o: src/core/reorder.cc tests/reorderscan_witness.h $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -include tests/reorderscan_witness.h -I. -c $< -o $@
+build/reorderscan-paths: tests/reorderscan_paths.cc tests/reorder_engagement_unit.cc tests/reorderscan_witness.h build/gaterows5/reorder.o $(filter-out build/src/core/reorder.o,$(CORE_TEST_OBJ)) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -include tests/reorderscan_witness.h -I. $< build/gaterows5/reorder.o $(filter-out build/src/core/reorder.o,$(CORE_TEST_OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/reorderscan-db0-paths: tests/reorderscan_paths.cc tests/reorder_engagement_unit.cc tests/reorderscan_witness.h build/gaterows5/reorder-db0.o $(DB0_TEST_OBJ) $(CORE_TEST_OBJ) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -include tests/reorderscan_witness.h -I. $< build/gaterows5/reorder-db0.o $(filter-out build/db0/src/core/reorder.o,$(DB0_TEST_OBJ)) $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/rlfence-portable-unit: tests/rlfence_unit.cc $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) -mno-bmi -mno-bmi2 -I. $< -o $@
+build/slotless-unit build/slotless-drop-unit: tests/slotless_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) $(if $(findstring drop,$@),-DTOMO_SLOTLESS_DROP,) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/layout-placement: tests/layout_placement.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/gaterows5-units: $(GATEROWS_SCAN_UNITS) build/reorderscan-paths build/reorderscan-db0-paths build/rlfence-portable-unit build/slotless-unit build/slotless-drop-unit
+	@touch $@
+unit: $(GATEROWS_SCAN_UNITS) build/rlfence-portable-unit

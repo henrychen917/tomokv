@@ -1,0 +1,23 @@
+[
+  {
+    "suite": "flakeaudit_test",
+    "exit": 1,
+    "seconds": 4.747264729812741,
+    "run": "/home/user/Projects/cx-gaterows5/build/gate-run.VhtZ0r",
+    "marker": "GATEROWS5 INVOCATION CONTROL flakeaudit_test"
+  },
+  {
+    "suite": "flipctl_test",
+    "exit": 1,
+    "seconds": 2.637977587990463,
+    "run": "/home/user/Projects/cx-gaterows5/build/gate-run.sUweMF",
+    "marker": "GATEROWS5 INVOCATION CONTROL flipctl_test"
+  },
+  {
+    "suite": "cd13b_window_test",
+    "exit": 1,
+    "seconds": 3.0023732874542475,
+    "run": "/home/user/Projects/cx-gaterows5/build/gate-run.VfqKGL",
+    "marker": "GATEROWS5 INVOCATION CONTROL cd13b_window_test"
+  }
+]
