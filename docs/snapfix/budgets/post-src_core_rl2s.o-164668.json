@@ -1,0 +1,43 @@
+{
+  "arm": "post",
+  "unit": "src/core/rl2s.o",
+  "budget": 164668,
+  "initial": 118250,
+  "growth": null,
+  "command": [
+    "taskset",
+    "-c",
+    "16-31",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=164668",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/core/rl2s.cc",
+    "-o",
+    "/home/user/Projects/cx-snapfix/build/snapfix/budgets/post-src_core_rl2s.o-164668.o",
+    "-g0",
+    "-fdump-ipa-inline=/home/user/Projects/cx-snapfix/build/snapfix/budgets/post-src_core_rl2s.o-164668.inline"
+  ],
+  "hot": 172,
+  "changed": [
+    "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+    "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+    "unsigned int tomo::ThreadCtx::drain_tasks_unmasked<false, tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
+    "unsigned int tomo::ThreadCtx::drain_tasks<false, tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
+    "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)"
+  ],
+  "padding": [],
+  "missing": [],
+  "added": []
+}

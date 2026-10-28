@@ -1,0 +1,129 @@
+{
+ "rule": "no PRE hot body may change except the intended capped snapshot drains; then fewest changed bodies of any kind; then nearest a214652ec + 23 (the IO units' IPA growth)",
+ "units": {
+  "src/main.o": {
+   "a214652ec_budget": 147838,
+   "selected": 147838,
+   "kept": true,
+   "ipa_initial_pre": 102408,
+   "ipa_initial_post": 102431,
+   "unintended_hot_bodies": [],
+   "padding_only_hot": [],
+   "residual_bodies": []
+  },
+  "db0/src/main.o": {
+   "a214652ec_budget": 146080,
+   "selected": 146080,
+   "kept": true,
+   "ipa_initial_pre": 101664,
+   "ipa_initial_post": 101687,
+   "unintended_hot_bodies": [],
+   "padding_only_hot": [],
+   "residual_bodies": []
+  },
+  "db0/src/core/rl2s.o": {
+   "a214652ec_budget": 167496,
+   "selected": 167496,
+   "kept": true,
+   "ipa_initial_pre": 117304,
+   "ipa_initial_post": 117327,
+   "unintended_hot_bodies": [],
+   "padding_only_hot": [],
+   "residual_bodies": []
+  },
+  "src/core/genthread.o": {
+   "a214652ec_budget": 131218,
+   "selected": 131241,
+   "kept": false,
+   "ipa_initial_pre": 109363,
+   "ipa_initial_post": 109386,
+   "unintended_hot_bodies": [],
+   "padding_only_hot": [],
+   "residual_bodies": [
+    "tomo::IoLoop::pubsub_reply_ping(tomo::Op&) [clone .isra]"
+   ]
+  },
+  "db0/src/core/genthread.o": {
+   "a214652ec_budget": 132012,
+   "selected": 132035,
+   "kept": false,
+   "ipa_initial_pre": 108577,
+   "ipa_initial_post": 108600,
+   "unintended_hot_bodies": [],
+   "padding_only_hot": [],
+   "residual_bodies": [
+    "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+    "tomo_db0::IoLoop::pubsub_notification_send(std::shared_ptr<tomo_db0::PubSubNotificationChain> const&)"
+   ]
+  },
+  "src/core/rl2s.o": {
+   "a214652ec_budget": 164621,
+   "selected": 164644,
+   "kept": false,
+   "ipa_initial_pre": 118227,
+   "ipa_initial_post": 118250,
+   "unintended_hot_bodies": [],
+   "padding_only_hot": [],
+   "residual_bodies": []
+  },
+  "src/core/reorder.o": {
+   "a214652ec_budget": 149103,
+   "selected": 149134,
+   "kept": false,
+   "ipa_initial_pre": 121979,
+   "ipa_initial_post": 122002,
+   "unintended_hot_bodies": [],
+   "padding_only_hot": [],
+   "residual_bodies": [
+    "tomo::kvobj_external_bytes(tomo::KvObj const*)",
+    "void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)"
+   ]
+  },
+  "db0/src/core/reorder.o": {
+   "a214652ec_budget": 150092,
+   "selected": 150113,
+   "kept": false,
+   "ipa_initial_pre": 121062,
+   "ipa_initial_post": 121085,
+   "unintended_hot_bodies": [],
+   "padding_only_hot": [],
+   "residual_bodies": [
+    "unsigned int tomo_db0::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+    "tomo_db0::FlatStore::atomic_prepare_capacity_read_local(unsigned int)"
+   ]
+  },
+  "src/cmd/xshard.o": {
+   "a214652ec_budget": 148585,
+   "selected": 148608,
+   "kept": false,
+   "ipa_initial_pre": 118825,
+   "ipa_initial_post": 118824,
+   "unintended_hot_bodies": [],
+   "padding_only_hot": [],
+   "residual_bodies": [
+    "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)",
+    "tomo::(anonymous namespace)::txn_group_retry(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&) [clone .cold]",
+    "tomo::FlatStore::atomic_tombstone_all(int)",
+    "tomo::FlatStore::read_local_pending_unpublish(tomo::AtomicEntry&) [clone .part] [clone .cold]",
+    "tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)",
+    "void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)"
+   ]
+  },
+  "db0/src/cmd/xshard.o": {
+   "a214652ec_budget": 147391,
+   "selected": 147426,
+   "kept": false,
+   "ipa_initial_pre": 117796,
+   "ipa_initial_post": 117795,
+   "unintended_hot_bodies": [],
+   "padding_only_hot": [
+    "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const"
+   ],
+   "residual_bodies": [
+    "tomo_db0::(anonymous namespace)::txn_group_retry(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&) [clone .cold]",
+    "tomo_db0::FlatStore::read_local_pending_unpublish(tomo_db0::AtomicEntry&) [clone .part] [clone .cold]",
+    "tomo_db0::FlatStore::atomic_prepare_capacity_read_local(unsigned int)"
+   ]
+  }
+ }
+}

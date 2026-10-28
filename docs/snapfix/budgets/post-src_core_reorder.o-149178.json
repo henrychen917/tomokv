@@ -1,0 +1,42 @@
+{
+  "arm": "post",
+  "unit": "src/core/reorder.o",
+  "budget": 149178,
+  "initial": 122002,
+  "growth": null,
+  "command": [
+    "taskset",
+    "-c",
+    "16-31",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=149178",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/core/reorder.cc",
+    "-o",
+    "/home/user/Projects/cx-snapfix/build/snapfix/budgets/post-src_core_reorder.o-149178.o",
+    "-g0",
+    "-fdump-ipa-inline=/home/user/Projects/cx-snapfix/build/snapfix/budgets/post-src_core_reorder.o-149178.inline"
+  ],
+  "hot": 168,
+  "changed": [
+    "unsigned int tomo::ThreadCtx::drain_tasks<false, tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
+    "unsigned int tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)"
+  ],
+  "padding": [],
+  "missing": [],
+  "added": [
+    "unsigned int tomo::ThreadCtx::drain_tasks_unmasked_capped<false, 32u, tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)"
+  ]
+}
