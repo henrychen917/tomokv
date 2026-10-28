@@ -143,3 +143,12 @@ will retain this limitation in their receipts.
   the existing R7 engagement job. Quadratic/eager negative controls are unchanged.
   `make -q` passes for all 55 enumerated production targets/aggregate targets;
   target commands and binary hashes are in `docs/wave9/build-freshness.json`.
+
+- at412 T12 exposed a schedule gap: `script_escalations` increments before
+  redispatch acquires claims. Sending the tenth writer at that counter can
+  legally order it before the escalated script (`[1,11]`, rather than `[1,10]`).
+  The common T1/T12/combined schedule now parks the non-lead APPLY owner with
+  the existing hook, proves the lead APPLY ran while the commit remains pending,
+  and requires the tenth writer's actual claim-wait counter before reading the
+  script reply. Exact replies, nine conflicts, one escalation/commit and AOF
+  reload assertions remain. An absent/expired window fails; no retry masks it.

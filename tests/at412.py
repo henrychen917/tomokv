@@ -162,6 +162,7 @@ def conflicts(c, port, keys, call, oracle, aof=False, during=None):
             if during:
                 c.must('DEBUG', 'SCRIPT-STAGE-WATCH', script.must('CLIENT', 'ID'))
             c.must('DEBUG', 'SCRIPT-STAGE-DEFER', 30000)
+            c.must('DEBUG', 'SCRIPT-APPLY-DEFER', 300000)
             script.send(*call)
             if during:
                 during()
@@ -173,12 +174,22 @@ def conflicts(c, port, keys, call, oracle, aof=False, during=None):
                 assert c.must('INCR', keys[1]) == n+1
             wait(lambda: stats(c).get('script_escalations', 0) > before.get('script_escalations', 0),
                  'ninth conflict did not escalate')
-            # Deliberately send before reading E's reply: T1/T12 require W to
-            # encounter E, rather than merely checking an already serial run.
-            c.send('INCR', keys[1])
-            reply = script.read()
-            tenth = c.read()
+            # The escalation counter precedes redispatch and claim acquisition.
+            # A writer sent at that counter may legally win the hand-off gap.
+            # Park the non-lead APPLY owner and prove E now owns its claims,
+            # then require W to encounter that live window before E replies.
+            wait(lambda: stats(c)['script_apply_owner_tasks'] > before['script_apply_owner_tasks'],
+                 'escalated APPLY park never opened')
+            armed = stats(c)
+            assert armed['script_escalated_commits'] == before['script_escalated_commits'],                 'escalated APPLY park already closed'
+            with contextlib.closing(Conn('127.0.0.1', port, timeout=5)) as observer:
+                c.send('INCR', keys[1])
+                wait(lambda: stats(observer)['atomic_txn_writer_waits'] > armed['atomic_txn_writer_waits'],
+                     'W never encountered the escalated claim')
+                reply = script.read()
+                tenth = c.read()
             c.must('DEBUG', 'SCRIPT-STAGE-DEFER', 0)
+            c.must('DEBUG', 'SCRIPT-APPLY-DEFER', 0)
             if during:
                 c.must('DEBUG', 'SCRIPT-STAGE-WATCH', 0)
         assert reply == [1, 10], reply
