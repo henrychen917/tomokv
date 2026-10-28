@@ -36,6 +36,7 @@ argv=['bash','tests/gate.sh','full','--server-cores',server_cores,
 receipt=dict(argv=argv,cwd=str(a.root),env={k:v for k,v in env.items() if k.startswith('GATE_') or k in ('LANG','REDIS74_ROOT')},
     binary_sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),
     source_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
+    source_diff_sha256=hashlib.sha256(subprocess.check_output(['git','diff','HEAD'],cwd=ROOT)).hexdigest(),
     gate_sha256=hashlib.sha256((a.root/'tests/gate.sh').read_bytes()).hexdigest(),started=time.time())
 with log.open('w') as f:
     result=subprocess.run(argv,cwd=a.root,env=env,stdout=f,stderr=subprocess.STDOUT)

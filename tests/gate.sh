@@ -2750,7 +2750,7 @@ job_bplus(){
 # use distinct filter cells, as do P/C on the other participating owner. ATOMIC-COMMIT-DELAY holds
 # A/P after raw install and atomic_commit_holds proves the reserved/unpublished window was sampled.
 boot_fused "$CANDIDATE_BINARY" --atomic 1 --read-local 1 \
-    --enable-debug-command yes \
+    --key-lb 0 --client-lb 0 --flip-auto 0 --enable-debug-command yes \
     || bad "B+ read-local purpose boot"
 row_begin "B+ held-group GET/MGET filter battery"
 py tests/bplus.py 127.0.0.1 "$PORT" >$TMPDIR/gate-bplus.txt 2>&1 \
