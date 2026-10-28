@@ -7,6 +7,7 @@ PRE's entry. Both arms have identical text size, section layout, data, and every
 function address. Keep POST-release as the ordinary deployment/merit candidate;
 use POST-layout vs PAD-A to control the larger common image's layout separately.
 """
+import argparse
 import hashlib
 import json
 import re
@@ -28,7 +29,15 @@ def recipe(source, objects):
 def sha(path): return hashlib.sha256(path.read_bytes()).hexdigest()
 
 def main():
-    pre=OUT/'pre-source'; pre_objects=OUT/'pre'
+    global OUT
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--reference-source', type=Path, default=OUT/'pre-source')
+    p.add_argument('--reference-objects', type=Path, default=OUT/'pre')
+    p.add_argument('--output', type=Path, default=OUT)
+    p.add_argument('--receipt', type=Path, default=ROOT/'docs/snapfix/pad-a.json')
+    args=p.parse_args()
+    OUT=args.output.resolve(); OUT.mkdir(parents=True,exist_ok=True)
+    pre=args.reference_source.resolve(); pre_objects=args.reference_objects.resolve()
     old=recipe(pre,pre_objects); new=recipe(ROOT,ROOT/'build')
     objects=[Path(x) for x in old if x.endswith('.o') and not x.endswith('/src/core/version.o')]
     symbols=set()
@@ -68,6 +77,8 @@ def main():
     changes=[i for i,(a,b) in enumerate(zip(elf.data,raw)) if a!=b]
     assert all(offset<=i<offset+5 for i in changes)
     record=dict(kind='A: PRE behaviour with the exact POST-layout image',
+        reference_source=str(pre),reference_binary=str(pre_objects/'tomokv'),
+        reference_sha256=sha(pre_objects/'tomokv'),
         release_candidate=str(ROOT/'build/tomokv'),release_sha256=sha(ROOT/'build/tomokv'),
         post_layout=str(post),post_sha256=sha(post),pad_a=str(pad),pad_sha256=sha(pad),
         matching_sections=True,matching_symbols=True,patch_offset=offset,
@@ -75,6 +86,7 @@ def main():
         entry_source=source,entry_target=target,link=link,
         pre_objects={str(p):sha(p) for p in objects},
         limitation='The exact twin is POST-layout, not the smaller release image. Measure the release null separately.')
-    (ROOT/'docs/snapfix/pad-a.json').write_text(json.dumps(record,indent=2)+'\n')
+    args.receipt.parent.mkdir(parents=True,exist_ok=True)
+    args.receipt.write_text(json.dumps(record,indent=2)+'\n')
     print(json.dumps({k:v for k,v in record.items() if k not in ('link','pre_objects')},indent=2))
 if __name__=='__main__':main()

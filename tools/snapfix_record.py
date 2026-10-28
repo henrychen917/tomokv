@@ -27,8 +27,9 @@ def main():
     p.add_argument('--command', required=True, help='exact command line used')
     p.add_argument('--binary', type=Path, required=True)
     p.add_argument('--log', type=Path, help='captured gate stdout/stderr')
+    p.add_argument('--output-root', type=Path, default=ROOT / 'docs/snapfix/proof')
     a = p.parse_args()
-    dest = ROOT / 'docs/snapfix/proof' / a.name
+    dest = a.output_root / a.name
     if dest.exists():
         shutil.rmtree(dest)
     dest.mkdir(parents=True)
