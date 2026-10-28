@@ -461,25 +461,48 @@ class PlacementChanged(AssertionError):
     """A truthful key probe disagrees with the earlier owner snapshot."""
 
 
+def stable_key_placement(conn, keys, topo=None, attempts=4, batch_size=256):
+    """Read a bounded, coherent placement before publishing any selected keys.
+
+    A discovery pass has no writers or holds. Re-read both observations after a
+    move; malformed replies fail immediately. Never combine keys from different
+    placements or accept perpetual movement as a passing geometry witness.
+    """
+    if attempts <= 0 or batch_size <= 0:
+        raise ValueError("placement attempts and batch_size must be positive")
+    keys = list(keys)
+    original = topo
+    before = topo or topology(conn)
+    for attempt in range(attempts):
+        rows = []
+        for first in range(0, len(keys), batch_size):
+            rows.extend(shards_of(conn, keys[first:first + batch_size]))
+        if any(shard not in before.shard_owner for shard, _ in rows):
+            raise AssertionError("DEBUG SHARDS returned a shard that LBSIGNALS did not report")
+        after = topology(conn)
+        if (before.shard_owner == after.shard_owner and
+                all(owner == before.shard_owner[shard] for shard, owner in rows)):
+            if original is not None and original is not after:
+                # Existing callers retain these containers while choosing peers.
+                original.shard_owner.clear()
+                original.shard_owner.update(after.shard_owner)
+                original.owners[:] = after.owners
+                original.roles.clear()
+                original.roles.update(after.roles)
+            return after, rows
+        before = after
+    raise PlacementChanged("placement did not stabilize across DEBUG SHARDS/LBSIGNALS "
+                           "after %d complete probes" % attempts)
+
+
 def probe_keys(conn, prefix, topo, limit=8000, width=4, batch_size=256):
-    """Yield (key, shard, owner) for candidates, resolving each batch in one DEBUG reply."""
+    """Yield candidates only after their entire discovery placement is stable."""
     if batch_size <= 0:
         raise ValueError("batch_size must be positive")
     fmt = "%s:%0" + str(width) + "d"
-    for first in range(0, limit, batch_size):
-        keys = [fmt % (prefix, index)
-                for index in range(first, min(limit, first + batch_size))]
-        for key, (shard, owner) in zip(keys, shards_of(conn, keys)):
-            if shard not in topo.shard_owner:
-                raise AssertionError(
-                    "DEBUG SHARDS returned shard %d that LBSIGNALS did not report" % shard)
-            expected_owner = topo.shard_owner[shard]
-            if owner != expected_owner:
-                raise PlacementChanged(
-                    "DEBUG SHARDS owner %d for shard %d disagrees with LBSIGNALS owner %d; "
-                    "placement may have changed during the probes"
-                    % (owner, shard, expected_owner))
-            yield key, shard, owner
+    keys = [fmt % (prefix, index) for index in range(limit)]
+    _, rows = stable_key_placement(conn, keys, topo, batch_size=batch_size)
+    yield from ((key, shard, owner) for key, (shard, owner) in zip(keys, rows))
 
 
 def owner_buckets(conn, prefix, want_owners=2, per_owner=1, limit=8000, topo=None):

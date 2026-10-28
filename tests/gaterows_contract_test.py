@@ -133,13 +133,24 @@ class Contracts(unittest.TestCase):
 
     def test_real_probe_distinguishes_moved_placement_from_bad_evidence(self):
         topo = SimpleNamespace(shard_owner={3: 6})
-        with patch.object(_lib, "shards_of", return_value=[(3, 7)]):
+        with patch.object(_lib, "shards_of", return_value=[(3, 7)]), \
+             patch.object(_lib, "topology", return_value=topo):
             with self.assertRaises(_lib.PlacementChanged):
                 next(_lib.probe_keys(None, "fresh", topo, limit=1))
         with patch.object(_lib, "shards_of", return_value=[(99, 7)]):
             with self.assertRaises(AssertionError) as failure:
                 next(_lib.probe_keys(None, "fresh", topo, limit=1))
             self.assertNotIsInstance(failure.exception, _lib.PlacementChanged)
+
+    def test_stable_probe_repeats_whole_discovery_before_yielding(self):
+        old = _lib.Topology({6: 'ex', 7: 'ex'}, {3: 6}, [6], '2s')
+        moved = _lib.Topology({6: 'ex', 7: 'ex'}, {3: 7}, [7], '2s')
+        with patch.object(_lib, 'shards_of', side_effect=[[(3, 7)], [(3, 7)]]) as probe, \
+             patch.object(_lib, 'topology', return_value=moved):
+            rows = list(_lib.probe_keys(None, 'fresh', old, limit=1))
+        self.assertEqual(probe.call_count, 2)
+        self.assertEqual(rows, [('fresh:0000', 3, 7)])
+        self.assertEqual(old.shard_owner, {3: 7})
 
     def test_nonplacement_probe_error_is_never_retried(self):
         class Connection:

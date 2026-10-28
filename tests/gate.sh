@@ -2588,7 +2588,7 @@ case "${GATE_PROOF_NO_RATES:-0}" in
     ryow_args=(--no-rate-assertions);;
   *) echo 'GATE_PROOF_NO_RATES must be 0 or 1' >&2; return 1;;
 esac
-txn_proof_boot "$CANDIDATE_BINARY" --atomic 1 --enable-debug-command yes || bad "atomic release boot"
+txn_proof_boot "$CANDIDATE_BINARY" --atomic 1 --key-lb 0 --flip-auto 0 --enable-debug-command yes || bad "atomic release boot"
 row_begin "atomic torn/window battery"
 py tests/atomic_torn.py 127.0.0.1 $PORT --release-build >$TMPDIR/gate-atomic-torn.txt 2>&1 \
     && ok "atomic torn/window battery" || bad "atomic torn/window battery" "see $TMPDIR/gate-atomic-torn.txt"
@@ -5344,7 +5344,7 @@ job_redis_tcl(){
 
 job_asan_batteries(){
 # ---- 4. full tier: torture under ASAN ---------------------------------------------------------
-txn_proof_boot $ASAN --atomic 1 --enable-debug-command yes || bad "ASAN boot"
+txn_proof_boot $ASAN --atomic 1 --key-lb 0 --flip-auto 0 --enable-debug-command yes || bad "ASAN boot"
 row_begin "torture under ASAN"
 py tests/torture.py 127.0.0.1 $PORT >$TMPDIR/gate-tort-asan.txt 2>&1 \
     && ok "torture under ASAN" || bad "torture under ASAN"

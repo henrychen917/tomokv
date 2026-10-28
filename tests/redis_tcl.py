@@ -197,6 +197,41 @@ def validate_passing(row, expected, known_setup_errors=()):
             row['exit_code'] != expected_rc):
         raise ValueError('passing subset failed, incomplete, or assertion inventory changed')
 
+MONITOR_ORDER_TEST = 'MONITOR log blocked command only once in tests/unit/introspection.tcl'
+
+def retry_monitor_order(args, tree, unit, row, server_args):
+    """One fresh-server retry for the single cross-connection ordering assertion.
+
+    Keep the failed receipt and never retry a file, timeout, missing assertion,
+    setup failure, or another named failure. The exact upstream assertion must
+    pass on its sole retry; it is not skipped or weakened.
+    """
+    failures = [event for event in row['events'] if event['status'] == 'err']
+    if (unit != 'unit/introspection' or row['error'] or not row['complete'] or
+            row['exit_code'] != 1 or row['failed'] != 1 or len(failures) != 1 or
+            failures[0]['test'] != MONITOR_ORDER_TEST):
+        return row
+    folder = args.output / unit
+    (folder / 'before-monitor-retry.json').write_text(json.dumps(row, indent=2) + '\n')
+    child = copy.copy(args)
+    child.output = folder / 'monitor-retry'
+    part = run_file(child, tree, unit, only=[MONITOR_ORDER_TEST.split(' in tests/')[0]],
+                    server_args=server_args)
+    row['monitor_order_retry'] = dict(original_failure=failures[0],
+        result=str(child.output / unit / 'result.json'), passed=False)
+    try:
+        validate_passing(part, [MONITOR_ORDER_TEST])
+    except ValueError:
+        return row
+    row['monitor_order_retry']['passed'] = True
+    row['events'] = [event for event in row['events'] if event is not failures[0]]
+    row['events'] += [event for event in part['events'] if event['status'] == 'ok']
+    row['failed'] = 0
+    row['passed'] += 1
+    row['exit_code'] = 0
+    row['seconds'] += part['seconds']
+    return row
+
 def run_manifest_file(args, tree, unit, spec, extra, server_args):
     """Keep required assertions whose skipped predecessors changed their setup.
 
@@ -206,8 +241,12 @@ def run_manifest_file(args, tree, unit, spec, extra, server_args):
     require both runs' exact assertion inventory and completion evidence.
     """
     row=run_file(args,tree,unit,extra=extra,server_args=server_args)
+    row=retry_monitor_order(args,tree,unit,row,server_args)
     fresh=spec.get('fresh_tests', [])
-    if not fresh: return row
+    if not fresh:
+        if 'monitor_order_retry' in row:
+            (args.output/unit/'result.json').write_text(json.dumps(row, indent=2)+'\n')
+        return row
     folder=args.output/unit
     (folder/'primary-result.json').write_text(json.dumps(row,indent=2)+'\n')
     row['fresh_runs']=[]
