@@ -4,6 +4,8 @@ Maintainer: 64-connections EXEC merit, POST/PRE 3 blocks, per-lever 1 block in
 both modes; POST depth sweeps both modes; generic 14 + 2s GET/SET p1/p32 null.
 PAD-A is type A, PRE behaviour in the exact common POST-layout image (larger
 than release POST). No throughput claim. Earlier exec1s receipts are VOID.
+Correctness re-proof is not green: epoll psfix split/atomic-0 seed 22 is unresolved;
+allocation and X3 idle-instruction design targets also miss. See the linked report.
 
 ntfix4 integration handoff — current ntfix artifact
 

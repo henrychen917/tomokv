@@ -55,7 +55,9 @@ All nine images (PRE, X1–X5, POST, POST-layout and PAD-A) are rebuilt. Records
 its relevant probes, records hashes, then deletes that snapshot and object tree.
 The POST production objects remain for the gate’s unit builds and freshness
 checks. Step traces and completed probes are deleted after recording counts,
-log hashes and probe-retirement bindings. X5 and POST match in all 30 allocated
+log hashes and probe-retirement bindings. Completed persistence jobs' large data
+files were hashed before retiring 2.69 GB (`docs/exec1s/retired-data.json`); logs
+and ledgers remain. The final build directory is below 30 GiB. X5 and POST match in all 30 allocated
 sections other than the build-ID note; their different file hashes reflect debug
 metadata/build ID (`docs/exec1s/x5-post-equivalence.json`).
 
@@ -68,37 +70,47 @@ release comparison; do not label PAD-A an exact-size twin of release POST.
 
 ### Replacement proof receipts
 
-X2 directed proof, all ordinary counts and all 52 lever scopes are complete.
-POST live proof is in progress. Its first selected-family attempt was cancelled
-while correcting the harness socket’s default ephemeral port; no receipt from
-that interrupted attempt counts toward this proof. The complete inventory was
-restarted with the fixed port and cached builds, retaining the original logs.
-The restarted run exposed one harness preparation error: `blockfix_registry`
-could not find the cost-witness SHA sidecar under the frozen POST filename.
-Its 24 live oracle legs passed, but its instruction leg did not run. The original
-source-built witness/server hashes and POST byte identity have now been verified
-(`docs/exec1s/blockfix-cost-binding.json`); an unchanged gate-job rerun is pending.
-The `trackfix_order` scheduling-copy build also failed before any live leg: its
-copy omitted `tools/assert_map.py`, now required by `make all`. The copy helper
-is repaired without changing its hooks or assertions; the complete job rerun is
-pending. Both original failures remain in the run ledger.
+The authorized correctness run has finished. **Acceptance is not green:** one
+standard-seed epoll comparison remains unresolved, and the allocation and X3
+idle-instruction targets below are missed. Fresh results are in
+`docs/exec1s/live-proof.json` and `docs/exec1s/live-job-results.json`. They bind the
+POST hash, each job's completion/ledger/log, differential plans and completed
+comparison inventories. These are individual-job results, not a full-gate receipt.
+
+The first selected-family attempt was cancelled to replace the harness socket's
+default ephemeral port with 20498; none of that interrupted attempt is counted.
+The restarted run completed with 763 passing rows and two preparation failures.
+`blockfix_registry` lacked the frozen POST cost-witness SHA sidecar; after
+checking both source-built hashes and POST byte identity, its complete rerun
+passed, including the instruction witness and all 24 live oracle legs.
+`trackfix_order`'s private copy omitted the new `tools/assert_map.py` build
+prerequisite. The repaired copy passed all 16 original live legs, 30 assertions
+per leg. Hooks and assertions are unchanged. The original failures remain in
+their ledgers and are linked to the passing reruns.
+
 **Unresolved differential failure:** epoll, split, atomic 0, seed 22, `psfix`:
 SAVE returned `Background save already in progress` after the both-peer idle
-barrier, so the suite correctly refused to compare the reply. SAVE/INFO and the
-snapshot-admission logic are unchanged from PRE; the same error also represents
-a placement-transition refusal. The actual Busy reason was not captured. This
-is neither classified as a confirmed lane regression nor waived as a harmless
-retry. The epoll proof is failed, with its original log and source comparison in
-`docs/exec1s/epoll-psfix-failure.json`; the remaining requested legs continue.
-The supplemental CQ observer also exposed a harness defect: its destructor
-wrote after the final `shutdown_report` line, causing the unchanged shutdown
-receipt checks to fail. Observer records now use separate per-thread files;
-both instrumented AOF gate-job reruns are pending. Production bytes and the
-shutdown-log assertions are unchanged.
+barrier, so the suite refused to compare the reply. SAVE/INFO and snapshot
+admission are unchanged from PRE; a placement-transition refusal maps to the
+same error. The actual Busy reason was not captured. This is neither classified
+as a confirmed lane regression nor waived as a harmless retry. The failed case
+and incomplete split-0 part remain failed; all other requested differential
+parts finished. See `docs/exec1s/epoll-psfix-failure.json` and the retained failed
+seed history. The remaining SAVE/BGSAVE assertions in that one case are
+**NOT RUN**, because its first SAVE assertion aborted the case.
+
+The first two supplemental CQ observer invocations each failed nine shutdown
+receipt rows because the observer destructor wrote after `shutdown_report`.
+Observer records now use separate per-thread files. Both complete instrumented
+AOF reruns passed 57 rows with unchanged production bytes and shutdown assertions.
+They observed 7,139,980 and 8,363,474 boundaries, respectively; each had 2,920 ring
+records, with zero observed overflow or dropped completions. Fused EX-ring
+records were present (596 / 884). The old failed attempts are preserved.
+
 The Redis Tcl dependency passed both modes against the unchanged PRE manifest:
-all 70 file/mode assertion inventories match. Its existing named `appendonly`
-block-setup error remains visible in the raw logs and is checked exactly, not
-silently ignored (`docs/exec1s/tcl-manifest-verification.json`).
+all 70 file/mode inventories and 3,286 required assertions match. Its existing
+named `appendonly` block-setup error remains visible and checked exactly
+(`docs/exec1s/tcl-manifest-verification.json`).
 
 - X2: production TSAN owner-word helper, the old overlapping-write negative
   control, actual 256-live-group wrap/decrement checks, pinned-floor cleanup,
@@ -120,16 +132,39 @@ silently ignored (`docs/exec1s/tcl-manifest-verification.json`).
   All **52 lever scopes completed** (`docs/exec1s/lever-counts.json`). Allocation
   counts retain the complete `allocate_state`–`prepare_commands` scope. Probe
   hashes were checked before deletion (`docs/exec1s/probe-retirements.json`).
-- POST live proof: all selected families from `tools/exec1s_proof.py`, their
-  supplementary fused and scripting atomic-0 legs, standard differential seeds
-  on uring and epoll, AOF CQ observations, `python3 tests/gates_test.py`, and
-  every `job_production_units` target with `make -q` freshness.
+- POST live proof: the selected families and supplementary legs are complete
+  with the unresolved differential failure above. `python3 tests/gates_test.py`
+  passed all 73 tests. `make all` and all 47 literal `job_production_units`
+  targets built; the additional live-control/cost targets also built. All 51
+  final `make -q` checks pass (`docs/exec1s/freshness.json`).
+
+Per-invocation row counts include dependencies and overlap; they are not a new
+unique full-gate total:
+
+| Invocation | Jobs | Passing / failed rows | Result |
+| --- | ---: | ---: | --- |
+| Selected families, complete restart | 177 | 763 / 2 | Two preparation failures, resolved below |
+| Blocking/tracking complete rerun | 4 | 3 / 0 | PASS |
+| Supplementary fused legs | 19 | 215 / 0 | PASS |
+| Scripting atomic-0, each mode | 2 each | 3 / 0 each | PASS |
+| Standard differential, uring | 6 | 6 / 0 | PASS: 954 comparisons |
+| Standard differential, epoll | 6 | 5 / 1 | FAIL: `psfix`, split-0, seed 22 |
+| Original CQ observer, each mode | 4 each | 48 / 9 each | Observer-output failures, retained |
+| Separate-file CQ observer, each mode | 4 each | 57 / 0 each | PASS |
+
+Both differential plans use permanent seeds 7, 19, 20, 23, 47 suites and four
+repeat schedules; their rotating seeds are 21 (uring) and 22 (epoll). Epoll's
+other parts passed: split-1 239 comparisons, armed-0 230, armed-1 234 and
+mode-equivalence 16. Its split-0 inventory has 234 passing cases and the one
+failed case; it has no completion receipt. Across the retained attempts there
+are 21 failed gate rows: 20 resolved preparation/observer rows and one unresolved
+differential row. No original verdict was rewritten.
 
 `tools/exec1s_finish_proof.py` selects jobs through `tests/gate.sh`’s own partial
 interface, preserving internal legs and watchdogs. No EXPECT-based full-gate
-receipt is claimed. The complete Redis 7.4 oracle source is
-`/home/user/Projects/redis`; a fresh oracle identity receipt will accompany the
-standard-seed differential results.
+receipt is claimed. The Redis 7.4.10 oracle is from
+`/home/user/Projects/redis`, commit `f103d127b9747965e28f20615ef790332661fc68`;
+its fresh binary SHA-256 and identity are in `docs/exec1s/oracle.json`.
 
 **NOT RUN (maintainer work):** `flip_saturated` and `atomic_floor` invoke memtier;
 the `atomic_ryow` rate assertion is disabled with the gate’s existing
