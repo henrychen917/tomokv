@@ -133,6 +133,20 @@ def extras(root):
             commands += [['script', 'load', code], ['evalsha', digest.upper(), 0],
                          ['evalsha_ro', digest.upper(), 0],
                          ['script', 'exists', digest.upper(), digest, digest[:-1]]]
+    elif root == 'EVAL-SHEBANG':
+        for header in ('#!lua', '#!LUA', '#!lua flags=', '#!lua flags=no-writes',
+                       '#!lua flags=allow-oom,no-writes', '#!lua flags=unknown',
+                       '#!lua flags=no-writes,', '#!lua unknown=1', '#!lua "broken',
+                       '#!lua flags="no-writes"', '#!lua flags=allow-stale,no-cluster,allow-cross-slot-keys'):
+            eval_(header + '\nreturn 1')
+            eval_(header + '\nreturn 1', verb='eval_ro')
+            commands.append(['script', 'load', header + '\nreturn 1'])
+        eval_('#!lua')
+        eval_("#!lua flags=no-writes\nreturn redis.pcall('set',KEYS[1],1)", 'readonly')
+        commands.append(['get', 'readonly'])
+        code = "#!lua flags=no-writes\nreturn redis.call('set',KEYS[1],1)"
+        commands += [['script', 'load', code],
+                     ['evalsha', hashlib.sha1(code.encode()).hexdigest().upper(), 1, 'readonly']]
     elif root == 'FCALL-NAME-CASE':
         load("redis.register_function{function_name='MiXeD',callback=function() return 42 end,flags={'no-writes'}}")
         commands += [['fcall', 'MIXED', 0], ['fcall_ro', 'mixed', 0]]
@@ -160,6 +174,8 @@ def extras(root):
     elif root == 'FUNCTION-SUBCMD-ARGS':
         for sub in ('load', 'restore', 'flush', 'dump', 'stats', 'delete', 'kill', 'help'):
             for tail in ([], ['a'], ['a', 'b'], ['a', 'b', 'c']):
+                if not tail and sub in ('dump', 'help'):
+                    continue  # Own dump format/help text are explicit existing contracts.
                 commands.append(['function', sub, *tail])
         commands += [['function', 'list', 'LIBRARYNAME'],
                      ['function', 'list', 'withcode', 'WITHCODE']]
@@ -172,6 +188,29 @@ def extras(root):
         for value in ('-0.0', '1e-7', '1e-6', '1e20', '1e21', '1e100', '1e-100',
                       '9007199254740992', '-9007199254740991', '1/0', '-1/0', '0/0'):
             eval_("redis.call('set',KEYS[1]," + value + ") return redis.call('get',KEYS[1])", 'number')
+    elif root == 'LUA-REDIS-API':
+        for code in ("return redis.error_reply('')", "return redis.error_reply('message')",
+                     "return redis.error_reply('-CUSTOM detail')", "return redis.error_reply('X a\\r\\nb')",
+                     "return redis.error_reply('X a\\0b')", "return redis.error_reply(1)",
+                     "return redis.status_reply(1)", "return redis.status_reply('a\\r\\nb')",
+                     "return {redis.REDIS_VERSION,redis.REDIS_VERSION_NUM}",
+                     "redis.log()", "redis.log({},'x')", "redis.log(4,'x')",
+                     "redis.log(redis.LOG_DEBUG,'x') return 1", 'return redis.replicate_commands()'):
+            eval_(code)
+        load("local version=redis.REDIS_VERSION_NUM redis.log(redis.LOG_NOTICE,'load') "
+             "redis.register_function('api',function() return {version,redis.REDIS_VERSION} end)")
+        commands.append(['fcall', 'api', 0])
+    elif root == 'LUA-SANDBOX-GLOBALS':
+        for code in ("return loadstring('return 7')()", "return loadstring('\\27Lua')()",
+                     "return type(load)", "local co=coroutine.create(function() return 3 end) "
+                     "local ok,n=coroutine.resume(co) return {ok,n}",
+                     "collectgarbage('collect') return 1", "return os.execute('anything')",
+                     "return os.clock() >= 0", "math.randomseed(10) return {tostring(math.random()),math.random(10),math.random(-10,10)}",
+                     "math.randomseed(10) return tostring(math.random())",
+                     "return math.random(0)", "return math.random(2,1)", "return math.random(1,2,3)"):
+            eval_(code)
+        load("redis.register_function('globals',function() return {type(os.clock),type(loadstring),type(coroutine),type(collectgarbage)} end)")
+        commands.append(['fcall', 'globals', 0])
     elif root == 'SCRIPT-REPLY-DEPTH':
         for depth in (31, 32, 33, 128, 512):
             eval_(f'local t={{}} local c=t for i=1,{depth} do c[1]={{}} c=c[1] end return t')
