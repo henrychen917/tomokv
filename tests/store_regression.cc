@@ -486,12 +486,38 @@ static void deadline_allocation_failure() {
     require(s.find(hash("ttl-0"), slice(std::string("ttl-0"))) == nullptr, "extended deadline still expires");
 }
 
-// rlresize: snapshot preparation sizes the post-cut table at twice the current capacity because the
-// current table cannot grow while prepared; it refuses only a completely full table. FLUSHALL in
+// snapfix2: writes continue between prepare and mark. A live-set-sized destination below the
+// current capacity can become too small even without a FLUSH. Exercise ordinary and atomic
+// admission with read-local both armed and disarmed, then finish the real capture and merge.
+static void snapshot_prepared_growth() {
+    for (bool armed : {false, true}) {
+        FlatStore s(1024); arm(s, armed); put(s, "seed");
+        require(s.snapshot_prepare(1, 100) == FlatStore::SnapshotWriteResult::Ready, "sparse prepare");
+        require(s.atomic_prepare_capacity(512), "prepared atomic admission still uses current capacity");
+        for (unsigned i = 0; i < 512; ++i) put(s, "prepared-" + std::to_string(i));
+        require(s.size() == 513 && s.snapshot_mark(0, 100), "prepared growth fired before mark");
+        // Fail before entering a merge that cannot terminate (the proposed unfloored patch).
+        require(s.rehash_progress().current_capacity > s.size(), "prepared destination holds accepted keys");
+        for (unsigned i = 0; i < 1000 && s.snapshot_active(); ++i) {
+            s.snapshot_progress(4096, 2048);
+            if (s.snapshot_take_chunk()) s.snapshot_handoff_complete();
+        }
+        require(!s.snapshot_active() && !s.snapshot_failed(), "prepared growth capture completed");
+        for (unsigned i = 0; i < 1000 && s.rehashing(); ++i) FlatStoreRegressionTest::step(s);
+        require(!s.rehashing() && s.size() == 513, "prepared growth merge completed without loss");
+        for (unsigned i = 0; i < 512; ++i) {
+            const std::string key = "prepared-" + std::to_string(i);
+            require(s.find(hash(key), slice(key)), "prepared key survived capture and merge");
+        }
+    }
+}
+
+// rlresize: the current table cannot grow while prepared; it refuses only a full table. FLUSHALL in
 // the prepare-to-mark window still reaches clear() (no capture is active yet). A 1024-slot
 // replacement would let a small (e.g. shrunk) shard accept more keys than the prepared table can
 // hold, and after the cut the post-capture merge would stall on a full destination forever.
 static void flush_prepared_capacity() {
+    snapshot_prepared_growth();
     for (bool armed : {false, true}) {
         FlatStore s(64); arm(s, armed); put(s, "before-flush");
         require(s.snapshot_prepare(1, 100) == FlatStore::SnapshotWriteResult::Ready,

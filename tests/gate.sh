@@ -3725,6 +3725,11 @@ job_snapfix_bgsave_exec(){
   row_begin "$label"
   snapfix_case bgsave-exec "$label"
 }
+job_snapfix2_tables(){
+  local label='snapfix2 repeated BGSAVE bounds RSS (both modes, both engines, atomic 0/1)'
+  row_begin "$label"
+  snapfix_case bgsave-loop "$label"
+}
 
 job_datafix2_notouch(){
   row_begin "datafix2 CD4.7 no-touch lookups vs Redis 7.4"
@@ -5734,6 +5739,8 @@ for NET_IO in epoll uring; do collect_job "snapshot-$NET_IO"; done
 collect_job snapfix_shutdown
 collect_job snapfix_bgsave_script
 collect_job snapfix_bgsave_exec
+# snapfix2: one independent RSS row before the quick exit, DQ=+1 / DF=+1.
+collect_job snapfix2_tables
 
 collect_job notify
 # trackfix CC4.4: one row before the quick exit; EXPECT remains maintainer-owned.

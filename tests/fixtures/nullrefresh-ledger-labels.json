@@ -582,6 +582,7 @@
     "snapfix XS-SHUT-1 SHUTDOWN NOSAVE in script storm (both modes, both engines, atomic 0/1)",
     "snapfix SNAP-STORM-1 BGSAVE under script storm (both modes, both engines, atomic 0/1)",
     "snapfix SNAP-STORM-1 BGSAVE under EXEC + writer storm (both modes, both engines, atomic 0/1)",
+    "snapfix2 repeated BGSAVE bounds RSS (both modes, both engines, atomic 0/1)",
     "MULTI feature battery",
     "blocking feature battery",
     "pubsub feature battery",
