@@ -93,6 +93,7 @@ per-symbol lists, rather than this prose, are authoritative:
 **Residual hot change:** the normal fused
 `flush_ready<false,true,true,false,true,false>` is not body-identical at any of
 this lane's tested budgets. It is not part of the command execution fixture.
+Its template arguments select the plain-TCP, epoll, fused sweep path.
 Neither the body comparison nor equal command counts proves a throughput null;
 the release and PAD-A merit comparisons remain required. No rate claim here.
 
@@ -250,6 +251,8 @@ for the combined snapfix change. PAD is **A, behaviour twin**: BASE behaviour in
 the exact POST-layout common image. Compare POST-layout vs PAD-A separately from
 the release binaries. Command counts are equal; matched offered
 load, cycles/op and IPC decide any performance effect. No throughput claim here.
+Retain the instrument's uring and epoll passes; the remaining changed hot body
+is in the epoll fused sweep.
 
 On a quiet box, also record RSS and BGSAVE start latency for each of 16 consecutive
 saves, BASE vs POST, idle one-key geometry, both modes/engines, atomic 1. Use 16
