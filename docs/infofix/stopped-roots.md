@@ -77,7 +77,9 @@ been measured here.
 The global retention ring passes the Redis reply/data/order checks, but its
 mutex is shared by all recording owners. With slowlog armed, a GET completion
 can wait behind a SET's log publication in `slowlog_finish`. The disarmed path
-never enters this mutex. This optional-logging wait is explicitly submitted for
-review against the no-write-obstructed-read law; no exemption is assumed here.
-A requirement that the law cover log completion too would require a different
-retention/publication design before this root can be accepted.
+never enters this mutex. This optional-logging wait conflicts with the stated
+no-write-obstructed-read law; no exemption is assumed. This candidate is not an
+accepted fix, despite the passing compatibility rows. Stop this root pending
+a retention/publication design that satisfies both global retention and the
+no-obstruction law. The candidate and its falsification evidence remain
+reviewable in this branch; do not merge it as a completed root.

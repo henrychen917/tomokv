@@ -3,7 +3,11 @@
 Branch `cx-infofix`, PRE `393d6ceb129d8c99dffd70959d6a19267c525fe0`.
 Production implementation is through `dbb355c55`; subsequent commits contain
 batteries and evidence. No push. This is a partial compatibility result, not a
-claim that all eight roots or the full Tcl job are green.
+claim that all eight roots or the full Tcl job are green. The branch is **not
+merge-ready**: three roots stopped at owner decisions, the required CLI case
+still needs MIGRATE, and the slowlog completion wait requires a different design
+to satisfy the stated no-obstruction law. The armed-latency merit verdict
+also remains unmeasured.
 
 ### Root dispositions
 
@@ -11,7 +15,7 @@ claim that all eight roots or the full Tcl job are green.
 |---|---|---|
 | INFO-MISSING-FIELDS | Implemented | CPU section in default/all/explicit selection; six real CPU counters; own git SHA, dirty bit, and 64-bit hexadecimal build identity. Directed oracle + 8 candidate legs pass. |
 | COMMAND-DOCS-INCOMPLETE | Registered-command fix; Tcl closure blocked | Metadata-generated arguments, nested blocks/oneof, flags, history, and subcommands match Redis in RESP2/RESP3. The promoted CLI test still requires MIGRATE, absent from TomoKV's registry. |
-| SLOWLOG-MAXLEN-PER-THREAD | Semantics implemented; concurrency review open | One lazy global ring; global cap and descending publication IDs; disabled logging retains history; subsequent armed completion trims it; discarded entries cannot return after growing the cap. Armed completion can wait on the shared ring mutex; see below. |
+| SLOWLOG-MAXLEN-PER-THREAD | Semantics candidate; blocked by no-obstruction law | One lazy global ring; global cap and descending publication IDs; disabled logging retains history; subsequent armed completion trims it; discarded entries cannot return after growing the cap. Armed completion can wait on the shared ring mutex; see below. |
 | DEBUG-LOADAOF-AOF-OFF | Implemented | Offline rewrite/reload works while appendonly remains no; absent AOF flushes keys and returns Redis's exact error. Enabled writers still drain before reload. |
 | LAT-HIST-2 | Candidate; performance verdict pending | Homogeneous GET batches share metadata resolution and one histogram lock. Individual command timers and recording before completion publication remain exact. No averaging of outliers. |
 | INFO-ERRORSTATS | STOPPED: architecture boundary | Exact accounting needs an accepted-attempt error journal. A generic error formatter hook counts discarded/replayed script attempts and cannot distinguish rejected from failed calls correctly. The exploratory hook was removed. |
@@ -29,8 +33,8 @@ no false counters or superficial success replies were added.
 history publication across owners. A GET completion can therefore wait for the
 ring mutex held by another owner recording a SET. The default disarmed path does
 not enter this mutex. This is a concrete cross-owner wait in optional logging,
-and must be reviewed against the no-write-obstructed-read law before accepting
-this root. The armed slowlog merit cells measure its cost; a rate result alone
+and prevents accepting this candidate under the no-write-obstructed-read law.
+This root is stopped pending a publication design that satisfies both laws. The armed slowlog merit cells measure its cost; a rate result alone
 cannot authorize an exception to that law.
 
 LAT-HIST-2 preserves two clock reads per individual execution. This candidate
@@ -136,9 +140,26 @@ complete result. **Both full standard-seed differential matrices pass: 6 rows
 each, 0 failures**, covering all four split/fused-read-local × atomic=0/1 parts
 and mode equivalence. Seeds were 7,19,20,23,21,22 plus rotating 25 (uring) or
 24 (epoll), with the normal MULTI repeats retained. See `differ-verdicts-final.json`
-and the two final differential evidence archives. Final Tcl and gate-harness
-self-test results are still being collected. `make all` and every production-unit
-prerequisite rebuilt through the gate; all **56** target-specific `make -q` checks
+and the two final differential evidence archives. **Additional slowlog consumer jobs: 25 pass, 0 fail**, including identity,
+credential redaction, blocked-command logging and the core ASAN/UBSAN/TSan
+checks (`slowlog-consumers-final.log`). **gates_test.py: 73/73 pass.**
+
+The final Tcl job is **1 release pass / 2 mode failures**. Its sole unexpected
+failure in each mode is the promoted CLI hint test for absent MIGRATE. All
+required INFO, printver, slowlog and offline-reload checks pass in both modes.
+The manifest's existing setup restrictions remain unchanged; they are not new
+assertion failures. See `tcl-verdicts-final.json` and `evidence/post-tcl-final.tar.gz`.
+
+The final instrument self-test row is **0 pass / 1 failure**, solely at the
+owner-maintained EXPECT inventory guard: source declarations **903**, explicit
+fixture **903**, EXPECT_FULL **898**. There are no missing or extra fixture labels;
+duplicates are preserved. The other helper self-tests pass. The receipt self-tests
+behind that guard are **NOT RUN**, because the protected count must be updated by
+the owner. See `instrument-verdict-final.json` and the corresponding evidence
+archive. The guard was neither bypassed nor weakened.
+
+`make all` and all **49** production-unit targets built successfully, including the
+gate's supplemental prerequisites. All **56** target-specific `make -q` checks
 pass in `production-freshness-final.json`. No earlier failure is discarded.
 The initial affected run was 311 pass / 16 fail: eight stale INFO DEFAULT section
 expectations, four stale LOADAOF error strings, and four downstream snapshot
@@ -176,7 +197,11 @@ were recorded in `retired-artifacts.json`. PRE objects and frozen binaries remai
 ### Maintainer merit request
 
 Performance benchmarks and full `tests/gate.sh iteration`: **NOT RUN**, reserved
-to the maintainer. No throughput or latency improvement claim.
+to the maintainer. Positive fix rows and planted-fix-regression proofs for the
+three stopped roots: **NOT RUN**, because those fixes were not implemented;
+their original PRE/Redis differences and source boundaries are recorded above.
+Receipt self-tests beyond the inventory guard: **NOT RUN**, for the protected
+EXPECT mismatch described above. No throughput or latency improvement claim.
 
 Use the gate's own quiet-box ABBA instrument, matched offered load, with PRE vs
 POST, PRE vs PAD-A, and contemporaneous PRE/PRE controls. Record every arm's hash,

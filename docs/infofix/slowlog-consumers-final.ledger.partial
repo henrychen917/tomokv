@@ -1,1 +1,26 @@
 PARTIAL	0	GATE_ONLY_JOBS=bugs5 authfix blockfix2 core_units dispatch_errors; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	44.130000	bugs5 scancompact (both modes, both engines, atomic 0/1)
+ok	33.740000	bugs5 slowlog_identity (both modes, both engines, atomic 0/1)
+ok	27.140000	bugs5 read_local_lfu (both modes, both engines, atomic 0/1)
+ok	34.270000	blockfix2 BLOCK-WAKE-RENAME-SORTSTORE
+ok	34.170000	blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS
+ok	33.720000	blockfix2 MULTI-XREADGROUP-BLOCK-HANG
+ok	33.910000	blockfix2 INFO-TOTAL-BLOCKING-KEYS
+ok	33.710000	blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED
+ok	0.020000	blockfix2 BLOCK-SERVE-REFUSED-DROP
+ok	0.380000	core concurrency watch
+ok	0.330000	core concurrency lifetime
+ok	0.110000	core concurrency drain
+ok	7.410000	core concurrency route
+ok	0.110000	core concurrency snapshot
+ok	0.180000	core concurrency config
+ok	0.170000	core concurrency notify
+ok	0.810000	read-local topology demotion (1s)
+ok	0.570000	read-local topology demotion (2s)
+ok	0.860000	dispatchfix EX4.11 container errors
+ok	0.900000	authfix CG4.1 binary config requirepass
+ok	3.450000	authfix CG4.2 missing config value refuses boot
+ok	0.900000	authfix SV4.2 binary requirepass rewrite restart
+ok	0.300000	authfix SV4.1 slowlog credential redaction (1s)
+ok	0.300000	authfix SV4.1 slowlog credential redaction (2s)

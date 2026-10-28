@@ -103,5 +103,30 @@
     "files": 2857,
     "source": "build/gate-run.7lqvFn",
     "note": "Complete final standard-seed differential matrix."
+  },
+  {
+    "archive": "docs/infofix/evidence/post-tcl-final.tar.gz",
+    "sha256": "48bb37ac7fe6b270303d55be0faa9421dabf2f483ef8a5fb23ea4414f1be3535",
+    "files": 399,
+    "source": "build/gate-run.ufnXvJ"
+  },
+  {
+    "archive": "docs/infofix/evidence/instrument-selftest-initial.tar.gz",
+    "sha256": "3f480db42e53e4332df89bd501520247bc4a78458101a9f7c033bc96b9c24c22",
+    "files": 9,
+    "source": "build/gate-run.JcgmFx"
+  },
+  {
+    "archive": "docs/infofix/evidence/slowlog-consumers-final.tar.gz",
+    "sha256": "8908b67fe2402f858ea4e531196073b437c3d4ea5c68336c8491612c34451117",
+    "files": 388,
+    "source": "build/gate-run.dHQ1HK"
+  },
+  {
+    "archive": "docs/infofix/evidence/instrument-fixture-final.tar.gz",
+    "sha256": "f8ec19886f0431fe2259bbc588a11a326d19a00d65ad6c4544e26c96961a18ed",
+    "files": 12,
+    "source": "build/gate-run.tYIgq3",
+    "note": "Final instrument job: source and fixture both 903; protected EXPECT_FULL remains 898. Receipt self-tests do not start past that guard."
   }
 ]
