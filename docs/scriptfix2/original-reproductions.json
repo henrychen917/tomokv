@@ -1,0 +1,3370 @@
+{
+  "A-ACL-SCRIPTS-NEED-ALLCOMMANDS": {
+    "results": {
+      "1s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-ACL-SCRIPTS-NEED-ALLCOMMANDS/1s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "1s",
+          "--shards",
+          "16",
+          "--databases",
+          "16"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "simple": "OK"
+            },
+            "send": [
+              "acl",
+              "setuser",
+              "bob",
+              "on",
+              ">123",
+              "+@scripting",
+              "~*"
+            ]
+          },
+          {
+            "c": "b",
+            "reply": {
+              "simple": "OK"
+            },
+            "send": [
+              "auth",
+              "bob",
+              "123"
+            ]
+          },
+          {
+            "c": "b",
+            "reply": {
+              "error": "NOPERM User bob has no permissions to run the 'eval' command"
+            },
+            "send": [
+              "eval",
+              "return 1",
+              "0"
+            ]
+          },
+          {
+            "c": "b",
+            "reply": {
+              "error": "NOPERM User bob has no permissions to run the 'fcall' command"
+            },
+            "send": [
+              "fcall",
+              "nosuch",
+              "0"
+            ]
+          }
+        ]
+      },
+      "2s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-ACL-SCRIPTS-NEED-ALLCOMMANDS/2s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "2s",
+          "--shards",
+          "16",
+          "--databases",
+          "16",
+          "--ratio",
+          "6:2"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "simple": "OK"
+            },
+            "send": [
+              "acl",
+              "setuser",
+              "bob",
+              "on",
+              ">123",
+              "+@scripting",
+              "~*"
+            ]
+          },
+          {
+            "c": "b",
+            "reply": {
+              "simple": "OK"
+            },
+            "send": [
+              "auth",
+              "bob",
+              "123"
+            ]
+          },
+          {
+            "c": "b",
+            "reply": {
+              "error": "NOPERM User bob has no permissions to run the 'eval' command"
+            },
+            "send": [
+              "eval",
+              "return 1",
+              "0"
+            ]
+          },
+          {
+            "c": "b",
+            "reply": {
+              "error": "NOPERM User bob has no permissions to run the 'fcall' command"
+            },
+            "send": [
+              "fcall",
+              "nosuch",
+              "0"
+            ]
+          }
+        ]
+      },
+      "redis": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/redis/src/redis-server",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-ACL-SCRIPTS-NEED-ALLCOMMANDS/redis",
+          "--enable-debug-command",
+          "yes"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "simple": "OK"
+            },
+            "send": [
+              "acl",
+              "setuser",
+              "bob",
+              "on",
+              ">123",
+              "+@scripting",
+              "~*"
+            ]
+          },
+          {
+            "c": "b",
+            "reply": {
+              "simple": "OK"
+            },
+            "send": [
+              "auth",
+              "bob",
+              "123"
+            ]
+          },
+          {
+            "c": "b",
+            "reply": 1,
+            "send": [
+              "eval",
+              "return 1",
+              "0"
+            ]
+          },
+          {
+            "c": "b",
+            "reply": {
+              "error": "ERR Function not found"
+            },
+            "send": [
+              "fcall",
+              "nosuch",
+              "0"
+            ]
+          }
+        ]
+      }
+    },
+    "server_args": [],
+    "steps": [
+      {
+        "c": "a",
+        "send": [
+          "acl",
+          "setuser",
+          "bob",
+          "on",
+          ">123",
+          "+@scripting",
+          "~*"
+        ]
+      },
+      {
+        "c": "b",
+        "send": [
+          "auth",
+          "bob",
+          "123"
+        ]
+      },
+      {
+        "c": "b",
+        "send": [
+          "eval",
+          "return 1",
+          "0"
+        ]
+      },
+      {
+        "c": "b",
+        "send": [
+          "fcall",
+          "nosuch",
+          "0"
+        ]
+      }
+    ],
+    "title": "A user without +@all cannot run EVAL/FCALL even when +@scripting grants them",
+    "verdict": {
+      "1s": "DIFFERENT",
+      "2s": "DIFFERENT"
+    }
+  },
+  "A-EVAL-SHEBANG": {
+    "results": {
+      "1s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-EVAL-SHEBANG/1s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "1s",
+          "--shards",
+          "16",
+          "--databases",
+          "16"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'"
+            },
+            "send": [
+              "eval",
+              "#!lua\nreturn 1",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'"
+            },
+            "send": [
+              "eval",
+              "#!lua flags=no-writes\nreturn redis.call('set',KEYS[1],'1')",
+              "1",
+              "x"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'"
+            },
+            "send": [
+              "eval",
+              "#!not-lua\nreturn 1",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'"
+            },
+            "send": [
+              "script",
+              "load",
+              "#!lua\nreturn 1"
+            ]
+          }
+        ]
+      },
+      "2s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-EVAL-SHEBANG/2s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "2s",
+          "--shards",
+          "16",
+          "--databases",
+          "16",
+          "--ratio",
+          "6:2"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'"
+            },
+            "send": [
+              "eval",
+              "#!lua\nreturn 1",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'"
+            },
+            "send": [
+              "eval",
+              "#!lua flags=no-writes\nreturn redis.call('set',KEYS[1],'1')",
+              "1",
+              "x"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'"
+            },
+            "send": [
+              "eval",
+              "#!not-lua\nreturn 1",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'"
+            },
+            "send": [
+              "script",
+              "load",
+              "#!lua\nreturn 1"
+            ]
+          }
+        ]
+      },
+      "redis": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/redis/src/redis-server",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-EVAL-SHEBANG/redis",
+          "--enable-debug-command",
+          "yes"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": 1,
+            "send": [
+              "eval",
+              "#!lua\nreturn 1",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Write commands are not allowed from read-only scripts. script: c1f7bebd018cef984bb55939ec4cec6a331c78d3, on @user_script:2."
+            },
+            "send": [
+              "eval",
+              "#!lua flags=no-writes\nreturn redis.call('set',KEYS[1],'1')",
+              "1",
+              "x"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Unexpected engine in script shebang: #!not-lua"
+            },
+            "send": [
+              "eval",
+              "#!not-lua\nreturn 1",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": "cb70127618f0b0be70c53cf6bfcfa54a29d9b0c0",
+            "send": [
+              "script",
+              "load",
+              "#!lua\nreturn 1"
+            ]
+          }
+        ]
+      }
+    },
+    "server_args": [],
+    "steps": [
+      {
+        "c": "a",
+        "send": [
+          "eval",
+          "#!lua\nreturn 1",
+          "0"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "eval",
+          "#!lua flags=no-writes\nreturn redis.call('set',KEYS[1],'1')",
+          "1",
+          "x"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "eval",
+          "#!not-lua\nreturn 1",
+          "0"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "script",
+          "load",
+          "#!lua\nreturn 1"
+        ]
+      }
+    ],
+    "title": "EVAL / SCRIPT LOAD do not parse the #!lua shebang line or its flags",
+    "verdict": {
+      "1s": "DIFFERENT",
+      "2s": "DIFFERENT"
+    }
+  },
+  "A-EVALSHA-SHA-CASE": {
+    "results": {
+      "1s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-EVALSHA-SHA-CASE/1s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "1s",
+          "--shards",
+          "16",
+          "--databases",
+          "16"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": "1b936e3fe509bcbc9cd0664897bbe8fd0cac101b",
+            "send": [
+              "script",
+              "load",
+              "return 'hello'"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "NOSCRIPT No matching script. Please use EVAL."
+            },
+            "send": [
+              "evalsha",
+              "1B936E3FE509BCBC9CD0664897BBE8FD0CAC101B",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": [
+              0
+            ],
+            "send": [
+              "script",
+              "exists",
+              "1B936E3FE509BCBC9CD0664897BBE8FD0CAC101B"
+            ]
+          }
+        ]
+      },
+      "2s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-EVALSHA-SHA-CASE/2s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "2s",
+          "--shards",
+          "16",
+          "--databases",
+          "16",
+          "--ratio",
+          "6:2"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": "1b936e3fe509bcbc9cd0664897bbe8fd0cac101b",
+            "send": [
+              "script",
+              "load",
+              "return 'hello'"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "NOSCRIPT No matching script. Please use EVAL."
+            },
+            "send": [
+              "evalsha",
+              "1B936E3FE509BCBC9CD0664897BBE8FD0CAC101B",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": [
+              0
+            ],
+            "send": [
+              "script",
+              "exists",
+              "1B936E3FE509BCBC9CD0664897BBE8FD0CAC101B"
+            ]
+          }
+        ]
+      },
+      "redis": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/redis/src/redis-server",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-EVALSHA-SHA-CASE/redis",
+          "--enable-debug-command",
+          "yes"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": "1b936e3fe509bcbc9cd0664897bbe8fd0cac101b",
+            "send": [
+              "script",
+              "load",
+              "return 'hello'"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": "hello",
+            "send": [
+              "evalsha",
+              "1B936E3FE509BCBC9CD0664897BBE8FD0CAC101B",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": [
+              1
+            ],
+            "send": [
+              "script",
+              "exists",
+              "1B936E3FE509BCBC9CD0664897BBE8FD0CAC101B"
+            ]
+          }
+        ]
+      }
+    },
+    "server_args": [],
+    "steps": [
+      {
+        "c": "a",
+        "send": [
+          "script",
+          "load",
+          "return 'hello'"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "evalsha",
+          "1B936E3FE509BCBC9CD0664897BBE8FD0CAC101B",
+          "0"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "script",
+          "exists",
+          "1B936E3FE509BCBC9CD0664897BBE8FD0CAC101B"
+        ]
+      }
+    ],
+    "title": "EVALSHA / SCRIPT EXISTS sha1 lookup is case-sensitive",
+    "verdict": {
+      "1s": "DIFFERENT",
+      "2s": "DIFFERENT"
+    }
+  },
+  "A-FCALL-NAME-CASE": {
+    "results": {
+      "1s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-FCALL-NAME-CASE/1s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "1s",
+          "--shards",
+          "16",
+          "--databases",
+          "16"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": "lib1",
+            "send": [
+              "function",
+              "load",
+              "#!lua name=lib1\nredis.register_function('test', function() return 'hello' end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Function not found"
+            },
+            "send": [
+              "fcall",
+              "TEST",
+              "0"
+            ]
+          }
+        ]
+      },
+      "2s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-FCALL-NAME-CASE/2s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "2s",
+          "--shards",
+          "16",
+          "--databases",
+          "16",
+          "--ratio",
+          "6:2"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": "lib1",
+            "send": [
+              "function",
+              "load",
+              "#!lua name=lib1\nredis.register_function('test', function() return 'hello' end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Function not found"
+            },
+            "send": [
+              "fcall",
+              "TEST",
+              "0"
+            ]
+          }
+        ]
+      },
+      "redis": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/redis/src/redis-server",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-FCALL-NAME-CASE/redis",
+          "--enable-debug-command",
+          "yes"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": "lib1",
+            "send": [
+              "function",
+              "load",
+              "#!lua name=lib1\nredis.register_function('test', function() return 'hello' end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": "hello",
+            "send": [
+              "fcall",
+              "TEST",
+              "0"
+            ]
+          }
+        ]
+      }
+    },
+    "server_args": [],
+    "steps": [
+      {
+        "c": "a",
+        "send": [
+          "function",
+          "load",
+          "#!lua name=lib1\nredis.register_function('test', function() return 'hello' end)"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "fcall",
+          "TEST",
+          "0"
+        ]
+      }
+    ],
+    "title": "FCALL function-name lookup is case-sensitive",
+    "verdict": {
+      "1s": "DIFFERENT",
+      "2s": "DIFFERENT"
+    }
+  },
+  "A-FUNCTION-LOAD-DENYOOM": {
+    "results": {
+      "1s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-FUNCTION-LOAD-DENYOOM/1s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "1s",
+          "--shards",
+          "16",
+          "--databases",
+          "16"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "simple": "OK"
+            },
+            "send": [
+              "set",
+              "x",
+              "123"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "simple": "OK"
+            },
+            "send": [
+              "config",
+              "set",
+              "maxmemory",
+              "1"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "OOM command not allowed when used memory > 'maxmemory'."
+            },
+            "send": [
+              "set",
+              "x",
+              "456"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": "oom1",
+            "send": [
+              "function",
+              "load",
+              "#!lua name=oom1\nredis.register_function('o1', function() return 1 end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "simple": "OK"
+            },
+            "send": [
+              "config",
+              "set",
+              "maxmemory",
+              "0"
+            ]
+          }
+        ]
+      },
+      "2s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-FUNCTION-LOAD-DENYOOM/2s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "2s",
+          "--shards",
+          "16",
+          "--databases",
+          "16",
+          "--ratio",
+          "6:2"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "simple": "OK"
+            },
+            "send": [
+              "set",
+              "x",
+              "123"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "simple": "OK"
+            },
+            "send": [
+              "config",
+              "set",
+              "maxmemory",
+              "1"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "OOM command not allowed when used memory > 'maxmemory'."
+            },
+            "send": [
+              "set",
+              "x",
+              "456"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": "oom1",
+            "send": [
+              "function",
+              "load",
+              "#!lua name=oom1\nredis.register_function('o1', function() return 1 end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "simple": "OK"
+            },
+            "send": [
+              "config",
+              "set",
+              "maxmemory",
+              "0"
+            ]
+          }
+        ]
+      },
+      "redis": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/redis/src/redis-server",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-FUNCTION-LOAD-DENYOOM/redis",
+          "--enable-debug-command",
+          "yes"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "simple": "OK"
+            },
+            "send": [
+              "set",
+              "x",
+              "123"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "simple": "OK"
+            },
+            "send": [
+              "config",
+              "set",
+              "maxmemory",
+              "1"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "OOM command not allowed when used memory > 'maxmemory'."
+            },
+            "send": [
+              "set",
+              "x",
+              "456"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "OOM command not allowed when used memory > 'maxmemory'."
+            },
+            "send": [
+              "function",
+              "load",
+              "#!lua name=oom1\nredis.register_function('o1', function() return 1 end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "simple": "OK"
+            },
+            "send": [
+              "config",
+              "set",
+              "maxmemory",
+              "0"
+            ]
+          }
+        ]
+      }
+    },
+    "server_args": [],
+    "steps": [
+      {
+        "c": "a",
+        "send": [
+          "set",
+          "x",
+          "123"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "config",
+          "set",
+          "maxmemory",
+          "1"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "set",
+          "x",
+          "456"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "function",
+          "load",
+          "#!lua name=oom1\nredis.register_function('o1', function() return 1 end)"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "config",
+          "set",
+          "maxmemory",
+          "0"
+        ]
+      }
+    ],
+    "title": "FUNCTION LOAD is not refused while the server is over maxmemory",
+    "verdict": {
+      "1s": "DIFFERENT",
+      "2s": "DIFFERENT"
+    }
+  },
+  "A-FUNCTION-LOAD-ENV": {
+    "results": {
+      "1s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-FUNCTION-LOAD-ENV/1s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "1s",
+          "--shards",
+          "16",
+          "--databases",
+          "16"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": "env1",
+            "send": [
+              "function",
+              "load",
+              "#!lua name=env1\nlocal p = math.pi\nredis.register_function('e1', function() return 1 end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": "env2",
+            "send": [
+              "function",
+              "load",
+              "#!lua name=env2\nlocal mt = getmetatable(_G)\nredis.register_function('e2', function() return 1 end)"
+            ]
+          }
+        ]
+      },
+      "2s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-FUNCTION-LOAD-ENV/2s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "2s",
+          "--shards",
+          "16",
+          "--databases",
+          "16",
+          "--ratio",
+          "6:2"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": "env1",
+            "send": [
+              "function",
+              "load",
+              "#!lua name=env1\nlocal p = math.pi\nredis.register_function('e1', function() return 1 end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": "env2",
+            "send": [
+              "function",
+              "load",
+              "#!lua name=env2\nlocal mt = getmetatable(_G)\nredis.register_function('e2', function() return 1 end)"
+            ]
+          }
+        ]
+      },
+      "redis": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/redis/src/redis-server",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-FUNCTION-LOAD-ENV/redis",
+          "--enable-debug-command",
+          "yes"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Error registering functions: ERR user_function:2: Script attempted to access nonexistent global variable 'math'"
+            },
+            "send": [
+              "function",
+              "load",
+              "#!lua name=env1\nlocal p = math.pi\nredis.register_function('e1', function() return 1 end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Error registering functions: ERR user_function:2: Script attempted to access nonexistent global variable 'getmetatable'"
+            },
+            "send": [
+              "function",
+              "load",
+              "#!lua name=env2\nlocal mt = getmetatable(_G)\nredis.register_function('e2', function() return 1 end)"
+            ]
+          }
+        ]
+      }
+    },
+    "server_args": [],
+    "steps": [
+      {
+        "c": "a",
+        "send": [
+          "function",
+          "load",
+          "#!lua name=env1\nlocal p = math.pi\nredis.register_function('e1', function() return 1 end)"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "function",
+          "load",
+          "#!lua name=env2\nlocal mt = getmetatable(_G)\nredis.register_function('e2', function() return 1 end)"
+        ]
+      }
+    ],
+    "title": "FUNCTION LOAD runs the library body with the full sandbox (math, getmetatable ...) instead of only the redis API",
+    "verdict": {
+      "1s": "DIFFERENT",
+      "2s": "DIFFERENT"
+    }
+  },
+  "A-FUNCTION-REGISTER-ARGS": {
+    "results": {
+      "1s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-FUNCTION-REGISTER-ARGS/1s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "1s",
+          "--shards",
+          "16",
+          "--databases",
+          "16"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Error registering functions: ERR callback argument given to redis.register_function must be a function"
+            },
+            "send": [
+              "function",
+              "load",
+              "#!lua name=lib2\nredis.register_function('f2', 'not a function')"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Error registering functions: ERR function_name argument given to redis.register_function must be a string"
+            },
+            "send": [
+              "function",
+              "load",
+              "#!lua name=lib2\nredis.register_function(nil, function() return 1 end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": "lib2",
+            "send": [
+              "function",
+              "load",
+              "#!lua name=lib2\nredis.register_function('test\u0000test', function() return 1 end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Error registering functions: ERR redis.register_function must get a function name argument"
+            },
+            "send": [
+              "function",
+              "load",
+              "replace",
+              "#!lua name=lib3\nredis.register_function('', function() return 1 end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": "lib4",
+            "send": [
+              "function",
+              "load",
+              "#!lua name=lib4\nlocal lib = redis\nlib.register_function('f4', function() lib.register_function('f5', function() return 1 end) end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR redis.register_function is not available here script: f4, on @user_function:3."
+            },
+            "send": [
+              "fcall",
+              "f4",
+              "0"
+            ]
+          }
+        ]
+      },
+      "2s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-FUNCTION-REGISTER-ARGS/2s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "2s",
+          "--shards",
+          "16",
+          "--databases",
+          "16",
+          "--ratio",
+          "6:2"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Error registering functions: ERR callback argument given to redis.register_function must be a function"
+            },
+            "send": [
+              "function",
+              "load",
+              "#!lua name=lib2\nredis.register_function('f2', 'not a function')"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Error registering functions: ERR function_name argument given to redis.register_function must be a string"
+            },
+            "send": [
+              "function",
+              "load",
+              "#!lua name=lib2\nredis.register_function(nil, function() return 1 end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": "lib2",
+            "send": [
+              "function",
+              "load",
+              "#!lua name=lib2\nredis.register_function('test\u0000test', function() return 1 end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Error registering functions: ERR redis.register_function must get a function name argument"
+            },
+            "send": [
+              "function",
+              "load",
+              "replace",
+              "#!lua name=lib3\nredis.register_function('', function() return 1 end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": "lib4",
+            "send": [
+              "function",
+              "load",
+              "#!lua name=lib4\nlocal lib = redis\nlib.register_function('f4', function() lib.register_function('f5', function() return 1 end) end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR redis.register_function is not available here script: f4, on @user_function:3."
+            },
+            "send": [
+              "fcall",
+              "f4",
+              "0"
+            ]
+          }
+        ]
+      },
+      "redis": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/redis/src/redis-server",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-FUNCTION-REGISTER-ARGS/redis",
+          "--enable-debug-command",
+          "yes"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Error registering functions: ERR second argument to redis.register_function must be a function"
+            },
+            "send": [
+              "function",
+              "load",
+              "#!lua name=lib2\nredis.register_function('f2', 'not a function')"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Error registering functions: ERR first argument to redis.register_function must be a string"
+            },
+            "send": [
+              "function",
+              "load",
+              "#!lua name=lib2\nredis.register_function(nil, function() return 1 end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Error registering functions: ERR Library names can only contain letters, numbers, or underscores(_) and must be at least one character long"
+            },
+            "send": [
+              "function",
+              "load",
+              "#!lua name=lib2\nredis.register_function('test\u0000test', function() return 1 end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Error registering functions: ERR Library names can only contain letters, numbers, or underscores(_) and must be at least one character long"
+            },
+            "send": [
+              "function",
+              "load",
+              "replace",
+              "#!lua name=lib3\nredis.register_function('', function() return 1 end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": "lib4",
+            "send": [
+              "function",
+              "load",
+              "#!lua name=lib4\nlocal lib = redis\nlib.register_function('f4', function() lib.register_function('f5', function() return 1 end) end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR redis.register_function can only be called on FUNCTION LOAD command script: f4, on @user_function:3."
+            },
+            "send": [
+              "fcall",
+              "f4",
+              "0"
+            ]
+          }
+        ]
+      }
+    },
+    "server_args": [],
+    "steps": [
+      {
+        "c": "a",
+        "send": [
+          "function",
+          "load",
+          "#!lua name=lib2\nredis.register_function('f2', 'not a function')"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "function",
+          "load",
+          "#!lua name=lib2\nredis.register_function(nil, function() return 1 end)"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "function",
+          "load",
+          "#!lua name=lib2\nredis.register_function('test\u0000test', function() return 1 end)"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "function",
+          "load",
+          "replace",
+          "#!lua name=lib3\nredis.register_function('', function() return 1 end)"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "function",
+          "load",
+          "#!lua name=lib4\nlocal lib = redis\nlib.register_function('f4', function() lib.register_function('f5', function() return 1 end) end)"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "fcall",
+          "f4",
+          "0"
+        ]
+      }
+    ],
+    "title": "redis.register_function argument validation and messages differ",
+    "verdict": {
+      "1s": "DIFFERENT",
+      "2s": "DIFFERENT"
+    }
+  },
+  "A-FUNCTION-SHEBANG-META": {
+    "results": {
+      "1s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-FUNCTION-SHEBANG-META/1s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "1s",
+          "--shards",
+          "16",
+          "--databases",
+          "16"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": "bar",
+            "send": [
+              "function",
+              "load",
+              "#!lua name=foo name=bar\nredis.register_function('foo', function() return 1 end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Library names can only contain letters, numbers, or underscores(_) and must be at least one character long"
+            },
+            "send": [
+              "function",
+              "load",
+              "#!lua name=\"foo\"\nredis.register_function('foo', function() return 1 end)"
+            ]
+          }
+        ]
+      },
+      "2s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-FUNCTION-SHEBANG-META/2s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "2s",
+          "--shards",
+          "16",
+          "--databases",
+          "16",
+          "--ratio",
+          "6:2"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": "bar",
+            "send": [
+              "function",
+              "load",
+              "#!lua name=foo name=bar\nredis.register_function('foo', function() return 1 end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Library names can only contain letters, numbers, or underscores(_) and must be at least one character long"
+            },
+            "send": [
+              "function",
+              "load",
+              "#!lua name=\"foo\"\nredis.register_function('foo', function() return 1 end)"
+            ]
+          }
+        ]
+      },
+      "redis": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/redis/src/redis-server",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-FUNCTION-SHEBANG-META/redis",
+          "--enable-debug-command",
+          "yes"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Invalid metadata value, name argument was given multiple times"
+            },
+            "send": [
+              "function",
+              "load",
+              "#!lua name=foo name=bar\nredis.register_function('foo', function() return 1 end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": "foo",
+            "send": [
+              "function",
+              "load",
+              "#!lua name=\"foo\"\nredis.register_function('foo', function() return 1 end)"
+            ]
+          }
+        ]
+      }
+    },
+    "server_args": [],
+    "steps": [
+      {
+        "c": "a",
+        "send": [
+          "function",
+          "load",
+          "#!lua name=foo name=bar\nredis.register_function('foo', function() return 1 end)"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "function",
+          "load",
+          "#!lua name=\"foo\"\nredis.register_function('foo', function() return 1 end)"
+        ]
+      }
+    ],
+    "title": "Library shebang metadata: duplicate name= accepted (last wins), quoted name rejected",
+    "verdict": {
+      "1s": "DIFFERENT",
+      "2s": "DIFFERENT"
+    }
+  },
+  "A-FUNCTION-SUBCMD-ARGS": {
+    "results": {
+      "1s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-FUNCTION-SUBCMD-ARGS/1s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "1s",
+          "--shards",
+          "16",
+          "--databases",
+          "16"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR wrong number of arguments for 'function|load' command"
+            },
+            "send": [
+              "function",
+              "load",
+              "foo",
+              "bar",
+              "#!lua name=lib9\nredis.register_function('t9', function() return 1 end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR wrong number of arguments for 'function|restore' command"
+            },
+            "send": [
+              "function",
+              "restore",
+              "arg1",
+              "arg2",
+              "arg3"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR FUNCTION FLUSH only supports SYNC|ASYNC option"
+            },
+            "send": [
+              "function",
+              "flush",
+              "sync",
+              "extra"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": [],
+            "send": [
+              "function",
+              "list",
+              "withcode",
+              "withcode"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": [],
+            "send": [
+              "function",
+              "list",
+              "libraryname",
+              "a",
+              "libraryname",
+              "b"
+            ]
+          }
+        ]
+      },
+      "2s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-FUNCTION-SUBCMD-ARGS/2s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "2s",
+          "--shards",
+          "16",
+          "--databases",
+          "16",
+          "--ratio",
+          "6:2"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR wrong number of arguments for 'function|load' command"
+            },
+            "send": [
+              "function",
+              "load",
+              "foo",
+              "bar",
+              "#!lua name=lib9\nredis.register_function('t9', function() return 1 end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR wrong number of arguments for 'function|restore' command"
+            },
+            "send": [
+              "function",
+              "restore",
+              "arg1",
+              "arg2",
+              "arg3"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR FUNCTION FLUSH only supports SYNC|ASYNC option"
+            },
+            "send": [
+              "function",
+              "flush",
+              "sync",
+              "extra"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": [],
+            "send": [
+              "function",
+              "list",
+              "withcode",
+              "withcode"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": [],
+            "send": [
+              "function",
+              "list",
+              "libraryname",
+              "a",
+              "libraryname",
+              "b"
+            ]
+          }
+        ]
+      },
+      "redis": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/redis/src/redis-server",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-FUNCTION-SUBCMD-ARGS/redis",
+          "--enable-debug-command",
+          "yes"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Unknown option given: foo"
+            },
+            "send": [
+              "function",
+              "load",
+              "foo",
+              "bar",
+              "#!lua name=lib9\nredis.register_function('t9', function() return 1 end)"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR unknown subcommand or wrong number of arguments for 'restore'. Try FUNCTION HELP."
+            },
+            "send": [
+              "function",
+              "restore",
+              "arg1",
+              "arg2",
+              "arg3"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR unknown subcommand or wrong number of arguments for 'flush'. Try FUNCTION HELP."
+            },
+            "send": [
+              "function",
+              "flush",
+              "sync",
+              "extra"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Unknown argument withcode"
+            },
+            "send": [
+              "function",
+              "list",
+              "withcode",
+              "withcode"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Unknown argument libraryname"
+            },
+            "send": [
+              "function",
+              "list",
+              "libraryname",
+              "a",
+              "libraryname",
+              "b"
+            ]
+          }
+        ]
+      }
+    },
+    "server_args": [],
+    "steps": [
+      {
+        "c": "a",
+        "send": [
+          "function",
+          "load",
+          "foo",
+          "bar",
+          "#!lua name=lib9\nredis.register_function('t9', function() return 1 end)"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "function",
+          "restore",
+          "arg1",
+          "arg2",
+          "arg3"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "function",
+          "flush",
+          "sync",
+          "extra"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "function",
+          "list",
+          "withcode",
+          "withcode"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "function",
+          "list",
+          "libraryname",
+          "a",
+          "libraryname",
+          "b"
+        ]
+      }
+    ],
+    "title": "FUNCTION LOAD/RESTORE/FLUSH/LIST argument validation and errors differ",
+    "verdict": {
+      "1s": "DIFFERENT",
+      "2s": "DIFFERENT"
+    }
+  },
+  "A-LUA-REDIS-API": {
+    "results": {
+      "1s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-LUA-REDIS-API/1s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "1s",
+          "--shards",
+          "16",
+          "--databases",
+          "16"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR user_script:1: attempt to call field 'error_reply' (a nil value) script: 9e5fbfbf0caf4946c7553a1a67b8951c35e24649, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "return redis.error_reply('MY_ERR custom msg')",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR user_script:1: attempt to call field 'status_reply' (a nil value) script: ddb4265bb3c19b8e216f2d272497e935e173695f, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "return redis.status_reply('MY_OK custom msg')",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR user_script:1: attempt to call field 'log' (a nil value) script: 63e775bb86ea47dfad4445067aef6fe929b1a2fe, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "redis.log(redis.LOG_NOTICE,'x') return 1",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": null,
+            "send": [
+              "eval",
+              "return redis.REDIS_VERSION_NUM",
+              "0"
+            ]
+          }
+        ]
+      },
+      "2s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-LUA-REDIS-API/2s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "2s",
+          "--shards",
+          "16",
+          "--databases",
+          "16",
+          "--ratio",
+          "6:2"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR user_script:1: attempt to call field 'error_reply' (a nil value) script: 9e5fbfbf0caf4946c7553a1a67b8951c35e24649, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "return redis.error_reply('MY_ERR custom msg')",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR user_script:1: attempt to call field 'status_reply' (a nil value) script: ddb4265bb3c19b8e216f2d272497e935e173695f, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "return redis.status_reply('MY_OK custom msg')",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR user_script:1: attempt to call field 'log' (a nil value) script: 63e775bb86ea47dfad4445067aef6fe929b1a2fe, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "redis.log(redis.LOG_NOTICE,'x') return 1",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": null,
+            "send": [
+              "eval",
+              "return redis.REDIS_VERSION_NUM",
+              "0"
+            ]
+          }
+        ]
+      },
+      "redis": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/redis/src/redis-server",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-LUA-REDIS-API/redis",
+          "--enable-debug-command",
+          "yes"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "error": "MY_ERR custom msg"
+            },
+            "send": [
+              "eval",
+              "return redis.error_reply('MY_ERR custom msg')",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "simple": "MY_OK custom msg"
+            },
+            "send": [
+              "eval",
+              "return redis.status_reply('MY_OK custom msg')",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": 1,
+            "send": [
+              "eval",
+              "redis.log(redis.LOG_NOTICE,'x') return 1",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": 459786,
+            "send": [
+              "eval",
+              "return redis.REDIS_VERSION_NUM",
+              "0"
+            ]
+          }
+        ]
+      }
+    },
+    "server_args": [],
+    "steps": [
+      {
+        "c": "a",
+        "send": [
+          "eval",
+          "return redis.error_reply('MY_ERR custom msg')",
+          "0"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "eval",
+          "return redis.status_reply('MY_OK custom msg')",
+          "0"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "eval",
+          "redis.log(redis.LOG_NOTICE,'x') return 1",
+          "0"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "eval",
+          "return redis.REDIS_VERSION_NUM",
+          "0"
+        ]
+      }
+    ],
+    "title": "redis.* helpers absent: error_reply, status_reply, log, REDIS_VERSION_NUM (and acl_check_cmd, set_repl ...)",
+    "verdict": {
+      "1s": "DIFFERENT",
+      "2s": "DIFFERENT"
+    }
+  },
+  "A-LUA-SANDBOX-GLOBALS": {
+    "results": {
+      "1s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-LUA-SANDBOX-GLOBALS/1s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "1s",
+          "--shards",
+          "16",
+          "--databases",
+          "16"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR user_script:1: Script attempted to access nonexistent global variable 'os' script: a77c6b6a35d742ce4fa4148cd19b1d66c90f8fe7, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "return type(os.clock)",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR user_script:1: Script attempted to access nonexistent global variable 'loadstring' script: 1619785578fc037f9b68d726a70e9ea43a5d8ab3, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "return type(loadstring)",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR user_script:1: Script attempted to access nonexistent global variable 'coroutine' script: ee9a75a6fda6c1ece25420e1b3337791f1842f30, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "return type(coroutine)",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR user_script:1: Script attempted to access nonexistent global variable 'collectgarbage' script: 1ea1369d2ef1dd1deecf7b4d07df03d714e627a1, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "return type(collectgarbage)",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": [
+              "nil",
+              "nil"
+            ],
+            "send": [
+              "eval",
+              "return {type(math.random), type(math.randomseed)}",
+              "0"
+            ]
+          }
+        ]
+      },
+      "2s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-LUA-SANDBOX-GLOBALS/2s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "2s",
+          "--shards",
+          "16",
+          "--databases",
+          "16",
+          "--ratio",
+          "6:2"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR user_script:1: Script attempted to access nonexistent global variable 'os' script: a77c6b6a35d742ce4fa4148cd19b1d66c90f8fe7, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "return type(os.clock)",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR user_script:1: Script attempted to access nonexistent global variable 'loadstring' script: 1619785578fc037f9b68d726a70e9ea43a5d8ab3, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "return type(loadstring)",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR user_script:1: Script attempted to access nonexistent global variable 'coroutine' script: ee9a75a6fda6c1ece25420e1b3337791f1842f30, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "return type(coroutine)",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR user_script:1: Script attempted to access nonexistent global variable 'collectgarbage' script: 1ea1369d2ef1dd1deecf7b4d07df03d714e627a1, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "return type(collectgarbage)",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": [
+              "nil",
+              "nil"
+            ],
+            "send": [
+              "eval",
+              "return {type(math.random), type(math.randomseed)}",
+              "0"
+            ]
+          }
+        ]
+      },
+      "redis": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/redis/src/redis-server",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-LUA-SANDBOX-GLOBALS/redis",
+          "--enable-debug-command",
+          "yes"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": "function",
+            "send": [
+              "eval",
+              "return type(os.clock)",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": "function",
+            "send": [
+              "eval",
+              "return type(loadstring)",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": "table",
+            "send": [
+              "eval",
+              "return type(coroutine)",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": "function",
+            "send": [
+              "eval",
+              "return type(collectgarbage)",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": [
+              "function",
+              "function"
+            ],
+            "send": [
+              "eval",
+              "return {type(math.random), type(math.randomseed)}",
+              "0"
+            ]
+          }
+        ]
+      }
+    },
+    "server_args": [],
+    "steps": [
+      {
+        "c": "a",
+        "send": [
+          "eval",
+          "return type(os.clock)",
+          "0"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "eval",
+          "return type(loadstring)",
+          "0"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "eval",
+          "return type(coroutine)",
+          "0"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "eval",
+          "return type(collectgarbage)",
+          "0"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "eval",
+          "return {type(math.random), type(math.randomseed)}",
+          "0"
+        ]
+      }
+    ],
+    "title": "Sandbox strips standard globals Redis keeps: os.clock, loadstring, coroutine, collectgarbage, math.random/randomseed",
+    "verdict": {
+      "1s": "DIFFERENT",
+      "2s": "DIFFERENT"
+    }
+  },
+  "A-SCRIPT-ERROR-WORDING": {
+    "results": {
+      "1s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-SCRIPT-ERROR-WORDING/1s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "1s",
+          "--shards",
+          "16",
+          "--databases",
+          "16"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR redis.call requires a command name script: 0a907e1429221a4d85516cab7fd219a82a9439d8, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "return redis.call()",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR wrong number of arguments for command from script script: f5f71fcf8b24988a9c8238862169363942a76e38, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "return redis.call('get','a','b','c')",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Lua redis() command arguments must be strings or integers script: 4deb073a545207f215b56dcef5ca825f9f406808, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "return redis.call('get',{})",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR runtime error script: 367bf7fe449ba40e54d99d9086aa3c2164008136, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "error({})",
+              "0"
+            ]
+          }
+        ]
+      },
+      "2s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-SCRIPT-ERROR-WORDING/2s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "2s",
+          "--shards",
+          "16",
+          "--databases",
+          "16",
+          "--ratio",
+          "6:2"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR redis.call requires a command name script: 0a907e1429221a4d85516cab7fd219a82a9439d8, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "return redis.call()",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR wrong number of arguments for command from script script: f5f71fcf8b24988a9c8238862169363942a76e38, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "return redis.call('get','a','b','c')",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Lua redis() command arguments must be strings or integers script: 4deb073a545207f215b56dcef5ca825f9f406808, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "return redis.call('get',{})",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR runtime error script: 367bf7fe449ba40e54d99d9086aa3c2164008136, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "error({})",
+              "0"
+            ]
+          }
+        ]
+      },
+      "redis": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/redis/src/redis-server",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-SCRIPT-ERROR-WORDING/redis",
+          "--enable-debug-command",
+          "yes"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Please specify at least one argument for this redis lib call script: 0a907e1429221a4d85516cab7fd219a82a9439d8, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "return redis.call()",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Wrong number of args calling Redis command from script script: f5f71fcf8b24988a9c8238862169363942a76e38, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "return redis.call('get','a','b','c')",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Lua redis lib command arguments must be strings or integers script: 4deb073a545207f215b56dcef5ca825f9f406808, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "return redis.call('get',{})",
+              "0"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR unknown error script: 367bf7fe449ba40e54d99d9086aa3c2164008136, on @user_script:1."
+            },
+            "send": [
+              "eval",
+              "error({})",
+              "0"
+            ]
+          }
+        ]
+      }
+    },
+    "server_args": [],
+    "steps": [
+      {
+        "c": "a",
+        "send": [
+          "eval",
+          "return redis.call()",
+          "0"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "eval",
+          "return redis.call('get','a','b','c')",
+          "0"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "eval",
+          "return redis.call('get',{})",
+          "0"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "eval",
+          "error({})",
+          "0"
+        ]
+      }
+    ],
+    "title": "Script error texts differ: empty redis.call(), wrong arity, non-string argument, error({})",
+    "verdict": {
+      "1s": "DIFFERENT",
+      "2s": "DIFFERENT"
+    }
+  },
+  "A-SCRIPT-NUMBER-ARG": {
+    "results": {
+      "1s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-SCRIPT-NUMBER-ARG/1s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "1s",
+          "--shards",
+          "16",
+          "--databases",
+          "16"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": "9.007199254741e+15",
+            "send": [
+              "eval",
+              "redis.call('set',KEYS[1],9007199254740991) return redis.call('get',KEYS[1])",
+              "1",
+              "foo"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": "0.3",
+            "send": [
+              "eval",
+              "redis.call('set',KEYS[1],0.1+0.2) return redis.call('get',KEYS[1])",
+              "1",
+              "foo"
+            ]
+          }
+        ]
+      },
+      "2s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-SCRIPT-NUMBER-ARG/2s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "2s",
+          "--shards",
+          "16",
+          "--databases",
+          "16",
+          "--ratio",
+          "6:2"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": "9.007199254741e+15",
+            "send": [
+              "eval",
+              "redis.call('set',KEYS[1],9007199254740991) return redis.call('get',KEYS[1])",
+              "1",
+              "foo"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": "0.3",
+            "send": [
+              "eval",
+              "redis.call('set',KEYS[1],0.1+0.2) return redis.call('get',KEYS[1])",
+              "1",
+              "foo"
+            ]
+          }
+        ]
+      },
+      "redis": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/redis/src/redis-server",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-SCRIPT-NUMBER-ARG/redis",
+          "--enable-debug-command",
+          "yes"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": "9007199254740991",
+            "send": [
+              "eval",
+              "redis.call('set',KEYS[1],9007199254740991) return redis.call('get',KEYS[1])",
+              "1",
+              "foo"
+            ]
+          },
+          {
+            "c": "a",
+            "reply": "0.30000000000000004",
+            "send": [
+              "eval",
+              "redis.call('set',KEYS[1],0.1+0.2) return redis.call('get',KEYS[1])",
+              "1",
+              "foo"
+            ]
+          }
+        ]
+      }
+    },
+    "server_args": [],
+    "steps": [
+      {
+        "c": "a",
+        "send": [
+          "eval",
+          "redis.call('set',KEYS[1],9007199254740991) return redis.call('get',KEYS[1])",
+          "1",
+          "foo"
+        ]
+      },
+      {
+        "c": "a",
+        "send": [
+          "eval",
+          "redis.call('set',KEYS[1],0.1+0.2) return redis.call('get',KEYS[1])",
+          "1",
+          "foo"
+        ]
+      }
+    ],
+    "title": "Lua number arguments to redis.call are stringified with %.14g instead of exact (fpconv) conversion",
+    "verdict": {
+      "1s": "DIFFERENT",
+      "2s": "DIFFERENT"
+    }
+  },
+  "A-SCRIPT-REPLY-DEPTH": {
+    "results": {
+      "1s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-SCRIPT-REPLY-DEPTH/1s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "1s",
+          "--shards",
+          "16",
+          "--databases",
+          "16"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Error running script: script reply nesting is too deep"
+            },
+            "send": [
+              "eval",
+              "local t={} local c=t for i=1,40 do c[1]={} c=c[1] end return t",
+              "0"
+            ]
+          }
+        ]
+      },
+      "2s": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/cx-harness5/build/tomokv",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-SCRIPT-REPLY-DEPTH/2s",
+          "--enable-debug-command",
+          "yes",
+          "--thread-mode",
+          "2s",
+          "--shards",
+          "16",
+          "--databases",
+          "16",
+          "--ratio",
+          "6:2"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": {
+              "error": "ERR Error running script: script reply nesting is too deep"
+            },
+            "send": [
+              "eval",
+              "local t={} local c=t for i=1,40 do c[1]={} c=c[1] end return t",
+              "0"
+            ]
+          }
+        ]
+      },
+      "redis": {
+        "server_argv": [
+          "taskset",
+          "-c",
+          "36-43",
+          "/home/user/Projects/redis/src/redis-server",
+          "--port",
+          "45870",
+          "--bind",
+          "127.0.0.1",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-harness5/build/h5repro-4igtjxl1/A-SCRIPT-REPLY-DEPTH/redis",
+          "--enable-debug-command",
+          "yes"
+        ],
+        "transcript": [
+          {
+            "c": "a",
+            "reply": [
+              [
+                [
+                  [
+                    [
+                      [
+                        [
+                          [
+                            [
+                              [
+                                [
+                                  [
+                                    [
+                                      [
+                                        [
+                                          [
+                                            [
+                                              [
+                                                [
+                                                  [
+                                                    [
+                                                      [
+                                                        [
+                                                          [
+                                                            [
+                                                              [
+                                                                [
+                                                                  [
+                                                                    [
+                                                                      [
+                                                                        [
+                                                                          [
+                                                                            [
+                                                                              [
+                                                                                [
+                                                                                  [
+                                                                                    [
+                                                                                      [
+                                                                                        [
+                                                                                          [
+                                                                                            []
+                                                                                          ]
+                                                                                        ]
+                                                                                      ]
+                                                                                    ]
+                                                                                  ]
+                                                                                ]
+                                                                              ]
+                                                                            ]
+                                                                          ]
+                                                                        ]
+                                                                      ]
+                                                                    ]
+                                                                  ]
+                                                                ]
+                                                              ]
+                                                            ]
+                                                          ]
+                                                        ]
+                                                      ]
+                                                    ]
+                                                  ]
+                                                ]
+                                              ]
+                                            ]
+                                          ]
+                                        ]
+                                      ]
+                                    ]
+                                  ]
+                                ]
+                              ]
+                            ]
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "send": [
+              "eval",
+              "local t={} local c=t for i=1,40 do c[1]={} c=c[1] end return t",
+              "0"
+            ]
+          }
+        ]
+      }
+    },
+    "server_args": [],
+    "steps": [
+      {
+        "c": "a",
+        "send": [
+          "eval",
+          "local t={} local c=t for i=1,40 do c[1]={} c=c[1] end return t",
+          "0"
+        ]
+      }
+    ],
+    "title": "A script reply nested deeper than 32 levels fails as a whole instead of being converted",
+    "verdict": {
+      "1s": "DIFFERENT",
+      "2s": "DIFFERENT"
+    }
+  }
+}
