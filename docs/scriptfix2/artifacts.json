@@ -368,10 +368,376 @@
       "delta": 0
     }
   ],
+  "single_database_counts": [
+    {
+      "mode": "2s",
+      "command": "GET",
+      "batch": 1,
+      "slowlog_us": -1,
+      "pre": 1286,
+      "post": 1286,
+      "delta": 0
+    },
+    {
+      "mode": "1s",
+      "command": "GET",
+      "batch": 1,
+      "slowlog_us": -1,
+      "pre": 1065,
+      "post": 1065,
+      "delta": 0
+    },
+    {
+      "mode": "2s",
+      "command": "GET",
+      "batch": 32,
+      "slowlog_us": -1,
+      "pre": 23110,
+      "post": 23110,
+      "delta": 0
+    },
+    {
+      "mode": "1s",
+      "command": "GET",
+      "batch": 32,
+      "slowlog_us": -1,
+      "pre": 23664,
+      "post": 23664,
+      "delta": 0
+    },
+    {
+      "mode": "2s",
+      "command": "SET",
+      "batch": 1,
+      "slowlog_us": -1,
+      "pre": 1756,
+      "post": 1756,
+      "delta": 0
+    },
+    {
+      "mode": "1s",
+      "command": "SET",
+      "batch": 1,
+      "slowlog_us": -1,
+      "pre": 1535,
+      "post": 1535,
+      "delta": 0
+    },
+    {
+      "mode": "2s",
+      "command": "SET",
+      "batch": 32,
+      "slowlog_us": -1,
+      "pre": 38150,
+      "post": 38150,
+      "delta": 0
+    },
+    {
+      "mode": "1s",
+      "command": "SET",
+      "batch": 32,
+      "slowlog_us": -1,
+      "pre": 38704,
+      "post": 38704,
+      "delta": 0
+    },
+    {
+      "mode": "2s",
+      "command": "INCR",
+      "batch": 1,
+      "slowlog_us": -1,
+      "pre": 1883,
+      "post": 1883,
+      "delta": 0
+    },
+    {
+      "mode": "1s",
+      "command": "INCR",
+      "batch": 1,
+      "slowlog_us": -1,
+      "pre": 1662,
+      "post": 1662,
+      "delta": 0
+    },
+    {
+      "mode": "2s",
+      "command": "INCR",
+      "batch": 32,
+      "slowlog_us": -1,
+      "pre": 42214,
+      "post": 42214,
+      "delta": 0
+    },
+    {
+      "mode": "1s",
+      "command": "INCR",
+      "batch": 32,
+      "slowlog_us": -1,
+      "pre": 42768,
+      "post": 42768,
+      "delta": 0
+    },
+    {
+      "mode": "2s",
+      "command": "MGET",
+      "batch": 1,
+      "slowlog_us": -1,
+      "pre": 5428,
+      "post": 5428,
+      "delta": 0
+    },
+    {
+      "mode": "1s",
+      "command": "MGET",
+      "batch": 1,
+      "slowlog_us": -1,
+      "pre": 5207,
+      "post": 5207,
+      "delta": 0
+    },
+    {
+      "mode": "2s",
+      "command": "MGET",
+      "batch": 32,
+      "slowlog_us": -1,
+      "pre": 155654,
+      "post": 155654,
+      "delta": 0
+    },
+    {
+      "mode": "1s",
+      "command": "MGET",
+      "batch": 32,
+      "slowlog_us": -1,
+      "pre": 156208,
+      "post": 156208,
+      "delta": 0
+    },
+    {
+      "mode": "2s",
+      "command": "MSET",
+      "batch": 1,
+      "slowlog_us": -1,
+      "pre": 8654,
+      "post": 8654,
+      "delta": 0
+    },
+    {
+      "mode": "1s",
+      "command": "MSET",
+      "batch": 1,
+      "slowlog_us": -1,
+      "pre": 8433,
+      "post": 8433,
+      "delta": 0
+    },
+    {
+      "mode": "2s",
+      "command": "MSET",
+      "batch": 32,
+      "slowlog_us": -1,
+      "pre": 258886,
+      "post": 258886,
+      "delta": 0
+    },
+    {
+      "mode": "1s",
+      "command": "MSET",
+      "batch": 32,
+      "slowlog_us": -1,
+      "pre": 259440,
+      "post": 259440,
+      "delta": 0
+    },
+    {
+      "mode": "2s",
+      "command": "GET",
+      "batch": 1,
+      "slowlog_us": 10000,
+      "pre": 1818,
+      "post": 1818,
+      "delta": 0
+    },
+    {
+      "mode": "1s",
+      "command": "GET",
+      "batch": 1,
+      "slowlog_us": 10000,
+      "pre": 1588,
+      "post": 1588,
+      "delta": 0
+    },
+    {
+      "mode": "2s",
+      "command": "GET",
+      "batch": 32,
+      "slowlog_us": 10000,
+      "pre": 23312,
+      "post": 23312,
+      "delta": 0
+    },
+    {
+      "mode": "1s",
+      "command": "GET",
+      "batch": 32,
+      "slowlog_us": 10000,
+      "pre": 23898,
+      "post": 23898,
+      "delta": 0
+    },
+    {
+      "mode": "2s",
+      "command": "SET",
+      "batch": 1,
+      "slowlog_us": 10000,
+      "pre": 2286,
+      "post": 2286,
+      "delta": 0
+    },
+    {
+      "mode": "1s",
+      "command": "SET",
+      "batch": 1,
+      "slowlog_us": 10000,
+      "pre": 2063,
+      "post": 2057,
+      "delta": -6
+    },
+    {
+      "mode": "2s",
+      "command": "SET",
+      "batch": 32,
+      "slowlog_us": 10000,
+      "pre": 38358,
+      "post": 38352,
+      "delta": -6
+    },
+    {
+      "mode": "1s",
+      "command": "SET",
+      "batch": 32,
+      "slowlog_us": 10000,
+      "pre": 38944,
+      "post": 38938,
+      "delta": -6
+    },
+    {
+      "mode": "2s",
+      "command": "INCR",
+      "batch": 1,
+      "slowlog_us": 10000,
+      "pre": 2419,
+      "post": 2413,
+      "delta": -6
+    },
+    {
+      "mode": "1s",
+      "command": "INCR",
+      "batch": 1,
+      "slowlog_us": 10000,
+      "pre": 2184,
+      "post": 2184,
+      "delta": 0
+    },
+    {
+      "mode": "2s",
+      "command": "INCR",
+      "batch": 32,
+      "slowlog_us": 10000,
+      "pre": 42416,
+      "post": 42416,
+      "delta": 0
+    },
+    {
+      "mode": "1s",
+      "command": "INCR",
+      "batch": 32,
+      "slowlog_us": 10000,
+      "pre": 43002,
+      "post": 43002,
+      "delta": 0
+    },
+    {
+      "mode": "2s",
+      "command": "MGET",
+      "batch": 1,
+      "slowlog_us": 10000,
+      "pre": 5960,
+      "post": 5960,
+      "delta": 0
+    },
+    {
+      "mode": "1s",
+      "command": "MGET",
+      "batch": 1,
+      "slowlog_us": 10000,
+      "pre": 5730,
+      "post": 5730,
+      "delta": 0
+    },
+    {
+      "mode": "2s",
+      "command": "MGET",
+      "batch": 32,
+      "slowlog_us": 10000,
+      "pre": 155856,
+      "post": 155856,
+      "delta": 0
+    },
+    {
+      "mode": "1s",
+      "command": "MGET",
+      "batch": 32,
+      "slowlog_us": 10000,
+      "pre": 156442,
+      "post": 156442,
+      "delta": 0
+    },
+    {
+      "mode": "2s",
+      "command": "MSET",
+      "batch": 1,
+      "slowlog_us": 10000,
+      "pre": 9185,
+      "post": 9185,
+      "delta": 0
+    },
+    {
+      "mode": "1s",
+      "command": "MSET",
+      "batch": 1,
+      "slowlog_us": 10000,
+      "pre": 8956,
+      "post": 8956,
+      "delta": 0
+    },
+    {
+      "mode": "2s",
+      "command": "MSET",
+      "batch": 32,
+      "slowlog_us": 10000,
+      "pre": 259088,
+      "post": 259088,
+      "delta": 0
+    },
+    {
+      "mode": "1s",
+      "command": "MSET",
+      "batch": 32,
+      "slowlog_us": 10000,
+      "pre": 259674,
+      "post": 259674,
+      "delta": 0
+    }
+  ],
   "count_scope": "Production executor command entry plus callees, no sockets or workers. Minimum of nine user-space retired-instruction readings. MGET/MSET use eight repetitions of one local key; parsing/routing/setup are outside the counter. Counters are not throughput evidence.",
   "counter_binaries": {
     "pre": "9c9e97ef31c0d8efbf9468e5af8468cf59d02e8f4a09822452fc849445d7df85",
     "post": "01e278547e916f524056825608d7f9a7790d932f1b05b8595a6e941e86e8fd6a"
+  },
+  "single_database_counter_binaries": {
+    "pre": "93712a11733130c8b696b3678635855a83669597d45bf2e1cce4079a69ad5d34",
+    "post": "2140065904326d1d95b8bb54da7611178f98ad3cf28c3e29be760324f5c26287"
   },
   "layouts_equal": true,
   "layouts": {

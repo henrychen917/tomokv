@@ -33,6 +33,17 @@ def main():
         key['delta'] = key['post'] - key['pre']
         assert key['delta'] == 0, key
         counts.append(key)
+    db0_counts = []
+    db0_before = [json.loads(line) for line in (DOC / 'pre-db0-counts.jsonl').read_text().splitlines()]
+    db0_after = [json.loads(line) for line in (DOC / 'post-db0-counts.jsonl').read_text().splitlines()]
+    assert len(db0_before) == len(db0_after) == 40
+    for a, b in zip(db0_before, db0_after):
+        key = {k: a[k] for k in ('mode', 'command', 'batch', 'slowlog_us')}
+        assert all(b[k] == v for k, v in key.items())
+        key.update(pre=min(a['counts']), post=min(b['counts']))
+        key['delta'] = key['post'] - key['pre']
+        assert key['delta'] <= 0, key
+        db0_counts.append(key)
     old_layout, new_layout = layouts(pre), layouts(post)
     assert old_layout == new_layout
     # The broad inventory includes every emitted weak COMDAT copy, even copies
@@ -67,13 +78,15 @@ def main():
         base_commit='a214652ec262aa9a5eeaeadf129c0ef76ba6c99c',
         binaries={str(path.relative_to(ROOT)): sha(path) for path in (pre, post, pad)},
         oracle_sha256=sha(Path('/home/user/Projects/redis74/src/redis-server')),
-        counts=counts,
+        counts=counts, single_database_counts=db0_counts,
         count_scope='Production executor command entry plus callees, no sockets or workers. '
                     'Minimum of nine user-space retired-instruction readings. '
                     'MGET/MSET use eight repetitions of one local key; parsing/routing/setup '
                     'are outside the counter. Counters are not throughput evidence.',
         counter_binaries={arm: sha(ROOT / f'build/scriptfix2/{arm}-counts')
                           for arm in ('pre', 'post')},
+        single_database_counter_binaries={arm: sha(ROOT / f'build/scriptfix2/{arm}-db0-counts')
+                                          for arm in ('pre', 'post')},
         layouts_equal=True, layouts=new_layout,
         object_inventory=dict(total=summary['total'], equal=summary['equal'],
                               hot_emitted=summary['hot'], hot_emitted_equal=summary['hot_equal'],

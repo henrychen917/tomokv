@@ -161,7 +161,7 @@ struct CoreConcurrencyTest {
     }
 };
 }
-int main(int argc, char** argv) {
+extern "C" int main(int argc, char** argv) {
     CoreConcurrencyTest::need(command_registry_init(false), "command registry");
     if (argc > 1) {
         const std::string setting(argv[1]);
@@ -176,4 +176,5 @@ int main(int argc, char** argv) {
                 CoreConcurrencyTest::run<false>(command, batch, slowlog);
                 CoreConcurrencyTest::run<true>(command, batch, slowlog);
             }
+    return 0;
 }

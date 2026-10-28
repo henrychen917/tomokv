@@ -114,6 +114,12 @@ comparisons, including batch 32 and enabled timing, also have zero deltas):
 | MGET | 5230 → 5230 | 5769 → 5769 |
 | MSET | 9193 → 9193 | 9732 → 9732 |
 
+An additional forty comparisons call the single-database compiled engine with the
+production link order. All twenty comparisons with timing disabled are exactly equal;
+among the twenty with timing enabled, sixteen are equal and four show POST six
+instructions lower per batch. None adds instructions. These observations are retained
+in `single_database_counts`, including all raw readings; they are not a claimed gain.
+
 The generic object audit also enumerates discarded weak definitions. Three emitted
 FlatStore copies change inside scripting.o; the production link selects unchanged copies
 from main.o. The raw generic-audit rejection and the explicit weak-definition resolution
