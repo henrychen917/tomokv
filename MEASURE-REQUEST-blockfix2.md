@@ -1,5 +1,7 @@
 ## blockfix2
 
+Historical blockfix2 result; the continuation and current lane evidence are in **blockfix3** below.
+
 Branch `cx-blockfix2`, based on `83e0b809d` (wave 8). No push. **Not merge-ready.** Six roots are implemented. Stream removal is partially fixed, with a newly exposed pipelined delete/recreate boundary still failing; two ordering roots are stopped for an owner architecture decision. The Tcl job is **not green**: the newly unblocked XGROUP DESTROY test reaches the separate, deliberately unimplemented INFO error/command statistics surface. No throughput or latency merit claim is made.
 
 ### Scope and root status
@@ -91,4 +93,63 @@ Collect contemporary PRE/PRE and POST/POST nulls, PRE/POST, and PRE/PAD-A. Repor
 
 Also measure the touched cold surfaces in both modes and engines, with atomic 0/1: (1) existing benchtxn BLPOP/LPUSH wake pairs at 1/32/512 pairs, slowlog -1 and 0; (2) RENAME and SORT STORE creating a waiting BLPOP/BLMPOP key; (3) XREADGROUP wake by XADD versus DEL, SET, MSET, FLUSH and XGROUP DESTROY; (4) a wrong-type blocked move followed by a valid waiter; (5) INFO CLIENTS with 0/1/64/1024 blocked clients, including duplicate and distinct keys; (6) EXEC containing XREADGROUP BLOCK with empty and populated streams. For the existing wake cell use `benchtxn blpop HOST PORT SECS PAIRS THREADS`, with PAIRS=1/32/512 and THREADS=1/8/8 respectively; use the gate’s duration and offered-load instrument. Count completed wake round trips separately from their two commands. For the remaining protocol cells, `tests/compat3_blockfix2.py` supplies the exact command sequences and oracle assertions. Count completed logical operations and keep producer/consumer accounting separate. PRE hangs or wrong replies are correctness failures, never throughput samples or wins. The request does not claim those custom protocol cells are already supported by the stock ABBA cell parser.
 
-Performance benchmarks and `tests/gate.sh iteration`: **NOT RUN**, reserved to the maintainer by the task. POST acceptance rows for BLOCK-WAKE-ORDER-MULTI and BLOCK-CHAIN-ASYNC: **NOT RUN**, because their required architectural changes are stopped for the owner’s design decision. The remaining stream-removal boundary was run and failed in all 24 legs; its architectural fix is also stopped. No push or merge was performed.
+Performance benchmarks and `tests/gate.sh iteration`: **NOT RUN**, reserved to the maintainer by the task. POST acceptance rows for BLOCK-WAKE-ORDER-MULTI and BLOCK-CHAIN-ASYNC: **NOT RUN**, because their required architectural changes are stopped for the owner's design decision. The remaining stream-removal boundary was run and failed in all 24 legs; its architectural fix is also stopped. No push or merge was performed.
+
+## blockfix3
+
+**Verification in progress:** the first full matrix caught an atomic cleanup/recreation race in the initially frozen POST. The final receipts below will be replaced after the additional stream CREATE boundary fix. The original red receipts are retained.
+
+Branch `cx-blockfix3`, based on `1932367f7`. No push. This continuation addresses the deletion/recreation boundary and NOGROUP accounting. The two stopped ordering roots remain untouched. No throughput or latency merit claim is made.
+
+### Implementation and reproduction
+
+PRE reproduces both failures in 1s/2s and epoll/uring, at eight workers, 16 shards and split ratio 6:2. Redis 7.4.10 passes the same protocol and unchanged Tcl assertions. The first receipt commit is `4e7b4751c`; `docs/blockfix3/pre-repro/results.json` includes exact replies, counters, commands and binary hashes. PRE gives new-stream data to the old waiter and omits the NOGROUP/error/failed-call fields. The Tcl failure occurs after its NOGROUP reply assertion succeeds.
+
+DEL/UNLINK now publish after their owner has completed deletion. The publication uses the existing EXEC/plain-MVCC deferral; it never services a queue recursively from object retirement. Non-atomic scatter deletion publishes on its mutation wave. In the existing plain-MVCC slow path, a decided predecessor is observed before the next command installs its replacement. The first full matrix exposed a second path: atomic owner cleanup could remove the last record before the successor dispatch, bypassing that slow path. Cleanup now finishes the already-pending readiness sweep immediately after materialization, outside table retirement, before returning to command dispatch. XGROUP CREATE also publishes the prior group state before borrowing a stream object. The existing owner-cycle sweep consumes the same dirty flag, so this does not add a scan to the common GET/SET/INCR/MGET/MSET path. Same-connection undecided units still park at dispatch. Registry access stays owner-only; immutable replacement, QSBR and migration ownership are unchanged.
+
+NOGROUP accounting is attached to XREADGROUP's actual error reply, including its unblock rerun, rather than a readiness probe or the deleting producer. INFO exposes that count in errorstats, total_error_replies, and XREADGROUP failed_calls, with the existing RESETSTAT baseline. XREADGROUP execution slices have measured microseconds, excluding parking; other commands' commandstats formatting and counters are unchanged. This is the requested NOGROUP surface, not an implementation of the other outstanding INFO error/timing roots. All public footprint locks and the 240-byte BlockingState remain unchanged. Only cold statistics storage grows.
+
+The six other blockfix2 directed probes and their row definitions are unchanged. The removal probe additionally checks DEL, UNLINK and cross-shard DEL recreation through XGROUP CREATE and RENAME, with eight fresh registrations per shape, no inherited consumer or pending delivery, the contrasting EXEC boundary, two failed waiters plus a surviving group, and RESETSTAT. The existing mandatory Tcl test already contained both outstanding statistics assertions; it remains mandatory, with no new exclusion or duplicate test name.
+
+### Cost and frozen arms
+
+The first candidate changed db0 SET inlining and added 17 instructions per command (544 per batch of 32). That candidate was rejected. Moving the deletion-publication loop out of the string translation unit restored its original inlining. Intermediate `post-*` count receipts retain that failed trial; `final-*` names the corrected candidate. All **48/48 final comparisons have zero delta**, with identical per-function counts. Production `exec_batch_prefetched` objects are linked directly into the serverless fixture; clocks are fixed, library bodies and fixture glue are excluded. Both namespaces/modes, batches 1/32, and MSET atomic 0/1 are covered. These are instructions, not cycles/op, IPC or rates. `docs/blockfix3/instructions/comparison-final.json`, `results-pre.json`, `results-final.json`, the build receipts and per-case trace digests bind the evidence to the final server hashes.
+
+Counts below are total instructions in the production scope per batch; MGET/MSET use eight keys.
+
+| Namespace | Command | 1s batch 1 PRE → POST | 2s batch 1 PRE → POST | 1s batch 32 PRE → POST | 2s batch 32 PRE → POST |
+|---|---|---:|---:|---:|---:|
+| normal | GET | 939 → 939 | 1559 → 1559 | 18578 → 18578 | 18423 → 18423 |
+| normal | SET | 1068 → 1068 | 1688 → 1688 | 22706 → 22706 | 22551 → 22551 |
+| normal | INCR | 1514 → 1514 | 2134 → 2134 | 37507 → 37507 | 37352 → 37352 |
+| normal | MGET | 10243 → 10243 | 10243 → 10243 | 326598 → 326598 | 326598 → 326598 |
+| normal | MSET atomic=0 | 10894 → 10894 | 10690 → 10690 | 348453 → 348453 | 341925 → 341925 |
+| normal | MSET atomic=1 | 17049 → 17049 | 16695 → 16695 | 964030 → 964030 | 952702 → 952702 |
+| db0 | GET | 818 → 818 | 1051 → 1051 | 18705 → 18705 | 18163 → 18163 |
+| db0 | SET | 938 → 938 | 1171 → 1171 | 22545 → 22545 | 22003 → 22003 |
+| db0 | INCR | 1313 → 1313 | 1546 → 1546 | 35074 → 35074 | 34532 → 34532 |
+| db0 | MGET | 10362 → 10362 | 10362 → 10362 | 330406 → 330406 | 330406 → 330406 |
+| db0 | MSET atomic=0 | 11135 → 11135 | 10954 → 10954 | 356165 → 356165 | 350373 → 350373 |
+| db0 | MSET atomic=1 | 16466 → 16466 | 16135 → 16135 | 953558 → 953558 | 942966 → 942966 |
+
+| Arm | Binary | SHA-256 | .text bytes |
+|---|---|---|---:|
+| PRE | `build/blockfix3/pre/tomokv` | `207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615` | 8470039 |
+| POST | `build/blockfix3/post/tomokv` | `6880f97f0cb6068840b2c5b259a6118e4c1e50b72360eb41b789f70a4507eb1a` | 8472231 |
+| PAD-A | `build/blockfix3/pad-a/tomokv` | `b470e22f430b629fc849c372057511b3d99ee18f093e77cfd97959f6866c362b` | 8472231 |
+
+PAD-A is **type A, behaviour twin**: PRE behavior with inert POST cold-statistics storage and matching total text size. POST and PAD-A both have 1,106,440 .bss bytes; PRE has 1,106,312. The 16-byte StatBaseline tail and two 8-byte stream counters per namespace are inert in PAD-A. Trailing NOPs preserve the compiler CET note. This controls total section sizes, not each function's address/alignment. `tools/blockfix3_pad.py` and `docs/blockfix3/binary-manifest.json` record construction. No PAD-B is requested. Superseded source trees and step traces are removed after their hashes/counts are recorded; `docs/blockfix3/cleanup.json` records cleanup.
+
+### Correctness ledger
+
+All lane builds, traces, correctness servers, oracles and harnesses are restricted to CPUs 0–15. Builds use at most `-j16`. Gate servers use 0–7, load uses 8–15, no SMT is added, and all listeners are within 20100–20199. The standalone reproduction uses 20190–20192; the harness socket fixture uses GATE_TEST_PORT=20199.
+
+The final gate jobs and freshness audit are in progress. The superseded directed run passed the six earlier rows and failed one of the 24 removal legs (2s, uring, databases 16, atomic 1), triggering the cleanup fix. Both full Tcl modes in that run passed the required NOGROUP test but failed unrelated MONITOR/pubsub/slowlog assertions; those receipts are retained in `docs/blockfix3/gate-receipts/superseded-directed.tar.gz`. An extra proposed DEL/RESTORE probe could not reach stream recreation because DUMP deliberately rejects streams (`ERR object could not be serialized`); the accepted extra probe uses RENAME instead. No serialization implementation is changed. The seven harness scheduler timeouts during concurrent compilation/tracing are retained in `docs/blockfix3/gates-test.log`; they are not counted as a pass. An earlier gate prerequisite build was stopped after the instruction regression was found, before its blocking/Tcl verdicts; its status is not a completed proof.
+
+### Maintainer merit request — NOT RUN in this lane
+
+Use the frozen arms above with the gate's quiet-box ABBA instrument. `docs/blockfix3/merit.cells.txt` contains the 14 generic cells plus MGET/MSET p8 in both modes as nulls: the generic list already contains 1s MGET p8 (`m8g_l0`), so the added cells are `m05`, `m50`, `m53`, for 17 distinct cells. Keep matched geometry, offered load, connections, allocator, keyspace and instrumentation.
+
+Collect contemporary PRE/PRE and POST/POST nulls, PRE/POST, and PRE/PAD-A. Report completed rate, cycles/op, instructions/op, IPC and the gate's latency scores per cell. Use the gate's existing per-cell null criteria; PAD movement limits attribution. Instruction identity is a cost check, not a throughput claim.
+
+Performance benchmarks and full `tests/gate.sh iteration`: **NOT RUN**, reserved to the maintainer. The two owner-stopped roots BLOCK-WAKE-ORDER-MULTI and BLOCK-CHAIN-ASYNC remain **NOT RUN** as acceptance work; this lane does not change their architecture or exclusions. No push or merge is performed.

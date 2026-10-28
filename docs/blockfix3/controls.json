@@ -1,7 +1,7 @@
 {
   "boundary": {
-    "post_sha256": "6880f97f0cb6068840b2c5b259a6118e4c1e50b72360eb41b789f70a4507eb1a",
-    "binary_sha256": "db7876c36f5305130824b6e6a5e58167f8a8036891fe940f621617f474e8a36f",
+    "post_sha256": "943f4ab48b3b5381c57ba9c13ecede6b59a2c9d78cbf34095a610351269bb077",
+    "binary_sha256": "9537792ab529a5270fd2a94bc4dcbd6bd2623e6d2c3acce6928ca95c4b285f49",
     "link": [
       "g++",
       "-std=c++20",
@@ -29,7 +29,7 @@
       "/home/user/Projects/cx-blockfix3/build/blockfix3/pre-source/build/db0/src/cmd/t_zset_ops.o",
       "/home/user/Projects/cx-blockfix3/build/blockfix3/pre-source/build/db0/src/cmd/geo.o",
       "/home/user/Projects/cx-blockfix3/build/blockfix3/pre-source/build/db0/src/cmd/t_stream.o",
-      "build/db0/src/cmd/t_stream_groups.o",
+      "/home/user/Projects/cx-blockfix3/build/blockfix3/controls/boundary/db0.o",
       "/home/user/Projects/cx-blockfix3/build/blockfix3/pre-source/build/db0/src/cmd/scripting.o",
       "/home/user/Projects/cx-blockfix3/build/blockfix3/pre-source/build/db0/src/cmd/functions.o",
       "/home/user/Projects/cx-blockfix3/build/blockfix3/pre-source/build/db0/src/cmd/serialize.o",
@@ -85,7 +85,7 @@
       "/home/user/Projects/cx-blockfix3/build/blockfix3/pre-source/build/src/cmd/t_zset_ops.o",
       "/home/user/Projects/cx-blockfix3/build/blockfix3/pre-source/build/src/cmd/geo.o",
       "/home/user/Projects/cx-blockfix3/build/blockfix3/pre-source/build/src/cmd/t_stream.o",
-      "build/src/cmd/t_stream_groups.o",
+      "/home/user/Projects/cx-blockfix3/build/blockfix3/controls/boundary/normal.o",
       "/home/user/Projects/cx-blockfix3/build/blockfix3/pre-source/build/src/cmd/scripting.o",
       "/home/user/Projects/cx-blockfix3/build/blockfix3/pre-source/build/src/cmd/functions.o",
       "/home/user/Projects/cx-blockfix3/build/blockfix3/pre-source/build/src/cmd/serialize.o",
@@ -141,8 +141,8 @@
     ]
   },
   "statistics": {
-    "post_sha256": "6880f97f0cb6068840b2c5b259a6118e4c1e50b72360eb41b789f70a4507eb1a",
-    "binary_sha256": "b7406176398c577c2f38f195ed810895b320ecd8b43dfed94b75275e2e8a730c",
+    "post_sha256": "943f4ab48b3b5381c57ba9c13ecede6b59a2c9d78cbf34095a610351269bb077",
+    "binary_sha256": "86ea17635cbcf54dc43b58e58864780a936b4ba83811135f0c96fd70fdfc0ccf",
     "link": [
       "g++",
       "-std=c++20",

@@ -1,0 +1,15 @@
+{
+  "unchanged_probe_functions": [
+    "waiter",
+    "rename_sort",
+    "wrongtype",
+    "multi",
+    "counts",
+    "slowlog",
+    "probe"
+  ],
+  "tcl_manifest_unchanged": true,
+  "expect_constants_unchanged": true,
+  "DQ": 0,
+  "DF": 0
+}

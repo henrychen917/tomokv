@@ -1,0 +1,16 @@
+{
+  "removed": [
+    "build/blockfix3/pre-source",
+    "build/blockfix2/controls/slowlog/source",
+    "build/blockfix2/controls/multi/source",
+    "build/blockfix2/controls/removed/source",
+    "build/blockfix2/controls/refusal/source",
+    "build/blockfix2/controls/wrongtype/source",
+    "build/blockfix2/controls/counts/source",
+    "build/blockfix2/controls/rename/source",
+    "build/blockfix3/commands/pre-normal",
+    "build/blockfix3/commands/pre-db0",
+    "build/blockfix3/commands"
+  ],
+  "reason": "Frozen binary and probe SHA-256s and PRE counts recorded; sources and superseded probe objects are reconstructible from git and recipes."
+}
