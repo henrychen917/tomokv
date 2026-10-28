@@ -1,0 +1,72 @@
+[
+  {
+    "name": "verified-debug1-fused-uring-pre",
+    "jobs": [
+      "debug-1"
+    ],
+    "engine": "uring",
+    "fused": true,
+    "binary": "build/tomokv-protofix-PRE",
+    "exit": 0
+  },
+  {
+    "name": "verified-debug1-fused-uring-repeat",
+    "jobs": [
+      "debug-1"
+    ],
+    "engine": "uring",
+    "fused": true,
+    "exit": 0
+  },
+  {
+    "name": "verified-supplement-uring",
+    "jobs": [
+      "reorder_sync",
+      "reorder_engagement",
+      "reorder_identity",
+      "filter_unit",
+      "ring_unit",
+      "wb_rule_units",
+      "wbland_units",
+      "wb_policy",
+      "atomic_units",
+      "exbatch_units",
+      "exbatch_live",
+      "perfex_units",
+      "perfex_live",
+      "bugs5",
+      "acl_recheck",
+      "auth",
+      "authfix",
+      "serverfix_hello",
+      "dispatch_arity",
+      "dispatch_errors",
+      "dispatch_children",
+      "acl_subcommands",
+      "router_uniform",
+      "flip",
+      "fliplisten",
+      "ntnew4_live",
+      "clientfix",
+      "climonfix"
+    ],
+    "engine": "uring",
+    "exit": 0
+  },
+  {
+    "name": "verified-supplement-epoll",
+    "jobs": [
+      "acl_recheck",
+      "auth",
+      "flip",
+      "exbatch_live",
+      "perfex_live"
+    ],
+    "engine": "epoll",
+    "exit": 0
+  },
+  {
+    "name": "protocol-only-tcl-diagnostic",
+    "exit": 0
+  }
+]

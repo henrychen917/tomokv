@@ -1,0 +1,9 @@
+{
+  "original": "tools/execindex_scope.py",
+  "transformed_sha256": "583f01f3ba63b8504e34868d8dbf6c7f3625024c27a2a1552cf0fce210bd5509",
+  "transformations": [
+    "artifact paths execindex -> protofix",
+    "taskset mask 96-103 -> 0-15"
+  ],
+  "scope": "Named production routines in the linked exec_batch_prefetched command scope; external callees excluded and recorded."
+}

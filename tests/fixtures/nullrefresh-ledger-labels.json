@@ -77,6 +77,10 @@
     "witness falsification contracts (testmap + placement)",
     "R7 linear scan and lazy construction bounds (both databases)",
     "ROB portable completion without BMI",
+    "inline quoted argument decoding (1s, epoll)",
+    "inline quoted argument decoding (1s, uring)",
+    "inline quoted argument decoding (2s, epoll)",
+    "inline quoted argument decoding (2s, uring)",
     "slotless remote completions (1s, epoll)",
     "slotless remote completions (1s, uring)",
     "slotless remote completions (2s, epoll)",
@@ -1160,5 +1164,15 @@
       "latencyfix LAT-HIST-1 zero allocations off"
     ],
     "purpose": "Complete the six-lane source inventory: 806 quick / 823 full; EXPECT values remain maintainer-owned."
+  },
+  "protofix_supplement": {
+    "source": "cx-gaterows5 033e94d79326f50c61cce54ee1c7ec63da69f9a3, inline_quoted labels only",
+    "added": [
+      "inline quoted argument decoding (1s, epoll)",
+      "inline quoted argument decoding (1s, uring)",
+      "inline quoted argument decoding (2s, epoll)",
+      "inline quoted argument decoding (2s, uring)"
+    ],
+    "purpose": "Four source-declared rows before the quick exit: DQ=DF=+4; wave8 806/823 becomes 810/827. Not runtime evidence; EXPECT constants remain maintainer-owned."
   }
 }

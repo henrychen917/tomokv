@@ -1,0 +1,179 @@
+{
+  "post_sha256": "e99c3f23182c0872214c2e1475cb64cb4d8aa3dd27ebeaf769ca0197c4b5ba5b",
+  "batches": [
+    {
+      "name": "verified-protocol-uring",
+      "jobs": [
+        "inline_quoted",
+        "respcompat",
+        "netio-1s",
+        "netio-2s",
+        "netcap",
+        "netfix_query_stats",
+        "netfix_unix",
+        "netfix_config",
+        "netfix_tls",
+        "netfix_idle_buffers",
+        "ntfix_input",
+        "iofix-deferred",
+        "iofix-hz",
+        "iofix-sleep",
+        "iofix-signal",
+        "perfio_stream",
+        "rlfix3_info",
+        "rlfix3_zc",
+        "readonly",
+        "replyoff",
+        "tls",
+        "zc",
+        "rlcache",
+        "netcmd_units",
+        "splitlocal_units",
+        "core_units",
+        "bplus",
+        "source_identity",
+        "respresume-fragment-1s-epoll",
+        "respresume-fragment-1s-uring",
+        "respresume-fragment-2s-epoll",
+        "respresume-fragment-2s-uring",
+        "respresume-cpu-1s-epoll",
+        "respresume-cpu-1s-uring",
+        "respresume-cpu-2s-epoll",
+        "respresume-cpu-2s-uring",
+        "respresume-neighbour-1s-epoll",
+        "respresume-neighbour-1s-uring",
+        "respresume-neighbour-2s-epoll",
+        "respresume-neighbour-2s-uring"
+      ],
+      "engine": "uring"
+    },
+    {
+      "name": "verified-protocol-epoll",
+      "jobs": [
+        "respcompat",
+        "readonly",
+        "replyoff",
+        "tls",
+        "zc",
+        "rlcache",
+        "bplus"
+      ],
+      "engine": "epoll"
+    },
+    {
+      "name": "verified-feature-cells",
+      "jobs": [
+        "feature-cell-1s-0-0-0-0",
+        "feature-cell-1s-0-0-0-1",
+        "feature-cell-1s-0-0-1-0",
+        "feature-cell-1s-0-0-1-1",
+        "feature-cell-1s-0-1-0-0",
+        "feature-cell-1s-0-1-0-1",
+        "feature-cell-1s-0-1-1-0",
+        "feature-cell-1s-0-1-1-1",
+        "feature-cell-1s-1-0-0-0",
+        "feature-cell-1s-1-0-0-1",
+        "feature-cell-1s-1-0-1-0",
+        "feature-cell-1s-1-0-1-1",
+        "feature-cell-1s-1-1-0-0",
+        "feature-cell-1s-1-1-0-1",
+        "feature-cell-1s-1-1-1-0",
+        "feature-cell-1s-1-1-1-1",
+        "feature-cell-2s-0-0-0-0",
+        "feature-cell-2s-0-0-0-1",
+        "feature-cell-2s-0-0-1-0",
+        "feature-cell-2s-0-0-1-1",
+        "feature-cell-2s-0-1-0-0",
+        "feature-cell-2s-0-1-0-1",
+        "feature-cell-2s-0-1-1-0",
+        "feature-cell-2s-0-1-1-1",
+        "feature-cell-2s-1-0-0-0",
+        "feature-cell-2s-1-0-0-1",
+        "feature-cell-2s-1-0-1-0",
+        "feature-cell-2s-1-0-1-1",
+        "feature-cell-2s-1-1-0-0",
+        "feature-cell-2s-1-1-0-1",
+        "feature-cell-2s-1-1-1-0",
+        "feature-cell-2s-1-1-1-1",
+        "feature-cell-split-home-min",
+        "feature-cell-fused-home-max-nopin",
+        "feature-cell-split-shards-auto"
+      ],
+      "engine": "uring"
+    },
+    {
+      "name": "verified-features-uring",
+      "jobs": [
+        "feature-split-0",
+        "feature-split-1",
+        "feature-armed-0",
+        "feature-armed-1",
+        "fused-0",
+        "fused-1",
+        "release_batteries",
+        "asan_batteries",
+        "atomic_batteries",
+        "debug-0",
+        "debug-1"
+      ],
+      "engine": "uring"
+    },
+    {
+      "name": "verified-fused-uring",
+      "jobs": [
+        "release_batteries",
+        "asan_batteries",
+        "atomic_batteries",
+        "debug-0",
+        "debug-1"
+      ],
+      "engine": "uring",
+      "fused": true
+    },
+    {
+      "name": "verified-differ-uring",
+      "jobs": [
+        "differ-split",
+        "differ-armed"
+      ],
+      "engine": "uring"
+    },
+    {
+      "name": "verified-features-epoll",
+      "jobs": [
+        "feature-split-0",
+        "feature-split-1",
+        "feature-armed-0",
+        "feature-armed-1",
+        "fused-0",
+        "fused-1",
+        "release_batteries",
+        "asan_batteries",
+        "atomic_batteries",
+        "debug-0",
+        "debug-1"
+      ],
+      "engine": "epoll"
+    },
+    {
+      "name": "verified-fused-epoll",
+      "jobs": [
+        "release_batteries",
+        "asan_batteries",
+        "atomic_batteries",
+        "debug-0",
+        "debug-1"
+      ],
+      "engine": "epoll",
+      "fused": true
+    },
+    {
+      "name": "verified-differ-epoll",
+      "jobs": [
+        "differ-split",
+        "differ-armed"
+      ],
+      "engine": "epoll"
+    }
+  ]
+}

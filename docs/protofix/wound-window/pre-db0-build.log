@@ -1,0 +1,15 @@
+In file included from ./src/cmd/xshard.cc:63,
+                 from ./tests/atomic_survivors_unit.cc:6,
+                 from tests/txnorder_wound_window.cc:5:
+./src/cmd/multi.inc: In function ‘void tomo_db0::{anonymous}::txn_add_claim(std::vector<tomo_db0::TxnClaim>&, tomo_db0::Slice, tomo_db0::TxnClaimMode, bool)’:
+./src/cmd/multi.inc:768:21: warning: missing initializer for member ‘tomo_db0::TxnClaim::waiter’ [-Wmissing-field-initializers]
+  768 |     claims.push_back({std::move(owned), whole ? 0 : FlatStore::hash_key(key), mode});
+      |     ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./src/cmd/multi.inc: In function ‘void tomo_db0::{anonymous}::txn_cap_claims(std::vector<tomo_db0::TxnClaim>&)’:
+./src/cmd/multi.inc:777:21: warning: missing initializer for member ‘tomo_db0::TxnClaim::waiter’ [-Wmissing-field-initializers]
+  777 |     claims.push_back({{}, 0, mode});
+      |     ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+./tests/atomic_survivors_unit.cc: In function ‘int survivors_fixture_main(int, char**)’:
+./tests/atomic_survivors_unit.cc:872:1: warning: no return statement in function returning non-void [-Wreturn-type]
+  872 | }
+      | ^

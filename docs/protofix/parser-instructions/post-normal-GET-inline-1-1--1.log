@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-protofix/build/protofix/parser-commands/post-normal-GET-inline-1-1--1.log
+SHA-256: a01678dbdcf7de1c7f1d8b9a53297d0d8ded287276d696aa91919b95924710c3
+Exit: 0
+1071	      size() const _GLIBCXX_NOEXCEPT
+0x0000555555557028	1071	      size() const _GLIBCXX_NOEXCEPT
+0x000055555555702e	17	}
+0x0000555555557033	17	}
+0x000055555555703c	17	}
+0x0000555555557042	17	}
+0x0000555555557046	17	}
+0x0000555555557047	17	}
+0x0000555555557048	17	}
+0x000055555555704a	17	}
+0x000055555555704c	17	}
+0x000055555555704e	17	}
+0x0000555555557050	17	}
+main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-protofix/docs/protofix/parser_scope.cc:36
+36	    scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-protofix/docs/protofix/parser_scope.cc:7
+7	[[gnu::noinline]] void scope_end() { asm volatile("" ::: "memory"); }
+[Inferior 1 (process 1461929) exited normally]
+COUNT 482

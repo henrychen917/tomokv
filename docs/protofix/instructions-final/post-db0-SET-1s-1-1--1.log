@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-protofix/build/protofix/commands-final/post-db0-SET-1s-1-1--1.log
+SHA-256: 18f9077df2eb2711bed2fd4817ad57d867e7a3045698b531d060b58d4eb2c11c
+Exit: 0
+2356	    }
+0x00005555558aa6c8	2356	    }
+0x00005555558aa6d1	2356	    }
+0x00005555558aa6d7	2356	    }
+0x00005555558aa6db	2356	    }
+0x00005555558aa6dc	2356	    }
+0x00005555558aa6de	2356	    }
+0x00005555558aa6e0	2356	    }
+0x00005555558aa6e2	2356	    }
+0x00005555558aa6e4	2356	    }
+0x00005555558aa6e5	2356	    }
+0x0000555555d88024 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-protofix/tests/txnorder_command_scope.cc:72
+72	   scope_endTomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-protofix/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 3770072) exited normally]
+COUNT 955

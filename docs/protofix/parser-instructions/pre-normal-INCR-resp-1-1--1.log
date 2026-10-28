@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-protofix/build/protofix/parser-commands/pre-normal-INCR-resp-1-1--1.log
+SHA-256: 5f09b7bedf95dd50c092fe40973ecffccace0039b9eb6407005471fda07b55f3
+Exit: 0
+1071	      size() const _GLIBCXX_NOEXCEPT
+0x0000555555557d68	1071	      size() const _GLIBCXX_NOEXCEPT
+0x0000555555557d6e	17	}
+0x0000555555557d73	17	}
+0x0000555555557d7c	17	}
+0x0000555555557d82	17	}
+0x0000555555557d86	17	}
+0x0000555555557d87	17	}
+0x0000555555557d88	17	}
+0x0000555555557d8a	17	}
+0x0000555555557d8c	17	}
+0x0000555555557d8e	17	}
+0x0000555555557d90	17	}
+main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-protofix/docs/protofix/parser_scope.cc:36
+36	    scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-protofix/docs/protofix/parser_scope.cc:7
+7	[[gnu::noinline]] void scope_end() { asm volatile("" ::: "memory"); }
+[Inferior 1 (process 1461893) exited normally]
+COUNT 211

@@ -1,0 +1,239 @@
+{
+  "pre_sha256": "37b3a2f583859dff5e9bc74dd864f7257b6f486371883a0df4d12a0d5393912b",
+  "post_sha256": "e99c3f23182c0872214c2e1475cb64cb4d8aa3dd27ebeaf769ca0197c4b5ba5b",
+  "groups": 9771,
+  "changed": 16,
+  "hot_groups": 765,
+  "counted_command_groups": 81,
+  "hot_changed": [],
+  "changed_groups": [
+    {
+      "name": "tomo::(anonymous namespace)::cmd_memory(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "hot": false,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        249
+      ],
+      "post_sizes": [
+        249
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::(anonymous namespace)::compact_pairs(tomo::CollectionRef const&, std::vector<tomo::(anonymous namespace)::PairView, std::allocator<tomo::(anonymous namespace)::PairView> >&) [clone .cold]",
+      "hot": false,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        64
+      ],
+      "post_sizes": [
+        64
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::IoLoop::pubsub_append_ack(tomo::Op::Sink&, bool, bool, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const*, unsigned long, bool) [clone .isra.0]",
+      "hot": false,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2200,
+        972,
+        2200,
+        1068,
+        1692
+      ],
+      "post_sizes": [
+        2200,
+        1068,
+        2200,
+        1068,
+        1692
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::RespInlineDecoder::decode(char const*, char const*, tomo::Op&, char const**)",
+      "hot": false,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        246
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::RespInlineDecoder::hex(unsigned char)",
+      "hot": false,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        72
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::RespInlineDecoder::split(char const*, char const*, tomo::Slice*, char*, unsigned int&)",
+      "hot": false,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        594
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::Shard::watch_flush(int) [clone .cold]",
+      "hot": false,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        89
+      ],
+      "post_sizes": [
+        89
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::resp_inline_plain(char const*, char const*)",
+      "hot": false,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        34
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::resp_inline_quotes_valid(char const*, char const*)",
+      "hot": false,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        141
+      ],
+      "post_sizes": [],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned int&)",
+      "hot": false,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        382
+      ],
+      "post_sizes": [
+        483
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::RespInlineDecoder::decode(char const*, char const*, tomo_db0::Op&, char const**)",
+      "hot": false,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        246
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::RespInlineDecoder::hex(unsigned char)",
+      "hot": false,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        72
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::RespInlineDecoder::split(char const*, char const*, tomo_db0::Slice*, char*, unsigned int&)",
+      "hot": false,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        589
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::resp_inline_plain(char const*, char const*)",
+      "hot": false,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        34
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::resp_inline_quotes_valid(char const*, char const*)",
+      "hot": false,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        141
+      ],
+      "post_sizes": [],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned int&)",
+      "hot": false,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        382
+      ],
+      "post_sizes": [
+        483
+      ],
+      "matches": [],
+      "changed_lanes": []
+    }
+  ]
+}

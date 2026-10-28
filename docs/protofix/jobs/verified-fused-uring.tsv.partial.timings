@@ -1,0 +1,51 @@
+ok	0.000000	release build (+footprint locks)
+ok	1.260000	ASAN build
+ok	10.200000	plain-write lost updates (atomic 0)
+ok	0.170000	lbsignals battery (atomic 0)
+ok	1.500000	slowlog battery (atomic 0)
+ok	0.050000	atomfix battery (atomic 0)
+ok	0.040000	scriptatomic battery (atomic 0)
+ok	14.480000	execatomic battery (atomic 0)
+ok	11.890000	execiso battery (atomic 0)
+ok	0.480000	execfix battery (atomic 0)
+ok	0.210000	multires battery (atomic 0)
+ok	0.730000	multirace battery (atomic 0)
+ok	30.580000	session_monotonic battery (atomic 0)
+ok	0.390000	xacct battery (atomic 0)
+ok	0.380000	xmove battery (atomic 0)
+ok	1.870000	xscript battery (atomic 0)
+ok	2.340000	txn_nx battery (atomic 0)
+ok	8.840000	txniso battery (atomic 0)
+ok	6.170000	plain-write lost updates (atomic 1)
+ok	0.160000	lbsignals battery (atomic 1)
+ok	1.490000	slowlog battery (atomic 1)
+ok	0.050000	atomfix battery (atomic 1)
+ok	0.050000	scriptatomic battery (atomic 1)
+ok	14.480000	execatomic battery (atomic 1)
+ok	11.880000	execiso battery (atomic 1)
+ok	0.480000	execfix battery (atomic 1)
+ok	0.210000	multires battery (atomic 1)
+ok	0.710000	multirace battery (atomic 1)
+ok	30.570000	session_monotonic battery (atomic 1)
+ok	0.410000	xacct battery (atomic 1)
+ok	0.390000	xmove battery (atomic 1)
+ok	1.890000	xscript battery (atomic 1)
+FAIL	3.090000	txn_nx battery (atomic 1)
+ok	8.620000	txniso battery (atomic 1)
+ok	6.840000	torture battery
+ok	0.980000	RYOW battery
+ok	0.030000	ACL category runtime table
+ok	0.030000	ACL LOAD/SAVE no-file errors
+ok	1.020000	idle loop ceiling (LBSIGNALS, 1s)
+ok	0.050000	shutdown invariants (nothing stuck)
+ok	0.030000	direct-reply fired (direct=987)
+ok	0.020000	fused unified work agrees with thread totals (110384)
+ok	25.060000	atomic torn/window battery
+ok	4.060000	atomic RYOW/mixed-write battery
+ok	4.240000	atomic owner-local hazard battery
+ok	0.020000	atomic shutdown invariants
+ok	6.990000	torture under ASAN
+ok	1.000000	RYOW under ASAN
+ok	25.150000	atomic torn/window under ASAN
+ok	4.080000	atomic RYOW under ASAN
+ok	0.020000	ASAN clean

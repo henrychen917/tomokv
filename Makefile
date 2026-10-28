@@ -76,6 +76,9 @@ $(ASSERT_MAP): tools/assert_map.py $(ASSERT_SOURCES) $(ASSERT_DIRS) Makefile
 	python3 tools/assert_map.py --output $@ --cxx "$(CXX)"
 
 
+# protofix: cold decoder IPA growth is +34. Compile-only trials in
+# docs/protofix/budgets retain ordinary dispatch/owner/read-local bodies;
+# remaining compiler differences are listed in the linked identity receipt.
 # Wave 7: compile-only per-unit trials in docs/wave7/budgets and
 # docs/wave7/budgets-dispatch preserve headline or lane POST hot bodies where
 # changes compose. The second sweep scores dispatch call sites, not just changed
@@ -370,6 +373,9 @@ $(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inli
 # clockcut +128; rl2s clockcut +256. The wave-4 budget commit re-derives these values.
 $(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=131218
 $(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=164621
+# Protofix late-listener bounds, subject to wave9 compile-only re-derivation.
+$(BUILD_ROOT)/src/core/fliplisten.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=46744
+$(BUILD_ROOT)/db0/src/core/fliplisten.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=46512
 # wave3: see the note above $(BUILD_ROOT)/src/main.o (first override of this object).
 # wave3 R7 round (7fa5cb0e0 regenerates rlfix's RL4.4 into the R7 envelope): units +82 / +80
 # (src / db0). Compile-only scans 147770-147970 / 148760-148949 (docs/wave3/identity/

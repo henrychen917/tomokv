@@ -1,0 +1,121 @@
+ok	0.000000	release build (+footprint locks)
+ok	2.960000	ASAN build
+ok	5.740000	read-local ownership-invariant build
+ok	126.620000	production source identity + stable assertion ids
+ok	1.380000	inline quoted argument decoding (1s, epoll)
+ok	1.390000	inline quoted argument decoding (1s, uring)
+ok	1.390000	inline quoted argument decoding (2s, epoll)
+ok	1.380000	inline quoted argument decoding (2s, uring)
+ok	14.850000	RESP resumable fragment (1s, epoll)
+ok	15.280000	RESP resumable fragment (1s, uring)
+ok	14.520000	RESP resumable fragment (2s, epoll)
+ok	14.540000	RESP resumable fragment (2s, uring)
+ok	2.620000	RESP resumable cpu (1s, epoll)
+ok	2.640000	RESP resumable cpu (1s, uring)
+ok	2.620000	RESP resumable cpu (2s, epoll)
+ok	2.620000	RESP resumable cpu (2s, uring)
+ok	0.800000	RESP resumable neighbour (1s, epoll)
+ok	0.800000	RESP resumable neighbour (1s, uring)
+ok	0.800000	RESP resumable neighbour (2s, epoll)
+ok	0.810000	RESP resumable neighbour (2s, uring)
+ok	26.890000	iofix WB4.1 deferred IO parks
+ok	41.950000	iofix IO4.9 Redis hz cron
+ok	31.810000	iofix IO4.10 global DEBUG SLEEP
+ok	18.600000	iofix IO4.17 immediate signal shutdown
+ok	2.960000	epoll directed correctness (1s)
+ok	2.970000	epoll directed correctness (2s)
+ok	0.390000	perfio XREADGROUP bounded delivery + Redis metadata (1s)
+ok	0.400000	perfio XREADGROUP bounded delivery + Redis metadata (2s)
+ok	0.600000	core concurrency watch
+ok	0.900000	core concurrency lifetime
+ok	0.120000	core concurrency drain
+ok	7.660000	core concurrency route
+ok	0.110000	core concurrency snapshot
+ok	0.180000	core concurrency config
+ok	0.180000	core concurrency notify
+ok	1.100000	read-local topology demotion (1s)
+ok	0.570000	read-local topology demotion (2s)
+ok	0.950000	splitlocal template forwarding + old-argument controls
+ok	0.000000	netcmd regression build
+ok	0.010000	netcmd streams regression
+ok	0.010000	netcmd zpop regression
+ok	0.010000	netcmd notify-oom regression
+ok	0.000000	netcmd notify-retry regression
+ok	0.000000	netcmd flush regression
+ok	0.010000	netcmd output regression
+ok	0.000000	netcmd pubsub regression
+ok	0.010000	netcmd receive regression
+ok	0.060000	netcmd config regression
+ok	0.010000	netcmd wb-small-pipe regression
+ok	0.010000	netcmd wb-complete-visits regression
+ok	0.010000	netcmd hexpire-oom regression
+ok	0.200000	encodingfix knob
+ok	0.010000	encodingfix precedence
+ok	0.020000	NET1 serverless bounds + scan + reclamation
+ok	0.320000	NET1 inline + query cap (1s, uring)
+ok	0.320000	NET1 inline + query cap (1s, epoll)
+ok	0.320000	NET1 inline + query cap (2s, uring)
+ok	0.310000	NET1 inline + query cap (2s, epoll)
+ok	1.740000	netfix NT4.6 query-limit INFO parity
+ok	1.210000	netfix NT4.11 Unix pathname parity
+ok	2.320000	netfix NT4.8 network CONFIG error parity
+ok	10.410000	netfix NT4.7 TLS default cipher parity
+ok	303.000000	netfix NT4.19 idle buffer reclamation
+ok	540.760000	RESP protocol error compatibility
+ok	2.070000	read-only resize split read-local=0
+ok	2.080000	read-only resize split read-local=1
+ok	1.570000	read-only resize fused read-local=0
+ok	1.570000	read-only resize fused read-local=1
+ok	2.150000	B+ held-group GET/MGET filter battery
+ok	0.140000	read-local lane admission battery
+ok	0.050000	read-local MGET fence battery (1s)
+ok	1.890000	read-local GET miss battery (1s)
+ok	0.040000	read-local one-key delete battery (1s)
+ok	0.300000	read-local MGET fence battery (2s)
+ok	1.890000	read-local GET miss battery (2s)
+ok	0.040000	read-local one-key delete battery (2s)
+ok	0.340000	read-local borrow capability (1s, epoll, read-local 0)
+ok	0.290000	read-local borrow capability (1s, epoll, read-local 1)
+ok	0.290000	read-local borrow capability (1s, uring, read-local 0)
+ok	0.290000	read-local borrow capability (1s, uring, read-local 1)
+ok	0.290000	read-local borrow capability (2s, epoll, read-local 0)
+ok	0.300000	read-local borrow capability (2s, epoll, read-local 1)
+ok	0.290000	read-local borrow capability (2s, uring, read-local 0)
+ok	0.290000	read-local borrow capability (2s, uring, read-local 1)
+ok	0.770000	INFO selective collection (1s, epoll, read-local 0)
+ok	0.800000	INFO selective collection (1s, epoll, read-local 1)
+ok	0.770000	INFO selective collection (1s, uring, read-local 0)
+ok	0.790000	INFO selective collection (1s, uring, read-local 1)
+ok	0.780000	INFO selective collection (2s, epoll, read-local 0)
+ok	0.770000	INFO selective collection (2s, epoll, read-local 1)
+ok	0.780000	INFO selective collection (2s, uring, read-local 0)
+ok	0.770000	INFO selective collection (2s, uring, read-local 1)
+ok	0.880000	TLS ephemeral CA/server/client certificates
+ok	0.060000	NET2 serverless RX policy and KeyUpdate controls
+ok	0.010000	reject TLS listener without certificate
+ok	0.010000	reject invalid tls-protocols
+ok	0.010000	reject invalid tls-ciphers
+ok	0.050000	TLS client-auth yes matrix
+ok	0.020000	TLS yes shutdown invariants
+ok	0.060000	TLS client-auth optional matrix
+ok	0.030000	kTLS TLS 1.2 engaged live (default boot)
+ok	0.170000	TLS 1.3 KeyUpdate survives (NET2)
+ok	0.180000	TLS 1.3 userspace KeyUpdate survives (NET2)
+ok	0.020000	TLS optional shutdown invariants
+ok	14.540000	TLS pipeline/torn-record/coexistence battery
+ok	0.020000	TLS shutdown invariants
+ok	0.020000	TLS application send path error-free
+ok	0.060000	TLS connection slots all freed (33/33)
+ok	0.000000	TLS zc borrow gates fired (suppressed=21)
+ok	5.830000	TLS silent-peer close after reply (ntfix N2)
+ok	10.650000	RESP pre-AUTH limit errors (ntfix N3)
+ok	15.030000	RESP query-buffer frontier (ntfix N4)
+ok	5.520000	INFO received bytes exact (ntfix N1)
+ok	1.230000	CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)
+ok	1.230000	CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)
+ok	1.380000	zc borrow battery
+ok	0.020000	zc fired (zc_sends=20)
+ok	1.410000	zc borrow battery under ASAN
+ok	0.020000	zc ASAN clean
+ok	25.340000	armed block-cache churn battery
+ok	0.020000	read-local ownership invariants

@@ -1,0 +1,8 @@
+{
+  "oracle_version": "Redis server v=7.4.10 sha=f103d127:0 malloc=jemalloc-5.3.0 bits=64 build=f39586913084a746",
+  "files": {
+    "/home/user/Projects/redis/src/sds.c": "8666b395fec3bc71f47c8f3db399b691c7fa9beaf54185931d5093574771bfd6",
+    "/home/user/Projects/redis/src/networking.c": "0ed207f003c35589f97e6375bcf589c5fb22a1f905b3c2e9ec6a08d67984893c",
+    "/home/user/Projects/redis74/src/redis-server": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b"
+  }
+}

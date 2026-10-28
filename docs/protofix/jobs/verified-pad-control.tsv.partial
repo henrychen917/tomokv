@@ -1,0 +1,8 @@
+PARTIAL	0	GATE_ONLY_JOBS=inline_quoted netio-1s netio-2s; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+FAIL	1.380000	inline quoted argument decoding (1s, epoll)
+FAIL	1.390000	inline quoted argument decoding (1s, uring)
+FAIL	1.380000	inline quoted argument decoding (2s, epoll)
+FAIL	1.390000	inline quoted argument decoding (2s, uring)
+ok	2.940000	epoll directed correctness (1s)
+ok	2.930000	epoll directed correctness (2s)
