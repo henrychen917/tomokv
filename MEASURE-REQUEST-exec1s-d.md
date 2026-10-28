@@ -121,8 +121,9 @@ uses one key per child on distinct shards. Consequently the one-child cross
 label is the same single-shard control, not a scatter child. The separate
 `SCAT-<ARM>-counts.json` matrix adds MSET children: each writes two distinct
 keys, on one shard or two shards owned by different threads. It includes
-1/2/4 children in both modes, atomic settings and namespaces. PRE and POST
-have passed all 48 scopes; the isolated-arm receipts are still pending.
+1/2/4 children in both modes, atomic settings and namespaces. PRE, POST, X12, X3, X5 and MERGE
+have passed all 48 scopes each. [scatter-comparison.json](docs/exec1s-d/scatter-comparison.json)
+contains their complete attribution deltas.
 Rebuilt probe inputs must match every allocated section of the frozen binary
 except the build-id note, including bytes, addresses and sizes. This permits
 debug-only rebuild differences without substituting different production code.
@@ -159,6 +160,17 @@ hints in split mode too. Neither these counts nor the allocation reduction
 attributes the measured 1s gain or the 2s hot-key loss in rate: scheduling,
 cache effects and IPC still require the isolated build arms below.
 
+The added normal-namespace 2s/atomic-0 MSET-child scopes are:
+
+| Child placement / children | PRE | X12 | X3 | X5 | MERGE | POST |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| same / 1 | 21,826 | 21,624 | 21,642 | 19,771 | 19,789 | 19,665 |
+| same / 2 | 31,700 | 31,333 | 31,357 | 28,830 | 28,854 | 28,721 |
+| same / 4 | 51,366 | 50,669 | 50,705 | 46,855 | 46,891 | 46,736 |
+| cross / 1 | 23,389 | 23,287 | 23,324 | 21,742 | 21,779 | 21,682 |
+| cross / 2 | 33,427 | 33,325 | 33,375 | 31,075 | 31,125 | 31,042 |
+| cross / 4 | 53,370 | 53,268 | 53,344 | 49,597 | 49,673 | 49,614 |
+
 ### SAVE admission investigation
 
 The original failure is preserved in
@@ -183,6 +195,11 @@ is a timeout reproduced on older code under that repeated schedule, **not** the 
 Busy rejection. GDB snapshots are diagnostic only; no persistence fix or
 root-cause claim is based on optimized variables. An overlapped observer
 attempt is explicitly invalidated in its receipt and is not proof.
+
+A passive kernel admission observer was **NOT RUN**: an owned-child uprobe
+was denied with EACCES, and passwordless elevated tracing was unavailable. No
+system setting was changed; [the capability receipt](docs/exec1s-d/save-passive-observer.json)
+distinguishes this from the GDB-observed replays.
 
 No differential assertion, seed, idle barrier or SAVE timeout is suppressed or
 changed. The original admission failure remains an open acceptance item until
