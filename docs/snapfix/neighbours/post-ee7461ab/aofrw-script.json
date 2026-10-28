@@ -1,0 +1,146 @@
+[
+  {
+    "case": "aofrw-script",
+    "leg": "redis-redis-0",
+    "value": {
+      "rewrites": 25,
+      "units": 228036,
+      "writes": 140630,
+      "live": [
+        228036,
+        228036,
+        140630
+      ]
+    },
+    "pass": true,
+    "seconds": 5.307
+  },
+  {
+    "case": "aofrw-script",
+    "leg": "1s-uring-0",
+    "value": {
+      "rewrites": 11,
+      "units": 42127,
+      "writes": 247724,
+      "live": [
+        42127,
+        42127,
+        247724
+      ]
+    },
+    "pass": true,
+    "seconds": 5.37
+  },
+  {
+    "case": "aofrw-script",
+    "leg": "1s-uring-1",
+    "value": {
+      "rewrites": 12,
+      "units": 43402,
+      "writes": 268774,
+      "live": [
+        43402,
+        43402,
+        268774
+      ]
+    },
+    "pass": true,
+    "seconds": 5.372
+  },
+  {
+    "case": "aofrw-script",
+    "leg": "1s-epoll-0",
+    "value": {
+      "rewrites": 26,
+      "units": 45586,
+      "writes": 298958,
+      "live": [
+        45586,
+        45586,
+        298958
+      ]
+    },
+    "pass": true,
+    "seconds": 5.257
+  },
+  {
+    "case": "aofrw-script",
+    "leg": "1s-epoll-1",
+    "value": {
+      "rewrites": 10,
+      "units": 42454,
+      "writes": 162295,
+      "live": [
+        42454,
+        42454,
+        162295
+      ]
+    },
+    "pass": true,
+    "seconds": 5.127
+  },
+  {
+    "case": "aofrw-script",
+    "leg": "2s-uring-0",
+    "value": {
+      "rewrites": 10,
+      "units": 49384,
+      "writes": 79462,
+      "live": [
+        49384,
+        49384,
+        79462
+      ]
+    },
+    "pass": true,
+    "seconds": 5.1
+  },
+  {
+    "case": "aofrw-script",
+    "leg": "2s-uring-1",
+    "value": {
+      "rewrites": 9,
+      "units": 53533,
+      "writes": 63665,
+      "live": [
+        53533,
+        53533,
+        63665
+      ]
+    },
+    "pass": true,
+    "seconds": 5.278
+  },
+  {
+    "case": "aofrw-script",
+    "leg": "2s-epoll-0",
+    "value": {
+      "rewrites": 9,
+      "units": 61910,
+      "writes": 263722,
+      "live": [
+        61910,
+        61910,
+        263722
+      ]
+    },
+    "pass": true,
+    "seconds": 5.396
+  },
+  {
+    "case": "aofrw-script",
+    "leg": "2s-epoll-1",
+    "value": {
+      "rewrites": 10,
+      "units": 63032,
+      "writes": 106752,
+      "live": [
+        63032,
+        63032,
+        106752
+      ]
+    },
+    "pass": true,
+    "seconds": 5.1
+  }
+]

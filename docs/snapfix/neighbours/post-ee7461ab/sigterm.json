@@ -1,0 +1,155 @@
+[
+  {
+    "case": "sigterm",
+    "leg": "redis-redis-0",
+    "value": {
+      "restored": [
+        2191,
+        2191
+      ],
+      "acknowledged_max": [
+        2188,
+        2188
+      ],
+      "sent": 2194
+    },
+    "pass": true,
+    "seconds": 0.277
+  },
+  {
+    "case": "sigterm",
+    "leg": "1s-uring-0",
+    "value": {
+      "restored": [
+        73,
+        73
+      ],
+      "acknowledged_max": [
+        73,
+        73
+      ],
+      "sent": 95
+    },
+    "pass": true,
+    "seconds": 0.054
+  },
+  {
+    "case": "sigterm",
+    "leg": "1s-uring-1",
+    "value": {
+      "restored": [
+        83,
+        83
+      ],
+      "acknowledged_max": [
+        83,
+        83
+      ],
+      "sent": 102
+    },
+    "pass": true,
+    "seconds": 0.054
+  },
+  {
+    "case": "sigterm",
+    "leg": "1s-epoll-0",
+    "value": {
+      "restored": [
+        89,
+        89
+      ],
+      "acknowledged_max": [
+        89,
+        89
+      ],
+      "sent": 106
+    },
+    "pass": true,
+    "seconds": 0.052
+  },
+  {
+    "case": "sigterm",
+    "leg": "1s-epoll-1",
+    "value": {
+      "restored": [
+        88,
+        88
+      ],
+      "acknowledged_max": [
+        88,
+        88
+      ],
+      "sent": 105
+    },
+    "pass": true,
+    "seconds": 0.051
+  },
+  {
+    "case": "sigterm",
+    "leg": "2s-uring-0",
+    "value": {
+      "restored": [
+        94,
+        94
+      ],
+      "acknowledged_max": [
+        94,
+        94
+      ],
+      "sent": 116
+    },
+    "pass": true,
+    "seconds": 0.052
+  },
+  {
+    "case": "sigterm",
+    "leg": "2s-uring-1",
+    "value": {
+      "restored": [
+        98,
+        98
+      ],
+      "acknowledged_max": [
+        98,
+        98
+      ],
+      "sent": 116
+    },
+    "pass": true,
+    "seconds": 0.052
+  },
+  {
+    "case": "sigterm",
+    "leg": "2s-epoll-0",
+    "value": {
+      "restored": [
+        113,
+        113
+      ],
+      "acknowledged_max": [
+        113,
+        113
+      ],
+      "sent": 130
+    },
+    "pass": true,
+    "seconds": 0.052
+  },
+  {
+    "case": "sigterm",
+    "leg": "2s-epoll-1",
+    "value": {
+      "restored": [
+        111,
+        111
+      ],
+      "acknowledged_max": [
+        111,
+        111
+      ],
+      "sent": 128
+    },
+    "pass": true,
+    "seconds": 0.052
+  }
+]
