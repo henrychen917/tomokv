@@ -8,6 +8,7 @@ import argparse
 import contextlib
 import itertools
 import json
+import select
 import socket
 import traceback
 from pathlib import Path
@@ -67,7 +68,7 @@ class Wire:
         return self.read(expected)
 
 
-def probe(case, port, rows):
+def probe(case, port, rows, eviction_key='foo'):
     with contextlib.ExitStack() as stack:
         def client():
             c = Wire(port, rows); stack.callback(c.close); return c
@@ -123,27 +124,33 @@ def probe(case, port, rows):
             def event(key, name): b.read(array(bulk('pmessage'), bulk('*'), bulk('__keyspace@0__:'+key), bulk(name)))
             a.cmd(b'+OK\r\n', 'XGROUP', 'CREATE', 's', 'g', '$', 'MKSTREAM'); event('s','xgroup-create')
             a.cmd(bulk('1-0'), 'XADD', 's', '1-0', 'f', 'v'); event('s','xadd')
+            tracker = client(); tracker.cmd(None, 'HELLO', 3)
+            tracker.cmd(b'+OK\r\n', 'CLIENT', 'TRACKING', 'ON', 'BCAST', 'PREFIX', 's')
             a.cmd(None, 'XREADGROUP', 'GROUP', 'g', 'Alice', 'STREAMS', 's', '>'); event('s','xgroup-createconsumer')
             a.cmd(None, 'XCLAIM', 's', 'g', 'Mike', 0, '1-0', 'FORCE'); event('s','xgroup-createconsumer')
             a.cmd(None, 'XAUTOCLAIM', 's', 'g', 'Auto', 0, '0-0'); event('s','xgroup-createconsumer')
             a.cmd(None, 'XCLAIM', 's', 'g', 'Mike', 0, '1-0', 'FORCE')
             a.cmd(b':1\r\n', 'PUBLISH', 'fence', 'done')
             b.read(array(bulk('pmessage'), bulk('*'), bulk('fence'), bulk('done')))  # existing consumer emitted nothing
-            a.cmd(b'+OK\r\n', 'XGROUP', 'CREATE', 'empty', 'g', '$', 'MKSTREAM'); event('empty','xgroup-create')
-            d = client(); d.send('XREADGROUP','GROUP','g','Blocked','BLOCK',0,'STREAMS','empty','>')
-            event('empty','xgroup-createconsumer')  # must arrive while the read is still blocked
-            a.cmd(bulk('1-0'),'XADD','empty','1-0','f','v'); event('empty','xadd')
-            d.read(array(array(bulk('empty'),array(array(bulk('1-0'),array(bulk('f'),bulk('v')))))))
+            d = client(); d.send('XREADGROUP','GROUP','g','Blocked','BLOCK',0,'STREAMS','s','>')
+            event('s','xgroup-createconsumer')  # must arrive while the read is still blocked
+            # Consumer metadata emits keyspace events without signalModifiedKey.
+            # The received events witness completion; the real write below proves
+            # this tracking connection is armed and able to receive invalidations.
+            assert not select.select([tracker.sock], [], [], .15)[0], 'consumer creation invalidated tracking'
+            a.cmd(bulk('2-0'),'XADD','s','2-0','f','v'); event('s','xadd')
+            d.read(array(array(bulk('s'),array(array(bulk('2-0'),array(bulk('f'),bulk('v')))))))
+            tracker.read(array(bulk('invalidate'), array(bulk('s')), push=True))
+            tracker.cmd(b'+PONG\r\n', 'PING')
         else:
             a.cmd(b'+OK\r\n', 'CONFIG', 'SET', 'notify-keyspace-events', 'Ee')
             a.cmd(b'+OK\r\n', 'CONFIG', 'SET', 'maxmemory-policy', 'allkeys-lru')
             b.cmd(array(bulk('psubscribe'), bulk('*'), b':1\r\n'), 'PSUBSCRIBE', '*')
-            for key in ('foo', ''):
-                a.cmd(b'+OK\r\n', 'SET', key, 'bar')
-                a.cmd(b'+OK\r\n', 'CONFIG', 'SET', 'maxmemory', 1)
-                b.read(array(bulk('pmessage'),bulk('*'),bulk('__keyevent@0__:evicted'),bulk(key)))
-                a.cmd(b'+OK\r\n', 'CONFIG', 'SET', 'maxmemory', 0)
-                a.cmd(b':0\r\n', 'DBSIZE')
+            a.cmd(b'+OK\r\n', 'SET', eviction_key, 'bar')
+            a.cmd(b'+OK\r\n', 'CONFIG', 'SET', 'maxmemory', 1)
+            b.read(array(bulk('pmessage'),bulk('*'),bulk('__keyevent@0__:evicted'),bulk(eviction_key)))
+            a.cmd(b'+OK\r\n', 'CONFIG', 'SET', 'maxmemory', 0)
+            a.cmd(b':0\r\n', 'DBSIZE')
 
 
 def main():
@@ -156,13 +163,15 @@ def main():
     for binary,oracle in ((args.oracle,True),(args.binary,False)):
         run=Run(args,binary,oracle)
         legs=[('redis','oracle',16,1,0)] if oracle else itertools.product(('1s','2s'),('uring','epoll'),(1,16),(0,1),(0,1))
-        for mode,engine,db,atomic,local in legs:
+        variants=('foo','') if args.case==ROOTS[3] else ('foo',)
+        for (mode,engine,db,atomic,local),key in itertools.product(legs,variants):
             label=f'{mode}-{engine}-db{db}-a{atomic}-r{local}'
+            if args.case==ROOTS[3]:label+='-'+('foo' if key else 'empty-key')
             extra=['--enable-debug-command','yes']
             if not oracle: extra += ['--net-io',engine,'--databases',str(db),'--atomic',str(atomic),'--read-local',str(local)]
             rows=[]
             try:
-                with Server(run,label,mode,extra=extra): probe(args.case,args.port,rows)
+                with Server(run,label,mode,extra=extra): probe(args.case,args.port,rows,key)
                 run.check(label,True,True)
             except Exception:
                 traceback.print_exc();run.check(label,False,True)

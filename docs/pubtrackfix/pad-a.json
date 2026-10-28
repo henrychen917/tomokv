@@ -155,18 +155,18 @@
     "-lm",
     "-Wl,--section-start=.text=0x20990"
   ],
-  "padding_bytes": 33296,
+  "padding_bytes": 32976,
   "pre_layout_text": {
     "address": 133488,
     "size": 8551223
   },
   "post_text": {
     "address": 133520,
-    "size": 8584519
+    "size": 8584199
   },
   "pad_text": {
     "address": 133520,
-    "size": 8584519
+    "size": 8584199
   },
   "inputs": [
     {
@@ -643,7 +643,7 @@
     },
     {
       "path": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pad-a/padding.o",
-      "sha256": "6686656b097acd26d02689f80f0b97418231b11774ec48c0f42a38b142716944"
+      "sha256": "327e2f0633bc3fc26a0e2b39f1b8171ca159ea5d062f89961d1fdc63f0375582"
     }
   ],
   "arms": {
@@ -653,11 +653,11 @@
     },
     "POST": {
       "path": "/home/user/Projects/cx-pubtrackfix/build/tomokv",
-      "sha256": "de4f450065e1eb786a3d1a81acc7ce33a115931f937bb8075c2460fa3390456e"
+      "sha256": "dd675721d0f862c424b6d73719afbe9921607a9a1f1fd95df6ecac3a93cfb19f"
     },
     "PAD-A": {
       "path": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pad-a/tomokv",
-      "sha256": "66b403cbfcff3d01b48f628962d8e032be121f6650bbb4570a4a72228020c034"
+      "sha256": "e941b2be5981ddb339f146cd80e3e0a721759378b622d101c8db5465ddf94060"
     }
   }
 }

@@ -1,0 +1,94 @@
+{
+  "run": "/home/user/Projects/cx-pubtrackfix/build/gate-run.KoHPp4",
+  "log": "build/pubtrackfix/gate-post-affected-final.log",
+  "jobs": {
+    "blockfix_mkstream": {
+      "done": "0\t1\t0\n"
+    },
+    "climonfix": {
+      "done": "0\t7\t0\n"
+    },
+    "cmd_metadata": {
+      "done": "0\t1\t0\n"
+    },
+    "config_unit": {
+      "done": "0\t2\t0\n"
+    },
+    "core_tsan_build": {
+      "done": "0\t0\t0\n"
+    },
+    "core_units": {
+      "done": "0\t9\t0\n"
+    },
+    "evict-lfu-armed-0": {
+      "done": "0\t1\t0\n"
+    },
+    "evict-lfu-armed-1": {
+      "done": "0\t1\t0\n"
+    },
+    "evict-lfu-split-0": {
+      "done": "0\t1\t0\n"
+    },
+    "evict-lfu-split-1": {
+      "done": "0\t1\t0\n"
+    },
+    "evict-lruclock-armed-0": {
+      "done": "0\t1\t0\n"
+    },
+    "evict-lruclock-armed-1": {
+      "done": "0\t1\t0\n"
+    },
+    "evict-lruclock-split-0": {
+      "done": "0\t1\t0\n"
+    },
+    "evict-lruclock-split-1": {
+      "done": "0\t1\t0\n"
+    },
+    "feature-armed-0": {
+      "done": "0\t35\t0\n"
+    },
+    "feature-armed-1": {
+      "done": "0\t35\t0\n"
+    },
+    "feature-split-0": {
+      "done": "0\t34\t0\n"
+    },
+    "feature-split-1": {
+      "done": "0\t34\t0\n"
+    },
+    "netcmd_units": {
+      "done": "0\t16\t0\n"
+    },
+    "notify": {
+      "done": "0\t6\t0\n"
+    },
+    "notifycompat": {
+      "done": null
+    },
+    "production_units": {
+      "done": "0\t0\t0\n"
+    },
+    "pubtrackfix": {
+      "done": "0\t4\t0\n"
+    },
+    "racefix_climon": {
+      "done": "0\t1\t0\n"
+    },
+    "redis_tcl": {
+      "done": "0\t2\t0\n"
+    },
+    "release": {
+      "done": "0\t1\t0\n"
+    },
+    "source_identity": {
+      "done": "0\t1\t0\n"
+    },
+    "storage_units": {
+      "done": "0\t13\t0\n"
+    },
+    "streamfix": {
+      "done": "0\t6\t0\n"
+    }
+  },
+  "summary": []
+}

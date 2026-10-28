@@ -26,3 +26,21 @@
 These earlier failures are not counted as successful final proof. The merit
 report records the final gate results separately, including any remaining
 failures; there is no performance result in these receipts.
+
+- A cross-feature probe found that the first implicit-consumer fix also emitted
+  a tracking invalidation. Redis and PRE emit none when only consumer metadata
+  changes. The final helper emits keyspace notifications and SAVE observations
+  without the tracking route or WATCH mutation. The directed case now witnesses
+  all implicit events, requires tracking silence, then uses a real XADD to prove
+  that the same tracking connection is armed. The earlier binary is retained as
+  `plants/tomokv-consumer-tracking` for a directed negative control.
+- One intermediate directed run successfully evicted `foo`, acknowledged
+  `CONFIG SET maxmemory 0`, returned DBSIZE 0, then OOM-rejected SET of the empty
+  key. The complete wire transcript is retained in
+  `proof/superseded-eviction-rearm`. A 128-cycle CONFIG 1/0 + SET probe on Redis,
+  PRE and POST in both modes did not reproduce it (`config-zero-audit.json`).
+  Attribution is therefore unresolved. The existing owner-local memory-policy
+  cache refreshes at pass entry; this code is unchanged by the lane. Each key's
+  eviction is now armed on a fresh server, so the row independently proves both
+  ordinary and empty keys without depending on a previous reset. The failed
+  reset observation remains an open finding, not a passing result.
