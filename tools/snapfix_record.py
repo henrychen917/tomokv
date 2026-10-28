@@ -36,7 +36,7 @@ def main():
     record = dict(run=str(a.run.resolve()), command=a.command, binary=str(a.binary.resolve()),
                   binary_sha256=sha(a.binary), files={}, referenced={}, jobs={})
     for name in ('ledger.partial', 'ledger.partial.timings', 'plan.sh', 'phases.tsv', 'families.tsv',
-                 'row-timeouts.json'):
+                 'row-timeouts.json', 'differ-plan.json'):
         src = a.run / name
         if src.exists():
             shutil.copy2(src, dest / name)
