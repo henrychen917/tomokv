@@ -1,0 +1,72 @@
+[
+  {
+    "file": "src/cmd/climon.cc",
+    "line": 206,
+    "text": "            reply_err(op.sink(), \"ERR unknown subcommand or wrong number of arguments for \""
+  },
+  {
+    "file": "src/cmd/climon.cc",
+    "line": 212,
+    "text": "            reply_err(op.sink(), \"ERR timeout is not an integer or out of range\");"
+  },
+  {
+    "file": "src/cmd/climon.cc",
+    "line": 216,
+    "text": "            reply_err(op.sink(), \"ERR timeout is negative\");"
+  },
+  {
+    "file": "src/cmd/climon.cc",
+    "line": 224,
+    "text": "                reply_err(op.sink(), \"ERR CLIENT PAUSE mode must be WRITE or ALL\");"
+  },
+  {
+    "file": "src/cmd/scatter_engine.inc",
+    "line": 4008,
+    "text": "                    script_engine_error_reply(op, state, error);"
+  },
+  {
+    "file": "src/cmd/script_escalation.inc",
+    "line": 158,
+    "text": "            script_engine_error_reply(op, state, WorkError::Oom);"
+  },
+  {
+    "file": "src/cmd/script_escalation.inc",
+    "line": 224,
+    "text": "        script_engine_error_reply(op, state, error);"
+  },
+  {
+    "file": "src/cmd/script_escalation.inc",
+    "line": 285,
+    "text": "        script_engine_error_reply(op, previous, WorkError::Oom);"
+  },
+  {
+    "file": "src/cmd/t_server.cc",
+    "line": 1295,
+    "text": "            reply_err(op.sink(), \"ERR value is not an integer or out of range\");"
+  },
+  {
+    "file": "src/cmd/t_server.cc",
+    "line": 1298,
+    "text": "        if (!g_server) { reply_err(op.sink(), \"ERR no server context\"); return; }"
+  },
+  {
+    "file": "src/cmd/t_server.cc",
+    "line": 1433,
+    "text": "            reply_err(op.sink(), \"ERR value is not an integer or out of range\");"
+  },
+  {
+    "file": "src/cmd/t_server.cc",
+    "line": 1436,
+    "text": "        if (!g_server) { reply_err(op.sink(), \"ERR no server context\"); return; }"
+  },
+  {
+    "file": "src/cmd/t_stream.cc",
+    "line": 1299,
+    "text": "                reply_err(op.sink(), \"ERR corrupt stream encoding\"); return;"
+  },
+  {
+    "file": "src/cmd/t_stream_groups.cc",
+    "line": 862,
+    "text": "        reply_err(op.sink(), \"ERR Insufficient memory, failed allocating transient memory, COUNT too high.\");"
+  }
+]

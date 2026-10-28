@@ -71,3 +71,10 @@ audit the subsequently integrated source without rewriting that evidence.
 | blockfix2, XREADGROUP re-probes and EXEC execution | Missing-group and wrong-type wake paths re-enter the existing stream reply helpers. The merged NOGROUP helpers retain crlffix's length-aware central builder. No new raw error/status writer is introduced; copied replies originate in those builders. |
 | at412c, `script_escalation.inc` and scatter script phases | All newly reachable OOM/WorkError exits call `script_engine_error_reply`, which delegates to `reply_work_error`/central `reply_err`. FIFO waiting and escalation replace BUSY/TRYAGAIN replies with retained work; no new refusal text or raw writer. |
 | at412c, DEBUG escalation/apply controls in `t_server.cc` | New validation and missing-server errors are fixed literals passed to central `reply_err`. |
+
+The 14 added/moved error call sites after the crlffix merge are enumerated in
+[wave9-added-sites.json](wave9-added-sites.json). Four call the script engine's
+central WorkError bridge; ten call `reply_err` directly. Protofix precedes this
+merge and is covered by its decoder row above. No added raw error/status writer
+was found. The integration's CR/LF stream key/group check also verifies that the
+next PING reply remains framed after a blocked-reader NOGROUP wake.
