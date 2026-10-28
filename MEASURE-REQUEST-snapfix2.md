@@ -28,6 +28,8 @@ current live keys, current tombstones and frozen live keys. No command admission
 read visibility, object layout, QSBR or retirement rule changes. Existing oversized
 tables are retained until ordinary deletion-driven shrinking; future idle saves
 do not compound them.
+For a fixed live set, the recurrence cannot exceed
+`max(starting_capacity, 2 * live_capacity)`, regardless of the number of saves.
 
 The sole production caller is `ExLoopT::snapshot_control_pass` in Preparing.
 SAVE, BGSAVE, save-rule cron, shutdown-save, enabled-AOF rewrite and offline-AOF
@@ -219,7 +221,11 @@ writer `SNAP-STORM-1` diagnostic has **0 failures in 20 attempts** (five 30-seco
 attempts per mode/engine). As in snapfix's diagnostic, `--pre-control` permits
 the existing BUSY refusals and records their counts; successful scripts, writes
 and saves must still advance. This is a stall/correctness result, not a rate
-claim. The differential suites and supplementary mode/battery passes remain in progress. Initial
+claim. The standard io_uring differential run passed **941 driver checks,
+0 failures**: split atomic 0/1, armed fused atomic 0/1, and mode equivalence.
+It used permanent seeds 7, 19, 20, 23 and rotating seed 21; the complete suite,
+repeat and seed plan is retained in `proof/differ-uring/differ-plan.json`.
+The epoll differential suite and supplementary mode/battery passes remain in progress. Initial
 `tests/gates_test.py` hit three fixture timeout failures while compilation and
 instruction tracing overlapped; it will be repeated in isolation, with the
 original log retained. No assertion or timeout is weakened.
