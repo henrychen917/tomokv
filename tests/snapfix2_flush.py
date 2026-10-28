@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Minimal FLUSHALL visibility witness: one serial EXEC/FLUSHALL client and one MGET reader.
+"""Minimal FLUSHALL visibility witnesses with one MGET reader.
 
-No BGSAVE, scripts, unrelated writers, DEBUG scheduling, core dumps or debugger. At any Redis
-command boundary the pair is either [1,1] or [nil,nil]. A mixed pair is an atomicity violation.
-Use snapfix.py's normal boot/leg/oracle CLI with --case flush-pair --seconds 5.
+The mutator serially alternates an EXEC or script pair with FLUSHALL, or rearms
+with SET while the observer is parked. No BGSAVE, unrelated writers, DEBUG
+scheduling, core dumps or debugger. Each complete mutation leaves [1,1] or
+[nil,nil]; a mixed observation is invalid. Use snapfix.py's boot/leg/oracle CLI.
 """
 import contextlib
 import json

@@ -1,0 +1,127 @@
+{
+  "cycles": 73946,
+  "observations": 219575,
+  "torn": 15,
+  "pair": [
+    "snapfix2:flush:0",
+    "snapfix2:flush:1"
+  ],
+  "owners": [
+    [
+      9,
+      1
+    ],
+    [
+      5,
+      5
+    ]
+  ],
+  "examples": [
+    {
+      "observation": 66264,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 77284,
+      "values": [
+        null,
+        1
+      ]
+    },
+    {
+      "observation": 77285,
+      "values": [
+        null,
+        1
+      ]
+    },
+    {
+      "observation": 81476,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 94157,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 101775,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 103110,
+      "values": [
+        null,
+        1
+      ]
+    },
+    {
+      "observation": 103111,
+      "values": [
+        null,
+        1
+      ]
+    },
+    {
+      "observation": 103112,
+      "values": [
+        null,
+        1
+      ]
+    },
+    {
+      "observation": 110075,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 111630,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 113538,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 134159,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 139380,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 142648,
+      "values": [
+        1,
+        null
+      ]
+    }
+  ],
+  "errors": []
+}

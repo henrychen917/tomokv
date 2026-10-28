@@ -1,0 +1,33 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "8-15",
+    "python3",
+    "tests/snapfix_neighbours.py",
+    "--case",
+    "flushall",
+    "--binary",
+    "build/snapfix2/base/tomokv",
+    "--oracle",
+    "/home/user/Projects/redis/src/redis-server",
+    "--cores",
+    "0-7",
+    "--port",
+    "20100",
+    "--output",
+    "/home/user/Projects/cx-snapfix2/docs/snapfix2/isolation/base-no-save-no-flush-final",
+    "--flushall-bgsave",
+    "0",
+    "--flushall-flush",
+    "0"
+  ],
+  "environment": {},
+  "binary": "build/snapfix2/base/tomokv",
+  "binary_sha256": "dea9309b1ebdf5a46da5fc69d377ed55b26414e7e01d38d3ddfa4b2a8b61db98",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "exit": 0,
+  "seconds": 45.772,
+  "log_sha256": "b216a7da6d3ec4678f3f07bee1f534a8d9cb725254e12d21f1f5088508fd960b",
+  "removed_data": {}
+}

@@ -109,6 +109,11 @@ def gate(engine, differ=False, extra=False, fused=False, table_arm=None):
         label += '-1s' if fused else '-2s'
     jobs = ('release_batteries asan_batteries' if extra else
             'differ-split differ-armed' if differ else ' '.join(JOBS))
+    if extra:
+        # The gate's Lua/script-surface batteries live inside its feature jobs.
+        # Keep their complete boot lifetimes, including the shutdown witnesses.
+        shape = 'armed' if fused else 'split'
+        jobs += f' feature-{shape}-0 feature-{shape}-1 notify'
     if extra and fused:
         # Mirror the ordinary split boots that use the gate's existing mode
         # switch. Explicit mode/engine matrices already ran in the main pass.
@@ -205,6 +210,15 @@ def main():
                                '--atomic', '1', '--seconds', str(seconds), '--stall', '30',
                                '--output', str(OUT/label)]
                         run(label, cmd, ARMS['post'], seconds+150)
+                        timeline = json.loads((OUT/label/'timeline.json').read_text())
+                        rss = [r['used_memory_rss'] for r in timeline['timeline']
+                               if r.get('used_memory_rss', 0) > 0]
+                        assert len(rss) >= 2, ('storm RSS sampler never armed', label)
+                        check = dict(samples=len(rss), baseline=rss[1], peak=max(rss),
+                                     limit=3*rss[1]+(64 << 20))
+                        check['pass'] = bool(timeline.get('pass')) and check['peak'] <= check['limit']
+                        (OUT/label/'rss-check.json').write_text(json.dumps(check, indent=2)+'\n')
+                        assert check['pass'], ('storm RSS grew or storm failed', label, check)
 
 
 if __name__ == '__main__':

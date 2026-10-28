@@ -1,0 +1,149 @@
+[
+  {
+    "case": "flushall",
+    "leg": "redis-redis-0",
+    "value": {
+      "flushes": 17,
+      "saves": 0,
+      "final": [
+        6121,
+        6121,
+        4058,
+        4058
+      ],
+      "scripts": 149837,
+      "execs": 98930,
+      "writes": 94267
+    },
+    "pass": true,
+    "seconds": 5.25
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-uring-0",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 415, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 229, in case_flushall\n    assert not torn, ('torn atomic pair observed', len(torn), torn[:5])\n           ^^^^^^^^\nAssertionError: ('torn atomic pair observed', 55, [(['snapfix:fe:0', 'snapfix:fe:1'], b'20', b'21'), (['snapfix:fe:0', 'snapfix:fe:1'], b'122', b'123'), (['snapfix:fe:0', 'snapfix:fe:1'], b'226', b'227'), (['snapfix:fe:0', 'snapfix:fe:1'], b'348', b'349'), (['snapfix:fe:0', 'snapfix:fe:1'], b'459', b'460')])\n",
+    "seconds": 5.168
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-uring-1",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 415, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 229, in case_flushall\n    assert not torn, ('torn atomic pair observed', len(torn), torn[:5])\n           ^^^^^^^^\nAssertionError: ('torn atomic pair observed', 91, [(['snapfix:fs:0', 'snapfix:fs:1'], b'25', b'7228'), (['snapfix:fs:0', 'snapfix:fs:1'], b'174', b'7377'), (['snapfix:fs:0', 'snapfix:fs:1'], b'320', b'7523'), (['snapfix:fs:0', 'snapfix:fs:1'], b'454', b'7657'), (['snapfix:fs:0', 'snapfix:fs:1'], b'577', b'7780')])\n",
+    "seconds": 5.166
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-epoll-0",
+    "value": {
+      "flushes": 17,
+      "saves": 0,
+      "final": [
+        4573,
+        4573,
+        4179,
+        4179
+      ],
+      "scripts": 112600,
+      "execs": 100227,
+      "writes": 99430
+    },
+    "pass": true,
+    "seconds": 5.149
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-epoll-1",
+    "value": {
+      "flushes": 17,
+      "saves": 0,
+      "final": [
+        4811,
+        4811,
+        4237,
+        4237
+      ],
+      "scripts": 117241,
+      "execs": 102467,
+      "writes": 100076
+    },
+    "pass": true,
+    "seconds": 5.146
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-uring-0",
+    "value": {
+      "flushes": 17,
+      "saves": 0,
+      "final": [
+        5863,
+        5863,
+        3959,
+        3959
+      ],
+      "scripts": 144688,
+      "execs": 95732,
+      "writes": 92893
+    },
+    "pass": true,
+    "seconds": 5.195
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-uring-1",
+    "value": {
+      "flushes": 17,
+      "saves": 0,
+      "final": [
+        6014,
+        6014,
+        4001,
+        4001
+      ],
+      "scripts": 145854,
+      "execs": 96285,
+      "writes": 92574
+    },
+    "pass": true,
+    "seconds": 5.147
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-epoll-0",
+    "value": {
+      "flushes": 17,
+      "saves": 0,
+      "final": [
+        5924,
+        5924,
+        3928,
+        3928
+      ],
+      "scripts": 146276,
+      "execs": 95727,
+      "writes": 92228
+    },
+    "pass": true,
+    "seconds": 5.163
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-epoll-1",
+    "value": {
+      "flushes": 17,
+      "saves": 0,
+      "final": [
+        6026,
+        6026,
+        3927,
+        3927
+      ],
+      "scripts": 145235,
+      "execs": 95640,
+      "writes": 92185
+    },
+    "pass": true,
+    "seconds": 5.163
+  }
+]

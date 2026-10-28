@@ -102,11 +102,32 @@ additional MSET atomic-0 cells. Totals are recorded in
 
 ### FLUSHALL: pre-existing atomicity defect, separate repair required
 
-The existing PRE receipts already show torn pairs without BGSAVE; removing both
-BGSAVE and FLUSHALL made all eight TomoKV legs and Redis clean. The independent
-`tests/snapfix2_flush.py --case flush-pair` reproduces on PRE's 1s/uring atomic
-0/1 with one serial EXEC/FLUSHALL connection and one MGET observer. Each completed
-Redis command leaves either `[1,1]` or `[nil,nil]`; a mixed pair is invalid.
+The final isolation runs establish that this is **pre-existing on a214652ec**,
+independent of BGSAVE and present in both thread modes and both engines. Removing
+both BGSAVE and FLUSHALL made all eight TomoKV legs and Redis clean on every arm.
+The independent `tests/snapfix2_flush.py --case flush-pair` tears on **all eight
+TomoKV legs on PRE, BASE and POST** with one serial EXEC/FLUSHALL connection and
+one MGET observer. Each completed command leaves either `[1,1]` or `[nil,nil]`;
+a mixed pair is invalid. Redis has zero tears in 215,641 / 211,328 / 216,468
+observations in those three corresponding runs.
+
+| Variant | PRE torn legs / 8 | BASE torn legs / 8 | POST torn legs / 8 |
+|---|---:|---:|---:|
+| Original mixture, BGSAVE enabled | 2 | 2 | 4 |
+| Original mixture, BGSAVE disabled | 2 | 0 | 3 |
+| BGSAVE and FLUSHALL disabled | 0 | 0 | 0 |
+| EXEC-only mixture, no BGSAVE | 3 | 3 | 3 |
+| Script-only mixture, no BGSAVE | 0 | 0 | 0 |
+| Serial EXEC pair + FLUSHALL, dense observer | 8 | 8 | 8 |
+| FLUSHALL-only observation window | 7 | 7 | 6 |
+
+Every Redis leg in this table is clean. These are bounded five-second diagnostic
+runs: zero observed tears means **NOT REPRODUCED**, not proof of absence. The
+original mixture samples only every 5 ms. PRE's BGSAVE-enabled run also encounters
+the old stalls on five legs (one of those has a tear too); those failures are
+kept separate from the torn-pair counts. Exact per-leg counts, examples, worker
+errors and artifact paths are in `docs/snapfix2/isolation-summary.json` and the
+underlying `isolation/*/results.json` / `flushall-observations.json` files.
 
 Root cause in unchanged production code:
 
@@ -135,6 +156,11 @@ observer is parked, requires an observer read before issuing FLUSHALL, and parks
 the observer again before rearming. The only concurrent mutation in that window
 is FLUSHALL: no EXEC, scripts, BGSAVE or unrelated writer. Every attempt uses
 fresh logical state, and missing observations/worker progress fail.
+It reproduces with atomic 1 on all three arms. Thus EXEC and scripts are not
+necessary ingredients. PRE 1s/uring atomic 1 alone has 466 torn observations out
+of 124,686 in this case. The original PRE no-save script pair also finishes
+unequal (`4851`, `11882`), with `atomic_txn_order_violations=0`; that counter does
+not detect this visibility defect.
 
 Minimal reproduction (use `flush-only` to isolate the clear itself):
 
@@ -159,8 +185,13 @@ binary digest. The main targeted pass completed: **53 jobs, 329 ok, 0 FAIL**, in
 snapfix rows and the new RSS row (`proof/proof-uring/record.json`). The idle RSS
 row passed all eight TomoKV legs plus Redis: 1s stayed at 18.79–18.87 MiB and 2s
 at 15.30–15.38 MiB over 12 saves. Both storm rows passed all nine legs.
-The FLUSHALL matrix, larger/longer RSS checks, other engine pass and differential
-suites remain in progress. Initial
+The million-key, 16-save/reload matrix passed all nine legs. at412's script +
+writer `SNAP-STORM-1` diagnostic has **0 failures in 20 attempts** (five 30-second
+attempts per mode/engine). As in snapfix's diagnostic, `--pre-control` permits
+the existing BUSY refusals and records their counts; successful scripts, writes
+and saves must still advance. This is a stall/correctness result, not a rate
+claim. The longer RSS storms, other engine pass and differential suites remain
+in progress. Initial
 `tests/gates_test.py` hit three fixture timeout failures while compilation and
 instruction tracing overlapped; it will be repeated in isolation, with the
 original log retained. No assertion or timeout is weakened.

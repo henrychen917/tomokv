@@ -1,0 +1,104 @@
+{
+  "mix": [
+    "execs",
+    "scripts",
+    "writers"
+  ],
+  "flushes": 17,
+  "saves": 14,
+  "observations": 1888,
+  "torn": 1,
+  "examples": [
+    {
+      "keys": [
+        "snapfix:fs:0",
+        "snapfix:fs:1"
+      ],
+      "values": [
+        8701,
+        null
+      ]
+    }
+  ],
+  "tally": [
+    6832,
+    6768,
+    6842,
+    6868,
+    6835,
+    6784,
+    6538,
+    6742,
+    6643,
+    6595,
+    78921,
+    78961,
+    77709,
+    78800,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "errors": [
+    "STALL > 5s: bgsave-loop: TimeoutError('timed out')",
+    "STALL > 5s: exec-6: TimeoutError('timed out')",
+    "STALL > 5s: exec-9: TimeoutError('timed out')",
+    "STALL > 5s: script-2: TimeoutError('timed out')",
+    "STALL > 5s: script-5: TimeoutError('timed out')",
+    "STALL > 5s: script-4: TimeoutError('timed out')",
+    "STALL > 5s: script-3: TimeoutError('timed out')",
+    "STALL > 5s: script-1: TimeoutError('timed out')",
+    "STALL > 5s: script-0: TimeoutError('timed out')",
+    "STALL > 5s: exec-7: TimeoutError('timed out')",
+    "STALL > 5s: exec-8: TimeoutError('timed out')"
+  ],
+  "counters": {
+    "script_stage_owner_tasks": 102398,
+    "script_run_attempts": 51199,
+    "script_validate_owner_tasks": 91646,
+    "script_apply_owner_tasks": 81860,
+    "script_crossshard_activations": 40930,
+    "script_group_commits": 40930,
+    "script_group_occ_retries": 10089,
+    "script_group_occ_giveups": 180,
+    "script_staged_bytes_total": 6962008,
+    "script_crossshard_window_refusals": 0,
+    "script_group_aborts_oom": 0,
+    "script_keys_armed": 82220,
+    "script_keys_released": 82220,
+    "script_intents_live": 0,
+    "script_write_tickets_forced": 0,
+    "script_flush_generation": 0,
+    "script_interpreter_builds": 1,
+    "script_chunk_cache_hits": 51198,
+    "script_chunk_cache_misses": 1,
+    "script_readonly_rejections": 0,
+    "script_effect_writes": 102398,
+    "script_failed_after_effects": 0,
+    "atomic_txn_attempts": 26519,
+    "atomic_txn_retries": 1,
+    "atomic_txn_dooms": 0,
+    "atomic_txn_wounds": 1,
+    "atomic_txn_waits": 1099,
+    "atomic_txn_intents": 0,
+    "atomic_txn_intents_live": 0,
+    "atomic_txn_executed": 26518,
+    "atomic_txn_place_waits": 115,
+    "atomic_txn_writer_waits": 0,
+    "atomic_txn_writer_marks": 0,
+    "atomic_txn_blind_restarts": 0,
+    "atomic_txn_readonly": 0,
+    "atomic_txn_order_violations": 0,
+    "atomic_txn_fast_polls": 135154,
+    "atomic_txn_poll_skips": 2483
+  },
+  "final": [
+    null,
+    null,
+    null,
+    null
+  ]
+}
