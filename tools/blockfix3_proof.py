@@ -17,7 +17,7 @@ import blockfix2_receipts
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('stages', nargs='+', choices=('directed', 'broad', 'tcl',
-        'tcl-negative', 'differ-uring', 'differ-epoll', 'pre', 'pad-a'))
+        'tcl-negative', 'tcl-compat2', 'differ-uring', 'differ-epoll', 'pre', 'pad-a'))
     parser.add_argument('--tag', required=True)
     args = parser.parse_args()
     output = ROOT / 'docs/blockfix3/gate-receipts'
@@ -38,8 +38,8 @@ def main():
             tier = 'full'
             jobs = 'differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence'
             env['GATE_DIFFER_NET_IO'] = stage.split('-', 1)[1]
-        elif stage in ('tcl', 'tcl-negative'):
-            jobs = 'redis_tcl'
+        elif stage in ('tcl', 'tcl-negative', 'tcl-compat2'):
+            jobs = 'redis_tcl compat2' if stage == 'tcl-compat2' else 'redis_tcl'
             if stage == 'tcl-negative': binary = folder / 'controls/statistics/tomokv'
         else:
             jobs = 'blockfix2'
