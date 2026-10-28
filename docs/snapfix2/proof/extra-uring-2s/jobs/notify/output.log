@@ -1,0 +1,12 @@
+  row budget: 900s; median=-s; no-history-conservative-default; MULTI feature battery
+  MULTI feature battery                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; blocking feature battery
+  blocking feature battery                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; pubsub feature battery
+  pubsub feature battery                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; Lua feature battery
+  Lua feature battery                                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; keyspace notification battery (atomic 0/1)
+  keyspace notification battery (atomic 0/1)           ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature battery shutdown invariants
+  feature battery shutdown invariants                  ok
