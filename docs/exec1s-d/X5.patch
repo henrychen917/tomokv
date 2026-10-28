@@ -1,0 +1,119 @@
+--- a/src/cmd/multi.inc
++++ b/src/cmd/multi.inc
+@@ -298,13 +298,6 @@
+ };
+ 
+ namespace {
+-
+-void multi_ring_participants(MultiExecState& state) {
+-    if (state.server->thread_mode() != ThreadMode::Fused) return;
+-    for (int32_t sid : state.shards)
+-        fused_owner_bells[state.server->worker_of_shard(sid)].runnable.store(
+-            true, std::memory_order_release);
+-}
+ 
+ void multi_enqueue_node(Server& server, uint32_t io, MultiRetryNode& node) {
+     auto& lane = server.multi_retry_lane(io);
+@@ -1912,7 +1905,7 @@
+                 return false;
+             noted |= 4u;
+             state.watch_arrived.fetch_add(1, std::memory_order_acq_rel);
+-            multi_ring_participants(state);
++
+         }
+         if (state.shards.size() != 1 &&
+             state.watch_arrived.load(std::memory_order_acquire) != state.shards.size()) return false;
+@@ -1993,7 +1986,7 @@
+             }
+         }
+         state.watch_phase_done.store(true, std::memory_order_release);
+-        multi_ring_participants(state);
++
+     }
+     return true;
+ }
+--- a/src/cmd/multi_execute.inc
++++ b/src/cmd/multi_execute.inc
+@@ -229,7 +229,7 @@
+         done = static_cast<uint8_t>(stage + 1);
+         latency_child.finish();
+         finish_command(state, command, stage, owner_thread_id);
+-        multi_ring_participants(state);
++
+     }
+ 
+     uint8_t& joined = state.execution_joined[state.slot(shard_id)];
+@@ -306,7 +306,7 @@
+                 state.doomed = state.decision.epoch.load(std::memory_order_acquire) ==
+                                kAtomicCancelledEpoch;
+                 state.finalized.store(true, std::memory_order_release);
+-                multi_ring_participants(state);
++
+                 // Every owner has joined and the one commit decision is made: nothing this
+                 // transaction writes can land on a shard after this point, so it can no longer
+                 // straddle a snapshot cut. Closed here, on an OWNER, not at reply retirement.
+--- a/src/core/ex_loop.h
++++ b/src/core/ex_loop.h
+@@ -2486,14 +2486,12 @@
+ 
+     __attribute__((noinline)) void queue_fast_multi_retry(const Task& task) {
+         multi_retries_.enqueue(multi_owner_retry_node(task), task, true);
+-        ring_fused_owner();
+     }
+     __attribute__((noinline)) void queue_multi_retry(const Task& task) {
+         multi_retries_.enqueue(multi_owner_retry_node(task), task, false);
+     }
+     void promote_multi_retry(MultiOwnerRetryNode& node) {
+         multi_retries_.promote(node);
+-        ring_fused_owner();
+     }
+ 
+     template <bool IofusedPrivateQueue = false>
+--- a/src/core/io_loop.h
++++ b/src/core/io_loop.h
+@@ -632,10 +632,6 @@
+                 did += drain_client_transfers<kEp>();
+                 did += scatter_pool_.refresh_snapshot_floor(*srv_, self_->id());
+                 if constexpr (HasUnix) did += flush_handoffs();
+-                if constexpr (Fused && !SplitLocal) {
+-                    if (fused_executor_->fused_owner_ready())
+-                        did += fused_executor_->fused_owner_turn();
+-                }
+                 did += multi_owner_pass_entry(*this);
+                 if (aof_writer_bound())
+                     did += srv_->aof().writer_pass(*self_, ring_);
+@@ -661,10 +657,6 @@
+                     if (__builtin_expect(!routing_forward_.empty(), false))
+                         client_routing_cleanup_pass();
+                     did += flush_ready<HasTls, kEp>();
+-                }
+-                if constexpr (Fused && !SplitLocal) {
+-                    if (fused_executor_->fused_owner_ready())
+-                        did += fused_executor_->fused_owner_turn();
+                 }
+                 did += flip_control_pass<kEp>();
+                 if (__builtin_expect(client_lb_signal_armed &&
+--- a/src/core/reorder.cc
++++ b/src/core/reorder.cc
+@@ -877,10 +877,6 @@
+             did += drain_client_transfers<kEp>();
+             did += scatter_pool_.refresh_snapshot_floor(*srv_, self_->id());
+             if constexpr (HasUnix) did += flush_handoffs();
+-            if constexpr (Fused && !SplitLocal) {
+-                if (fused_executor_->fused_owner_ready())
+-                    did += fused_executor_->fused_owner_turn<true>();
+-            }
+             did += multi_owner_pass_entry(*this);
+             if (aof_writer_bound())
+                 did += srv_->aof().writer_pass(*self_, ring_);
+@@ -906,10 +902,6 @@
+                 if (__builtin_expect(!routing_forward_.empty(), false))
+                     client_routing_cleanup_pass();
+                 did += r7_flush_ready<HasTls, kEp>();
+-            }
+-            if constexpr (Fused && !SplitLocal) {
+-                if (fused_executor_->fused_owner_ready())
+-                    did += fused_executor_->fused_owner_turn<true>();
+             }
+             did += flip_control_pass<kEp>();
+             if (__builtin_expect(client_lb_signal_armed &&
