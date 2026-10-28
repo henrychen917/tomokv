@@ -168,12 +168,16 @@
         "1s": {
           "sha256": "faef9b9099cf0777685dd914571fda687ecc0f5c356191d11c02af6841f45b84",
           "files": 35,
+          "file_runs": 36,
+          "passed_assertions": 1721,
           "promoted_passed": 31,
           "promoted_missing": []
         },
         "2s": {
           "sha256": "faef9b9099cf0777685dd914571fda687ecc0f5c356191d11c02af6841f45b84",
           "files": 35,
+          "file_runs": 36,
+          "passed_assertions": 1721,
           "promoted_passed": 31,
           "promoted_missing": []
         }

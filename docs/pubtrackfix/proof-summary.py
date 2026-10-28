@@ -38,9 +38,10 @@ def main():
      path=f'redis_tcl/redis-tcl-{mode}/summary.json'
      if path not in inventory:continue
      d=read(path);rows={r['file']:r for r in d['rows']};passed=set()
-     for unit,r in rows.items():
-      passed.update((unit,e['data']) for e in r['events'] if e['status']=='ok')
-     m={'sha256':d['binary_sha256'],'files':len(rows),
+     for r in d['rows']:
+      passed.update((r['file'],e['data']) for e in r['events'] if e['status']=='ok')
+     m={'sha256':d['binary_sha256'],'files':len(rows),'file_runs':len(d['rows']),
+        'passed_assertions':sum(r['passed'] for r in d['rows']),
         'promoted_passed':sum(tuple(v) in passed for v in PROMOTED),
         'promoted_missing':[v for v in PROMOTED if tuple(v) not in passed]}
      if name.startswith('plant-'):

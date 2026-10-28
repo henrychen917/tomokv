@@ -60,8 +60,8 @@ exact assertions; POST passes. See
 
 The final directed matrix and both Tcl modes pass on the final binary. The
 BCAST pass-boundary unit also fails on the previous candidate and passes after
-the flush-preservation correction. Both Tcl modes cover all 36 selected files
-and all 31 promoted names. Fused mode used the pre-existing one-time MONITOR
+the flush-preservation correction. Both Tcl modes cover 35 selected files (36 result records, including the
+existing isolated slowlog run) and all 31 promoted names. Fused mode used the pre-existing one-time MONITOR
 ordering retry in unit/introspection; the original failure and successful retry
 are retained. The promoted assertions passed without retries. The complete
 selected affected-job list is [proof-jobs.txt](docs/pubtrackfix/proof-jobs.txt),
@@ -72,7 +72,7 @@ jobs only and report `GATE(PARTIAL)`, with no ABBA, NIC or full-tier run.
 
 <!-- PROOF-STATUS -->
 - Final affected-job run: **245 passed, 0 failed**, 36 selected jobs including prerequisites. Includes all 160 directed candidate legs and five oracle legs, 138 feature-matrix rows, all eight eviction legs, clientfix, compat2 and the focused notification/tracking/stream jobs.
-- Tcl subset: both modes pass all 36 files and all 31 promoted assertions. Fused mode uses the existing one-time MONITOR ordering retry; the original failure and retry receipts are retained. The promoted assertions pass without retries.
+- Tcl subset: both modes pass 35 selected files (36 result records) and all 31 promoted assertions. Fused mode uses the existing one-time MONITOR ordering retry; the original failure and retry receipts are retained. The promoted assertions pass without retries.
 - Final make all, every production-unit target and all 56 freshness queries pass. All 52 command-scope comparisons add zero instructions.
 - io_uring standard differential run: PASS, 954 comparisons including equivalence, with seeds 7/19/20/23/21. epoll differential, PRE/PAD directed negatives, four Tcl regression plants and isolated gates_test: RUNNING; replace before handoff.
 <!-- /PROOF-STATUS -->
