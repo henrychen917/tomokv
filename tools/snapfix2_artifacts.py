@@ -141,9 +141,61 @@ def scopes(arms, trace_only=False):
     assert all(r['delta'] == 0 and r['functions_equal'] for r in pairs), 'command instruction regression'
 
 
+def freshness():
+    """Build the gate's actual production-unit inventory, then query every target.
+    The aggregate mdbqsbr target is phony; query its two real recursive all targets."""
+    source = (ROOT / 'tests/gate.sh').read_text()
+    body = source.split('job_production_units(){', 1)[1].split('# -q verifies', 1)[0]
+    units = sorted(set(re.findall(r'build/[A-Za-z0-9_-]+', body)))
+    assert len(units) == 45, ('review the gate unit inventory', units)
+    commands, checks = [], []
+
+    def build(command, name):
+        command = ['taskset', '-c', '0-15', *command]
+        log = OUT / ('freshness-' + name + '.log')
+        with log.open('w') as f:
+            result = subprocess.run(command, cwd=ROOT, stdout=f, stderr=subprocess.STDOUT)
+        commands.append(dict(command=command, exit=result.returncode, log=str(log), sha256=sha(log)))
+        assert result.returncode == 0, (command, log)
+
+    build(['make', '-j16', 'all', *units, 'mdbqsbr-live-arms'], 'production')
+    build(['make', '-f', 'Makefile', '-f', 'tools/blockfix_cost.mk', '-j16',
+           'build/blockfix-cost'], 'blockfix')
+
+    def query(command, target, cwd=ROOT, binary=None):
+        command = ['taskset', '-c', '0-15', *command]
+        result = subprocess.run(command, cwd=cwd, capture_output=True, text=True)
+        row = dict(target=target, command=command, cwd=str(cwd), exit=result.returncode,
+                   stdout=result.stdout, stderr=result.stderr)
+        if binary:
+            row.update(binary=str(binary), sha256=sha(binary))
+        checks.append(row)
+
+    for target in ['all', *units]:
+        query(['make', '-q', target], target, binary=ROOT / ('build/tomokv' if target == 'all' else target))
+    recipe = subprocess.check_output(['make', '-n', 'mdbqsbr-live-arms'], cwd=ROOT, text=True)
+    recursive = [shlex.split(line) for line in recipe.splitlines()
+                 if line.startswith('make BUILD_ROOT=build/mdbqsbr2-')]
+    assert len(recursive) == 2, recipe
+    for cmd in recursive:
+        build_root = next(x.split('=', 1)[1] for x in cmd if x.startswith('BUILD_ROOT='))
+        query([*cmd[:-1], '-q', 'all'], build_root + '/all', binary=ROOT / build_root / 'tomokv')
+    query(['make', '-f', 'Makefile', '-f', 'tools/blockfix_cost.mk', '-q',
+           'build/blockfix-cost', 'build/tomokv.blockfix-cost.sha256'], 'blockfix-cost',
+          binary=ROOT / 'build/blockfix-cost')
+    for arm in ['pre', 'base']:
+        tree, objects = ARMS[arm]
+        query(['make', 'BUILD_ROOT=' + str(objects), '-q', 'all'], arm + '/all', tree,
+              objects / 'tomokv')
+    save(OUT / 'freshness.json', dict(builds=commands, queries=checks,
+         phony='mdbqsbr-live-arms built; its two real recursive all targets queried with the same flags'))
+    assert all(r['exit'] == 0 for r in checks), 'stale production target; see freshness.json'
+    print(f'{len(checks)} make -q queries passed', flush=True)
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('action', choices=['identity', 'survey', 'trial', 'scope'])
+    p.add_argument('action', choices=['identity', 'survey', 'trial', 'scope', 'freshness'])
     p.add_argument('--arms', default='pre,base,post')
     p.add_argument('--reference', default='base', choices=['pre', 'base'])
     p.add_argument('--unit')
@@ -155,6 +207,8 @@ def main():
         identities(a.reference)
     elif a.action == 'scope':
         scopes(a.arms.split(','), a.trace_only)
+    elif a.action == 'freshness':
+        freshness()
     else:
         if a.unit:
             units = [a.unit]

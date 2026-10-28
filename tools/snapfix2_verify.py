@@ -114,6 +114,10 @@ def gate(engine, differ=False, extra=False, fused=False, table_arm=None):
         # Keep their complete boot lifetimes, including the shutdown witnesses.
         shape = 'armed' if fused else 'split'
         jobs += f' feature-{shape}-0 feature-{shape}-1 notify'
+        if not fused:
+            # These contain the serverless snapshot migration and retirement
+            # callers as well as their existing negative controls.
+            jobs += ' core_units wait_units'
     if extra and fused:
         # Mirror the ordinary split boots that use the gate's existing mode
         # switch. Explicit mode/engine matrices already ran in the main pass.
