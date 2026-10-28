@@ -22,6 +22,12 @@ def main():
   with tarfile.open(directory/'receipts.tar.gz','r:gz') as t:
    inventory=set(t.getnames())
    def read(path):return json.load(t.extractfile(path))
+   if name.startswith('differ-'):
+    parts={part:read(f'differ-{part}/differ/complete.json') for part in
+     ('split-0','split-1','armed-0','armed-1','equivalence')}
+    entry['differential']={'comparisons':sum(v['comparisons'] for v in parts.values()),
+     'complete':all(v['complete'] for v in parts.values()),'parts':parts,
+     'plan':json.loads((directory/'differ-plan.json').read_text())}
    if name.endswith('-directed') or name=='post-affected-final':
     rows={}
     for root in ROOTS:

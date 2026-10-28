@@ -206,6 +206,157 @@
         "release": {
           "done": "0\t1\t0\n"
         }
+      },
+      "differential": {
+        "comparisons": 954,
+        "complete": true,
+        "parts": {
+          "split-0": {
+            "schema": 1,
+            "part": "split-0",
+            "run": "iteration:gate-run.nhvvWh",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              21
+            ],
+            "comparisons": 235,
+            "complete": true
+          },
+          "split-1": {
+            "schema": 1,
+            "part": "split-1",
+            "run": "iteration:gate-run.nhvvWh",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              21
+            ],
+            "comparisons": 239,
+            "complete": true
+          },
+          "armed-0": {
+            "schema": 1,
+            "part": "armed-0",
+            "run": "iteration:gate-run.nhvvWh",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              21
+            ],
+            "comparisons": 230,
+            "complete": true
+          },
+          "armed-1": {
+            "schema": 1,
+            "part": "armed-1",
+            "run": "iteration:gate-run.nhvvWh",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              21
+            ],
+            "comparisons": 234,
+            "complete": true
+          },
+          "equivalence": {
+            "schema": 1,
+            "part": "equivalence",
+            "run": "iteration:gate-run.nhvvWh",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              21
+            ],
+            "comparisons": 16,
+            "complete": true
+          }
+        },
+        "plan": {
+          "schema": 1,
+          "manifest": {
+            "run": "iteration:gate-run.nhvvWh",
+            "permanent": [
+              7,
+              19,
+              20,
+              23
+            ],
+            "failed": [],
+            "rotating": 21,
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              21
+            ],
+            "history": "/home/user/Projects/cx-pubtrackfix/.gate-history/differ"
+          },
+          "suites": [
+            "string",
+            "list",
+            "set",
+            "zset",
+            "hash",
+            "hexpire",
+            "edgetime",
+            "xshard",
+            "xmove",
+            "bitmap",
+            "hll",
+            "bitfield",
+            "cgaps",
+            "stream",
+            "script",
+            "streamgrp",
+            "zsetops",
+            "geo",
+            "doubles",
+            "scan",
+            "multi",
+            "encodingfix",
+            "edgeenc",
+            "edgeproto",
+            "cmdgap",
+            "cmdgap2",
+            "sort",
+            "servertail",
+            "arity",
+            "storeorder",
+            "infofix",
+            "multidb",
+            "blocking",
+            "pubsub",
+            "fanout",
+            "spubsub",
+            "notify",
+            "wiredump",
+            "climon",
+            "compatintro",
+            "aclsel",
+            "aclkeys",
+            "cmdmeta",
+            "s6fix",
+            "ccfix",
+            "psfix",
+            "monitor"
+          ],
+          "repeats": 4,
+          "equivalence_seeds": [
+            21
+          ]
+        }
       }
     }
   },
