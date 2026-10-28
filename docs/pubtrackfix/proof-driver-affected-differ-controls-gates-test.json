@@ -17,5 +17,24 @@
     "selected_jobs": "pubtrackfix\nredis_tcl\nnotify\nnotifycompat\ntracking_redirect\nnotify_order\nnotify_aof\ntrackfix_accounting\ntrackfix_order\nclimonfix\nracefix_climon\nstreamfix\nblockfix_mkstream\nstorage_units\ncore_units\nnetcmd_units\nconfig_unit\ncmd_metadata\nfeature-split-0\nfeature-split-1\nfeature-armed-0\nfeature-armed-1\nevict-lruclock-split-0\nevict-lruclock-split-1\nevict-lruclock-armed-0\nevict-lruclock-armed-1\nevict-lfu-split-0\nevict-lfu-split-1\nevict-lfu-armed-0\nevict-lfu-armed-1\nsource_identity\nclientfix\ncompat2\n",
     "engine": "uring",
     "log": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/gate-post-affected-final.log"
+  },
+  {
+    "name": "differ-uring",
+    "returncode": 0,
+    "command": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "32-39",
+      "--load-cores",
+      "40-47",
+      "--ports",
+      "20310-20399",
+      "--candidate-binary",
+      "build/tomokv"
+    ],
+    "selected_jobs": "differ-split differ-armed",
+    "engine": "uring",
+    "log": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/gate-differ-uring.log"
   }
 ]

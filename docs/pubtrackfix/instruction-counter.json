@@ -10,7 +10,9 @@
     },
     {
       "path": "docs/pubtrackfix/instructions.py",
-      "sha256": "606846ed89a027b51bc3294bfe37cce095aca0f33344cf96094322e696e0e023"
+      "sha256": "226d8d5143d48611911463af2ca5bab82468db0d753fa120d175dfbe4f0d9664",
+      "sha256_at_count_time": "606846ed89a027b51bc3294bfe37cce095aca0f33344cf96094322e696e0e023",
+      "documentation_update": "Docstring now accurately says slowlog disabled (-1); non-docstring Python AST is identical to the executed version."
     },
     {
       "path": "docs/pubtrackfix/count_pc.py",

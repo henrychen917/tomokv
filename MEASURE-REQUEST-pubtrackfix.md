@@ -74,13 +74,16 @@ jobs only and report `GATE(PARTIAL)`, with no ABBA, NIC or full-tier run.
 - Final affected-job run: **245 passed, 0 failed**, 36 selected jobs including prerequisites. Includes all 160 directed candidate legs and five oracle legs, 138 feature-matrix rows, all eight eviction legs, clientfix, compat2 and the focused notification/tracking/stream jobs.
 - Tcl subset: both modes pass all 36 files and all 31 promoted assertions. Fused mode uses the existing one-time MONITOR ordering retry; the original failure and retry receipts are retained. The promoted assertions pass without retries.
 - Final make all, every production-unit target and all 56 freshness queries pass. All 52 command-scope comparisons add zero instructions.
-- Standard differential suites, PRE/PAD directed negatives, four Tcl regression plants and isolated gates_test: RUNNING; replace before handoff.
+- io_uring standard differential run: PASS, 954 comparisons including equivalence, with seeds 7/19/20/23/21. epoll differential, PRE/PAD directed negatives, four Tcl regression plants and isolated gates_test: RUNNING; replace before handoff.
 <!-- /PROOF-STATUS -->
 
 **NOT RUN:** positive POST regression rows and Tcl promotions for the three
 stopped roots, because their fixes require the owner decisions above.
 Performance measurements and the full iteration remain maintainer work.
-The existing reproductions for those roots were run and retain their differences.
+Fused SORT differential cells are also **NOT RUN**: the unchanged standard
+driver declares SORT to require split 6:2 geometry; its split SORT cells do run.
+The existing reproductions for the three stopped roots were run and retain their
+differences.
 
 An additional unresolved observation is retained in
 [validation-corrections.md](docs/pubtrackfix/validation-corrections.md): one
