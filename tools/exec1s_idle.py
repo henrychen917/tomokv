@@ -5,7 +5,7 @@ from pathlib import Path
 import exec1s_scope as s
 ROOT=Path(__file__).resolve().parents[1]
 def main():
-    assert os.sched_getaffinity(0)<=set(range(80,96))
+    assert os.sched_getaffinity(0)<=set(range(48,64))
     s.FIXTURE=ROOT/'tests/exec1s_idle_scope.cc'
     for arm in ['X2','X3']:
         s.ARMS['IDLE-'+arm]=s.ARMS[arm]

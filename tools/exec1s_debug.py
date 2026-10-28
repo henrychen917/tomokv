@@ -4,7 +4,7 @@ import hashlib,json,os,shutil,subprocess
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 def main():
-    assert os.sched_getaffinity(0)<=set(range(80,96))
+    assert os.sched_getaffinity(0)<=set(range(48,64))
     rows=[]
     for arm in ['X1','X2','POST']:
         source=ROOT if arm=='POST' else ROOT/'build/exec1s'/(arm.lower()+'-current-source')

@@ -286,3 +286,16 @@ that common layout, and PRE versus POST-release separately for the ordinary
 release candidate. This control is explicitly not an exact-size twin of the
 smaller standalone release ELF. The generated receipt records both hashes,
 patch bytes, pre-object hashes and the limitation.
+
+
+## exec1s-c
+
+Continuation on branch `cx-exec1s-c` from `bd90f09de`. All earlier runtime,
+instruction and binary receipts are VOID; their replacement is in progress.
+The source audits remain historical design context, not current proof.
+Builds and correctness work use CPUs 48–63 only, `-j16`, servers 48–55 and
+clients 56–63, ports 20400–20499. No performance workload or full iteration
+is authorized in this lane. X4 remains excluded from POST: REGISTER has no
+`exec1s D5` owner line. The final merit request is 64 connections in both modes,
+POST/PRE three blocks, per-lever attribution one block, POST depth sweeps in
+both modes, and the generic cells plus the 2s GET/SET p1/p32 null.

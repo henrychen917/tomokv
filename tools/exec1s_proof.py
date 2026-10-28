@@ -13,9 +13,9 @@ import re
 
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'build/exec1s-evidence/proof'
-PORTS='20100-20199'
-SERVER_CORES='80-87'
-CLIENT_CORES='88-95'
+PORTS='20400-20499'
+SERVER_CORES='48-55'
+CLIENT_CORES='56-63'
 # Existing families retain every internal mode/engine/atomic leg and assertion.
 JOBS='''exec1s txnorder_index txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1
  txnorder-split-0 txnorder-split-1 execfair debug-0 debug-1 fused-0 fused-1
@@ -96,7 +96,7 @@ def gate(label,binary,jobs,engine='uring',extra_env=None):
                REDIS74_ROOT='/home/user/Projects/redis',
                GATE_LEDGER=str(OUT/(label+'.ledger')))
     if extra_env: env.update(extra_env)
-    return run(label,['taskset','-c','80-95','tests/gate.sh','iteration',
+    return run(label,['taskset','-c','48-63','tests/gate.sh','iteration',
         '--server-cores',SERVER_CORES,'--load-cores',CLIENT_CORES,
         '--server-smt','','--load-smt','','--ports',PORTS,
         '--candidate-binary',str(binary)],env)
@@ -119,8 +119,8 @@ def main():
     p.add_argument('--wb',action='store_true')
     p.add_argument('--cq-watch',action='store_true',help='correctness-only liburing boundary observer; use with AOF jobs')
     a=p.parse_args();PORTS=a.ports;SERVER_CORES=a.server_cores;CLIENT_CORES=a.client_cores
-    low,high=map(int,PORTS.split('-'));assert 20100<=low<=high<=20199
-    assert os.sched_getaffinity(0) <= set(range(80,96)), 'start under taskset -c 80-95'
+    low,high=map(int,PORTS.split('-'));assert 20400<=low<=high<=20499
+    assert os.sched_getaffinity(0) <= set(range(48,64)), 'start under taskset -c 48-63'
     def cpus(spec):
         values=set()
         for part in spec.split(','):
@@ -130,7 +130,7 @@ def main():
         return values
     server_cpus,client_cpus=cpus(SERVER_CORES),cpus(CLIENT_CORES)
     assert len(server_cpus)==8 and client_cpus and not (server_cpus & client_cpus)
-    assert (server_cpus | client_cpus) <= set(range(80,96))
+    assert (server_cpus | client_cpus) <= set(range(48,64))
     passed=True
     extra={'GATE_TXN_FUSED':str(int(a.txn_fused)), 'GATE_TXN_ATOMIC':a.txn_atomic,
            'GATE_EXEC1S_WB':str(int(a.wb))}
@@ -151,6 +151,6 @@ def main():
             passed=gate(arm+'-differ-'+engine,ROOT/'build'/('exec1s-'+arm),
                         jobs,engine) and passed
     if a.self_test:
-        passed=run('gates-test',['taskset','-c','80-95','python3','tests/gates_test.py']) and passed
+        passed=run('gates-test',['taskset','-c','48-63','python3','tests/gates_test.py']) and passed
     raise SystemExit(0 if passed else 1)
 if __name__=='__main__':main()

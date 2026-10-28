@@ -52,7 +52,7 @@ def archive_probe(arm, ns):
 
 
 def build(arm, ns):
-    assert os.sched_getaffinity(0) <= set(range(80, 96)), "build under taskset -c 80-95"
+    assert os.sched_getaffinity(0) <= set(range(48, 64)), "build under taskset -c 48-63"
     source, objects = ARMS[arm]
     if not (objects / "tomokv").exists():
         cmd = ["make", "-C", str(source), "-j16", "all"]
@@ -196,7 +196,7 @@ end
 """
     script_file = BUILD / (label + ".gdb")
     script_file.write_text(script)
-    cmd = ["taskset", "-c", "80-95", "gdb", "-nx", "-batch", "-x", str(script_file), str(binary)]
+    cmd = ["taskset", "-c", "48-63", "gdb", "-nx", "-batch", "-x", str(script_file), str(binary)]
     full_log = BUILD / (label + ".log")
     with full_log.open("w") as log:
         result = subprocess.run(cmd, stdout=log, stderr=subprocess.STDOUT, timeout=1200)
@@ -207,7 +207,8 @@ end
         digest = hashlib.file_digest(log, "sha256").hexdigest()
     (OUT / (label + ".log")).write_text(
         f"Full bounded GDB trace: {full_log}\nSHA-256: {digest}\nExit: {result.returncode}\n" + tail)
-    assert result.returncode == 0 and output.exists(), label
+    full_log.unlink()  # Counts and hashed tail retained; discard voluminous step trace.
+    assert result.returncode == 0 and output.exists() and "COUNT " in tail, label
     row = dict(zip(("arm", "namespace", "command", "mode", "batch", "atomic", "threshold"), case))
     row.update(json.loads(output.read_text()))
     print(label, row["total"], flush=True)

@@ -8,7 +8,7 @@ EVIDENCE=ROOT/'build/exec1s-evidence'
 def sha(path):
     with path.open('rb') as f:return hashlib.file_digest(f,'sha256').hexdigest()
 def main():
-    assert os.sched_getaffinity(0)<=set(range(80,96))
+    assert os.sched_getaffinity(0)<=set(range(48,64))
     commits={}
     for row in subprocess.check_output(['git','log','--format=%H %s','83e0b809d..HEAD'],cwd=ROOT,text=True).splitlines():
         digest,title=row.split(' ',1)

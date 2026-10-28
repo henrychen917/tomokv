@@ -30,9 +30,9 @@ def allocations():
                 subprocess.run(cmd,stdout=f,stderr=subprocess.STDOUT,check=True)
             rows=[]
             for mode,shards in [('2s','16'),('1s','64')]:
-                output=subprocess.check_output(['taskset','-c','80-87',str(binary),mode,shards],text=True)
+                output=subprocess.check_output(['taskset','-c','48-55',str(binary),mode,shards],text=True)
                 rows.append(json.loads(next(line for line in output.splitlines() if line.startswith('{'))))
-            row=dict(arm=arm,namespace=ns,command=cmd,sha256=sha(binary),cpu_affinity="80-87",results=rows,
+            row=dict(arm=arm,namespace=ns,command=cmd,sha256=sha(binary),cpu_affinity="48-55",results=rows,
                      production_binary=str(objects/'tomokv'),production_sha256=sha(objects/'tomokv'))
             scope.save(ROOT/'docs/exec1s'/(arm+'-allocation-'+ns+'.json'),row);records[arm,ns]=rows
     comparisons=[]
@@ -58,7 +58,7 @@ def io(build,count):
             comparisons.append(dict(namespace=r['namespace'],mode=r['mode'],pre=old['total'],post=r['total'],delta=r['total']-old['total']))
         scope.save(ROOT/'docs/exec1s/io-counts.json',dict(scope='multi_dispatch_entry through preparation/dispatch; queueing is outside',cases=comparisons))
 def main():
-    assert os.sched_getaffinity(0)<=set(range(80,96))
+    assert os.sched_getaffinity(0)<=set(range(48,64))
     p=argparse.ArgumentParser();p.add_argument('--allocations',action='store_true');p.add_argument('--io-build',action='store_true');p.add_argument('--io-count',action='store_true');a=p.parse_args()
     if a.allocations:allocations()
     if a.io_build or a.io_count:io(a.io_build,a.io_count)

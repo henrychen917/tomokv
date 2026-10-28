@@ -24,7 +24,7 @@ def run(item):
     oldbudget=int(next(x.split('=')[1] for x in cmd if x.startswith('large-unit-insns=')))
     if value is not None:cmd=[f'large-unit-insns={value}' if x.startswith('large-unit-insns=') else x for x in cmd]
     cmd[cmd.index('-o')+1]=str(output)
-    cmd=['taskset','-c','80-95',*cmd,'-g0',f'-fdump-ipa-inline={dump}']
+    cmd=['taskset','-c','48-63',*cmd,'-g0',f'-fdump-ipa-inline={dump}']
     receipt=OUT/(label+'.json')
     if receipt.exists():return json.loads(receipt.read_text())
     with (BUILD/(label+'.log')).open('w') as f:
