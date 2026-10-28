@@ -68,6 +68,8 @@ def build(arm, ns):
                                      "-n", "-W", str(objects / "src/main.o"), "all"], text=True)
     link = shlex.split(next(line for line in recipe.splitlines() if " -o " + str(objects / "tomokv") + " " in line))
     flags = ["g++", "-std=c++20", "-O2", "-g", "-march=native", "-pthread", "-DTOMO_JEMALLOC", "-I" + str(source)]
+    if "X4" in arm:
+        flags += ["-DTOMO_EXEC1S_WB"]
     if ns == "db0":
         flags += ["-DTOMO_SINGLE_DATABASE=1", "-Dtomo=tomo_db0"]
     compile_cmd = flags + ["-c", str(FIXTURE), "-o", str(dest / "probe.o")]

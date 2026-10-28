@@ -1,121 +1,38 @@
 [
   {
+    "arm": "POST",
+    "binary": "/home/user/Projects/cx-exec1s-c/build/exec1s-POST",
+    "sha256": "4ccee1eb58d6dfe19279c0e9289c306e0e5c33283c89d3c1b9d29570cb2bf474",
+    "bytes": 218242336,
+    "source_commit": "bd90f09def74cab733c264d799fc713711f6c2fe",
+    "production_source_tree": "eb6767df283e54832b1a89b3ae38fecadcc541de",
+    "makefile_blob": "af53732afd1dad35c31913ccc8e7080f04a635eb",
+    "command": [
+      "make",
+      "-C",
+      "/home/user/Projects/cx-exec1s-c",
+      "-j16",
+      "all"
+    ],
+    "build_macro": "",
+    "source_snapshot": "/home/user/Projects/cx-exec1s-c"
+  },
+  {
     "arm": "PRE",
-    "binary": "/home/user/Projects/cx-exec1s/build/exec1s-PRE",
-    "sha256": "7f807964e3fc740153aca4ca3cd458b70103e8987d67ab5ce0f129cfbd79c65b",
-    "bytes": 218187680,
-    "source_commit": "83e0b809d",
-    "object_tree_equivalence": "docs/exec1s/pre-link-equivalence.json"
-  },
-  {
-    "arm": "X0",
-    "source_commit": "23f68104362429365fd47cf15a9fdf72e2be4c99",
-    "source": "/home/user/Projects/cx-exec1s/build/exec1s/x0-current-source",
-    "binary": "/home/user/Projects/cx-exec1s/build/exec1s-X0",
-    "sha256": "d9f5ddb13da3e7097272f22960effb8a46a82b922f832b8c5a076de6c300e8cb",
+    "binary": "/home/user/Projects/cx-exec1s-c/build/exec1s-PRE",
+    "sha256": "661d176a0e35d8587051b3699fdbfd76910b718b4a73f62662591e38febd2f62",
+    "bytes": 218187712,
+    "source_commit": "83e0b809d0fdeb4bf43647bd0cada7a4f14f241d",
+    "production_source_tree": "418e149ed6fff3600920b117a6f55fa7bfe14283",
+    "makefile_blob": "ff310af23ca4e4177f49823feeb2bb2d648555da",
     "command": [
       "make",
       "-C",
-      "/home/user/Projects/cx-exec1s/build/exec1s/x0-current-source",
+      "/home/user/Projects/cx-exec1s-c/build/exec1s/pre-source",
       "-j16",
       "all"
     ],
-    "bytes": 218243936
-  },
-  {
-    "arm": "X1",
-    "source_commit": "b788283e07363ed56635985e084250e1b1f9a2c0",
-    "source": "/home/user/Projects/cx-exec1s/build/exec1s/x1-current-source",
-    "binary": "/home/user/Projects/cx-exec1s/build/exec1s-X1",
-    "sha256": "e8366d8d16edd1183dda931a9b62ced775384d124022b696274329d57286fd7b",
-    "command": [
-      "make",
-      "-C",
-      "/home/user/Projects/cx-exec1s/build/exec1s/x1-current-source",
-      "-j16",
-      "all"
-    ],
-    "bytes": 218120808
-  },
-  {
-    "arm": "X2",
-    "source_commit": "034e3c555d612c5b1656c1b743e968f7c45ae898",
-    "source": "/home/user/Projects/cx-exec1s/build/exec1s/x2-current-source",
-    "binary": "/home/user/Projects/cx-exec1s/build/exec1s-X2",
-    "sha256": "39ab8382ebadc7a7d67da64e314f47299c9306556093949e2b02bf82c5f8b448",
-    "command": [
-      "make",
-      "-C",
-      "/home/user/Projects/cx-exec1s/build/exec1s/x2-current-source",
-      "-j16",
-      "all"
-    ],
-    "bytes": 218159208
-  },
-  {
-    "arm": "X3",
-    "source_commit": "a6866fdae641b49d655bd23649998f0de6407695",
-    "source": "/home/user/Projects/cx-exec1s/build/exec1s/x3-current-source",
-    "binary": "/home/user/Projects/cx-exec1s/build/exec1s-X3",
-    "sha256": "2e807c889578391c24d7335769d4d841d026f70fe6dde8029b47b9a01eb82e1d",
-    "command": [
-      "make",
-      "-C",
-      "/home/user/Projects/cx-exec1s/build/exec1s/x3-current-source",
-      "-j16",
-      "all"
-    ],
-    "bytes": 218113192
-  },
-  {
-    "arm": "X4",
-    "source_commit": "d5e686e035fb91b73fc2fc096718993b4347a354",
-    "source": "/home/user/Projects/cx-exec1s/build/exec1s/x4-current-source",
-    "binary": "/home/user/Projects/cx-exec1s/build/exec1s-X4",
-    "sha256": "6f51b94d00fd61b6d53ce38d21528f5a81bf983fc06c331ef4fc6c7f6d6be115",
-    "command": [
-      "make",
-      "-C",
-      "/home/user/Projects/cx-exec1s/build/exec1s/x4-current-source",
-      "-j16",
-      "all",
-      "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_EXEC1S_WB"
-    ],
-    "bytes": 218117856,
-    "build_macro": "TOMO_EXEC1S_WB; excluded from default POST"
-  },
-  {
-    "arm": "X5",
-    "binary": "/home/user/Projects/cx-exec1s/build/exec1s-X5",
-    "sha256": "d6ce8fc7f18f615ba9baff0b98a194228ce2a8f8e7f816a6f522f7c750a9e961",
-    "bytes": 218259440,
-    "source_commit": "21d57a5a6885689733b3675132efbcc40595d964",
-    "production_source_tree": "61d6b35cc1b1d93dd301baaf9813dc6c78ee601c",
-    "makefile_blob": "f762d346441506e9e67d4cb933d6992900fb923f"
-  },
-  {
-    "arm": "POST-release",
-    "binary": "/home/user/Projects/cx-exec1s/build/exec1s-POST-release",
-    "sha256": "d6ce8fc7f18f615ba9baff0b98a194228ce2a8f8e7f816a6f522f7c750a9e961",
-    "bytes": 218259440,
-    "source_commit": "21d57a5a6885689733b3675132efbcc40595d964",
-    "production_source_tree": "61d6b35cc1b1d93dd301baaf9813dc6c78ee601c",
-    "makefile_blob": "f762d346441506e9e67d4cb933d6992900fb923f"
-  },
-  {
-    "arm": "POST-layout",
-    "binary": "/home/user/Projects/cx-exec1s/build/exec1s-POST-layout",
-    "sha256": "fc3fe00592c9227cfcc6996fc0e55198ba609cd7af53fbaf323a4f028feaea53",
-    "bytes": 423558480,
-    "production_source_tree": "61d6b35cc1b1d93dd301baaf9813dc6c78ee601c",
-    "control": "A: exact common-image behaviour-twin pair; larger than release"
-  },
-  {
-    "arm": "PAD-A",
-    "binary": "/home/user/Projects/cx-exec1s/build/exec1s-PAD-A",
-    "sha256": "e751468184f26127449bfb09231be61f707e158833a31cf045823aa260316e9c",
-    "bytes": 423558480,
-    "production_source_tree": "61d6b35cc1b1d93dd301baaf9813dc6c78ee601c",
-    "control": "A: exact common-image behaviour-twin pair; larger than release"
+    "build_macro": "",
+    "source_snapshot": "/home/user/Projects/cx-exec1s-c/build/exec1s/pre-source"
   }
 ]

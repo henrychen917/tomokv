@@ -5,12 +5,20 @@
 #include <string>
 #include <vector>
 #include <sched.h>
+#if TOMO_SINGLE_DATABASE
+#define EXEC1S_NSM "8tomo_db0"
+#else
+#define EXEC1S_NSM "4tomo"
+#endif
+// Call the body selected by the production link, never an inlined fixture copy.
+extern "C" bool production_wb_defer(tomo::Client&, const tomo::wb_rule::Settings&)
+    asm("_ZN" EXEC1S_NSM "7wb_rule5deferINS_6ClientEEEbRT_RKNS0_8SettingsE");
 [[gnu::noinline]] void scope_begin(){asm volatile("" ::: "memory");}
 [[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
 namespace tomo {
 struct CoreConcurrencyTest {
     [[gnu::noinline]] static void need(bool v, const char* file=__builtin_FILE(), int line=__builtin_LINE()){if(!v){std::fprintf(stderr,"scope failure %s:%d\n",file,line);std::abort();}}
-    static void run(bool fused,unsigned nshards){
+    static void run(bool fused,unsigned nshards,bool wb,bool expect_hold){
         Config cfg;cfg.databases=TOMO_SINGLE_DATABASE?1:16;cfg.shards=nshards;
         cfg.even_ifid=6;cfg.even_ex=2;cfg.key_lb=cfg.client_lb=cfg.flip_auto=0;
         cfg.thread_mode=fused?ThreadMode::Fused:ThreadMode::Split;cfg.read_local=0;cfg.save.clear();
@@ -51,10 +59,19 @@ struct CoreConcurrencyTest {
             need(op->state.load()==OpState::Done);
         }
         auto [op,owned]=prepare({"EXEC"});
-        scope_begin();
+        if (!wb) scope_begin();
         need(multi_dispatch_entry(*loop,client,*op,0));
-        scope_end();
+        if (!wb) scope_end();
         need(op->has_multi_state());
+        if (wb) {
+            need(client.rob().in_flight()==4 && op->state.load()!=OpState::Done);
+            client.wb_deferrals()=wb_rule::kCompleteVisits;
+            const wb_rule::Settings settings{};
+            scope_begin();
+            const bool held=production_wb_defer(client,settings);
+            scope_end();
+            need(held==expect_hold && client.wb_deferrals()==wb_rule::kCompleteVisits);
+        }
         auto* state=static_cast<MultiExecState*>(op->multi_state());
         need(multi_dispatch_count(state)==2);
         std::vector<Task> tasks;
@@ -85,5 +102,6 @@ struct CoreConcurrencyTest {
 int main(int argc,char** argv){
     tomo::CoreConcurrencyTest::need(argc>=3&&tomo::command_registry_init(false));
     const bool fused=std::string(argv[2])=="1s";
-    tomo::CoreConcurrencyTest::run(fused,fused?64:16);
+    tomo::CoreConcurrencyTest::run(fused,fused?64:16,std::string(argv[1])=="WB",
+                                  argc>5 && std::string(argv[5])=="1");
 }
