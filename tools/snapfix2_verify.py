@@ -103,11 +103,11 @@ def prune_gate_run(run_dir, archive):
     shutil.rmtree(run_dir)
 
 
-def gate(engine, differ=False, extra=False, fused=False, table_arm=None):
-    label = ('extra-' if extra else 'differ-' if differ else 'proof-')+engine
-    if extra:
+def gate(engine, differ=False, extra=False, fused=False, table_arm=None, auth=False):
+    label = ('auth-' if auth else 'extra-' if extra else 'differ-' if differ else 'proof-')+engine
+    if extra or auth:
         label += '-1s' if fused else '-2s'
-    jobs = ('release_batteries asan_batteries' if extra else
+    jobs = ('auth' if auth else 'release_batteries asan_batteries' if extra else
             'differ-split differ-armed' if differ else ' '.join(JOBS))
     if extra:
         # The gate's Lua/script-surface batteries live inside its feature jobs.
@@ -128,7 +128,7 @@ def gate(engine, differ=False, extra=False, fused=False, table_arm=None):
         label, jobs = 'tables-'+table_arm+'-final', 'snapfix2_tables'
     env = dict(GATE_ONLY_JOBS=jobs, REDIS74_ROOT='/home/user/Projects/redis',
                GATE_NET_IO=engine, GATE_DIFFER_NET_IO=engine, GATE_PROOF_NO_RATES='1')
-    if extra:
+    if extra or auth:
         env['GATE_TXN_FUSED'] = '1' if fused else '0'
     cmd = ['taskset', '-c', '0-15', 'tests/gate.sh', 'iteration',
            '--server-cores', '0-7', '--load-cores', '8-15', '--server-smt', '',
@@ -149,17 +149,17 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('phase', choices=['gate-uring', 'gate-epoll', 'differ-uring', 'differ-epoll',
                                     'isolation', 'minimal', 'ingredients', 'rss', 'diagnostic',
-                                    'long', 'neighbours', 'pad', 'extra'])
+                                    'long', 'neighbours', 'pad', 'extra', 'auth'])
     a = p.parse_args()
     os.chdir(ROOT)
     os.sched_setaffinity(0, range(16))
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     if a.phase.startswith(('gate-', 'differ-')):
         gate(a.phase.split('-')[1], a.phase.startswith('differ'))
-    elif a.phase == 'extra':
+    elif a.phase in ['extra', 'auth']:
         for engine in ['uring', 'epoll']:
             for fused in [False, True]:
-                gate(engine, extra=True, fused=fused)
+                gate(engine, extra=a.phase == 'extra', auth=a.phase == 'auth', fused=fused)
     elif a.phase == 'pad':
         for arm, binary in [('post-layout', 'build/snapfix2/POST-layout'),
                             ('pad-a', 'build/snapfix2/PAD-A')]:
