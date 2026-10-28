@@ -21,7 +21,7 @@ def compile_one(case):
  if dest.exists() and receipt.exists():return json.loads(receipt.read_text())
  recipe=subprocess.check_output(['make','-C',str(src),'-n','-B','BUILD_ROOT='+str(src/'build'),str(target)],text=True)
  cmd=next(shlex.split(l) for l in recipe.splitlines() if ' -c ' in l and l.endswith(' -o '+str(target)))
- cmd=[x if x!='-g' else '-g0' for x in cmd];cmd.insert(1,'-ffunction-sections');cmd[-1]=str(dest)
+ cmd.insert(1,'-ffunction-sections');cmd[-1]=str(dest)
  with (dest.with_suffix('.log')).open('w') as log:subprocess.run(cmd,cwd=src,stdout=log,stderr=subprocess.STDOUT,check=True)
  result=dict(arm=arm,unit=rel,command=cmd,original_sha256=sha(target),sha256=sha(dest));save(receipt,result)
  return result

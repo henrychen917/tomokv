@@ -21,6 +21,12 @@ extern "C" int production_parse(void*,Client*)
     asm("_ZN" NSM "6IoLoop18parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE");
 extern "C" int production_r7_parse(void*,Client*)
     asm("_ZN" NSM "6IoLoop21r7_parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE");
+#ifdef TOMO_RLFIX4_ADMISSION
+extern "C" int production_split_parse(void*,Client*)
+    asm("_ZN" NSM "6IoLoop18parse_and_dispatchILb0ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE");
+extern "C" int production_split_local_parse(void*,Client*)
+    asm("_ZN" NSM "6IoLoop18parse_and_dispatchILb0ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE");
+#endif
 extern "C" unsigned production_local(void*, unsigned)
     asm("_ZN" NSM "7ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjj");
 [[gnu::noinline]] void scope_begin(){asm volatile("" ::: "memory");}
@@ -80,6 +86,53 @@ struct CoreConcurrencyTest {
    op.spec=command_lookup(op.arg(0));op.hash=FlatStore::hash_key(op.arg(1));op.spec->handler(server.shard(server.router().shard_of(op.hash)),op);
    need(std::string(op.reply.data(),op.reply.size())=="+OK\r\n");
   }
+#ifdef TOMO_RLFIX4_ADMISSION
+  {
+   auto& reader=local_loops[io];auto& rob=client.rob();
+   IoLoop parser;parser.srv_=&server;parser.self_=&server.thread(io);parser.fused_executor_=&reader;
+   parser.refresh_notify_config();parser.flip_pass_begin();
+   std::string wire;
+   const unsigned nk=(command=="MGET"||command=="MSET")?8:1;
+   const unsigned argc=1+nk*((command=="MSET"||command=="SET")?2:1);
+   auto bulk=[&](const std::string& s){wire+="$"+std::to_string(s.size())+"\r\n"+s+"\r\n";};
+   for(unsigned i=0;i<n;i++){
+    wire+="*"+std::to_string(argc)+"\r\n";bulk(command);
+    for(unsigned k=0;k<nk;k++){bulk(keys[k]);if(command=="MSET"||command=="SET")bulk(value);}
+   }
+   size_t avail=0;char* dest=client.read_space(wire.size(),avail,true);
+   need(dest&&avail>=wire.size());std::memcpy(dest,wire.data(),wire.size());client.commit_read(wire.size());
+   auto entry=Fused?production_parse:(cfg.read_local?production_split_local_parse:production_split_parse);
+   unsigned passes=0,done=0;
+   scope_begin();
+   do {
+    const auto before=client.rpos();entry(&parser,&client);
+    need(client.rpos()>before&&++passes<=n);
+    // MGET's real one-command cut fence is released by the production local
+    // drain. Owner tasks remain queued: this scope measures admission, not EX.
+    if(cfg.read_local&&(command=="GET"||command=="MGET"))done+=production_local(&reader,32);
+   }while(client.rpos()!=client.rlen());
+   scope_end();
+   need(rob.dispatch_id()==n&&rob.in_flight()==n);
+   const bool local=cfg.read_local&&(command=="GET"||command=="MGET");
+   need(done==(local?n:0));
+   for(unsigned i=0;i<n;i++){
+    auto& op=rob.at(i);need(op.spec==command_lookup({command.data(),uint32_t(command.size())}));
+    need(op.argc()==argc);need((op.state.load()==OpState::Done)==local);
+    for(unsigned k=0;k<nk;k++){
+     const Slice arg=op.arg(1+k*((command=="MSET"||command=="SET")?2:1));
+     need(std::string(arg.p,arg.n)==keys[k]);
+    }
+    if(local){
+     std::string expected=command=="MGET"?"*8\r\n":"";
+     for(unsigned k=0;k<nk;k++)expected+="$64\r\n"+value+"\r\n";
+     const std::string actual=(op.direct_len?std::string(op.direct,op.direct_len):std::string{})+
+                              std::string(op.reply.data(),op.reply.size());
+     need(actual==expected);
+    }
+   }
+   std::printf("ADMISSION commands=%u keys=%u passes=%u local_completed=%u owner_pending=%u\n",n,nk,passes,done,n-done);
+  }
+#else
   if(route=="local"||route=="mix"||route=="parse"||route=="parsemix"||route=="r7parse"||route=="r7mix"){
    need(command=="GET"||command=="MGET");need(n==1||n==32);
    auto& reader=local_loops[io];auto& rob=client.rob();
@@ -216,6 +269,7 @@ struct CoreConcurrencyTest {
     need(std::string(op.reply.data(),op.reply.size())=="$64\r\n"+updated+"\r\n");
    }
   }
+#endif
   if(cfg.read_local)for(unsigned tid=0;tid<8;tid++){
    local_loops[tid].read_local_impl().deferred.drain_shutdown();
    if constexpr(Fused)loops[tid].read_local_impl().deferred.drain_shutdown();

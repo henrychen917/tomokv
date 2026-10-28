@@ -20,6 +20,8 @@ sys.path.insert(0, str(ROOT / 'tests'))
 import reorder_noop as audit
 sys.path.insert(0, str(ROOT / 'tools'))
 from lbstall_artifacts import HOT as GENERAL_HOT
+from rlfix4_normalize import install, STATE
+install(audit)
 
 OUT = ROOT / 'build/rlfix4/identity'
 REFS = {a: '/home/user/Projects/bench-bins/tomokv-headline-'+rev for a,rev in [('anchor','991d48f65'),('wave6','05a5e01a9'),('wave7','3700b51d7'),('base','a214652ec')]}
@@ -33,7 +35,7 @@ def _inventory(path):
     digest = audit.digest(path)
     folder = OUT / digest
     folder.mkdir(parents=True, exist_ok=True)
-    cache = folder / 'inventory.json.gz'
+    cache = folder / 'inventory-resolved-v3.json.gz'
     if cache.exists():
         with gzip.open(cache, 'rt') as stream:
             return json.load(stream)
@@ -43,7 +45,15 @@ def _inventory(path):
         groups[name] = [dict(size=b['size'], address=hex(b['addr']),
                             digest=hashlib.sha256(json.dumps([b['ins'], b['encodings']]).encode()).hexdigest())
                         for b in sorted(bodies, key=lambda b: b['addr'])]
-    result = dict(path=str(path), sha256=digest, groups=groups)
+    assembly={}
+    for start,end,label in STATE.regions:
+        instructions={}
+        for at,(raw,asm) in binary.instructions.items():
+            if start<=at<end:
+                text=audit.normalize_asm(asm,start,end-start,binary.demangle,binary.address_name)
+                instructions[hex(at-start)]=[' '.join(text.split()),audit.normalized_encoding(raw,asm,at,start,end-start)]
+        assembly[label]=dict(address=hex(start),size=end-start,instructions=instructions)
+    result = dict(path=str(path), sha256=digest, groups=groups,assembly=assembly)
     with gzip.open(cache, 'wt') as stream:
         json.dump(result, stream)
     for f in folder.glob('*.objdump'):
@@ -57,7 +67,7 @@ def inventory(path):
     folder.mkdir(parents=True, exist_ok=True)
     with (folder / 'inventory.lock').open('w') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
-        cache = folder / 'inventory.json.gz'
+        cache = folder / 'inventory-resolved-v3.json.gz'
         if cache.exists():
             try:
                 with gzip.open(cache, 'rt') as stream: json.load(stream)

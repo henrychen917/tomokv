@@ -8,8 +8,13 @@ p.add_argument('name');p.add_argument('jobs',nargs='+')
 p.add_argument('--engine',choices=('uring','epoll'),default='uring')
 p.add_argument('--fused',action='store_true');p.add_argument('--binary',default='build/tomokv')
 p.add_argument('--port',type=int,default=20301);p.add_argument('--asan-binary',type=Path)
+p.add_argument('--server-cores',default='32-45');p.add_argument('--load-cores',default='46-47')
 a=p.parse_args();assert 20300<=a.port<=20389
-server_cores='32-45';load_cores='46-47';os.sched_setaffinity(0,set(range(32,48)))
+server_cores=a.server_cores;load_cores=a.load_cores;os.sched_setaffinity(0,set(range(32,48)))
+import sys
+sys.path.insert(0,str(ROOT/'tests'))
+from gateplan import parse_cpu_range
+assert set(parse_cpu_range(server_cores)+parse_cpu_range(load_cores))<=set(range(32,48))
 output=ROOT/'docs/rlfix4/jobs';output.mkdir(parents=True,exist_ok=True)
 log=output/(a.name+'.log'); assert not log.exists(), 'preserve the earlier attempt'
 binary=(ROOT/a.binary).resolve()
