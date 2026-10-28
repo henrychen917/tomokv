@@ -14,6 +14,30 @@ DOCS=ROOT/'docs/exec1s'
 def sha(path):
     with Path(path).open('rb') as f:return hashlib.file_digest(f,'sha256').hexdigest()
 
+def bind_cost_candidate(candidate):
+    # The gate asks for a sidecar named after an external candidate. Transfer
+    # the source-built pair's binding only after checking both original hashes
+    # and byte identity of the frozen candidate; never substitute an unchecked
+    # witness or omit the candidate from the resulting check.
+    original=ROOT/'build/tomokv.blockfix-cost.sha256'
+    source=ROOT/'build/tomokv'
+    cost=ROOT/'build/blockfix-cost'
+    expected={}
+    for line in original.read_text().splitlines():
+        digest,name=line.split(None,1)
+        expected[Path(name)]=digest
+    assert set(expected)=={source,cost}
+    assert all(sha(path)==digest for path,digest in expected.items())
+    assert sha(candidate)==expected[source]
+    bound=Path(str(candidate)+'.blockfix-cost.sha256')
+    bound.write_text(f'{expected[source]}  {candidate}\n{expected[cost]}  {cost}\n')
+    record=dict(source_binding=str(original),source_binding_sha256=sha(original),
+                source_binary_sha256=expected[source],candidate=str(candidate),
+                candidate_sha256=sha(candidate),cost_binary=str(cost),cost_sha256=expected[cost],
+                candidate_binding=str(bound),candidate_binding_sha256=sha(bound),
+                candidate_byte_identical=True)
+    (DOCS/'blockfix-cost-binding.json').write_text(json.dumps(record,indent=2)+'\n')
+
 def freshness():
     body=(ROOT/'tests/gate.sh').read_text().split('job_production_units(){',1)[1].split('\n}',1)[0]
     first=body.split('>"$TMPDIR/build.log"',1)[0]
@@ -38,6 +62,7 @@ def main():
     assert os.sched_getaffinity(0)<=set(range(48,64))
     os.environ['GATE_TEST_PORT']='20498'
     candidate=ROOT/'build/exec1s-POST'
+    bind_cost_candidate(candidate)
     outcomes=[]
     # Keep one eight-core server slot, with its own eight load CPUs. No builds
     # or debugger traces run beside live correctness jobs in this driver.

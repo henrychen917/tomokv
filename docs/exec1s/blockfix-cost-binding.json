@@ -1,0 +1,12 @@
+{
+  "source_binding": "/home/user/Projects/cx-exec1s-c/build/tomokv.blockfix-cost.sha256",
+  "source_binding_sha256": "02b37c7517caa3fe9717b76030a97b61a6eae1738a44e70ae196b752311b283d",
+  "source_binary_sha256": "4ccee1eb58d6dfe19279c0e9289c306e0e5c33283c89d3c1b9d29570cb2bf474",
+  "candidate": "/home/user/Projects/cx-exec1s-c/build/exec1s-POST",
+  "candidate_sha256": "4ccee1eb58d6dfe19279c0e9289c306e0e5c33283c89d3c1b9d29570cb2bf474",
+  "cost_binary": "/home/user/Projects/cx-exec1s-c/build/blockfix-cost",
+  "cost_sha256": "2969e1bd2245d947c8c1d4676b84c4655f20d23bdffbb0bf7c27c802ebee1a8f",
+  "candidate_binding": "/home/user/Projects/cx-exec1s-c/build/exec1s-POST.blockfix-cost.sha256",
+  "candidate_binding_sha256": "5936aecddd57d74743b2b3a243dba35f56de264e1cf5d98e9095e020b2492082",
+  "candidate_byte_identical": true
+}
