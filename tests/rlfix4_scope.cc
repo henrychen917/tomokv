@@ -113,6 +113,9 @@ struct CoreConcurrencyTest {
    auto parse_entry=route.starts_with("r7")?production_r7_parse:production_parse;
    IoLoop parser;parser.srv_=&server;parser.self_=&server.thread(io);parser.fused_executor_=&reader;
    parser.refresh_notify_config();
+   // Production sets this once per IO pass. Avoid the standalone caller's live
+   // FLIP fallback when counting steady command admission.
+   parser.flip_pass_begin();
    std::string wire;
    if(parsing){
     need(Fused&&command=="GET");

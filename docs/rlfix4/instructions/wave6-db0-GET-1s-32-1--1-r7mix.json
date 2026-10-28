@@ -1,12 +1,12 @@
 {
-  "binary_sha256": "449e86989ce35387b9901b2af1914a0f5b55afe36d321d5bc31b7e2916f7df0e",
+  "binary_sha256": "d2dd52415c2bf3d0eabdec96cd323b546bd79ccf458b6a2f45b12fbf393a4ef9",
   "backend": "ptrace-rep-once",
-  "total": 45537,
+  "total": 45540,
   "functions": {
     "tomo_db0::Client::nothing_to_write() const": 18,
     "tomo_db0::ThreadCtx::post_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 135,
     "tomo_db0::IoLoop::mark_active(tomo_db0::Client*)": 242,
-    "tomo_db0::IoLoop::flip_dispatch_paused() const": 9,
+    "tomo_db0::IoLoop::flip_dispatch_paused() const": 7,
     "tomo_db0::Rob<64u>::publish()": 160,
     "tomo_db0::multi_session_watch_size(tomo_db0::Client const&)": 24,
     "void tomo_db0::reply_bulk<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice) [clone .isra.0]": 3192,
@@ -34,13 +34,14 @@
     "tomo_db0::r7::LazyShadowDispatch::stamp(tomo_db0::Task&)": 111,
     "tomo_db0::IoLoop::r7_ReadLocalDemotionPlan::cancel()": 160,
     "tomo_db0::IoLoop::r7_ReadLocalDemotionPlan::commit_reads()": 75,
-    "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 14965
+    "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 14965,
+    "tomo_db0::[asm .rlfence]": 5
   },
   "bodies": {
     "0x70970 tomo_db0::Client::nothing_to_write() const": 18,
     "0x7e9c0 tomo_db0::ThreadCtx::post_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 135,
     "0x851e0 tomo_db0::IoLoop::mark_active(tomo_db0::Client*)": 242,
-    "0x85930 tomo_db0::IoLoop::flip_dispatch_paused() const": 9,
+    "0x85930 tomo_db0::IoLoop::flip_dispatch_paused() const": 7,
     "0x8c560 tomo_db0::Rob<64u>::publish()": 160,
     "0x122cc0 tomo_db0::multi_session_watch_size(tomo_db0::Client const&)": 24,
     "0x32af10 void tomo_db0::reply_bulk<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice) [clone .isra.0]": 3192,
@@ -68,9 +69,10 @@
     "0x3da8d0 tomo_db0::r7::LazyShadowDispatch::stamp(tomo_db0::Task&)": 111,
     "0x3dac90 tomo_db0::IoLoop::r7_ReadLocalDemotionPlan::cancel()": 160,
     "0x3dc800 tomo_db0::IoLoop::r7_ReadLocalDemotionPlan::commit_reads()": 75,
-    "0x3df030 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 14965
+    "0x3df030 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 14965,
+    "0x808872 tomo_db0::[asm .rlfence]": 5
   },
-  "raw_total": 45537,
+  "raw_total": 45540,
   "clock_calls": 0,
   "excluded_calls": 65
 }

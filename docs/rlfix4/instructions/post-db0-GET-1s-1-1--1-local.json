@@ -1,14 +1,15 @@
 {
-  "binary_sha256": "55faf96b33a0b26a20ed4c924118212c14fb96ecf95e51c59bdbec5085d1765e",
+  "binary_sha256": "7ccc02a80fc252c2ab97c9da8b32fe84da4ad346af1eddefa7cc59d1b5edcc6d",
   "backend": "ptrace-rep-once",
-  "total": 912,
+  "total": 917,
   "functions": {
     "void tomo_db0::reply_bulk<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice) [clone .isra.0]": 110,
     "tomo_db0::FlatStore::read_local_prefetch(unsigned long) const": 84,
     "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 172,
     "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 101,
     "tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::ReadLocalPrefetchCapture const*)": 109,
-    "unsigned int tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 336
+    "unsigned int tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 336,
+    "tomo_db0::[asm .rlfence]": 5
   },
   "bodies": {
     "0x34a710 void tomo_db0::reply_bulk<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice) [clone .isra.0]": 110,
@@ -16,9 +17,10 @@
     "0x34b050 tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 172,
     "0x3586b0 tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 101,
     "0x363da0 tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::ReadLocalPrefetchCapture const*)": 109,
-    "0x364670 unsigned int tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 336
+    "0x364670 unsigned int tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 336,
+    "0x846375 tomo_db0::[asm .rlfence]": 5
   },
-  "raw_total": 912,
+  "raw_total": 917,
   "clock_calls": 0,
   "excluded_calls": 3
 }

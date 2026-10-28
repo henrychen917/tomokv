@@ -14,6 +14,8 @@ import json
 from pathlib import Path
 import shlex
 import subprocess
+import re
+import functools
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs/rlfix4/instructions"
@@ -22,10 +24,30 @@ OUT.mkdir(parents=True,exist_ok=True)
 BUILD.mkdir(parents=True,exist_ok=True)
 ARMS = {a: (ROOT / f"build/rlfix4/{a}-source", ROOT / f"build/rlfix4/{a}-source/build") for a in ("anchor", "wave6", "wave7", "pre")}
 ARMS.update({a:(ROOT,ROOT/"build") for a in ("post","preparse")})
+ARMS['preparse']=ARMS['pre']
 
 
 def save(path, value):
     path.write_text(json.dumps(value, indent=2) + "\n")
+
+@functools.lru_cache(maxsize=None)
+def assembly_ranges(binary, prefix):
+    rows=[]
+    sections=subprocess.check_output(['readelf','-SW',str(binary)],text=True)
+    for line in sections.splitlines():
+        m=re.search(r'\]\s+\.rlfence\s+PROGBITS\s+([0-9a-f]+)\s+[0-9a-f]+\s+([0-9a-f]+)',line)
+        if m:
+            start,size=(int(x,16) for x in m.groups())
+            rows.append([start,start+size,'.rlfence',prefix+'[asm .rlfence]'])
+    # The layout twins place each custom assembly section in a reserved slot.
+    slots=ROOT/'docs/rlfix4/layout/slots.json'
+    if slots.exists():
+        sizes={f'__rlfix4_slot_{i}':s['size'] for i,s in enumerate(json.loads(slots.read_text())) if s['section']=='.rlfence'}
+        for line in subprocess.check_output(['nm','--defined-only',str(binary)],text=True).splitlines():
+            f=line.split()
+            if len(f)==3 and f[2] in sizes:
+                start=int(f[0],16);rows.append([start,start+sizes[f[2]],f[2],prefix+'[asm .rlfence]'])
+    return rows
 
 
 def build(arm, ns):
@@ -60,7 +82,7 @@ def build(arm, ns):
 
 def trace(case):
     arm, ns, command, mode, batch, atomic, threshold, route = case
-    binary = BUILD / (arm + "-" + ns) / "probe"
+    binary = (BUILD / (arm + "-" + ns) / "probe").resolve()
     label = "-".join(map(str, case))
     symbols = []
     for line in subprocess.check_output(["nm", "-S", "--defined-only", str(binary)], text=True).splitlines():
@@ -71,6 +93,9 @@ def trace(case):
     prefix = "tomo::" if ns == "normal" else "tomo_db0::"
     ranges = [row + [name] for row, name in zip(symbols, names)
               if prefix in name and "CoreConcurrencyTest::" not in name]
+    # ROB retirement has cold assembly in its own executable section, without
+    # STT_FUNC symbols. It is application work and must remain inside the count.
+    ranges+=assembly_ranges(binary,prefix)
     ranges_file = BUILD / (label + "-ranges.json")
     save(ranges_file, ranges)
     anchor = next(row[0] for row in symbols if row[2] == "_Z11scope_beginv")

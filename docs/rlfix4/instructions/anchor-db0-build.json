@@ -143,5 +143,7 @@
     "-lm",
     "/home/user/Projects/cx-rlfix4/build/rlfix4/commands/anchor-db0/probe.o"
   ],
-  "sha256": "030d5534ba5d24cf2c8e2958773d7ed9e7b2ae44adbf1b64ad3a63803e6d08e5"
+  "sha256": "f76f25b65ac650d0d8350762acf83c03ba2923ddc0e4ec32bc02ac55c38c7e5b",
+  "fixture_sha256": "1a9a835ebc4603825a8e6989915644f4058520ea36088c6fa63b29fd1e2ab3b5",
+  "server_sha256": "4c7d59028c10d69b3c8a113dcf7325b3dfe8c20a31598a16a04184c8222bf06c"
 }

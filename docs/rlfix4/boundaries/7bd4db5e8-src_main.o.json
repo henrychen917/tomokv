@@ -1,0 +1,75 @@
+{
+  "commit": "7bd4db5e8",
+  "unit": "src/main.o",
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "-DTOMO_DUAL_DATABASE",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=146058",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/main.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/boundaries/7bd4db5e8/build/src/main.o"
+  ],
+  "sha256": "183991ee35d79a42ca0cead491fb9f11cae0468bb9748d112a61b44a19b9c0cc",
+  "bodies": [
+    {
+      "name": "tomo::Op::cmd_name() const",
+      "size": 56,
+      "digest": "29af77ba3fac590ca72e023e539a41e1b18d1e5466f1bf4542e033f1a14c2703",
+      "canary_loads": 0,
+      "references": []
+    },
+    {
+      "name": "tomo::FlatStore::hash_key(tomo::Slice)",
+      "size": 808,
+      "digest": "03c386e3d6236e9dd249d1603a00dfc5bb058b38a0336c559afd2f90acca01ab",
+      "canary_loads": 0,
+      "references": [
+        [
+          6,
+          2,
+          [
+            "_ZN4tomo11g_hash_kindE",
+            -5
+          ]
+        ],
+        [
+          56,
+          2,
+          [
+            "_ZN4tomo11g_hash_seedE",
+            -4
+          ]
+        ],
+        [
+          355,
+          2,
+          [
+            "_ZN4tomo8g_sip_k0E",
+            -4
+          ]
+        ],
+        [
+          362,
+          2,
+          [
+            "_ZN4tomo8g_sip_k1E",
+            -4
+          ]
+        ]
+      ]
+    }
+  ]
+}

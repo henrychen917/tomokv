@@ -1,7 +1,7 @@
 {
   "binary_sha256": "d70f072425ff8a5207b2c84a16b7302d53d8d0bf6e586b20d6e36b7d46c677f3",
   "backend": "ptrace-rep-once",
-  "total": 194619,
+  "total": 194624,
   "functions": {
     "tomo::FlatStore::hash_key(tomo::Slice)": 23296,
     "tomo::Op::Sink::reserve(unsigned long)": 768,
@@ -12,7 +12,8 @@
     "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 814,
     "tomo::ExLoopT<true>::prepare_captured_local_mget(tomo::Op&)": 90176,
     "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)": 992,
-    "unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 3469
+    "unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 3469,
+    "tomo::[asm .rlfence]": 5
   },
   "bodies": {
     "0x460660 tomo::FlatStore::hash_key(tomo::Slice)": 23296,
@@ -24,9 +25,10 @@
     "0x737120 tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 814,
     "0x741510 tomo::ExLoopT<true>::prepare_captured_local_mget(tomo::Op&)": 90176,
     "0x742730 tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)": 992,
-    "0x743000 unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 3469
+    "0x743000 unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 3469,
+    "0x8458e9 tomo::[asm .rlfence]": 5
   },
-  "raw_total": 194619,
+  "raw_total": 194624,
   "clock_calls": 0,
   "excluded_calls": 769
 }

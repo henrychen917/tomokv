@@ -1,13 +1,13 @@
 {
-  "binary_sha256": "180e5f687013363a1f04411e1059a53dc474e7cc3b49f17286cac33d1b8079ec",
+  "binary_sha256": "54b1b2136a3199aebc9996c120e0b140e88b95f80421363e2fa30c46567e28e6",
   "backend": "ptrace-rep-once",
-  "total": 49168,
+  "total": 49171,
   "functions": {
     "tomo::Client::nothing_to_write() const": 18,
     "tomo::FlatStore::hash_key(tomo::Slice)": 2776,
     "tomo::ThreadCtx::post_task_quiet(unsigned int, tomo::Task const&, tomo::LoopSignals&)": 135,
     "tomo::IoLoop::mark_active(tomo::Client*)": 242,
-    "tomo::IoLoop::flip_dispatch_paused() const": 9,
+    "tomo::IoLoop::flip_dispatch_paused() const": 7,
     "tomo::Rob<64u>::publish()": 160,
     "tomo::multi_session_watch_size(tomo::Client const&)": 24,
     "tomo::Op::cmd_name() const": 384,
@@ -39,14 +39,15 @@
     "tomo::r7::LazyShadowDispatch::stamp(tomo::Task&)": 111,
     "tomo::IoLoop::r7_ReadLocalDemotionPlan::cancel()": 160,
     "tomo::IoLoop::r7_ReadLocalDemotionPlan::commit_reads()": 75,
-    "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 15025
+    "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 15025,
+    "tomo::[asm .rlfence]": 5
   },
   "bodies": {
     "0x435ce0 tomo::Client::nothing_to_write() const": 18,
     "0x43a8a0 tomo::FlatStore::hash_key(tomo::Slice)": 2776,
     "0x445570 tomo::ThreadCtx::post_task_quiet(unsigned int, tomo::Task const&, tomo::LoopSignals&)": 135,
     "0x44bde0 tomo::IoLoop::mark_active(tomo::Client*)": 242,
-    "0x44c530 tomo::IoLoop::flip_dispatch_paused() const": 9,
+    "0x44c530 tomo::IoLoop::flip_dispatch_paused() const": 7,
     "0x452740 tomo::Rob<64u>::publish()": 160,
     "0x4e65b0 tomo::multi_session_watch_size(tomo::Client const&)": 24,
     "0x533510 tomo::Op::cmd_name() const": 384,
@@ -78,9 +79,10 @@
     "0x7ab6d0 tomo::r7::LazyShadowDispatch::stamp(tomo::Task&)": 111,
     "0x7aba90 tomo::IoLoop::r7_ReadLocalDemotionPlan::cancel()": 160,
     "0x7ad5a0 tomo::IoLoop::r7_ReadLocalDemotionPlan::commit_reads()": 75,
-    "0x7affc0 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 15025
+    "0x7affc0 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 15025,
+    "0x8086c1 tomo::[asm .rlfence]": 5
   },
-  "raw_total": 49168,
+  "raw_total": 49171,
   "clock_calls": 0,
   "excluded_calls": 65
 }

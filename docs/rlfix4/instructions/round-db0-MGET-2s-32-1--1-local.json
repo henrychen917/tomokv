@@ -1,0 +1,32 @@
+{
+  "binary_sha256": "b1fd909a81d2d6d4605ae7fea3eaa2424b2001dceed748a5199ae6e5a8c61550",
+  "backend": "ptrace-rep-once",
+  "total": 185958,
+  "functions": {
+    "tomo_db0::Op::Sink::reserve(unsigned long)": 768,
+    "tomo_db0::u64_to_dec(char*, unsigned long)": 1376,
+    "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]": 22528,
+    "tomo_db0::FlatStore::read_local_prefetch(unsigned long) const": 21504,
+    "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 44032,
+    "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 814,
+    "tomo_db0::ExLoopT<true>::prepare_captured_local_mget(tomo_db0::Op&)": 90400,
+    "tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::ReadLocalPrefetchCapture const*)": 992,
+    "unsigned int tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 3539,
+    "tomo_db0::[asm .rlfence]": 5
+  },
+  "bodies": {
+    "0x18b900 tomo_db0::Op::Sink::reserve(unsigned long)": 768,
+    "0x18b9d0 tomo_db0::u64_to_dec(char*, unsigned long)": 1376,
+    "0x341fa0 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]": 22528,
+    "0x34acd0 tomo_db0::FlatStore::read_local_prefetch(unsigned long) const": 21504,
+    "0x34ae50 tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 44032,
+    "0x358c50 tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 814,
+    "0x363410 tomo_db0::ExLoopT<true>::prepare_captured_local_mget(tomo_db0::Op&)": 90400,
+    "0x364630 tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::ReadLocalPrefetchCapture const*)": 992,
+    "0x364f00 unsigned int tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 3539,
+    "0x843ea7 tomo_db0::[asm .rlfence]": 5
+  },
+  "raw_total": 185958,
+  "clock_calls": 0,
+  "excluded_calls": 769
+}

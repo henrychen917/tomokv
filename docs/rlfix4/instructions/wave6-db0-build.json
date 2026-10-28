@@ -152,5 +152,7 @@
     "-lm",
     "/home/user/Projects/cx-rlfix4/build/rlfix4/commands/wave6-db0/probe.o"
   ],
-  "sha256": "449e86989ce35387b9901b2af1914a0f5b55afe36d321d5bc31b7e2916f7df0e"
+  "sha256": "d2dd52415c2bf3d0eabdec96cd323b546bd79ccf458b6a2f45b12fbf393a4ef9",
+  "fixture_sha256": "1a9a835ebc4603825a8e6989915644f4058520ea36088c6fa63b29fd1e2ab3b5",
+  "server_sha256": "3e6c105fea679c11a28f9a9861733c5c2e38fc7a6e264a5112a3b12c7efbcd47"
 }

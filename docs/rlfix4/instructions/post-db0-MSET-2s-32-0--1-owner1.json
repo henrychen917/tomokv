@@ -1,5 +1,5 @@
 {
-  "binary_sha256": "55faf96b33a0b26a20ed4c924118212c14fb96ecf95e51c59bdbec5085d1765e",
+  "binary_sha256": "7ccc02a80fc252c2ab97c9da8b32fe84da4ad346af1eddefa7cc59d1b5edcc6d",
   "backend": "ptrace-rep-once",
   "total": 417701,
   "functions": {

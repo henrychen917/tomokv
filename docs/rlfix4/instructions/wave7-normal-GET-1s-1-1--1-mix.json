@@ -1,7 +1,7 @@
 {
-  "binary_sha256": "242c6ff34e6fd6b95e0d939e9081179b837585689147f4726ffb437a395f54a4",
+  "binary_sha256": "6161bc3ea0d89ebd1b67b5e39e27e262071434208b44ad2f955f7e9080b4d40a",
   "backend": "ptrace-rep-once",
-  "total": 933,
+  "total": 938,
   "functions": {
     "tomo::FlatStore::read_local_capture_in(tomo::FlatStore::ReadLocalTable const&, unsigned long, tomo::Slice, unsigned long const*&) const [clone .isra.0]": 88,
     "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]": 110,
@@ -10,7 +10,8 @@
     "tomo::ExLoopT<true>::notify_sender(tomo::Client*)": 25,
     "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 84,
     "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)": 109,
-    "unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 317
+    "unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 317,
+    "tomo::[asm .rlfence]": 5
   },
   "bodies": {
     "0x7080c0 tomo::FlatStore::read_local_capture_in(tomo::FlatStore::ReadLocalTable const&, unsigned long, tomo::Slice, unsigned long const*&) const [clone .isra.0]": 88,
@@ -20,9 +21,10 @@
     "0x715ad0 tomo::ExLoopT<true>::notify_sender(tomo::Client*)": 25,
     "0x715d90 tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 84,
     "0x718730 tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)": 109,
-    "0x719000 unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 317
+    "0x719000 unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 317,
+    "0x817901 tomo::[asm .rlfence]": 5
   },
-  "raw_total": 933,
+  "raw_total": 938,
   "clock_calls": 0,
   "excluded_calls": 2
 }

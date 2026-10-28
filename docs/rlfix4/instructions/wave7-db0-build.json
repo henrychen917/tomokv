@@ -152,5 +152,7 @@
     "-lm",
     "/home/user/Projects/cx-rlfix4/build/rlfix4/commands/wave7-db0/probe.o"
   ],
-  "sha256": "e0773c7f7e5af999196b4a118ea228708c3e5e1222fde6559b4c8f2303596a5a"
+  "sha256": "c17550d8de0386912d71051024a9d6608ffe1d30db334f224ea32c1992eea83b",
+  "fixture_sha256": "1a9a835ebc4603825a8e6989915644f4058520ea36088c6fa63b29fd1e2ab3b5",
+  "server_sha256": "ed3cc74bd8c6060327db08feda2b9ef32b22725ddfa12fb6073fc61790a5d4cf"
 }

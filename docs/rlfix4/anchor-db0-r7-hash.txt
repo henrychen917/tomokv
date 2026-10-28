@@ -1,0 +1,103 @@
+
+build/rlfix4/commands/anchor-db0/probe:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+000000000039f330 <tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]>:
+  39f330:	cmpb   $0x1,0x4c24a9(%rip)        # 8617e0 <tomo_db0::g_hash_kind>
+  39f337:	mov    %rdi,%rcx
+  39f33a:	mov    %esi,%edx
+  39f33c:	je     39f490 <tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]+0x160>
+  39f342:	movabs $0xff51afd7ed558ccd,%rdi
+  39f34c:	movabs $0x9e3779b97f4a7c15,%rax
+  39f356:	imul   %rdi,%rdx
+  39f35a:	xor    0x4c2477(%rip),%rdx        # 8617d8 <tomo_db0::g_hash_seed>
+  39f361:	xor    %rax,%rdx
+  39f364:	cmp    $0x7,%esi
+  39f367:	jbe    39f630 <tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]+0x300>
+  39f36d:	lea    -0x8(%rsi),%eax
+  39f370:	movabs $0xc4ceb9fe1a85ec53,%r9
+  39f37a:	shr    $0x3,%eax
+  39f37d:	inc    %eax
+  39f37f:	lea    (%rcx,%rax,8),%r8
+  39f383:	data16 cs nopw 0x0(%rax,%rax,1)
+  39f38e:	xchg   %ax,%ax
+  39f390:	xor    (%rcx),%rdx
+  39f393:	add    $0x8,%rcx
+  39f397:	mov    %rdx,%rax
+  39f39a:	shr    $0x21,%rax
+  39f39e:	xor    %rdx,%rax
+  39f3a1:	imul   %rdi,%rax
+  39f3a5:	mov    %rax,%rdx
+  39f3a8:	shr    $0x21,%rdx
+  39f3ac:	xor    %rdx,%rax
+  39f3af:	imul   %r9,%rax
+  39f3b3:	mov    %rax,%rdx
+  39f3b6:	shr    $0x21,%rdx
+  39f3ba:	xor    %rax,%rdx
+  39f3bd:	cmp    %r8,%rcx
+  39f3c0:	jne    39f390 <tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]+0x60>
+  39f3c2:	and    $0x7,%esi
+  39f3c5:	cmp    $0x3,%esi
+  39f3c8:	jbe    39f460 <tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]+0x130>
+  39f3ce:	mov    (%r8),%ecx
+  39f3d1:	mov    %esi,%esi
+  39f3d3:	mov    -0x4(%r8,%rsi,1),%eax
+  39f3d8:	shl    $0x20,%rcx
+  39f3dc:	or     %rcx,%rax
+  39f3df:	xor    %rdx,%rax
+  39f3e2:	mov    %rax,%rdx
+  39f3e5:	shr    $0x21,%rdx
+  39f3e9:	xor    %rax,%rdx
+  39f3ec:	movabs $0xff51afd7ed558ccd,%rax
+  39f3f6:	imul   %rax,%rdx
+  39f3fa:	mov    %rdx,%rax
+  39f3fd:	shr    $0x21,%rax
+  39f401:	xor    %rax,%rdx
+  39f404:	movabs $0xc4ceb9fe1a85ec53,%rax
+  39f40e:	imul   %rax,%rdx
+  39f412:	mov    %rdx,%rax
+  39f415:	shr    $0x21,%rax
+  39f419:	xor    %rax,%rdx
+  39f41c:	mov    %rdx,%rax
+  39f41f:	shr    $0x21,%rax
+  39f423:	xor    %rdx,%rax
+  39f426:	movabs $0xff51afd7ed558ccd,%rdx
+  39f430:	imul   %rdx,%rax
+  39f434:	mov    %rax,%rdx
+  39f437:	shr    $0x21,%rdx
+  39f43b:	xor    %rdx,%rax
+  39f43e:	movabs $0xc4ceb9fe1a85ec53,%rdx
+  39f448:	imul   %rdx,%rax
+  39f44c:	mov    %rax,%rdx
+  39f44f:	shr    $0x21,%rdx
+  39f453:	xor    %rdx,%rax
+  39f456:	ret
+  39f457:	nopw   0x0(%rax,%rax,1)
+  39f460:	test   %esi,%esi
+  39f462:	je     39f41c <tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]+0xec>
+  39f464:	lea    -0x1(%rsi),%eax
+  39f467:	movzbl (%r8,%rax,1),%ecx
+  39f46c:	movzbl (%r8),%eax
+  39f470:	shr    $1,%esi
+  39f472:	shl    $0x10,%rax
+  39f476:	or     %rax,%rcx
+  39f479:	movzbl (%r8,%rsi,1),%eax
+  39f47e:	shl    $0x8,%rax
+  39f482:	jmp    39f3dc <tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]+0xac>
+  39f487:	nopw   0x0(%rax,%rax,1)
+  39f490:	mov    0x4c2339(%rip),%r8        # 8617d0 <tomo_db0::g_sip_k0>
+  39f497:	mov    0x4c232a(%rip),%rax        # 8617c8 <tomo_db0::g_sip_k1>
+  39f49e:	movabs $0x6c7967656e657261,%r9
+  39f4a8:	movabs $0x736f6d6570736575,%rsi
+  39f4b2:	movabs $0x646f72616e646f6d,%rdi
+  39f4bc:	xor    %r8,%rsi
+  39f4bf:	xor    %r9,%r8
+  39f4c2:	movabs $0x7465646279746573,%r9
+  39f4cc:	xor    %rax,%rdi
+  39f4cf:	xor    %r9,%rax
+  39f4d2:	mov    %rdx,%r9
+  39f4d5:	and    $0xfffffffffffffff8,%r9
+  39f4d9:	je     39f52f <tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]+0x1ff>
+  39f4db:	xor    %r10d,%r10d

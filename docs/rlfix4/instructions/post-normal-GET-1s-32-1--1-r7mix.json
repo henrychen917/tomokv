@@ -1,13 +1,13 @@
 {
-  "binary_sha256": "f25558557856292a76b88d6cdad2fe1ade097431744c6e497a1695e8b183817f",
+  "binary_sha256": "ebb7cffab13790ed267790662bfe4a22ece184cc0664b70229964945cc81037a",
   "backend": "ptrace-rep-once",
-  "total": 48926,
+  "total": 48929,
   "functions": {
     "tomo::Client::nothing_to_write() const": 18,
     "tomo::FlatStore::hash_key(tomo::Slice)": 2776,
     "tomo::ThreadCtx::post_task_quiet(unsigned int, tomo::Task const&, tomo::LoopSignals&)": 135,
     "tomo::IoLoop::mark_active(tomo::Client*)": 242,
-    "tomo::IoLoop::flip_dispatch_paused() const": 9,
+    "tomo::IoLoop::flip_dispatch_paused() const": 7,
     "tomo::Rob<64u>::publish()": 160,
     "tomo::multi_session_watch_size(tomo::Client const&)": 24,
     "tomo::FlatStore::read_local_capture_in(tomo::FlatStore::ReadLocalTable const&, unsigned long, tomo::Slice, unsigned long const*&) const [clone .isra.0]": 2552,
@@ -38,14 +38,15 @@
     "tomo::IoLoop::r7_ReadLocalDemotionPlan::cancel()": 160,
     "std::unique_ptr<tomo::IoLoop::r7_ReadLocalDemotionPlan::Storage, std::default_delete<tomo::IoLoop::r7_ReadLocalDemotionPlan::Storage> >::~unique_ptr()": 15,
     "tomo::IoLoop::r7_ReadLocalDemotionPlan::commit_reads()": 75,
-    "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 15160
+    "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 15160,
+    "tomo::[asm .rlfence]": 5
   },
   "bodies": {
     "0x45bd70 tomo::Client::nothing_to_write() const": 18,
     "0x460960 tomo::FlatStore::hash_key(tomo::Slice)": 2776,
     "0x46b860 tomo::ThreadCtx::post_task_quiet(unsigned int, tomo::Task const&, tomo::LoopSignals&)": 135,
     "0x471ea0 tomo::IoLoop::mark_active(tomo::Client*)": 242,
-    "0x472610 tomo::IoLoop::flip_dispatch_paused() const": 9,
+    "0x472610 tomo::IoLoop::flip_dispatch_paused() const": 7,
     "0x478c10 tomo::Rob<64u>::publish()": 160,
     "0x50e260 tomo::multi_session_watch_size(tomo::Client const&)": 24,
     "0x728b50 tomo::FlatStore::read_local_capture_in(tomo::FlatStore::ReadLocalTable const&, unsigned long, tomo::Slice, unsigned long const*&) const [clone .isra.0]": 2552,
@@ -76,9 +77,10 @@
     "0x7daf30 tomo::IoLoop::r7_ReadLocalDemotionPlan::cancel()": 160,
     "0x7dc950 std::unique_ptr<tomo::IoLoop::r7_ReadLocalDemotionPlan::Storage, std::default_delete<tomo::IoLoop::r7_ReadLocalDemotionPlan::Storage> >::~unique_ptr()": 15,
     "0x7dc980 tomo::IoLoop::r7_ReadLocalDemotionPlan::commit_reads()": 75,
-    "0x7dfb20 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 15160
+    "0x7dfb20 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 15160,
+    "0x845ff9 tomo::[asm .rlfence]": 5
   },
-  "raw_total": 48926,
+  "raw_total": 48929,
   "clock_calls": 0,
   "excluded_calls": 66
 }

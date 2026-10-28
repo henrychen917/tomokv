@@ -1,0 +1,12 @@
+[
+  "src/main.o",
+  "db0/src/main.o",
+  "db0/src/core/fliplisten.o",
+  "db0/src/core/genthread.o",
+  "db0/src/core/reorder.o",
+  "db0/src/core/rl2s.o",
+  "src/core/fliplisten.o",
+  "src/core/genthread.o",
+  "src/core/reorder.o",
+  "src/core/rl2s.o"
+]

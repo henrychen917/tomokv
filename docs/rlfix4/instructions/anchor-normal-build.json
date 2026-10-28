@@ -141,5 +141,7 @@
     "-lm",
     "/home/user/Projects/cx-rlfix4/build/rlfix4/commands/anchor-normal/probe.o"
   ],
-  "sha256": "6b69adfc44036afcb4b289797e4a0b0ae203bce8132e6577ea32b078d927ce23"
+  "sha256": "3439ca369353d5f419d0dc4d7b6f7fe603b3a5a5a24090833531ebbb1e3f2c83",
+  "fixture_sha256": "1a9a835ebc4603825a8e6989915644f4058520ea36088c6fa63b29fd1e2ab3b5",
+  "server_sha256": "4c7d59028c10d69b3c8a113dcf7325b3dfe8c20a31598a16a04184c8222bf06c"
 }

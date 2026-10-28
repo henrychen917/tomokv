@@ -1,13 +1,13 @@
 {
-  "binary_sha256": "19802e1ce979165f8cd1bfb9992532717835b06d143f68bc70cb2e1a0b971eaa",
+  "binary_sha256": "b22779b9706f9ca31b9fabf04ccb8ed0297abc06f412f07364cb128efa950df7",
   "backend": "ptrace-rep-once",
-  "total": 48636,
+  "total": 48639,
   "functions": {
     "tomo::Client::nothing_to_write() const": 18,
     "tomo::FlatStore::hash_key(tomo::Slice)": 2776,
     "tomo::ThreadCtx::post_task_quiet(unsigned int, tomo::Task const&, tomo::LoopSignals&)": 135,
     "tomo::IoLoop::mark_active(tomo::Client*)": 242,
-    "tomo::IoLoop::flip_dispatch_paused() const": 9,
+    "tomo::IoLoop::flip_dispatch_paused() const": 7,
     "tomo::Rob<64u>::publish()": 160,
     "tomo::multi_session_watch_size(tomo::Client const&)": 24,
     "tomo::Op::cmd_name() const": 384,
@@ -34,14 +34,15 @@
     "unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 3985,
     "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)": 14856,
     "tomo::stamp_regular_range(tomo::Op&)": 1344,
-    "tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)": 1184
+    "tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)": 1184,
+    "tomo::[asm .rlfence]": 5
   },
   "bodies": {
     "0x45ba70 tomo::Client::nothing_to_write() const": 18,
     "0x460660 tomo::FlatStore::hash_key(tomo::Slice)": 2776,
     "0x46b560 tomo::ThreadCtx::post_task_quiet(unsigned int, tomo::Task const&, tomo::LoopSignals&)": 135,
     "0x471ba0 tomo::IoLoop::mark_active(tomo::Client*)": 242,
-    "0x472310 tomo::IoLoop::flip_dispatch_paused() const": 9,
+    "0x472310 tomo::IoLoop::flip_dispatch_paused() const": 7,
     "0x478910 tomo::Rob<64u>::publish()": 160,
     "0x50de90 tomo::multi_session_watch_size(tomo::Client const&)": 24,
     "0x55d410 tomo::Op::cmd_name() const": 384,
@@ -68,9 +69,10 @@
     "0x743000 unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 3985,
     "0x749100 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)": 14856,
     "0x7c5a20 tomo::stamp_regular_range(tomo::Op&)": 1344,
-    "0x7cc320 tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)": 1184
+    "0x7cc320 tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)": 1184,
+    "0x845919 tomo::[asm .rlfence]": 5
   },
-  "raw_total": 48636,
+  "raw_total": 48639,
   "clock_calls": 0,
   "excluded_calls": 66
 }

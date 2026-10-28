@@ -1,7 +1,7 @@
 {
-  "binary_sha256": "030d5534ba5d24cf2c8e2958773d7ed9e7b2ae44adbf1b64ad3a63803e6d08e5",
+  "binary_sha256": "f76f25b65ac650d0d8350762acf83c03ba2923ddc0e4ec32bc02ac55c38c7e5b",
   "backend": "ptrace-rep-once",
-  "total": 45136,
+  "total": 45137,
   "functions": {
     "tomo_db0::Client::nothing_to_write() const": 18,
     "tomo_db0::ThreadCtx::post_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 135,
@@ -30,7 +30,8 @@
     "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 728,
     "tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::ReadLocalPrefetchCapture const*)": 3132,
     "unsigned int tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 4167,
-    "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 14749
+    "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 14745,
+    "tomo_db0::[asm .rlfence]": 5
   },
   "bodies": {
     "0x64120 tomo_db0::Client::nothing_to_write() const": 18,
@@ -60,9 +61,10 @@
     "0x307780 tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 728,
     "0x3105e0 tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::ReadLocalPrefetchCapture const*)": 3132,
     "0x310c70 unsigned int tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 4167,
-    "0x317ff0 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 14749
+    "0x317ff0 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 14745,
+    "0x773e04 tomo_db0::[asm .rlfence]": 5
   },
-  "raw_total": 45136,
+  "raw_total": 45137,
   "clock_calls": 0,
   "excluded_calls": 65
 }

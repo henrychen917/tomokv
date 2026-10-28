@@ -1,7 +1,7 @@
 {
-  "binary_sha256": "030d5534ba5d24cf2c8e2958773d7ed9e7b2ae44adbf1b64ad3a63803e6d08e5",
+  "binary_sha256": "f76f25b65ac650d0d8350762acf83c03ba2923ddc0e4ec32bc02ac55c38c7e5b",
   "backend": "ptrace-rep-once",
-  "total": 45555,
+  "total": 45556,
   "functions": {
     "tomo_db0::Client::nothing_to_write() const": 18,
     "tomo_db0::IoLoop::mark_active(tomo_db0::Client*)": 242,
@@ -27,7 +27,8 @@
     "tomo_db0::ParseResult tomo_db0::resp_parse_t<false>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long) [clone .isra.0]": 6560,
     "tomo_db0::r7::shadow_available()": 3,
     "tomo_db0::IoLoop::r7_ReadLocalDemotionPlan::cancel()": 160,
-    "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 13804
+    "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 13800,
+    "tomo_db0::[asm .rlfence]": 5
   },
   "bodies": {
     "0x64120 tomo_db0::Client::nothing_to_write() const": 18,
@@ -54,9 +55,10 @@
     "0x39fd30 tomo_db0::ParseResult tomo_db0::resp_parse_t<false>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long) [clone .isra.0]": 6560,
     "0x3a0d70 tomo_db0::r7::shadow_available()": 3,
     "0x3a86b0 tomo_db0::IoLoop::r7_ReadLocalDemotionPlan::cancel()": 160,
-    "0x3ad660 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 13804
+    "0x3ad660 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 13800,
+    "0x773e04 tomo_db0::[asm .rlfence]": 5
   },
-  "raw_total": 45555,
+  "raw_total": 45556,
   "clock_calls": 0,
   "excluded_calls": 69
 }

@@ -1,0 +1,25 @@
+{
+  "arm": "post",
+  "unit": "db0/src/core/fliplisten.o",
+  "command": [
+    "g++",
+    "-ffunction-sections",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/core/fliplisten.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/post/db0/src/core/fliplisten.o"
+  ],
+  "original_sha256": "60357cc8677ef27959606aedf042000415900d555f41f76e6062c9de12568359",
+  "sha256": "4b12265a0eae588c1609125ba6fdaab02fd8b51260a453564dd70d40106f75a2"
+}

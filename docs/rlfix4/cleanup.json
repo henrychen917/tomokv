@@ -1,0 +1,17 @@
+[
+  {
+    "path": "build/rlfix4/anchor-source",
+    "retained_binary": "build/tomokv-rlfix4-anchor",
+    "hash_record": "docs/rlfix4/baseline-arms.json"
+  },
+  {
+    "path": "build/rlfix4/wave6-source",
+    "retained_binary": "build/tomokv-rlfix4-wave6",
+    "hash_record": "docs/rlfix4/baseline-arms.json"
+  },
+  {
+    "path": "build/rlfix4/wave7-source",
+    "retained_binary": "build/tomokv-rlfix4-wave7",
+    "hash_record": "docs/rlfix4/baseline-arms.json"
+  }
+]

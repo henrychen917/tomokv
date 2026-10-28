@@ -2,4 +2,4 @@
 TomoKV 1.0-cpp (Redis 7.4.10 compatible)
 WITNESS reads=1 pending_writes=1 keys_per_read=1
 PASS bounded production command scope
-COUNT 2301
+COUNT 2304
