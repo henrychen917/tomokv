@@ -74,6 +74,7 @@ struct FunctionDef {
     std::string name;
     std::string description;
     bool        has_description = false;
+    bool        callable = true; // last registration owns a case-folded callback
     uint32_t    flags = 0;
 };
 
@@ -224,7 +225,8 @@ public:
         std::lock_guard<std::mutex> lock(mu_);
         for (const auto& entry : libraries_)
             for (const FunctionDef& function : entry.second.functions)
-                if (function_key(std::string_view(name.p, name.n)) == function_key(function.name))
+                if (function.callable &&
+                    function_key(std::string_view(name.p, name.n)) == function_key(function.name))
                     return !(function.flags & kFlagNoWrites);
         return unknown;
     }
@@ -405,6 +407,11 @@ int fn_register(lua_State* state) {
         for (const FunctionDef& existing : *sink->defs)
             if (existing.name == name)
                 return register_error(state, "Function already exists in the library");
+        // Redis accepts differently cased names inside a library, although its
+        // global case-insensitive dictionary exposes only one. Keep our routing
+        // metadata tied to the same last registration used by the callback table.
+        for (FunctionDef& existing : *sink->defs)
+            if (function_key(existing.name) == lookup) existing.callable = false;
         FunctionDef def;
         def.name = name;
         def.description = description;

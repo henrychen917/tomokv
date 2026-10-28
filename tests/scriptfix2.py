@@ -210,6 +210,8 @@ def extras(root):
                      "collectgarbage('collect') return 1", "return os.execute('anything')",
                      "return os.clock() >= 0", "math.randomseed(10) return {tostring(math.random()),math.random(10),math.random(-10,10)}",
                      "math.randomseed(10) return tostring(math.random())",
+                     "math.randomseed(10) return math.random(-2147483648,2147483647)",
+                     "math.randomseed(10) return math.random(-2147483648,0)",
                      "return math.random(0)", "return math.random(2,1)", "return math.random(1,2,3)"):
             eval_(code)
         load("redis.register_function('globals',function() return {type(os.clock),type(loadstring),type(coroutine),type(collectgarbage)} end)")

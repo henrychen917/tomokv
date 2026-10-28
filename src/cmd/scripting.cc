@@ -981,7 +981,10 @@ int script_random(lua_State* state) {
     } else if (count == 2) {
         const int lower = luaL_checkint(state, 1), upper = luaL_checkint(state, 2);
         luaL_argcheck(state, lower <= upper, 2, "interval is empty");
-        lua_pushnumber(state, std::floor(fraction * (double(upper) - lower + 1)) + lower);
+        // The reference's interval arithmetic is a 32-bit int on this target.
+        // Spell the wrap explicitly instead of invoking signed-overflow UB.
+        const int32_t width = static_cast<int32_t>(uint32_t(upper) - uint32_t(lower) + 1);
+        lua_pushnumber(state, std::floor(fraction * width) + lower);
     } else return luaL_error(state, "wrong number of arguments");
     return 1;
 }
