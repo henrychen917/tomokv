@@ -1397,7 +1397,7 @@ void blocking_plain_mutation_published(Shard& shard, Op& op) {
     if (!std::strcmp(name, "LPUSH") || !std::strcmp(name, "RPUSH") ||
         !std::strcmp(name, "LPUSHX") || !std::strcmp(name, "RPUSHX") ||
         !std::strcmp(name, "ZADD") || !std::strcmp(name, "ZINCRBY") ||
-        !std::strcmp(name, "XADD") || !std::strcmp(name, "SET") ||
+        !std::strcmp(name, "XADD") || !std::strcmp(name, "SET") || !std::strcmp(name, "RESTORE") ||
         !std::strcmp(name, "DEL") || !std::strcmp(name, "UNLINK"))
         blocking_publish_key(shard, op.hash, op.key().p, op.key().n, op.key().ns);
     else if (!std::strcmp(name, "LMOVE") || !std::strcmp(name, "RPOPLPUSH") ||
@@ -1416,6 +1416,14 @@ void blocking_plain_mutation_published(Shard& shard, Op& op) {
         const Slice key = op.arg(2);
         blocking_publish_key(shard, FlatStore::hash_key(key), key.p, key.n, key.ns);
     }
+}
+
+void blocking_cleanup_published(Shard& shard) {
+    if (blocking_tls_defer_plain || !blocking_tls_self || !blocking_tls_ring ||
+        !shard.has_blocking_waiters() || !shard.take_blocking_dirty()) return;
+    BlockingRegistry* registry = blocking_registry_get(shard, false);
+    if (registry)
+        registry->sweep(shard, shard.now_ms(), true, *blocking_tls_self, *blocking_tls_ring);
 }
 
 uint32_t blocking_owner_cycle(Server&, ThreadCtx& self, Ring& ring, int64_t now_ms,
