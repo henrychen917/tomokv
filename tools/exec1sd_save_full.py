@@ -42,7 +42,7 @@ thread apply all bt
 ''')
     env=dict(os.environ,REDIS74_ROOT='/home/user/Projects/redis',GATE_DIFFER_OUT=str(out/'differ'),
         GATE_DIFFER_NET_IO='epoll',GATE_DIFFER_GEOMETRY='split',GATE_DIFFER_PART='split-0',
-        GATE_DIFFER_PLAN=str(d.OUT/'epoll-seed22-plan.json'),GATE_LOAD_CORES='80-95',
+        GATE_DIFFER_PLAN=str(d.DOCS/'epoll-seed22-plan.json'),GATE_LOAD_CORES='80-95',
         GATE_DIFFER_ORACLE_CORES='72-79')
     # A sibling debugger needs process-local Yama consent. This exec shim keeps
     # the gate's owned PID and its listener checks intact; no system setting is
@@ -78,7 +78,7 @@ thread apply all bt
     logfile=out/'observer.log';log=logfile.read_text()
     rows=[json.loads(line[len('SAVE_RESULT '):]) for line in log.splitlines() if line.startswith('SAVE_RESULT ')]
     d.save(d.DOCS/('save-full-traceable-'+a.arm+'.json'),dict(arm=arm,command=cmd,returncode=result.returncode,
-        plan_sha256=d.sha(d.OUT/'epoll-seed22-plan.json'),observer_sha256=d.sha(observer),
+        plan_sha256=d.sha(d.DOCS/'epoll-seed22-plan.json'),observer_sha256=d.sha(observer),
         target_log=str(logfile),target_log_sha256=d.sha(logfile),results=rows,
         observer_errors=[line for line in log.splitlines() if line.startswith('SAVE_OBSERVER_ERROR ')]))
     print(a.arm,'full split-0 plan exit',result.returncode,rows,flush=True)

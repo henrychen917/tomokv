@@ -14,13 +14,6 @@
     "bytes": 218187712
   },
   {
-    "arm": "POST",
-    "source_commit": "ba92b3e8118b5168818f8388489b981d457a8a5d",
-    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/POST",
-    "sha256": "893bf7e6d8adcdf924a5181dd0e94e4ba0e7401de7c6c17cc75b666ca51d8c3c",
-    "bytes": 220116456
-  },
-  {
     "arm": "X12",
     "source_commit": "393d6ceb129d8c99dffd70959d6a19267c525fe0",
     "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/X12",
@@ -54,5 +47,28 @@
     "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/REUSE",
     "sha256": "196fa795a956afd6bd0aa5e0d8980e9fcc4ec1e849d1d866317dc87d93039d53",
     "bytes": 220095600
+  },
+  {
+    "arm": "POST",
+    "source_commit": "0ab0ec1577db213c5051a0485dee5a71ef41011f",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/POST",
+    "sha256": "45a350085a474627366f941a82064decd19aae52333456e11de8b773c5006745",
+    "bytes": 220116336
+  },
+  {
+    "arm": "POST-layout",
+    "source_commit": "0ab0ec1577db213c5051a0485dee5a71ef41011f",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/POST-layout",
+    "sha256": "64e4f860c7912d27c013933e7d9cba7604a36154751175b82f1a991efe11ed7a",
+    "bytes": 426964024,
+    "control": "A: PRE behaviour in the exact combined POST-layout image; larger than release POST"
+  },
+  {
+    "arm": "PAD-A",
+    "source_commit": "393d6ceb129d8c99dffd70959d6a19267c525fe0",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/PAD-A",
+    "sha256": "54376ee770ef0781fd1f097630a3c6535ed76acf1166044846465844a6b9bf1b",
+    "bytes": 426964024,
+    "control": "A: PRE behaviour in the exact combined POST-layout image; larger than release POST"
   }
 ]

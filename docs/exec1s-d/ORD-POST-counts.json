@@ -27,7 +27,7 @@
       "tomo::FlatStore::publish_database_counts() const": 147,
       "tomo::Shard::publish_size()": 58
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -57,7 +57,7 @@
       "tomo::FlatStore::publish_database_counts() const": 147,
       "tomo::Shard::publish_size()": 58
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -84,7 +84,7 @@
       "tomo::FlatStore::publish_database_counts() const": 588,
       "tomo::Shard::publish_size()": 232
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -111,7 +111,7 @@
       "tomo::FlatStore::publish_database_counts() const": 588,
       "tomo::Shard::publish_size()": 232
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -146,7 +146,7 @@
       "tomo::FlatStore::publish_database_counts() const": 147,
       "tomo::Shard::publish_size()": 58
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -181,7 +181,7 @@
       "tomo::FlatStore::publish_database_counts() const": 147,
       "tomo::Shard::publish_size()": 58
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -213,7 +213,7 @@
       "tomo::FlatStore::publish_database_counts() const": 588,
       "tomo::Shard::publish_size()": 232
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -245,7 +245,7 @@
       "tomo::FlatStore::publish_database_counts() const": 588,
       "tomo::Shard::publish_size()": 232
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -289,7 +289,7 @@
       "tomo::FlatStore::publish_database_counts() const": 147,
       "tomo::Shard::publish_size()": 58
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -333,7 +333,7 @@
       "tomo::FlatStore::publish_database_counts() const": 147,
       "tomo::Shard::publish_size()": 58
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -374,7 +374,7 @@
       "tomo::FlatStore::publish_database_counts() const": 588,
       "tomo::Shard::publish_size()": 232
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -415,7 +415,7 @@
       "tomo::FlatStore::publish_database_counts() const": 588,
       "tomo::Shard::publish_size()": 232
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -471,7 +471,7 @@
       "tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const": 23,
       "tomo::ScatterFinish tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 383
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -527,7 +527,7 @@
       "tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const": 736,
       "tomo::ScatterFinish tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 12256
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -583,7 +583,7 @@
       "tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const": 23,
       "tomo::ScatterFinish tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 383
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -639,7 +639,7 @@
       "tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const": 736,
       "tomo::ScatterFinish tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 12256
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -701,7 +701,7 @@
       "tomo::KvObj::val_ptr()": 128,
       "tomo::l4prebuild_policy(unsigned int)": 28
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -711,10 +711,10 @@
     "batch": 1,
     "atomic": 1,
     "threshold": -1,
-    "steps": 17474,
+    "steps": 17466,
     "clock_calls": 1,
     "excluded_calls": 45,
-    "total": 16999,
+    "total": 16991,
     "functions": {
       "unsigned long tomo::kvobj_external_bytes<false>(tomo::KvObj const*, void const*) [clone .isra.0]": 160,
       "tomo::FlatStore::track_expire(unsigned long, tomo::KvObj*) [clone .isra.0]": 200,
@@ -751,7 +751,7 @@
       "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 384,
       "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1866,
       "tomo::xshard_complete_iofused(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 16,
-      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 3184,
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 3176,
       "tomo::FlatStore::atomic_install_group(void*, unsigned long, tomo::Slice, tomo::KvObj*)": 664,
       "tomo::FlatStore::atomic_prepare_group(tomo::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)": 792,
       "tomo::Server::atomic_try_admit(unsigned int, unsigned long&, bool)": 50,
@@ -767,7 +767,7 @@
       "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)::{lambda(tomo::KvObj const*, bool)#1}::operator()(tomo::KvObj const*, bool) const": 472,
       "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)": 192
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -829,7 +829,7 @@
       "tomo::KvObj::val_ptr()": 4096,
       "tomo::l4prebuild_policy(unsigned int)": 896
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -839,10 +839,10 @@
     "batch": 32,
     "atomic": 1,
     "threshold": -1,
-    "steps": 977196,
+    "steps": 976940,
     "clock_calls": 32,
     "excluded_calls": 1176,
-    "total": 962430,
+    "total": 962174,
     "functions": {
       "unsigned long tomo::kvobj_external_bytes<false>(tomo::KvObj const*, void const*) [clone .isra.0]": 5120,
       "tomo::FlatStore::track_expire(unsigned long, tomo::KvObj*) [clone .isra.0]": 6400,
@@ -882,7 +882,7 @@
       "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 12288,
       "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 59712,
       "tomo::xshard_complete_iofused(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 512,
-      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 113048,
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 112792,
       "tomo::FlatStore::atomic_install_group(void*, unsigned long, tomo::Slice, tomo::KvObj*)": 21248,
       "tomo::FlatStore::atomic_prepare_group(tomo::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)": 15424,
       "tomo::Server::atomic_try_admit(unsigned int, unsigned long&, bool)": 1600,
@@ -898,7 +898,7 @@
       "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)::{lambda(tomo::KvObj const*, bool)#1}::operator()(tomo::KvObj const*, bool) const": 15104,
       "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)": 6144
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -959,7 +959,7 @@
       "tomo::good_size(unsigned long)": 192,
       "tomo::KvObj::val_ptr()": 128
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -969,10 +969,10 @@
     "batch": 1,
     "atomic": 1,
     "threshold": -1,
-    "steps": 17142,
+    "steps": 17134,
     "clock_calls": 1,
     "excluded_calls": 45,
-    "total": 16667,
+    "total": 16659,
     "functions": {
       "unsigned long tomo::kvobj_external_bytes<false>(tomo::KvObj const*, void const*) [clone .isra.0]": 160,
       "tomo::FlatStore::track_expire(unsigned long, tomo::KvObj*) [clone .isra.0]": 200,
@@ -1009,7 +1009,7 @@
       "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 384,
       "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1712,
       "tomo::xshard_complete(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 16,
-      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 3184,
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 3176,
       "tomo::FlatStore::atomic_install_group(void*, unsigned long, tomo::Slice, tomo::KvObj*)": 664,
       "tomo::FlatStore::atomic_prepare_group(tomo::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)": 792,
       "tomo::Server::atomic_try_admit(unsigned int, unsigned long&, bool)": 50,
@@ -1024,7 +1024,7 @@
       "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)::{lambda(tomo::KvObj const*, bool)#1}::operator()(tomo::KvObj const*, bool) const": 472,
       "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)": 192
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -1085,7 +1085,7 @@
       "tomo::good_size(unsigned long)": 6144,
       "tomo::KvObj::val_ptr()": 4096
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -1095,10 +1095,10 @@
     "batch": 32,
     "atomic": 1,
     "threshold": -1,
-    "steps": 966572,
+    "steps": 966316,
     "clock_calls": 32,
     "excluded_calls": 1176,
-    "total": 951806,
+    "total": 951550,
     "functions": {
       "unsigned long tomo::kvobj_external_bytes<false>(tomo::KvObj const*, void const*) [clone .isra.0]": 5120,
       "tomo::FlatStore::track_expire(unsigned long, tomo::KvObj*) [clone .isra.0]": 6400,
@@ -1138,7 +1138,7 @@
       "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 12288,
       "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 54784,
       "tomo::xshard_complete(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 512,
-      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 113048,
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 112792,
       "tomo::FlatStore::atomic_install_group(void*, unsigned long, tomo::Slice, tomo::KvObj*)": 21248,
       "tomo::FlatStore::atomic_prepare_group(tomo::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)": 15424,
       "tomo::Server::atomic_try_admit(unsigned int, unsigned long&, bool)": 1600,
@@ -1153,7 +1153,7 @@
       "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)::{lambda(tomo::KvObj const*, bool)#1}::operator()(tomo::KvObj const*, bool) const": 15104,
       "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)": 6144
     },
-    "probe_sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0"
+    "probe_sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f"
   },
   {
     "arm": "ORD-POST",
@@ -1182,7 +1182,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 22,
       "tomo_db0::Shard::publish_size()": 54
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   },
   {
     "arm": "ORD-POST",
@@ -1211,7 +1211,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 22,
       "tomo_db0::Shard::publish_size()": 54
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   },
   {
     "arm": "ORD-POST",
@@ -1237,7 +1237,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 88,
       "tomo_db0::Shard::publish_size()": 216
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   },
   {
     "arm": "ORD-POST",
@@ -1263,7 +1263,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 88,
       "tomo_db0::Shard::publish_size()": 216
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   },
   {
     "arm": "ORD-POST",
@@ -1297,7 +1297,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 22,
       "tomo_db0::Shard::publish_size()": 54
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   },
   {
     "arm": "ORD-POST",
@@ -1331,7 +1331,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 22,
       "tomo_db0::Shard::publish_size()": 54
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   },
   {
     "arm": "ORD-POST",
@@ -1362,7 +1362,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 88,
       "tomo_db0::Shard::publish_size()": 216
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   },
   {
     "arm": "ORD-POST",
@@ -1393,7 +1393,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 88,
       "tomo_db0::Shard::publish_size()": 216
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   },
   {
     "arm": "ORD-POST",
@@ -1434,7 +1434,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 22,
       "tomo_db0::Shard::publish_size()": 54
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   },
   {
     "arm": "ORD-POST",
@@ -1475,7 +1475,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 22,
       "tomo_db0::Shard::publish_size()": 54
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   },
   {
     "arm": "ORD-POST",
@@ -1513,7 +1513,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 88,
       "tomo_db0::Shard::publish_size()": 216
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   },
   {
     "arm": "ORD-POST",
@@ -1551,7 +1551,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 88,
       "tomo_db0::Shard::publish_size()": 216
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   },
   {
     "arm": "ORD-POST",
@@ -1606,7 +1606,7 @@
       "tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const": 23,
       "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 383
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   },
   {
     "arm": "ORD-POST",
@@ -1661,7 +1661,7 @@
       "tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const": 736,
       "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 12256
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   },
   {
     "arm": "ORD-POST",
@@ -1716,7 +1716,7 @@
       "tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const": 23,
       "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 383
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   },
   {
     "arm": "ORD-POST",
@@ -1771,7 +1771,7 @@
       "tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const": 736,
       "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 12256
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   },
   {
     "arm": "ORD-POST",
@@ -1833,7 +1833,7 @@
       "tomo_db0::KvObj::val_ptr()": 128,
       "tomo_db0::l4prebuild_policy(unsigned int)": 28
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   },
   {
     "arm": "ORD-POST",
@@ -1898,7 +1898,7 @@
       "tomo_db0::FlatStore::atomic_acquire_value_block(unsigned long)": 248,
       "tomo_db0::l4prebuild_policy(unsigned int)": 28
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   },
   {
     "arm": "ORD-POST",
@@ -1960,7 +1960,7 @@
       "tomo_db0::KvObj::val_ptr()": 4096,
       "tomo_db0::l4prebuild_policy(unsigned int)": 896
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   },
   {
     "arm": "ORD-POST",
@@ -2028,7 +2028,7 @@
       "tomo_db0::FlatStore::atomic_acquire_value_block(unsigned long)": 7936,
       "tomo_db0::l4prebuild_policy(unsigned int)": 896
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   },
   {
     "arm": "ORD-POST",
@@ -2089,7 +2089,7 @@
       "tomo_db0::good_size(unsigned long)": 192,
       "tomo_db0::KvObj::val_ptr()": 128
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   },
   {
     "arm": "ORD-POST",
@@ -2153,7 +2153,7 @@
       "tomo_db0::xshard_make_atomic_string(tomo_db0::Shard&, tomo_db0::Slice, tomo_db0::Slice, long, bool, bool)": 1096,
       "tomo_db0::FlatStore::atomic_acquire_value_block(unsigned long)": 248
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   },
   {
     "arm": "ORD-POST",
@@ -2214,7 +2214,7 @@
       "tomo_db0::good_size(unsigned long)": 6144,
       "tomo_db0::KvObj::val_ptr()": 4096
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   },
   {
     "arm": "ORD-POST",
@@ -2281,6 +2281,6 @@
       "tomo_db0::xshard_make_atomic_string(tomo_db0::Shard&, tomo_db0::Slice, tomo_db0::Slice, long, bool, bool)": 35072,
       "tomo_db0::FlatStore::atomic_acquire_value_block(unsigned long)": 7936
     },
-    "probe_sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302"
+    "probe_sha256": "f2ecbb890425548b4d31f4a6b4730ece1563ca3a3f4a552de4fff22f5efd9915"
   }
 ]

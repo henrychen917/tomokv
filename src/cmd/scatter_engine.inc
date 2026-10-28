@@ -2884,7 +2884,7 @@ void xshard_visit_task_hashes(const Task& task, void* context,
 // This changes jump padding only; the complete command scopes cover both DB
 // variants and the release/PAD merit request checks the resulting code layout.
 #if !TOMO_SINGLE_DATABASE
-__attribute__((optimize("align-jumps=16:8")))
+__attribute__((optimize("align-jumps=1,align-loops=1")))
 #endif
 ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                                  uint32_t owner_thread_id) {

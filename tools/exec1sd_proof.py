@@ -27,7 +27,8 @@ def main():
     elif a.phase=='families':
         jobs=list(dict.fromkeys(inherited.JOBS+['txnorder_wound',
             'blockfix2','streamfix','crlffix','persistfix2_lastsave',
-            'persistfix2_shutdown','persistfix2_commands','persistfix2_errors']))
+            'persistfix2_shutdown','persistfix2_commands','persistfix2_errors',
+            'wb_mixed','slotless','reorder_bounds','rob_portable']))
         # Expand at412's registered stage-specific jobs rather than choosing one stage.
         gate_text=(d.ROOT/'tests/gate.sh').read_text()
         import re
