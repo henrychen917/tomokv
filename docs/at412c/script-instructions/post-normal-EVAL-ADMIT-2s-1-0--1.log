@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-at412c/build/at412/commands/post-normal-EVAL-ADMIT-2s-1-0--1.log
+SHA-256: c204571d36ff496522de3724ba174d31f416eac49a8a26073103b3fcdf2e67d4
+Exit: 0
+0x0000555555d68fc7	617	    uint64_t id() const { return id_; }
+tomo::CoreConcurrencyTest::need (v=true) at /home/user/Projects/cx-at412c/tests/txnorder_command_scope.cc:23
+23	 static void need(bool v){if(!v)std::abort();}
+0x0000555555d68fd2	23	 static void need(bool v){if(!v)std::abort();}
+0x0000555555d68fd8 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-at412c/tests/txnorder_command_scope.cc:74
+74	    if(activation&&command=="EVAL-ADMIT")scope_end();
+0x0000555555d68fdf	74	    if(activation&&command=="EVAL-ADMIT")scope_end();
+0x0000555555d68fe2	74	    if(activation&&command=="EVAL-ADMIT")scope_end();
+0x0000555555d68fe4	74	    if(activation&&command=="EVAL-ADMIT")scope_end();
+0x0000555555d68feb	74	    if(activation&&command=="EVAL-ADMIT")scope_end();
+0x0000555555d68ff2	74	    if(activation&&command=="EVAL-ADMIT")scope_end();
+0x0000555555d68ff5	74	    if(activation&&command=="EVAL-ADMIT")scope_end();
+0x0000555555d68ffa	74	    if(activation&&command=="EVAL-ADMIT")scope_end();
+0x0000555555d68ffc	74	    if(activation&&command=="EVAL-ADMIT")scope_end();
+0x0000555555d69bbf	74	    if(activation&&command=="EVAL-ADMIT")scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-at412c/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 1851236) exited normally]
+COUNT 7677

@@ -1,0 +1,51 @@
+{"case": "T16", "leg": "redis-redis-0-EVAL", "value": {"events": 12, "script_events": [1, 1], "deviation": null, "readonly": 80}, "pass": true}
+{"case": "T16", "leg": "redis-redis-0-EVALSHA", "value": {"events": 12, "script_events": [1, 1], "deviation": null, "readonly": 80}, "pass": true}
+{"case": "T16", "leg": "redis-redis-0-FCALL", "value": {"events": 12, "script_events": [1, 1], "deviation": null, "readonly": 80}, "pass": true}
+{"keys": ["at412:T16:EVAL:0", "at412:T16:EVAL:1"], "geometry": [[12, 4], [15, 7]]}
+{"case": "T16", "leg": "1s-uring-0-EVAL", "value": {"events": 10, "script_events": [0, 0], "deviation": "XS-NOTIFY-1", "readonly": 80}, "pass": true}
+{"keys": ["at412:T16:EVALSHA:0", "at412:T16:EVALSHA:1"], "geometry": [[9, 1], [2, 2]]}
+{"case": "T16", "leg": "1s-uring-0-EVALSHA", "value": {"events": 10, "script_events": [0, 0], "deviation": "XS-NOTIFY-1", "readonly": 80}, "pass": true}
+{"keys": ["at412:T16:FCALL:0", "at412:T16:FCALL:1"], "geometry": [[2, 2], [14, 6]]}
+{"case": "T16", "leg": "1s-uring-0-FCALL", "pass_": false, "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 993, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 950, in run_case\n    result = readonly_notifications(c, port, keys, call, command, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 880, in readonly_notifications\n    parallel(port, [writer, reader])\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 532, in parallel\n    assert not errors, errors\n           ^^^^^^^^^^\nAssertionError: ['Traceback (most recent call last):\\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 523, in run\\n    fn(conn)\\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 879, in reader\\n    assert isinstance(r, list) and len(r) == 2 and r[0] == r[1], r\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: [b\\'2\\', b\\'1\\']\\n']\n"}
+{"keys": ["at412:T16:EVAL:0", "at412:T16:EVAL:1"], "geometry": [[12, 4], [13, 5]]}
+{"case": "T16", "leg": "1s-uring-1-EVAL", "value": {"events": 10, "script_events": [0, 0], "deviation": "XS-NOTIFY-1", "readonly": 80}, "pass": true}
+{"keys": ["at412:T16:EVALSHA:0", "at412:T16:EVALSHA:1"], "geometry": [[15, 7], [1, 1]]}
+{"case": "T16", "leg": "1s-uring-1-EVALSHA", "value": {"events": 10, "script_events": [0, 0], "deviation": "XS-NOTIFY-1", "readonly": 80}, "pass": true}
+{"keys": ["at412:T16:FCALL:0", "at412:T16:FCALL:3"], "geometry": [[15, 7], [6, 6]]}
+{"case": "T16", "leg": "1s-uring-1-FCALL", "value": {"events": 10, "script_events": [0, 0], "deviation": "XS-NOTIFY-1", "readonly": 80}, "pass": true}
+{"keys": ["at412:T16:EVAL:0", "at412:T16:EVAL:2"], "geometry": [[11, 3], [12, 4]]}
+{"case": "T16", "leg": "1s-epoll-0-EVAL", "value": {"events": 10, "script_events": [0, 0], "deviation": "XS-NOTIFY-1", "readonly": 80}, "pass": true}
+{"keys": ["at412:T16:EVALSHA:0", "at412:T16:EVALSHA:1"], "geometry": [[12, 4], [6, 6]]}
+{"case": "T16", "leg": "1s-epoll-0-EVALSHA", "value": {"events": 10, "script_events": [0, 0], "deviation": "XS-NOTIFY-1", "readonly": 80}, "pass": true}
+{"keys": ["at412:T16:FCALL:0", "at412:T16:FCALL:1"], "geometry": [[7, 7], [11, 3]]}
+{"case": "T16", "leg": "1s-epoll-0-FCALL", "value": {"events": 10, "script_events": [0, 0], "deviation": "XS-NOTIFY-1", "readonly": 80}, "pass": true}
+{"keys": ["at412:T16:EVAL:0", "at412:T16:EVAL:2"], "geometry": [[9, 1], [3, 3]]}
+{"case": "T16", "leg": "1s-epoll-1-EVAL", "value": {"events": 10, "script_events": [0, 0], "deviation": "XS-NOTIFY-1", "readonly": 80}, "pass": true}
+{"keys": ["at412:T16:EVALSHA:0", "at412:T16:EVALSHA:2"], "geometry": [[4, 4], [2, 2]]}
+{"case": "T16", "leg": "1s-epoll-1-EVALSHA", "value": {"events": 10, "script_events": [0, 0], "deviation": "XS-NOTIFY-1", "readonly": 80}, "pass": true}
+{"keys": ["at412:T16:FCALL:0", "at412:T16:FCALL:1"], "geometry": [[12, 4], [5, 5]]}
+{"case": "T16", "leg": "1s-epoll-1-FCALL", "value": {"events": 10, "script_events": [0, 0], "deviation": "XS-NOTIFY-1", "readonly": 80}, "pass": true}
+{"keys": ["at412:T16:EVAL:0", "at412:T16:EVAL:1"], "geometry": [[3, 7], [8, 6]]}
+{"case": "T16", "leg": "2s-uring-0-EVAL", "value": {"events": 10, "script_events": [0, 0], "deviation": "XS-NOTIFY-1", "readonly": 80}, "pass": true}
+{"keys": ["at412:T16:EVALSHA:0", "at412:T16:EVALSHA:1"], "geometry": [[8, 6], [7, 7]]}
+{"case": "T16", "leg": "2s-uring-0-EVALSHA", "value": {"events": 10, "script_events": [0, 0], "deviation": "XS-NOTIFY-1", "readonly": 80}, "pass": true}
+{"keys": ["at412:T16:FCALL:0", "at412:T16:FCALL:2"], "geometry": [[9, 7], [2, 6]]}
+{"case": "T16", "leg": "2s-uring-0-FCALL", "value": {"events": 10, "script_events": [0, 0], "deviation": "XS-NOTIFY-1", "readonly": 80}, "pass": true}
+{"keys": ["at412:T16:EVAL:0", "at412:T16:EVAL:1"], "geometry": [[14, 6], [5, 7]]}
+{"case": "T16", "leg": "2s-uring-1-EVAL", "value": {"events": 10, "script_events": [0, 0], "deviation": "XS-NOTIFY-1", "readonly": 80}, "pass": true}
+{"keys": ["at412:T16:EVALSHA:0", "at412:T16:EVALSHA:6"], "geometry": [[0, 6], [15, 7]]}
+{"case": "T16", "leg": "2s-uring-1-EVALSHA", "value": {"events": 10, "script_events": [0, 0], "deviation": "XS-NOTIFY-1", "readonly": 80}, "pass": true}
+{"keys": ["at412:T16:FCALL:0", "at412:T16:FCALL:1"], "geometry": [[2, 6], [1, 7]]}
+{"case": "T16", "leg": "2s-uring-1-FCALL", "value": {"events": 10, "script_events": [0, 0], "deviation": "XS-NOTIFY-1", "readonly": 80}, "pass": true}
+{"keys": ["at412:T16:EVAL:0", "at412:T16:EVAL:2"], "geometry": [[6, 6], [9, 7]]}
+{"case": "T16", "leg": "2s-epoll-0-EVAL", "value": {"events": 10, "script_events": [0, 0], "deviation": "XS-NOTIFY-1", "readonly": 80}, "pass": true}
+{"keys": ["at412:T16:EVALSHA:0", "at412:T16:EVALSHA:2"], "geometry": [[12, 6], [9, 7]]}
+{"case": "T16", "leg": "2s-epoll-0-EVALSHA", "value": {"events": 10, "script_events": [0, 0], "deviation": "XS-NOTIFY-1", "readonly": 80}, "pass": true}
+{"keys": ["at412:T16:FCALL:0", "at412:T16:FCALL:1"], "geometry": [[2, 6], [11, 7]]}
+{"case": "T16", "leg": "2s-epoll-0-FCALL", "value": {"events": 10, "script_events": [0, 0], "deviation": "XS-NOTIFY-1", "readonly": 80}, "pass": true}
+{"keys": ["at412:T16:EVAL:0", "at412:T16:EVAL:1"], "geometry": [[3, 7], [8, 6]]}
+{"case": "T16", "leg": "2s-epoll-1-EVAL", "value": {"events": 10, "script_events": [0, 0], "deviation": "XS-NOTIFY-1", "readonly": 80}, "pass": true}
+{"keys": ["at412:T16:EVALSHA:0", "at412:T16:EVALSHA:2"], "geometry": [[14, 6], [5, 7]]}
+{"case": "T16", "leg": "2s-epoll-1-EVALSHA", "value": {"events": 10, "script_events": [0, 0], "deviation": "XS-NOTIFY-1", "readonly": 80}, "pass": true}
+{"keys": ["at412:T16:FCALL:0", "at412:T16:FCALL:2"], "geometry": [[12, 6], [1, 7]]}
+{"case": "T16", "leg": "2s-epoll-1-FCALL", "value": {"events": 10, "script_events": [0, 0], "deviation": "XS-NOTIFY-1", "readonly": 80}, "pass": true}

@@ -57,7 +57,47 @@ struct CoreConcurrencyTest {
    op.spec=command_lookup(op.arg(0));op.hash=FlatStore::hash_key(op.arg(1));op.spec->handler(server.shard(server.router().shard_of(op.hash)),op);
    need(std::string(op.reply.data(),op.reply.size())=="+OK\r\n");
   }
-  if(command=="GET"||command=="SET"||command=="INCR"){
+  if(command=="EVAL"||command=="EVAL-ADMIT"){
+   need(n==1); ScatterArenaPool pool; Ring ring;
+   const std::string code="return {redis.call('GET',KEYS[1]),redis.call('SET',KEYS[2],ARGV[1])}";
+   const std::string updated(64,'w');
+   const std::vector<std::string> args{"EVAL",code,"2",keys[0],keys[1],updated};
+   // Warm the Lua runtime and arena once, outside the measured activation.
+   for(unsigned activation=0;activation<2;activation++){
+    const auto id=client.rob().dispatch_id();auto* op=client.rob().template acquire<false>();need(op);
+    for(const auto& arg:args)
+     need(op->push_arg({arg.data(),uint32_t(arg.size())}));
+    op->spec=command_lookup(op->arg(0));op->state.store(OpState::Issued);
+    if(activation)scope_begin();
+    ScatterDispatch dispatch;
+    need(xshard_prepare(server,*op,pool,io,client.id(),dispatch,false,&client)==ScatterPrepare::Ready);
+    if(activation&&command=="EVAL-ADMIT")scope_end();
+    need(dispatch.nshards==2);op->attach_scatter_state(dispatch.state);
+    client.atomic_group_started();client.rob().publish();
+    bool final=false;
+    auto execute=[&](const Task& task){
+     auto& shard=server.shard(task.shard);const auto owner=server.worker_of_shard(task.shard);
+     need(!xshard_task_should_defer(server,shard,task,*op));
+     need(xshard_execute(task,shard,*op,owner)==ScatterTaskResult::Complete);
+     const auto done=Fused?xshard_complete_iofused(server,server.thread(owner),ring,task,*op)
+                          :xshard_complete(server,server.thread(owner),ring,task,*op);
+     need(done==ScatterFinish::Waiting||done==ScatterFinish::Final);
+     if(done==ScatterFinish::Final){need(!final);final=true;}
+    };
+    std::vector<Task> initial;
+    for(unsigned k=0;k<dispatch.nshards;k++)initial.push_back(Task{&client,id,xshard_dispatch_shard(dispatch,k),dispatch.state});
+    for(const auto& task:initial)execute(task);
+    for(unsigned pass=0;!final&&pass<64;pass++)
+     for(unsigned tid=0;tid<8;tid++)server.thread(tid).drain_tasks(execute);
+    need(final);op->state.store(OpState::Done);
+    xshard_retire(server,server.thread(io),ring,client,*op,pool,io,nullptr,nullptr,nullptr);
+    if(activation&&command=="EVAL")scope_end();
+    need(std::string(op->reply.data(),op->reply.size())=="*2\r\n$64\r\n"+value+"\r\n+OK\r\n");
+    need(client.rob().drain([](Op&){})==1);
+    for(unsigned sid=0;sid<server.nshards();sid++)server.shard(sid).store().atomic_shutdown_release_records();
+    pool.reap_deferred();
+   }
+  }else if(command=="GET"||command=="SET"||command=="INCR"){
    Task tasks[32];need(n<=32);
    for(unsigned i=0;i<n;i++){
     auto* op=client.rob().template acquire<false>();need(op);need(op->push_arg({command.data(),uint32_t(command.size())}));

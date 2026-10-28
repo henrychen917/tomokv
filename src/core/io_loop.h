@@ -4468,9 +4468,8 @@ ordinary_shard_ready:
                 // (WAIT, EXEC, pub/sub, CLIENT fan-out) that have no owner-scoped release site.
                 if (c->rob().quiesced()) c->barrier_release_quiesced();
             }
-            if (c->atomic_backpressure() && srv_->atomic_can_admit(self_->id()) &&
-                scatter_pool_.can_register_snapshot())
-                c->set_atomic_backpressure(false);
+            if (c->atomic_backpressure())
+                script_window_resume(*srv_, scatter_pool_, self_->id(), *c);
             // Success, pre-commit rollback, and synchronous validation refusal all end by publishing
             // Idle. The flag travels with a migrated Client, so this runs on whichever IO owns it
             // after the FLIP and retries the still-unconsumed frame in the re-parse below.

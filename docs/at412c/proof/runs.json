@@ -1,0 +1,1829 @@
+[
+  {
+    "phase": "directed",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20200-20279"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_TEST_PORT": "20299",
+      "GATE_ONLY_JOBS": "at412-T1 at412-T2 at412-T3 at412-T4 at412-T5 at412-T6 at412-T7 at412-T8 at412-T9 at412-T10 at412-T11a at412-T11b at412-T12 at412-T13 at412-T14 at412-T15 at412-T16 at412-owner"
+    },
+    "source": "8bee0cfae7ab7009a0bd1a167b55c7ffb48a98f1",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "log": "/home/user/Projects/cx-at412c/build/at412c/proof/directed-0.log",
+    "began": 1793096590.4471376,
+    "rc": 0,
+    "seconds": 2356.328,
+    "run_dir": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22",
+    "archived": "docs/at412c/proof/directed-0-gate-run.CXwo22",
+    "jobs": [
+      {
+        "name": "at412-T1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T1",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T10",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T10",
+        "legs": 15,
+        "passed_legs": 15,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T11a",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T11a",
+        "legs": 15,
+        "passed_legs": 15,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T11b",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T11b",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T12",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T12",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T13",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T13",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T14",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T14",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T15",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T15",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T16",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T16",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T2",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T2",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T3",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T3",
+        "legs": 15,
+        "passed_legs": 15,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T4",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T4",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T5",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T5",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T6",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T6",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T7",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T7",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T8",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T8",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-T9",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-T9",
+        "legs": 27,
+        "passed_legs": 27,
+        "oracle_legs": 3
+      },
+      {
+        "name": "at412-owner",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/at412-owner"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CXwo22/jobs/release"
+      }
+    ]
+  },
+  {
+    "phase": "split-uring",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20200-20279"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_TEST_PORT": "20299",
+      "GATE_ONLY_JOBS": "debug-0 debug-1 txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 notify notifycompat notify_order notify_aof tracking_redirect trackfix_accounting trackfix_order snapshot-epoll snapshot-uring aof-epoll aof-uring aof_frame aoforder persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors dump_restore serverfix_waitaof txnorder_index txnorder2 txnorder_wake txn_group_fused txn_group_split script_bounds scriptfix flip fliplisten flipctl flip_saturated flip_unit flipfix_units persistfix_units compat2 compat3 clientfix"
+    },
+    "source": "c9e8ff2a14b34f346e72c469eccaae3abae7a0be",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "log": "/home/user/Projects/cx-at412c/build/at412c/proof/split-uring-1.log",
+    "began": 1793098947.002796,
+    "rc": 0,
+    "seconds": 2879.641,
+    "run_dir": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1",
+    "archived": "docs/at412c/proof/split-uring-1-gate-run.LwEpq1",
+    "jobs": [
+      {
+        "name": "aof-epoll",
+        "returncode": 0,
+        "passed": 54,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/aof-epoll"
+      },
+      {
+        "name": "aof-uring",
+        "returncode": 0,
+        "passed": 54,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/aof-uring"
+      },
+      {
+        "name": "aof_frame",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/aof_frame"
+      },
+      {
+        "name": "aoforder",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/aoforder"
+      },
+      {
+        "name": "clientfix",
+        "returncode": 0,
+        "passed": 14,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/clientfix"
+      },
+      {
+        "name": "compat2",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/compat2"
+      },
+      {
+        "name": "compat3",
+        "returncode": 0,
+        "passed": 6,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/compat3"
+      },
+      {
+        "name": "core_tsan_build",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/core_tsan_build"
+      },
+      {
+        "name": "debug-0",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/debug-0"
+      },
+      {
+        "name": "debug-1",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/debug-1"
+      },
+      {
+        "name": "dump_restore",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/dump_restore"
+      },
+      {
+        "name": "feature-armed-0",
+        "returncode": 0,
+        "passed": 35,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/feature-armed-0"
+      },
+      {
+        "name": "feature-armed-1",
+        "returncode": 0,
+        "passed": 35,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/feature-armed-1"
+      },
+      {
+        "name": "feature-split-0",
+        "returncode": 0,
+        "passed": 34,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/feature-split-0"
+      },
+      {
+        "name": "feature-split-1",
+        "returncode": 0,
+        "passed": 34,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/feature-split-1"
+      },
+      {
+        "name": "flip",
+        "returncode": 0,
+        "passed": 9,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/flip"
+      },
+      {
+        "name": "flip_saturated",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/flip_saturated"
+      },
+      {
+        "name": "flip_unit",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/flip_unit"
+      },
+      {
+        "name": "flipctl",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/flipctl"
+      },
+      {
+        "name": "flipfix_units",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/flipfix_units"
+      },
+      {
+        "name": "fliplisten",
+        "returncode": 0,
+        "passed": 4,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/fliplisten"
+      },
+      {
+        "name": "notify",
+        "returncode": 0,
+        "passed": 6,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/notify"
+      },
+      {
+        "name": "notify_aof",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/notify_aof"
+      },
+      {
+        "name": "notify_order",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/notify_order"
+      },
+      {
+        "name": "notifycompat",
+        "returncode": 0,
+        "passed": 7,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/notifycompat"
+      },
+      {
+        "name": "persistfix2_commands",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/persistfix2_commands"
+      },
+      {
+        "name": "persistfix2_errors",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/persistfix2_errors"
+      },
+      {
+        "name": "persistfix2_lastsave",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/persistfix2_lastsave"
+      },
+      {
+        "name": "persistfix2_shutdown",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/persistfix2_shutdown"
+      },
+      {
+        "name": "persistfix_units",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/persistfix_units"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/release"
+      },
+      {
+        "name": "script_bounds",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/script_bounds"
+      },
+      {
+        "name": "scriptfix",
+        "returncode": 0,
+        "passed": 8,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/scriptfix"
+      },
+      {
+        "name": "serverfix_waitaof",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/serverfix_waitaof"
+      },
+      {
+        "name": "snapshot-epoll",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/snapshot-epoll"
+      },
+      {
+        "name": "snapshot-uring",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/snapshot-uring"
+      },
+      {
+        "name": "trackfix_accounting",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/trackfix_accounting"
+      },
+      {
+        "name": "trackfix_order",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/trackfix_order"
+      },
+      {
+        "name": "tracking_redirect",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/tracking_redirect"
+      },
+      {
+        "name": "txn_group_fused",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/txn_group_fused"
+      },
+      {
+        "name": "txn_group_split",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/txn_group_split"
+      },
+      {
+        "name": "txnorder-fused-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/txnorder-fused-0"
+      },
+      {
+        "name": "txnorder-fused-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/txnorder-fused-1"
+      },
+      {
+        "name": "txnorder-split-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/txnorder-split-0"
+      },
+      {
+        "name": "txnorder-split-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/txnorder-split-1"
+      },
+      {
+        "name": "txnorder2",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/txnorder2"
+      },
+      {
+        "name": "txnorder_index",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/txnorder_index"
+      },
+      {
+        "name": "txnorder_wake",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.LwEpq1/jobs/txnorder_wake"
+      }
+    ]
+  },
+  {
+    "phase": "split-epoll",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20200-20279"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_TEST_PORT": "20299",
+      "GATE_ONLY_JOBS": "debug-0 debug-1 txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 notify notifycompat notify_order notify_aof tracking_redirect trackfix_accounting trackfix_order script_bounds scriptfix",
+      "GATE_PROOF_NET_IO": "epoll"
+    },
+    "source": "d1ff15b908ec0bedccb6cea7854af1e8aac406c7",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "log": "/home/user/Projects/cx-at412c/build/at412c/proof/split-epoll-2.log",
+    "began": 1793101826.8762534,
+    "rc": 0,
+    "seconds": 1700.26,
+    "run_dir": "/home/user/Projects/cx-at412c/build/gate-run.2U0RnS",
+    "archived": "docs/at412c/proof/split-epoll-2-gate-run.2U0RnS",
+    "jobs": [
+      {
+        "name": "debug-0",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.2U0RnS/jobs/debug-0"
+      },
+      {
+        "name": "debug-1",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.2U0RnS/jobs/debug-1"
+      },
+      {
+        "name": "feature-armed-0",
+        "returncode": 0,
+        "passed": 35,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.2U0RnS/jobs/feature-armed-0"
+      },
+      {
+        "name": "feature-armed-1",
+        "returncode": 0,
+        "passed": 35,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.2U0RnS/jobs/feature-armed-1"
+      },
+      {
+        "name": "feature-split-0",
+        "returncode": 0,
+        "passed": 34,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.2U0RnS/jobs/feature-split-0"
+      },
+      {
+        "name": "feature-split-1",
+        "returncode": 0,
+        "passed": 34,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.2U0RnS/jobs/feature-split-1"
+      },
+      {
+        "name": "notify",
+        "returncode": 0,
+        "passed": 6,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.2U0RnS/jobs/notify"
+      },
+      {
+        "name": "notify_aof",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.2U0RnS/jobs/notify_aof"
+      },
+      {
+        "name": "notify_order",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.2U0RnS/jobs/notify_order"
+      },
+      {
+        "name": "notifycompat",
+        "returncode": 0,
+        "passed": 7,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.2U0RnS/jobs/notifycompat"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.2U0RnS/jobs/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.2U0RnS/jobs/release"
+      },
+      {
+        "name": "script_bounds",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.2U0RnS/jobs/script_bounds"
+      },
+      {
+        "name": "scriptfix",
+        "returncode": 0,
+        "passed": 8,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.2U0RnS/jobs/scriptfix"
+      },
+      {
+        "name": "trackfix_accounting",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.2U0RnS/jobs/trackfix_accounting"
+      },
+      {
+        "name": "trackfix_order",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.2U0RnS/jobs/trackfix_order"
+      },
+      {
+        "name": "tracking_redirect",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.2U0RnS/jobs/tracking_redirect"
+      },
+      {
+        "name": "txnorder-fused-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.2U0RnS/jobs/txnorder-fused-0"
+      },
+      {
+        "name": "txnorder-fused-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.2U0RnS/jobs/txnorder-fused-1"
+      },
+      {
+        "name": "txnorder-split-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.2U0RnS/jobs/txnorder-split-0"
+      },
+      {
+        "name": "txnorder-split-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.2U0RnS/jobs/txnorder-split-1"
+      }
+    ]
+  },
+  {
+    "phase": "fused-uring",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20200-20279"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_TEST_PORT": "20299",
+      "GATE_ONLY_JOBS": "debug-0 debug-1 notify notifycompat notify_order notify_aof tracking_redirect trackfix_accounting trackfix_order snapshot-epoll snapshot-uring aof-epoll aof-uring aof_frame aoforder persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors dump_restore serverfix_waitaof",
+      "GATE_TXN_FUSED": "1"
+    },
+    "source": "f2e872d38f1acd7b34bc4358565655c854588f1c",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "log": "/home/user/Projects/cx-at412c/build/at412c/proof/fused-uring-3.log",
+    "began": 1793103527.370003,
+    "rc": 0,
+    "seconds": 1370.08,
+    "run_dir": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv",
+    "archived": "docs/at412c/proof/fused-uring-3-gate-run.JMYoLv",
+    "jobs": [
+      {
+        "name": "aof-epoll",
+        "returncode": 0,
+        "passed": 54,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/aof-epoll"
+      },
+      {
+        "name": "aof-uring",
+        "returncode": 0,
+        "passed": 54,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/aof-uring"
+      },
+      {
+        "name": "aof_frame",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/aof_frame"
+      },
+      {
+        "name": "aoforder",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/aoforder"
+      },
+      {
+        "name": "debug-0",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/debug-0"
+      },
+      {
+        "name": "debug-1",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/debug-1"
+      },
+      {
+        "name": "dump_restore",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/dump_restore"
+      },
+      {
+        "name": "notify",
+        "returncode": 0,
+        "passed": 6,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/notify"
+      },
+      {
+        "name": "notify_aof",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/notify_aof"
+      },
+      {
+        "name": "notify_order",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/notify_order"
+      },
+      {
+        "name": "notifycompat",
+        "returncode": 0,
+        "passed": 7,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/notifycompat"
+      },
+      {
+        "name": "persistfix2_commands",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/persistfix2_commands"
+      },
+      {
+        "name": "persistfix2_errors",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/persistfix2_errors"
+      },
+      {
+        "name": "persistfix2_lastsave",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/persistfix2_lastsave"
+      },
+      {
+        "name": "persistfix2_shutdown",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/persistfix2_shutdown"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/release"
+      },
+      {
+        "name": "serverfix_waitaof",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/serverfix_waitaof"
+      },
+      {
+        "name": "snapshot-epoll",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/snapshot-epoll"
+      },
+      {
+        "name": "snapshot-uring",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/snapshot-uring"
+      },
+      {
+        "name": "trackfix_accounting",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/trackfix_accounting"
+      },
+      {
+        "name": "trackfix_order",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/trackfix_order"
+      },
+      {
+        "name": "tracking_redirect",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.JMYoLv/jobs/tracking_redirect"
+      }
+    ]
+  },
+  {
+    "phase": "fused-epoll",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20200-20279"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_TEST_PORT": "20299",
+      "GATE_ONLY_JOBS": "debug-0 debug-1 notify notifycompat notify_order notify_aof tracking_redirect trackfix_accounting trackfix_order",
+      "GATE_TXN_FUSED": "1",
+      "GATE_PROOF_NET_IO": "epoll"
+    },
+    "source": "48df2c4208a35b92246b367292949e408d790fa3",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "log": "/home/user/Projects/cx-at412c/build/at412c/proof/fused-epoll-4.log",
+    "began": 1793104897.6770768,
+    "rc": 0,
+    "seconds": 1025.241,
+    "run_dir": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp",
+    "archived": "docs/at412c/proof/fused-epoll-4-gate-run.R5aocp",
+    "jobs": [
+      {
+        "name": "debug-0",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp/jobs/debug-0"
+      },
+      {
+        "name": "debug-1",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp/jobs/debug-1"
+      },
+      {
+        "name": "notify",
+        "returncode": 0,
+        "passed": 6,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp/jobs/notify"
+      },
+      {
+        "name": "notify_aof",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp/jobs/notify_aof"
+      },
+      {
+        "name": "notify_order",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp/jobs/notify_order"
+      },
+      {
+        "name": "notifycompat",
+        "returncode": 0,
+        "passed": 7,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp/jobs/notifycompat"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp/jobs/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp/jobs/release"
+      },
+      {
+        "name": "trackfix_accounting",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp/jobs/trackfix_accounting"
+      },
+      {
+        "name": "trackfix_order",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp/jobs/trackfix_order"
+      },
+      {
+        "name": "tracking_redirect",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.R5aocp/jobs/tracking_redirect"
+      }
+    ]
+  },
+  {
+    "phase": "differ-uring",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "bash",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20200-20279"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_TEST_PORT": "20299",
+      "GATE_ONLY_JOBS": "differ-split differ-armed differ-equivalence"
+    },
+    "source": "d0cd5ddc9862df197aef1747fa5a28955654455b",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "log": "/home/user/Projects/cx-at412c/build/at412c/proof/differ-uring-5.log",
+    "began": 1793105923.1580532,
+    "rc": 2,
+    "seconds": 0.483,
+    "run_dir": "/home/user/Projects/cx-at412c/build/gate-run.SVpV0r",
+    "archived": "docs/at412c/proof/differ-uring-5-gate-run.SVpV0r",
+    "jobs": []
+  },
+  {
+    "phase": "differ-epoll",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "bash",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20200-20279"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_TEST_PORT": "20299",
+      "GATE_ONLY_JOBS": "differ-split differ-armed differ-equivalence",
+      "GATE_DIFFER_NET_IO": "epoll"
+    },
+    "source": "d0cd5ddc9862df197aef1747fa5a28955654455b",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "log": "/home/user/Projects/cx-at412c/build/at412c/proof/differ-epoll-6.log",
+    "began": 1793105923.8995354,
+    "rc": 2,
+    "seconds": 0.373,
+    "run_dir": "/home/user/Projects/cx-at412c/build/gate-run.tpQWzJ",
+    "archived": "docs/at412c/proof/differ-epoll-6-gate-run.tpQWzJ",
+    "jobs": []
+  },
+  {
+    "phase": "extra-uring",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20200-20279"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_TEST_PORT": "20299",
+      "GATE_ONLY_JOBS": "execfair fused-0 fused-1"
+    },
+    "source": "d0cd5ddc9862df197aef1747fa5a28955654455b",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "log": "/home/user/Projects/cx-at412c/build/at412c/proof/extra-uring-7.log",
+    "began": 1793105929.2453365,
+    "rc": 0,
+    "seconds": 68.448,
+    "run_dir": "/home/user/Projects/cx-at412c/build/gate-run.zLdqei",
+    "archived": "docs/at412c/proof/extra-uring-7-gate-run.zLdqei",
+    "jobs": [
+      {
+        "name": "execfair",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.zLdqei/jobs/execfair"
+      },
+      {
+        "name": "fused-0",
+        "returncode": 0,
+        "passed": 9,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.zLdqei/jobs/fused-0"
+      },
+      {
+        "name": "fused-1",
+        "returncode": 0,
+        "passed": 9,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.zLdqei/jobs/fused-1"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.zLdqei/jobs/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.zLdqei/jobs/release"
+      }
+    ]
+  },
+  {
+    "phase": "extra-epoll",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20200-20279"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_TEST_PORT": "20299",
+      "GATE_ONLY_JOBS": "fused-0 fused-1 flip flipctl flip_saturated",
+      "GATE_PROOF_NET_IO": "epoll"
+    },
+    "source": "3c38b3792e9b9f99a99b06b8a03a6eba55ae1724",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "log": "/home/user/Projects/cx-at412c/build/at412c/proof/extra-epoll-8.log",
+    "began": 1793105997.9286103,
+    "rc": 0,
+    "seconds": 202.373,
+    "run_dir": "/home/user/Projects/cx-at412c/build/gate-run.reErX1",
+    "archived": "docs/at412c/proof/extra-epoll-8-gate-run.reErX1",
+    "jobs": [
+      {
+        "name": "flip",
+        "returncode": 0,
+        "passed": 9,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.reErX1/jobs/flip"
+      },
+      {
+        "name": "flip_saturated",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.reErX1/jobs/flip_saturated"
+      },
+      {
+        "name": "flipctl",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.reErX1/jobs/flipctl"
+      },
+      {
+        "name": "fused-0",
+        "returncode": 0,
+        "passed": 9,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.reErX1/jobs/fused-0"
+      },
+      {
+        "name": "fused-1",
+        "returncode": 0,
+        "passed": 9,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.reErX1/jobs/fused-1"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.reErX1/jobs/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.reErX1/jobs/release"
+      }
+    ]
+  },
+  {
+    "phase": "differ-uring",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "bash",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20200-20279"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_TEST_PORT": "20299",
+      "GATE_ONLY_JOBS": "differ-split differ-armed differ-equivalence"
+    },
+    "source": "0087600845a8dbb899ae045bd3817e1ea7228074",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "log": "/home/user/Projects/cx-at412c/build/at412c/proof/differ-uring-9.log",
+    "began": 1793106259.1609843,
+    "rc": 0,
+    "seconds": 2146.117,
+    "run_dir": "/home/user/Projects/cx-at412c/build/gate-run.nx4Shz",
+    "archived": "docs/at412c/proof/differ-uring-9-gate-run.nx4Shz",
+    "jobs": [
+      {
+        "name": "differ-armed-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.nx4Shz/jobs/differ-armed-0",
+        "differ_complete": {
+          "schema": 1,
+          "part": "armed-0",
+          "run": "full:gate-run.nx4Shz",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21
+          ],
+          "comparisons": 230,
+          "complete": true
+        },
+        "skipped_legs": [
+          "differ sort (atomic=0 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=0 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=0 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=0 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=0 seed=21)                             SKIP (suite requires the split 6:2 geometry)"
+        ],
+        "coverage_summary": [
+          "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1040799 recorded comparison witnesses, 230 legs)"
+        ],
+        "equivalence": []
+      },
+      {
+        "name": "differ-armed-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.nx4Shz/jobs/differ-armed-1",
+        "differ_complete": {
+          "schema": 1,
+          "part": "armed-1",
+          "run": "full:gate-run.nx4Shz",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21
+          ],
+          "comparisons": 234,
+          "complete": true
+        },
+        "skipped_legs": [
+          "differ sort (atomic=1 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=1 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=1 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=1 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=1 seed=21)                             SKIP (suite requires the split 6:2 geometry)"
+        ],
+        "coverage_summary": [
+          "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1057950 recorded comparison witnesses, 234 legs)"
+        ],
+        "equivalence": []
+      },
+      {
+        "name": "differ-equivalence",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.nx4Shz/jobs/differ-equivalence",
+        "differ_complete": {
+          "schema": 1,
+          "part": "equivalence",
+          "run": "full:gate-run.nx4Shz",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21
+          ],
+          "comparisons": 16,
+          "complete": true
+        },
+        "skipped_legs": [],
+        "coverage_summary": [],
+        "equivalence": [
+          {
+            "seed": 21,
+            "cells": 16,
+            "passed": 16,
+            "reached": 16,
+            "engines": [
+              "uring"
+            ],
+            "replies_per_cell": 6137,
+            "script_drain_boundaries": 105,
+            "stream_sha256": "bf1885a49ac7c0ad38e13bddaf8a3ba64448aec1a5c11243fa43c5c69521f13a"
+          }
+        ]
+      },
+      {
+        "name": "differ-split-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.nx4Shz/jobs/differ-split-0",
+        "differ_complete": {
+          "schema": 1,
+          "part": "split-0",
+          "run": "full:gate-run.nx4Shz",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21
+          ],
+          "comparisons": 235,
+          "complete": true
+        },
+        "skipped_legs": [],
+        "coverage_summary": [
+          "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1063960 recorded comparison witnesses, 235 legs)"
+        ],
+        "equivalence": []
+      },
+      {
+        "name": "differ-split-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.nx4Shz/jobs/differ-split-1",
+        "differ_complete": {
+          "schema": 1,
+          "part": "split-1",
+          "run": "full:gate-run.nx4Shz",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21
+          ],
+          "comparisons": 239,
+          "complete": true
+        },
+        "skipped_legs": [],
+        "coverage_summary": [
+          "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1081435 recorded comparison witnesses, 239 legs)"
+        ],
+        "equivalence": []
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.nx4Shz/jobs/release"
+      }
+    ]
+  },
+  {
+    "phase": "differ-epoll",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "bash",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20200-20279"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_TEST_PORT": "20299",
+      "GATE_ONLY_JOBS": "differ-split differ-armed differ-equivalence",
+      "GATE_DIFFER_NET_IO": "epoll"
+    },
+    "source": "31efcb861c9c006b057b357c583b429cea1205b3",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "log": "/home/user/Projects/cx-at412c/build/at412c/proof/differ-epoll-10.log",
+    "began": 1793108405.5091279,
+    "rc": 0,
+    "seconds": 2128.38,
+    "run_dir": "/home/user/Projects/cx-at412c/build/gate-run.HwG8Uc",
+    "archived": "docs/at412c/proof/differ-epoll-10-gate-run.HwG8Uc",
+    "jobs": [
+      {
+        "name": "differ-armed-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.HwG8Uc/jobs/differ-armed-0",
+        "differ_complete": {
+          "schema": 1,
+          "part": "armed-0",
+          "run": "full:gate-run.HwG8Uc",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            22
+          ],
+          "comparisons": 230,
+          "complete": true
+        },
+        "skipped_legs": [
+          "differ sort (atomic=0 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=0 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=0 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=0 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=0 seed=22)                             SKIP (suite requires the split 6:2 geometry)"
+        ],
+        "coverage_summary": [
+          "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1040791 recorded comparison witnesses, 230 legs)"
+        ],
+        "equivalence": []
+      },
+      {
+        "name": "differ-armed-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.HwG8Uc/jobs/differ-armed-1",
+        "differ_complete": {
+          "schema": 1,
+          "part": "armed-1",
+          "run": "full:gate-run.HwG8Uc",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            22
+          ],
+          "comparisons": 234,
+          "complete": true
+        },
+        "skipped_legs": [
+          "differ sort (atomic=1 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=1 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=1 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=1 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=1 seed=22)                             SKIP (suite requires the split 6:2 geometry)"
+        ],
+        "coverage_summary": [
+          "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1057846 recorded comparison witnesses, 234 legs)"
+        ],
+        "equivalence": []
+      },
+      {
+        "name": "differ-equivalence",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.HwG8Uc/jobs/differ-equivalence",
+        "differ_complete": {
+          "schema": 1,
+          "part": "equivalence",
+          "run": "full:gate-run.HwG8Uc",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            22
+          ],
+          "comparisons": 16,
+          "complete": true
+        },
+        "skipped_legs": [],
+        "coverage_summary": [],
+        "equivalence": [
+          {
+            "seed": 22,
+            "cells": 16,
+            "passed": 16,
+            "reached": 16,
+            "engines": [
+              "epoll"
+            ],
+            "replies_per_cell": 6208,
+            "script_drain_boundaries": 99,
+            "stream_sha256": "a35d44931284a030d0bac16c44995e6e3b5a8183931117d8b2d60a02730f7350"
+          }
+        ]
+      },
+      {
+        "name": "differ-split-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.HwG8Uc/jobs/differ-split-0",
+        "differ_complete": {
+          "schema": 1,
+          "part": "split-0",
+          "run": "full:gate-run.HwG8Uc",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            22
+          ],
+          "comparisons": 235,
+          "complete": true
+        },
+        "skipped_legs": [],
+        "coverage_summary": [
+          "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1068214 recorded comparison witnesses, 235 legs)"
+        ],
+        "equivalence": []
+      },
+      {
+        "name": "differ-split-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.HwG8Uc/jobs/differ-split-1",
+        "differ_complete": {
+          "schema": 1,
+          "part": "split-1",
+          "run": "full:gate-run.HwG8Uc",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            22
+          ],
+          "comparisons": 239,
+          "complete": true
+        },
+        "skipped_legs": [],
+        "coverage_summary": [
+          "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1081186 recorded comparison witnesses, 239 legs)"
+        ],
+        "equivalence": []
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.HwG8Uc/jobs/release"
+      }
+    ]
+  },
+  {
+    "phase": "sort-fused-uring",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20200-20279"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_TEST_PORT": "20299",
+      "GATE_ONLY_JOBS": "sort",
+      "GATE_TXN_FUSED": "1"
+    },
+    "source": "612017736ec1ab47c7fb31e2a174876a85e0c288",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "log": "/home/user/Projects/cx-at412c/build/at412c/proof/sort-fused-uring-11.log",
+    "began": 1793110542.860659,
+    "rc": 0,
+    "seconds": 4.55,
+    "run_dir": "/home/user/Projects/cx-at412c/build/gate-run.CBHlT3",
+    "archived": "docs/at412c/proof/sort-fused-uring-11-gate-run.CBHlT3",
+    "jobs": [
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CBHlT3/jobs/release"
+      },
+      {
+        "name": "sort",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.CBHlT3/jobs/sort"
+      }
+    ]
+  },
+  {
+    "phase": "sort-fused-epoll",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20200-20279"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_TEST_PORT": "20299",
+      "GATE_ONLY_JOBS": "sort",
+      "GATE_TXN_FUSED": "1",
+      "GATE_PROOF_NET_IO": "epoll"
+    },
+    "source": "612017736ec1ab47c7fb31e2a174876a85e0c288",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "log": "/home/user/Projects/cx-at412c/build/at412c/proof/sort-fused-epoll-12.log",
+    "began": 1793110547.6342814,
+    "rc": 0,
+    "seconds": 4.558,
+    "run_dir": "/home/user/Projects/cx-at412c/build/gate-run.qLENvD",
+    "archived": "docs/at412c/proof/sort-fused-epoll-12-gate-run.qLENvD",
+    "jobs": [
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.qLENvD/jobs/release"
+      },
+      {
+        "name": "sort",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "source": "/home/user/Projects/cx-at412c/build/gate-run.qLENvD/jobs/sort"
+      }
+    ]
+  }
+]

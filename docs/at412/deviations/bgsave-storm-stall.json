@@ -1,0 +1,306 @@
+{
+  "PRE full storm (scripts refuse), 1s uring atomic 0": {
+    "runs": 7,
+    "stalled": 4,
+    "detail": [
+      {
+        "run": "p1",
+        "stalled": false,
+        "other_failure": "AssertionError: no group wound observed",
+        "signature": null
+      },
+      {
+        "run": "p2",
+        "stalled": false,
+        "other_failure": "AssertionError: no group wound observed",
+        "signature": null
+      },
+      {
+        "run": "p3",
+        "stalled": true,
+        "other_failure": null,
+        "signature": null
+      },
+      {
+        "run": "p4",
+        "stalled": false,
+        "other_failure": "AssertionError: no group wound observed",
+        "signature": null
+      },
+      {
+        "run": "p5",
+        "stalled": true,
+        "other_failure": null,
+        "signature": {
+          "rdb_saves": 6,
+          "snapshot_cuts_armed": 6,
+          "atomic_inflight": 0
+        }
+      },
+      {
+        "run": "p6",
+        "stalled": true,
+        "other_failure": null,
+        "signature": {
+          "rdb_saves": 0,
+          "snapshot_cuts_armed": 1,
+          "atomic_inflight": 3
+        }
+      },
+      {
+        "run": "pc1",
+        "stalled": true,
+        "other_failure": null,
+        "signature": {
+          "rdb_saves": 0,
+          "snapshot_cuts_armed": 1,
+          "atomic_inflight": 1
+        }
+      }
+    ]
+  },
+  "POST full storm, 1s uring atomic 0": {
+    "runs": 11,
+    "stalled": 9,
+    "detail": [
+      {
+        "run": "s1",
+        "stalled": true,
+        "other_failure": null,
+        "signature": null
+      },
+      {
+        "run": "s2",
+        "stalled": true,
+        "other_failure": null,
+        "signature": null
+      },
+      {
+        "run": "s3",
+        "stalled": true,
+        "other_failure": null,
+        "signature": null
+      },
+      {
+        "run": "h1s1",
+        "stalled": true,
+        "other_failure": null,
+        "signature": null
+      },
+      {
+        "run": "h1s2",
+        "stalled": true,
+        "other_failure": null,
+        "signature": null
+      },
+      {
+        "run": "h1s3",
+        "stalled": true,
+        "other_failure": null,
+        "signature": null
+      },
+      {
+        "run": "h1s4",
+        "stalled": false,
+        "other_failure": null,
+        "signature": null
+      },
+      {
+        "run": "d1",
+        "stalled": true,
+        "other_failure": null,
+        "signature": null
+      },
+      {
+        "run": "d2",
+        "stalled": false,
+        "other_failure": null,
+        "signature": null
+      },
+      {
+        "run": "d3",
+        "stalled": true,
+        "other_failure": null,
+        "signature": null
+      },
+      {
+        "run": "d4",
+        "stalled": true,
+        "other_failure": null,
+        "signature": {
+          "rdb_saves": 10,
+          "snapshot_cuts_armed": 10,
+          "atomic_inflight": 0
+        }
+      }
+    ]
+  },
+  "POST full storm, 2s uring atomic 1": {
+    "runs": 5,
+    "stalled": 2,
+    "detail": [
+      {
+        "run": "s4",
+        "stalled": true,
+        "other_failure": null,
+        "signature": null
+      },
+      {
+        "run": "h2s1",
+        "stalled": false,
+        "other_failure": null,
+        "signature": null
+      },
+      {
+        "run": "h2s2",
+        "stalled": true,
+        "other_failure": null,
+        "signature": null
+      },
+      {
+        "run": "h2s3",
+        "stalled": false,
+        "other_failure": null,
+        "signature": null
+      },
+      {
+        "run": "h2s4",
+        "stalled": false,
+        "other_failure": null,
+        "signature": null
+      }
+    ]
+  },
+  "PRE EXEC + plain writers (no scripts), 1s": {
+    "runs": 5,
+    "stalled": 2,
+    "detail": [
+      {
+        "run": "mixA1",
+        "stalled": false,
+        "other_failure": null,
+        "signature": null
+      },
+      {
+        "run": "mixA2",
+        "stalled": true,
+        "other_failure": null,
+        "signature": {
+          "rdb_saves": 11,
+          "snapshot_cuts_armed": 11,
+          "atomic_inflight": 0
+        }
+      },
+      {
+        "run": "mixA3",
+        "stalled": false,
+        "other_failure": null,
+        "signature": null
+      },
+      {
+        "run": "mixA4",
+        "stalled": true,
+        "other_failure": null,
+        "signature": {
+          "rdb_saves": 11,
+          "snapshot_cuts_armed": 11,
+          "atomic_inflight": 0
+        }
+      },
+      {
+        "run": "mixA5",
+        "stalled": false,
+        "other_failure": null,
+        "signature": null
+      }
+    ]
+  },
+  "POST scripts + plain writers (no EXEC), 1s": {
+    "runs": 5,
+    "stalled": 4,
+    "detail": [
+      {
+        "run": "mixB1",
+        "stalled": true,
+        "other_failure": null,
+        "signature": {
+          "rdb_saves": 9,
+          "snapshot_cuts_armed": 10,
+          "atomic_inflight": 0
+        }
+      },
+      {
+        "run": "mixB2",
+        "stalled": true,
+        "other_failure": null,
+        "signature": {
+          "rdb_saves": 9,
+          "snapshot_cuts_armed": 9,
+          "atomic_inflight": 5
+        }
+      },
+      {
+        "run": "mixB3",
+        "stalled": true,
+        "other_failure": null,
+        "signature": {
+          "rdb_saves": 11,
+          "snapshot_cuts_armed": 11,
+          "atomic_inflight": 0
+        }
+      },
+      {
+        "run": "mixB4",
+        "stalled": true,
+        "other_failure": null,
+        "signature": {
+          "rdb_saves": 10,
+          "snapshot_cuts_armed": 10,
+          "atomic_inflight": 4
+        }
+      },
+      {
+        "run": "mixB5",
+        "stalled": false,
+        "other_failure": null,
+        "signature": null
+      }
+    ]
+  },
+  "POST EXEC + plain writers (no scripts), 1s": {
+    "runs": 5,
+    "stalled": 0,
+    "detail": [
+      {
+        "run": "mixC1",
+        "stalled": false,
+        "other_failure": null,
+        "signature": null
+      },
+      {
+        "run": "mixC2",
+        "stalled": false,
+        "other_failure": null,
+        "signature": null
+      },
+      {
+        "run": "mixC3",
+        "stalled": false,
+        "other_failure": null,
+        "signature": null
+      },
+      {
+        "run": "mixC4",
+        "stalled": false,
+        "other_failure": null,
+        "signature": null
+      },
+      {
+        "run": "mixC5",
+        "stalled": false,
+        "other_failure": null,
+        "signature": null
+      }
+    ]
+  }
+}

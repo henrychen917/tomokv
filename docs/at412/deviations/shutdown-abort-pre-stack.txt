@@ -1,0 +1,12 @@
+Thread 1 "tomokv" received signal SIGABRT, Aborted.
+#0  __pthread_kill_implementation (no_tid=0, signo=6, threadid=<optimized out>) at ./nptl/pthread_kill.c:44
+#1  __pthread_kill_internal (signo=6, threadid=<optimized out>) at ./nptl/pthread_kill.c:78
+#2  __GI___pthread_kill (threadid=<optimized out>, signo=signo@entry=6) at ./nptl/pthread_kill.c:89
+#3  0x00007ffff6e4527e in __GI_raise (sig=sig@entry=6) at ../sysdeps/posix/raise.c:26
+#4  0x00007ffff6e288ff in __GI_abort () at ./stdlib/abort.c:79
+#5  0x00005555559923fa in tomo::FlatStore::atomic_remove_unit_intents<tomo::FlatStore::atomic_destroy_pending()::{lambda(tomo::UnitRef const&)#1}>(tomo::FlatStore::atomic_destroy_pending()::{lambda(tomo::UnitRef const&)#1}&&) (remove=..., this=<optimized out>) at src/core/../store/flatstore_atomic.inc:232
+#6  tomo::FlatStore::atomic_destroy_pending (this=this@entry=0x7ffff6a45638) at src/core/../store/flatstore_atomic.inc:1107
+#7  0x00005555559c0813 in tomo::FlatStore::atomic_promote_all_for_shutdown (this=0x7ffff6a45638) at src/core/../store/flatstore_atomic.inc:2069
+#8  0x00005555555901ee in tomo::FlatStore::atomic_shutdown_release_records (this=<optimized out>) at src/core/../store/flatstore_atomic.inc:9
+#9  operator() (__closure=__closure@entry=0x7ffffffb1c60) at src/main.cc:396
+#10 0x00005555555918c6 in tomokv_multidb_main (argc=argc@entry=27, argv=argv@entry=0x7fffffffd8d8) at src/main.cc:624

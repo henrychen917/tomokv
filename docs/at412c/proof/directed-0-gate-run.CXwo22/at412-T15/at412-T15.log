@@ -1,0 +1,51 @@
+{"case": "T15", "leg": "redis-redis-0-EVAL", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"case": "T15", "leg": "redis-redis-0-EVALSHA", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"case": "T15", "leg": "redis-redis-0-FCALL", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:EVAL:0", "at412:T15:EVAL:1"], "geometry": [[11, 3], [5, 5]]}
+{"case": "T15", "leg": "1s-uring-0-EVAL", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:EVALSHA:0", "at412:T15:EVALSHA:1"], "geometry": [[4, 4], [14, 6]]}
+{"case": "T15", "leg": "1s-uring-0-EVALSHA", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:FCALL:0", "at412:T15:FCALL:1"], "geometry": [[15, 7], [10, 2]]}
+{"case": "T15", "leg": "1s-uring-0-FCALL", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:EVAL:0", "at412:T15:EVAL:1"], "geometry": [[3, 3], [6, 6]]}
+{"case": "T15", "leg": "1s-uring-1-EVAL", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:EVALSHA:0", "at412:T15:EVALSHA:1"], "geometry": [[15, 7], [11, 3]]}
+{"case": "T15", "leg": "1s-uring-1-EVALSHA", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:FCALL:0", "at412:T15:FCALL:1"], "geometry": [[13, 5], [3, 3]]}
+{"case": "T15", "leg": "1s-uring-1-FCALL", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:EVAL:0", "at412:T15:EVAL:1"], "geometry": [[3, 3], [15, 7]]}
+{"case": "T15", "leg": "1s-epoll-0-EVAL", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:EVALSHA:0", "at412:T15:EVALSHA:1"], "geometry": [[5, 5], [1, 1]]}
+{"case": "T15", "leg": "1s-epoll-0-EVALSHA", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:FCALL:0", "at412:T15:FCALL:1"], "geometry": [[1, 1], [11, 3]]}
+{"case": "T15", "leg": "1s-epoll-0-FCALL", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:EVAL:0", "at412:T15:EVAL:1"], "geometry": [[4, 4], [5, 5]]}
+{"case": "T15", "leg": "1s-epoll-1-EVAL", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:EVALSHA:0", "at412:T15:EVALSHA:1"], "geometry": [[3, 3], [5, 5]]}
+{"case": "T15", "leg": "1s-epoll-1-EVALSHA", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:FCALL:0", "at412:T15:FCALL:1"], "geometry": [[6, 6], [10, 2]]}
+{"case": "T15", "leg": "1s-epoll-1-FCALL", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:EVAL:0", "at412:T15:EVAL:1"], "geometry": [[14, 6], [13, 7]]}
+{"case": "T15", "leg": "2s-uring-0-EVAL", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:EVALSHA:0", "at412:T15:EVALSHA:1"], "geometry": [[8, 6], [15, 7]]}
+{"case": "T15", "leg": "2s-uring-0-EVALSHA", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:FCALL:0", "at412:T15:FCALL:1"], "geometry": [[1, 7], [2, 6]]}
+{"case": "T15", "leg": "2s-uring-0-FCALL", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:EVAL:0", "at412:T15:EVAL:1"], "geometry": [[3, 7], [6, 6]]}
+{"case": "T15", "leg": "2s-uring-1-EVAL", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:EVALSHA:0", "at412:T15:EVALSHA:1"], "geometry": [[12, 6], [7, 7]]}
+{"case": "T15", "leg": "2s-uring-1-EVALSHA", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:FCALL:0", "at412:T15:FCALL:1"], "geometry": [[15, 7], [6, 6]]}
+{"case": "T15", "leg": "2s-uring-1-FCALL", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:EVAL:0", "at412:T15:EVAL:2"], "geometry": [[6, 6], [7, 7]]}
+{"case": "T15", "leg": "2s-epoll-0-EVAL", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:EVALSHA:0", "at412:T15:EVALSHA:3"], "geometry": [[13, 7], [14, 6]]}
+{"case": "T15", "leg": "2s-epoll-0-EVALSHA", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:FCALL:0", "at412:T15:FCALL:2"], "geometry": [[4, 6], [1, 7]]}
+{"case": "T15", "leg": "2s-epoll-0-FCALL", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:EVAL:0", "at412:T15:EVAL:2"], "geometry": [[7, 7], [0, 6]]}
+{"case": "T15", "leg": "2s-epoll-1-EVAL", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:EVALSHA:0", "at412:T15:EVALSHA:1"], "geometry": [[8, 6], [1, 7]]}
+{"case": "T15", "leg": "2s-epoll-1-EVALSHA", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}
+{"keys": ["at412:T15:FCALL:0", "at412:T15:FCALL:3"], "geometry": [[9, 7], [14, 6]]}
+{"case": "T15", "leg": "2s-epoll-1-FCALL", "value": {"disconnect": [1, 1], "accepted": 8, "data": [9, 9], "shutdown": true}, "pass": true}

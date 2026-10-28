@@ -1,0 +1,67 @@
+GATE(quick): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-at412c/build/gate-run.reErX1
+PARTIAL jobs (including prerequisites): release production_units flipctl flip flip_saturated fused-0 fused-1
+PARTIAL jobs (including prerequisites): release production_units flipctl flip flip_saturated fused-0 fused-1
+  row budget: 900s; median=0.03s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=129.89s; correctness-plan-fallback; flip controller: ramp gate, hold, surge + mix re-maneuvers
+  flip controller: ramp gate, hold, surge + mix re-maneuvers ok
+  row budget: 900s; median=0.15s; correctness-plan-fallback; FLIP state battery
+  FLIP state battery                                   ok
+  row budget: 900s; median=1.04s; correctness-plan-fallback; FLIP under verified load
+  FLIP under verified load                             ok
+  row budget: 900s; median=1.44s; correctness-plan-fallback; FLIP TTL + expiry events
+  FLIP TTL + expiry events                             ok
+  row budget: 900s; median=2.23s; correctness-plan-fallback; partial-frame conn parks (no io spin)
+  partial-frame conn parks (no io spin)                ok
+  row budget: 900s; median=2.28s; correctness-plan-fallback; FLIP close during FLIP (uring)
+  FLIP close during FLIP (uring)                       ok
+  row budget: 900s; median=2.19s; correctness-plan-fallback; FLIP close during FLIP (epoll)
+  FLIP close during FLIP (epoll)                       ok
+  row budget: 900s; median=1.16s; correctness-plan-fallback; FLIP signal stop during FLIP + second SIGINT
+  FLIP signal stop during FLIP + second SIGINT         ok
+  row budget: 900s; median=0.55s; correctness-plan-fallback; perfio stale epoll registration (epoll-flip)
+  perfio stale epoll registration (epoll-flip)         ok
+  row budget: 900s; median=1.1s; correctness-plan-fallback; perfio stale epoll registration (epoll-lb)
+  perfio stale epoll registration (epoll-lb)           ok
+  row budget: 900s; median=6.05s; correctness-plan-fallback; FLIP applies under saturated load
+  FLIP applies under saturated load                    ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; flip battery shutdown invariants
+  flip battery shutdown invariants                     ok
+  row budget: 900s; median=0.25s; correctness-plan-fallback; fused boot line (atomic 0)
+  fused boot line (atomic 0)                           ok
+  row budget: 900s; median=1.16s; correctness-plan-fallback; fused s6 battery (atomic 0)
+  fused s6 battery (atomic 0)                          ok
+  row budget: 900s; median=2.08s; correctness-plan-fallback; fused multi_exec battery (atomic 0)
+  fused multi_exec battery (atomic 0)                  ok
+  row budget: 900s; median=0.73s; correctness-plan-fallback; fused edgeproto battery (atomic 0)
+  fused edgeproto battery (atomic 0)                   ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; fused atomfix battery (atomic 0)
+  fused atomfix battery (atomic 0)                     ok
+  row budget: 900s; median=2.23s; correctness-plan-fallback; fused spinprobe battery (atomic 0)
+  fused spinprobe battery (atomic 0)                   ok
+  row budget: 900s; median=1.16s; correctness-plan-fallback; fused shutdown report (atomic 0)
+  fused shutdown report (atomic 0)                     ok
+  row budget: 900s; median=1.44s; correctness-plan-fallback; fused txn_nx battery (atomic 0)
+  fused txn_nx battery (atomic 0)                      ok
+  row budget: 900s; median=8.68s; correctness-plan-fallback; fused txniso battery (atomic 0)
+  fused txniso battery (atomic 0)                      ok
+  row budget: 900s; median=0.25s; correctness-plan-fallback; fused boot line (atomic 1)
+  fused boot line (atomic 1)                           ok
+  row budget: 900s; median=1.16s; correctness-plan-fallback; fused s6 battery (atomic 1)
+  fused s6 battery (atomic 1)                          ok
+  row budget: 900s; median=2.07s; correctness-plan-fallback; fused multi_exec battery (atomic 1)
+  fused multi_exec battery (atomic 1)                  ok
+  row budget: 900s; median=0.71s; correctness-plan-fallback; fused edgeproto battery (atomic 1)
+  fused edgeproto battery (atomic 1)                   ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; fused atomfix battery (atomic 1)
+  fused atomfix battery (atomic 1)                     ok
+  row budget: 900s; median=2.23s; correctness-plan-fallback; fused spinprobe battery (atomic 1)
+  fused spinprobe battery (atomic 1)                   ok
+  row budget: 900s; median=1.17s; correctness-plan-fallback; fused shutdown report (atomic 1)
+  fused shutdown report (atomic 1)                     ok
+  row budget: 900s; median=2.5s; correctness-plan-fallback; fused txn_nx battery (atomic 1)
+  fused txn_nx battery (atomic 1)                      ok
+  row budget: 900s; median=9.18s; correctness-plan-fallback; fused txniso battery (atomic 1)
+  fused txniso battery (atomic 1)                      ok
+GATE(PARTIAL): 31 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-at412c/build/gate-run.reErX1/ledger.partial

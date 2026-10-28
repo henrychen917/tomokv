@@ -1,0 +1,51 @@
+{"case": "T7", "leg": "redis-redis-0-EVAL", "value": [101, 2], "pass": true}
+{"case": "T7", "leg": "redis-redis-0-EVALSHA", "value": [101, 2], "pass": true}
+{"case": "T7", "leg": "redis-redis-0-FCALL", "value": [101, 2], "pass": true}
+{"keys": ["at412:T7:EVAL:0", "at412:T7:EVAL:1"], "geometry": [[1, 1], [7, 7]]}
+{"case": "T7", "leg": "1s-uring-0-EVAL", "value": [101, 2], "pass": true}
+{"keys": ["at412:T7:EVALSHA:0", "at412:T7:EVALSHA:1"], "geometry": [[0, 0], [7, 7]]}
+{"case": "T7", "leg": "1s-uring-0-EVALSHA", "value": [101, 2], "pass": true}
+{"keys": ["at412:T7:FCALL:0", "at412:T7:FCALL:3"], "geometry": [[7, 7], [1, 1]]}
+{"case": "T7", "leg": "1s-uring-0-FCALL", "value": [101, 2], "pass": true}
+{"keys": ["at412:T7:EVAL:0", "at412:T7:EVAL:1"], "geometry": [[3, 3], [12, 4]]}
+{"case": "T7", "leg": "1s-uring-1-EVAL", "value": [101, 2], "pass": true}
+{"keys": ["at412:T7:EVALSHA:0", "at412:T7:EVALSHA:1"], "geometry": [[15, 7], [6, 6]]}
+{"case": "T7", "leg": "1s-uring-1-EVALSHA", "pass_": false, "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 993, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 938, in run_case\n    result = episode(c, port, keys, call, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 723, in episode\n    assert old.read() == [1, 1]\n           ^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"}
+{"keys": ["at412:T7:FCALL:0", "at412:T7:FCALL:1"], "geometry": [[0, 0], [12, 4]]}
+{"case": "T7", "leg": "1s-uring-1-FCALL", "value": [101, 2], "pass": true}
+{"keys": ["at412:T7:EVAL:0", "at412:T7:EVAL:1"], "geometry": [[12, 4], [11, 3]]}
+{"case": "T7", "leg": "1s-epoll-0-EVAL", "pass_": false, "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 993, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 938, in run_case\n    result = episode(c, port, keys, call, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 723, in episode\n    assert old.read() == [1, 1]\n           ^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"}
+{"keys": ["at412:T7:EVALSHA:0", "at412:T7:EVALSHA:2"], "geometry": [[3, 3], [6, 6]]}
+{"case": "T7", "leg": "1s-epoll-0-EVALSHA", "pass_": false, "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 993, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 938, in run_case\n    result = episode(c, port, keys, call, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 723, in episode\n    assert old.read() == [1, 1]\n           ^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"}
+{"keys": ["at412:T7:FCALL:0", "at412:T7:FCALL:1"], "geometry": [[10, 2], [15, 7]]}
+{"case": "T7", "leg": "1s-epoll-0-FCALL", "value": [101, 2], "pass": true}
+{"keys": ["at412:T7:EVAL:0", "at412:T7:EVAL:1"], "geometry": [[3, 3], [9, 1]]}
+{"case": "T7", "leg": "1s-epoll-1-EVAL", "value": [101, 2], "pass": true}
+{"keys": ["at412:T7:EVALSHA:0", "at412:T7:EVALSHA:1"], "geometry": [[0, 0], [15, 7]]}
+{"case": "T7", "leg": "1s-epoll-1-EVALSHA", "value": [101, 2], "pass": true}
+{"keys": ["at412:T7:FCALL:0", "at412:T7:FCALL:1"], "geometry": [[0, 0], [13, 5]]}
+{"case": "T7", "leg": "1s-epoll-1-FCALL", "pass_": false, "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 993, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 938, in run_case\n    result = episode(c, port, keys, call, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 723, in episode\n    assert old.read() == [1, 1]\n           ^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"}
+{"keys": ["at412:T7:EVAL:0", "at412:T7:EVAL:3"], "geometry": [[12, 6], [1, 7]]}
+{"case": "T7", "leg": "2s-uring-0-EVAL", "pass_": false, "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 993, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 938, in run_case\n    result = episode(c, port, keys, call, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 723, in episode\n    assert old.read() == [1, 1]\n           ^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"}
+{"keys": ["at412:T7:EVALSHA:0", "at412:T7:EVALSHA:8"], "geometry": [[10, 6], [1, 7]]}
+{"case": "T7", "leg": "2s-uring-0-EVALSHA", "pass_": false, "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 993, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 938, in run_case\n    result = episode(c, port, keys, call, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 723, in episode\n    assert old.read() == [1, 1]\n           ^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"}
+{"keys": ["at412:T7:FCALL:0", "at412:T7:FCALL:3"], "geometry": [[8, 6], [5, 7]]}
+{"case": "T7", "leg": "2s-uring-0-FCALL", "pass_": false, "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 993, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 938, in run_case\n    result = episode(c, port, keys, call, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 723, in episode\n    assert old.read() == [1, 1]\n           ^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"}
+{"keys": ["at412:T7:EVAL:0", "at412:T7:EVAL:2"], "geometry": [[14, 6], [9, 7]]}
+{"case": "T7", "leg": "2s-uring-1-EVAL", "value": [101, 2], "pass": true}
+{"keys": ["at412:T7:EVALSHA:0", "at412:T7:EVALSHA:3"], "geometry": [[12, 6], [3, 7]]}
+{"case": "T7", "leg": "2s-uring-1-EVALSHA", "value": [101, 2], "pass": true}
+{"keys": ["at412:T7:FCALL:0", "at412:T7:FCALL:4"], "geometry": [[7, 7], [2, 6]]}
+{"case": "T7", "leg": "2s-uring-1-FCALL", "pass_": false, "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 993, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 938, in run_case\n    result = episode(c, port, keys, call, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 723, in episode\n    assert old.read() == [1, 1]\n           ^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"}
+{"keys": ["at412:T7:EVAL:0", "at412:T7:EVAL:1"], "geometry": [[12, 6], [9, 7]]}
+{"case": "T7", "leg": "2s-epoll-0-EVAL", "pass_": false, "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 993, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 938, in run_case\n    result = episode(c, port, keys, call, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 723, in episode\n    assert old.read() == [1, 1]\n           ^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"}
+{"keys": ["at412:T7:EVALSHA:0", "at412:T7:EVALSHA:1"], "geometry": [[10, 6], [15, 7]]}
+{"case": "T7", "leg": "2s-epoll-0-EVALSHA", "pass_": false, "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 993, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 938, in run_case\n    result = episode(c, port, keys, call, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 723, in episode\n    assert old.read() == [1, 1]\n           ^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"}
+{"keys": ["at412:T7:FCALL:0", "at412:T7:FCALL:1"], "geometry": [[4, 6], [1, 7]]}
+{"case": "T7", "leg": "2s-epoll-0-FCALL", "value": [101, 2], "pass": true}
+{"keys": ["at412:T7:EVAL:0", "at412:T7:EVAL:2"], "geometry": [[14, 6], [13, 7]]}
+{"case": "T7", "leg": "2s-epoll-1-EVAL", "value": [101, 2], "pass": true}
+{"keys": ["at412:T7:EVALSHA:0", "at412:T7:EVALSHA:4"], "geometry": [[14, 6], [9, 7]]}
+{"case": "T7", "leg": "2s-epoll-1-EVALSHA", "value": [101, 2], "pass": true}
+{"keys": ["at412:T7:FCALL:0", "at412:T7:FCALL:1"], "geometry": [[5, 7], [0, 6]]}
+{"case": "T7", "leg": "2s-epoll-1-FCALL", "value": [101, 2], "pass": true}

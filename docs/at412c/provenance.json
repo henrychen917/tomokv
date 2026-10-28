@@ -1,0 +1,18 @@
+{
+  "pre": "7ae703778e854a7b76945af5792a5ec5e88061a6",
+  "post": "f7204660ef5651ad0ae14de14e13a693b2db0f8c",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "production_diff_after_post": "",
+  "oracle": [
+    {
+      "path": "/home/user/Projects/redis74/src/redis-server",
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+      "version": "Redis server v=7.4.10 sha=f103d127:0 malloc=jemalloc-5.3.0 bits=64 build=f39586913084a746"
+    },
+    {
+      "path": "/home/user/Projects/redis/src/redis-server",
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+      "version": "Redis server v=7.4.10 sha=f103d127:0 malloc=jemalloc-5.3.0 bits=64 build=f39586913084a746"
+    }
+  ]
+}

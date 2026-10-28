@@ -1,0 +1,13 @@
+{
+  "source": "/home/user/Projects/cx-at412/tools/execindex_budget.py",
+  "source_sha256": "2c54e59e8e3e55c66c350e01640183a6aa015bd85f925e64c988ac31c2dc0d2a",
+  "derived": "/home/user/Projects/cx-at412/build/at412/instrument-budget.py",
+  "derived_sha256": "18c8cdec8c4cd64feae0ac0e13333481286f2db8bc84b9e31eaa5540e8bb3857",
+  "cpu": "48-63",
+  "substitutions": [
+    "execindex -> at412",
+    "96-103 -> 48-63",
+    "96-111 -> 48-63"
+  ],
+  "script_scopes": false
+}

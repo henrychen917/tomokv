@@ -192,7 +192,9 @@ $(BUILD_ROOT)/src/cmd/t_list.o: override CXXFLAGS += --param inline-unit-growth=
 # rlresize: see the budget note above $(BUILD_ROOT)/src/main.o.
 # wave2: see the re-derivation note above $(BUILD_ROOT)/src/main.o (31379 kept, db0 31776).
 # wave3: see the re-derivation note above $(BUILD_ROOT)/src/main.o (31388 / db0 31787).
-$(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=32703
+# at412: the new INFO fields / DEBUG hooks grow this unit; 32853 keeps cmd_reset and every other
+# handler outside cmd_info/cmd_debug_impl PRE-identical (tools/at412_budget.py, docs/at412/budgets2).
+$(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=32853
 # SV7/SV9 keep new INFO formatting cold; infofields_artifacts.py checks every ordinary body.
 # CC18/PS5/PS7/SV9 composition: preserve every unrelated server-command body.
 # txnorder2: compile-only trials retained in docs/txnorder2/budgets; remaining spillover is explicit.
@@ -733,6 +735,8 @@ build/txnorder-wake-unit: tests/txnorder_wake_unit.cc $(wildcard src/*/*.h) $(wi
 TXNORDER_UNIT_DEPS := tests/atomic_survivors_unit.cc tests/atomiccollapse_checks.inc tests/atomic_plain_checks.inc tests/txnorder_checks.inc $(wildcard src/*/*.inc) $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
 build/txnorder-episodes: tests/txnorder_episodes.cc $(TXNORDER_UNIT_DEPS) $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ))
 	$(CXX) $(filter-out -O3,$(CXXFLAGS)) -O0 $(JEFLAGS) -I. $< $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/at412-owner: tests/at412_owner.cc $(TXNORDER_UNIT_DEPS) $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ))
+	$(CXX) $(filter-out -O3,$(CXXFLAGS)) -O0 $(JEFLAGS) -DTOMO_TXNORDER_DEBUG -I. $< $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
 build/txnorder-episodes-debug: tests/txnorder_episodes.cc $(TXNORDER_UNIT_DEPS) $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ))
 	$(CXX) $(filter-out -O3,$(CXXFLAGS)) -O0 $(JEFLAGS) -DTOMO_TXNORDER_DEBUG -I. $< $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
 build/txnorder-watch-unit: tests/txnorder_watch_unit.cc $(TXNORDER_UNIT_DEPS) $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ))

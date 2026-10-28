@@ -1,0 +1,54 @@
+{
+  "engine": "uring",
+  "atomic": 1,
+  "direction": "io-ex",
+  "outcome": "complete",
+  "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+  "arrived": 56,
+  "served": 56,
+  "errors": [],
+  "accepted_delta": 56,
+  "listeners_before": {
+    "1062167931": 0,
+    "1062171728": 0,
+    "1062158872": 0,
+    "1062169584": 0,
+    "1062160860": 0,
+    "1062150139": 0
+  },
+  "listeners_during": {
+    "1062167931": 2,
+    "1062171728": 3,
+    "1062158872": 3,
+    "1062169584": 8,
+    "1062160860": 5,
+    "1062150139": 3
+  },
+  "witness": {
+    "pid": 3015416,
+    "stage": "tomo_db0::FlipStage::ExDrain"
+  },
+  "tls_listeners_before": {
+    "1062167932": 0,
+    "1062171729": 0,
+    "1062158873": 0,
+    "1062169585": 0,
+    "1062160861": 0,
+    "1062150140": 0
+  },
+  "tls_listeners_during": {
+    "1062167932": 6,
+    "1062171729": 3,
+    "1062158873": 6,
+    "1062169585": 2,
+    "1062160861": 4,
+    "1062150140": 3
+  },
+  "tls_arrived": 24,
+  "unix_arrived": 8,
+  "remaining_quiesce_s": 0.028023489750921726,
+  "established_after_flip_s": 0.002775857225060463,
+  "unique_ids": 56,
+  "executions": "56",
+  "passed": true
+}

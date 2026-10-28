@@ -12,6 +12,7 @@
 #include <string>
 #include <type_traits>
 #include <vector>
+#include <memory>
 
 namespace tomo {
 
@@ -20,6 +21,10 @@ class IoLoop;
 class Op;
 class Server;
 class Shard;
+class ScatterArenaPool;
+struct ScriptWindow;
+void script_window_forget(Server&, uint32_t, Client&);
+void script_window_resume(Server&, ScatterArenaPool&, uint32_t, Client&);
 struct MultiExecState;
 struct MultiSession;
 struct Task;
@@ -107,7 +112,11 @@ struct alignas(64) MultiRetryLane {
     std::atomic<MultiRetryNode*> head{nullptr};
     uint32_t age_seq = 0;              // IO-owned, used only at first admission
     std::atomic<std::atomic<bool>*> signal{nullptr}; // worker TLS; bound before serving
+    uint8_t script_admission = 0;       // IO only: count | FIFO-present bit
+    std::atomic<uint8_t> script_releases{0}; // last owners publish; IO folds
+    std::shared_ptr<ScriptWindow> script_window; // allocated only for waiters
 };
+static_assert(sizeof(MultiRetryLane) == 64);
 
 // Cold writer visitors; self is a scatter writer (possibly an EXEC child).
 void multi_cancel_record(AtomicEntry&, const ScatterState* self = nullptr);

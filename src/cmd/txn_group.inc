@@ -20,8 +20,10 @@ void txn_group_barrier_witness(ScatterState& state, Client& client) {
 
 bool txn_group_prepare(ScatterState& state, Server& server, uint32_t io,
                        ScatterArenaPool* pool) {
-    if (state.kind == Kind::Script ||
-        !(state.atomic_apply || (state.atomic_write && state.kind == Kind::Msetnx))) return true;
+    // AT4.12: only non-forced script activations reach this call; each takes its optimistic slot
+    // here (design §3.2 step 2). Escalated attempts and EXEC children take none (C8).
+    if (state.kind == Kind::Script) return script_window_admit(state);
+    if (!(state.atomic_apply || (state.atomic_write && state.kind == Kind::Msetnx))) return true;
     try {
         auto attempt = std::make_unique<TxnGroupAttempt>();
         attempt->retry.unit = &state;

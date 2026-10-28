@@ -569,6 +569,24 @@
     "scriptfix replies (2s)",
     "scriptfix dump (2s)",
     "lualibs CC4.7 vs Redis 7.4",
+    "at412 T1",
+    "at412 T2",
+    "at412 T3",
+    "at412 T4",
+    "at412 T5",
+    "at412 T6",
+    "at412 T7",
+    "at412 T8",
+    "at412 T9",
+    "at412 T10",
+    "at412 T11a",
+    "at412 T11b",
+    "at412 T12",
+    "at412 T13",
+    "at412 T14",
+    "at412 T15",
+    "at412 T16",
+    "at412 owner",
     "expire-index growth bound",
     "borrow-registry growth bound",
     "cross-shard dispatch scaling",
@@ -1211,5 +1229,12 @@
       "inline quoted argument decoding (2s, uring)"
     ],
     "purpose": "Four source-declared rows before the quick exit: DQ=DF=+4; wave8 806/823 becomes 810/827. Not runtime evidence; EXPECT constants remain maintainer-owned."
+  },
+  "wave9_supplement": {
+    "purpose": "All source declarations, including duplicates; expected 881 quick / 898 full; protected EXPECT unchanged.",
+    "parked": [
+      "layout_placement",
+      "blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK"
+    ]
   }
 }

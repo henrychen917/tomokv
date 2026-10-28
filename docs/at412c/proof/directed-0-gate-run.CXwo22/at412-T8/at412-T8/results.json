@@ -1,0 +1,245 @@
+[
+  {
+    "case": "T8",
+    "leg": "redis-redis-0-EVAL",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "redis-redis-0-EVALSHA",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "redis-redis-0-FCALL",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "1s-uring-0-EVAL",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "1s-uring-0-EVALSHA",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "1s-uring-0-FCALL",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "1s-uring-1-EVAL",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "1s-uring-1-EVALSHA",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "1s-uring-1-FCALL",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "1s-epoll-0-EVAL",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "1s-epoll-0-EVALSHA",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "1s-epoll-0-FCALL",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "1s-epoll-1-EVAL",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "1s-epoll-1-EVALSHA",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "1s-epoll-1-FCALL",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "2s-uring-0-EVAL",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "2s-uring-0-EVALSHA",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "2s-uring-0-FCALL",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "2s-uring-1-EVAL",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "2s-uring-1-EVALSHA",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "2s-uring-1-FCALL",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "2s-epoll-0-EVAL",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "2s-epoll-0-EVALSHA",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "2s-epoll-0-FCALL",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "2s-epoll-1-EVAL",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "2s-epoll-1-EVALSHA",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  },
+  {
+    "case": "T8",
+    "leg": "2s-epoll-1-FCALL",
+    "value": [
+      40,
+      40
+    ],
+    "pass": true
+  }
+]

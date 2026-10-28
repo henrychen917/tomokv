@@ -1,0 +1,333 @@
+{
+ "method": "compile-only (-g0) xshard.o per budget; every function canonical-compared with the PRE object (ccfix relocation canonicalisation, anonymous .rodata jump tables normalised); pre_bodies_changed counts PRE functions that differ or vanished",
+ "pre_initial": {
+  "normal": 118577,
+  "db0": 117548
+ },
+ "pre_budget": {
+  "normal": 148329,
+  "db0": 147135
+ },
+ "chosen": {
+  "normal": 150700,
+  "db0": 149450
+ },
+ "rows": [
+  {
+   "namespace": "db0",
+   "budget": 149350,
+   "initial": 119794,
+   "equal": 1044,
+   "different": 71,
+   "pre_bodies_changed": 35,
+   "changed_selected": [
+    "auto",
+    "ScatterState::ScatterStatex2",
+    "xshard_abandon_unpublished",
+    "xshard_execute",
+    "xshard_execute",
+    "xshard_preparex2"
+   ]
+  },
+  {
+   "namespace": "db0",
+   "budget": 149400,
+   "initial": 119794,
+   "equal": 1043,
+   "different": 72,
+   "pre_bodies_changed": 36,
+   "changed_selected": [
+    "auto",
+    "ScatterState::ScatterStatex2",
+    "xshard_abandon_unpublished",
+    "xshard_execute",
+    "xshard_execute",
+    "xshard_preparex2"
+   ]
+  },
+  {
+   "namespace": "db0",
+   "budget": 149450,
+   "initial": 119794,
+   "equal": 1051,
+   "different": 62,
+   "pre_bodies_changed": 28,
+   "changed_selected": [
+    "ScatterState::ScatterStatex2",
+    "xshard_abandon_unpublished",
+    "xshard_execute",
+    "xshard_execute",
+    "xshard_preparex2"
+   ]
+  },
+  {
+   "namespace": "db0",
+   "budget": 149500,
+   "initial": 119794,
+   "equal": 1044,
+   "different": 70,
+   "pre_bodies_changed": 35,
+   "changed_selected": [
+    "auto",
+    "ScatterState::ScatterStatex2",
+    "xshard_abandon_unpublished",
+    "xshard_execute",
+    "xshard_execute",
+    "xshard_preparex2"
+   ]
+  },
+  {
+   "namespace": "db0",
+   "budget": 149550,
+   "initial": 119794,
+   "equal": 1043,
+   "different": 71,
+   "pre_bodies_changed": 36,
+   "changed_selected": [
+    "auto",
+    "ScatterState::ScatterStatex2",
+    "xshard_abandon_unpublished",
+    "xshard_execute",
+    "xshard_execute",
+    "xshard_preparex2"
+   ]
+  },
+  {
+   "namespace": "db0",
+   "budget": 149600,
+   "initial": 119794,
+   "equal": 1044,
+   "different": 69,
+   "pre_bodies_changed": 35,
+   "changed_selected": [
+    "auto",
+    "ScatterState::ScatterStatex2",
+    "xshard_abandon_unpublished",
+    "xshard_execute",
+    "xshard_execute",
+    "xshard_preparex2"
+   ]
+  },
+  {
+   "namespace": "db0",
+   "budget": 149650,
+   "initial": 119794,
+   "equal": 1043,
+   "different": 71,
+   "pre_bodies_changed": 36,
+   "changed_selected": [
+    "auto",
+    "ScatterState::ScatterStatex2",
+    "xshard_abandon_unpublished",
+    "xshard_execute",
+    "xshard_execute",
+    "xshard_preparex2"
+   ]
+  },
+  {
+   "namespace": "db0",
+   "budget": 149700,
+   "initial": 119794,
+   "equal": 1040,
+   "different": 74,
+   "pre_bodies_changed": 39,
+   "changed_selected": [
+    "auto",
+    "ScatterState::ScatterStatex2",
+    "xshard_abandon_unpublished",
+    "xshard_execute",
+    "xshard_execute",
+    "xshard_preparex2"
+   ]
+  },
+  {
+   "namespace": "db0",
+   "budget": 149750,
+   "initial": 119794,
+   "equal": 1035,
+   "different": 78,
+   "pre_bodies_changed": 44,
+   "changed_selected": [
+    "auto",
+    "ScatterState::ScatterStatex2",
+    "xshard_abandon_unpublished",
+    "xshard_execute",
+    "xshard_execute",
+    "xshard_preparex2"
+   ]
+  },
+  {
+   "namespace": "db0",
+   "budget": 149800,
+   "initial": 119794,
+   "equal": 1036,
+   "different": 78,
+   "pre_bodies_changed": 43,
+   "changed_selected": [
+    "ScatterState::ScatterStatex2",
+    "xshard_abandon_unpublished",
+    "xshard_execute",
+    "xshard_execute",
+    "xshard_preparex2"
+   ]
+  },
+  {
+   "namespace": "db0",
+   "budget": 149850,
+   "initial": 119794,
+   "equal": 1030,
+   "different": 83,
+   "pre_bodies_changed": 49,
+   "changed_selected": [
+    "ScatterState::ScatterStatex2",
+    "xshard_abandon_unpublished",
+    "xshard_execute",
+    "xshard_execute",
+    "xshard_preparex2"
+   ]
+  },
+  {
+   "namespace": "db0",
+   "budget": 149900,
+   "initial": 119794,
+   "equal": 1034,
+   "different": 79,
+   "pre_bodies_changed": 45,
+   "changed_selected": [
+    "ScatterState::ScatterStatex2",
+    "xshard_abandon_unpublished",
+    "xshard_execute",
+    "xshard_execute",
+    "xshard_preparex2"
+   ]
+  },
+  {
+   "namespace": "normal",
+   "budget": 150550,
+   "initial": 120808,
+   "equal": 1040,
+   "different": 75,
+   "pre_bodies_changed": 40,
+   "changed_selected": [
+    "ScatterState::ScatterStatex2",
+    "xshard_abandon_unpublished",
+    "xshard_execute",
+    "xshard_execute",
+    "xshard_prepare",
+    "xshard_prepare"
+   ]
+  },
+  {
+   "namespace": "normal",
+   "budget": 150600,
+   "initial": 120808,
+   "equal": 1048,
+   "different": 67,
+   "pre_bodies_changed": 32,
+   "changed_selected": [
+    "ScatterState::ScatterStatex2",
+    "xshard_abandon_unpublished",
+    "xshard_execute",
+    "xshard_execute",
+    "xshard_prepare",
+    "xshard_prepare"
+   ]
+  },
+  {
+   "namespace": "normal",
+   "budget": 150650,
+   "initial": 120808,
+   "equal": 1046,
+   "different": 69,
+   "pre_bodies_changed": 34,
+   "changed_selected": [
+    "ScatterState::ScatterStatex2",
+    "xshard_abandon_unpublished",
+    "xshard_execute",
+    "xshard_execute",
+    "xshard_prepare",
+    "xshard_prepare"
+   ]
+  },
+  {
+   "namespace": "normal",
+   "budget": 150700,
+   "initial": 120808,
+   "equal": 1047,
+   "different": 68,
+   "pre_bodies_changed": 33,
+   "changed_selected": [
+    "ScatterState::ScatterStatex2",
+    "xshard_abandon_unpublished",
+    "xshard_execute",
+    "xshard_execute",
+    "xshard_prepare",
+    "xshard_prepare"
+   ]
+  },
+  {
+   "namespace": "normal",
+   "budget": 150750,
+   "initial": 120808,
+   "equal": 1046,
+   "different": 69,
+   "pre_bodies_changed": 34,
+   "changed_selected": [
+    "ScatterState::ScatterStatex2",
+    "xshard_abandon_unpublished",
+    "xshard_execute",
+    "xshard_execute",
+    "xshard_prepare",
+    "xshard_prepare"
+   ]
+  },
+  {
+   "namespace": "normal",
+   "budget": 150800,
+   "initial": 120808,
+   "equal": 1046,
+   "different": 69,
+   "pre_bodies_changed": 34,
+   "changed_selected": [
+    "ScatterState::ScatterStatex2",
+    "xshard_abandon_unpublished",
+    "xshard_execute",
+    "xshard_execute",
+    "xshard_prepare",
+    "xshard_prepare"
+   ]
+  },
+  {
+   "namespace": "normal",
+   "budget": 150850,
+   "initial": 120808,
+   "equal": 1046,
+   "different": 68,
+   "pre_bodies_changed": 34,
+   "changed_selected": [
+    "ScatterState::ScatterStatex2",
+    "xshard_abandon_unpublished",
+    "xshard_execute",
+    "xshard_execute",
+    "xshard_prepare",
+    "xshard_prepare"
+   ]
+  },
+  {
+   "namespace": "normal",
+   "budget": 150900,
+   "initial": 120808,
+   "equal": 1043,
+   "different": 71,
+   "pre_bodies_changed": 37,
+   "changed_selected": [
+    "ScatterState::ScatterStatex2",
+    "xshard_abandon_unpublished",
+    "xshard_execute",
+    "xshard_execute",
+    "xshard_prepare",
+    "xshard_prepare"
+   ]
+  }
+ ]
+}

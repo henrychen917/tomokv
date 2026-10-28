@@ -319,8 +319,18 @@ void multi_cancel_record(AtomicEntry& entry, const ScatterState* self) {
         if (!self) txn_group_cancel(script, shard);
         return;
     }
-    if (script.kind != Kind::Script || script.aborted.load(std::memory_order_acquire)) return;
+    if (script.kind != Kind::Script) return;
     uint64_t undecided = 0;
+    if (script.aborted.load(std::memory_order_acquire)) {
+        // An aborted activation never commits, but its coordinator may not have cancelled its
+        // epoch yet. Publish the cancellation here, keeping the recorded reason (an OOM stays an
+        // OOM), so callers that re-read the epoch (txn_group_touch, multi_touch_key) see a dead
+        // candidate instead of counting a spurious OrderViolation. AT4.12 escalated scripts
+        // touch such candidates routinely; the coordinator's own later CAS becomes a no-op.
+        script.epoch.compare_exchange_strong(undecided, kAtomicCancelledEpoch,
+                                             std::memory_order_acq_rel);
+        return;
+    }
     if (script.epoch.compare_exchange_strong(undecided, kAtomicCancelledEpoch,
                                             std::memory_order_acq_rel)) {
         script.script_conflict.store(true, std::memory_order_release);
@@ -2574,8 +2584,12 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
             if (node->kind == MultiRetryNode::Kind::Group) {
                 auto& previous = *static_cast<ScatterState*>(node->unit);
                 Client* client = previous.commit_client;
-                txn_group_redispatch<IofusedPrivateQueue>(
-                    *loop.srv_, *loop.self_, loop.ring_, loop.scatter_pool_, previous);
+                if (previous.kind == Kind::Script)
+                    script_escalate_redispatch<IofusedPrivateQueue>(
+                        *loop.srv_, *loop.self_, loop.ring_, loop.scatter_pool_, previous);
+                else
+                    txn_group_redispatch<IofusedPrivateQueue>(
+                        *loop.srv_, *loop.self_, loop.ring_, loop.scatter_pool_, previous);
                 loop.mark_active(client);
                 ++work;
                 continue;
@@ -2734,6 +2748,13 @@ uint32_t multi_owner_pass_entry(IoLoop& loop) {
 }
 
 void multi_close_entry(IoLoop& loop, Client& client) {
+    // AT4.12: leave the per-IO script FIFO here. close_client calls this on EVERY non-dead entry,
+    // before mark_dead; QUIT, CLIENT KILL of self and the parse-error/receive-limit arms mark the
+    // connection closing first and reach close_client later from flush_ready, so a removal under
+    // close_client's !closing() block would free such a member with its pointer still queued.
+    // Living in this out-of-line function keeps close_client, which the IO templates inline into
+    // parse_and_dispatch, byte-identical to PRE. A no-op for a connection that never queued.
+    script_window_forget(*loop.srv_, loop.self_->id(), client);
     if (MultiExecState* cleanup = multi_prepare_close(*loop.srv_, client, loop.self_->id()))
         loop.pending_multi_cleanups_.push_back(cleanup);
 }
@@ -3624,9 +3645,11 @@ bool txn_scatter_write_ready(const Task& task, Shard& shard, Op& op) {
             state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::WriterWaits);
             return false;
         }
-        // F2: APPLY owns a reserved ticket, so waiting here would freeze rule P
+        if (state.group_attempt())
+            state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::OrderViolations);
+        // F2: optimistic APPLY owns a reserved ticket, so waiting here would freeze rule P
         // behind the unit that owns this claim. Cancel and finish the APPLY wave;
-        // the existing script finalizer closes the bracket and restages (limit 8).
+        // the script finalizer closes the bracket and hands off to claims.
         uint64_t zero = 0;
         state.epoch.compare_exchange_strong(zero, kAtomicCancelledEpoch, std::memory_order_acq_rel);
         state.script_conflict.store(true, std::memory_order_release);

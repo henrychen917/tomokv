@@ -1,0 +1,63 @@
+[
+  {
+    "defect": "SNAP-STORM-1",
+    "attempt": 0,
+    "value": {
+      "counts": [
+        2291,
+        2307,
+        2309,
+        2310,
+        2314,
+        2309,
+        2318,
+        2291,
+        4124,
+        4167,
+        4222,
+        4133,
+        0,
+        0,
+        0,
+        1,
+        83545,
+        40460,
+        80142,
+        36616
+      ],
+      "attempts": [
+        2291,
+        2307,
+        2309,
+        2310,
+        2314,
+        2309,
+        2318,
+        2291,
+        4124,
+        4167,
+        4222,
+        4133,
+        4812,
+        5400,
+        5360,
+        5162,
+        83545,
+        40460,
+        80142,
+        36616
+      ],
+      "flips": 0,
+      "saves": 13,
+      "flip_refusals": [],
+      "flip_max_seconds": 0
+    },
+    "pass": true
+  },
+  {
+    "defect": "SNAP-STORM-1",
+    "attempt": 1,
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412c/tests/at412_diagnostics.py\", line 91, in main\n    row['value'] = a.storm(c, port, keys, call, args.redis, args.seconds, bgsave=True,\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412c/tests/at412.py\", line 463, in storm\n    reply = c.cmd('BGSAVE')\n            ^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412c/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412c/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-at412c/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+  }
+]

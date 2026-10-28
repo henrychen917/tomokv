@@ -1,0 +1,24 @@
+  EXPECTED Redis-only names: cluster, cluster|addslots, cluster|addslotsrange, cluster|bumpepoch, cluster|count-failure-reports, cluster|countkeysinslot, cluster|delslots, cluster|delslotsrange, cluster|failover, cluster|flushslots, cluster|forget, cluster|getkeysinslot, cluster|help, cluster|info, cluster|keyslot, cluster|links, cluster|meet, cluster|myid, cluster|myshardid, cluster|nodes, cluster|replicas, cluster|replicate, cluster|reset, cluster|saveconfig, cluster|set-config-epoch, cluster|setslot, cluster|shards, cluster|slaves, cluster|slots, migrate, module, module|help, module|list, module|load, module|loadex, module|unload, psync, replconf, sync
+  EXPLICIT existing TomoKV-only exception: flip (not claimed as Redis parity)
+  EXPECTED Redis-only ACL CAT admin: cluster|addslots, cluster|addslotsrange, cluster|bumpepoch, cluster|count-failure-reports, cluster|delslots, cluster|delslotsrange, cluster|failover, cluster|flushslots, cluster|forget, cluster|meet, cluster|replicas, cluster|replicate, cluster|reset, cluster|saveconfig, cluster|set-config-epoch, cluster|setslot, cluster|slaves, module|list, module|load, module|loadex, module|unload, psync, replconf, sync
+  EXPECTED Redis-only ACL CAT bitmap: (none)
+  EXPECTED Redis-only ACL CAT blocking: (none)
+  EXPECTED Redis-only ACL CAT connection: (none)
+  EXPECTED Redis-only ACL CAT dangerous: cluster|addslots, cluster|addslotsrange, cluster|bumpepoch, cluster|count-failure-reports, cluster|delslots, cluster|delslotsrange, cluster|failover, cluster|flushslots, cluster|forget, cluster|meet, cluster|replicas, cluster|replicate, cluster|reset, cluster|saveconfig, cluster|set-config-epoch, cluster|setslot, cluster|slaves, migrate, module|list, module|load, module|loadex, module|unload, psync, replconf, sync
+  EXPECTED Redis-only ACL CAT fast: (none)
+  EXPECTED Redis-only ACL CAT geo: (none)
+  EXPECTED Redis-only ACL CAT hash: (none)
+  EXPECTED Redis-only ACL CAT hyperloglog: (none)
+  EXPECTED Redis-only ACL CAT keyspace: migrate
+  EXPECTED Redis-only ACL CAT list: (none)
+  EXPECTED Redis-only ACL CAT pubsub: (none)
+  EXPECTED Redis-only ACL CAT read: (none)
+  EXPECTED Redis-only ACL CAT scripting: (none)
+  EXPECTED Redis-only ACL CAT set: (none)
+  EXPECTED Redis-only ACL CAT slow: cluster, cluster|addslots, cluster|addslotsrange, cluster|bumpepoch, cluster|count-failure-reports, cluster|countkeysinslot, cluster|delslots, cluster|delslotsrange, cluster|failover, cluster|flushslots, cluster|forget, cluster|getkeysinslot, cluster|help, cluster|info, cluster|keyslot, cluster|links, cluster|meet, cluster|myid, cluster|myshardid, cluster|nodes, cluster|replicas, cluster|replicate, cluster|reset, cluster|saveconfig, cluster|set-config-epoch, cluster|setslot, cluster|shards, cluster|slaves, cluster|slots, migrate, module, module|help, module|list, module|load, module|loadex, module|unload, psync, replconf, sync
+  EXPECTED Redis-only ACL CAT sortedset: (none)
+  EXPECTED Redis-only ACL CAT stream: (none)
+  EXPECTED Redis-only ACL CAT string: (none)
+  EXPECTED Redis-only ACL CAT transaction: (none)
+  EXPECTED Redis-only ACL CAT write: migrate
+DIFFER cmdmeta: 4475 ops, 0 diffs -> PASS (info=2125, intent=2075, pipes=96, categories=21, docs_boundary=1, zero_controls=2, absent_info_docs=78, patterns=8, module_filters=3)

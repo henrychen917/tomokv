@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; correctness-plan-fallback; at412 T7
+  at412 T7                                             FAIL (see /home/user/Projects/cx-at412/build/gate-run.54JIbr/jobs/at412-T7/at412-T7.log)

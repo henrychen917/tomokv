@@ -1,0 +1,81 @@
+[
+  {
+    "name": "control-smoke",
+    "command": [
+      "python3",
+      "tools/at412_artifacts.py",
+      "control_smoke"
+    ],
+    "rc": 0,
+    "seconds": 8.87,
+    "log": "/home/user/Projects/cx-at412c/build/at412c/control-smoke-final.log",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7"
+  },
+  {
+    "name": "XS-SHUT-1",
+    "command": [
+      "python3",
+      "tests/at412_diagnostics.py",
+      "--defect",
+      "XS-SHUT-1",
+      "--binary",
+      "build/tomokv",
+      "--cores",
+      "48-55",
+      "--port",
+      "20280",
+      "--output",
+      "build/at412c/post-diagnostics/XS-SHUT-1"
+    ],
+    "rc": 1,
+    "seconds": 1.18,
+    "log": "/home/user/Projects/cx-at412c/build/at412c/XS-SHUT-1-final.log",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7"
+  },
+  {
+    "name": "XS-NOTIFY-1",
+    "command": [
+      "python3",
+      "tests/at412_diagnostics.py",
+      "--defect",
+      "XS-NOTIFY-1",
+      "--binary",
+      "build/tomokv",
+      "--cores",
+      "48-55",
+      "--port",
+      "20280",
+      "--output",
+      "build/at412c/post-diagnostics/XS-NOTIFY-1"
+    ],
+    "rc": 1,
+    "seconds": 1.672,
+    "log": "/home/user/Projects/cx-at412c/build/at412c/XS-NOTIFY-1-final.log",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7"
+  },
+  {
+    "name": "SNAP-STORM-1",
+    "command": [
+      "python3",
+      "tests/at412_diagnostics.py",
+      "--defect",
+      "SNAP-STORM-1",
+      "--binary",
+      "build/tomokv",
+      "--cores",
+      "48-55",
+      "--port",
+      "20280",
+      "--output",
+      "build/at412c/post-diagnostics/SNAP-STORM-1",
+      "--seconds",
+      "30",
+      "--attempts",
+      "8"
+    ],
+    "rc": 1,
+    "seconds": 38.485,
+    "log": "/home/user/Projects/cx-at412c/build/at412c/SNAP-STORM-1-final.log",
+    "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7"
+  }
+]

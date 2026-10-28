@@ -1,0 +1,8 @@
+[
+  {
+    "defect": "XS-NOTIFY-1",
+    "attempt": 0,
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412c/tests/at412_diagnostics.py\", line 97, in main\n    notifications(c, port, keys, call, args.redis)\n  File \"/home/user/Projects/cx-at412c/tests/at412_diagnostics.py\", line 62, in notifications\n    assert sorted(events) == sorted(k.encode() for k in keys), ('XS-NOTIFY-1 events', events)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ('XS-NOTIFY-1 events', [])\n"
+  }
+]

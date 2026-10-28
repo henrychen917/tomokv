@@ -1,0 +1,5797 @@
+{
+ "method": "scratch copy of the worktree with one patch, xshard.o normal+db0 compiled with the production recipe, production link with those two objects substituted, the derived at412 command-scope probe, GET/SET/INCR/MGET/MSET batch 1 (MGET/MSET only for most), deltas vs docs/at412/instructions PRE traces",
+ "variants": [
+  {
+   "variant": "c1",
+   "shape": "admissible call (early shape), PRE general check, count in txn_group_prepare",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -17,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': -9}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -17,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': -9}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 19,
+     "functions": "{'xshard_prepare': 19}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 11,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 19}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -4,
+     "functions": "{'xshard_prepare': -4}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -12,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': -4}"
+    }
+   ],
+   "added": 30,
+   "abs_sum": 124
+  },
+  {
+   "variant": "c11",
+   "shape": "c2 with __builtin_expect on kind == Script",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 27,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 35}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 27,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 35}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 60,
+     "functions": "{'xshard_prepare': 60}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 56,
+     "functions": "{'xshard_prepare': 64, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 37,
+     "functions": "{'xshard_prepare': 37}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 33,
+     "functions": "{'xshard_prepare': 41, 'xshard_execute': -8}"
+    }
+   ],
+   "added": 240,
+   "abs_sum": 286
+  },
+  {
+   "variant": "c12",
+   "shape": "c11 with a cold admissible",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -5,
+     "functions": "{'xshard_prepare': -5}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -5,
+     "functions": "{'xshard_prepare': -5}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 28,
+     "functions": "{'xshard_prepare': 36, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 28,
+     "functions": "{'xshard_prepare': 36, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 61,
+     "functions": "{'xshard_prepare': 61}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 56,
+     "functions": "{'xshard_prepare': 64, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 38,
+     "functions": "{'xshard_prepare': 38}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 33,
+     "functions": "{'xshard_prepare': 41, 'xshard_execute': -8}"
+    }
+   ],
+   "added": 244,
+   "abs_sum": 288
+  },
+  {
+   "variant": "c2",
+   "shape": "admissible call + \"&& kind != Script\" bypass, count in txn_group_prepare",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -9,
+     "functions": "{'xshard_prepare': -9}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -9,
+     "functions": "{'xshard_prepare': -9}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -16,
+     "functions": "{'xshard_prepare': -8, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -16,
+     "functions": "{'xshard_prepare': -8, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 19,
+     "functions": "{'xshard_prepare': 19}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 11,
+     "functions": "{'xshard_prepare': 19, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -4,
+     "functions": "{'xshard_prepare': -4}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -12,
+     "functions": "{'xshard_prepare': -4, 'xshard_execute': -8}"
+    }
+   ],
+   "added": 30,
+   "abs_sum": 120
+  },
+  {
+   "variant": "c3",
+   "shape": "design else-if (jump over the general check), count in txn_group_prepare",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -18,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -18,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 17,
+     "functions": "{'xshard_prepare': 17}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 8,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 16}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -15,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': -7}"
+    }
+   ],
+   "added": 25,
+   "abs_sum": 134
+  },
+  {
+   "variant": "c4",
+   "shape": "force_atomic tested inline, 3-arg admissible",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 4,
+     "functions": "{'xshard_prepare': 4}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 4,
+     "functions": "{'xshard_prepare': 4}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 4,
+     "functions": "{'xshard_prepare': 4}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 4,
+     "functions": "{'xshard_prepare': 4}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 40,
+     "functions": "{'xshard_prepare': 48, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 40,
+     "functions": "{'xshard_prepare': 48, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 74,
+     "functions": "{'xshard_prepare': 74}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 67,
+     "functions": "{'xshard_prepare': 75, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 50,
+     "functions": "{'xshard_prepare': 50}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 43,
+     "functions": "{'xshard_prepare': 51, 'xshard_execute': -8}"
+    }
+   ],
+   "added": 330,
+   "abs_sum": 330
+  },
+  {
+   "variant": "c5",
+   "shape": "c2 with a cold admissible",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 29,
+     "functions": "{'xshard_prepare': 37, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 29,
+     "functions": "{'xshard_prepare': 37, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 62,
+     "functions": "{'xshard_prepare': 62}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 57,
+     "functions": "{'xshard_prepare': 65, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 39,
+     "functions": "{'xshard_prepare': 39}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 34,
+     "functions": "{'xshard_prepare': 42, 'xshard_execute': -8}"
+    }
+   ],
+   "added": 250,
+   "abs_sum": 298
+  },
+  {
+   "variant": "c9",
+   "shape": "general check first, then the script check",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -1,
+     "functions": "{'xshard_prepare': -1}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -1,
+     "functions": "{'xshard_prepare': -1}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -16,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -16,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 16,
+     "functions": "{'xshard_prepare': 16}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 16,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 24}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 1}"
+    }
+   ],
+   "added": 32,
+   "abs_sum": 116
+  },
+  {
+   "variant": "f1A",
+   "shape": "inline lane fast path + cold slow path, else-if",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 35,
+     "functions": "{'xshard_prepare': 35}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 35,
+     "functions": "{'xshard_prepare': 35}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 61,
+     "functions": "{'xshard_prepare': 61}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 62,
+     "functions": "{'xshard_prepare': 62}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 38,
+     "functions": "{'xshard_prepare': 38}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 39,
+     "functions": "{'xshard_prepare': 39}"
+    }
+   ],
+   "added": 270,
+   "abs_sum": 316
+  },
+  {
+   "variant": "f1B",
+   "shape": "f1A with the bypass test",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -3,
+     "functions": "{'xshard_prepare': -3}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -3,
+     "functions": "{'xshard_prepare': -3}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -3,
+     "functions": "{'xshard_prepare': -3}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -3,
+     "functions": "{'xshard_prepare': -3}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 45,
+     "functions": "{'xshard_prepare': 45}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 45,
+     "functions": "{'xshard_prepare': 45}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 71,
+     "functions": "{'xshard_prepare': 71}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 78,
+     "functions": "{'xshard_prepare': 78}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 48,
+     "functions": "{'xshard_prepare': 48}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 55,
+     "functions": "{'xshard_prepare': 55}"
+    }
+   ],
+   "added": 342,
+   "abs_sum": 366
+  },
+  {
+   "variant": "f1C",
+   "shape": "f1A with PRE general check",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -3,
+     "functions": "{'xshard_prepare': -3}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -3,
+     "functions": "{'xshard_prepare': -3}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -3,
+     "functions": "{'xshard_prepare': -3}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -3,
+     "functions": "{'xshard_prepare': -3}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 39,
+     "functions": "{'xshard_prepare': 39}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 39,
+     "functions": "{'xshard_prepare': 39}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 64,
+     "functions": "{'xshard_prepare': 64}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 67,
+     "functions": "{'xshard_prepare': 67}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 41,
+     "functions": "{'xshard_prepare': 41}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 44,
+     "functions": "{'xshard_prepare': 44}"
+    }
+   ],
+   "added": 294,
+   "abs_sum": 320
+  },
+  {
+   "variant": "f2A",
+   "shape": "inline fast path, non-cold",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 47,
+     "functions": "{'xshard_prepare': 47}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 47,
+     "functions": "{'xshard_prepare': 47}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 72,
+     "functions": "{'xshard_prepare': 72}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 70,
+     "functions": "{'xshard_prepare': 70}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 48,
+     "functions": "{'xshard_prepare': 48}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 46,
+     "functions": "{'xshard_prepare': 46}"
+    }
+   ],
+   "added": 330,
+   "abs_sum": 376
+  },
+  {
+   "variant": "f2B",
+   "shape": "f2A bypass",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 45,
+     "functions": "{'xshard_prepare': 45}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 45,
+     "functions": "{'xshard_prepare': 45}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 71,
+     "functions": "{'xshard_prepare': 71}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 78,
+     "functions": "{'xshard_prepare': 78}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 48,
+     "functions": "{'xshard_prepare': 48}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 55,
+     "functions": "{'xshard_prepare': 55}"
+    }
+   ],
+   "added": 342,
+   "abs_sum": 388
+  },
+  {
+   "variant": "f2C",
+   "shape": "f2A PRE general check",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -9,
+     "functions": "{'xshard_prepare': -9}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -9,
+     "functions": "{'xshard_prepare': -9}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -5,
+     "functions": "{'xshard_prepare': -5}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -5,
+     "functions": "{'xshard_prepare': -5}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -5,
+     "functions": "{'xshard_prepare': -5}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -5,
+     "functions": "{'xshard_prepare': -5}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 27,
+     "functions": "{'xshard_prepare': 27}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 32,
+     "functions": "{'xshard_prepare': 32}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 4,
+     "functions": "{'xshard_prepare': 4}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 9,
+     "functions": "{'xshard_prepare': 9}"
+    }
+   ],
+   "added": 72,
+   "abs_sum": 110
+  },
+  {
+   "variant": "fin2",
+   "shape": "FINAL (commit 9c265b209 at budgets 150700 / 149450)",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "GET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "GET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "SET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "SET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "INCR",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "INCR",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "db0",
+     "command": "GET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "db0",
+     "command": "GET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "db0",
+     "command": "SET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "db0",
+     "command": "SET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "db0",
+     "command": "INCR",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "db0",
+     "command": "INCR",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 17,
+     "functions": "{'xshard_prepare': 17}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 16,
+     "functions": "{'xshard_prepare': 16}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    }
+   ],
+   "added": 33,
+   "abs_sum": 118
+  },
+  {
+   "variant": "g1",
+   "shape": "else-if, client passed through its argument slot",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 17,
+     "functions": "{'xshard_prepare': 17}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 16,
+     "functions": "{'xshard_prepare': 16}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    }
+   ],
+   "added": 33,
+   "abs_sum": 118
+  },
+  {
+   "variant": "g2",
+   "shape": "early shape, argument slot",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -9,
+     "functions": "{'xshard_prepare': -9}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -9,
+     "functions": "{'xshard_prepare': -9}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 19,
+     "functions": "{'xshard_prepare': 19}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 19,
+     "functions": "{'xshard_prepare': 19}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -4,
+     "functions": "{'xshard_prepare': -4}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -4,
+     "functions": "{'xshard_prepare': -4}"
+    }
+   ],
+   "added": 38,
+   "abs_sum": 104
+  },
+  {
+   "variant": "g3",
+   "shape": "pp3 shape, argument slot",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -9,
+     "functions": "{'xshard_prepare': -9}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -9,
+     "functions": "{'xshard_prepare': -9}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 19,
+     "functions": "{'xshard_prepare': 19}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 19,
+     "functions": "{'xshard_prepare': 19}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -4,
+     "functions": "{'xshard_prepare': -4}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -4,
+     "functions": "{'xshard_prepare': -4}"
+    }
+   ],
+   "added": 38,
+   "abs_sum": 108
+  },
+  {
+   "variant": "h1",
+   "shape": "strict-identity variant (FIFO only after the 4-cut refusal), falls through",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -5,
+     "functions": "{'xshard_prepare': -5}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -5,
+     "functions": "{'xshard_prepare': -5}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -5,
+     "functions": "{'xshard_prepare': -5}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -5,
+     "functions": "{'xshard_prepare': -5}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 20,
+     "functions": "{'xshard_prepare': 20}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 20,
+     "functions": "{'xshard_prepare': 20}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -3,
+     "functions": "{'xshard_prepare': -3}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -3,
+     "functions": "{'xshard_prepare': -3}"
+    }
+   ],
+   "added": 40,
+   "abs_sum": 96
+  },
+  {
+   "variant": "h2",
+   "shape": "h1 with a cold slow path",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -5,
+     "functions": "{'xshard_prepare': -5}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -5,
+     "functions": "{'xshard_prepare': -5}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -3,
+     "functions": "{'xshard_prepare': -3}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -3,
+     "functions": "{'xshard_prepare': -3}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -3,
+     "functions": "{'xshard_prepare': -3}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -3,
+     "functions": "{'xshard_prepare': -3}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 40,
+     "functions": "{'xshard_prepare': 40}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 40,
+     "functions": "{'xshard_prepare': 40}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 64,
+     "functions": "{'xshard_prepare': 64}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 68,
+     "functions": "{'xshard_prepare': 68}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 41,
+     "functions": "{'xshard_prepare': 41}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 45,
+     "functions": "{'xshard_prepare': 45}"
+    }
+   ],
+   "added": 298,
+   "abs_sum": 320
+  },
+  {
+   "variant": "k1",
+   "shape": "inline fast path on live values + returning cold slow path",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 49,
+     "functions": "{'xshard_prepare': 49}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 49,
+     "functions": "{'xshard_prepare': 49}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 71,
+     "functions": "{'xshard_prepare': 71}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 73,
+     "functions": "{'xshard_prepare': 73}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 48,
+     "functions": "{'xshard_prepare': 48}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 50,
+     "functions": "{'xshard_prepare': 50}"
+    }
+   ],
+   "added": 340,
+   "abs_sum": 390
+  },
+  {
+   "variant": "k2",
+   "shape": "k1 without the grant test",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 34,
+     "functions": "{'xshard_prepare': 34}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 34,
+     "functions": "{'xshard_prepare': 34}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 59,
+     "functions": "{'xshard_prepare': 59}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 64,
+     "functions": "{'xshard_prepare': 64}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 36,
+     "functions": "{'xshard_prepare': 36}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 41,
+     "functions": "{'xshard_prepare': 41}"
+    }
+   ],
+   "added": 268,
+   "abs_sum": 318
+  },
+  {
+   "variant": "m1",
+   "shape": "PRE refusal condition, returning cold slow path",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 38,
+     "functions": "{'xshard_prepare': 38}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 38,
+     "functions": "{'xshard_prepare': 38}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 61,
+     "functions": "{'xshard_prepare': 61}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 63,
+     "functions": "{'xshard_prepare': 63}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 38,
+     "functions": "{'xshard_prepare': 38}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 40,
+     "functions": "{'xshard_prepare': 40}"
+    }
+   ],
+   "added": 278,
+   "abs_sum": 318
+  },
+  {
+   "variant": "pp1",
+   "shape": "diagnostic: preprep + abandon hook only",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -8,
+     "functions": "{'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -8,
+     "functions": "{'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -8,
+     "functions": "{'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -8,
+     "functions": "{'xshard_execute': -8}"
+    }
+   ],
+   "added": 0,
+   "abs_sum": 32
+  },
+  {
+   "variant": "pp2",
+   "shape": "diagnostic: preprep + admit call in the script-only block",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -2,
+     "functions": "{'xshard_prepare': -2}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -2,
+     "functions": "{'xshard_prepare': -2}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -25,
+     "functions": "{'xshard_prepare': -25}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -18,
+     "functions": "{'xshard_prepare': -18}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -2,
+     "functions": "{'xshard_prepare': -2}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 5,
+     "functions": "{'xshard_prepare': 5}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 43,
+     "functions": "{'xshard_prepare': 51, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 43,
+     "functions": "{'xshard_prepare': 51, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 72,
+     "functions": "{'xshard_prepare': 72}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 61,
+     "functions": "{'xshard_prepare': 69, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 49,
+     "functions": "{'xshard_prepare': 49}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 38,
+     "functions": "{'xshard_prepare': 46, 'xshard_execute': -8}"
+    }
+   ],
+   "added": 311,
+   "abs_sum": 360
+  },
+  {
+   "variant": "pp3",
+   "shape": "diagnostic: preprep with the BUSY branch replaced by the admissible call",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -17,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': -9}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -17,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': -9}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 19,
+     "functions": "{'xshard_prepare': 19}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 11,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 19}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -4,
+     "functions": "{'xshard_prepare': -4}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -12,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': -4}"
+    }
+   ],
+   "added": 30,
+   "abs_sum": 124
+  },
+  {
+   "variant": "pp4",
+   "shape": "diagnostic: preprep + general check \"&& kind != Script\"",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 2,
+     "functions": "{'xshard_prepare': 2}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 2,
+     "functions": "{'xshard_prepare': 2}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 2,
+     "functions": "{'xshard_prepare': 2}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 3,
+     "functions": "{'xshard_prepare': 3}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 2,
+     "functions": "{'xshard_prepare': 2}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 3,
+     "functions": "{'xshard_prepare': 3}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -2, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -2, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -1,
+     "functions": "{'xshard_prepare': -1}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -8,
+     "functions": "{'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -1,
+     "functions": "{'xshard_prepare': -1}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -8,
+     "functions": "{'xshard_execute': -8}"
+    }
+   ],
+   "added": 14,
+   "abs_sum": 52
+  },
+  {
+   "variant": "preprep",
+   "shape": "diagnostic: PRE xshard_prepare text (BUSY branch, PRE abandon, no admit) inside the POST unit",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -8,
+     "functions": "{'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -8,
+     "functions": "{'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -8,
+     "functions": "{'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -8,
+     "functions": "{'xshard_execute': -8}"
+    }
+   ],
+   "added": 0,
+   "abs_sum": 32
+  },
+  {
+   "variant": "t1",
+   "shape": "admission check right after classification (top of prepare)",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 49,
+     "functions": "{'xshard_prepare': 49}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 49,
+     "functions": "{'xshard_prepare': 49}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 48,
+     "functions": "{'xshard_prepare': 48}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 52,
+     "functions": "{'xshard_prepare': 52}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 48,
+     "functions": "{'xshard_prepare': 48}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 52,
+     "functions": "{'xshard_prepare': 52}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 34,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 42}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 34,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 42}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 65,
+     "functions": "{'xshard_prepare': 65}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 60,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 68}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 42,
+     "functions": "{'xshard_prepare': 42}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 37,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 45}"
+    }
+   ],
+   "added": 570,
+   "abs_sum": 570
+  },
+  {
+   "variant": "t2",
+   "shape": "t1 with PRE general check",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 8,
+     "functions": "{'xshard_prepare': 8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 8,
+     "functions": "{'xshard_prepare': 8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 9,
+     "functions": "{'xshard_prepare': 9}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 8,
+     "functions": "{'xshard_prepare': 8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 9,
+     "functions": "{'xshard_prepare': 9}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 8,
+     "functions": "{'xshard_prepare': 8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': 1, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': 1, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 26,
+     "functions": "{'xshard_prepare': 26}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 16,
+     "functions": "{'xshard_prepare': 24, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 3,
+     "functions": "{'xshard_prepare': 3}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': 1, 'xshard_execute': -8}"
+    }
+   ],
+   "added": 95,
+   "abs_sum": 116
+  },
+  {
+   "variant": "t3",
+   "shape": "t1 before the SWAPDB block",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 8,
+     "functions": "{'xshard_prepare': 8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 8,
+     "functions": "{'xshard_prepare': 8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 9,
+     "functions": "{'xshard_prepare': 9}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 13,
+     "functions": "{'xshard_prepare': 13}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 9,
+     "functions": "{'xshard_prepare': 9}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 13,
+     "functions": "{'xshard_prepare': 13}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 35,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 43}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 35,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 43}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 68,
+     "functions": "{'xshard_prepare': 68}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 61,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 69}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 45,
+     "functions": "{'xshard_prepare': 45}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 38,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 46}"
+    }
+   ],
+   "added": 342,
+   "abs_sum": 342
+  },
+  {
+   "variant": "w1be0",
+   "shape": "admit(state) + granted pointer",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -9,
+     "functions": "{'xshard_prepare': -9}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -9,
+     "functions": "{'xshard_prepare': -9}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -16,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -16,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 19,
+     "functions": "{'xshard_prepare': 19}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 11,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 19}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -4,
+     "functions": "{'xshard_prepare': -4}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -12,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': -4}"
+    }
+   ],
+   "added": 30,
+   "abs_sum": 120
+  },
+  {
+   "variant": "w1be1",
+   "shape": "w1b + else-if",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -18,
+     "functions": "{'xshard_prepare': -10, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -18,
+     "functions": "{'xshard_prepare': -10, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 17,
+     "functions": "{'xshard_prepare': 17}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 8,
+     "functions": "{'xshard_prepare': 16, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -15,
+     "functions": "{'xshard_prepare': -7, 'xshard_execute': -8}"
+    }
+   ],
+   "added": 25,
+   "abs_sum": 134
+  },
+  {
+   "variant": "w1be2",
+   "shape": "w1b + inline fast path",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -5,
+     "functions": "{'xshard_prepare': -5}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -1,
+     "functions": "{'xshard_prepare': -1}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 38,
+     "functions": "{'xshard_prepare': 46, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 38,
+     "functions": "{'xshard_prepare': 46, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 73,
+     "functions": "{'xshard_prepare': 73}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 73,
+     "functions": "{'xshard_prepare': 81, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 49,
+     "functions": "{'xshard_prepare': 49}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 49,
+     "functions": "{'xshard_prepare': 57, 'xshard_execute': -8}"
+    }
+   ],
+   "added": 320,
+   "abs_sum": 346
+  },
+  {
+   "variant": "w1be3",
+   "shape": "w1b + force_atomic inline",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 4,
+     "functions": "{'xshard_prepare': 4}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 4,
+     "functions": "{'xshard_prepare': 4}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 4,
+     "functions": "{'xshard_prepare': 4}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 4,
+     "functions": "{'xshard_prepare': 4}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 40,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 48}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 40,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 48}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 74,
+     "functions": "{'xshard_prepare': 74}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 67,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 75}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 50,
+     "functions": "{'xshard_prepare': 50}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 43,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 51}"
+    }
+   ],
+   "added": 330,
+   "abs_sum": 330
+  },
+  {
+   "variant": "w1e0",
+   "shape": "admit(state, client) gated by state.admitted",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -19,
+     "functions": "{'xshard_prepare': -19}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -18,
+     "functions": "{'xshard_prepare': -18}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 4,
+     "functions": "{'xshard_prepare': 4}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 5,
+     "functions": "{'xshard_prepare': 5}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -16,
+     "functions": "{'xshard_prepare': -8, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -16,
+     "functions": "{'xshard_prepare': -8, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 19,
+     "functions": "{'xshard_prepare': 19}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 11,
+     "functions": "{'xshard_prepare': 19, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -4,
+     "functions": "{'xshard_prepare': -4}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -12,
+     "functions": "{'xshard_prepare': -4, 'xshard_execute': -8}"
+    }
+   ],
+   "added": 39,
+   "abs_sum": 124
+  },
+  {
+   "variant": "w1e1",
+   "shape": "w1 + else-if",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -19,
+     "functions": "{'xshard_prepare': -19}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -18,
+     "functions": "{'xshard_prepare': -18}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 4,
+     "functions": "{'xshard_prepare': 4}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 5,
+     "functions": "{'xshard_prepare': 5}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -18,
+     "functions": "{'xshard_prepare': -10, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -18,
+     "functions": "{'xshard_prepare': -10, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 17,
+     "functions": "{'xshard_prepare': 17}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 8,
+     "functions": "{'xshard_prepare': 16, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -15,
+     "functions": "{'xshard_prepare': -7, 'xshard_execute': -8}"
+    }
+   ],
+   "added": 34,
+   "abs_sum": 128
+  },
+  {
+   "variant": "w1e2",
+   "shape": "w1 + inline fast path",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -5,
+     "functions": "{'xshard_prepare': -5}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -1,
+     "functions": "{'xshard_prepare': -1}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 38,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 46}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 38,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 46}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 73,
+     "functions": "{'xshard_prepare': 73}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 73,
+     "functions": "{'xshard_prepare': 81, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 49,
+     "functions": "{'xshard_prepare': 49}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 49,
+     "functions": "{'xshard_prepare': 57, 'xshard_execute': -8}"
+    }
+   ],
+   "added": 320,
+   "abs_sum": 346
+  },
+  {
+   "variant": "w1e3",
+   "shape": "w1 + force_atomic tested inline",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 15,
+     "functions": "{'xshard_prepare': 15}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 15,
+     "functions": "{'xshard_prepare': 15}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 12,
+     "functions": "{'xshard_prepare': 12}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 16,
+     "functions": "{'xshard_prepare': 16}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 40,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 48}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 40,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 48}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 74,
+     "functions": "{'xshard_prepare': 74}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 67,
+     "functions": "{'xshard_prepare': 75, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 50,
+     "functions": "{'xshard_prepare': 50}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 43,
+     "functions": "{'xshard_prepare': 51, 'xshard_execute': -8}"
+    }
+   ],
+   "added": 372,
+   "abs_sum": 390
+  },
+  {
+   "variant": "xe1",
+   "shape": "c3 + cold Pin-case callee",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 25,
+     "functions": "{'xshard_execute': 8, 'xshard_prepare': 17}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 16,
+     "functions": "{'xshard_prepare': 16}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 2,
+     "functions": "{'xshard_execute': 8, 'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    }
+   ],
+   "added": 43,
+   "abs_sum": 122
+  },
+  {
+   "variant": "xe2",
+   "shape": "c3 + expect + cold Pin-case callee",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 25,
+     "functions": "{'xshard_prepare': 17, 'xshard_execute': 8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 16,
+     "functions": "{'xshard_prepare': 16}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 2,
+     "functions": "{'xshard_prepare': -6, 'xshard_execute': 8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    }
+   ],
+   "added": 43,
+   "abs_sum": 122
+  },
+  {
+   "variant": "xe4",
+   "shape": "c3 + hook at the top of execute_script_phase",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -18,
+     "functions": "{'xshard_prepare': -10, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -18,
+     "functions": "{'xshard_prepare': -10, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 1,
+     "functions": "{'xshard_prepare': 17, 'xshard_execute': -16}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 8,
+     "functions": "{'xshard_prepare': 16, 'xshard_execute': -8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -22,
+     "functions": "{'xshard_prepare': -6, 'xshard_execute': -16}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -15,
+     "functions": "{'xshard_prepare': -7, 'xshard_execute': -8}"
+    }
+   ],
+   "added": 9,
+   "abs_sum": 134
+  },
+  {
+   "variant": "xe5",
+   "shape": "xe4 + cold",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -18,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -18,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 9,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 17}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 8,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': 16}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -14,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -15,
+     "functions": "{'xshard_execute': -8, 'xshard_prepare': -7}"
+    }
+   ],
+   "added": 17,
+   "abs_sum": 134
+  },
+  {
+   "variant": "xs3",
+   "shape": "escalated wave as ScriptPhase::None",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 25,
+     "functions": "{'xshard_prepare': 17, 'xshard_execute': 8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 24,
+     "functions": "{'xshard_prepare': 16, 'xshard_execute': 8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 2,
+     "functions": "{'xshard_prepare': -6, 'xshard_execute': 8}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 1,
+     "functions": "{'xshard_prepare': -7, 'xshard_execute': 8}"
+    }
+   ],
+   "added": 52,
+   "abs_sum": 124
+  },
+  {
+   "variant": "xs3b",
+   "shape": "xs3 + cold callee",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 17,
+     "functions": "{'xshard_prepare': 17}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 16,
+     "functions": "{'xshard_prepare': 16}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    }
+   ],
+   "added": 33,
+   "abs_sum": 118
+  },
+  {
+   "variant": "xs3c",
+   "shape": "escalated wave as ScriptPhase::Place + cold callee (FINAL execute shape)",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 17,
+     "functions": "{'xshard_prepare': 17}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 16,
+     "functions": "{'xshard_prepare': 16}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    }
+   ],
+   "added": 33,
+   "abs_sum": 118
+  },
+  {
+   "variant": "xs3d",
+   "shape": "xs3c without cold",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -11,
+     "functions": "{'xshard_prepare': -11}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -8,
+     "functions": "{'xshard_prepare': -8}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -7,
+     "functions": "{'xshard_prepare': -7}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -10,
+     "functions": "{'xshard_prepare': -10}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 25,
+     "functions": "{'xshard_execute': 8, 'xshard_prepare': 17}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 24,
+     "functions": "{'xshard_execute': 8, 'xshard_prepare': 16}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 2,
+     "functions": "{'xshard_execute': 8, 'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 1,
+     "functions": "{'xshard_execute': 8, 'xshard_prepare': -7}"
+    }
+   ],
+   "added": 52,
+   "abs_sum": 124
+  },
+  {
+   "variant": "z0",
+   "shape": "diagnostic: no script branch at all in xshard_prepare (BUSY deleted), Place phase, slot counted in txn_group_prepare",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 1,
+     "functions": "{'xshard_prepare': 1}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 4,
+     "functions": "{'xshard_prepare': 4}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 1,
+     "functions": "{'xshard_prepare': 1}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 4,
+     "functions": "{'xshard_prepare': 4}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -1,
+     "functions": "{'xshard_prepare': -1}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 1,
+     "functions": "{'xshard_prepare': 1}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -1,
+     "functions": "{'xshard_prepare': -1}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 1,
+     "functions": "{'xshard_prepare': 1}"
+    }
+   ],
+   "added": 12,
+   "abs_sum": 26
+  },
+  {
+   "variant": "z1",
+   "shape": "diagnostic: z0 + general check bypass for scripts",
+   "cells": [
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -1,
+     "functions": "{'xshard_prepare': -1}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -1,
+     "functions": "{'xshard_prepare': -1}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 4,
+     "functions": "{'xshard_prepare': 4}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": 0,
+     "functions": "{}"
+    },
+    {
+     "namespace": "normal",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 4,
+     "functions": "{'xshard_prepare': 4}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MGET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": -6,
+     "functions": "{'xshard_prepare': -6}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -1,
+     "functions": "{'xshard_prepare': -1}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "1s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 2,
+     "functions": "{'xshard_prepare': 2}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 0,
+     "delta": -1,
+     "functions": "{'xshard_prepare': -1}"
+    },
+    {
+     "namespace": "db0",
+     "command": "MSET",
+     "mode": "2s",
+     "batch": 1,
+     "atomic": 1,
+     "delta": 2,
+     "functions": "{'xshard_prepare': 2}"
+    }
+   ],
+   "added": 12,
+   "abs_sum": 28
+  }
+ ]
+}

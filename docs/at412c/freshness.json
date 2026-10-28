@@ -1,0 +1,583 @@
+{
+  "checks": [
+    {
+      "command": [
+        "make",
+        "-q",
+        "all"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "all"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c/build/at412/pre-source",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/expire-notify-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/ktls-lifetime-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/moverfix-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/moverfix-db0-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/publishfix-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/at15-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/at15-db0-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/execabort-watch-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/execabort-watch-db0-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/core-concurrency-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/atomic-survivors-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/at412-owner"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/txnorder-index-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/txnorder-index-db0-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/txnorder-retry-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/txnorder-wake-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/txnorder-episodes"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/txnorder-episodes-debug"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/txnorder-watch-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/txnorder-watch-db0-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/netcmd-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/encodingfix-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/netcap-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/waits-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/rehash-waits-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/multidb-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/multidb-boundary-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/storesize-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/respresume-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/respresume-migration"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/exbatch-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/exbatch-db0-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/wb-rule-units"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/wbland-units"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/rltopo-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/lbplanner-units"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/shutdown-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/persistfix-units"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/ktls-keyupdate"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/ktls-keyupdate-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/flushfix-units"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/splitlocal-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/reorder-engagement-unit"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/reorder-engagement-unit-db0"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/racefix-climon"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/aoforder-scheduled"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "BUILD_ROOT=build/mdbqsbr2-park",
+        "all"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "BUILD_ROOT=build/mdbqsbr2-no-wake",
+        "all"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-f",
+        "Makefile",
+        "-f",
+        "tools/blockfix_cost.mk",
+        "-q",
+        "build/blockfix-cost",
+        "build/tomokv.blockfix-cost.sha256"
+      ],
+      "cwd": "/home/user/Projects/cx-at412c",
+      "rc": 0,
+      "output": ""
+    }
+  ],
+  "targets": {
+    "build/expire-notify-unit": "f78f946539e0c0bf1d71ac9aefa4da912df1988f78dea1eb828d115a7b7c78d8",
+    "build/ktls-lifetime-unit": "44421640d34cfba8672b4fedfe874da85155f937d27b49125f9e6b1caaba8a40",
+    "build/moverfix-unit": "76afe2c4dde40bfba277f3c8172bce2f2fd104ad3d043f89c642ede589724bd3",
+    "build/moverfix-db0-unit": "8c00dc110e54d8a0f01abb9521234175b289cbb458d11301e257b01ecbe6be00",
+    "build/publishfix-unit": "a7dcbd884b2d2793a8bcb9331bb8ed6d7f1d5d821a2e0db6135be6446865349d",
+    "build/at15-unit": "6241095c8d0c206d009a8a129a16e79f4609cc107f083e864bef98c833e8945c",
+    "build/at15-db0-unit": "af4650d7cdc3ec201341d8fa950d5411ef1c16359e4aeeecedf3f3612bdb3ea3",
+    "build/execabort-watch-unit": "8ddd78545f6327c5869bd175dff1a97982f75364f2012312e020d9aadf558c66",
+    "build/execabort-watch-db0-unit": "f8b6b3f5b9f79b64a7c86956157df58de23d6f97bad22051efa7d7ec939915d2",
+    "build/core-concurrency-unit": "32e371217754dd73f7b10961a47e4aa45f82406e778c6b03584ed1180960bbd1",
+    "build/atomic-survivors-unit": "a48a412535b0afaafa482d3ccf89e105568eadb707a9028ac22e3686802f255f",
+    "build/at412-owner": "083d70e84c1f2ababb733787dd5afb1cb18edf7baa1319138a5eac428ce32322",
+    "build/txnorder-index-unit": "dc3de2195c284ecaeecb2c7aee15976670a8a3c512694da2d71c42ad8f357bdc",
+    "build/txnorder-index-db0-unit": "59a27f4a3e82d8762495629a0cafe4e39d98c8d9d67e3d1c821ca572af29216c",
+    "build/txnorder-retry-unit": "334333678718c9da154cd518c9f32dc18946dc55fb0d648ed8eb01abf32b5afc",
+    "build/txnorder-wake-unit": "84c333ad20ae351f73f78bad71f3525b12636c659434928a0ac3775f9085c755",
+    "build/txnorder-episodes": "21bcfd94a8e5b5746c6f77f30a17de5e1d5a3fc5dffd916b0084663f63fbdc98",
+    "build/txnorder-episodes-debug": "ff9000f1c4f254ba29863350954073d554e4faf0d236c74d449a98f63dd1e8f7",
+    "build/txnorder-watch-unit": "107e8d17069cc393642eb99b631cb3779be7f9a13631ef3d0ac4908ac37a116b",
+    "build/txnorder-watch-db0-unit": "4f3cd1eb8e192bbe6bccd5d8240fe3e84613e2a6591d778bdb824655e6bb3e1e",
+    "build/netcmd-unit": "1fbfc9626b46688412cbcbeaa1b0f54a86f78725c154f379c567c11d28ad1623",
+    "build/encodingfix-unit": "eb090bbdf00b8f307c7ff69fd7b52757e41f6674ff48a1abda20657eb8acdffe",
+    "build/netcap-unit": "202e109d3aaa413ce7cd9437e6e3f52e23d509a42f3d240db3a4eb6ff646aeb7",
+    "build/waits-unit": "4f55932003aaf543e94f25a3545c120118022d3a199be4fad071f11bcb5f7398",
+    "build/rehash-waits-unit": "b5252c412fa26c0be6e5d2857a0c811bdc3dd2c8a04a13a9cf74a5089ba5d232",
+    "build/multidb-unit": "efbea2bf0efa879bd944fd338dce416471ebd12e579e81aa6de5e18e8c478cc6",
+    "build/multidb-boundary-unit": "d736d29423249088f54a35bf4a25686f125b7dc475ed507a4a6ccb0efb844bb2",
+    "build/storesize-unit": "51517184941bc0354db452205815aa0b82603e1a916b892e811a53cbcdfcf8b5",
+    "build/respresume-unit": "3328422724245e10edb2b742816402aa23a3a34cc5c74e9424c7806fbb8bc404",
+    "build/respresume-migration": "d9952fccd065b9d6a683bb9b4f9fab4001fa71a3c7a87d107db76e0a8d36a773",
+    "build/exbatch-unit": "e32f4b98c669f91c9e9d54bb463c496c79722aa6a9735628fda2f9f999ddb94d",
+    "build/exbatch-db0-unit": "5d44ac8cde4a44431e72f841430fe9415f8d0f8eae471d7973ca052c28547e38",
+    "build/wb-rule-units": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build/wbland-units": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build/rltopo-unit": "1e20f8d41366c9481db91b1544b688d10c728b5d5415c5ccd4fbcec31bec3d12",
+    "build/lbplanner-units": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build/shutdown-unit": "34d209bf8bcd24079cb6b44ac3e17d6c41926a8262808408512fbc0f4c86ac36",
+    "build/persistfix-units": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build/ktls-keyupdate": "454cd34b5663cb9af7474ec58786cd7a3773bc79f8a633895d41495335ebd793",
+    "build/ktls-keyupdate-unit": "7a9626e1b28f391be8be1a63417ad961e5775e1946200a4891d783fba7932220",
+    "build/flushfix-units": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build/splitlocal-unit": "1fdea842fe74af1b9e8e79020d9b7eff1a2f1389389b3192442dd65d8ffe51df",
+    "build/reorder-engagement-unit": "4f6594c4af6d2d94aef54f8b9be0cd150d2cbaecc042aa58c7ec750b1164ee28",
+    "build/reorder-engagement-unit-db0": "cefa3202e919dfb6f65b63004d6e0710a2824bc13f6b590eb54ec83f476f1e22",
+    "build/racefix-climon": "e88830e547fb6d3f4cb30b216739e0ecd6e8d08d513e78c768182e52ede7c57c",
+    "build/aoforder-scheduled": "0b0e78a274e7aa2494a8a9579afb44249cf927d4a5a17823454ae6405e1566d5",
+    "build/mdbqsbr2-park/tomokv": "24f23d35facbf7532852d924c482a70ade8f70bb20c8f6ebac2f85893179d37b",
+    "build/mdbqsbr2-no-wake/tomokv": "52fd097e06f16caa2055f2465753f8195ed3dff5ba5d37d7fd2774b8d2eff8f6",
+    "build/blockfix-cost": "c63913559d80a24518c29111c9b4daaafc43f600288b4e3ada9c87968f6059ec"
+  },
+  "production_targets": 46,
+  "all_fresh": true,
+  "rechecked_source": "f65a6a22f0f9f03711f04540b45b26a646277206",
+  "rechecked_utc": "2026-10-27T13:10:58.683953+00:00",
+  "production_source": "f7204660ef5651ad0ae14de14e13a693b2db0f8c",
+  "rechecked_arms": {
+    "PRE": "6582b6ccacf8a58a46e5204c808fbbb262cbb9d3238bb0eb01c57ea2d2674bdc",
+    "POST": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+    "POST-layout": "b263595804d2e3cd95b7cbaa22e0424766d87388b0b75f7edca2f24919e49237",
+    "PAD-A": "019b5fc64e7171c642f806f7d77eafee1586915d61b9c7618f384fe26ed12296"
+  }
+}

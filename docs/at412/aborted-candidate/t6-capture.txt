@@ -1,0 +1,4 @@
+ORDERVIOLATION src/cmd/txn_group.inc:222
+ORDERVIOLATION src/cmd/txn_group.inc:222
+ORDERVIOLATION src/cmd/txn_group.inc:222
+ORDERVIOLATION src/cmd/txn_group.inc:222 self_kind=49 self_ga=1 self_phase=7 self_aw=0 foreign_group=1 foreign_kind=49 foreign_ga=0 foreign_aw=0 foreign_apply=1 foreign_child=0 foreign_plain=0 same_conn=0 foreign_script_phase=5 foreign_aborted=1

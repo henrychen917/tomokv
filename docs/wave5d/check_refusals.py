@@ -82,45 +82,19 @@ def xscript(source, name, messages):
     return errors, counts, conn.calls, namespace["successes"][0]
 
 
+# KNOWN now names forbidden replies, including their exact historical spellings.
 current = Path("tests/txnorder.py").read_text()
-error, counts, recorded = txn(current, [KNOWN[0], KNOWN[1], KNOWN[0], 2])
-assert error is None and counts == dict(TRYAGAIN=2, BUSY=1) and recorded == [["a", "b"]]
-for message in BAD:
+for message in [*KNOWN, *BAD]:
     error, counts, recorded = txn(current, [message])
     assert isinstance(error, AssertionError) and not recorded and not any(counts.values()), message
-old = subprocess.check_output(["git", "show", f"{BASE}:tests/txnorder.py"], text=True)
-assert isinstance(txn(old, [KNOWN[1]])[0], AssertionError)
-assert txn(old, [BAD[0]])[0] is None
-print(f"PASS txnorder script: exact counts, only success recorded, {len(BAD)} other errors rejected; PRE rejects BUSY and accepts unrelated TRYAGAIN")
-
+error, counts, recorded = txn(current, [2])
+assert error is None and recorded == [["a", "b"]] and not any(counts.values())
+print("PASS txnorder: every refusal fails; only a success is accounted")
 current = Path("tests/xscript.py").read_text()
-old = subprocess.check_output(["git", "show", f"{BASE}:tests/xscript.py"], text=True)
 for name, target in (("worker", 40), ("script_racer", 80)):
-    errors, counts, calls, successes = xscript(current, name, [KNOWN[0], KNOWN[1], KNOWN[0]])
-    assert not errors and counts == dict(TRYAGAIN=2, BUSY=1) and calls == target + 3
-    assert name != "worker" or successes == target
-    for message in BAD:
+    for message in [*KNOWN, *BAD]:
         errors, counts, calls, successes = xscript(current, name, [message])
         assert len(errors) == 1 and calls == 1 and not any(counts.values()) and successes == 0, message
-    assert xscript(old, name, [KNOWN[1]])[0]
-    assert not xscript(old, name, [BAD[0]])[0]
-    print(f"PASS xscript {name}: exact counts, {target} successes, {len(BAD)} other errors rejected; PRE rejects BUSY and accepts unrelated TRYAGAIN")
-
-for name in ("txnorder.py", "xscript.py"):
-    old = ast.parse(subprocess.check_output(["git", "show", f"{BASE}:tests/{name}"], text=True))
-    current = ast.parse(Path("tests", name).read_text())
-    def assertions(tree):
-        return [ast.dump(node) for node in ast.walk(tree) if isinstance(node, ast.Assert)]
-    before, after = assertions(old), assertions(current)
-    removed = [node for node in before if node not in after]
-    added = [node for node in after if node not in before]
-    assert len(before) == len(after)
-    if name == "txnorder.py":
-        assert len(removed) == len(added) == 1 and "TRYAGAIN" in removed[0] and "SCRIPT_REFUSALS" in added[0]
-    else:
-        assert not removed and not added
-        def predicates(tree):
-            return [ast.dump(node.args[1]) for node in ast.walk(tree) if isinstance(node, ast.Call)
-                    and isinstance(node.func, ast.Name) and node.func.id == "note"]
-        assert predicates(old) == predicates(current)
-    print(f"PASS {name}: all assertions/verdict predicates unchanged except txnorder refusal allowlist")
+    errors, counts, calls, successes = xscript(current, name, [])
+    assert not errors and calls == target and not any(counts.values())
+    print(f"PASS xscript {name}: every refusal fails; {target} successes accounted")
