@@ -1,0 +1,571 @@
+{
+  "post": {
+    "1s": {
+      "summary": "build/gate-run.mkI1Mr/jobs/redis_tcl/redis-tcl-1s/summary.json",
+      "sha": "2d1b626ac7ba7769d00bd5c0a16693fb928a9c2b3d0a488d41b3f7c8df51fb40",
+      "files_rejected": [
+        {
+          "file": "unit/type/list",
+          "passed": 231,
+          "failed": 2,
+          "error": "passing subset failed, incomplete, or assertion inventory changed",
+          "failures": [
+            {
+              "status": "err",
+              "file": "tests/unit/type/list.tcl",
+              "test": "BRPOPLPUSH does not affect WATCH while still blocked in tests/unit/type/list.tcl",
+              "data": "BRPOPLPUSH does not affect WATCH while still blocked in tests/unit/type/list.tcl\nExpected 'somevalue' to equal or match ''",
+              "milliseconds": "0"
+            }
+          ]
+        },
+        {
+          "file": "unit/type/stream-cgroups",
+          "passed": 48,
+          "failed": 2,
+          "error": "passing subset failed, incomplete, or assertion inventory changed",
+          "failures": [
+            {
+              "status": "err",
+              "file": "tests/unit/type/stream-cgroups.tcl",
+              "test": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl",
+              "data": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl\nExpected '' to match '*count=1*' (context: type eval line 13 cmd {assert_match {*count=1*} [errorrstat NOGROUP r]} proc ::test) ",
+              "milliseconds": "0"
+            }
+          ]
+        }
+      ],
+      "known_setup_errors": [
+        {
+          "file": "unit/scripting",
+          "setup_errors": [
+            {
+              "command": "r debug set-disable-deny-scripts 1",
+              "reply": "ERR unknown subcommand or wrong number of arguments for 'debug' command",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "file": "unit/type/list",
+          "setup_errors": [
+            {
+              "command": "r config set list-compress-depth 2",
+              "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "file": "unit/type/list-3",
+          "setup_errors": [
+            {
+              "command": "config_set list-compress-depth $comp",
+              "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "file": "unit/type/stream-cgroups",
+          "setup_errors": [
+            {
+              "command": "r config set $param $val",
+              "reply": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "geo": {
+        "passed": 64,
+        "failed": 0,
+        "rejected": false,
+        "failures": []
+      }
+    },
+    "2s": {
+      "summary": "build/gate-run.mkI1Mr/jobs/redis_tcl/redis-tcl-2s/summary.json",
+      "sha": "2d1b626ac7ba7769d00bd5c0a16693fb928a9c2b3d0a488d41b3f7c8df51fb40",
+      "files_rejected": [
+        {
+          "file": "unit/type/stream-cgroups",
+          "passed": 48,
+          "failed": 2,
+          "error": "passing subset failed, incomplete, or assertion inventory changed",
+          "failures": [
+            {
+              "status": "err",
+              "file": "tests/unit/type/stream-cgroups.tcl",
+              "test": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl",
+              "data": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl\nExpected '' to match '*count=1*' (context: type eval line 13 cmd {assert_match {*count=1*} [errorrstat NOGROUP r]} proc ::test) ",
+              "milliseconds": "0"
+            }
+          ]
+        }
+      ],
+      "known_setup_errors": [
+        {
+          "file": "unit/scripting",
+          "setup_errors": [
+            {
+              "command": "r debug set-disable-deny-scripts 1",
+              "reply": "ERR unknown subcommand or wrong number of arguments for 'debug' command",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "file": "unit/type/list",
+          "setup_errors": [
+            {
+              "command": "r config set list-compress-depth 2",
+              "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "file": "unit/type/list-3",
+          "setup_errors": [
+            {
+              "command": "config_set list-compress-depth $comp",
+              "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "file": "unit/type/stream-cgroups",
+          "setup_errors": [
+            {
+              "command": "r config set $param $val",
+              "reply": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "geo": {
+        "passed": 64,
+        "failed": 0,
+        "rejected": false,
+        "failures": []
+      }
+    }
+  },
+  "planted": {
+    "1s": {
+      "summary": "build/gate-run.zgRWvb/jobs/redis_tcl/redis-tcl-1s/summary.json",
+      "sha": "ea113f96bf4ce6aa2994de9e20e94f3ba91b42b4dbbe03ba91dcb88236b0ea5d",
+      "files_rejected": [
+        {
+          "file": "unit/geo",
+          "passed": 48,
+          "failed": 16,
+          "error": "passing subset failed, incomplete, or assertion inventory changed",
+          "failures": [
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEORADIUS simple (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUS simple (sorted) in tests/unit/geo.tcl\nExpected '{central park n/q/r} 4545 {union square}' to equal or match '{central park n/q/r} 4545 {union square} {lic market} q4'",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEORADIUS_RO simple (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUS_RO simple (sorted) in tests/unit/geo.tcl\nExpected '{central park n/q/r} 4545 {union square}' to equal or match '{central park n/q/r} 4545 {union square} {lic market} q4'",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEOSEARCH simple (sorted) in tests/unit/geo.tcl",
+              "data": "GEOSEARCH simple (sorted) in tests/unit/geo.tcl\nExpected '{central park n/q/r} 4545 {union square} {lic market}' to equal or match '{central park n/q/r} 4545 {union square} {lic market} q4'",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEORADIUS withdist (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUS withdist (sorted) in tests/unit/geo.tcl\nExpected '{{central park n/q/r} 0.7750} {4545 2.3651} {{union square} 2.7697}' to equal or match '{{central park n/q/r} 0.4816} {4545 1.4696} {{union square} 1.7210} {{lic market} 1.9879} {q4 2.3158}'",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEOSEARCH withdist (sorted) in tests/unit/geo.tcl",
+              "data": "GEOSEARCH withdist (sorted) in tests/unit/geo.tcl\nExpected '{{central park n/q/r} 0.7750} {4545 2.3651} {{union square} 2.7697} {{lic market} 3.1991}' to equal or match '{{central park n/q/r} 0.4816} {4545 1.4696} {{union square} 1.7210} {{lic market} 1.9879} {q4 2.3158}'",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEORADIUS with multiple WITH* tokens in tests/unit/geo.tcl",
+              "data": "GEORADIUS with multiple WITH* tokens in tests/unit/geo.tcl\nExpected '{{central park n/q/r} 0.4816 1791875761332224 {-73.97334784269332886 40.76480639569881959}} {4545 1.4696 1791875796750882 {-73.95641237497329712 40.74809751381645384}}' to match '{{central park n/q/r} 0.7750 1791875761332224 {-73.97334* 40.76480*}} {4545 2.3651 1791875796750882 {-73.95641* 40.74809*}}' (context: type eval line 4 cmd {assert_match {{{central park n/q/r} 0.7750 1791875761332224 {-73.97334* 40.76480*}} {4545 2.3651 1791875796750882 {-73.95641* 40.74809*}}} [r georadius nyc -73.9798091 40.7598464 10 km WITHDIST WITHHASH WITHCOORD COUNT 2]} proc ::test) ",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEORADIUSBYMEMBER simple (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUSBYMEMBER simple (sorted) in tests/unit/geo.tcl\nExpected '{wtc one} {union square} {central park n/q/r} 4545 {lic market}' to equal or match '{wtc one} {union square} {central park n/q/r} 4545 {lic market} q4'",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEORADIUSBYMEMBER_RO simple (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUSBYMEMBER_RO simple (sorted) in tests/unit/geo.tcl\nExpected '{wtc one} {union square} {central park n/q/r} 4545 {lic market}' to equal or match '{wtc one} {union square} {central park n/q/r} 4545 {lic market} q4'",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEOSEARCH vs GEORADIUS in tests/unit/geo.tcl",
+              "data": "GEOSEARCH vs GEORADIUS in tests/unit/geo.tcl\nExpected 'Catania Palermo eage2 edge1' to be equal to 'Catania Palermo' (context: type eval line 6 cmd {assert_equal $ret1 {Catania Palermo}} proc ::test)",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEOSEARCH corner point test in tests/unit/geo.tcl",
+              "data": "GEOSEARCH corner point test in tests/unit/geo.tcl\nExpected 'corner1 corner2 corner3 corner4 edge1 edge2 edge3 edge4 edge5 edge6 edge7 edge8' to be equal to 'edge1 edge2 edge5 edge7' (context: type eval line 5 cmd {assert_equal $ret {edge1 edge2 edge5 edge7}} proc ::test)",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEORADIUSBYMEMBER withdist (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUSBYMEMBER withdist (sorted) in tests/unit/geo.tcl\nExpected '{{wtc one} 0.0000} {{union square} 3.2544} {{central park n/q/r} 6.7000} {4545 6.1975} {{lic market} 6.8969}' to equal or match '{{wtc one} 0.0000} {{union square} 2.0222} {{central park n/q/r} 4.1632} {4545 3.8510} {{lic market} 4.2855} {q4 4.7214}'",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEODIST simple & unit in tests/unit/geo.tcl",
+              "data": "GEODIST simple & unit in tests/unit/geo.tcl\nExpected 103.3182 > 166.2 && 103.3182 < 166.3 (context: type eval line 8 cmd {assert {$km > 166.2 && $km < 166.3}} proc ::test)",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEORADIUSBYMEMBER STORE/STOREDIST option: plain usage in tests/unit/geo.tcl",
+              "data": "GEORADIUSBYMEMBER STORE/STOREDIST option: plain usage in tests/unit/geo.tcl\nExpected [lindex Catania 0 Palermo 103.31822459492733 3] > 166 (context: type eval line 13 cmd {assert {[lindex $res 3] > 166}} proc ::test)",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEORANGE STOREDIST option: plain usage in tests/unit/geo.tcl",
+              "data": "GEORANGE STOREDIST option: plain usage in tests/unit/geo.tcl\nExpected [lindex Palermo 3.29677845489517e-5 Catania 103.3182305011078 3] > 166 (context: type eval line 8 cmd {assert {[lindex $res 3] > 166}} proc ::test)",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEOSEARCHSTORE STOREDIST option: plain usage in tests/unit/geo.tcl",
+              "data": "GEOSEARCHSTORE STOREDIST option: plain usage in tests/unit/geo.tcl\nExpected [lindex Palermo 3.29677845489517e-5 Catania 103.3182305011078 3] > 166 (context: type eval line 5 cmd {assert {[lindex $res 3] > 166}} proc ::test)",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEOSEARCH fuzzy test - bybox in tests/unit/geo.tcl",
+              "data": "GEOSEARCH fuzzy test - bybox in tests/unit/geo.tcl\nExpected 'OK' to equal or match 'FAIL'",
+              "milliseconds": "0"
+            }
+          ]
+        },
+        {
+          "file": "unit/type/stream-cgroups",
+          "passed": 48,
+          "failed": 2,
+          "error": "passing subset failed, incomplete, or assertion inventory changed",
+          "failures": [
+            {
+              "status": "err",
+              "file": "tests/unit/type/stream-cgroups.tcl",
+              "test": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl",
+              "data": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl\nExpected '' to match '*count=1*' (context: type eval line 13 cmd {assert_match {*count=1*} [errorrstat NOGROUP r]} proc ::test) ",
+              "milliseconds": "0"
+            }
+          ]
+        }
+      ],
+      "known_setup_errors": [
+        {
+          "file": "unit/scripting",
+          "setup_errors": [
+            {
+              "command": "r debug set-disable-deny-scripts 1",
+              "reply": "ERR unknown subcommand or wrong number of arguments for 'debug' command",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "file": "unit/type/list",
+          "setup_errors": [
+            {
+              "command": "r config set list-compress-depth 2",
+              "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "file": "unit/type/list-3",
+          "setup_errors": [
+            {
+              "command": "config_set list-compress-depth $comp",
+              "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "file": "unit/type/stream-cgroups",
+          "setup_errors": [
+            {
+              "command": "r config set $param $val",
+              "reply": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "geo": {
+        "passed": 48,
+        "failed": 16,
+        "rejected": true,
+        "failures": [
+          "GEORADIUS simple (sorted) in tests/unit/geo.tcl",
+          "GEORADIUS_RO simple (sorted) in tests/unit/geo.tcl",
+          "GEOSEARCH simple (sorted) in tests/unit/geo.tcl",
+          "GEORADIUS withdist (sorted) in tests/unit/geo.tcl",
+          "GEOSEARCH withdist (sorted) in tests/unit/geo.tcl",
+          "GEORADIUS with multiple WITH* tokens in tests/unit/geo.tcl",
+          "GEORADIUSBYMEMBER simple (sorted) in tests/unit/geo.tcl",
+          "GEORADIUSBYMEMBER_RO simple (sorted) in tests/unit/geo.tcl",
+          "GEOSEARCH vs GEORADIUS in tests/unit/geo.tcl",
+          "GEOSEARCH corner point test in tests/unit/geo.tcl",
+          "GEORADIUSBYMEMBER withdist (sorted) in tests/unit/geo.tcl",
+          "GEODIST simple & unit in tests/unit/geo.tcl",
+          "GEORADIUSBYMEMBER STORE/STOREDIST option: plain usage in tests/unit/geo.tcl",
+          "GEORANGE STOREDIST option: plain usage in tests/unit/geo.tcl",
+          "GEOSEARCHSTORE STOREDIST option: plain usage in tests/unit/geo.tcl",
+          "GEOSEARCH fuzzy test - bybox in tests/unit/geo.tcl"
+        ]
+      }
+    },
+    "2s": {
+      "summary": "build/gate-run.zgRWvb/jobs/redis_tcl/redis-tcl-2s/summary.json",
+      "sha": "ea113f96bf4ce6aa2994de9e20e94f3ba91b42b4dbbe03ba91dcb88236b0ea5d",
+      "files_rejected": [
+        {
+          "file": "unit/geo",
+          "passed": 48,
+          "failed": 16,
+          "error": "passing subset failed, incomplete, or assertion inventory changed",
+          "failures": [
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEORADIUS simple (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUS simple (sorted) in tests/unit/geo.tcl\nExpected '{central park n/q/r} 4545 {union square}' to equal or match '{central park n/q/r} 4545 {union square} {lic market} q4'",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEORADIUS_RO simple (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUS_RO simple (sorted) in tests/unit/geo.tcl\nExpected '{central park n/q/r} 4545 {union square}' to equal or match '{central park n/q/r} 4545 {union square} {lic market} q4'",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEOSEARCH simple (sorted) in tests/unit/geo.tcl",
+              "data": "GEOSEARCH simple (sorted) in tests/unit/geo.tcl\nExpected '{central park n/q/r} 4545 {union square} {lic market}' to equal or match '{central park n/q/r} 4545 {union square} {lic market} q4'",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEORADIUS withdist (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUS withdist (sorted) in tests/unit/geo.tcl\nExpected '{{central park n/q/r} 0.7750} {4545 2.3651} {{union square} 2.7697}' to equal or match '{{central park n/q/r} 0.4816} {4545 1.4696} {{union square} 1.7210} {{lic market} 1.9879} {q4 2.3158}'",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEOSEARCH withdist (sorted) in tests/unit/geo.tcl",
+              "data": "GEOSEARCH withdist (sorted) in tests/unit/geo.tcl\nExpected '{{central park n/q/r} 0.7750} {4545 2.3651} {{union square} 2.7697} {{lic market} 3.1991}' to equal or match '{{central park n/q/r} 0.4816} {4545 1.4696} {{union square} 1.7210} {{lic market} 1.9879} {q4 2.3158}'",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEORADIUS with multiple WITH* tokens in tests/unit/geo.tcl",
+              "data": "GEORADIUS with multiple WITH* tokens in tests/unit/geo.tcl\nExpected '{{central park n/q/r} 0.4816 1791875761332224 {-73.97334784269332886 40.76480639569881959}} {4545 1.4696 1791875796750882 {-73.95641237497329712 40.74809751381645384}}' to match '{{central park n/q/r} 0.7750 1791875761332224 {-73.97334* 40.76480*}} {4545 2.3651 1791875796750882 {-73.95641* 40.74809*}}' (context: type eval line 4 cmd {assert_match {{{central park n/q/r} 0.7750 1791875761332224 {-73.97334* 40.76480*}} {4545 2.3651 1791875796750882 {-73.95641* 40.74809*}}} [r georadius nyc -73.9798091 40.7598464 10 km WITHDIST WITHHASH WITHCOORD COUNT 2]} proc ::test) ",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEORADIUSBYMEMBER simple (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUSBYMEMBER simple (sorted) in tests/unit/geo.tcl\nExpected '{wtc one} {union square} {central park n/q/r} 4545 {lic market}' to equal or match '{wtc one} {union square} {central park n/q/r} 4545 {lic market} q4'",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEORADIUSBYMEMBER_RO simple (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUSBYMEMBER_RO simple (sorted) in tests/unit/geo.tcl\nExpected '{wtc one} {union square} {central park n/q/r} 4545 {lic market}' to equal or match '{wtc one} {union square} {central park n/q/r} 4545 {lic market} q4'",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEOSEARCH vs GEORADIUS in tests/unit/geo.tcl",
+              "data": "GEOSEARCH vs GEORADIUS in tests/unit/geo.tcl\nExpected 'Catania Palermo eage2 edge1' to be equal to 'Catania Palermo' (context: type eval line 6 cmd {assert_equal $ret1 {Catania Palermo}} proc ::test)",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEOSEARCH corner point test in tests/unit/geo.tcl",
+              "data": "GEOSEARCH corner point test in tests/unit/geo.tcl\nExpected 'corner1 corner2 corner3 corner4 edge1 edge2 edge3 edge4 edge5 edge6 edge7 edge8' to be equal to 'edge1 edge2 edge5 edge7' (context: type eval line 5 cmd {assert_equal $ret {edge1 edge2 edge5 edge7}} proc ::test)",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEORADIUSBYMEMBER withdist (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUSBYMEMBER withdist (sorted) in tests/unit/geo.tcl\nExpected '{{wtc one} 0.0000} {{union square} 3.2544} {{central park n/q/r} 6.7000} {4545 6.1975} {{lic market} 6.8969}' to equal or match '{{wtc one} 0.0000} {{union square} 2.0222} {{central park n/q/r} 4.1632} {4545 3.8510} {{lic market} 4.2855} {q4 4.7214}'",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEODIST simple & unit in tests/unit/geo.tcl",
+              "data": "GEODIST simple & unit in tests/unit/geo.tcl\nExpected 103.3182 > 166.2 && 103.3182 < 166.3 (context: type eval line 8 cmd {assert {$km > 166.2 && $km < 166.3}} proc ::test)",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEORADIUSBYMEMBER STORE/STOREDIST option: plain usage in tests/unit/geo.tcl",
+              "data": "GEORADIUSBYMEMBER STORE/STOREDIST option: plain usage in tests/unit/geo.tcl\nExpected [lindex Catania 0 Palermo 103.31822459492733 3] > 166 (context: type eval line 13 cmd {assert {[lindex $res 3] > 166}} proc ::test)",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEORANGE STOREDIST option: plain usage in tests/unit/geo.tcl",
+              "data": "GEORANGE STOREDIST option: plain usage in tests/unit/geo.tcl\nExpected [lindex Palermo 3.29677845489517e-5 Catania 103.3182305011078 3] > 166 (context: type eval line 8 cmd {assert {[lindex $res 3] > 166}} proc ::test)",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEOSEARCHSTORE STOREDIST option: plain usage in tests/unit/geo.tcl",
+              "data": "GEOSEARCHSTORE STOREDIST option: plain usage in tests/unit/geo.tcl\nExpected [lindex Palermo 3.29677845489517e-5 Catania 103.3182305011078 3] > 166 (context: type eval line 5 cmd {assert {[lindex $res 3] > 166}} proc ::test)",
+              "milliseconds": "0"
+            },
+            {
+              "status": "err",
+              "file": "tests/unit/geo.tcl",
+              "test": "GEOSEARCH fuzzy test - bybox in tests/unit/geo.tcl",
+              "data": "GEOSEARCH fuzzy test - bybox in tests/unit/geo.tcl\nExpected 'OK' to equal or match 'FAIL'",
+              "milliseconds": "0"
+            }
+          ]
+        },
+        {
+          "file": "unit/type/stream-cgroups",
+          "passed": 48,
+          "failed": 2,
+          "error": "passing subset failed, incomplete, or assertion inventory changed",
+          "failures": [
+            {
+              "status": "err",
+              "file": "tests/unit/type/stream-cgroups.tcl",
+              "test": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl",
+              "data": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl\nExpected '' to match '*count=1*' (context: type eval line 13 cmd {assert_match {*count=1*} [errorrstat NOGROUP r]} proc ::test) ",
+              "milliseconds": "0"
+            }
+          ]
+        }
+      ],
+      "known_setup_errors": [
+        {
+          "file": "unit/scripting",
+          "setup_errors": [
+            {
+              "command": "r debug set-disable-deny-scripts 1",
+              "reply": "ERR unknown subcommand or wrong number of arguments for 'debug' command",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "file": "unit/type/list",
+          "setup_errors": [
+            {
+              "command": "r config set list-compress-depth 2",
+              "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "file": "unit/type/list-3",
+          "setup_errors": [
+            {
+              "command": "config_set list-compress-depth $comp",
+              "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "file": "unit/type/stream-cgroups",
+          "setup_errors": [
+            {
+              "command": "r config set $param $val",
+              "reply": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "geo": {
+        "passed": 48,
+        "failed": 16,
+        "rejected": true,
+        "failures": [
+          "GEORADIUS simple (sorted) in tests/unit/geo.tcl",
+          "GEORADIUS_RO simple (sorted) in tests/unit/geo.tcl",
+          "GEOSEARCH simple (sorted) in tests/unit/geo.tcl",
+          "GEORADIUS withdist (sorted) in tests/unit/geo.tcl",
+          "GEOSEARCH withdist (sorted) in tests/unit/geo.tcl",
+          "GEORADIUS with multiple WITH* tokens in tests/unit/geo.tcl",
+          "GEORADIUSBYMEMBER simple (sorted) in tests/unit/geo.tcl",
+          "GEORADIUSBYMEMBER_RO simple (sorted) in tests/unit/geo.tcl",
+          "GEOSEARCH vs GEORADIUS in tests/unit/geo.tcl",
+          "GEOSEARCH corner point test in tests/unit/geo.tcl",
+          "GEORADIUSBYMEMBER withdist (sorted) in tests/unit/geo.tcl",
+          "GEODIST simple & unit in tests/unit/geo.tcl",
+          "GEORADIUSBYMEMBER STORE/STOREDIST option: plain usage in tests/unit/geo.tcl",
+          "GEORANGE STOREDIST option: plain usage in tests/unit/geo.tcl",
+          "GEOSEARCHSTORE STOREDIST option: plain usage in tests/unit/geo.tcl",
+          "GEOSEARCH fuzzy test - bybox in tests/unit/geo.tcl"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,296 @@
+[
+  {
+    "lane": "cx-woundfix",
+    "manifest_commits": [],
+    "promoted": []
+  },
+  {
+    "lane": "cx-gaterows5",
+    "manifest_commits": [],
+    "promoted": []
+  },
+  {
+    "lane": "cx-protofix",
+    "manifest_commits": [],
+    "promoted": []
+  },
+  {
+    "lane": "cx-crlffix",
+    "manifest_commits": [
+      "9aa4db7357af22f5309771dfff58975e07e7d6aa"
+    ],
+    "promoted": [
+      {
+        "commit": "9aa4db7357af22f5309771dfff58975e07e7d6aa",
+        "file": "unit/functions",
+        "test": "FUNCTION - test function list with CRLF injection attempt"
+      }
+    ]
+  },
+  {
+    "lane": "cx-multifix",
+    "manifest_commits": [
+      "01fabda27b09b528c995fa2339e98154e9f975ae",
+      "7b40601639fd7485fd03fb361f0ffaff757ebd0b"
+    ],
+    "promoted": [
+      {
+        "commit": "01fabda27b09b528c995fa2339e98154e9f975ae",
+        "file": "unit/other",
+        "test": "RESET clears and discards MULTI state"
+      },
+      {
+        "commit": "01fabda27b09b528c995fa2339e98154e9f975ae",
+        "file": "unit/pause",
+        "test": "Test both active and passive expires are skipped during client pause"
+      },
+      {
+        "commit": "01fabda27b09b528c995fa2339e98154e9f975ae",
+        "file": "unit/pause",
+        "test": "Test that client pause starts at the end of a transaction"
+      },
+      {
+        "commit": "01fabda27b09b528c995fa2339e98154e9f975ae",
+        "file": "unit/pause",
+        "test": "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write"
+      },
+      {
+        "commit": "01fabda27b09b528c995fa2339e98154e9f975ae",
+        "file": "unit/pause",
+        "test": "Test write multi-execs are blocked by pause RO"
+      },
+      {
+        "commit": "01fabda27b09b528c995fa2339e98154e9f975ae",
+        "file": "unit/pause",
+        "test": "Test write scripts in multi-exec are blocked by pause RO"
+      },
+      {
+        "commit": "01fabda27b09b528c995fa2339e98154e9f975ae",
+        "file": "unit/slowlog",
+        "test": "SLOWLOG - EXEC is not logged, just executed commands"
+      },
+      {
+        "commit": "01fabda27b09b528c995fa2339e98154e9f975ae",
+        "file": "unit/type/set",
+        "test": "SMOVE only notify dstset when the addition is successful"
+      }
+    ]
+  },
+  {
+    "lane": "cx-streamfix",
+    "manifest_commits": [
+      "abfb14cc5bf5a9c1e304b997e565bbc7d366e94c"
+    ],
+    "promoted": [
+      {
+        "commit": "abfb14cc5bf5a9c1e304b997e565bbc7d366e94c",
+        "file": "unit/type/list",
+        "test": "LMPOP with illegal argument"
+      },
+      {
+        "commit": "abfb14cc5bf5a9c1e304b997e565bbc7d366e94c",
+        "file": "unit/type/stream",
+        "test": "XADD with LIMIT consecutive calls"
+      },
+      {
+        "commit": "abfb14cc5bf5a9c1e304b997e565bbc7d366e94c",
+        "file": "unit/type/stream",
+        "test": "XADD with LIMIT delete entries no more than limit"
+      },
+      {
+        "commit": "abfb14cc5bf5a9c1e304b997e565bbc7d366e94c",
+        "file": "unit/type/stream",
+        "test": "XADD with MAXLEN option and the '~' argument"
+      },
+      {
+        "commit": "abfb14cc5bf5a9c1e304b997e565bbc7d366e94c",
+        "file": "unit/type/stream",
+        "test": "XRANGE exclusive ranges"
+      },
+      {
+        "commit": "abfb14cc5bf5a9c1e304b997e565bbc7d366e94c",
+        "file": "unit/type/stream",
+        "test": "XREAD last element blocking from empty stream"
+      },
+      {
+        "commit": "abfb14cc5bf5a9c1e304b997e565bbc7d366e94c",
+        "file": "unit/type/stream",
+        "test": "XREAD last element blocking from non-empty stream"
+      },
+      {
+        "commit": "abfb14cc5bf5a9c1e304b997e565bbc7d366e94c",
+        "file": "unit/type/stream",
+        "test": "XREAD last element from empty stream"
+      },
+      {
+        "commit": "abfb14cc5bf5a9c1e304b997e565bbc7d366e94c",
+        "file": "unit/type/stream",
+        "test": "XREAD last element from multiple streams"
+      },
+      {
+        "commit": "abfb14cc5bf5a9c1e304b997e565bbc7d366e94c",
+        "file": "unit/type/stream",
+        "test": "XREAD last element from non-empty stream"
+      },
+      {
+        "commit": "abfb14cc5bf5a9c1e304b997e565bbc7d366e94c",
+        "file": "unit/type/stream",
+        "test": "XREAD last element with count > 1"
+      },
+      {
+        "commit": "abfb14cc5bf5a9c1e304b997e565bbc7d366e94c",
+        "file": "unit/type/stream",
+        "test": "XREAD: read last element after XDEL (issue #13628)"
+      },
+      {
+        "commit": "abfb14cc5bf5a9c1e304b997e565bbc7d366e94c",
+        "file": "unit/type/stream",
+        "test": "XTRIM with LIMIT delete entries no more than limit"
+      },
+      {
+        "commit": "abfb14cc5bf5a9c1e304b997e565bbc7d366e94c",
+        "file": "unit/type/stream",
+        "test": "XTRIM with MAXLEN option basic test"
+      },
+      {
+        "commit": "abfb14cc5bf5a9c1e304b997e565bbc7d366e94c",
+        "file": "unit/type/stream",
+        "test": "XTRIM with ~ is limited"
+      },
+      {
+        "commit": "abfb14cc5bf5a9c1e304b997e565bbc7d366e94c",
+        "file": "unit/type/stream-cgroups",
+        "test": "PEL NACK reassignment after XGROUP SETID event"
+      },
+      {
+        "commit": "abfb14cc5bf5a9c1e304b997e565bbc7d366e94c",
+        "file": "unit/type/stream-cgroups",
+        "test": "XAUTOCLAIM as an iterator"
+      },
+      {
+        "commit": "abfb14cc5bf5a9c1e304b997e565bbc7d366e94c",
+        "file": "unit/type/stream-cgroups",
+        "test": "XAUTOCLAIM can claim PEL items from another consumer"
+      },
+      {
+        "commit": "abfb14cc5bf5a9c1e304b997e565bbc7d366e94c",
+        "file": "unit/type/stream-cgroups",
+        "test": "XAUTOCLAIM with out of range count"
+      },
+      {
+        "commit": "abfb14cc5bf5a9c1e304b997e565bbc7d366e94c",
+        "file": "unit/type/zset",
+        "test": "BZMPOP with illegal argument"
+      },
+      {
+        "commit": "abfb14cc5bf5a9c1e304b997e565bbc7d366e94c",
+        "file": "unit/type/zset",
+        "test": "ZMPOP with illegal argument"
+      }
+    ]
+  },
+  {
+    "lane": "cx-blockfix2",
+    "manifest_commits": [
+      "1d861ed888dfdc021cfc9abe29da0421b7a9af57",
+      "6fe1909305edd600bd48c08edd7d9d45e210bb89"
+    ],
+    "promoted": [
+      {
+        "commit": "1d861ed888dfdc021cfc9abe29da0421b7a9af57",
+        "file": "unit/multi",
+        "test": "Blocking commands ignores the timeout"
+      },
+      {
+        "commit": "1d861ed888dfdc021cfc9abe29da0421b7a9af57",
+        "file": "unit/slowlog",
+        "test": "SLOWLOG - Rewritten commands are logged as their original command"
+      },
+      {
+        "commit": "1d861ed888dfdc021cfc9abe29da0421b7a9af57",
+        "file": "unit/slowlog",
+        "test": "SLOWLOG - blocking command is reported only after unblocked"
+      },
+      {
+        "commit": "1d861ed888dfdc021cfc9abe29da0421b7a9af57",
+        "file": "unit/type/list",
+        "test": "BLMPOP_LEFT when new key is moved into place"
+      },
+      {
+        "commit": "1d861ed888dfdc021cfc9abe29da0421b7a9af57",
+        "file": "unit/type/list",
+        "test": "BLMPOP_LEFT when result key is created by SORT..STORE"
+      },
+      {
+        "commit": "1d861ed888dfdc021cfc9abe29da0421b7a9af57",
+        "file": "unit/type/list",
+        "test": "BLPOP when new key is moved into place"
+      },
+      {
+        "commit": "1d861ed888dfdc021cfc9abe29da0421b7a9af57",
+        "file": "unit/type/list",
+        "test": "BLPOP when result key is created by SORT..STORE"
+      },
+      {
+        "commit": "1d861ed888dfdc021cfc9abe29da0421b7a9af57",
+        "file": "unit/type/list",
+        "test": "BRPOPLPUSH with multiple blocked clients"
+      },
+      {
+        "commit": "1d861ed888dfdc021cfc9abe29da0421b7a9af57",
+        "file": "unit/type/stream-cgroups",
+        "test": "Blocking XREADGROUP for stream key that has clients blocked on list"
+      },
+      {
+        "commit": "1d861ed888dfdc021cfc9abe29da0421b7a9af57",
+        "file": "unit/type/stream-cgroups",
+        "test": "Blocking XREADGROUP for stream key that has clients blocked on stream - avoid endless loop"
+      },
+      {
+        "commit": "1d861ed888dfdc021cfc9abe29da0421b7a9af57",
+        "file": "unit/type/stream-cgroups",
+        "test": "Blocking XREADGROUP for stream key that has clients blocked on stream - reprocessing command"
+      },
+      {
+        "commit": "1d861ed888dfdc021cfc9abe29da0421b7a9af57",
+        "file": "unit/type/stream-cgroups",
+        "test": "Blocking XREADGROUP: flushed DB"
+      },
+      {
+        "commit": "1d861ed888dfdc021cfc9abe29da0421b7a9af57",
+        "file": "unit/type/stream-cgroups",
+        "test": "Blocking XREADGROUP: key deleted"
+      },
+      {
+        "commit": "1d861ed888dfdc021cfc9abe29da0421b7a9af57",
+        "file": "unit/type/stream-cgroups",
+        "test": "Blocking XREADGROUP: key type changed with SET"
+      },
+      {
+        "commit": "1d861ed888dfdc021cfc9abe29da0421b7a9af57",
+        "file": "unit/type/stream-cgroups",
+        "test": "Blocking XREADGROUP: key type changed with transaction"
+      },
+      {
+        "commit": "1d861ed888dfdc021cfc9abe29da0421b7a9af57",
+        "file": "unit/type/stream-cgroups",
+        "test": "RENAME can unblock XREADGROUP with -NOGROUP"
+      },
+      {
+        "commit": "1d861ed888dfdc021cfc9abe29da0421b7a9af57",
+        "file": "unit/type/stream-cgroups",
+        "test": "RENAME can unblock XREADGROUP with data"
+      },
+      {
+        "commit": "1d861ed888dfdc021cfc9abe29da0421b7a9af57",
+        "file": "unit/type/stream-cgroups",
+        "test": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP"
+      }
+    ]
+  },
+  {
+    "lane": "cx-at412c",
+    "manifest_commits": [],
+    "promoted": []
+  }
+]

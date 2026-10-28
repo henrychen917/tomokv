@@ -1,0 +1,57 @@
+PARTIAL	0	GATE_ONLY_JOBS=inline_quoted crlffix multifix-1s-uring multifix-1s-epoll multifix-2s-uring multifix-2s-epoll streamfix blockfix2 txnorder_wound witness_contracts rob_portable slotless wb_mixed; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	10.320000	multifix RESET-IN-MULTI (1s uring)
+ok	11.290000	multifix WATCH-SPURIOUS-INVALIDATION (1s uring)
+ok	11.670000	multifix EXEC-REPEATED-KEY-LINEAR (1s uring)
+ok	15.430000	multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)
+ok	28.920000	multifix PAUSE-IN-MULTI (1s uring)
+ok	12.220000	multifix PAUSE-EXEC-NOT-HELD (1s uring)
+FAIL	10.630000	multifix RESET-IN-MULTI (1s epoll)
+ok	11.310000	multifix WATCH-SPURIOUS-INVALIDATION (1s epoll)
+ok	11.680000	multifix EXEC-REPEATED-KEY-LINEAR (1s epoll)
+ok	15.430000	multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)
+ok	28.890000	multifix PAUSE-IN-MULTI (1s epoll)
+ok	12.360000	multifix PAUSE-EXEC-NOT-HELD (1s epoll)
+FAIL	10.650000	multifix RESET-IN-MULTI (2s uring)
+ok	11.300000	multifix WATCH-SPURIOUS-INVALIDATION (2s uring)
+ok	11.680000	multifix EXEC-REPEATED-KEY-LINEAR (2s uring)
+ok	15.420000	multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)
+ok	28.770000	multifix PAUSE-IN-MULTI (2s uring)
+ok	12.340000	multifix PAUSE-EXEC-NOT-HELD (2s uring)
+ok	11.400000	multifix RESET-IN-MULTI (2s epoll)
+ok	11.510000	multifix WATCH-SPURIOUS-INVALIDATION (2s epoll)
+ok	12.090000	multifix EXEC-REPEATED-KEY-LINEAR (2s epoll)
+ok	15.590000	multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)
+ok	29.090000	multifix PAUSE-IN-MULTI (2s epoll)
+ok	12.000000	multifix PAUSE-EXEC-NOT-HELD (2s epoll)
+ok	0.820000	witness falsification contracts (testmap + placement)
+ok	0.760000	ROB portable completion without BMI
+ok	2.110000	slotless remote completions (1s, epoll)
+ok	2.100000	slotless remote completions (1s, uring)
+ok	2.030000	slotless remote completions (2s, epoll)
+ok	1.960000	slotless remote completions (2s, uring)
+ok	12.650000	writeback mixed replies and live knob bounds (1s, epoll)
+ok	12.900000	writeback mixed replies and live knob bounds (1s, uring)
+ok	12.950000	writeback mixed replies and live knob bounds (2s, epoll)
+ok	12.870000	writeback mixed replies and live knob bounds (2s, uring)
+ok	1.410000	inline quoted argument decoding (1s, epoll)
+ok	1.410000	inline quoted argument decoding (1s, uring)
+ok	1.420000	inline quoted argument decoding (2s, epoll)
+ok	1.420000	inline quoted argument decoding (2s, uring)
+ok	34.240000	blockfix2 BLOCK-WAKE-RENAME-SORTSTORE
+ok	34.130000	blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS
+ok	33.610000	blockfix2 MULTI-XREADGROUP-BLOCK-HANG
+ok	33.810000	blockfix2 INFO-TOTAL-BLOCKING-KEYS
+ok	33.810000	blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED
+ok	0.020000	blockfix2 BLOCK-SERVE-REFUSED-DROP
+ok	4.400000	CRLF line replies match Redis and preserve synchronization
+ok	74.410000	streamfix STREAM-TRIM-APPROX-LIMIT vs Redis 7.4
+ok	41.190000	streamfix XREAD-PLUS-LAST vs Redis 7.4
+ok	35.810000	streamfix XRANGE-EXCLUSIVE-SENTINEL vs Redis 7.4
+ok	35.590000	streamfix STREAM-GROUP-ID-DASH vs Redis 7.4
+ok	34.720000	streamfix XAUTOCLAIM-COUNT-RANGE vs Redis 7.4
+ok	34.450000	streamfix MPOP-ARG-ERROR-TEXT vs Redis 7.4
+FAIL	0.000000	txnorder wound group
+FAIL	0.000000	txnorder wound exec
+FAIL	0.000000	txnorder wound oom
+FAIL	0.000000	txnorder wound d2

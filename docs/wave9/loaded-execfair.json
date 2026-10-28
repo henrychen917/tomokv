@@ -1,0 +1,64 @@
+{
+  "server_cores": "88-95",
+  "load": "four finite owned CPU burners, no traffic or rate measurement",
+  "processes": [
+    {
+      "pid": 1476545,
+      "cpu_seconds": 73.04,
+      "affinity": [
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95
+      ]
+    },
+    {
+      "pid": 1476546,
+      "cpu_seconds": 71.31,
+      "affinity": [
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95
+      ]
+    },
+    {
+      "pid": 1476547,
+      "cpu_seconds": 68.21,
+      "affinity": [
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95
+      ]
+    },
+    {
+      "pid": 1476548,
+      "cpu_seconds": 71.18,
+      "affinity": [
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95
+      ]
+    }
+  ],
+  "gate_exit": 0,
+  "seconds": 74.84113566298038
+}

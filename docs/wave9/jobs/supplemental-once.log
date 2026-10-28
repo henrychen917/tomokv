@@ -1,0 +1,59 @@
+GATE(full): 32 physical cores; 1 correctness slots = min(8/8 server, 24/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 24 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-wave9/build/gate-run.uw4GB1
+PARTIAL jobs (including prerequisites): release production_units respresume-fragment-1s-epoll respresume-fragment-1s-uring respresume-fragment-2s-epoll respresume-fragment-2s-uring respresume-cpu-1s-epoll respresume-cpu-1s-uring respresume-cpu-2s-epoll respresume-cpu-2s-uring respresume-neighbour-1s-epoll respresume-neighbour-1s-uring respresume-neighbour-2s-epoll respresume-neighbour-2s-uring clientfix
+PARTIAL jobs (including prerequisites): release production_units respresume-fragment-1s-epoll respresume-fragment-1s-uring respresume-fragment-2s-epoll respresume-fragment-2s-uring respresume-cpu-1s-epoll respresume-cpu-1s-uring respresume-cpu-2s-epoll respresume-cpu-2s-uring respresume-neighbour-1s-epoll respresume-neighbour-1s-uring respresume-neighbour-2s-epoll respresume-neighbour-2s-uring clientfix
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable fragment (1s, epoll)
+  RESP resumable fragment (1s, epoll)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable fragment (1s, uring)
+  RESP resumable fragment (1s, uring)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable fragment (2s, epoll)
+  RESP resumable fragment (2s, epoll)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable fragment (2s, uring)
+  RESP resumable fragment (2s, uring)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable cpu (1s, epoll)
+  RESP resumable cpu (1s, epoll)                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable cpu (1s, uring)
+  RESP resumable cpu (1s, uring)                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable cpu (2s, epoll)
+  RESP resumable cpu (2s, epoll)                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable cpu (2s, uring)
+  RESP resumable cpu (2s, uring)                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable neighbour (1s, epoll)
+  RESP resumable neighbour (1s, epoll)                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable neighbour (1s, uring)
+  RESP resumable neighbour (1s, uring)                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable neighbour (2s, epoll)
+  RESP resumable neighbour (2s, epoll)                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable neighbour (2s, uring)
+  RESP resumable neighbour (2s, uring)                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; clientfix tracking-cap (1s)
+  clientfix tracking-cap (1s)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; clientfix tracking-pipeline (1s)
+  clientfix tracking-pipeline (1s)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; clientfix reply-skip (1s)
+  clientfix reply-skip (1s)                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; clientfix pattern-cleanup (1s)
+  clientfix pattern-cleanup (1s)                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; clientfix pause-deadline (1s)
+  clientfix pause-deadline (1s)                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; clientfix geo-count (1s)
+  clientfix geo-count (1s)                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; clientfix geo-store (1s)
+  clientfix geo-store (1s)                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; clientfix tracking-cap (2s)
+  clientfix tracking-cap (2s)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; clientfix tracking-pipeline (2s)
+  clientfix tracking-pipeline (2s)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; clientfix reply-skip (2s)
+  clientfix reply-skip (2s)                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; clientfix pattern-cleanup (2s)
+  clientfix pattern-cleanup (2s)                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; clientfix pause-deadline (2s)
+  clientfix pause-deadline (2s)                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; clientfix geo-count (2s)
+  clientfix geo-count (2s)                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; clientfix geo-store (2s)
+  clientfix geo-store (2s)                             ok
+GATE(PARTIAL): 27 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave9/docs/wave9/jobs/supplemental-once.tsv.partial

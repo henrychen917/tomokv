@@ -1,0 +1,46 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "88-95",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87",
+    "--load-smt",
+    "",
+    "--ports",
+    "20080-20089",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave9/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave9",
+  "env": {
+    "LANG": "en_US.UTF-8",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "compat2",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_ZC_NET_IO": "uring",
+    "GATE_SHUTDOWN_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TEST_PORT": "20098",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave9/docs/wave9/jobs/final-tcl.tsv"
+  },
+  "binary_sha256": "2d1b626ac7ba7769d00bd5c0a16693fb928a9c2b3d0a488d41b3f7c8df51fb40",
+  "source_commit": "418f549ba242ac98fb82a97b27a39843170abe85",
+  "source_diff_sha256": "088fd271cc19072d5f68960613aa19893b9b6301ed97c0ca362a5398b04ef40a",
+  "gate_sha256": "ebe133520f698f591a0e5b3893e2d64c866ad562efdd345879b55a3e9f01de03",
+  "started": 1793151878.6946898,
+  "exit": 1,
+  "seconds": 409.20420718193054,
+  "artifacts": "/home/user/Projects/cx-wave9/build/gate-run.mkI1Mr",
+  "summary": [
+    "GATE(PARTIAL): 3 ok, 3 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave9/docs/wave9/jobs/final-tcl.tsv.partial"
+  ],
+  "binary_unchanged": true
+}

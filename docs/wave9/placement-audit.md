@@ -17,7 +17,8 @@ Migration tests keep their deliberate before/after changes and conservation chec
 | xshard_dispatch_scale | INFO shard homes vs LBSIGNALS, final LBSIGNALS | Existing explicit home map and key/client LB/auto-flip-off assertions; performance row remains maintainer-owned |
 | scriptatomic `cross_owner_pair`, txn_nx key selection | initial SHARDS vs selected-pair SHARDS | Existing bounded fresh candidate search, rejects moved pairs before issuing work |
 | sort cross-owner geometry | discovered owner mapping vs SHARDS | Existing purpose boot key/client LB and auto-flip off |
-| redisgap_atomic / wave7 | owner-bucket keys vs selected SHARDS | Shared bucket discovery now bracketed; existing purpose boots pin placement |
+| wave7 | owner-bucket keys vs selected SHARDS | Shared bucket discovery now bracketed; execfair boot pins key/client LB and auto-flip off |
+| redisgap_atomic (manual, no gate consumer) | owner-bucket keys vs selected SHARDS | Shared discovery now bracketed; subsequent geometry assertions remain strict. This manual diagnostic has no gate boot to pin |
 | rlcache_churn / legacy_reorder_witness | before/after owners during intended movement | Deliberate migration witnesses, not equality assumptions; retain actual changes and fail missing movement |
 
 Shared discovery callers additionally include datafix2_watch, wb_mixed,
