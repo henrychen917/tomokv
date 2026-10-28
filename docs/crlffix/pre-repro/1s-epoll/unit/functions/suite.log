@@ -1,0 +1,115 @@
+Starting test server at port 20301
+[ready]: 3780979
+[1;37;49mTesting unit/functions[0m
+[[0;33;49mskip[0m]: FUNCTION - Basic usage
+[[0;33;49mskip[0m]: FUNCTION - Load with unknown argument
+[[0;33;49mskip[0m]: FUNCTION - Create an already exiting library raise error
+[[0;33;49mskip[0m]: FUNCTION - Create an already exiting library raise error (case insensitive)
+[[0;33;49mskip[0m]: FUNCTION - Create a library with wrong name format
+[[0;33;49mskip[0m]: FUNCTION - Create library with unexisting engine
+[[0;33;49mskip[0m]: FUNCTION - Test uncompiled script
+[[0;33;49mskip[0m]: FUNCTION - test replace argument
+[[0;33;49mskip[0m]: FUNCTION - test function case insensitive
+[[0;33;49mskip[0m]: FUNCTION - test replace argument with failure keeps old libraries
+[[0;33;49mskip[0m]: FUNCTION - test function delete
+[[0;33;49mskip[0m]: FUNCTION - test fcall bad arguments
+[[0;33;49mskip[0m]: FUNCTION - test fcall bad number of keys arguments
+[[0;33;49mskip[0m]: FUNCTION - test fcall negative number of keys
+[[0;33;49mskip[0m]: FUNCTION - test delete on not exiting library
+[[0;33;49mskip[0m]: FUNCTION - test function kill when function is not running
+[[0;33;49mskip[0m]: FUNCTION - test wrong subcommand
+[[0;33;49mskip[0m]: FUNCTION - test loading from rdb
+[[0;33;49mskip[0m]: FUNCTION - test debug reload different options
+[[0;33;49mskip[0m]: FUNCTION - test debug reload with nosave and noflush
+[[0;33;49mskip[0m]: FUNCTION - test flushall and flushdb do not clean functions
+[[0;33;49mskip[0m]: FUNCTION - test function dump and restore
+[[0;33;49mskip[0m]: FUNCTION - test function dump and restore with flush argument
+[[0;33;49mskip[0m]: FUNCTION - test function dump and restore with append argument
+[[0;33;49mskip[0m]: FUNCTION - test function dump and restore with replace argument
+[[0;33;49mskip[0m]: FUNCTION - test function restore with bad payload do not drop existing functions
+[[0;33;49mskip[0m]: FUNCTION - test function restore with wrong number of arguments
+[[0;33;49mskip[0m]: FUNCTION - test fcall_ro with write command
+[[0;33;49mskip[0m]: FUNCTION - test fcall_ro with read only commands
+[[0;33;49mskip[0m]: FUNCTION - test keys and argv
+[[0;33;49mskip[0m]: FUNCTION - test command get keys on fcall
+[[0;33;49mskip[0m]: FUNCTION - test command get keys on fcall_ro
+[[0;33;49mskip[0m]: FUNCTION - test function kill
+[[0;33;49mskip[0m]: FUNCTION - test script kill not working on function
+[[0;33;49mskip[0m]: FUNCTION - test function kill not working on eval
+[[0;33;49mskip[0m]: FUNCTION - test function flush
+[[0;33;49mskip[0m]: FUNCTION - async function flush rebuilds Lua VM without causing race condition between main and lazyfree thread
+[[0;33;49mskip[0m]: FUNCTION - test function wrong argument
+[[0;36;49mignore[0m]: Not supported on external server
+[[0;33;49mskip[0m]: FUNCTION can processes create, delete and flush commands in AOF when doing "debug loadaof" in read-only slaves
+[[0;33;49mskip[0m]: LIBRARIES - test shared function can access default globals
+[[0;33;49mskip[0m]: LIBRARIES - usage and code sharing
+[[0;33;49mskip[0m]: LIBRARIES - test registration failure revert the entire load
+[[0;33;49mskip[0m]: LIBRARIES - test registration function name collision
+[[0;33;49mskip[0m]: LIBRARIES - test registration function name collision on same library
+[[0;33;49mskip[0m]: LIBRARIES - test registration with no argument
+[[0;33;49mskip[0m]: LIBRARIES - test registration with only name
+[[0;33;49mskip[0m]: LIBRARIES - test registration with to many arguments
+[[0;33;49mskip[0m]: LIBRARIES - test registration with no string name
+[[0;33;49mskip[0m]: LIBRARIES - test registration with wrong name format
+[[0;33;49mskip[0m]: LIBRARIES - test registration with empty name
+[[0;33;49mskip[0m]: LIBRARIES - math.random from function load
+[[0;33;49mskip[0m]: LIBRARIES - redis.call from function load
+[[0;33;49mskip[0m]: LIBRARIES - redis.setresp from function load
+[[0;33;49mskip[0m]: LIBRARIES - redis.set_repl from function load
+[[0;33;49mskip[0m]: LIBRARIES - redis.acl_check_cmd from function load
+[[0;33;49mskip[0m]: LIBRARIES - malicious access test
+[[0;33;49mskip[0m]: LIBRARIES - delete removed all functions on library
+[[0;33;49mskip[0m]: LIBRARIES - register function inside a function
+[[0;33;49mskip[0m]: LIBRARIES - register library with no functions
+[[0;33;49mskip[0m]: LIBRARIES - load timeout
+[[0;33;49mskip[0m]: LIBRARIES - verify global protection on the load run
+[[0;33;49mskip[0m]: LIBRARIES - named arguments
+[[0;33;49mskip[0m]: LIBRARIES - named arguments, bad function name
+[[0;33;49mskip[0m]: LIBRARIES - named arguments, bad callback type
+[[0;33;49mskip[0m]: LIBRARIES - named arguments, bad description
+[[0;33;49mskip[0m]: LIBRARIES - named arguments, unknown argument
+[[0;33;49mskip[0m]: LIBRARIES - named arguments, missing function name
+[[0;33;49mskip[0m]: LIBRARIES - named arguments, missing callback
+[[0;33;49mskip[0m]: FUNCTION - test function restore with function name collision
+[[0;33;49mskip[0m]: FUNCTION - test function list with code
+[[0;33;49mskip[0m]: FUNCTION - test function list with pattern
+[[0;33;49mskip[0m]: FUNCTION - test function list wrong argument
+[[0;33;49mskip[0m]: FUNCTION - test function list with bad argument to library name
+[[0;33;49mskip[0m]: FUNCTION - test function list withcode multiple times
+[[0;33;49mskip[0m]: FUNCTION - test function list libraryname multiple times
+[[0;33;49mskip[0m]: FUNCTION - verify OOM on function load and function restore
+[[0;33;49mskip[0m]: FUNCTION - verify allow-omm allows running any command
+[[0;31;49merr[0m]: FUNCTION - test function list with CRLF injection attempt in tests/unit/functions.tcl
+Expected 'ERR Unknown argument X' to match '*Unknown argument X  +INJECTED*' (context: type source line 89 file /home/user/Projects/cx-crlffix/docs/crlffix/pre-repro/checkout/tests/support/test.tcl cmd {assert_match $pattern $error $detail} proc ::assert_error level 1) 
+[[0;33;49mskip[0m]: FUNCTION - wrong flags type named arguments
+[[0;33;49mskip[0m]: FUNCTION - wrong flag type
+[[0;33;49mskip[0m]: FUNCTION - unknown flag
+[[0;33;49mskip[0m]: FUNCTION - write script on fcall_ro
+[[0;33;49mskip[0m]: FUNCTION - write script with no-writes flag
+[[0;33;49mskip[0m]: FUNCTION - deny oom
+[[0;33;49mskip[0m]: FUNCTION - deny oom on no-writes function
+[[0;33;49mskip[0m]: FUNCTION - allow stale
+[[0;33;49mskip[0m]: FUNCTION - redis version api
+[[0;33;49mskip[0m]: FUNCTION - function stats
+[[0;33;49mskip[0m]: FUNCTION - function stats reloaded correctly from rdb
+[[0;33;49mskip[0m]: FUNCTION - function stats delete library
+[[0;33;49mskip[0m]: FUNCTION - test function stats on loading failure
+[[0;33;49mskip[0m]: FUNCTION - function stats cleaned after flush
+[[0;33;49mskip[0m]: FUNCTION - function test empty engine
+[[0;33;49mskip[0m]: FUNCTION - function test unknown metadata value
+[[0;33;49mskip[0m]: FUNCTION - function test no name
+[[0;33;49mskip[0m]: FUNCTION - function test multiple names
+[[0;33;49mskip[0m]: FUNCTION - function test name with quotes
+[[0;33;49mskip[0m]: FUNCTION - trick global protection 1
+[[0;33;49mskip[0m]: FUNCTION - test getmetatable on script load
+[1/1 [0;33;49mdone[0m]: unit/functions (0 seconds)
+
+                   The End
+
+Execution time of different units:
+  0 seconds - unit/functions
+
+[1;31;49m!!! WARNING[0m The following tests failed:
+
+*** [[0;31;49merr[0m]: FUNCTION - test function list with CRLF injection attempt in tests/unit/functions.tcl
+Expected 'ERR Unknown argument X' to match '*Unknown argument X  +INJECTED*' (context: type source line 89 file /home/user/Projects/cx-crlffix/docs/crlffix/pre-repro/checkout/tests/support/test.tcl cmd {assert_match $pattern $error $detail} proc ::assert_error level 1) 

@@ -1,0 +1,18 @@
+[
+  {
+    "mode": "2s",
+    "binary_sha256": "6e9080a219a3f62dcc11838c7420bd4fe222e3c9e7f7cf3557e196affaa0ca25",
+    "files": 35,
+    "required_passes": 1644,
+    "function_passes": 68,
+    "crlf_status": "ok"
+  },
+  {
+    "mode": "1s",
+    "binary_sha256": "6e9080a219a3f62dcc11838c7420bd4fe222e3c9e7f7cf3557e196affaa0ca25",
+    "files": 35,
+    "required_passes": 1644,
+    "function_passes": 68,
+    "crlf_status": "ok"
+  }
+]

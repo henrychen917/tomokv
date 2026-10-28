@@ -1155,7 +1155,7 @@ plan_jobs(){
   JOB_NAMES+=(blockfix_structure blockfix_registry blockfix_mkstream persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
               iofix-deferred iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
-              atomfix5_watch atomfix5_accounting core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat boot_grammar dbdefault wait_units readonly
+              atomfix5_watch atomfix5_accounting core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat crlffix boot_grammar dbdefault wait_units readonly
               release_batteries atomic_batteries moverfix hexpread compat2 compat3 datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_watch datafix2_idle dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus rlfix3_zc rlfix3_info acl_recheck aclfix sort script_bounds scriptfix lualibs
               efficiency dump_restore auth authfix latencyfix_grammar latencyfix_shape latencyfix_off wave8b_off serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
@@ -2264,6 +2264,18 @@ job_ntfix_input(){
   done; done
   [ "$compatible" = 1 ] && ok "INFO received bytes exact (ntfix N1)" \
       || bad "INFO received bytes exact (ntfix N1)" "see $TMPDIR/ntfix-input-*.txt"
+}
+
+# One aggregate row, 1s/2s x epoll/uring x atomic 0/1 x databases 1/16.
+# Collected before the quick-tier exit: DQ=DF=+1; EXPECT remains owner-owned.
+job_crlffix(){
+  local label="CRLF line replies match Redis and preserve synchronization"
+  row_begin "$label"
+  py tests/crlffix.py --binary "$CANDIDATE_BINARY" \
+      --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/proof" \
+      >"$TMPDIR/crlffix.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/crlffix.log"
 }
 
 job_respcompat(){
@@ -5719,6 +5731,7 @@ collect_job netfix_idle_buffers
 # respcompat: +1 quick / +1 full, counted here before the quick-tier exit.
 # EXPECT counts and ledger fixtures are maintained by the owner.
 collect_job respcompat
+collect_job crlffix
 collect_job ntfix_input
 # NT4.2: DQ=+12, DF=+12 (lane base 625/642 -> 637/654; the wave3 total is stated above EXPECT_QUICK).
 # Counted by this collection site, before the quick-tier exit below.

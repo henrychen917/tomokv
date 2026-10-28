@@ -166,6 +166,7 @@
     "netfix NT4.7 TLS default cipher parity",
     "netfix NT4.19 idle buffer reclamation",
     "RESP protocol error compatibility",
+    "CRLF line replies match Redis and preserve synchronization",
     "INFO received bytes exact (ntfix N1)",
     "RESP resumable fragment (1s, epoll)",
     "RESP resumable fragment (1s, uring)",

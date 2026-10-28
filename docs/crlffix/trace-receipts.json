@@ -1,0 +1,982 @@
+[
+  {
+    "path": "docs/crlffix/instructions/post-db0-GET-1s-1-1--1.log",
+    "sha256": "209799862fa7725dfda5afff2c639ae5fe440b24867ea466ca94fc14d75b82ea",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-GET-1s-1-1--1.log\nSHA-256: 1a9d50b1c02e818cc5d63362d96483d740d97422bde741b73bdc1c7c678a556d\nExit: 0\n0x00005555558aa6c8\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x00005555558aa593 in tomo_db0::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff6183088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356\n2356\t    }\n0x00005555558aa598\t2356\t    }\n0x00005555558aa5a1\t2356\t    }\n0x00005555558aa5a7\t2356\t    }\n0x00005555558aa5ab\t2356\t    }\n0x00005555558aa5ac\t2356\t    }\n0x00005555558aa5ae\t2356\t    }\n0x00005555558aa5b0\t2356\t    }\n0x00005555558aa5b2\t2356\t    }\n0x00005555558aa5b4\t2356\t    }\n0x00005555558aa5b5\t2356\t    }\n0x0000555555d85e14 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 295927) exited normally]\nCOUNT 818\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-GET-1s-32-1--1.log",
+    "sha256": "615a9270fb73813fed0c0b157ddaf728fc76f8d6b5c14663e98aef59b45001c7",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-GET-1s-32-1--1.log\nSHA-256: 2f186d16a41fc4bba474767569305953ee75ee451d46a5d7a144abddd2f285af\nExit: 0\n0x00005555558aa6c8\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x00005555558aa593 in tomo_db0::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff6183088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356\n2356\t    }\n0x00005555558aa598\t2356\t    }\n0x00005555558aa5a1\t2356\t    }\n0x00005555558aa5a7\t2356\t    }\n0x00005555558aa5ab\t2356\t    }\n0x00005555558aa5ac\t2356\t    }\n0x00005555558aa5ae\t2356\t    }\n0x00005555558aa5b0\t2356\t    }\n0x00005555558aa5b2\t2356\t    }\n0x00005555558aa5b4\t2356\t    }\n0x00005555558aa5b5\t2356\t    }\n0x0000555555d85e14 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 295980) exited normally]\nCOUNT 18705\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-GET-2s-1-1--1.log",
+    "sha256": "ff887f4b0c4a5a13b624223a67336b90d433f3de2f9fbd49dec7a84f3bbad429",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-GET-2s-1-1--1.log\nSHA-256: 1b01a8c132363833d680224c7be930ab5268b25315b8ea2912fbdee38cae51ea\nExit: 0\n0x0000555555633198\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555633063 in tomo_db0::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff618b9c8, batch=batch@entry=0x7ffffffda1c0, n=n@entry=1) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555633068\t2356\t    }\n0x0000555555633071\t2356\t    }\n0x0000555555633077\t2356\t    }\n0x000055555563307b\t2356\t    }\n0x000055555563307c\t2356\t    }\n0x000055555563307e\t2356\t    }\n0x0000555555633080\t2356\t    }\n0x0000555555633082\t2356\t    }\n0x0000555555633084\t2356\t    }\n0x0000555555633085\t2356\t    }\n0x0000555555d893c4 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 301852) exited normally]\nCOUNT 1051\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-GET-2s-32-1--1.log",
+    "sha256": "6a1ac1414dbf702e1040a172e281599b86de4939d2db7f29bddf9f3d5b8ebbbf",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-GET-2s-32-1--1.log\nSHA-256: 89ea3ca28cb417adf294fbb73e1e7f17208986a31f3bcb7e0ec8190365c84027\nExit: 0\n0x0000555555633198\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555633063 in tomo_db0::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff618b9c8, batch=batch@entry=0x7ffffffda1c0, n=n@entry=32) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555633068\t2356\t    }\n0x0000555555633071\t2356\t    }\n0x0000555555633077\t2356\t    }\n0x000055555563307b\t2356\t    }\n0x000055555563307c\t2356\t    }\n0x000055555563307e\t2356\t    }\n0x0000555555633080\t2356\t    }\n0x0000555555633082\t2356\t    }\n0x0000555555633084\t2356\t    }\n0x0000555555633085\t2356\t    }\n0x0000555555d893c4 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 303834) exited normally]\nCOUNT 18163\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-INCR-1s-1-1--1.log",
+    "sha256": "5a68cdcf94032e3bc91dda0ee158e7e011007a2b279a96ff84a6aaaf94270969",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-INCR-1s-1-1--1.log\nSHA-256: 98fefccce7da0cd194497fe3ef49fe77fc4502291b3b6c91382761e0a8fbc12a\nExit: 0\nPASS bounded production command scope\nT<true>::exec_batch_prefetched<false> (this=0x7ffff6183088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356\n2356\t    }\n0x00005555558aa598\t2356\t    }\n0x00005555558aa5a1\t2356\t    }\n0x00005555558aa5a7\t2356\t    }\n0x00005555558aa5ab\t2356\t    }\n0x00005555558aa5ac\t2356\t    }\n0x00005555558aa5ae\t2356\t    }\n0x00005555558aa5b0\t2356\t    }\n0x00005555558aa5b2\t2356\t    }\n0x00005555558aa5b4\t2356\t    }\n0x00005555558aa5b5\t2356\t    }\n0x0000555555d85e14 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 320619) exited normally]\nCOUNT 1314\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-INCR-1s-32-1--1.log",
+    "sha256": "a5b374820838d25b323ac71d6f9ad1c457cfb96e1dd9d0bdfa70aa4350f35f99",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-INCR-1s-32-1--1.log\nSHA-256: a60a23283e7818b5f68947e2b865617e8d1b38c8565ddf3bf941425d11ee38d8\nExit: 0\n0x00005555558aa6c8\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x00005555558aa593 in tomo_db0::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff6183088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356\n2356\t    }\n0x00005555558aa598\t2356\t    }\n0x00005555558aa5a1\t2356\t    }\n0x00005555558aa5a7\t2356\t    }\n0x00005555558aa5ab\t2356\t    }\n0x00005555558aa5ac\t2356\t    }\n0x00005555558aa5ae\t2356\t    }\n0x00005555558aa5b0\t2356\t    }\n0x00005555558aa5b2\t2356\t    }\n0x00005555558aa5b4\t2356\t    }\n0x00005555558aa5b5\t2356\t    }\n0x0000555555d85e14 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 320845) exited normally]\nCOUNT 35106\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-INCR-2s-1-1--1.log",
+    "sha256": "d4fd71ab8fbe4f6fa2abefa29b515e700ce9c0f0f9b167be6c806610a0a57b2d",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-INCR-2s-1-1--1.log\nSHA-256: 48a28eb7a732851c70473e78d0907eedd7c8c4870d4be6e30c7dd2964b9a5de6\nExit: 0\n0x0000555555633198\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555633063 in tomo_db0::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff618b9c8, batch=batch@entry=0x7ffffffda1c0, n=n@entry=1) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555633068\t2356\t    }\n0x0000555555633071\t2356\t    }\n0x0000555555633077\t2356\t    }\n0x000055555563307b\t2356\t    }\n0x000055555563307c\t2356\t    }\n0x000055555563307e\t2356\t    }\n0x0000555555633080\t2356\t    }\n0x0000555555633082\t2356\t    }\n0x0000555555633084\t2356\t    }\n0x0000555555633085\t2356\t    }\n0x0000555555d893c4 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 327259) exited normally]\nCOUNT 1547\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-INCR-2s-32-1--1.log",
+    "sha256": "decd94aa22ca0a150272560616f47241aa30d948231854cd859078a208964efc",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-INCR-2s-32-1--1.log\nSHA-256: 428ce93d1223e3f3e7e26298c7a3126b53f9ef6264e612f48cc88ffa7b0726a6\nExit: 0\n0x0000555555633198\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555633063 in tomo_db0::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff618b9c8, batch=batch@entry=0x7ffffffda1c0, n=n@entry=32) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555633068\t2356\t    }\n0x0000555555633071\t2356\t    }\n0x0000555555633077\t2356\t    }\n0x000055555563307b\t2356\t    }\n0x000055555563307c\t2356\t    }\n0x000055555563307e\t2356\t    }\n0x0000555555633080\t2356\t    }\n0x0000555555633082\t2356\t    }\n0x0000555555633084\t2356\t    }\n0x0000555555633085\t2356\t    }\n0x0000555555d893c4 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 327430) exited normally]\nCOUNT 34564\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-MGET-1s-1-1--1.log",
+    "sha256": "a7ad88c1d9477fb8e8002541ee3901f0ef161df74f6eaaf116a5a5a29cfd22c3",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-MGET-1s-1-1--1.log\nSHA-256: 031b5dbb4afe7d7cabdf9c2e7a761b967e21fd38336a038b58bad7c7c5f86849\nExit: 0\n0x00005555556a1210\t2284\t}\n0x00005555556a1212\t2284\t}\n0x00005555556a1214\t2284\t}\n0x0000555555d86287 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scoTomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\npe.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d86293\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8629a\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d862a2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d862a9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d862af\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d862b6\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d862bd\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 332795) exited normally]\nCOUNT 10370\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-MGET-1s-32-1--1.log",
+    "sha256": "ebbfaaca6a0fc7c0aea5bde092583e6973b991e52ec0fe517b1f935090eee8bf",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-MGET-1s-32-1--1.log\nSHA-256: 9dad26f8bb78c58c78923dd8dd69ada90ed50d3f1d0fef3c7dbc8b830da3b264\nExit: 0\n0x00005555556a1210\t2284\t}\n0x00005555556a1212\t2284\t}\n0x00005555556a1214\t2284\t}\n0x0000555555d86287 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlTomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\nog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d86293\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8629a\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d862a2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d862a9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d862af\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d862b6\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d862bd\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 333011) exited normally]\nCOUNT 330662\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-MGET-2s-1-1--1.log",
+    "sha256": "d009c4df142254500e65682ad4ec6ccfefa47178edbfc34da88592a5897e3ad9",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-MGET-2s-1-1--1.log\nSHA-256: cce178af775e1262c341bbaefd5e5980636800d61efd22db3c8a71528cc71051\nExit: 0\n0x00005555556a1210\t2284\t}\n0x00005555556a1212\t2284\t}\n0x00005555556a1214\t2284\t}\n0x0000555555d89966 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=tTomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\nrue, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89972\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89979\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89981\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89988\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8998e\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d89995\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8999c\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 333217) exited normally]\nCOUNT 10370\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-MGET-2s-32-1--1.log",
+    "sha256": "e9e9786c1903dfed3bdb129723ce44797b69276ec9b408f661e75d3d5fb8c957",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-MGET-2s-32-1--1.log\nSHA-256: b888efd779d6adf14b734eba375529b31f6efe327fb8ae40e2bcd2df308ef614\nExit: 0\n0x00005555556a120d\t2284\t}\n0x00005555556a120e\t2284\t}\n0x00005555556a1210\t2284\t}\n0x00005555556a1212\t2284\t}\n0x00005555556a1214\t2284\t}\n0x0000555555d89966 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89972\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89979\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89981\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89988\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8998e\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d89995\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8999c\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 339123) exited normally]\nCOUNT 330662\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-MSET-1s-1-0--1.log",
+    "sha256": "5af81dc0f36ff283974ddb4585a6c8aa38affc1d83e7c5aacb22c05a49b2c42c",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-MSET-1s-1-0--1.log\nSHA-256: c43d8204c6cf767adb185eca96f5de73581d008e2a494377bc261e9bfeb0ee48\nExit: 0\n0x00005555556a120d\t2284\t}\n0x00005555556a120e\t2284\t}\n0x00005555556a1210\t2284\t}\n0x00005555556a1212\t2284\t}\n0x00005555556a1214\t2284\t}\n0x0000555555d86287 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d86293\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8629a\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d862a2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d862a9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d862af\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d862b6\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d862bd\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 378828) exited normally]\nCOUNT 11143\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-MSET-1s-1-1--1.log",
+    "sha256": "96784fd836aad6f8497531dc376829a90084c295b29f829cefb26777271652bd",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-MSET-1s-1-1--1.log\nSHA-256: d5b8f71b5025c64d5c4e989322d51deef1d2c86c6830990bb184bf790b1375fd\nExit: 0\n0x0000555555685ef1\t569\t}\n0x0000555555685ef2\t569\t}\n0x0000555555685ef4\t569\t}\n0x0000555555685ef6\t569\t}\n0x0000555555685ef8\t569\t}\n0x0000555555d86287 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d86293\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8629a\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d862a2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d862a9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d862af\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d862b6\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d862bd\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 379046) exited normally]\nCOUNT 16497\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-MSET-1s-32-0--1.log",
+    "sha256": "2f8748e464568d790a725151c03f33ff89718aac8ea4ff92c5df3fc71e1f7244",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-MSET-1s-32-0--1.log\nSHA-256: 8d75638181a78058aaf1ed9566cad1e46c54b2c2fe68235fb76baa850adbfbe3\nExit: 0\n0x00005555556a120d\t2284\t}\n0x00005555556a120e\t2284\t}\n0x00005555556a1210\t2284\t}\n0x00005555556a1212\t2284\t}\n0x00005555556a1214\t2284\t}\n0x0000555555d86287 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d86293\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8629a\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d862a2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d862a9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d862af\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d862b6\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d862bd\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 384403) exited normally]\nCOUNT 356421\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-MSET-1s-32-1--1.log",
+    "sha256": "ab097def7c00ea886c78030cf1eb6add864e0bdeb30b427d938b78d2ac778b00",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-MSET-1s-32-1--1.log\nSHA-256: ea4f5a042fd7b1bb1f58e14e16f3519632746452abdd15fbf8095a420cd4c853\nExit: 0\n0x0000555555685e59\t569\t}\n0x0000555555685e5a\t569\t}\n0x0000555555685e5c\t569\t}\n0x0000555555685e5e\t569\t}\n0x0000555555685e60\t569\t}\n0x0000555555d86287 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d86293\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8629a\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d862a2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d862a9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d862af\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d862b6\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d862bd\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 384516) exited normally]\nCOUNT 955046\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-MSET-2s-1-0--1.log",
+    "sha256": "8fd86c349c05ca242aaf2f4ac465332b4bae9860811c94c5cca83c778a50c88e",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-MSET-2s-1-0--1.log\nSHA-256: 4407088f9eed777a2105abf8ae205c094310c462320d588271fc40d0b01622ce\nExit: 0\n0x00005555556a120d\t2284\t}\n0x00005555556a120e\t2284\t}\n0x00005555556a1210\t2284\t}\n0x00005555556a1212\t2284\t}\n0x00005555556a1214\t2284\t}\n0x0000555555d89966 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89972\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89979\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89981\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89988\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8998e\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d89995\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8999c\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 395739) exited normally]\nCOUNT 10962\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-MSET-2s-1-1--1.log",
+    "sha256": "705fd2d43c0c8c277ac2770d517204c1e756b887becad28f1cea36c749154b73",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-MSET-2s-1-1--1.log\nSHA-256: 9e83f972e9b18d787546297c5436196d02d2b7650a704e63c43acdea1b359061\nExit: 0\n0x0000555555685ef1\t569\t}\n0x0000555555685ef2\t569\t}\n0x0000555555685ef4\t569\t}\n0x0000555555685ef6\t569\t}\n0x0000555555685ef8\t569\t}\n0x0000555555d89966 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89972\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89979\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89981\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89988\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8998e\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d89995\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8999c\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 396111) exited normally]\nCOUNT 16166\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-MSET-2s-32-0--1.log",
+    "sha256": "688492fc164f0c47217bb4cda74163d2c587a88666b3f78c211c35e289bf5963",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-MSET-2s-32-0--1.log\nSHA-256: a86f287ac25e649290502b9418f6269d211dafde82a3f424093e578b065a7db9\nExit: 0\n0x00005555556a120d\t2284\t}\n0x00005555556a120e\t2284\t}\n0x00005555556a1210\t2284\t}\n0x00005555556a1212\t2284\t}\n0x00005555556a1214\t2284\t}\n0x0000555555d89966 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89972\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89979\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89981\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89988\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8998e\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d89995\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8999c\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 402807) exited normally]\nCOUNT 350629\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-MSET-2s-32-1--1.log",
+    "sha256": "a7b811b90775a8fc58575bf11d26ba23af52d0fd38f3e919e99ef50eb08381ad",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-MSET-2s-32-1--1.log\nSHA-256: 027b5d4804d2a169c7c1a67ba3685dbcbe302d307b36a99b1fe25c2d718e8eaf\nExit: 0\n0x0000555555685e59\t569\t}\n0x0000555555685e5a\t569\t}\n0x0000555555685e5c\t569\t}\n0x0000555555685e5e\t569\t}\n0x0000555555685e60\t569\t}\n0x0000555555d89966 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89972\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89979\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89981\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d89988\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8998e\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d89995\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8999c\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 421009) exited normally]\nCOUNT 944454\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-SET-1s-1-1--1.log",
+    "sha256": "46be627c4fadc4507a1cfa439d0eff9e20a1a8e9f044cf0002f31fee93fa86fd",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-SET-1s-1-1--1.log\nSHA-256: a0f2d9fd9410e7a5053fdfa33d173c2769856f470516c4bbc2dc4bc3085a7b4b\nExit: 0\n2356\t    }\n0x00005555558aa598\t2356\t    }\n0x00005555558aa5a1\t2356\t    }\n0x00005555558aa5a7\t2356\t    }\n0x00005555558aa5ab\t2356\t    }\n0x00005555558aa5ac\t2356\t    }\n0x00005555558aa5ae\t2356\t    }\n0x00005555558aa5b0\t2356\t    }\n0x00005555558aa5b2\t2356\t    }\n0x00005555558aa5b4\t2356\t    }\n0x00005555558aa5b5\t2356\t    }\n0x0000555555d85e14 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBrTomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\neakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 307687) exited normally]\nCOUNT 955\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-SET-1s-32-1--1.log",
+    "sha256": "148425070aecc2c3f2428b22f1ecf9f6ff17faba1ae5e6c9f20b36e3fb14b60b",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-SET-1s-32-1--1.log\nSHA-256: 2d8edab985fd46bb53bdd175bec9c8f7b1f6d372d312782aef91008d8465e359\nExit: 0\n2356\t    }\n0x00005555558aa598\tTomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n2356\t    }\n0x00005555558aa5a1\t2356\t    }\n0x00005555558aa5a7\t2356\t    }\n0x00005555558aa5ab\t2356\t    }\n0x00005555558aa5ac\t2356\t    }\n0x00005555558aa5ae\t2356\t    }\n0x00005555558aa5b0\t2356\t    }\n0x00005555558aa5b2\t2356\t    }\n0x00005555558aa5b4\t2356\t    }\n0x00005555558aa5b5\t2356\t    }\n0x0000555555d85e14 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 307839) exited normally]\nCOUNT 23089\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-SET-2s-1-1--1.log",
+    "sha256": "4ce2281678660f3fb359808b646f685f29e4647ad1338904f8a129f490f5c0e0",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-SET-2s-1-1--1.log\nSHA-256: fee417f74f693ca2ddefe183975b7eb69bb034acca39714ba074d288ef28a887\nExit: 0\n0x0000555555633198\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555633063 in tomo_db0::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff618b9c8, batch=batch@entry=0x7ffffffda1c0, n=n@entry=1) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555633068\t2356\t    }\n0x0000555555633071\t2356\t    }\n0x0000555555633077\t2356\t    }\n0x000055555563307b\t2356\t    }\n0x000055555563307c\t2356\t    }\n0x000055555563307e\t2356\t    }\n0x0000555555633080\t2356\t    }\n0x0000555555633082\t2356\t    }\n0x0000555555633084\t2356\t    }\n0x0000555555633085\t2356\t    }\n0x0000555555d893c4 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 313845) exited normally]\nCOUNT 1188\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-SET-2s-32-1--1.log",
+    "sha256": "009971c48e98842814ba876f5cdfb27274b4788853e85f3bdb75ab0843a4174b",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-db0-SET-2s-32-1--1.log\nSHA-256: ff25b881c4c8927c22efa26960353f65ed63374867cc5a570119f62de91faca3\nExit: 0\n0x0000555555633198\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555633063 in tomo_db0::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff618b9c8, batch=batch@entry=0x7ffffffda1c0, n=n@entry=32) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555633068\t2356\t    }\n0x0000555555633071\t2356\t    }\n0x0000555555633077\t2356\t    }\n0x000055555563307b\t2356\t    }\n0x000055555563307c\t2356\t    }\n0x000055555563307e\t2356\t    }\n0x0000555555633080\t2356\t    }\n0x0000555555633082\t2356\t    }\n0x0000555555633084\t2356\t    }\n0x0000555555633085\t2356\t    }\n0x0000555555d893c4 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 314102) exited normally]\nCOUNT 22547\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-db0-build.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "receipt": ""
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-GET-1s-1-1--1.log",
+    "sha256": "bbb649c51d12a8bf844b237b5f909697ebd1fc0621c53f40ca701f246bb02929",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-GET-1s-1-1--1.log\nSHA-256: 03e7f3488436c69d51dde55d58d7026c386b45367b730f5a71a11ea4c3b7ff6c\nExit: 0\n0x0000555555c86e88\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555c86d53 in tomo::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff61cf088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555c86d58\t2356\t    }\n0x0000555555c86d61\t2356\t    }\n0x0000555555c86d67\t2356\t    }\n0x0000555555c86d6b\t2356\t    }\n0x0000555555c86d6c\t2356\t    }\n0x0000555555c86d6e\t2356\t    }\n0x0000555555c86d70\t2356\t    }\n0x0000555555c86d72\t2356\t    }\n0x0000555555c86d74\t2356\t    }\n0x0000555555c86d75\t2356\t    }\n0x0000555555d85b58 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 265562) exited normally]\nCOUNT 939\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-GET-1s-32-1--1.log",
+    "sha256": "fae3ef869d90e6aff3110e3268d4136ceee437e18808678a24502a8bd894a5de",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-GET-1s-32-1--1.log\nSHA-256: 742a89778dcdd4a963c2b8fb743317c54685d6fb96739fb1b4178a39eada2826\nExit: 0\n0x0000555555c86e88\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555c86d53 in tomo::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff61cf088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555c86d58\t2356\t    }\n0x0000555555c86d61\t2356\t    }\n0x0000555555c86d67\t2356\t    }\n0x0000555555c86d6b\t2356\t    }\n0x0000555555c86d6c\t2356\t    }\n0x0000555555c86d6e\t2356\t    }\n0x0000555555c86d70\t2356\t    }\n0x0000555555c86d72\t2356\t    }\n0x0000555555c86d74\t2356\t    }\n0x0000555555c86d75\t2356\t    }\n0x0000555555d85b58 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 265566) exited normally]\nCOUNT 18578\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-GET-2s-1-1--1.log",
+    "sha256": "45a5a7ff106314db0b8f5f8ad5e4707397037fbf3190fcc67abc831f9840d7fd",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-GET-2s-1-1--1.log\nSHA-256: d26ddd7313b92f006a53ee3ff8afcbe5dcc3e6f9968daa78b17c56b6641dba4c\nExit: 0\n0x0000555555a00258\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555a00123 in tomo::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff61d79c8, batch=batch@entry=0x7ffffffda040, n=n@entry=1) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555a00128\t2356\t    }\n0x0000555555a00131\t2356\t    }\n0x0000555555a00137\t2356\t    }\n0x0000555555a0013b\t2356\t    }\n0x0000555555a0013c\t2356\t    }\n0x0000555555a0013e\t2356\t    }\n0x0000555555a00140\t2356\t    }\n0x0000555555a00142\t2356\t    }\n0x0000555555a00144\t2356\t    }\n0x0000555555a00145\t2356\t    }\n0x0000555555d890b4 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 265557) exited normally]\nCOUNT 1559\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-GET-2s-32-1--1.log",
+    "sha256": "755b60401b591391abedf0136c1a8ede2b150effde697b8622c1caf091e5f846",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-GET-2s-32-1--1.log\nSHA-256: 1882e4fb501bc639eae2857ec136c9a4f6bce541e14bf4b98b63a11343c58767\nExit: 0\n0x0000555555a00258\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555a00123 in tomo::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff61d79c8, batch=batch@entry=0x7ffffffda040, n=n@entry=32) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555a00128\t2356\t    }\n0x0000555555a00131\t2356\t    }\n0x0000555555a00137\t2356\t    }\n0x0000555555a0013b\t2356\t    }\n0x0000555555a0013c\t2356\t    }\n0x0000555555a0013e\t2356\t    }\n0x0000555555a00140\t2356\t    }\n0x0000555555a00142\t2356\t    }\n0x0000555555a00144\t2356\t    }\n0x0000555555a00145\t2356\t    }\n0x0000555555d890b4 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 265559) exited normally]\nCOUNT 18423\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-INCR-1s-1-1--1.log",
+    "sha256": "7d88136f479645f58dff1538533d1ea5abb2cd789bb5194deaa5acb21e9244f9",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-INCR-1s-1-1--1.log\nSHA-256: 8095b17f22b60deef3a6705166b42ad7b6b51f7d786c33cf13bd98cde565b51b\nExit: 0\n0x0000555555c86e88\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555c86d53 in tomo::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff61cf088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555c86d58\t2356\t    }\n0x0000555555c86d61\t2356\t    }\n0x0000555555c86d67\t2356\t    }\n0x0000555555c86d6b\t2356\t    }\n0x0000555555c86d6c\t2356\t    }\n0x0000555555c86d6e\t2356\t    }\n0x0000555555c86d70\t2356\t    }\n0x0000555555c86d72\t2356\t    }\n0x0000555555c86d74\t2356\t    }\n0x0000555555c86d75\t2356\t    }\n0x0000555555d85b58 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 265723) exited normally]\nCOUNT 1531\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-INCR-1s-32-1--1.log",
+    "sha256": "529f6a426bdab6ef5edeeaf4a5422edb85e23c8c5bccd7491f18149caec2c9de",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-INCR-1s-32-1--1.log\nSHA-256: f4fdc9f2cc1b2e6e58863019b6fb31da0b090240c918c7fcd48f4cc4ddd728de\nExit: 0\n0x0000555555c86e88\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555c86d53 in tomo::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff61cf088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555c86d58\t2356\t    }\n0x0000555555c86d61\t2356\t    }\n0x0000555555c86d67\t2356\t    }\n0x0000555555c86d6b\t2356\t    }\n0x0000555555c86d6c\t2356\t    }\n0x0000555555c86d6e\t2356\t    }\n0x0000555555c86d70\t2356\t    }\n0x0000555555c86d72\t2356\t    }\n0x0000555555c86d74\t2356\t    }\n0x0000555555c86d75\t2356\t    }\n0x0000555555d85b58 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 266337) exited normally]\nCOUNT 38051\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-INCR-2s-1-1--1.log",
+    "sha256": "d37681e9169e1d295fda00023e81867d8a74478474bbe366fec0b8be346a06b2",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-INCR-2s-1-1--1.log\nSHA-256: 92bb12267343c1ac3abd2c52a4b9f4365fe5d0d5a9df58de07fb7eeb543f8fec\nExit: 0\n0x0000555555a00258\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555a00123 in tomo::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff61d79c8, batch=batch@entry=0x7ffffffda040, n=n@entry=1) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555a00128\t2356\t    }\n0x0000555555a00131\t2356\t    }\n0x0000555555a00137\t2356\t    }\n0x0000555555a0013b\t2356\t    }\n0x0000555555a0013c\t2356\t    }\n0x0000555555a0013e\t2356\t    }\n0x0000555555a00140\t2356\t    }\n0x0000555555a00142\t2356\t    }\n0x0000555555a00144\t2356\t    }\n0x0000555555a00145\t2356\t    }\n0x0000555555d890b4 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 268536) exited normally]\nCOUNT 2151\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-INCR-2s-32-1--1.log",
+    "sha256": "35a544fc3f4ee7fe2140bf7fa9510140da16add4d2451ba12c97026613a139f0",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-INCR-2s-32-1--1.log\nSHA-256: f8e9d3a7d4e9af7cc90dfa8eb93de58dd975b5ac77069da6c8202b4afaaa98c1\nExit: 0\n0x0000555555a00258\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555a00123 in tomo::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff61d79c8, batch=batch@entry=0x7ffffffda040, n=n@entry=32) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555a00128\t2356\t    }\n0x0000555555a00131\t2356\t    }\n0x0000555555a00137\t2356\t    }\n0x0000555555a0013b\t2356\t    }\n0x0000555555a0013c\t2356\t    }\n0x0000555555a0013e\t2356\t    }\n0x0000555555a00140\t2356\t    }\n0x0000555555a00142\t2356\t    }\n0x0000555555a00144\t2356\t    }\n0x0000555555a00145\t2356\t    }\n0x0000555555d890b4 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 271239) exited normally]\nCOUNT 37896\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-MGET-1s-1-1--1.log",
+    "sha256": "f58ff94341a963138c84d5b0b1a751b9c014f82915abf736957a6589d87d1f34",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-MGET-1s-1-1--1.log\nSHA-256: 67f52960a5f1e5d4e9bd191ec8ce26e0690afa570bf02204538b2d62b42cf007\nExit: 0\n0x0000555555a7412d\t2284\t}\n0x0000555555a7412e\t2284\t}\n0x0000555555a74130\t2284\t}\n0x0000555555a74132\t2284\t}\n0x0000555555a74134\t2284\t}\n0x0000555555d85fd7 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85fe3\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85fea\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85ff2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85ff9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85fff\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d86006\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8600d\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 271317) exited normally]\nCOUNT 10243\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-MGET-1s-32-1--1.log",
+    "sha256": "110ef64a5e8d4600c51588f35a601c4ead5bc920df960a1748597daeb98e699e",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-MGET-1s-32-1--1.log\nSHA-256: 696415615144537f1b140695989afce7577bdc68888e2f765dd57da0083ff3b7\nExit: 0\n0x0000555555a74130\t2284\t}\n0x0000555555a74132\t2284\t}\n0x0000555555a7TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n4134\t2284\t}\n0x0000555555d85fd7 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85fe3\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85fea\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85ff2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85ff9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85fff\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d86006\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8600d\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 271320) exited normally]\nCOUNT 326598\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-MGET-2s-1-1--1.log",
+    "sha256": "ca8d18a968515882d6e960f6f5eae0a0bb63c3fdaf0c723c4a348967018608fd",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-MGET-2s-1-1--1.log\nSHA-256: c0bf8435022eac33f88038371ad90464fe34be4e98ec8e32cf1a03177d1a3d40\nExit: 0\n0x0000555555a7412d\t2284\t}\n0x0000555555a7412e\t2284\t}\n0x0000555555a74130\t2284\t}\n0x0000555555a74132\t2284\t}\n0x0000555555a74134\t2284\t}\n0x0000555555d89696 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896a2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896a9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896b1\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896b8\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896be\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d896c5\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d896cc\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 271393) exited normally]\nCOUNT 10243\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-MGET-2s-32-1--1.log",
+    "sha256": "21323b8daf2b9268149ff147ef19cb643c2a54c0cc38c0a2b747ee22e2216867",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-MGET-2s-32-1--1.log\nSHA-256: d5719ebf988efaa3e5843d83a9fa2152ba2ea92aefa36f722c76c62b21f8870c\nExit: 0\n0x0000555555a7412d\t2284\t}\n0x0000555555a7412e\t2284\t}\n0x0000555555a74130\t2284\t}\n0x0000555555a74132\t2284\t}\n0x0000555555a74134\t2284\t}\n0x0000555555d89696 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896a2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896a9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896b1\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896b8\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896be\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d896c5\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d896cc\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 271527) exited normally]\nCOUNT 326598\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-MSET-1s-1-0--1.log",
+    "sha256": "948614a3667d632cadb5c7739fbb4b840798d49b9a8d486b4d81c8d732508f68",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-MSET-1s-1-0--1.log\nSHA-256: 9e3030e39f91e91f79773f7ef3b6f92ac27348caf268437f42b9efcbe64c02b6\nExit: 0\n0x0000555555a7412d\t2284\t}\n0x0000555555a7412e\t2284\t}\n0x0000555555a74130\t2284\t}\n0x0000555555a74132\t2284\t}\n0x0000555555a74134\t2284\t}\n0x0000555555d85fd7 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85fe3\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85fea\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85ff2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85ff9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85fff\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d86006\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8600d\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 271594) exited normally]\nCOUNT 10894\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-MSET-1s-1-1--1.log",
+    "sha256": "e1bda0ce54d9eba68e4efc36da67587d5c3e921b232142d97a92d084364ecda3",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-MSET-1s-1-1--1.log\nSHA-256: 327f23dde93eb07099c8b3de1923c839db9ae193ff271ccfb5a8f71021481184\nExit: 0\n0x0000555555a58fe1\t569\t}\n0x0000555555a58fe2\t569\t}\n0x0000555555a58fe4\t569\t}\n0x0000555555a58fe6\t569\t}\n0x0000555555a58fe8\t569\t}\n0x0000555555d85fd7 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85fe3\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85fea\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85ff2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85ff9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85fff\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d86006\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8600d\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 271616) exited normally]\nCOUNT 17080\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-MSET-1s-32-0--1.log",
+    "sha256": "7777df6b9a6aeca04374858ef30b95ccc72d3c4ff4422b9a0e3c0496efcaa254",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-MSET-1s-32-0--1.log\nSHA-256: 3d123290d119e763b67d1248d5ce5bcea257ed5b7ef99eb7308883bcee2f4511\nExit: 0\n0x0000555555a7412d\t2284\t}\n0x0000555555a7412e\t2284\t}\n0x0000555555a74130\t2284\t}\n0x0000555555a74132\t2284\t}\n0x0000555555a74134\t2284\t}\n0x0000555555d85fd7 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85fe3\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85fea\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85ff2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85ff9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85fff\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d86006\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8600d\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 271787) exited normally]\nCOUNT 348453\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-MSET-1s-32-1--1.log",
+    "sha256": "41af740d4354a1137f074c88e861cfe2de19cc3c1c2988ce54911a317d781cec",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-MSET-1s-32-1--1.log\nSHA-256: 36bb8f1a5acefc242d71169632d8c2685a6481820b4ca25549b4944d219d170e\nExit: 0\n0x0000555555a58f49\t569\t}\n0x0000555555a58f4a\t569\t}\n0x0000555555a58f4c\t569\t}\n0x0000555555a58f4e\t569\t}\n0x0000555555a58f50\t569\t}\n0x0000555555d85fd7 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85fe3\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85fea\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85ff2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85ff9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d85fff\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d86006\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8600d\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 277253) exited normally]\nCOUNT 964774\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-MSET-2s-1-0--1.log",
+    "sha256": "d12235fa7d7d7d57bf741e36208df03ad846a7e749cdf17a8c3d6ccb92d23e4b",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-MSET-2s-1-0--1.log\nSHA-256: b7e3663e3ff687b5757212ee9212299fbab28ebc6281f55da85fb620d1578444\nExit: 0\n0x0000555555a7412d\t2284\t}\n0x0000555555a7412e\t2284\t}\n0x0000555555a74130\t2284\t}\n0x0000555555a74132\t2284\t}\n0x0000555555a74134\t2284\t}\n0x0000555555d89696 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896a2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896a9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896b1\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896b8\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896be\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d896c5\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d896cc\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 294772) exited normally]\nCOUNT 10690\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-MSET-2s-1-1--1.log",
+    "sha256": "919d70d1ccf7fbf72c82b4ccdf143ae0b4fd54324b3cfdea8582e5eb96c198d2",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-MSET-2s-1-1--1.log\nSHA-256: 420a1c9f6f15d08040e5540093894ebfa805af0fabdbe0199a76e13404d9efb0\nExit: 0\n0x0000555555a58fe1\t569\t}\n0x0000555555a58fe2\t569\t}\n0x0000555555a58fe4\t569\t}\n0x0000555555a58fe6\t569\t}\n0x0000555555a58fe8\t569\t}\n0x0000555555d89696 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896a2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896a9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896b1\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896b8\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896be\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d896c5\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d896cc\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 295290) exited normally]\nCOUNT 16726\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-MSET-2s-32-0--1.log",
+    "sha256": "36d76eb350c0f1d227ce85f05e77afa2918f9a1884e9a0588d6e691361f04a65",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-MSET-2s-32-0--1.log\nSHA-256: 6a8a3aaab3aebcf559b8f5d6b057a7644f979fb136b125915948041e7598592c\nExit: 0\n0x0000555555a7412d\t2284\t}\n0x0000555555a7412e\t2284\t}\n0x0000555555a74130\t2284\t}\n0x0000555555a74132\t2284\t}\n0x0000555555a74134\t2284\t}\n0x0000555555d89696 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896a2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896a9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896b1\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896b8\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896be\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d896c5\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d896cc\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 295557) exited normally]\nCOUNT 341925\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-MSET-2s-32-1--1.log",
+    "sha256": "ee3df90245acf5b79986158944b007448544365ef45be75d3ac10d0da81e1e5a",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-MSET-2s-32-1--1.log\nSHA-256: 3ec0d2b108a9ce5d18144af4109a7f81b2b8a76d83a10a7f855f7eec8526ac79\nExit: 0\n0x0000555555a58f49\t569\t}\n0x0000555555a58f4a\t569\t}\n0x0000555555a58f4c\t569\t}\n0x0000555555a58f4e\t569\t}\n0x0000555555a58f50\t569\t}\n0x0000555555d89696 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896a2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896a9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896b1\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896b8\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d896be\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d896c5\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d896cc\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 295727) exited normally]\nCOUNT 953446\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-SET-1s-1-1--1.log",
+    "sha256": "6c4ae7548c1957d181c92567d97aef09fdc605a4886b589c879f100f854060eb",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-SET-1s-1-1--1.log\nSHA-256: 368a5c0a6b5a8c8c81ca8ef622318992c825e0f01c49584e82f34db866d57f02\nExit: 0\n0x0000555555c86e88\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555c86d53 in tomo::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff61cf088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555c86d58\t2356\t    }\n0x0000555555c86d61\t2356\t    }\n0x0000555555c86d67\t2356\t    }\n0x0000555555c86d6b\t2356\t    }\n0x0000555555c86d6c\t2356\t    }\n0x0000555555c86d6e\t2356\t    }\n0x0000555555c86d70\t2356\t    }\n0x0000555555c86d72\t2356\t    }\n0x0000555555c86d74\t2356\t    }\n0x0000555555c86d75\t2356\t    }\n0x0000555555d85b58 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 265604) exited normally]\nCOUNT 1068\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-SET-1s-32-1--1.log",
+    "sha256": "a569c25cea131533974acdfed0297e0508321fb153aa82fe40a4a9523ae61bae",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-SET-1s-32-1--1.log\nSHA-256: 433bc571649f02f837fbb04e0059489d650bf3c46d6ff7e5a0ca7380607b113f\nExit: 0\n2356\t    }\n0x0000555555c86d58\t2356\t    }\n0x0000555555c86d61\t2356\t    }\n0x0000555555c86d67\t2356\t    }\n0x0000555555c86d6b\t2356\t    }\n0x0000555555c86d6c\t2356\t    }\n0x0000555555c86d6e\t2356\t    }\n0x0000555555c86d70\t2356\t    }\n0x0000555555c86d72\t2356\t    }\n0x0000555555c86d74\t2356\t    }\n0x0000555555c86d75\t2356\t    }\n0x0000555555d85b58 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entTomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\nry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 265607) exited normally]\nCOUNT 22706\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-SET-2s-1-1--1.log",
+    "sha256": "46940f57bc8a93cec5f946868be428c7d436828d2bec800873ffe51ce0bc3103",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-SET-2s-1-1--1.log\nSHA-256: b1e430b166b10462d6f37e54beae94e8fbd4b1e9bb9951073be4f90ce02a0561\nExit: 0\nsrv_->atomic_work_active()) {\n0x0000555555a00123 in tomo::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff61d79c8, batch=batch@entry=0x7ffffffda040, n=n@entry=1) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555a00128\t2356\t    }\n0x0000555555a00131\t2356\t    }\n0x0000555555a00137\t2356\t    }\n0x0000555555a0013b\t2356\t    }\n0x0000555555a0013c\t2356\t    }\n0x0000555555a0013e\t2356\t    }\n0x0000555555a00140\t2356\t    }\n0x0000555555a00142\t2356\t    }\n0x0000555555a00144\t2356\t    }\n0x0000555555a00145\t2356\t    }\n0x0000555555d890b4 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 265717) exited normally]\nCOUNT 1688\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-SET-2s-32-1--1.log",
+    "sha256": "a98ce1cec8ad223cc4e55c6b53a4445716117d60c28bd8a30adb7a4b43191b30",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/initial-normal-SET-2s-32-1--1.log\nSHA-256: 0baad20efade66530286bb2ecf75fea54d7c3d7d6aec50666110c359d0e83b3e\nExit: 0\n0x0000555555a00258\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555a00123 in tomo::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff61d79c8, batch=batch@entry=0x7ffffffda040, n=n@entry=32) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555a00128\t2356\t    }\n0x0000555555a00131\t2356\t    }\n0x0000555555a00137\t2356\t    }\n0x0000555555a0013b\t2356\t    }\n0x0000555555a0013c\t2356\t    }\n0x0000555555a0013e\t2356\t    }\n0x0000555555a00140\t2356\t    }\n0x0000555555a00142\t2356\t    }\n0x0000555555a00144\t2356\t    }\n0x0000555555a00145\t2356\t    }\n0x0000555555d890b4 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 265720) exited normally]\nCOUNT 22551\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/post-normal-build.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "receipt": ""
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-GET-1s-1-1--1.log",
+    "sha256": "1ac3199a1163b27b9c99a27d8f20e3cea9f8beae99c1af6a459bd877c65ea56b",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-GET-1s-1-1--1.log\nSHA-256: 6b881f3048a47a23d83294c55e5cc0c70d4c9d9cf564d7c36eb7b236e8c9481d\nExit: 0\n0x00005555558aa188\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x00005555558aa053 in tomo_db0::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff6183088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356\n2356\t    }\n0x00005555558aa058\t2356\t    }\n0x00005555558aa061\t2356\t    }\n0x00005555558aa067\t2356\t    }\n0x00005555558aa06b\t2356\t    }\n0x00005555558aa06c\t2356\t    }\n0x00005555558aa06e\t2356\t    }\n0x00005555558aa070\t2356\t    }\n0x00005555558aa072\t2356\t    }\n0x00005555558aa074\t2356\t    }\n0x00005555558aa075\t2356\t    }\n0x0000555555d87894 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3805824) exited normally]\nCOUNT 818\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-GET-1s-32-1--1.log",
+    "sha256": "3156e4703194eddac77fc9993b0c6c1c4e4904951deabf236bf69764f7683239",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-GET-1s-32-1--1.log\nSHA-256: 42658dce8a3010814dc113dcb555b1be5004de949e4570192eacfecb5f8123c8\nExit: 0\n0x00005555558aa188\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x00005555558aa053 in tomo_db0::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff6183088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356\n2356\t    }\n0x00005555558aa058\t2356\t    }\n0x00005555558aa061\t2356\t    }\n0x00005555558aa067\t2356\t    }\n0x00005555558aa06b\t2356\t    }\n0x00005555558aa06c\t2356\t    }\n0x00005555558aa06e\t2356\t    }\n0x00005555558aa070\t2356\t    }\n0x00005555558aa072\t2356\t    }\n0x00005555558aa074\t2356\t    }\n0x00005555558aa075\t2356\t    }\n0x0000555555d87894 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3805950) exited normally]\nCOUNT 18705\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-GET-2s-1-1--1.log",
+    "sha256": "def55803d77a05739f37ebdb7b2b5683400019d7ac6ff165df2e73fe96ffa12b",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-GET-2s-1-1--1.log\nSHA-256: 1f10fcad39010b0642ff6cadfa1e6f4efa5a11d4d5820b6bfeb306ed222c1488\nExit: 0\n0x0000555555631a38\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555631903 in tomo_db0::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff618b9c8, batch=batch@entry=0x7ffffffda1c0, n=n@entry=1) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555631908\t2356\t    }\n0x0000555555631911\t2356\t    }\n0x0000555555631917\t2356\t    }\n0x000055555563191b\t2356\t    }\n0x000055555563191c\t2356\t    }\n0x000055555563191e\t2356\t    }\n0x0000555555631920\t2356\t    }\n0x0000555555631922\t2356\t    }\n0x0000555555631924\t2356\t    }\n0x0000555555631925\t2356\t    }\n0x0000555555d8ae44 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3806274) exited normally]\nCOUNT 1051\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-GET-2s-32-1--1.log",
+    "sha256": "366b02b53e3f2ac97986b627de1cf709b29e9d6e6f53d115e196107d5a33731c",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-GET-2s-32-1--1.log\nSHA-256: dac1abeafe4771639a20738d7722a9724da37334ee41ed64444b52ac9e8bdc4a\nExit: 0\n0x0000555555631a38\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555631903 in tomo_db0::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff618b9c8, batch=batch@entry=0x7ffffffda1c0, n=n@entry=32) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555631908\t2356\t    }\n0x0000555555631911\t2356\t    }\n0x0000555555631917\t2356\t    }\n0x000055555563191b\t2356\t    }\n0x000055555563191c\t2356\t    }\n0x000055555563191e\t2356\t    }\n0x0000555555631920\t2356\t    }\n0x0000555555631922\t2356\t    }\n0x0000555555631924\t2356\t    }\n0x0000555555631925\t2356\t    }\n0x0000555555d8ae44 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3806314) exited normally]\nCOUNT 18163\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-INCR-1s-1-1--1.log",
+    "sha256": "de6b21e3ac9089440fad437cd51e9c9c3a914d4108fd805b556a5e02e67c7fde",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-INCR-1s-1-1--1.log\nSHA-256: 66f193f1eb529bef3fb07e0d522c6138d77fea317fcb0156ba61780dd7d4c49d\nExit: 0\nPASS bounded production command scope\nT<true>::exec_batch_prefetched<false> (this=0x7ffff6183088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356\n2356\t    }\n0x00005555558aa058\t2356\t    }\n0x00005555558aa061\t2356\t    }\n0x00005555558aa067\t2356\t    }\n0x00005555558aa06b\t2356\t    }\n0x00005555558aa06c\t2356\t    }\n0x00005555558aa06e\t2356\t    }\n0x00005555558aa070\t2356\t    }\n0x00005555558aa072\t2356\t    }\n0x00005555558aa074\t2356\t    }\n0x00005555558aa075\t2356\t    }\n0x0000555555d87894 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3816130) exited normally]\nCOUNT 1314\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-INCR-1s-32-1--1.log",
+    "sha256": "652b28ddcd271e25587ad23babef8bba1c252e54232b501347705fc0068e9c04",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-INCR-1s-32-1--1.log\nSHA-256: 9b066f94524b4878f78268fc74deeb0b34fbbfe2323d7086597b80ea0d36047c\nExit: 0\n0x00005555558aa188\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x00005555558aa053 in tomo_db0::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff6183088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356\n2356\t    }\n0x00005555558aa058\t2356\t    }\n0x00005555558aa061\t2356\t    }\n0x00005555558aa067\t2356\t    }\n0x00005555558aa06b\t2356\t    }\n0x00005555558aa06c\t2356\t    }\n0x00005555558aa06e\t2356\t    }\n0x00005555558aa070\t2356\t    }\n0x00005555558aa072\t2356\t    }\n0x00005555558aa074\t2356\t    }\n0x00005555558aa075\t2356\t    }\n0x0000555555d87894 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3816374) exited normally]\nCOUNT 35106\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-INCR-2s-1-1--1.log",
+    "sha256": "32962afd9aa0defa152099672c1276cbddd641eed2b3a7c6e40d7062c58dcf40",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-INCR-2s-1-1--1.log\nSHA-256: 0c93f38018ff8b809aad78f7883bf2e5c9bf3bbcebf0de4836017d5ebec19826\nExit: 0\n0x0000555555631a38\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555631903 in tomo_db0::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff618b9c8, batch=batch@entry=0x7ffffffda1c0, n=n@entry=1) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555631908\t2356\t    }\n0x0000555555631911\t2356\t    }\n0x0000555555631917\t2356\t    }\n0x000055555563191b\t2356\t    }\n0x000055555563191c\t2356\t    }\n0x000055555563191e\t2356\t    }\n0x0000555555631920\t2356\t    }\n0x0000555555631922\t2356\t    }\n0x0000555555631924\t2356\t    }\n0x0000555555631925\t2356\t    }\n0x0000555555d8ae44 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3816846) exited normally]\nCOUNT 1547\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-INCR-2s-32-1--1.log",
+    "sha256": "87b57d42b7b1820e27c6704210742058a4b0aff73c248381ca10b7d38569ff50",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-INCR-2s-32-1--1.log\nSHA-256: 0bfeb35a07a9f1a36eae4b4b9309184efd73b8a300fbce14380b9a79b1232a00\nExit: 0\n0x0000555555631a38\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555631903 in tomo_db0::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff618b9c8, batch=batch@entry=0x7ffffffda1c0, n=n@entry=32) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555631908\t2356\t    }\n0x0000555555631911\t2356\t    }\n0x0000555555631917\t2356\t    }\n0x000055555563191b\t2356\t    }\n0x000055555563191c\t2356\t    }\n0x000055555563191e\t2356\t    }\n0x0000555555631920\t2356\t    }\n0x0000555555631922\t2356\t    }\n0x0000555555631924\t2356\t    }\n0x0000555555631925\t2356\t    }\n0x0000555555d8ae44 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3816951) exited normally]\nCOUNT 34564\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-MGET-1s-1-1--1.log",
+    "sha256": "a5998ef557e7593d65988eb8368b7c804564a4048922e4ffc57e097674bcde60",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-MGET-1s-1-1--1.log\nSHA-256: c843c8fad64631e972044f0c5f78d563e0cea8d0dafdb152c6a3e67c06898bf1\nExit: 0\nPASS bounded production command scope\ne\t2284\t}\n0x000055555569fca0\t2284\t}\n0x000055555569fca2\t2284\t}\n0x000055555569fca4\t2284\t}\n0x0000555555d87d07 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d13\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d1a\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d22\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d29\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d2f\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d87d36\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d87d3d\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3821545) exited normally]\nCOUNT 10370\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-MGET-1s-32-1--1.log",
+    "sha256": "9fce5033c2bbdd9eb2664d7ffcbfd85cf7975e0b703d7fb86c3bb13f1ef9b815",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-MGET-1s-32-1--1.log\nSHA-256: 156a63033798ebb79990eba640311a79abc6f194acb034b4a0af396fc43af3ac\nExit: 0\n0x000055555569fc9d\t2284\t}\n0x000055555569fc9e\t2284\t}\n0x000055555569fca0\t2284\t}\n0x000055555569fca2\t2284\t}\n0x000055555569fca4\t2284\t}\n0x0000555555d87d07 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d13\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d1a\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d22\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d29\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d2f\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d87d36\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d87d3d\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3821697) exited normally]\nCOUNT 330662\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-MGET-2s-1-1--1.log",
+    "sha256": "3703053641ab72f0dcc880f4b3b7750f988341376f77ef5cdb516b51d6dd7eca",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-MGET-2s-1-1--1.log\nSHA-256: 418c5f6f22fbb0a8fc9dd3aa6070f57bcfb789b3a4ac47f278d70f25d6391d29\nExit: 0\n0x000055555569fc9d\t2284\t}\n0x000055555569fc9e\t2284\t}\n0x000055555569fca0\t2284\t}\n0x000055555569fca2\t2284\t}\n0x000055555569fca4\t2284\t}\n0x0000555555d8b3e6 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b3f2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b3f9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b401\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b408\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b40e\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b415\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b41c\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3821921) exited normally]\nCOUNT 10370\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-MGET-2s-32-1--1.log",
+    "sha256": "207996b8da4d1d62509a9a59d9ad11aba6fdf4b8d993117916f13ca4bf1a58b7",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-MGET-2s-32-1--1.log\nSHA-256: 17b95c0da66960eb55a4e2c7da95b677da4a9bd7a6804bfee4bfc80b0e3267e2\nExit: 0\n0x000055555569fc9d\t2284\t}\n0x000055555569fc9e\t2284\t}\n0x000055555569fca0\t2284\t}\n0x000055555569fca2\t2284\t}\n0x000055555569fca4\t2284\t}\n0x0000555555d8b3e6 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b3f2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b3f9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b401\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b408\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b40e\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b415\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b41c\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3822057) exited normally]\nCOUNT 330662\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-MSET-1s-1-0--1.log",
+    "sha256": "01c64b52dbe9b543b6a505f2fba628aa902e914a5f16e3ce0f6bd5d6435c3ac4",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-MSET-1s-1-0--1.log\nSHA-256: b57e43d7811096fc91f30029c9cfe710b86c98c5f9f49a20833eaaadd28c6292\nExit: 0\n0x000055555569fc9d\t2284\t}\n0x000055555569fc9e\t2284\t}\n0x000055555569fca0\t2284\t}\n0x000055555569fca2\t2284\t}\n0x000055555569fca4\t2284\t}\n0x0000555555d87d07 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d13\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d1a\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d22\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d29\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d2f\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d87d36\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d87d3d\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3905487) exited normally]\nCOUNT 11143\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-MSET-1s-1-1--1.log",
+    "sha256": "1a0c1b3b5f230c7fa0a136a47025162426d8489ade768df0356ee37f3da61c60",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-MSET-1s-1-1--1.log\nSHA-256: ee06558fae003ab210a70acc7edde826d184cd7d754bdca11cca301a641759c9\nExit: 0\n0x00005555556849b1\t569\t}\n0x00005555556849b2\t569\t}\n0x00005555556849b4\t569\t}\n0x00005555556849b6\t569\t}\n0x00005555556849b8\t569\t}\n0x0000555555d87d07 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d13\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d1a\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d22\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d29\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d2f\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d87d36\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d87d3d\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3919752) exited normally]\nCOUNT 16497\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-MSET-1s-32-0--1.log",
+    "sha256": "af06cdfb1253a74524f31dd8051857beff58f0230a9fdacc1978db3aa836a131",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-MSET-1s-32-0--1.log\nSHA-256: d73ab25e5ae2ff12b8b36cf38c5b6ced7c38269df80cd9f123680a51e124c65c\nExit: 0\n0x000055555569fc9d\t2284\t}\n0x000055555569fc9e\t2284\t}\n0x000055555569fca0\t2284\t}\n0x000055555569fca2\t2284\t}\n0x000055555569fca4\t2284\t}\n0x0000555555d87d07 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d13\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d1a\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d22\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d29\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d2f\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d87d36\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d87d3d\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3933695) exited normally]\nCOUNT 356421\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-MSET-1s-32-1--1.log",
+    "sha256": "6e68ff46950650f3645f59a942e0f0d289ac6fdbafde706692fe2e335a43b74a",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-MSET-1s-32-1--1.log\nSHA-256: b258b1aad8554feb4b7cba093187226aa24a5e843fbd02cb20d19179303ce8a4\nExit: 0\n0x000055555568491c\t569\t}\n0x000055555568491e\t569\t}\n0x0000555555684920\t569\t}\n0x0000555555d87d07 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d13\t95\t   for(unsigned TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\ni=0;i<n;i++){\n0x0000555555d87d1a\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d22\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d29\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87d2f\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d87d36\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d87d3d\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3941066) exited normally]\nCOUNT 955046\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-MSET-2s-1-0--1.log",
+    "sha256": "db58257b60a97a981762c0160bafc698932469a31f588545819645a63ff86206",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-MSET-2s-1-0--1.log\nSHA-256: dd0330e15b8a9f407beacb31f9e7cb912fdde44b7bd540738edc1896f7ce3a4e\nExit: 0\n0x000055555569fc9d\t2284\t}\n0x000055555569fc9e\t2284\t}\n0x000055555569fca0\t2284\t}\n0x000055555569fca2\t2284\t}\n0x000055555569fca4\t2284\t}\n0x0000555555d8b3e6 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b3f2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b3f9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b401\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b408\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b40e\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b415\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b41c\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3969688) exited normally]\nCOUNT 10962\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-MSET-2s-1-1--1.log",
+    "sha256": "0bc53ffd545f6d5d411fa5a7e94409e0a4b780deed69650c9ad71be86364f651",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-MSET-2s-1-1--1.log\nSHA-256: 47ee32c91a4a689d54165b099e4c53d27472b303870a4b4716cf6819ac954c46\nExit: 0\n0x00005555556849b1\t569\t}\n0x00005555556849b2\t569\t}\n0x00005555556849b4\t569\t}\n0x00005555556849b6\t569\t}\n0x00005555556849b8\t569\t}\n0x0000555555d8b3e6 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b3f2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b3f9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b401\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b408\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b40e\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b415\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b41c\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3976623) exited normally]\nCOUNT 16166\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-MSET-2s-32-0--1.log",
+    "sha256": "82dfb565bde2d5e99e179831812ea86f6b90d85724b98626cc4347ae030793cb",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-MSET-2s-32-0--1.log\nSHA-256: 3f5642cc86b703c41db7c43671592041eef734bf4712cfdf5e5ba8c25f695185\nExit: 0\n284\t}\n0x000055555569fc9e\t2284\t}\n0x000055555569fca0\t2284\t}\n0x000055555569fca2\t2284\t}\n0x000055555569fca4\t2284\t}\n0x0000555555d8b3e6 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b3f2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b3f9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b401\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b408\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b40e\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b415\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b41c\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3984090) exited normally]\nCOUNT 350629\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-MSET-2s-32-1--1.log",
+    "sha256": "38bbdc8dd6a0eed3bbc93c961b59a4598fc3b536c2410ea44a5674846db2e18a",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-MSET-2s-32-1--1.log\nSHA-256: 056d7d661ad619231d44799c52d9ea1db44a06c759d467f6a0af20e4928d0cd0\nExit: 0\n0x0000555555684919\t569\t}\n0x000055555568491a\t569\t}\n0x000055555568491c\t569\t}\n0x000055555568491e\t569\t}\n0x0000555555684920\t569\t}\n0x0000555555d8b3e6 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b3f2\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b3f9\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b401\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b408\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b40e\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b415\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b41c\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 4078100) exited normally]\nCOUNT 944454\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-SET-1s-1-1--1.log",
+    "sha256": "7d512181c148a8d0644dc41afb8904646514b13a916ce0c9b84d84d00c40e9fd",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-SET-1s-1-1--1.log\nSHA-256: a7a5ad0f314b81ec4b892e985ba6955c14995703dfdfe8c6d16259d5121ac755\nExit: 0\n2356\t    }\n0x00005555558aa058\t2356\t    }\n0x00005555558aa061\t2356\t    }\n0x00005555558aa067\t2356\t    }\n0x00005555558aa06b\t2356\t    }\n0x00005555558aa06c\t2356\t    }\n0x00005555558aa06e\t2356\t    }\n0x00005555558aa070\t2356\t    }\n0x00005555558aa072\t2356\t    }\n0x00005555558aa074\t2356\t    }\n0x00005555558aa075\t2356\t    }\n0x0000555555d87894 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBrTomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\neakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3810596) exited normally]\nCOUNT 955\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-SET-1s-32-1--1.log",
+    "sha256": "6935c39b04fc00d2a00d1432ce0a94094ed7a0927342463dc9046726f7b06b2b",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-SET-1s-32-1--1.log\nSHA-256: efe375f4413727b8693125dac82bc4ed657b491ae26a9434e36563d5b5770ff0\nExit: 0\n2356\t    }\n0x00005555558aa058\tTomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n2356\t    }\n0x00005555558aa061\t2356\t    }\n0x00005555558aa067\t2356\t    }\n0x00005555558aa06b\t2356\t    }\n0x00005555558aa06c\t2356\t    }\n0x00005555558aa06e\t2356\t    }\n0x00005555558aa070\t2356\t    }\n0x00005555558aa072\t2356\t    }\n0x00005555558aa074\t2356\t    }\n0x00005555558aa075\t2356\t    }\n0x0000555555d87894 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3810763) exited normally]\nCOUNT 23089\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-SET-2s-1-1--1.log",
+    "sha256": "c88dd4712fecdf0c8829a2d96b0e0573abf00a2cc6f36e3abbf6a33a6afbc7a4",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-SET-2s-1-1--1.log\nSHA-256: c91f4b2631857cf47d92d9b6120dcf234c71fde7936df43fa3453b04d88811b1\nExit: 0\n0x0000555555631a38\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555631903 in tomo_db0::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff618b9c8, batch=batch@entry=0x7ffffffda1c0, n=n@entry=1) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555631908\t2356\t    }\n0x0000555555631911\t2356\t    }\n0x0000555555631917\t2356\t    }\n0x000055555563191b\t2356\t    }\n0x000055555563191c\t2356\t    }\n0x000055555563191e\t2356\t    }\n0x0000555555631920\t2356\t    }\n0x0000555555631922\t2356\t    }\n0x0000555555631924\t2356\t    }\n0x0000555555631925\t2356\t    }\n0x0000555555d8ae44 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3811388) exited normally]\nCOUNT 1188\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-SET-2s-32-1--1.log",
+    "sha256": "d3015ad65aa6c5ec089524051fc1d5a54a818326aae23e5b42150851ef84d330",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-db0-SET-2s-32-1--1.log\nSHA-256: 9e5adce192d7677f9f369ebde14656535961cca702a23cba18b6f9cd5a928bdf\nExit: 0\n0x0000555555631a38\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555631903 in tomo_db0::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff618b9c8, batch=batch@entry=0x7ffffffda1c0, n=n@entry=32) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555631908\t2356\t    }\n0x0000555555631911\t2356\t    }\n0x0000555555631917\t2356\t    }\n0x000055555563191b\t2356\t    }\n0x000055555563191c\t2356\t    }\n0x000055555563191e\t2356\t    }\n0x0000555555631920\t2356\t    }\n0x0000555555631922\t2356\t    }\n0x0000555555631924\t2356\t    }\n0x0000555555631925\t2356\t    }\n0x0000555555d8ae44 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3811606) exited normally]\nCOUNT 22547\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-db0-build.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "receipt": ""
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-GET-1s-1-1--1.log",
+    "sha256": "5c65138e60f5d9811c2d25483f9faf1c15fb030bc482f6f0a25a29c0a8acfd8c",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-GET-1s-1-1--1.log\nSHA-256: 805c5a0126bc74d34001fb62d1559fbf0c39e9df821b140e8ac5556d2ab9663a\nExit: 0\n0x0000555555c883d8\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555c882a3 in tomo::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff61cf088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555c882a8\t2356\t    }\n0x0000555555c882b1\t2356\t    }\n0x0000555555c882b7\t2356\t    }\n0x0000555555c882bb\t2356\t    }\n0x0000555555c882bc\t2356\t    }\n0x0000555555c882be\t2356\t    }\n0x0000555555c882c0\t2356\t    }\n0x0000555555c882c2\t2356\t    }\n0x0000555555c882c4\t2356\t    }\n0x0000555555c882c5\t2356\t    }\n0x0000555555d875d8 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3781252) exited normally]\nCOUNT 939\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-GET-1s-32-1--1.log",
+    "sha256": "22c5950cc6bab7c824764262c4300f1798b8d95828982896d1391b486277a018",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-GET-1s-32-1--1.log\nSHA-256: c62cb1048e7a5342eef851b7471de1c5f6999264bb3ec8c6b43e4d51dc07bb65\nExit: 0\n0x0000555555c883d8\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555c882a3 in tomo::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff61cf088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555c882a8\t2356\t    }\n0x0000555555c882b1\t2356\t    }\n0x0000555555c882b7\t2356\t    }\n0x0000555555c882bb\t2356\t    }\n0x0000555555c882bc\t2356\t    }\n0x0000555555c882be\t2356\t    }\n0x0000555555c882c0\t2356\t    }\n0x0000555555c882c2\t2356\t    }\n0x0000555555c882c4\t2356\t    }\n0x0000555555c882c5\t2356\t    }\n0x0000555555d875d8 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3781253) exited normally]\nCOUNT 18578\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-GET-2s-1-1--1.log",
+    "sha256": "34d38ddd68b5fce01160a7e1a4ea5f8f9acae5702cbb11b5d63d9ed2ac3bc3bd",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-GET-2s-1-1--1.log\nSHA-256: e39d7771fbec72007adf9e33424be4705b98d0737047f21fcae81b7b9dd4b941\nExit: 0\n0x0000555555a00228\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555a000f3 in tomo::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff61d79c8, batch=batch@entry=0x7ffffffda040, n=n@entry=1) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555a000f8\t2356\t    }\n0x0000555555a00101\t2356\t    }\n0x0000555555a00107\t2356\t    }\n0x0000555555a0010b\t2356\t    }\n0x0000555555a0010c\t2356\t    }\n0x0000555555a0010e\t2356\t    }\n0x0000555555a00110\t2356\t    }\n0x0000555555a00112\t2356\t    }\n0x0000555555a00114\t2356\t    }\n0x0000555555a00115\t2356\t    }\n0x0000555555d8ab34 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3781250) exited normally]\nCOUNT 1559\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-GET-2s-32-1--1.log",
+    "sha256": "b15042c25d261c6ba8bfa20cf27a510d7a35b51d0e7e8ffeab2541cdf2673304",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-GET-2s-32-1--1.log\nSHA-256: 47b881a2f3daa42955cd31e3b3ebbd62f14d62ecf477d8dc3512a7f64976e5e9\nExit: 0\n0x0000555555a00228\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555a000f3 in tomo::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff61d79c8, batch=batch@entry=0x7ffffffda040, n=n@entry=32) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555a000f8\t2356\t    }\n0x0000555555a00101\t2356\t    }\n0x0000555555a00107\t2356\t    }\n0x0000555555a0010b\t2356\t    }\n0x0000555555a0010c\t2356\t    }\n0x0000555555a0010e\t2356\t    }\n0x0000555555a00110\t2356\t    }\n0x0000555555a00112\t2356\t    }\n0x0000555555a00114\t2356\t    }\n0x0000555555a00115\t2356\t    }\n0x0000555555d8ab34 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3781254) exited normally]\nCOUNT 18423\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-INCR-1s-1-1--1.log",
+    "sha256": "d54d494b49b5f589d1949c5e080cc41ee2bb8e41c657bfe9b60679358381da48",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-INCR-1s-1-1--1.log\nSHA-256: 715a30d18f69e3b39aaa8960ef9d96b639489cc3f589ac540b3e8c56845a3463\nExit: 0\n0x0000555555c883d8\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555c882a3 in tomo::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff61cf088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555c882a8\t2356\t    }\n0x0000555555c882b1\t2356\t    }\n0x0000555555c882b7\t2356\t    }\n0x0000555555c882bb\t2356\t    }\n0x0000555555c882bc\t2356\t    }\n0x0000555555c882be\t2356\t    }\n0x0000555555c882c0\t2356\t    }\n0x0000555555c882c2\t2356\t    }\n0x0000555555c882c4\t2356\t    }\n0x0000555555c882c5\t2356\t    }\n0x0000555555d875d8 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3784381) exited normally]\nCOUNT 1531\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-INCR-1s-32-1--1.log",
+    "sha256": "92cad6fed9ec25edcb91fbbfe7375e6bbdb370ba7cb3a408318a5f22713fcf8e",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-INCR-1s-32-1--1.log\nSHA-256: 4a71c121e0846c7b488cb4ba5d49a0c2a5545f7866ec1293e11a5cfef4c77419\nExit: 0\n0x0000555555c883d8\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555c882a3 in tomo::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff61cf088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555c882a8\t2356\t    }\n0x0000555555c882b1\t2356\t    }\n0x0000555555c882b7\t2356\t    }\n0x0000555555c882bb\t2356\t    }\n0x0000555555c882bc\t2356\t    }\n0x0000555555c882be\t2356\t    }\n0x0000555555c882c0\t2356\t    }\n0x0000555555c882c2\t2356\t    }\n0x0000555555c882c4\t2356\t    }\n0x0000555555c882c5\t2356\t    }\n0x0000555555d875d8 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3785607) exited normally]\nCOUNT 38051\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-INCR-2s-1-1--1.log",
+    "sha256": "5f066be9ba2e95ac97d82ec9ef47152ca912c79aa04e5c8e825c687f9fe6352b",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-INCR-2s-1-1--1.log\nSHA-256: 91adac074e1a2a795d958144a55e27c528df663eb4c2f338729a45fb7d322993\nExit: 0\n0x0000555555a00228\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555a000f3 in tomo::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff61d79c8, batch=batch@entry=0x7ffffffda040, n=n@entry=1) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555a000f8\t2356\t    }\n0x0000555555a00101\t2356\t    }\n0x0000555555a00107\t2356\t    }\n0x0000555555a0010b\t2356\t    }\n0x0000555555a0010c\t2356\t    }\n0x0000555555a0010e\t2356\t    }\n0x0000555555a00110\t2356\t    }\n0x0000555555a00112\t2356\t    }\n0x0000555555a00114\t2356\t    }\n0x0000555555a00115\t2356\t    }\n0x0000555555d8ab34 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3785647) exited normally]\nCOUNT 2151\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-INCR-2s-32-1--1.log",
+    "sha256": "15f8a1ca231836a45260f6270cc9a4429dfd74e5c05b721cba98084a43b0e946",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-INCR-2s-32-1--1.log\nSHA-256: f937a872f198a9e1b8bb87bd0ce720f5c0fac91cc47fe37a0e3a64b312c92d97\nExit: 0\n0x0000555555a00228\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555a000f3 in tomo::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff61d79c8, batch=batch@entry=0x7ffffffda040, n=n@entry=32) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555a000f8\t2356\t    }\n0x0000555555a00101\t2356\t    }\n0x0000555555a00107\t2356\t    }\n0x0000555555a0010b\t2356\t    }\n0x0000555555a0010c\t2356\t    }\n0x0000555555a0010e\t2356\t    }\n0x0000555555a00110\t2356\t    }\n0x0000555555a00112\t2356\t    }\n0x0000555555a00114\t2356\t    }\n0x0000555555a00115\t2356\t    }\n0x0000555555d8ab34 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3785667) exited normally]\nCOUNT 37896\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-MGET-1s-1-1--1.log",
+    "sha256": "20962c46dca585941102c66199a11cd5a4fd299b587ff12279100aab5d55fc88",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-MGET-1s-1-1--1.log\nSHA-256: c8f83817226caf5321f7935fbe32494aabdb6d10a50baf2e231f0b3192bade4c\nExit: 0\n0x0000555555a742ad\t2284\t}\n0x0000555555a742ae\t2284\t}\n0x0000555555a742b0\t2284\t}\n0x0000555555a742b2\t2284\t}\n0x0000555555a742b4\t2284\t}\n0x0000555555d87a57 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a63\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a6a\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a72\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a79\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a7f\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d87a86\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d87a8d\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3785718) exited normally]\nCOUNT 10243\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-MGET-1s-32-1--1.log",
+    "sha256": "337a135af15f0ca8a509db79b523f49bd7405ef12e61858ae07556b63695716c",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-MGET-1s-32-1--1.log\nSHA-256: 0753fe50698f5a7d714b8cc5c7372f18d60d36160d4bd8c5751d8d5776d27b45\nExit: 0\n0x0000555555a742ad\t2284\t}\n0x0000555555a742ae\t2284\t}\n0x0000555555a742b0\t2284\t}\n0x0000555555a742b2\t2284\t}\n0x0000555555a742b4\t2284\t}\n0x0000555555d87a57 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a63\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a6a\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a72\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a79\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a7f\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d87a86\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d87a8d\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3785775) exited normally]\nCOUNT 326598\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-MGET-2s-1-1--1.log",
+    "sha256": "b6e1994f733125f995efcd6f9320de49f7a17b2313fbdc28665a2e7a85b70032",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-MGET-2s-1-1--1.log\nSHA-256: ef50495b80c37338643d9abc988343140c7e20be5e17b8f770242c2beb337460\nExit: 0\n0x0000555555a742ad\t2284\t}\n0x0000555555a742ae\t2284\t}\n0x0000555555a742b0\t2284\t}\n0x0000555555a742b2\t2284\t}\n0x0000555555a742b4\t2284\t}\n0x0000555555d8b116 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b122\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b129\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b131\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b138\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b13e\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b145\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b14c\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3785941) exited normally]\nCOUNT 10243\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-MGET-2s-32-1--1.log",
+    "sha256": "8f15d78e2bc21287598f78a91ced0c5554336103082c9e59b847bc36c0541c8f",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-MGET-2s-32-1--1.log\nSHA-256: 6321baae77c678cce414cbb2353aa9ba59e7932ffded4b128d9d2be52421fab6\nExit: 0\n0x0000555555a742ad\t2284\t}\n0x0000555555a742ae\t2284\t}\n0x0000555555a742b0\t2284\t}\n0x0000555555a742b2\t2284\t}\n0x0000555555a742b4\t2284\t}\n0x0000555555d8b116 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b122\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b129\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b131\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b138\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b13e\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b145\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b14c\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3786222) exited normally]\nCOUNT 326598\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-MSET-1s-1-0--1.log",
+    "sha256": "cee4650c2209975bf87c91c938fe64aaa86ae82aefcfc36832d1b8d342222b80",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-MSET-1s-1-0--1.log\nSHA-256: 9127d3e380aa61845aac394bdd25fe659adc6c1b3c17d4eb95f123879c348cda\nExit: 0\n0x0000555555a742ad\t2284\t}\n0x0000555555a742ae\t2284\t}\n0x0000555555a742b0\t2284\t}\n0x0000555555a742b2\t2284\t}\n0x0000555555a742b4\t2284\t}\n0x0000555555d87a57 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a63\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a6a\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a72\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a79\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a7f\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d87a86\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d87a8d\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3786296) exited normally]\nCOUNT 10894\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-MSET-1s-1-1--1.log",
+    "sha256": "c293982ec6ef994652c14a3493b6b418e0feeb4745258ef11a2c969ec4987149",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-MSET-1s-1-1--1.log\nSHA-256: b2720edaf0e8fbdc85c6df0f24e9c3b7a1d968950526bcb68340eae467565c04\nExit: 0\n0x0000555555a59191\t569\t}\n0x0000555555a59192\t569\t}\n0x0000555555a59194\t569\t}\n0x0000555555a59196\t569\t}\n0x0000555555a59198\t569\t}\n0x0000555555d87a57 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a63\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a6a\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a72\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a79\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a7f\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d87a86\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d87a8d\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3786398) exited normally]\nCOUNT 17080\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-MSET-1s-32-0--1.log",
+    "sha256": "4251b8164085bd13842a4b533771d7695464d812b62e6a3acaa5fbadab1d49dc",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-MSET-1s-32-0--1.log\nSHA-256: 006236b592bdd248eac77096e9ddc3c0fd830e213a884b0f20ef9bed559418e8\nExit: 0\n0x0000555555a742ad\t2284\t}\n0x0000555555a742ae\t2284\t}\n0x0000555555a742b0\t2284\t}\n0x0000555555a742b2\t2284\t}\n0x0000555555a742b4\t2284\t}\n0x0000555555d87a57 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a63\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a6a\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a72\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a79\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a7f\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d87a86\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d87a8d\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3786535) exited normally]\nCOUNT 348453\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-MSET-1s-32-1--1.log",
+    "sha256": "42b4bb2ee3b625cc718ea578756656642590a4ca088d7f6b02cd049b98f34f08",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-MSET-1s-32-1--1.log\nSHA-256: cdc4b44fd3125139bc053f34028fdcda8d6f7f599762d6ee0ed588320355664b\nExit: 0\n0x0000555555a590fc\t569\t}\n0x0000555555a590fe\t569\t}\n0x0000555555a59100\t569\t}\n0x0000555555d87a57 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a63\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a6a\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a72\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a79\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d87a7f\t115\t   std::string want=\"+OK\\rTomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n\\n\";\n0x0000555555d87a86\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d87a8d\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3788436) exited normally]\nCOUNT 964774\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-MSET-2s-1-0--1.log",
+    "sha256": "375ddfb79cd3838068bb0527c486cb6068278b5496924b24b34af4fef1bd49dc",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-MSET-2s-1-0--1.log\nSHA-256: 9729db87f21e28d97a5a973945a9c9a866e45fd93e7a266978b2b16a004f526e\nExit: 0\n0x0000555555a742ad\t2284\t}\n0x0000555555a742ae\t2284\t}\n0x0000555555a742b0\t2284\t}\n0x0000555555a742b2\t2284\t}\n0x0000555555a742b4\t2284\t}\n0x0000555555d8b116 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b122\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b129\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b131\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b138\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b13e\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b145\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b14c\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3801110) exited normally]\nCOUNT 10690\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-MSET-2s-1-1--1.log",
+    "sha256": "94db1aac66fa09037d48f2c89836bb11c517a309e6b0dd7254e56c00facff86a",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-MSET-2s-1-1--1.log\nSHA-256: dd3b005cc759208023009ec730e0e70b94b065d201569655f3c11f5cb535bebc\nExit: 0\n0x0000555555a59191\t569\t}\n0x0000555555a59192\t569\t}\n0x0000555555a59194\t569\t}\n0x0000555555a59196\t569\t}\n0x0000555555a59198\t569\t}\n0x0000555555d8b116 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b122\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b129\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b131\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b138\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b13e\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b145\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b14c\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3805275) exited normally]\nCOUNT 16726\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-MSET-2s-32-0--1.log",
+    "sha256": "ac835dbcf8296d863c662a78bda1e088507caa84815bf9acf987324fe8529236",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-MSET-2s-32-0--1.log\nSHA-256: 6d7b9e9b48cacb73b5dd98ff587b78fc37b0595fb18244ad440897366e751e7d\nExit: 0\n0x0000555555a742ad\t2284\t}\n0x0000555555a742ae\t2284\t}\n0x0000555555a742b0\t2284\t}\n0x0000555555a742b2\t2284\t}\n0x0000555555a742b4\t2284\t}\n0x0000555555d8b116 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b122\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b129\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b131\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b138\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b13e\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b145\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b14c\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3805457) exited normally]\nCOUNT 341925\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-MSET-2s-32-1--1.log",
+    "sha256": "0fb9732048bbc83eb8e3e8a7b93dbe4def9f8bcd3f4fbeb328ceaad90dea2d2e",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-MSET-2s-32-1--1.log\nSHA-256: cd7ad5b727b841e826ba2caab588490bde2459a7b7f0d58bde8e6af1e8953653\nExit: 0\n0x0000555555a590f9\t569\t}\n0x0000555555a590fa\t569\t}\n0x0000555555a590fc\t569\t}\n0x0000555555a590fe\t569\t}\n0x0000555555a59100\t569\t}\n0x0000555555d8b116 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:112\n112\t    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);\n95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b122\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b129\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b131\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b138\t95\t   for(unsigned i=0;i<n;i++){\n0x0000555555d8b13e\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b145\t115\t   std::string want=\"+OK\\r\\n\";\n0x0000555555d8b14c\t114\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3805752) exited normally]\nCOUNT 953446\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-SET-1s-1-1--1.log",
+    "sha256": "2f080cb3ff0047e680a911b9c6c23f1750d7e81fb62d406f1870fb42deda576d",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-SET-1s-1-1--1.log\nSHA-256: 5baf052ef7bfe1d10788b557610f8b9cfbeba04ddfa4e589eba982a34a86da03\nExit: 0\n0x0000555555c883d8\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555c882a3 in tomo::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff61cf088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555c882a8\t2356\t    }\n0x0000555555c882b1\t2356\t    }\n0x0000555555c882b7\t2356\t    }\n0x0000555555c882bb\t2356\t    }\n0x0000555555c882bc\t2356\t    }\n0x0000555555c882be\t2356\t    }\n0x0000555555c882c0\t2356\t    }\n0x0000555555c882c2\t2356\t    }\n0x0000555555c882c4\t2356\t    }\n0x0000555555c882c5\t2356\t    }\n0x0000555555d875d8 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3781313) exited normally]\nCOUNT 1068\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-SET-1s-32-1--1.log",
+    "sha256": "78e32812d6cd9fa87d8c7d443a7a1c5b3b5dc6fa48969c8c230c5c9333acee2d",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-SET-1s-32-1--1.log\nSHA-256: d9dd9df7ced1624dfdb9f86b44031d22592e70b56c464ba226d8e7ea588bf6ab\nExit: 0\n2356\t    }\n0x0000555555c882a8\t2356\t    }\n0x0000555555c882b1\t2356\t    }\n0x0000555555c882b7\t2356\t    }\n0x0000555555c882bb\t2356\t    }\n0x0000555555c882bc\t2356\t    }\n0x0000555555c882be\t2356\t    }\n0x0000555555c882c0\t2356\t    }\n0x0000555555c882c2\t2356\t    }\n0x0000555555c882c4\t2356\t    }\n0x0000555555c882c5\t2356\t    }\n0x0000555555d875d8 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entTomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\nry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3781316) exited normally]\nCOUNT 22706\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-SET-2s-1-1--1.log",
+    "sha256": "3b4b798d91185655f22746b35b357d93b4624293d4304aa3c389aeaef61a917d",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-SET-2s-1-1--1.log\nSHA-256: 93bde86e9d09ba48172dc033bd37a77010606c3fab02faa2812da3c8e652c1f3\nExit: 0\nsrv_->atomic_work_active()) {\n0x0000555555a000f3 in tomo::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff61d79c8, batch=batch@entry=0x7ffffffda040, n=n@entry=1) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555a000f8\t2356\t    }\n0x0000555555a00101\t2356\t    }\n0x0000555555a00107\t2356\t    }\n0x0000555555a0010b\t2356\t    }\n0x0000555555a0010c\t2356\t    }\n0x0000555555a0010e\t2356\t    }\n0x0000555555a00110\t2356\t    }\n0x0000555555a00112\t2356\t    }\n0x0000555555a00114\t2356\t    }\n0x0000555555a00115\t2356\t    }\n0x0000555555d8ab34 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3783024) exited normally]\nCOUNT 1688\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-SET-2s-32-1--1.log",
+    "sha256": "0ce73813596db13fda4df8c2c27c230fe771124f82e0ff29507d37145f58341d",
+    "receipt": "Full bounded GDB trace: /home/user/Projects/cx-crlffix/build/crlffix/commands/pre-normal-SET-2s-32-1--1.log\nSHA-256: 1f44a295996e0856e05c5a226326cf0ae9ab82eec8d43f15943eba181c177ef5\nExit: 0\n0x0000555555a00228\t2353\t        if (xshard_retries_.empty() && srv_->atomic_work_active()) {\n0x0000555555a000f3 in tomo::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff61d79c8, batch=batch@entry=0x7ffffffda040, n=n@entry=32) at src/core/ex_loop.h:2356\n2356\t    }\n0x0000555555a000f8\t2356\t    }\n0x0000555555a00101\t2356\t    }\n0x0000555555a00107\t2356\t    }\n0x0000555555a0010b\t2356\t    }\n0x0000555555a0010c\t2356\t    }\n0x0000555555a0010e\t2356\t    }\n0x0000555555a00110\t2356\t    }\n0x0000555555a00112\t2356\t    }\n0x0000555555a00114\t2356\t    }\n0x0000555555a00115\t2356\t    }\n0x0000555555d8ab34 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:72\n72\t   scope_end();\n\nBreakpoint 2, scope_end () at /home/user/Projects/cx-crlffix/tests/txnorder_command_scope.cc:20\n20\t[[gnu::noinline]] void scope_end(){asm volatile(\"\" ::: \"memory\");}\n[Inferior 1 (process 3784084) exited normally]\nCOUNT 22551\n"
+  },
+  {
+    "path": "docs/crlffix/instructions/pre-normal-build.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "receipt": ""
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-GET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-GET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-GET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-GET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-INCR-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-INCR-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-INCR-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-INCR-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-MGET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-MGET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-MGET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-MGET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-MSET-1s-1-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-MSET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-MSET-1s-32-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-MSET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-MSET-2s-1-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-MSET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-MSET-2s-32-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-MSET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-SET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-SET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-SET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-db0-SET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-GET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-GET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-GET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-GET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-INCR-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-INCR-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-INCR-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-INCR-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-MGET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-MGET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-MGET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-MGET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-MSET-1s-1-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-MSET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-MSET-1s-32-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-MSET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-MSET-2s-1-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-MSET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-MSET-2s-32-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-MSET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-SET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-SET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-SET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/post-normal-SET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-GET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-GET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-GET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-GET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-INCR-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-INCR-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-INCR-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-INCR-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-MGET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-MGET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-MGET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-MGET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-MSET-1s-1-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-MSET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-MSET-1s-32-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-MSET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-MSET-2s-1-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-MSET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-MSET-2s-32-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-MSET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-SET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-SET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-SET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-db0-SET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-GET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-GET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-GET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-GET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-INCR-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-INCR-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-INCR-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-INCR-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-MGET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-MGET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-MGET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-MGET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-MSET-1s-1-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-MSET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-MSET-1s-32-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-MSET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-MSET-2s-1-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-MSET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-MSET-2s-32-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-MSET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-SET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-SET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-SET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  },
+  {
+    "path": "docs/crlffix/fast-counts/pre-normal-SET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "receipt": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nPASS bounded production command scope\n"
+  }
+]

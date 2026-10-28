@@ -223,27 +223,21 @@ void maybe_release_groups(StreamVal& stream) {
 }
 
 void reply_nogroup(Op& op, Slice key, Slice group, bool xreadgroup = false) {
-    auto sink = op.sink();
-    sink.push_back('-');
-    sink.append("NOGROUP No such key '", sizeof("NOGROUP No such key '") - 1);
-    reply_line_text(sink, key.p, key.n);
-    sink.append("' or consumer group '", sizeof("' or consumer group '") - 1);
-    reply_line_text(sink, group.p, group.n);
-    if (xreadgroup)
-        sink.append("' in XREADGROUP with GROUP option\r\n",
-                    sizeof("' in XREADGROUP with GROUP option\r\n") - 1);
-    else sink.append("'\r\n", sizeof("'\r\n") - 1);
+    std::string message = "NOGROUP No such key '";
+    message.append(key.p, key.n);
+    message += "' or consumer group '";
+    message.append(group.p, group.n);
+    message += xreadgroup ? "' in XREADGROUP with GROUP option" : "'";
+    reply_err(op.sink(), message.data(), message.size());
 }
 
 void reply_nogroup_subcommand(Op& op, Slice key, Slice group) {
-    auto sink = op.sink();
-    sink.push_back('-');
-    sink.append("NOGROUP No such consumer group '",
-                sizeof("NOGROUP No such consumer group '") - 1);
-    reply_line_text(sink, group.p, group.n);
-    sink.append("' for key name '", sizeof("' for key name '") - 1);
-    reply_line_text(sink, key.p, key.n);
-    sink.append("'\r\n", sizeof("'\r\n") - 1);
+    std::string message = "NOGROUP No such consumer group '";
+    message.append(group.p, group.n);
+    message += "' for key name '";
+    message.append(key.p, key.n);
+    message += "'";
+    reply_err(op.sink(), message.data(), message.size());
 }
 
 void reply_entry(Op& op, const StreamOwnedEntry& entry, bool tombstone_null) {

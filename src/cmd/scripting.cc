@@ -198,20 +198,17 @@ bool parse_nonnegative(Slice value, uint32_t& result, bool& negative) {
     return true;
 }
 
-void reply_text_error(Op& op, std::string_view kind, std::string_view detail) {
-    auto sink = op.sink();
-    sink.push_back('-');
-    sink.append(kind.data(), kind.size());
-    if (!detail.empty()) { sink.push_back(' '); sink.append(detail.data(), detail.size()); }
-    sink.append("\r\n", 2);
+void reply_text_error(Op& op, std::string_view kind, std::string_view detail,
+                      bool trim = true) {
+    std::string message(kind);
+    if (!detail.empty()) { message.push_back(' '); message.append(detail); }
+    reply_err(op.sink(), message.data(), message.size(), trim);
 }
 
 // A script error already carries its own code word ("ERR ...", "WRONGTYPE ...", "My Error").
 void reply_raw_error(Op& op, std::string_view message) {
-    auto sink = op.sink();
-    sink.push_back('-');
-    sink.append(message.data(), message.size());
-    sink.append("\r\n", 2);
+    // Runtime errors use Redis's safe-SDS path (map without trimming).
+    reply_err(op.sink(), message.data(), message.size(), false);
 }
 
 std::string clean_error(const char* text, size_t length) {
@@ -985,7 +982,7 @@ bool append_lua_result(lua_State* state, int index, SmallBuf<kInlineReply>& outp
         size_t length = 0;
         const char* value = lua_tolstring(state, -1, &length);
         if (!value) { lua_pop(state, 1); error = "invalid redis error table"; return false; }
-        output.push_back('-'); reply_line_text(output, value, length); output.append("\r\n", 2);
+        reply_err(output, value, length);
         lua_pop(state, 1);
         return true;
     }
@@ -995,7 +992,7 @@ bool append_lua_result(lua_State* state, int index, SmallBuf<kInlineReply>& outp
         size_t length = 0;
         const char* value = lua_tolstring(state, -1, &length);
         if (!value) { lua_pop(state, 1); error = "invalid redis status table"; return false; }
-        output.push_back('+'); reply_line_text(output, value, length); output.append("\r\n", 2);
+        reply_simple(output, value, length);
         lua_pop(state, 1);
         return true;
     }

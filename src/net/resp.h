@@ -19,6 +19,39 @@
 
 namespace tomo {
 
+// RESP line payloads are caller text, even when they originated as bulk strings.
+// Formatted errors trim terminal CR/LF before mapping; Redis's safe-SDS errors
+// and safe status replies map every CR/LF, including terminal ones.
+template <bool Trim = true, typename Buf> inline void reply_line_text(Buf&& b, const char* text, size_t len) {
+    if constexpr (Trim)
+        while (len && (text[len - 1] == '\r' || text[len - 1] == '\n')) --len;
+    size_t start = 0;
+    for (size_t i = 0; i < len; ++i) {
+        if (text[i] != '\r' && text[i] != '\n') continue;
+        b.append(text + start, i - start);
+        b.push_back(' ');
+        start = i + 1;
+    }
+    if (start < len) b.append(text + start, len - start);
+}
+template <typename Buf> [[gnu::cold, gnu::noinline]]
+void reply_err(Buf&& b, const char* msg, size_t len, bool trim = true) {
+    b.push_back('-');
+    if (trim) reply_line_text(b, msg, len);
+    else reply_line_text<false>(b, msg, len);
+    b.append("\r\n", 2);
+}
+template <typename Buf> inline void reply_err(Buf&& b, const char* msg) {
+    b.push_back('-'); reply_line_text(b, msg, std::strlen(msg)); b.append("\r\n", 2);
+}
+template <typename Buf> [[gnu::cold, gnu::noinline]]
+void reply_simple(Buf&& b, const char* msg, size_t len) {
+    b.push_back('+'); reply_line_text<false>(b, msg, len); b.append("\r\n", 2);
+}
+template <typename Buf> inline void reply_simple(Buf&& b, const char* msg) {
+    reply_simple(b, msg, std::strlen(msg));
+}
+
 enum class ParseResult { Ok, Incomplete, Error, Empty };
 
 // Redis 7.4's PROTO_INLINE_MAX_SIZE is a fixed protocol bound, not a CONFIG knob.
@@ -160,12 +193,10 @@ inline ParseResult resp_parse_inline(const char* buf, uint32_t len, uint32_t& po
     // Used immediately by the owning parser; thread-local storage avoids changing Op
     // or carrying a formatting buffer through every ordinary RESP parse.
     thread_local char message[] = "ERR Protocol error: expected '$', got '?'";
-    message[sizeof(message) - 3] = actual == '\r' || actual == '\n' ? ' ' : actual;
+    message[sizeof(message) - 3] = actual;
     // Redis preserves even a NUL offending byte in this error. Its wire length cannot
     // be recovered with strlen; stage this cold error using the known literal size.
-    op.reply.append("-");
-    op.reply.append(message, sizeof(message) - 1);
-    op.reply.append("\r\n");
+    reply_err(op.reply, message, sizeof(message) - 1);
     return message;
 }
 
@@ -657,23 +688,6 @@ template <typename Buf> inline void reply_outofrange(Buf&& b) {
     b.append(kMsg, sizeof(kMsg) - 1);
 }
 
-// RESP simple strings/errors cannot carry line delimiters, even when the source is a bulk.
-template <typename Buf> inline void reply_line_text(Buf&& b, const char* text, size_t len) {
-    size_t start = 0;
-    for (size_t i = 0; i < len; ++i) {
-        if (text[i] != '\r' && text[i] != '\n') continue;
-        b.append(text + start, i - start);
-        b.push_back(' ');
-        start = i + 1;
-    }
-    if (start < len) b.append(text + start, len - start);
-}
-template <typename Buf> inline void reply_err(Buf&& b, const char* msg) {
-    b.push_back('-'); reply_line_text(b, msg, std::strlen(msg)); b.append("\r\n", 2);
-}
-template <typename Buf> inline void reply_simple(Buf&& b, const char* msg) {
-    b.push_back('+'); b.append(msg, std::strlen(msg)); b.append("\r\n", 2);
-}
 // AN INTEGER IS A VALUE, NOT A FORMAT. DEL's count, EXISTS's count, SETNX's 0/1, INCR's new
 // value, LPUSH/SADD/HSET's length -- the executor computes the number, the owner renders the
 // digits. Outside int32 the code path is declined (the hole in Op holds four bytes, not eight) and
