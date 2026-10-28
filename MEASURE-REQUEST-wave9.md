@@ -116,3 +116,23 @@ retained in `docs/wave9/jobs/lane-rows` and its recorded run directory.
   The headline marks `finalize_reservations` always_inline. Its bounded seam
   extraction now recognizes that function name without requiring a bare line
   prefix; all six exact publication insertion anchors still fail closed.
+
+### Frozen command-scope counts
+
+The final fixture covers 100 paired cells: 48 GET/SET/INCR/MGET/MSET, 48 EXEC,
+and four read-local GET. Main commands add zero instructions (all deltas <= 0).
+Read-local GET totals and every per-function count are exactly equal: normal
+2428/49231 and db0 2340/45949 at batch 1/32. Cross-shard EXEC adds 83–333
+instructions; repeated-key EXEC with 2/4 children removes 1793–7108. Full counts,
+probe hashes, build commands and exact-data checks are in `docs/wave9/instructions`.
+Attribution of EXEC's additions is recorded separately; these counts are not rates.
+
+The first complete Tcl job failed both modes only at the newly promoted
+`XGROUP DESTROY should unblock XREADGROUP with -NOGROUP`: its NOGROUP reply
+arrives, but INFO errorstats does not expose its count. This is the pre-existing,
+explicitly stopped INFO statistics dependency in `MEASURE-REQUEST-blockfix2.md`,
+not a new merge interaction. The named assertion remains mandatory and red.
+Unsupported file setup errors are still matched exactly by the frozen manifest;
+they do not explain this failure. No assertion or known-failure name was hidden
+to make the integration green. The full compatibility job and planted regression
+will retain this limitation in their receipts.
