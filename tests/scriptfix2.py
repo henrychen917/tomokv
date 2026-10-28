@@ -78,7 +78,7 @@ def server(args, oracle=False):
     if not oracle:
         cmd += ['--thread-mode', args.mode, '--shards', '16',
                 '--databases', str(args.databases), '--net-io', args.net_io,
-                '--flip-auto', '0']
+                '--atomic', str(args.atomic), '--flip-auto', '0']
         if args.mode == '2s':
             cmd += ['--ratio', args.ratio]
     with (directory / 'server.log').open('w') as log:
@@ -239,6 +239,7 @@ def main():
     p.add_argument('--oracle-cores', required=True)
     p.add_argument('--ratio', default='6:2')
     p.add_argument('--databases', type=int, default=16)
+    p.add_argument('--atomic', type=int, choices=(0, 1), default=0)
     p.add_argument('--port', type=int, required=True)
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--root', choices=ROOTS)
@@ -246,7 +247,7 @@ def main():
     args = p.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     original = json.loads((ROOT / 'docs/harness5/redis-tcl-repros.json').read_text())['cases']
-    report = dict(mode=args.mode, net_io=args.net_io, databases=args.databases,
+    report = dict(mode=args.mode, net_io=args.net_io, databases=args.databases, atomic=args.atomic,
                   binary_sha256=hashlib.sha256(args.binary.read_bytes()).hexdigest(),
                   oracle_sha256=hashlib.sha256(args.oracle.read_bytes()).hexdigest(), rows=[])
     with server(args) as (target, target_argv), server(args, True) as (oracle, oracle_argv):

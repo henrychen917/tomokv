@@ -2,259 +2,526 @@
   "rows": [
     {
       "target": "all",
+      "argv": [
+        "make",
+        "-q",
+        "all"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/expire-notify-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/expire-notify-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/ktls-lifetime-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/ktls-lifetime-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/moverfix-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/moverfix-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/moverfix-db0-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/moverfix-db0-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/publishfix-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/publishfix-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/at15-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/at15-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/at15-db0-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/at15-db0-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/execabort-watch-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/execabort-watch-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/execabort-watch-db0-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/execabort-watch-db0-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/core-concurrency-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/core-concurrency-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/atomic-survivors-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/atomic-survivors-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/txnorder-index-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-index-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/txnorder-index-db0-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-index-db0-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/txnorder-retry-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-retry-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/txnorder-wake-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-wake-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/txnorder-episodes",
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-episodes"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/txnorder-episodes-debug",
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-episodes-debug"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/txnorder-watch-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-watch-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/txnorder-watch-db0-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/txnorder-watch-db0-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/netcmd-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/netcmd-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/encodingfix-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/encodingfix-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/netcap-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/netcap-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/waits-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/waits-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/rehash-waits-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/rehash-waits-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/multidb-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/multidb-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/multidb-boundary-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/multidb-boundary-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/storesize-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/storesize-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/respresume-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/respresume-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/respresume-migration",
+      "argv": [
+        "make",
+        "-q",
+        "build/respresume-migration"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/exbatch-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/exbatch-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/exbatch-db0-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/exbatch-db0-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/wb-rule-units",
+      "argv": [
+        "make",
+        "-q",
+        "build/wb-rule-units"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/wbland-units",
+      "argv": [
+        "make",
+        "-q",
+        "build/wbland-units"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/rltopo-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/rltopo-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/lbplanner-units",
+      "argv": [
+        "make",
+        "-q",
+        "build/lbplanner-units"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/shutdown-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/shutdown-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/persistfix-units",
+      "argv": [
+        "make",
+        "-q",
+        "build/persistfix-units"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/ktls-keyupdate",
+      "argv": [
+        "make",
+        "-q",
+        "build/ktls-keyupdate"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/ktls-keyupdate-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/ktls-keyupdate-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/flushfix-units",
+      "argv": [
+        "make",
+        "-q",
+        "build/flushfix-units"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/splitlocal-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/splitlocal-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/reorder-engagement-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/reorder-engagement-unit"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/reorder-engagement-unit-db0",
+      "argv": [
+        "make",
+        "-q",
+        "build/reorder-engagement-unit-db0"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/racefix-climon",
+      "argv": [
+        "make",
+        "-q",
+        "build/racefix-climon"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/aoforder-scheduled",
+      "argv": [
+        "make",
+        "-q",
+        "build/aoforder-scheduled"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "mdbqsbr2-park/all",
+      "argv": [
+        "make",
+        "-q",
+        "BUILD_ROOT=build/mdbqsbr2-park",
+        "all"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "mdbqsbr2-no-wake/all",
+      "argv": [
+        "make",
+        "-q",
+        "BUILD_ROOT=build/mdbqsbr2-no-wake",
+        "all"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/blockfix-cost",
+      "argv": [
+        "make",
+        "-f",
+        "Makefile",
+        "-f",
+        "tools/blockfix_cost.mk",
+        "-q",
+        "build/blockfix-cost"
+      ],
       "exit_code": 0,
       "stderr": ""
     },
     {
       "target": "build/tomokv.blockfix-cost.sha256",
+      "argv": [
+        "make",
+        "-f",
+        "Makefile",
+        "-f",
+        "tools/blockfix_cost.mk",
+        "-q",
+        "build/tomokv.blockfix-cost.sha256"
+      ],
       "exit_code": 0,
       "stderr": ""
     }
   ],
   "phony_alias": {
     "target": "mdbqsbr-live-arms",
+    "argv": [
+      "make",
+      "-q",
+      "mdbqsbr-live-arms"
+    ],
     "exit_code": 0,
-    "reason": "PHONY recipe always invokes recursive make; its two concrete all targets are checked above."
+    "stdout": "make BUILD_ROOT=build/mdbqsbr2-park CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK' all\nmake[1]: Entering directory '/home/user/Projects/cx-scriptfix2'\nmake[1]: Leaving directory '/home/user/Projects/cx-scriptfix2'\nmake BUILD_ROOT=build/mdbqsbr2-no-wake CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE' all\nmake[1]: Entering directory '/home/user/Projects/cx-scriptfix2'\nmake[1]: Leaving directory '/home/user/Projects/cx-scriptfix2'\n",
+    "stderr": "",
+    "reason": "PHONY alias invokes recursive make; the two concrete all targets are also checked above."
   },
   "main_sha256": "cb5dbeae537f1171a54171ddc37f7b2517500360bd6fc8c9208763a75994a317"
 }

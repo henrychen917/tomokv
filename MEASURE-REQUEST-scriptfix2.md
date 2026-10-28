@@ -61,10 +61,12 @@ and routing flags; it does not claim to reproduce Redis's randomized collision w
 `job_scriptfix2` adds twelve independently reported roots × two thread modes × two
 network engines = **48 rows**. Each row runs both compiled database engines
 (`--databases 1` and `16`) against the Redis oracle, at 16 shards and split ratio 6:2.
+Both atomic settings run inside each row, giving 192 root/geometry legs per arm.
 The two stopped roots are excluded from positive rows and remain in original reproductions.
 The API and shebang rows cover the implemented subsets explicitly listed above.
 
-The collector is before the quick-tier exit, so **DQ=+48, DF=+48**. Maintainer-owned
+The collector is at `tests/gate.sh:5706`, before the quick-tier exit at line 5808,
+so **DQ=+48, DF=+48**. Maintainer-owned
 constants remain untouched: **807/824 should become 855/872**. The independently
 maintained label fixture exactly matches all 872 source-declared full-tier labels.
 The count-sensitive receipt checker must remain red until the owner updates the constants.
@@ -72,7 +74,9 @@ The count-sensitive receipt checker must remain red until the owner updates the 
 The Tcl manifest promotes **78 assertions (53 distinct names)**: functions 67→85,
 scripting 70→130. The complete passing selection is 35 files and 1,721 assertions per
 mode, up from 1,643 at this lane's base. Exact names are in
-`docs/scriptfix2/tcl-promotions.json`. Tests and support files from Redis are unmodified.
+`docs/scriptfix2/tcl-promotions.json`. This lane changes no upstream Tcl assertions or
+support source. The existing harness instruments its disposable `test_helper.tcl` copy
+for events, discovery and owned controller ports; that instrumentation is unchanged.
 
 ### Proof receipts
 
@@ -82,10 +86,32 @@ Builds used `-j16`. Gate geometry used server CPUs 96–103 and load CPUs 104–
 Only selected correctness jobs were invoked; partial gate runs do not produce a full
 iteration verdict or performance receipt.
 
+| Proof | Result |
+| --- | --- |
+| Original harness reproductions | All 14 roots differ from Redis on delivered PRE, in both modes. |
+| New directed job | POST 48/48 rows, covering 192 database/atomic/mode/network legs and 3,584 exact wire comparisons. PRE and the planted regression fail all 192 legs. |
+| Full Tcl passing selection | Both modes pass the manifest: 35 files and 1,721 assertions each. Five pre-existing setup exceptions per mode match their exact approved signatures; they are retained in the receipts. |
+| Isolated Tcl regression controls | 24/24 named witnesses detect their own planted regression; all 24 unarmed controls pass. |
+| Full Tcl negative jobs | Delivered PRE and the final mutant are rejected in both modes with named scripting/FUNCTION failures. The combined mutant also times out later in scripting; that timeout and unrelated failures are excluded from mutation witnesses. |
+| Differential jobs | All four mode/atomic parts plus mode equivalence pass on both io_uring and epoll. Standard seeds and additional replay seeds are recorded per part. The stock fused SORT exclusion remains. |
+| Related correctness jobs | 206 rows pass, one BITFIELD row fails; details below. All scripting, compat3 and splitlocal rows pass. |
+| Scheduler tests | `python3 tests/gates_test.py`: 73/73 pass with unchanged deadlines. |
+| Instrument self-test job | Expected failure only at the unchanged 824 count versus 872 declared labels. Other controls pass. |
+| Builds | `make all` and all `job_production_units` targets built. All 50 concrete `make -q` checks and the recursive mdbqsbr alias are fresh. |
+
+**Unresolved proof failure:** `feature-split-1` returned `[0]` for the BITFIELD growth
+admission test after setting maxmemory to 65,536, where the battery expects OOM.
+The complete job subsequently passed 35/35 on PRE and POST. A bounded follow-up ran
+36 BITFIELD batteries and 5,000 config/growth probes per arm without reproducing it.
+This does not establish that the original failure is a baseline defect or erase it.
+`docs/scriptfix2/bitfield-original-failure.log`, both context-job ledgers, and both
+bounded-probe receipts are retained. This lane does not claim an all-green proof.
+
 The broad differential found and rejected an intermediate numeric-argument lifetime
 bug. The final directed tests include multiple numeric arguments with different lengths,
 plus LRANGE's `0,-1` boundaries. Intermediate runs invalidated by binary relinking or
-stopped after that finding are retained as rejected evidence, not counted as final passes.
+stopped after that finding are retained in `docs/scriptfix2/intermediate-runs.tar.gz`
+with an explanatory inventory, and are not counted as final passes.
 
 `tools/scriptfix2_mutant.py` builds twelve selectable cold-path regressions in a disposable
 source copy, links production objects and changes no production source/object. Its
@@ -142,7 +168,8 @@ has been eliminated. Original reproductions verify its PRE behavior in both mode
 POST `.text` is 8,461,255 bytes, versus PRE's 8,457,095 (+4,160). PAD-A matches
 POST's text address 129,424 and size. Superseded disposable source checkouts are deleted
 after retaining their hashes/counts; `tools/scriptfix2_pad.py` can recreate the frozen
-PRE source from Git for relinking against the retained PRE objects.
+PRE source from Git for relinking against the retained PRE objects. Final `build/` usage
+is about 16 GiB, and no lane-owned ports remain listening.
 
 ### Maintainer merit request — NOT RUN in this lane
 

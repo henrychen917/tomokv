@@ -3214,7 +3214,7 @@ job_scriptfix(){
 # Collected before the quick exit: DQ=DF=+48; EXPECT remains maintainer-owned.
 job_scriptfix2(){
   stop
-  local mode engine root label databases passed
+  local mode engine root label databases atomic passed
   for mode in 1s 2s; do
     for engine in uring epoll; do
       for root in EVAL-SHEBANG EVALSHA-SHA-CASE FCALL-NAME-CASE FUNCTION-LOAD-ENV FUNCTION-REGISTER-ARGS FUNCTION-SHEBANG-META FUNCTION-SUBCMD-ARGS LUA-REDIS-API LUA-SANDBOX-GLOBALS SCRIPT-ERROR-WORDING SCRIPT-NUMBER-ARG SCRIPT-REPLY-DEPTH; do
@@ -3222,12 +3222,14 @@ job_scriptfix2(){
         row_begin "$label"
         passed=1
         for databases in 1 16; do
-          py tests/scriptfix2.py --root "$root" --binary "$CANDIDATE_BINARY" \
-            --oracle "$REDIS74_ROOT/src/redis-server" --mode "$mode" --net-io "$engine" \
-            --cores "$CORES" --oracle-cores "$LOAD_CORES" --ratio "$GATE_RATIO" \
-            --databases "$databases" --port "$PORT" \
-            --output "$TMPDIR/$root-$mode-$engine-db$databases" \
-            >"$TMPDIR/$root-$mode-$engine-db$databases.log" 2>&1 || passed=0
+          for atomic in 0 1; do
+            py tests/scriptfix2.py --root "$root" --binary "$CANDIDATE_BINARY" \
+              --oracle "$REDIS74_ROOT/src/redis-server" --mode "$mode" --net-io "$engine" \
+              --cores "$CORES" --oracle-cores "$LOAD_CORES" --ratio "$GATE_RATIO" \
+              --databases "$databases" --atomic "$atomic" --port "$PORT" \
+              --output "$TMPDIR/$root-$mode-$engine-db$databases-a$atomic" \
+              >"$TMPDIR/$root-$mode-$engine-db$databases-a$atomic.log" 2>&1 || passed=0
+          done
         done
         if [ "$passed" = 1 ]; then
           ok "$label"
