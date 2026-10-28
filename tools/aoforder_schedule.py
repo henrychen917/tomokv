@@ -46,14 +46,18 @@ def main():
     affinity = ','.join(map(str, sorted(os.sched_getaffinity(0))))
     prefix = ['taskset', '-c', affinity]
     if args.ref:
+        extras = subprocess.check_output(['git', 'ls-tree', '--name-only', args.ref,
+                                          'tools/assert_map.py'], cwd=root, text=True).splitlines()
         archive = subprocess.check_output(prefix + ['git', 'archive', args.ref,
-                                                   'src', 'third_party', 'Makefile'], cwd=root)
+                                                   'src', 'third_party', 'Makefile', *extras], cwd=root)
         with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
             tar.extractall(source, filter='data')
     else:
         for name in ('src', 'third_party'):
             shutil.copytree(root / name, source / name, dirs_exist_ok=True)
         shutil.copy2(root / 'Makefile', source / 'Makefile')
+        (source / 'tools').mkdir(exist_ok=True)
+        shutil.copy2(root / 'tools/assert_map.py', source / 'tools/assert_map.py')
     path = source / 'src/cmd/scatter_engine.inc'
     text = path.read_text()
     anchor = '    // ONE EXPIRY CUT FOR THE WHOLE FAN-OUT.'
