@@ -1,0 +1,58 @@
+{
+  "created_at": 1793164349.6622446,
+  "defaults": {
+    "fallback_seconds": 900,
+    "floor_seconds": 30.0,
+    "multiplier": 4.0
+  },
+  "legacy_sources": [],
+  "rows": {
+    "release build (+footprint locks)": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 900.0
+    },
+    "release build (+footprint locks) [external-candidate]": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "snapfix SNAP-STORM-1 BGSAVE under EXEC + writer storm (both modes, both engines, atomic 0/1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 55.68,
+      "median_seconds": 55.68,
+      "min_seconds": 55.68,
+      "samples": 1,
+      "timeout_seconds": 223
+    },
+    "snapfix SNAP-STORM-1 BGSAVE under script storm (both modes, both engines, atomic 0/1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 58.97,
+      "median_seconds": 58.97,
+      "min_seconds": 58.97,
+      "samples": 1,
+      "timeout_seconds": 236
+    },
+    "snapfix XS-SHUT-1 SHUTDOWN NOSAVE in script storm (both modes, both engines, atomic 0/1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.64,
+      "median_seconds": 0.64,
+      "min_seconds": 0.64,
+      "samples": 1,
+      "timeout_seconds": 30
+    }
+  },
+  "schema": 1
+}
