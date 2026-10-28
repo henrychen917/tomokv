@@ -6,8 +6,9 @@ No throughput or latency improvement is claimed. No performance benchmark,
 ABBA/NIC measurement, full iteration, push or merge was run by this lane.
 
 Base: `393d6ceb1`, branch `cx-pubtrackfix`. All lane commands and children use
-CPUs 32–47; correctness servers use 32–39, gate load uses 40–47, builds use
-`taskset -c 32-47 make -j16`. Listeners stay within 20300–20399. Geometry is
+CPUs 32–47. The gate is configured with server CPUs 32–39 and load CPUs
+40–47; self-contained batteries can pin their clients with their servers. Builds
+use `taskset -c 32-47 make -j16`. Listeners stay within 20300–20399. Geometry is
 16 shards, ratio 6:2 for split mode. Oracle is the actual Redis 7.4.10 binary
 `/home/user/Projects/redis74/src/redis-server`, SHA-256
 `ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b`.
@@ -50,18 +51,19 @@ three REPLY OFF/SKIP, one implicit consumer and one eviction. They are now
 required passes in both modes. The exact names are in
 [tcl-promotions.json](docs/pubtrackfix/tcl-promotions.json).
 
-The existing netcmd pubsub row also checks a late invalidation queued before
-the pass drain. A throwaway unit with the previous flush order fails the exact
-new assertion; POST passes. See
-[pass-boundary-control.json](docs/pubtrackfix/pass-boundary-control.json).
-This was added after a directed redirect timeout exposed a real pending-flag
-hazard in the first implementation; that interrupted run is retained.
+The existing netcmd pubsub row requires late queued invalidations to flush in
+the same pass and pending BCAST keys to survive a whole-cache invalidation.
+Controls with the old drain order and with pending-key clearing both fail the
+exact assertions; POST passes. See
+[pass-boundary-control.json](docs/pubtrackfix/pass-boundary-control.json) and
+[bcast-flush-control.json](docs/pubtrackfix/bcast-flush-control.json).
 
-The directed matrix and both Tcl modes passed before the final BCAST flush
-preservation correction. The revised unit fails on the previous candidate and
-passes after the correction; the final full proof is being refreshed. Both Tcl
-modes cover all 36 selected files and all 31 promoted names, without using the
-pre-existing named ordering retries. The complete
+The final directed matrix and both Tcl modes pass on the final binary. The
+BCAST pass-boundary unit also fails on the previous candidate and passes after
+the flush-preservation correction. Both Tcl modes cover all 36 selected files
+and all 31 promoted names. Fused mode used the pre-existing one-time MONITOR
+ordering retry in unit/introspection; the original failure and successful retry
+are retained. The promoted assertions passed without retries. The complete
 selected affected-job list is [proof-jobs.txt](docs/pubtrackfix/proof-jobs.txt),
 including `clientfix` and the public `compat2` verdict in the same run.
 The driver [run-proof.py](docs/pubtrackfix/run-proof.py) invokes only explicitly
@@ -69,9 +71,10 @@ selected jobs; its `iteration` invocations select the standard differential
 jobs only and report `GATE(PARTIAL)`, with no ABBA, NIC or full-tier run.
 
 <!-- PROOF-STATUS -->
-- Before the final flush-preservation correction: 228 selected affected-job rows passed, including all directed geometries and both Tcl modes. That run is retained under proof/post-before-flush-preservation.
-- The new pass-boundary assertion fails on the prior candidate and passes after the correction; see bcast-flush-control.json.
-- Final arms and all 52 zero-delta instruction comparisons are refreshed and bound to the final binary. The directed matrix passes all 160 candidate and five oracle legs. All production-unit targets and 56 freshness queries pass. The remaining selected proof is RUNNING; replace before handoff.
+- Final affected-job run: **245 passed, 0 failed**, 36 selected jobs including prerequisites. Includes all 160 directed candidate legs and five oracle legs, 138 feature-matrix rows, all eight eviction legs, clientfix, compat2 and the focused notification/tracking/stream jobs.
+- Tcl subset: both modes pass all 36 files and all 31 promoted assertions. Fused mode uses the existing one-time MONITOR ordering retry; the original failure and retry receipts are retained. The promoted assertions pass without retries.
+- Final make all, every production-unit target and all 56 freshness queries pass. All 52 command-scope comparisons add zero instructions.
+- Standard differential suites, PRE/PAD directed negatives, four Tcl regression plants and isolated gates_test: RUNNING; replace before handoff.
 <!-- /PROOF-STATUS -->
 
 **NOT RUN:** positive POST regression rows and Tcl promotions for the three
@@ -86,6 +89,12 @@ Its prior eviction succeeded. A bounded 128-cycle reset probe did not reproduce
 it on PRE or POST; no regression attribution is claimed. The directed eviction
 cases now each arm on fresh state. This report does not claim global CONFIG
 publication correctness from their passing result.
+
+[bcast-flush-audit.json](docs/pubtrackfix/bcast-flush-audit.json) also records
+inherited behavior outside the fixed pass-boundary case: FLUSHDB inside MULTI
+is rejected on PRE, and SET/FLUSHDB pipelines can partition into different
+notification passes from Redis. This lane does not change transaction command
+admission or claim identical pass partitioning.
 
 ### Command instruction proof
 

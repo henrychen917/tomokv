@@ -3,7 +3,7 @@
 
 Derived from docs/wave6/commands.py, using the wave7 production scope.
 Count named tomo routines (including inlined code), exclude out-of-scope library
-callees and fixture glue. The fixture calls the linked production exec_batch_prefetched entry point. Atomic 1 (also 0 for MSET), slowlog -1/10000 for single-key commands, read-local 0.
+callees and fixture glue. The fixture calls the linked production exec_batch_prefetched entry point. Atomic 1 (also 0 for MSET), slowlog disabled (-1), read-local 0.
 """
 import argparse
 import concurrent.futures
