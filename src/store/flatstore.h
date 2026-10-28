@@ -1032,16 +1032,7 @@ public:
         if (snapshot_prepared_) return SnapshotWriteResult::Ready;
         if (read_local_enabled_ && !prepare_resize_retirement())
             return SnapshotWriteResult::Error;
-        // Twice the capacity the resize policy needs for the LIVE set (load below kLoadPct), not
-        // twice cap_[0] (SNAP-STORM-1). After the capture the frozen table merges into this one and
-        // nothing shrinks it again, so sizing it from cap_[0] compounded: every snapshot doubled
-        // every shard's table for good (an idle one-key server passed 13 GB RSS after 16 BGSAVEs),
-        // and each next Preparing first had to finish merging the previous, already doubled,
-        // table eight slots per step while the armed atomic barrier held every new unit. The
-        // result is still overprovisioned for post-cut inserts, which insert() capacity-gates.
-        uint64_t sized = kMinCap;
-        while ((static_cast<uint64_t>(live_[0]) + 1) * 100 >= sized * kLoadPct) sized *= 2;
-        uint64_t wanted = std::min<uint64_t>(sized, cap_[0]) * 2;
+        uint64_t wanted = static_cast<uint64_t>(cap_[0]) * 2;
         if (wanted > UINT32_MAX) return SnapshotWriteResult::Error;
         const uint32_t cap = round_pow2(static_cast<uint32_t>(wanted));
         if (!cap) return SnapshotWriteResult::Error;
