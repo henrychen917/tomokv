@@ -114,11 +114,12 @@ def main():
     source = output / 'source'
     source.mkdir(parents=True, exist_ok=True)
     if args.ref:
-        archive = subprocess.check_output(['git', 'archive', args.ref, 'src', 'third_party', 'Makefile'], cwd=root)
+        archive = subprocess.check_output(['git', 'archive', args.ref, 'src', 'third_party', 'tools', 'Makefile'], cwd=root)
         with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
             tar.extractall(source, filter='data')
     else:
-        for name in ('src', 'third_party'):
+        # make all also names the assertion-map generator in its dry-run graph.
+        for name in ('src', 'third_party', 'tools'):
             shutil.copytree(root / name, source / name, dirs_exist_ok=True)
         shutil.copy2(root / 'Makefile', source / 'Makefile')
     path = source / 'src/cmd/tracking.cc'
