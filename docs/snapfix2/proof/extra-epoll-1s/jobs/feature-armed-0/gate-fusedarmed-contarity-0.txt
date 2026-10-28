@@ -1,0 +1,19 @@
+  ok   XGROUP HELP exact Redis 7.4.2 array
+  ok   XINFO HELP exact Redis 7.4.2 array
+  ok   bare XGROUP retains outer arity error
+  ok   unknown XGROUP arm names the arm
+  ok   known XGROUP arm uses generated child arity
+  ok   XGROUP HELP surplus names generated child
+  ok   XINFO HELP surplus names generated child
+  ok   COMMAND INFO arities remain XGROUP=-2 XINFO=-2
+  ok   geometry key=contarity:cross:0000:zzzzzzzzzzzzzzzzzzzzzzzz shard=4 owner-ex=7 shard0-owner-ex=0 executors=[0, 1, 2, 3, 4, 5, 6, 7]
+  ok   clean database
+  ok   XGROUP CREATE crosses to key owner
+  ok   ordinary route sees CREATE's stream
+  ok   XGROUP SETID crosses to key owner
+  ok   XGROUP CREATECONSUMER crosses to key owner
+  ok   XGROUP DELCONSUMER crosses to key owner
+  ok   XGROUP DESTROY crosses to key owner
+  ok   ordinary route still sees stream after DESTROY
+  ok   XINFO STREAM missing key reaches keyed owner
+CONTARITY PASS: help=2 arity=7 keyed_xgroup=5 executors>=2

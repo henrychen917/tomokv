@@ -1,0 +1,7 @@
+scope A: parity surface
+scope B: CONFIG + COMMAND
+scope C: OBJECT + MEMORY
+scope A: SHUTDOWN (throwaway server)
+scope B: CONFIG REWRITE round trip
+
+servertail: 111 checks, 0 failures -> PASS
