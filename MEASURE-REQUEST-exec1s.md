@@ -73,6 +73,11 @@ POST live proof is in progress. Its first selected-family attempt was cancelled
 while correcting the harness socket’s default ephemeral port; no receipt from
 that interrupted attempt counts toward this proof. The complete inventory was
 restarted with the fixed port and cached builds, retaining the original logs.
+The restarted run exposed one harness preparation error: `blockfix_registry`
+could not find the cost-witness SHA sidecar under the frozen POST filename.
+Its 24 live oracle legs passed, but its instruction leg did not run. The original
+source-built witness/server hashes and POST byte identity have now been verified
+(`docs/exec1s/blockfix-cost-binding.json`); an unchanged gate-job rerun is pending.
 
 - X2: production TSAN owner-word helper, the old overlapping-write negative
   control, actual 256-live-group wrap/decrement checks, pinned-floor cleanup,
