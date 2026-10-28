@@ -84,3 +84,35 @@ reply followed by an intact PING frame. The first four FIFO occupants are
 read-only scripts; they drain under PAUSE while the queued write stays pending.
 Receipts: `docs/wave9/jobs/integration-first.{json,log,tsv.partial}`. This preliminary
 build does not substitute for rerunning the job on the frozen landing POST.
+
+### Compile-only and first cost pass
+
+31 pinned units were surveyed PRE and POST; neighbour trials preserve command
+bodies before other hot and cold bodies. `docs/wave9/budgets/selected.json` lists
+all budgets and trials. The selected build has 9,999 canonical function groups:
+8,423 headline-identical, 1,098 changed groups exactly matching a supplied lane
+POST, and 478 composed/compiler residual groups. Every group is inventoried in
+`docs/wave9/identity-selected2`; remaining command-body differences are under
+review, not hidden by masking source lines or member offsets.
+
+The first complete command-scope pass (48 paired cells) adds zero instructions
+for GET/SET/INCR/MGET/MSET at batches 1/32 in both modes and namespaces (MSET also
+atomic 0/1). These are bounded serverless instruction counts, not rates. Fixture
+and final-body work continues, so final hashes/counts will supersede this pass.
+
+The first lane matrix overlapped a binary relink: three RESET rows correctly
+failed because the candidate was temporarily not executable. This is an
+integration-run scheduling error, not a RESET result. That entire multifix
+matrix will be rerun after binary publication has finished; failed evidence is
+retained in `docs/wave9/jobs/lane-rows` and its recorded run directory.
+
+- Wound publication and scripts: the generic last-placement path completes the
+  cancelled epoch before publishing aborted; `script_group_read` additionally
+  checks Wounded on both sides of generic preparation. The `at412-owner` row now
+  carries that cancelled script through `script_escalate_handoff`, requiring a
+  closed apply bracket, exactly one retry, and no final reply. The hand-off
+  preserves cancellation; redispatch creates a new attempt with the old age.
+- The woundfix copy-only builder searched for an unannotated function boundary.
+  The headline marks `finalize_reservations` always_inline. Its bounded seam
+  extraction now recognizes that function name without requiring a bare line
+  prefix; all six exact publication insertion anchors still fail closed.
