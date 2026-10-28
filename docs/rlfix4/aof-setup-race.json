@@ -1,0 +1,62 @@
+{
+  "log": "build/gate-run.FGkR9f/jobs/persistfix2_errors/errors-target-2s-epoll.log",
+  "binary": "45c2bd1a77da0cb36e1f5e4ca2ceed3b4caa1745ac6aec7a02f8995da08b4b46",
+  "events": [
+    {
+      "command": [
+        "SET",
+        "queued-write",
+        "value"
+      ],
+      "event": "reply",
+      "reply": "QUEUED"
+    },
+    {
+      "event": "durability window armed",
+      "file_limit": 184,
+      "policy": "no",
+      "reorder": 1
+    },
+    {
+      "command": [
+        "SET",
+        "queued-write",
+        "value"
+      ],
+      "event": "reply",
+      "reply": {
+        "error": "MISCONF Errors writing to the AOF file: File too large"
+      }
+    },
+    {
+      "error": "",
+      "event": "assertion",
+      "policy": "no",
+      "reorder": 1
+    },
+    {
+      "command": [
+        "SET",
+        "queued-write",
+        "value"
+      ],
+      "event": "reply",
+      "reply": "QUEUED"
+    },
+    {
+      "event": "durability window armed",
+      "file_limit": 380,
+      "policy": "everysec",
+      "reorder": 1
+    },
+    {
+      "command": [
+        "SET",
+        "queued-write",
+        "value"
+      ],
+      "event": "reply",
+      "reply": "QUEUED"
+    }
+  ]
+}
