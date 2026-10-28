@@ -2557,7 +2557,7 @@ template <bool IofusedPrivateQueue>
 bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t consumed) {
     // RESET is immediate even inside MULTI. Use the existing owner-routed
     // WATCH cleanup before the ordinary connection-local RESET handler.
-    if (multi_name(op, "reset")) {
+    if (op.cmd_name().eq_icase("reset")) {
         multi_close_entry(loop, client);
         client.next_watch_generation();
         client.clear_watch_dirty();
