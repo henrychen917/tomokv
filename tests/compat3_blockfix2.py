@@ -148,6 +148,8 @@ def removed(c, clients):
     equal(live.read(), [[b"accounting", [[b"1-0", [b"f", b"v"]]]]], "other group survives")
     parked(c, 0)
     equal(info(c, "errorstats").get("errorstat_NOGROUP"), "count=2", "NOGROUP replies counted once")
+    equal(info(c, "default").get("errorstat_NOGROUP"), "count=2", "default INFO includes Errorstats")
+    equal(info(c).get("errorstat_NOGROUP"), "count=2", "bare INFO includes Errorstats")
     equal(info(c, "stats").get("total_error_replies"), "2", "total NOGROUP errors")
     stats = dict(field.split("=", 1) for field in info(c, "commandstats")["cmdstat_xreadgroup"].split(","))
     equal([stats.get(k) for k in ("calls", "rejected_calls", "failed_calls")], ["3", "0", "2"],

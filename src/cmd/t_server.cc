@@ -2241,7 +2241,7 @@ void cmd_info(Shard&, Op& op) {
         }
     }
     StatBaseline baseline;
-    const bool want_errors = info_section(op, "ERRORSTATS", false);
+    const bool want_errors = info_section(op, "ERRORSTATS");
     if (want_stats || want_commands || want_errors) {
         std::lock_guard<std::mutex> lock(g_stat_baseline_mu);
         baseline = g_stat_baseline;
