@@ -48,7 +48,8 @@ not the Redis oracle.
 
 `docs/infofix/pre-repros.json` replays the seven stored scripts unchanged against
 PRE and Redis 7.4.10 at 16 shards, ratio 6:2, both modes. Every PRE verdict differs.
-`post-repros.json` contains the corresponding frozen POST replay: DOCS, global
+`post-repros.json` contains the corresponding earlier POST replay (before the
+empty-histogram correction; final cold-root proof is in the 335-row run): DOCS, global
 slowlog and offline LOADAOF are SAME in both modes. CPU text remains byte-different
 because CPU numbers are volatile; the directed row checks its exact field schema,
 format, selection, monotonicity and RESETSTAT behavior. Errorstats, commandstats,
@@ -131,7 +132,11 @@ records, not a full-gate or performance receipt.
 
 **Final affected jobs: 335 pass, 0 fail**, including all five new rows.
 `affected-post-final.log` and `evidence/affected-post-final.tar.gz` retain the
-complete result. Standard differential matrices, final Tcl and gate-harness
+complete result. **Both full standard-seed differential matrices pass: 6 rows
+each, 0 failures**, covering all four split/fused-read-local × atomic=0/1 parts
+and mode equivalence. Seeds were 7,19,20,23,21,22 plus rotating 25 (uring) or
+24 (epoll), with the normal MULTI repeats retained. See `differ-verdicts-final.json`
+and the two final differential evidence archives. Final Tcl and gate-harness
 self-test results are still being collected. `make all` and every production-unit
 prerequisite rebuilt through the gate; all **56** target-specific `make -q` checks
 pass in `production-freshness-final.json`. No earlier failure is discarded.

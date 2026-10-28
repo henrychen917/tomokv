@@ -89,5 +89,19 @@
     "files": 112,
     "source": "build/gate-run.7GPeoM",
     "note": "Completed final gate-job evidence; recovery data files retired."
+  },
+  {
+    "archive": "docs/infofix/evidence/differ-uring-final.tar.gz",
+    "sha256": "914042ee28c8536d824449b749b3939ffec720ca831c43808bfdee2a2d17baf3",
+    "files": 2857,
+    "source": "build/gate-run.HvHCR6",
+    "note": "Complete final standard-seed differential matrix."
+  },
+  {
+    "archive": "docs/infofix/evidence/differ-epoll-final.tar.gz",
+    "sha256": "eb2fe37e1a555f6695fbd049a121e357cb2f19a1bdb35b8c471fdf4aade2d171",
+    "files": 2857,
+    "source": "build/gate-run.7lqvFn",
+    "note": "Complete final standard-seed differential matrix."
   }
 ]
