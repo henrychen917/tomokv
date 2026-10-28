@@ -1,8 +1,9 @@
 {
-  "server_sha256": "943f4ab48b3b5381c57ba9c13ecede6b59a2c9d78cbf34095a610351269bb077",
+  "server_sha256": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1",
   "comparisons": 48,
   "zero_delta": 48,
   "per_function_equal": 48,
   "removed": "build/blockfix3/commands",
-  "trace_digests": "docs/blockfix3/instructions"
+  "trace_digests": "docs/blockfix3/instructions",
+  "arm": "land"
 }

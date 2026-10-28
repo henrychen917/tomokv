@@ -20,6 +20,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--repeats', type=int, default=8)
+    parser.add_argument('--arm', action='append', choices=('pre', 'post', 'oracle'))
+    parser.add_argument('--case', action='append', choices=tuple(CASES))
     args = parser.parse_args()
     args.output = args.output.resolve()
     args.output.mkdir(parents=True, exist_ok=True)
@@ -31,9 +33,13 @@ def main():
             ('oracle', Path('/home/user/Projects/redis74/src/redis-server'))]
     rows = []
     for arm, binary in arms:
+        if args.arm and arm not in args.arm:
+            continue
         for mode in (('redis',) if arm == 'oracle' else ('1s', '2s')):
             for repeat in range(args.repeats):
                 for unit, test in CASES.items():
+                    if args.case and unit not in args.case:
+                        continue
                     run = argparse.Namespace(output=args.output / arm / mode / str(repeat),
                         binary=binary, cores='0-7', port=20190, baseport=20192,
                         mode=mode, ratio='6:2', idle_timeout=20, file_timeout=90)
