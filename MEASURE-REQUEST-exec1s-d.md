@@ -186,10 +186,15 @@ attempts. Only receipts bound to final POST count as final production proof.
 The driver uses the gate's own selected-job interface, retaining internal
 engine/mode/atomic/namespace legs and the normal 16-shard, 6:2 geometry.
 
-`make -j32 all` completed for corrected POST. The previous image passed all
-57 freshness checks; these are being refreshed after the watched-EXECABORT fix.
-See [freshness.json](docs/exec1s-d/freshness.json), whose production hash names
-the image actually checked.
+`make -j32 all` completed. All 51 literal `job_production_units` targets and
+the additional MDBQSBR, blockfix-cost/binding and blockfix2 checks are fresh:
+57/57 `make -q` checks passed on corrected POST. See
+[freshness.json](docs/exec1s-d/freshness.json).
+
+The targeted gate invocation passed 32/32 rows, including all 27
+`atomic_units` rows and all four exec1s rows (plus its release prerequisite).
+The watched-EXECABORT row passes unchanged. Lottery, POST-layout and PAD-A
+each passed the gate's execfair smoke, which covers both modes and engines.
 
 PROOF_STATUS_PENDING
 

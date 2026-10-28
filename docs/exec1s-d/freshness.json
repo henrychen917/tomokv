@@ -1,5 +1,5 @@
 {
-  "production_sha256": "22d10835d2b4ab630f5214d857802a0c72bce83e9f4e06eecf8422d9024b1128",
+  "production_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
   "targets": [
     "build/expire-notify-unit",
     "build/ktls-lifetime-unit",
@@ -586,5 +586,5 @@
     }
   ],
   "passed": true,
-  "all_build_log_sha256": "68c5f548009ee20966e380682cc0b78f39bea9c8895af0403577a7204fef2e99"
+  "all_build_log_sha256": "fbffd24bc691fc5488e912d093301709d4f0a07484d3da09195dbf75d9b504e6"
 }

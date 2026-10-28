@@ -2,6 +2,150 @@
   "production_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
   "runs": [
     {
+      "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/PAD-A-smoke.json",
+      "receipt_sha256": "97277d8165ecc828dfcc3d9ba0ae6efeb4a315abc759743aecf36c23b6701fea",
+      "log_sha256": "3028c9befba1fb1a9035c5f8bee0bca61d201c34f28691082e283d9d1f03870f",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "64-71",
+        "--load-cores",
+        "72-95",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "20002-20009",
+        "--candidate-binary",
+        "/home/user/Projects/cx-exec1s-d/build/exec1s-d/PAD-A"
+      ],
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/PAD-A-smoke.log",
+      "selected_jobs": "execfair",
+      "started_utc": "2026-10-28T17:09:02.100297+00:00",
+      "ended_utc": "2026-10-28T17:10:13.131663+00:00",
+      "candidate_sha256": "1b1a7372db7a27a10ba0adce157541e5b5805fc5ed4bcff9ddea8aa0587d23b9",
+      "candidate_unchanged": true,
+      "proof_environment": {
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_TEST_PORT": "20098"
+      },
+      "artifacts": "/home/user/Projects/cx-exec1s-d/build/gate-run.t0fjEG",
+      "success": true,
+      "jobs": [
+        {
+          "name": "execfair",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "69.570000",
+              "EXEC fast-lane polls"
+            ]
+          ],
+          "ledger_sha256": "65c7a7c79bf54d2838840b7d9b1036cb6b9d55c161302498ab85d71f5470634a",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "release",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.000000",
+              "release build (+footprint locks)"
+            ]
+          ],
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        }
+      ],
+      "plan_sha256": "7012ef1139625330e029712d50a7aceabb3b61855b56638971b55085615f34c7",
+      "bound_to_final_post": false
+    },
+    {
+      "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/POST-layout-smoke.json",
+      "receipt_sha256": "8be7a67c62cb8f0588a2e11b69af9cf758b48e64be455c659d8e5f82d205b62a",
+      "log_sha256": "742d6daca61c822d1ddb4832334dc9447ca65cf74a2980ae297bc0c0857cdd1f",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "64-71",
+        "--load-cores",
+        "72-95",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "20002-20009",
+        "--candidate-binary",
+        "/home/user/Projects/cx-exec1s-d/build/exec1s-d/POST-layout"
+      ],
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/POST-layout-smoke.log",
+      "selected_jobs": "execfair",
+      "started_utc": "2026-10-28T17:07:50.153344+00:00",
+      "ended_utc": "2026-10-28T17:09:01.182739+00:00",
+      "candidate_sha256": "9d99271b801d51d2331b8a686172a98e72099f752a9fae5ef604f741cac7d591",
+      "candidate_unchanged": true,
+      "proof_environment": {
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_TEST_PORT": "20098"
+      },
+      "artifacts": "/home/user/Projects/cx-exec1s-d/build/gate-run.HtMu7a",
+      "success": true,
+      "jobs": [
+        {
+          "name": "execfair",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "69.550000",
+              "EXEC fast-lane polls"
+            ]
+          ],
+          "ledger_sha256": "2689681209cfc23300abd025f01c81f59ed1125d68b08788bafbb04eab80d251",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "release",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.000000",
+              "release build (+footprint locks)"
+            ]
+          ],
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        }
+      ],
+      "plan_sha256": "cfc1842961bc897e0bfb47cf2aded4022b173d72560c7e9afe5edae4acb8f697",
+      "bound_to_final_post": false
+    },
+    {
       "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/core-attempt-2.json",
       "receipt_sha256": "4c9ea3a6203752bda5d059c1442269f6b9c07ba609ede7d3a430b9fd1bd945e7",
       "log_sha256": "305ec3d00a31575dd552dd1c4e893593cd2710f5fcdaca21c0e27928aae64b86",
@@ -5585,9 +5729,530 @@
       "success": false,
       "jobs": [],
       "bound_to_final_post": false
+    },
+    {
+      "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/lottery-copy-smoke.json",
+      "receipt_sha256": "1a836e8e679bd09880bb217f8793957bfa9cac6fa9b943aa517eb5ef4887d5aa",
+      "log_sha256": "5c0af0a4ab9a74bf42c94ebf3a2baf0362d755b478ab11f81457be036fa85c6c",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "64-71",
+        "--load-cores",
+        "72-95",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "20002-20009",
+        "--candidate-binary",
+        "/home/user/Projects/cx-exec1s-d/build/lottery/tomokv"
+      ],
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/lottery-copy-smoke.log",
+      "selected_jobs": "execfair",
+      "started_utc": "2026-10-28T17:06:38.146028+00:00",
+      "ended_utc": "2026-10-28T17:07:49.323138+00:00",
+      "candidate_sha256": "efed1f73bee7660334d07b3488d262a307698d2fee5eff2602c51fa6bf318992",
+      "candidate_unchanged": true,
+      "proof_environment": {
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_TEST_PORT": "20098"
+      },
+      "artifacts": "/home/user/Projects/cx-exec1s-d/build/gate-run.wJn7Lr",
+      "success": true,
+      "jobs": [
+        {
+          "name": "execfair",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "69.680000",
+              "EXEC fast-lane polls"
+            ]
+          ],
+          "ledger_sha256": "b719eb8f4b97b5fd4669b97ae3cea5f2165d590646e1bc6ec5b0d629547c718e",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "release",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.000000",
+              "release build (+footprint locks)"
+            ]
+          ],
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        }
+      ],
+      "plan_sha256": "d54b27af6eab302c621c918dc1a760440030f3d7b29a37ba44247cfe7fd97509",
+      "bound_to_final_post": false
+    },
+    {
+      "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/watch-fix.json",
+      "receipt_sha256": "fcdd348c94bf326d1342773a08befa1d829cefded894ea02caa6a25919ae0acc",
+      "log_sha256": "b7cb51d666975a0d84e56aacf2458adc6c27ce381a24a0ac1857a0b6649b869f",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "64-87",
+        "--load-cores",
+        "88-95",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "20010-20097",
+        "--candidate-binary",
+        "/home/user/Projects/cx-exec1s-d/build/tomokv"
+      ],
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/watch-fix.log",
+      "selected_jobs": "atomic_units exec1s",
+      "started_utc": "2026-10-28T17:00:03.038619+00:00",
+      "ended_utc": "2026-10-28T17:12:54.380252+00:00",
+      "candidate_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+      "candidate_unchanged": true,
+      "proof_environment": {
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_TEST_PORT": "20098"
+      },
+      "artifacts": "/home/user/Projects/cx-exec1s-d/build/gate-run.2Z69jt",
+      "success": true,
+      "jobs": [
+        {
+          "name": "atomic_units",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.000000",
+              "atomic commit publication catches up at quiescence"
+            ],
+            [
+              "ok",
+              "2.130000",
+              "flushfix flush witnesses"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "flushfix headers witnesses"
+            ],
+            [
+              "ok",
+              "3.460000",
+              "multidb serverless owners"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "multidb global namespace boundary"
+            ],
+            [
+              "ok",
+              "12.490000",
+              "storesize published monitoring"
+            ],
+            [
+              "ok",
+              "0.210000",
+              "MULTI admin command replies"
+            ],
+            [
+              "ok",
+              "0.070000",
+              "EXECABORT releases WATCH reservation"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "atomic survivors unit build"
+            ],
+            [
+              "ok",
+              "0.020000",
+              "atomic survivor: admission"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: closure"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "atomic survivor: script_keys"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: rename_overlay"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: write_latest"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: script_apply"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: post_apply_probe"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: lua_conversion"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: watch_parent"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: watch_cycle"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: mset_arity"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: watch_oom"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: lua_lines"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: library_limit"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: stage_flag"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: instruction_limit"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "armed resize retirement: atomic-growth"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "armed resize retirement: flush-prepared"
+            ]
+          ],
+          "ledger_sha256": "e7bc7343eef99e8f264bf9c7431a7672182ff1a0da78c646eed830fee1c7341e",
+          "passed": 27,
+          "failed": 0,
+          "done": "0\t27\t0"
+        },
+        {
+          "name": "exec1s",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "3.110000",
+              "exec1s refinements (1s, atomic 0)"
+            ],
+            [
+              "ok",
+              "17.660000",
+              "exec1s refinements (1s, atomic 1)"
+            ],
+            [
+              "ok",
+              "22.090000",
+              "exec1s refinements (2s, atomic 0)"
+            ],
+            [
+              "ok",
+              "2.990000",
+              "exec1s refinements (2s, atomic 1)"
+            ]
+          ],
+          "ledger_sha256": "b28c30224567325fda4baea2bd97c1ae2b52785f3ca49a7971273aa8ccf8c0dc",
+          "passed": 4,
+          "failed": 0,
+          "done": "0\t4\t0"
+        },
+        {
+          "name": "production_units",
+          "completed": true,
+          "rows": [],
+          "ledger_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "passed": 0,
+          "failed": 0,
+          "done": "0\t0\t0"
+        },
+        {
+          "name": "release",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.010000",
+              "release build (+footprint locks)"
+            ]
+          ],
+          "ledger_sha256": "309c13c2922aae5ea759e31f5aee12f47b67cb6b06c5e43555af42a805f491c5",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        }
+      ],
+      "plan_sha256": "a049484f3562ecbb4d63fa53e82bd2facdfff118c22df63a9103fbe031e256d2",
+      "bound_to_final_post": true
     }
   ],
-  "final_jobs": {},
+  "final_jobs": {
+    "atomic_units [fused=0,atomic=1,engine=uring]": {
+      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/watch-fix.json",
+      "variant": "fused=0,atomic=1,engine=uring",
+      "name": "atomic_units",
+      "completed": true,
+      "rows": [
+        [
+          "ok",
+          "0.000000",
+          "atomic commit publication catches up at quiescence"
+        ],
+        [
+          "ok",
+          "2.130000",
+          "flushfix flush witnesses"
+        ],
+        [
+          "ok",
+          "0.050000",
+          "flushfix headers witnesses"
+        ],
+        [
+          "ok",
+          "3.460000",
+          "multidb serverless owners"
+        ],
+        [
+          "ok",
+          "0.050000",
+          "multidb global namespace boundary"
+        ],
+        [
+          "ok",
+          "12.490000",
+          "storesize published monitoring"
+        ],
+        [
+          "ok",
+          "0.210000",
+          "MULTI admin command replies"
+        ],
+        [
+          "ok",
+          "0.070000",
+          "EXECABORT releases WATCH reservation"
+        ],
+        [
+          "ok",
+          "0.000000",
+          "atomic survivors unit build"
+        ],
+        [
+          "ok",
+          "0.020000",
+          "atomic survivor: admission"
+        ],
+        [
+          "ok",
+          "0.010000",
+          "atomic survivor: closure"
+        ],
+        [
+          "ok",
+          "0.000000",
+          "atomic survivor: script_keys"
+        ],
+        [
+          "ok",
+          "0.010000",
+          "atomic survivor: rename_overlay"
+        ],
+        [
+          "ok",
+          "0.010000",
+          "atomic survivor: write_latest"
+        ],
+        [
+          "ok",
+          "0.010000",
+          "atomic survivor: script_apply"
+        ],
+        [
+          "ok",
+          "0.010000",
+          "atomic survivor: post_apply_probe"
+        ],
+        [
+          "ok",
+          "0.010000",
+          "atomic survivor: lua_conversion"
+        ],
+        [
+          "ok",
+          "0.010000",
+          "atomic survivor: watch_parent"
+        ],
+        [
+          "ok",
+          "0.010000",
+          "atomic survivor: watch_cycle"
+        ],
+        [
+          "ok",
+          "0.010000",
+          "atomic survivor: mset_arity"
+        ],
+        [
+          "ok",
+          "0.010000",
+          "atomic survivor: watch_oom"
+        ],
+        [
+          "ok",
+          "0.010000",
+          "atomic survivor: lua_lines"
+        ],
+        [
+          "ok",
+          "0.010000",
+          "atomic survivor: library_limit"
+        ],
+        [
+          "ok",
+          "0.010000",
+          "atomic survivor: stage_flag"
+        ],
+        [
+          "ok",
+          "0.010000",
+          "atomic survivor: instruction_limit"
+        ],
+        [
+          "ok",
+          "0.010000",
+          "armed resize retirement: atomic-growth"
+        ],
+        [
+          "ok",
+          "0.000000",
+          "armed resize retirement: flush-prepared"
+        ]
+      ],
+      "ledger_sha256": "e7bc7343eef99e8f264bf9c7431a7672182ff1a0da78c646eed830fee1c7341e",
+      "passed": 27,
+      "failed": 0,
+      "done": "0\t27\t0"
+    },
+    "exec1s [fused=0,atomic=1,engine=uring]": {
+      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/watch-fix.json",
+      "variant": "fused=0,atomic=1,engine=uring",
+      "name": "exec1s",
+      "completed": true,
+      "rows": [
+        [
+          "ok",
+          "3.110000",
+          "exec1s refinements (1s, atomic 0)"
+        ],
+        [
+          "ok",
+          "17.660000",
+          "exec1s refinements (1s, atomic 1)"
+        ],
+        [
+          "ok",
+          "22.090000",
+          "exec1s refinements (2s, atomic 0)"
+        ],
+        [
+          "ok",
+          "2.990000",
+          "exec1s refinements (2s, atomic 1)"
+        ]
+      ],
+      "ledger_sha256": "b28c30224567325fda4baea2bd97c1ae2b52785f3ca49a7971273aa8ccf8c0dc",
+      "passed": 4,
+      "failed": 0,
+      "done": "0\t4\t0"
+    },
+    "production_units [fused=0,atomic=1,engine=uring]": {
+      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/watch-fix.json",
+      "variant": "fused=0,atomic=1,engine=uring",
+      "name": "production_units",
+      "completed": true,
+      "rows": [],
+      "ledger_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "passed": 0,
+      "failed": 0,
+      "done": "0\t0\t0"
+    },
+    "release [fused=0,atomic=1,engine=uring]": {
+      "invocation": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/watch-fix.json",
+      "variant": "fused=0,atomic=1,engine=uring",
+      "name": "release",
+      "completed": true,
+      "rows": [
+        [
+          "ok",
+          "0.010000",
+          "release build (+footprint locks)"
+        ]
+      ],
+      "ledger_sha256": "309c13c2922aae5ea759e31f5aee12f47b67cb6b06c5e43555af42a805f491c5",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    }
+  },
   "not_run": [
     {
       "job": "full gate iteration / performance merit",
