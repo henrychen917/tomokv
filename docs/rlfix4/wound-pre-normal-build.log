@@ -1,0 +1,47 @@
+In file included from ./src/cmd/xshard.cc:64,
+                 from ./tests/atomic_survivors_unit.cc:6,
+                 from tests/rlfix4_wound_window.cc:5:
+./src/cmd/multi.inc: In function ‘void tomo::{anonymous}::txn_add_claim(std::vector<tomo::TxnClaim>&, tomo::Slice, tomo::TxnClaimMode, bool)’:
+./src/cmd/multi.inc:770:21: warning: missing initializer for member ‘tomo::TxnClaim::waiter’ [-Wmissing-field-initializers]
+  770 |     claims.push_back({std::move(owned), whole ? 0 : FlatStore::hash_key(key), mode});
+      |     ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./src/cmd/multi.inc: In function ‘void tomo::{anonymous}::txn_cap_claims(std::vector<tomo::TxnClaim>&)’:
+./src/cmd/multi.inc:779:21: warning: missing initializer for member ‘tomo::TxnClaim::waiter’ [-Wmissing-field-initializers]
+  779 |     claims.push_back({{}, 0, mode});
+      |     ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+In file included from ./src/cmd/xshard.cc:68:
+./src/cmd/notify.inc: In function ‘void tomo::notify_elapsed_set(Shard&, Op&, Slice)’:
+./src/cmd/notify.inc:583:78: warning: narrowing conversion of ‘key.tomo::Slice::ns’ from ‘uint32_t’ {aka ‘unsigned int’} to ‘uint8_t’ {aka ‘unsigned char’} [-Wnarrowing]
+  583 |         pending.push_back(NotifyPendingExpiry{std::string(key.p, key.n), key.ns, std::move(ready)});
+      |                                                                          ~~~~^~
+./tests/atomic_survivors_unit.cc: In function ‘int survivors_fixture_main(int, char**)’:
+./tests/atomic_survivors_unit.cc:872:1: warning: no return statement in function returning non-void [-Wreturn-type]
+  872 | }
+      | ^
+In function ‘void operator delete(void*, const std::nothrow_t&)’,
+    inlined from ‘tomo::NotifyBatch* tomo::{anonymous}::notify_get_or_create_batch(tomo::Op&)’ at ./src/cmd/notify.inc:274:44:
+./tests/atomic_survivors_unit.cc:38:74: warning: ‘void free(void*)’ called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
+   38 | void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
+      |                                                                 ~~~~~~~~~^~~
+./src/cmd/notify.inc: In function ‘tomo::NotifyBatch* tomo::{anonymous}::notify_get_or_create_batch(tomo::Op&)’:
+./src/cmd/notify.inc:274:44: note: returned from ‘void* operator new(std::size_t, const std::nothrow_t&)’
+  274 |         auto* created = new (std::nothrow) NotifyBatch;
+      |                                            ^~~~~~~~~~~
+In function ‘void operator delete(void*, const std::nothrow_t&)’,
+    inlined from ‘tomo::NotifyBatch* tomo::{anonymous}::notify_get_or_create_batch(tomo::Op&)’ at ./src/cmd/notify.inc:285:38:
+./tests/atomic_survivors_unit.cc:38:74: warning: ‘void free(void*)’ called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
+   38 | void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
+      |                                                                 ~~~~~~~~~^~~
+./src/cmd/notify.inc: In function ‘tomo::NotifyBatch* tomo::{anonymous}::notify_get_or_create_batch(tomo::Op&)’:
+./src/cmd/notify.inc:285:38: note: returned from ‘void* operator new(std::size_t, const std::nothrow_t&)’
+  285 |     auto* batch = new (std::nothrow) NotifyBatch;
+      |                                      ^~~~~~~~~~~
+In function ‘void operator delete(void*, const std::nothrow_t&)’,
+    inlined from ‘bool tomo::notify_record_keyless_slow(Shard&, uint32_t, uint32_t, NotifyEventId, Slice)’ at ./src/cmd/notify.inc:515:39:
+./tests/atomic_survivors_unit.cc:38:74: warning: ‘void free(void*)’ called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
+   38 | void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
+      |                                                                 ~~~~~~~~~^~~
+./src/cmd/notify.inc: In function ‘bool tomo::notify_record_keyless_slow(Shard&, uint32_t, uint32_t, NotifyEventId, Slice)’:
+./src/cmd/notify.inc:515:39: note: returned from ‘void* operator new(std::size_t, const std::nothrow_t&)’
+  515 |         slot.reset(new (std::nothrow) NotifyShardState);
+      |                                       ^~~~~~~~~~~~~~~~

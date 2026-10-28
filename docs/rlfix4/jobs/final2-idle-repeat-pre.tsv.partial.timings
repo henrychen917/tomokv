@@ -1,0 +1,9 @@
+ok	0.000000	release build (+footprint locks)
+ok	6.680000	torture battery
+ok	0.970000	RYOW battery
+ok	0.030000	ACL category runtime table
+ok	0.030000	ACL LOAD/SAVE no-file errors
+ok	1.030000	idle loop ceiling (LBSIGNALS, 1s)
+ok	0.050000	shutdown invariants (nothing stuck)
+ok	0.020000	direct-reply fired (direct=995)
+ok	0.020000	fused unified work agrees with thread totals (110414)

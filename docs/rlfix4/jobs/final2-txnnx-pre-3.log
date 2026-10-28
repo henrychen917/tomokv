@@ -1,0 +1,25 @@
+GATE(full): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-rlfix4/build/gate-run.EP3aSs
+PARTIAL jobs (including prerequisites): release production_units fused-1
+PARTIAL jobs (including prerequisites): release production_units fused-1
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=0.26s; correctness-plan-fallback; fused boot line (atomic 1)
+  fused boot line (atomic 1)                           ok
+  row budget: 900s; median=1.17s; correctness-plan-fallback; fused s6 battery (atomic 1)
+  fused s6 battery (atomic 1)                          ok
+  row budget: 900s; median=2.08s; correctness-plan-fallback; fused multi_exec battery (atomic 1)
+  fused multi_exec battery (atomic 1)                  ok
+  row budget: 900s; median=0.73s; correctness-plan-fallback; fused edgeproto battery (atomic 1)
+  fused edgeproto battery (atomic 1)                   ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; fused atomfix battery (atomic 1)
+  fused atomfix battery (atomic 1)                     ok
+  row budget: 900s; median=2.23s; correctness-plan-fallback; fused spinprobe battery (atomic 1)
+  fused spinprobe battery (atomic 1)                   ok
+  row budget: 900s; median=1.17s; correctness-plan-fallback; fused shutdown report (atomic 1)
+  fused shutdown report (atomic 1)                     ok
+  row budget: 900s; median=2.665s; correctness-plan-fallback; fused txn_nx battery (atomic 1)
+  fused txn_nx battery (atomic 1)                      ok
+  row budget: 900s; median=9.05s; correctness-plan-fallback; fused txniso battery (atomic 1)
+  fused txniso battery (atomic 1)                      ok
+GATE(PARTIAL): 10 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rlfix4/docs/rlfix4/jobs/final2-txnnx-pre-3.tsv.partial

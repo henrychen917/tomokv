@@ -4,6 +4,10 @@ The candidate removes redundant work from read-local GET admission. All 16 bound
 GET parser scopes are below the October 11 anchor's instruction counts; all 228
 PRE/POST execution, admission and GET parser comparisons are unchanged or lower.
 This is an instruction result, **not a throughput claim or a landing verdict**.
+Correctness is **not fully green**: a RENAMENX failure matches the registered
+AT4-WOUND-1 defect, reproduced deterministically in PRE and POST in both modes and
+namespaces. One idle-wake ceiling failure also remains in the first-attempt record;
+fresh isolated PRE/POST repeats passed without changing the ceiling.
 
 Branch `cx-rlfix4`, PRE `a214652ec`, final production change `18f0ceb8b`. Later
 commits contain proof and documentation. No push. The exact production file hashes
@@ -274,9 +278,78 @@ scratch trees are removed after their counts, hashes and recipes are recorded.
 ### Correctness receipts
 
 <!-- CORRECTNESS_BEGIN -->
-Correctness proof is in progress. Final POST has passed both complete differential
-engine matrices; PAD-A and POST-layout each passed 11 directed rows. Remaining
-selected job legs are still running. No completed full-gate result is claimed.
+All requested correctness families ran through `tests/gate.sh`'s selected-job
+interface. [correctness-index.json](docs/rlfix4/correctness-index.json) inventories
+149 selected job names, exact run receipts, engine legs and frozen differential
+plans. The final POST hash is `5a903fd8…`; later documentation commits did not change
+its production source. The jobs use eight server cores, 16 shards and ratio 6:2,
+except where an existing job explicitly exercises another geometry. CPU placement
+and ports are recorded in every receipt. The following are **partial-job row
+counts**, with overlapping coverage; they must not be summed into a full-gate tally.
+
+| Run receipt in `docs/rlfix4/jobs/` | Result | Coverage / exception |
+|---|---:|---|
+| `final2-main.json` | 481 OK, 0 FAIL | Read-local, RYOW, notification/tracking, transaction ordering, atomics, writeback, production units, ASAN, parser and compatibility jobs |
+| `final2-epoll-legs.json` | 274 OK, 1 FAIL | Counterpart epoll legs; bare RENAMENX failed in `fused-1` |
+| `final2-fused-uring.json` | 58 OK, 1 FAIL | Explicit fused release/atomic/ASAN/debug/notification/script legs; idle ceiling failed |
+| `final2-fused-epoll.json` | 59 OK, 0 FAIL | Same explicit fused legs on epoll |
+| `final2-feature-multidb-evict.json` | 68 OK, 0 FAIL | 35 feature cells; full multidb mode/local/atomic and eviction matrices |
+| `final2-atomic-extra.json` | 20 OK, 0 FAIL | Mover, hash-expiry and dispatch units/legs |
+| `final2-differ-uring.json` | 6 OK, 0 FAIL | Standard split/armed atomic 0/1 suites plus mode equivalence |
+| `final2-differ-epoll.json` | 6 OK, 0 FAIL | Same differential matrix on epoll |
+| `final2-live-pad-a.json` | 11 OK, 0 FAIL | Read-local, AOF refusal and mode equivalence on PAD-A |
+| `final2-live-post-layout.json` | 11 OK, 0 FAIL | Same directed checks on POST-layout |
+| `final2-idle-repeat-{pre,post}.json` | 9 OK, 0 FAIL each | Fresh isolated whole release-battery jobs, original threshold |
+| `final2-txnnx-{pre,post}-{1,2,3,4}.json` | 10 OK, 0 FAIL each | Four fresh whole `fused-1` epoll jobs per arm; no failures discarded |
+
+The differential runs used all standard suites and permanent seeds **7/19/20/23**,
+with rotating seed **27 on io_uring** and **26 on epoll**, including the standard
+multi/atomic-1/seed-19 repeats and mode-equivalence streams. The gate's existing
+armed-sort exclusion is retained; split 6:2 runs that suite. Redis oracle 7.4.10's
+binary and digest are recorded in [oracle.json](docs/rlfix4/oracle.json).
+
+`python3 tests/gates_test.py` passed **73 tests** on the final source, with
+`GATE_TEST_PORT=20397`; see [gates-test-final2.json](docs/rlfix4/gates-test-final2.json).
+`make -j16 all` and every `job_production_units` build target completed. All **48
+freshness checks** passed: `all`, the 45 named unit targets, `mdbqsbr-live-arms`, and
+the blockfix helper/digest check. See
+[production-freshness.json](docs/rlfix4/production-freshness.json). Generated R7
+synchronization, tracer failure/REP controls, strict normalizer negative controls,
+and merit-cell grammar checks also passed. Earlier candidate/setup failures and
+an earlier harness-test timeout remain recorded; they are not final-POST passes.
+
+**Inherited correctness defect — AT4-WOUND-1.** In the epoll `fused-1` job, bare
+RENAMENX iteration 1666 returned `[ERR no such key, 1]` while MGET showed
+`[winner-a, nil, winner-b]`: the losing source still existed. The original log is
+preserved in [txn-nx-first-failure.json](docs/rlfix4/txn-nx-first-failure.json).
+The maintainer's `REGISTER.md:460` (2026-10-26) already assigns this symptom and
+publication window to woundfix/P9. The relevant four production files are byte
+identical in this lane's PRE and POST.
+
+The registered deterministic fixture from `fc8528675`, copied verbatim to
+[tests/rlfix4_wound_window.cc](tests/rlfix4_wound_window.cc), reproduces it in **all
+eight PRE/POST × normal/DB0 × 1s/2s runs**. Every run exits 1 with
+`read_done=1 pre_epoch=0 aborted=1 no_such_key=1 source_present=1 commit_accepted=1`.
+These are defect reproductions, not passing tests. Recipes, binary hashes, stdout
+and nonzero exits are in [wound-diagnostic.json](docs/rlfix4/wound-diagnostic.json);
+source identities and registration provenance are in
+[wound-inherited.json](docs/rlfix4/wound-inherited.json).
+
+The path is `txn_wound`'s Placing→Wounded CAS before its cancellation-epoch CAS.
+Another owner can finish the wounded source without materializing its image;
+`finish_phase1` then selects NoSuchKey, while `txn_group_decide` accepts the still-zero
+epoch. This violates the D2 wound-wait/atomic-decision guarantee. The deterministic
+window explains the observed symptom; the live failing interleaving was not
+traced. Four fresh whole-job lifetimes per arm (32,768 bare and 32,768 transactional
+rounds each) passed, but do not clear this confirmed inherited defect. Its assigned
+woundfix is outside this performance lane's diff.
+
+**Idle ceiling.** One fused io_uring release-battery attempt observed 73 wakes
+(29 sent + 44 received) against the unchanged limit of 64, with zero spins, while
+other correctness jobs overlapped. Fresh isolated PRE and POST whole-job repeats
+both passed. This establishes non-reproduction in those controls, not a proven
+cause for the first failure. The original sample and repeat links are in
+[idle-ceiling-first-failure.json](docs/rlfix4/idle-ceiling-first-failure.json).
 <!-- CORRECTNESS_END -->
 
 No row is added or retired: **DQ=0, DF=0**. `EXPECT_QUICK=807` and
@@ -291,7 +364,12 @@ These are partial-job receipts, not a claim of a complete gate iteration.
 
 ### Maintainer measurement request
 
-Run on the quiet box with the gate's own instrument and normal benchmark geometry.
+Run on the quiet box with the gate's own instrument. Use explicit server CPUs
+**32–39**, load CPUs **40–47**, no load SMT, ports **20300–20399**, 16 shards and
+split ratio **6:2** (fused uses all eight server cores). Do not inherit the ABBA
+driver's default 32-core allocation. Keep the cell's other parameters exact.
+The instrument requests **`--databases 1`**, its single-database paper image; the
+normal namespace was additionally checked in the serverless matrix.
 Verify artifact SHA-256s first. Record **three separately identified ABBA blocks**
 for `d32g_l1` and `x9_32_l1` from
 [tests/rlfix4_readlocal_cells.txt](tests/rlfix4_readlocal_cells.txt), for each pair:

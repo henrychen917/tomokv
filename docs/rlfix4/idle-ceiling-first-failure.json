@@ -10,5 +10,10 @@
     "ceiling": 64
   },
   "log": "pid 1815287 idle 1s LBSIGNALS delta: tid=0 role=fused iterations=27 spins=0 wakes=29/44; tid=1 role=fused iterations=48 spins=0 wakes=8/18; tid=2 role=fused iterations=38 spins=0 wakes=8/18; tid=3 role=fused iterations=43 spins=0 wakes=8/18; tid=4 role=fused iterations=32 spins=0 wakes=8/18; tid=5 role=fused iterations=46 spins=0 wakes=8/18; tid=6 role=fused iterations=27 spins=0 wakes=8/18; tid=7 role=fused iterations=31 spins=0 wakes=8/18; sampler tid=5 mechanism=fired\n",
-  "repeat_policy": "one fresh full release_batteries job for POST and PRE after other selected jobs finish; thresholds unchanged"
+  "repeat_policy": "one fresh full release_batteries job for POST and PRE after other selected jobs finish; thresholds unchanged",
+  "status": "first failure retained; fresh isolated whole-job POST and PRE repeats each passed 9 rows with unchanged threshold",
+  "fresh_controls": [
+    "docs/rlfix4/jobs/final2-idle-repeat-post.json",
+    "docs/rlfix4/jobs/final2-idle-repeat-pre.json"
+  ]
 }
