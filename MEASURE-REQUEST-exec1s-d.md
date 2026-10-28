@@ -8,7 +8,7 @@ a green landing request**: X3's idle rotation remains +7 instructions against a
 budget of +2, and the historical seed-22 SAVE admission rejection has not yet
 been reproduced or classified. No throughput measurement or claim is made here.
 
-The final production source is `b3eadebf9391b7b0cf560dbd050c638630812ed5`;
+The final production source is `cf3bdaa9e`;
 later commits contain evidence, build/proof tools, and this request. The frozen
 POST is `build/exec1s-d/POST`. The complete hashes and source identities are in
 [arms.json](docs/exec1s-d/arms.json) and [SHA256SUMS](docs/exec1s-d/SHA256SUMS).
@@ -39,6 +39,10 @@ The follow-up changes are:
   `xshard_execute`. This removes executed padding introduced by the changed
   EXEC helpers in the same translation unit. The full ordinary matrix, not an
   instruction estimate from source, validates this change.
+- Initialize the lazy database map on watched EXECABORT as well as ordinary
+  preparation. The existing directed WATCH row exposed this missing error path
+  in the first final candidate; the crashing receipt is retained and the
+  production fix leaves all of that row's assertions unchanged.
 - Update the at412, woundfix and blocking test fixtures to construct the new
   sparse transaction storage correctly. These repair fixture crashes, not
   production exceptions or weakened assertions.
@@ -158,7 +162,9 @@ observer: all 15 SAVE/BGSAVE starts returned Started in each arm. The observer
 does change timing. Native full-plan replays on C-PRE and MERGE also passed all 235 legs each.
 The harness bytes match exec1s-c and the oracle is Redis 7.4.10; see
 [save-reproduction-environment.json](docs/exec1s-d/save-reproduction-environment.json).
-These successful replays do not prove the historical failure fixed or pre-existing.
+The earlier POST (`22d10835…`, before the watched-EXECABORT repair) also
+passed 235/235. These successful replays do not prove the historical failure
+fixed or pre-existing.
 
 Bounded native repeats of unchanged `tests/differ.py ... psfix 22` reproduce a
 different failure on both C-PRE and MERGE: repeats 0–5 pass, then repeat 6
@@ -180,9 +186,10 @@ attempts. Only receipts bound to final POST count as final production proof.
 The driver uses the gate's own selected-job interface, retaining internal
 engine/mode/atomic/namespace legs and the normal 16-shard, 6:2 geometry.
 
-`make -j32 all` completed. All 51 literal `job_production_units` targets and
-the additional MDBQSBR, blockfix-cost/binding and blockfix2 checks are fresh:
-57/57 `make -q` checks passed. See [freshness.json](docs/exec1s-d/freshness.json).
+`make -j32 all` completed for corrected POST. The previous image passed all
+57 freshness checks; these are being refreshed after the watched-EXECABORT fix.
+See [freshness.json](docs/exec1s-d/freshness.json), whose production hash names
+the image actually checked.
 
 PROOF_STATUS_PENDING
 
@@ -215,9 +222,9 @@ for this merge. No EXPECT constant was edited.
 | X5 | `X5` | `7381c44a183471f9a11521e0eb2ae0ce42201d6adf4b3805e8f3af1c98254cba` |
 | PRE | `PRE` | `5347cbd4d66c2bfd9a60c802388f3b04015e2bb2801cd37f7fc49a55f6b0932d` |
 | REUSE | `REUSE` | `196fa795a956afd6bd0aa5e0d8980e9fcc4ec1e849d1d866317dc87d93039d53` |
-| POST | `POST` | `22d10835d2b4ab630f5214d857802a0c72bce83e9f4e06eecf8422d9024b1128` |
-| POST-layout | `POST-layout` | `216b54bf7178cc5376ee19014acb76bcf5b3c9e2fae6f004b48bd505db788f8a` |
-| PAD-A | `PAD-A` | `0197332d51daf9b26b6ad948ee65abfee66c5beb41a308f54f8b7642ddb04f2a` |
+| POST | `POST` | `4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18` |
+| POST-layout | `POST-layout` | `9d99271b801d51d2331b8a686172a98e72099f752a9fae5ef604f741cac7d591` |
+| PAD-A | `PAD-A` | `1b1a7372db7a27a10ba0adce157541e5b5805fc5ed4bcff9ddea8aa0587d23b9` |
 
 X12 is headline plus X0/X1/X2. X3 and X5 add the respective original lever in
 isolation to X12; MERGE combines both, before this lane's allocation, reuse and

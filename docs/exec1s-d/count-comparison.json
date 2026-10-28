@@ -1,6 +1,6 @@
 {
   "scope": "All named linked production instructions, including executed NOPs; fixture glue and external library callees excluded. Exact replies mandatory.",
-  "production_sha256": "22d10835d2b4ab630f5214d857802a0c72bce83e9f4e06eecf8422d9024b1128",
+  "production_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
   "ordinary": [
     {
       "namespace": "db0",

@@ -1,5 +1,5 @@
 {
-  "production_sha256": "22d10835d2b4ab630f5214d857802a0c72bce83e9f4e06eecf8422d9024b1128",
+  "production_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
   "runs": [
     {
       "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/core-attempt-2.json",
@@ -1148,6 +1148,4389 @@
           "passed": 0,
           "failed": 0,
           "done": "0\t0\t0"
+        }
+      ],
+      "plan_sha256": "a049484f3562ecbb4d63fa53e82bd2facdfff118c22df63a9103fbe031e256d2",
+      "bound_to_final_post": false
+    },
+    {
+      "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/families-attempt-3.json",
+      "receipt_sha256": "14817b44d90aa2ff9a8eccd29a37122a0f5bdb2ccb0d8cf6e6af2d3f97460321",
+      "log_sha256": "fcd9ca12e38cc0c8c116e5e75cfc0be61d56984bdf84ec3ec1b8f26b3f535e05",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "64-87",
+        "--load-cores",
+        "88-95",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "20010-20097",
+        "--candidate-binary",
+        "/home/user/Projects/cx-exec1s-d/build/tomokv"
+      ],
+      "returncode": 130,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/families-attempt-3.log",
+      "selected_jobs": "exec1s txnorder_index txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 execfair debug-0 debug-1 fused-0 fused-1 txn_group_fused txn_group_split atomfix5_watch atomfix5_accounting atomic_units atomic_batteries feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 script_bounds scriptfix lualibs sort auth authfix dump_restore blockfix_registry blockfix_structure blockfix_mkstream wait_units notify notifycompat notify_order notify_aof tracking_redirect trackfix_order trackfix_accounting flip fliplisten flipctl flip_unit flipfix_units moverfix lbplanner_units lb-stationary-1s lb-stationary-2s core_units splitlocal_units rlfix3_zc rlfix3_info rlcache rldbg ring_unit filter_unit hexpread climonfix clientfix racefix_counters racefix_climon storage_units perfex_units perfex_live ntnew4_live ntfix_input perfio_stream netio-1s netio-2s wb_rule_units wbland_units wb_policy iofix-deferred iofix-hz iofix-sleep iofix-signal aof-uring aof-epoll snapshot-uring snapshot-epoll aof_frame aoforder datafix2_watch datafix2_notouch bplus acl_recheck aclfix readonly serverfix_waitaof respcompat tls release_batteries compat2 compat3 exbatch_units exbatch_live reorder_sync reorder_engagement reorder_identity asan_batteries replyoff zc bugs5 netcmd_units persistfix_units multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 feature-cell-1s-0-0-0-0 feature-cell-1s-0-0-0-1 feature-cell-1s-0-0-1-0 feature-cell-1s-0-0-1-1 feature-cell-1s-0-1-0-0 feature-cell-1s-0-1-0-1 feature-cell-1s-0-1-1-0 feature-cell-1s-0-1-1-1 feature-cell-1s-1-0-0-0 feature-cell-1s-1-0-0-1 feature-cell-1s-1-0-1-0 feature-cell-1s-1-0-1-1 feature-cell-1s-1-1-0-0 feature-cell-1s-1-1-0-1 feature-cell-1s-1-1-1-0 feature-cell-1s-1-1-1-1 feature-cell-2s-0-0-0-0 feature-cell-2s-0-0-0-1 feature-cell-2s-0-0-1-0 feature-cell-2s-0-0-1-1 feature-cell-2s-0-1-0-0 feature-cell-2s-0-1-0-1 feature-cell-2s-0-1-1-0 feature-cell-2s-0-1-1-1 feature-cell-2s-1-0-0-0 feature-cell-2s-1-0-0-1 feature-cell-2s-1-0-1-0 feature-cell-2s-1-0-1-1 feature-cell-2s-1-1-0-0 feature-cell-2s-1-1-0-1 feature-cell-2s-1-1-1-0 feature-cell-2s-1-1-1-1 feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto respresume-fragment-1s-uring respresume-fragment-1s-epoll respresume-fragment-2s-uring respresume-fragment-2s-epoll respresume-cpu-1s-uring respresume-cpu-1s-epoll respresume-cpu-2s-uring respresume-cpu-2s-epoll respresume-neighbour-1s-uring respresume-neighbour-1s-epoll respresume-neighbour-2s-uring respresume-neighbour-2s-epoll evict-lruclock-split-0 evict-lruclock-split-1 evict-lruclock-armed-0 evict-lruclock-armed-1 evict-lfu-split-0 evict-lfu-split-1 evict-lfu-armed-0 evict-lfu-armed-1 txnorder_wound blockfix2 streamfix crlffix persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors wb_mixed slotless reorder_bounds rob_portable at412-T1 at412-T2 at412-T3 at412-T4 at412-T5 at412-T6 at412-T7 at412-T8 at412-T9 at412-T10 at412-T11a at412-T11b at412-T12 at412-T13 at412-T14 at412-T15 at412-T16 at412-owner multifix-1s-uring multifix-1s-epoll multifix-2s-uring multifix-2s-epoll",
+      "started_utc": "2026-10-28T16:13:45.609767+00:00",
+      "ended_utc": "2026-10-28T16:56:31.893571+00:00",
+      "candidate_sha256": "22d10835d2b4ab630f5214d857802a0c72bce83e9f4e06eecf8422d9024b1128",
+      "candidate_unchanged": true,
+      "proof_environment": {
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_TEST_PORT": "20098"
+      },
+      "artifacts": "/home/user/Projects/cx-exec1s-d/build/gate-run.BZeNRx",
+      "success": false,
+      "jobs": [
+        {
+          "name": "aof-epoll",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.080000",
+              "configuration reduction + actual geometry (epoll, atomic 0)"
+            ],
+            [
+              "ok",
+              "0.440000",
+              "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)"
+            ],
+            [
+              "ok",
+              "0.040000",
+              "AOF writer fired (records=N)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "AOF process-restart script replay (epoll, atomic 0)"
+            ],
+            [
+              "ok",
+              "0.040000",
+              "AOF native snapshot streams byte-exact"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "AOF replay fired (records=N skipped=N)"
+            ],
+            [
+              "ok",
+              "0.070000",
+              "configuration reduction + actual geometry (epoll, atomic 1)"
+            ],
+            [
+              "ok",
+              "0.430000",
+              "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)"
+            ],
+            [
+              "ok",
+              "0.040000",
+              "AOF writer fired (records=N)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "AOF process-restart script replay (epoll, atomic 1)"
+            ],
+            [
+              "ok",
+              "0.030000",
+              "AOF native snapshot streams byte-exact"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "AOF replay fired (records=N skipped=N)"
+            ],
+            [
+              "ok",
+              "0.060000",
+              "AOF directed group interruption fired"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "AOF atomic-group recovery + writer order"
+            ],
+            [
+              "ok",
+              "0.020000",
+              "AOF group shutdown invariants"
+            ],
+            [
+              "ok",
+              "0.030000",
+              "AOF always sync + reply gate fired"
+            ],
+            [
+              "ok",
+              "0.030000",
+              "AOF always recovery after quiescent SIGKILL"
+            ],
+            [
+              "ok",
+              "0.900000",
+              "AOF in-window kill recovery (2s, epoll)"
+            ],
+            [
+              "ok",
+              "3.660000",
+              "AOF in-window term recovery (2s, epoll)"
+            ],
+            [
+              "ok",
+              "0.910000",
+              "AOF in-window kill recovery (1s, epoll)"
+            ],
+            [
+              "ok",
+              "2.320000",
+              "AOF in-window term recovery (1s, epoll)"
+            ],
+            [
+              "ok",
+              "1.790000",
+              "shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)"
+            ],
+            [
+              "ok",
+              "1.840000",
+              "shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)"
+            ],
+            [
+              "ok",
+              "2.010000",
+              "shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)"
+            ],
+            [
+              "ok",
+              "2.040000",
+              "shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)"
+            ],
+            [
+              "ok",
+              "1.300000",
+              "AOF everysec write gate + idle sync fired"
+            ],
+            [
+              "ok",
+              "0.030000",
+              "AOF everysec durability window + tail warning"
+            ],
+            [
+              "ok",
+              "0.020000",
+              "AOF no-sync bypassed sync + reply gate"
+            ],
+            [
+              "ok",
+              "5.270000",
+              "AOF rewrite atomic/stage/corruption matrix"
+            ],
+            [
+              "ok",
+              "5.950000",
+              "AOF rewrite triggers + observability matrix"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "AOF-off negative-control seed landed"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "AOF-off negative control lost data"
+            ],
+            [
+              "ok",
+              "0.440000",
+              "aoffix2 snapshot (1s, epoll)"
+            ],
+            [
+              "ok",
+              "1.530000",
+              "aoffix2 filename (1s, epoll)"
+            ],
+            [
+              "ok",
+              "0.180000",
+              "aoffix2 error (1s, epoll)"
+            ],
+            [
+              "ok",
+              "0.550000",
+              "aoffix2 tickets (1s, epoll)"
+            ],
+            [
+              "ok",
+              "0.560000",
+              "aoffix2 exec_tickets (1s, epoll)"
+            ],
+            [
+              "ok",
+              "0.550000",
+              "aoffix2 resurrection (1s, epoll)"
+            ],
+            [
+              "ok",
+              "0.420000",
+              "aoffix2 rewrite_fail2 (1s, epoll)"
+            ],
+            [
+              "ok",
+              "0.310000",
+              "aoffix2 manifest_missing (1s, epoll)"
+            ],
+            [
+              "ok",
+              "0.290000",
+              "aoffix2 off-writer acknowledgement everysec (1s, epoll)"
+            ],
+            [
+              "ok",
+              "0.290000",
+              "aoffix2 off-writer acknowledgement always (1s, epoll)"
+            ],
+            [
+              "ok",
+              "0.440000",
+              "aoffix2 snapshot (2s, epoll)"
+            ],
+            [
+              "ok",
+              "1.550000",
+              "aoffix2 filename (2s, epoll)"
+            ],
+            [
+              "ok",
+              "0.170000",
+              "aoffix2 error (2s, epoll)"
+            ],
+            [
+              "ok",
+              "0.560000",
+              "aoffix2 tickets (2s, epoll)"
+            ],
+            [
+              "ok",
+              "0.550000",
+              "aoffix2 exec_tickets (2s, epoll)"
+            ],
+            [
+              "ok",
+              "0.540000",
+              "aoffix2 resurrection (2s, epoll)"
+            ],
+            [
+              "ok",
+              "0.430000",
+              "aoffix2 rewrite_fail2 (2s, epoll)"
+            ],
+            [
+              "ok",
+              "0.310000",
+              "aoffix2 manifest_missing (2s, epoll)"
+            ],
+            [
+              "ok",
+              "0.290000",
+              "aoffix2 off-writer acknowledgement everysec (2s, epoll)"
+            ],
+            [
+              "ok",
+              "0.290000",
+              "aoffix2 off-writer acknowledgement always (2s, epoll)"
+            ],
+            [
+              "ok",
+              "0.350000",
+              "aoffix2 large (1s, epoll)"
+            ],
+            [
+              "ok",
+              "0.210000",
+              "aoffix2 large_placed (1s, epoll)"
+            ]
+          ],
+          "ledger_sha256": "c7f5f964bcf6583290c716831cb7790c2e6992066122ad56dd2ded69655bfa4d",
+          "passed": 54,
+          "failed": 0,
+          "done": "0\t54\t0"
+        },
+        {
+          "name": "aof-uring",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.070000",
+              "configuration reduction + actual geometry (uring, atomic 0)"
+            ],
+            [
+              "ok",
+              "0.450000",
+              "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)"
+            ],
+            [
+              "ok",
+              "0.040000",
+              "AOF writer fired (records=N)"
+            ],
+            [
+              "ok",
+              "0.040000",
+              "AOF process-restart script replay (uring, atomic 0)"
+            ],
+            [
+              "ok",
+              "0.040000",
+              "AOF native snapshot streams byte-exact"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "AOF replay fired (records=N skipped=N)"
+            ],
+            [
+              "ok",
+              "0.060000",
+              "configuration reduction + actual geometry (uring, atomic 1)"
+            ],
+            [
+              "ok",
+              "0.410000",
+              "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "AOF writer fired (records=N)"
+            ],
+            [
+              "ok",
+              "0.040000",
+              "AOF process-restart script replay (uring, atomic 1)"
+            ],
+            [
+              "ok",
+              "0.040000",
+              "AOF native snapshot streams byte-exact"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "AOF replay fired (records=N skipped=N)"
+            ],
+            [
+              "ok",
+              "0.060000",
+              "AOF directed group interruption fired"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "AOF atomic-group recovery + writer order"
+            ],
+            [
+              "ok",
+              "0.020000",
+              "AOF group shutdown invariants"
+            ],
+            [
+              "ok",
+              "0.030000",
+              "AOF always sync + reply gate fired"
+            ],
+            [
+              "ok",
+              "0.020000",
+              "AOF always recovery after quiescent SIGKILL"
+            ],
+            [
+              "ok",
+              "0.910000",
+              "AOF in-window kill recovery (2s, uring)"
+            ],
+            [
+              "ok",
+              "3.090000",
+              "AOF in-window term recovery (2s, uring)"
+            ],
+            [
+              "ok",
+              "0.910000",
+              "AOF in-window kill recovery (1s, uring)"
+            ],
+            [
+              "ok",
+              "2.720000",
+              "AOF in-window term recovery (1s, uring)"
+            ],
+            [
+              "ok",
+              "1.900000",
+              "shutdown cancels AOF rewrite capture (1s, atomic 0, uring)"
+            ],
+            [
+              "ok",
+              "1.920000",
+              "shutdown cancels AOF rewrite capture (1s, atomic 1, uring)"
+            ],
+            [
+              "ok",
+              "2.020000",
+              "shutdown cancels AOF rewrite capture (2s, atomic 0, uring)"
+            ],
+            [
+              "ok",
+              "2.060000",
+              "shutdown cancels AOF rewrite capture (2s, atomic 1, uring)"
+            ],
+            [
+              "ok",
+              "1.290000",
+              "AOF everysec write gate + idle sync fired"
+            ],
+            [
+              "ok",
+              "0.020000",
+              "AOF everysec durability window + tail warning"
+            ],
+            [
+              "ok",
+              "0.020000",
+              "AOF no-sync bypassed sync + reply gate"
+            ],
+            [
+              "ok",
+              "5.260000",
+              "AOF rewrite atomic/stage/corruption matrix"
+            ],
+            [
+              "ok",
+              "5.510000",
+              "AOF rewrite triggers + observability matrix"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "AOF-off negative-control seed landed"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "AOF-off negative control lost data"
+            ],
+            [
+              "ok",
+              "0.530000",
+              "aoffix2 snapshot (1s, uring)"
+            ],
+            [
+              "ok",
+              "1.540000",
+              "aoffix2 filename (1s, uring)"
+            ],
+            [
+              "ok",
+              "0.170000",
+              "aoffix2 error (1s, uring)"
+            ],
+            [
+              "ok",
+              "0.550000",
+              "aoffix2 tickets (1s, uring)"
+            ],
+            [
+              "ok",
+              "0.560000",
+              "aoffix2 exec_tickets (1s, uring)"
+            ],
+            [
+              "ok",
+              "0.560000",
+              "aoffix2 resurrection (1s, uring)"
+            ],
+            [
+              "ok",
+              "0.330000",
+              "aoffix2 rewrite_fail2 (1s, uring)"
+            ],
+            [
+              "ok",
+              "0.300000",
+              "aoffix2 manifest_missing (1s, uring)"
+            ],
+            [
+              "ok",
+              "0.280000",
+              "aoffix2 off-writer acknowledgement everysec (1s, uring)"
+            ],
+            [
+              "ok",
+              "0.290000",
+              "aoffix2 off-writer acknowledgement always (1s, uring)"
+            ],
+            [
+              "ok",
+              "0.430000",
+              "aoffix2 snapshot (2s, uring)"
+            ],
+            [
+              "ok",
+              "1.550000",
+              "aoffix2 filename (2s, uring)"
+            ],
+            [
+              "ok",
+              "0.180000",
+              "aoffix2 error (2s, uring)"
+            ],
+            [
+              "ok",
+              "0.550000",
+              "aoffix2 tickets (2s, uring)"
+            ],
+            [
+              "ok",
+              "0.550000",
+              "aoffix2 exec_tickets (2s, uring)"
+            ],
+            [
+              "ok",
+              "0.550000",
+              "aoffix2 resurrection (2s, uring)"
+            ],
+            [
+              "ok",
+              "0.420000",
+              "aoffix2 rewrite_fail2 (2s, uring)"
+            ],
+            [
+              "ok",
+              "0.300000",
+              "aoffix2 manifest_missing (2s, uring)"
+            ],
+            [
+              "ok",
+              "0.280000",
+              "aoffix2 off-writer acknowledgement everysec (2s, uring)"
+            ],
+            [
+              "ok",
+              "0.290000",
+              "aoffix2 off-writer acknowledgement always (2s, uring)"
+            ],
+            [
+              "ok",
+              "0.340000",
+              "aoffix2 large (1s, uring)"
+            ],
+            [
+              "ok",
+              "0.200000",
+              "aoffix2 large_placed (1s, uring)"
+            ]
+          ],
+          "ledger_sha256": "47ab57c7bcc253daa9ba4f620ff431ff323d2ffca9194d9660bbd595b58162be",
+          "passed": 54,
+          "failed": 0,
+          "done": "0\t54\t0"
+        },
+        {
+          "name": "asan",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "138.190000",
+              "ASAN build"
+            ]
+          ],
+          "ledger_sha256": "846eb7cbadae6cc1bdd21b3a80fa6dbedc304a84367ebc132a5fffa592be9c07",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "at412-T1",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "14.790000",
+              "at412 T1"
+            ]
+          ],
+          "ledger_sha256": "57dbe1d0095a5a1f6fc20d405c25ac024743becc43e06a2ce11cb0c911f67ea8",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "at412-T10",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "451.340000",
+              "at412 T10"
+            ]
+          ],
+          "ledger_sha256": "ff9d98cd5a291d304500c5515533c7b1b59d32c06e17a6f2a1f52653ca709be1",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "at412-T11a",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "7.060000",
+              "at412 T11a"
+            ]
+          ],
+          "ledger_sha256": "7a635d8eaad77d5021558ee79f224f5d5c21ca4c421f590f96e3169b19f81801",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "at412-T11b",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "43.280000",
+              "at412 T11b"
+            ]
+          ],
+          "ledger_sha256": "407266da1472092286445daf2178f0a4177a374c421a8dc0fcf18bd7db21e577",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "at412-T12",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "14.800000",
+              "at412 T12"
+            ]
+          ],
+          "ledger_sha256": "8e1cd35b29c16794cb986242257f0dd2a62d5a19f65b634731fadc7f80344f90",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "at412-T13",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "122.050000",
+              "at412 T13"
+            ]
+          ],
+          "ledger_sha256": "7c519495598476014b787637c2c518b51e76da163d7781bb28925a466550ff64",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "at412-T14",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "5.920000",
+              "at412 T14"
+            ]
+          ],
+          "ledger_sha256": "c9257b02216e1c47e3fe0e12cb04f528f73b06caa11ff19f20a9de648a9052d7",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "at412-T15",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "109.790000",
+              "at412 T15"
+            ]
+          ],
+          "ledger_sha256": "83c16811535bccb44c47a29f0b18cba9fdeef0c72fa08568d9e26e363fa848da",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "at412-T16",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "17.490000",
+              "at412 T16"
+            ]
+          ],
+          "ledger_sha256": "8f4a277689df3cd52839d8d54835af534a6800d3e27a07a11c18cbd40f16bcda",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "at412-T2",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "25.930000",
+              "at412 T2"
+            ]
+          ],
+          "ledger_sha256": "6b7375e7ea9db67f23ab6b2b5334ae141e5ca4ea62bbfea8807d20046cff3728",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "at412-T3",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "6.770000",
+              "at412 T3"
+            ]
+          ],
+          "ledger_sha256": "8a7fb9ae8d4d4b3349e33c6c63a7dd9045d686c5c76b9d312e38b38aeb4bca43",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "at412-T4",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "13.100000",
+              "at412 T4"
+            ]
+          ],
+          "ledger_sha256": "cbb3aa2a3fe63c777c67efe0491d17d14fee69effa7eec01eecc2cb056c49cc1",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "at412-T5",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "148.030000",
+              "at412 T5"
+            ]
+          ],
+          "ledger_sha256": "abe98c8e17a475c485529d30497e3221fdb4461765a759fcd4bf7caa0dc7f040",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "at412-T6",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "813.130000",
+              "at412 T6"
+            ]
+          ],
+          "ledger_sha256": "9842d4748973660f43d054f52ed320fc2deb8e0d2b5131c35f7bca56207a0d27",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "at412-T7",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "37.100000",
+              "at412 T7"
+            ]
+          ],
+          "ledger_sha256": "ce425ca12807317be05e9ca571c0393e646614abe6cb632c17d3882483d5c7e5",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "at412-T8",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "4.050000",
+              "at412 T8"
+            ]
+          ],
+          "ledger_sha256": "ccd315173bac20b1ef8b0e8065dced79e062e35f732a5f928a12f62443a4478d",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "at412-T9",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "3.820000",
+              "at412 T9"
+            ]
+          ],
+          "ledger_sha256": "368a09ec39eda3ba5b93e9dba1e6e2d1dd1cbe980f467f5fecb37adcd2551653",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "at412-owner",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.070000",
+              "at412 owner"
+            ]
+          ],
+          "ledger_sha256": "0d16f9dc77e0c16d2ff0976e87f49841b7f1f33668c6d3e1780166629033fdd7",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "atomfix5_accounting",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "13.960000",
+              "atomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1)"
+            ]
+          ],
+          "ledger_sha256": "95afabac581e1d2f23ca22da4ee5f3a1e5ecf3633a9baa92df27bbdf805ced97",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "atomfix5_watch",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "1.980000",
+              "atomfix5 WATCH key count (both modes, both engines, atomic 0/1)"
+            ]
+          ],
+          "ledger_sha256": "40c4cfcac55ef60e7cb908f68836759ead06e6bee507e1f5dd19c35c1e999411",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "atomic_batteries",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "32.940000",
+              "atomic torn/window battery"
+            ],
+            [
+              "ok",
+              "4.080000",
+              "atomic RYOW/mixed-write battery"
+            ],
+            [
+              "ok",
+              "4.240000",
+              "atomic owner-local hazard battery"
+            ],
+            [
+              "ok",
+              "0.020000",
+              "atomic shutdown invariants"
+            ]
+          ],
+          "ledger_sha256": "5118d1d651d984b5c2154edd81c3452f4420b5e1d330529b50dbf9a899021260",
+          "passed": 4,
+          "failed": 0,
+          "done": "0\t4\t0"
+        },
+        {
+          "name": "atomic_units",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.000000",
+              "atomic commit publication catches up at quiescence"
+            ],
+            [
+              "ok",
+              "2.100000",
+              "flushfix flush witnesses"
+            ],
+            [
+              "ok",
+              "0.060000",
+              "flushfix headers witnesses"
+            ],
+            [
+              "ok",
+              "3.490000",
+              "multidb serverless owners"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "multidb global namespace boundary"
+            ],
+            [
+              "ok",
+              "12.790000",
+              "storesize published monitoring"
+            ],
+            [
+              "ok",
+              "0.220000",
+              "MULTI admin command replies"
+            ],
+            [
+              "FAIL",
+              "4.520000",
+              "EXECABORT releases WATCH reservation"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "atomic survivors unit build"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: admission"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: closure"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: script_keys"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: rename_overlay"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: write_latest"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: script_apply"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: post_apply_probe"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: lua_conversion"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: watch_parent"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: watch_cycle"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: mset_arity"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: watch_oom"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: lua_lines"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: library_limit"
+            ],
+            [
+              "ok",
+              "0.020000",
+              "atomic survivor: stage_flag"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "atomic survivor: instruction_limit"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "armed resize retirement: atomic-growth"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "armed resize retirement: flush-prepared"
+            ]
+          ],
+          "ledger_sha256": "390a0684fb9709d0b4550f203aceca47cdfa119621d99411e17b358a872b2175",
+          "passed": 26,
+          "failed": 1,
+          "done": "0\t26\t1"
+        },
+        {
+          "name": "blockfix2",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "34.220000",
+              "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE"
+            ],
+            [
+              "ok",
+              "34.150000",
+              "blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS"
+            ],
+            [
+              "ok",
+              "33.700000",
+              "blockfix2 MULTI-XREADGROUP-BLOCK-HANG"
+            ],
+            [
+              "ok",
+              "33.860000",
+              "blockfix2 INFO-TOTAL-BLOCKING-KEYS"
+            ],
+            [
+              "ok",
+              "33.730000",
+              "blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED"
+            ],
+            [
+              "ok",
+              "0.020000",
+              "blockfix2 BLOCK-SERVE-REFUSED-DROP"
+            ]
+          ],
+          "ledger_sha256": "ee24fc6844790eb711a527e4ba738a8525c2c8fedd5f49d9436491968b4412bc",
+          "passed": 6,
+          "failed": 0,
+          "done": "0\t6\t0"
+        },
+        {
+          "name": "blockfix_mkstream",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "47.520000",
+              "blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4"
+            ]
+          ],
+          "ledger_sha256": "297c73f859e9ee016b0d5cb44011dc04f6c327948982be395f47ae7f0b17f089",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "blockfix_registry",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "39.000000",
+              "blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4"
+            ]
+          ],
+          "ledger_sha256": "40f99003c27284a58988fd7dc2a0ae5983621c0af60c08ab98bbbea6f9d42e3d",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "blockfix_structure",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "47.150000",
+              "blockfix CC4.19 XINFO structural counts vs Redis 7.4"
+            ]
+          ],
+          "ledger_sha256": "688d8185683c814bb71090aa68fc699085485a0fbaaa2530f58b59b33f0e6aa5",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "bugs5",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "47.680000",
+              "bugs5 scancompact (both modes, both engines, atomic 0/1)"
+            ],
+            [
+              "ok",
+              "33.840000",
+              "bugs5 slowlog_identity (both modes, both engines, atomic 0/1)"
+            ],
+            [
+              "ok",
+              "27.270000",
+              "bugs5 read_local_lfu (both modes, both engines, atomic 0/1)"
+            ]
+          ],
+          "ledger_sha256": "2a702a4d3db018944e87b77d82d2e6d7925449e3ce90bfc246e04d0f64cb21ba",
+          "passed": 3,
+          "failed": 0,
+          "done": "0\t3\t0"
+        },
+        {
+          "name": "clientfix",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "1.760000",
+              "clientfix tracking-cap (1s)"
+            ],
+            [
+              "ok",
+              "6.860000",
+              "clientfix tracking-pipeline (1s)"
+            ],
+            [
+              "ok",
+              "13.740000",
+              "clientfix reply-skip (1s)"
+            ],
+            [
+              "ok",
+              "0.300000",
+              "clientfix pattern-cleanup (1s)"
+            ],
+            [
+              "ok",
+              "1.130000",
+              "clientfix pause-deadline (1s)"
+            ],
+            [
+              "ok",
+              "0.110000",
+              "clientfix geo-count (1s)"
+            ],
+            [
+              "ok",
+              "0.110000",
+              "clientfix geo-store (1s)"
+            ],
+            [
+              "ok",
+              "1.750000",
+              "clientfix tracking-cap (2s)"
+            ],
+            [
+              "ok",
+              "6.850000",
+              "clientfix tracking-pipeline (2s)"
+            ],
+            [
+              "ok",
+              "11.650000",
+              "clientfix reply-skip (2s)"
+            ],
+            [
+              "ok",
+              "0.310000",
+              "clientfix pattern-cleanup (2s)"
+            ],
+            [
+              "ok",
+              "1.120000",
+              "clientfix pause-deadline (2s)"
+            ],
+            [
+              "ok",
+              "0.110000",
+              "clientfix geo-count (2s)"
+            ],
+            [
+              "ok",
+              "0.110000",
+              "clientfix geo-store (2s)"
+            ]
+          ],
+          "ledger_sha256": "3fe32ab34658cb9dcaa8081a2977bca48fc2d9a8132797b11f5adb3e8a383cef",
+          "passed": 14,
+          "failed": 0,
+          "done": "0\t14\t0"
+        },
+        {
+          "name": "climonfix",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.030000",
+              "shutdown policy + signal handoff serverless"
+            ],
+            [
+              "ok",
+              "0.340000",
+              "shutdown persistence (1s, command)"
+            ],
+            [
+              "ok",
+              "0.130000",
+              "shutdown persistence (1s, sigterm)"
+            ],
+            [
+              "ok",
+              "0.130000",
+              "shutdown persistence (1s, sigint)"
+            ],
+            [
+              "ok",
+              "0.340000",
+              "shutdown persistence (2s, command)"
+            ],
+            [
+              "ok",
+              "0.140000",
+              "shutdown persistence (2s, sigterm)"
+            ],
+            [
+              "ok",
+              "0.130000",
+              "shutdown persistence (2s, sigint)"
+            ]
+          ],
+          "ledger_sha256": "d63d08d8e82259fdd1f1aa2e9f18c19bd898f6e6519422080171d53c08cdac14",
+          "passed": 7,
+          "failed": 0,
+          "done": "0\t7\t0"
+        },
+        {
+          "name": "compat2",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "1.900000",
+              "compat2 autharity"
+            ],
+            [
+              "ok",
+              "6.820000",
+              "compat2 expire_notify"
+            ],
+            [
+              "ok",
+              "1.710000",
+              "compat2 ktls_lifetime"
+            ]
+          ],
+          "ledger_sha256": "2fd69be589bb0cf1dedab13046937b5ff6f272c2cacde9d45c045af1a9a0b0d5",
+          "passed": 3,
+          "failed": 0,
+          "done": "0\t3\t0"
+        },
+        {
+          "name": "compat3",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "33.650000",
+              "compat3 CC4.12 pubsub vs Redis 7.4"
+            ],
+            [
+              "ok",
+              "33.630000",
+              "compat3 CC4.13 pending vs Redis 7.4"
+            ],
+            [
+              "ok",
+              "33.600000",
+              "compat3 CC4.14 history vs Redis 7.4"
+            ],
+            [
+              "FAIL",
+              "8.620000",
+              "compat3 CC4.16 grammar vs Redis 7.4"
+            ],
+            [
+              "FAIL",
+              "0",
+              "correctness family compat3"
+            ]
+          ],
+          "ledger_sha256": "fb76123481eac3b65b0c182db8ccabaf224fc27d89b9833676c40dbf0b0f61af",
+          "passed": 3,
+          "failed": 2,
+          "done": "1\t3\t2"
+        },
+        {
+          "name": "core_tsan_build",
+          "completed": true,
+          "rows": [],
+          "ledger_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "passed": 0,
+          "failed": 0,
+          "done": "0\t0\t0"
+        },
+        {
+          "name": "core_units",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.110000",
+              "core concurrency watch"
+            ],
+            [
+              "ok",
+              "0.340000",
+              "core concurrency lifetime"
+            ],
+            [
+              "ok",
+              "0.120000",
+              "core concurrency drain"
+            ],
+            [
+              "ok",
+              "7.100000",
+              "core concurrency route"
+            ],
+            [
+              "ok",
+              "0.120000",
+              "core concurrency snapshot"
+            ],
+            [
+              "ok",
+              "0.180000",
+              "core concurrency config"
+            ],
+            [
+              "ok",
+              "0.180000",
+              "core concurrency notify"
+            ],
+            [
+              "ok",
+              "0.600000",
+              "read-local topology demotion (1s)"
+            ],
+            [
+              "ok",
+              "0.580000",
+              "read-local topology demotion (2s)"
+            ]
+          ],
+          "ledger_sha256": "fb0f25e3d5351c6bb51f8bba0141f61b72cc70aa53017796cb708b44bdd61bfe",
+          "passed": 9,
+          "failed": 0,
+          "done": "0\t9\t0"
+        },
+        {
+          "name": "crlffix",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "4.130000",
+              "CRLF line replies match Redis and preserve synchronization"
+            ]
+          ],
+          "ledger_sha256": "8fb97f2e3106a70edfb994834deccf571547164e140cb752842e866b512fa9f8",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "debug-0",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "9.170000",
+              "plain-write lost updates (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.160000",
+              "lbsignals battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "1.480000",
+              "slowlog battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.040000",
+              "atomfix battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.140000",
+              "scriptatomic battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "14.470000",
+              "execatomic battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "11.870000",
+              "execiso battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.450000",
+              "execfix battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.160000",
+              "multires battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.910000",
+              "multirace battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "30.590000",
+              "session_monotonic battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.350000",
+              "xacct battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.290000",
+              "xmove battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "3.260000",
+              "xscript battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "2.010000",
+              "txn_nx battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "9.800000",
+              "txniso battery (atomic 0)"
+            ]
+          ],
+          "ledger_sha256": "e1592fd4d8eada2df461ff907310e45587db3d1f8d8ed6ea73267a7987a887b5",
+          "passed": 16,
+          "failed": 0,
+          "done": "0\t16\t0"
+        },
+        {
+          "name": "debug-1",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "6.160000",
+              "plain-write lost updates (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.170000",
+              "lbsignals battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "1.490000",
+              "slowlog battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "atomfix battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.120000",
+              "scriptatomic battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "14.460000",
+              "execatomic battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "11.880000",
+              "execiso battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.800000",
+              "execfix battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.110000",
+              "multires battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "1.130000",
+              "multirace battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "30.580000",
+              "session_monotonic battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.360000",
+              "xacct battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.280000",
+              "xmove battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "3.260000",
+              "xscript battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "2.350000",
+              "txn_nx battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "8.950000",
+              "txniso battery (atomic 1)"
+            ]
+          ],
+          "ledger_sha256": "795b5596597147e0c2a276a0b9176e669c19f786cecacd9071e9644314cc3783",
+          "passed": 16,
+          "failed": 0,
+          "done": "0\t16\t0"
+        },
+        {
+          "name": "evict-lfu-armed-0",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.340000",
+              "eviction lfu battery (fused+armed, atomic 0)"
+            ]
+          ],
+          "ledger_sha256": "7522f6a0dd0203f3cd50983fd7fe091f5c0d2ffd805927a3cef369b36575e46d",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "evict-lfu-armed-1",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.480000",
+              "eviction lfu battery (fused+armed, atomic 1)"
+            ]
+          ],
+          "ledger_sha256": "689ff59958aacff7922902155dcaf94ae40fc3eb7649fec7ca975d19d71c4267",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "evict-lfu-split-0",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.600000",
+              "eviction lfu battery (split, atomic 0)"
+            ]
+          ],
+          "ledger_sha256": "c60782e65ad89a57c06bf6fa9f2391233c10257448c22c53285013170cebeb5e",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "evict-lfu-split-1",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.610000",
+              "eviction lfu battery (split, atomic 1)"
+            ]
+          ],
+          "ledger_sha256": "7a3dac4c6c481f632a8f1a5a13565353621deb4a5e689473c54c7784aaae6b07",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "evict-lruclock-armed-0",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "255.600000",
+              "eviction lruclock battery (fused+armed, atomic 0)"
+            ]
+          ],
+          "ledger_sha256": "73f4be90332e1d7ce1dbdbf63c7783a62c652634a7108152694389307ab5e643",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "evict-lruclock-armed-1",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "255.200000",
+              "eviction lruclock battery (fused+armed, atomic 1)"
+            ]
+          ],
+          "ledger_sha256": "08b395c34b8658c122bbbeea73271e31fdaa04e70e6be9fcf3f5aa2ebd227fab",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "evict-lruclock-split-0",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "255.700000",
+              "eviction lruclock battery (split, atomic 0)"
+            ]
+          ],
+          "ledger_sha256": "7535a623d4d063faf7a6223e5edc2014663418700778723fb8b4706506c378b4",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "evict-lruclock-split-1",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "255.210000",
+              "eviction lruclock battery (split, atomic 1)"
+            ]
+          ],
+          "ledger_sha256": "1f0d6c94c1c10c83c949511b4da5a8f8b8cab56ae7c379641e3df5774bbb73c8",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "exbatch_live",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.280000",
+              "exbatch publication and WATCH lifecycle (1s)"
+            ],
+            [
+              "ok",
+              "0.280000",
+              "exbatch publication and WATCH lifecycle (2s)"
+            ]
+          ],
+          "ledger_sha256": "75cb799f2bd334f56e9c30176c5d16bd61e2db9191fc76a9715f2b4e3d88e54c",
+          "passed": 2,
+          "failed": 0,
+          "done": "0\t2\t0"
+        },
+        {
+          "name": "exbatch_units",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "16.110000",
+              "exbatch publication unit + negative controls"
+            ],
+            [
+              "ok",
+              "41.850000",
+              "exbatch watch unit + negative controls"
+            ],
+            [
+              "ok",
+              "18.420000",
+              "exbatch metadata unit + negative controls"
+            ]
+          ],
+          "ledger_sha256": "147f0fb19cd2a08f91fafea1eb7016f573fcdce15e9730e029a7b36ec0c1ab4f",
+          "passed": 3,
+          "failed": 0,
+          "done": "0\t3\t0"
+        },
+        {
+          "name": "feature-armed-0",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.260000",
+              "fused+armed boot line (atomic 0)"
+            ],
+            [
+              "ok",
+              "1.260000",
+              "fused+armed s6 battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "2.100000",
+              "fused+armed multi_exec battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "1.610000",
+              "fused+armed blocking battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.490000",
+              "fused+armed blockmulti battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.790000",
+              "fused+armed stream battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.080000",
+              "fused+armed streamgroups battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.930000",
+              "fused+armed pubsub battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.060000",
+              "fused+armed lua_scripting battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.080000",
+              "fused+armed scriptsurf battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "14.910000",
+              "fused+armed limits battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "fused+armed resp3 battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.060000",
+              "fused+armed bitfield battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.080000",
+              "fused+armed dumprestore battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.080000",
+              "fused+armed zsetops battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.060000",
+              "fused+armed geo battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "1.150000",
+              "fused+armed climon battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "3.350000",
+              "fused+armed climon2 battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "13.240000",
+              "fused+armed tracking battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "3.070000",
+              "fused+armed hexpire battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.600000",
+              "fused+armed servertail battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.190000",
+              "fused+armed lcs battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "2.870000",
+              "fused+armed concur battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.760000",
+              "fused+armed edgeproto battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.400000",
+              "fused+armed edgeenc battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "3.840000",
+              "fused+armed edgetime battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "fused+armed arity battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "fused+armed contarity battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "fused+armed cmdgap battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.060000",
+              "fused+armed aclsel battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "47.270000",
+              "fused+armed expwide battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "4.200000",
+              "fused+armed infofix battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "5.500000",
+              "fused+armed pushtear battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.060000",
+              "fused+armed netcmd battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "1.170000",
+              "fused+armed shutdown report + lane fired (hits=N, atomic 0)"
+            ]
+          ],
+          "ledger_sha256": "0c9edc63826af9fef0fbcdc36df66227f9c9bb3fe1e6be8d5c34be39b5d52605",
+          "passed": 35,
+          "failed": 0,
+          "done": "0\t35\t0"
+        },
+        {
+          "name": "feature-armed-1",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.260000",
+              "fused+armed boot line (atomic 1)"
+            ],
+            [
+              "ok",
+              "1.310000",
+              "fused+armed s6 battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "2.100000",
+              "fused+armed multi_exec battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "1.610000",
+              "fused+armed blocking battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.480000",
+              "fused+armed blockmulti battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.780000",
+              "fused+armed stream battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.070000",
+              "fused+armed streamgroups battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.910000",
+              "fused+armed pubsub battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "fused+armed lua_scripting battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.080000",
+              "fused+armed scriptsurf battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "15.090000",
+              "fused+armed limits battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.060000",
+              "fused+armed resp3 battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "fused+armed bitfield battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.090000",
+              "fused+armed dumprestore battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.080000",
+              "fused+armed zsetops battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "fused+armed geo battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "1.150000",
+              "fused+armed climon battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "3.300000",
+              "fused+armed climon2 battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "13.230000",
+              "fused+armed tracking battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "3.080000",
+              "fused+armed hexpire battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.600000",
+              "fused+armed servertail battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.190000",
+              "fused+armed lcs battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "2.830000",
+              "fused+armed concur battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.760000",
+              "fused+armed edgeproto battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.410000",
+              "fused+armed edgeenc battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "3.800000",
+              "fused+armed edgetime battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "fused+armed arity battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "fused+armed contarity battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "fused+armed cmdgap battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "fused+armed aclsel battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "48.380000",
+              "fused+armed expwide battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "4.170000",
+              "fused+armed infofix battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "5.490000",
+              "fused+armed pushtear battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.060000",
+              "fused+armed netcmd battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "1.170000",
+              "fused+armed shutdown report + lane fired (hits=N, atomic 1)"
+            ]
+          ],
+          "ledger_sha256": "2aa7d0eee298e32f12e448c6a718ec7d0429858e649717da674159d94884d2a2",
+          "passed": 35,
+          "failed": 0,
+          "done": "0\t35\t0"
+        },
+        {
+          "name": "feature-split-0",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "2.490000",
+              "s6 battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "2.100000",
+              "multi_exec battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "1.570000",
+              "blocking battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.490000",
+              "blockmulti battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.800000",
+              "stream battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.070000",
+              "streamgroups battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.910000",
+              "pubsub battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.060000",
+              "lua_scripting battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.070000",
+              "scriptsurf battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "15.260000",
+              "limits battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "resp3 battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "bitfield battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.090000",
+              "dumprestore battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.070000",
+              "zsetops battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "geo battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "1.150000",
+              "climon battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "3.350000",
+              "climon2 battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "13.340000",
+              "tracking battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "3.330000",
+              "hexpire battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.590000",
+              "servertail battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.190000",
+              "lcs battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "2.800000",
+              "concur battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.650000",
+              "edgeproto battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.370000",
+              "edgeenc battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "4.060000",
+              "edgetime battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.060000",
+              "arity battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.060000",
+              "contarity battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "cmdgap battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.060000",
+              "aclsel battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "59.010000",
+              "expwide battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "4.220000",
+              "infofix battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "7.970000",
+              "pushtear battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "netcmd battery (atomic 0)"
+            ],
+            [
+              "ok",
+              "0.030000",
+              "feature shutdown invariants (atomic 0)"
+            ]
+          ],
+          "ledger_sha256": "ba06468342f31ed3ac03effb97c28235a0481ed1da2838a1a8e698b3811574f1",
+          "passed": 34,
+          "failed": 0,
+          "done": "0\t34\t0"
+        },
+        {
+          "name": "feature-split-1",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "2.490000",
+              "s6 battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "2.110000",
+              "multi_exec battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "1.590000",
+              "blocking battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.490000",
+              "blockmulti battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.780000",
+              "stream battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.060000",
+              "streamgroups battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.920000",
+              "pubsub battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "lua_scripting battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.080000",
+              "scriptsurf battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "14.640000",
+              "limits battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.060000",
+              "resp3 battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.060000",
+              "bitfield battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.080000",
+              "dumprestore battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.070000",
+              "zsetops battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "geo battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "1.160000",
+              "climon battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "3.340000",
+              "climon2 battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "13.240000",
+              "tracking battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "3.320000",
+              "hexpire battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.590000",
+              "servertail battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.180000",
+              "lcs battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "2.800000",
+              "concur battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.600000",
+              "edgeproto battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.380000",
+              "edgeenc battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "4.050000",
+              "edgetime battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "arity battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.060000",
+              "contarity battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "cmdgap battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "aclsel battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "57.650000",
+              "expwide battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "4.230000",
+              "infofix battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "2.970000",
+              "pushtear battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.060000",
+              "netcmd battery (atomic 1)"
+            ],
+            [
+              "ok",
+              "0.020000",
+              "feature shutdown invariants (atomic 1)"
+            ]
+          ],
+          "ledger_sha256": "7742cc74c7f935ba67f11f04672dac148c6530b98d46c13b0c093416d9d1db22",
+          "passed": 34,
+          "failed": 0,
+          "done": "0\t34\t0"
+        },
+        {
+          "name": "filter_unit",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.310000",
+              "B+ counting-fingerprint filter unit"
+            ]
+          ],
+          "ledger_sha256": "a4580b34bbc7ac702ae85369538fc5fc4433c155f625d66830b50ae2b1c768f2",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "flip_unit",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "17.070000",
+              "flip controller model unit"
+            ]
+          ],
+          "ledger_sha256": "34a2ae6c8160ce895380f2fec7f375d9e102d24537316f68cc9c6dccbe4e8caf",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "flipctl",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "130.900000",
+              "flip controller: ramp gate, hold, surge + mix re-maneuvers"
+            ]
+          ],
+          "ledger_sha256": "1779fa638d502715ae5bcfc08fe2b73c28a7d877a91a3a613ccfa5688e34efda",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "flipfix_units",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.130000",
+              "FLIP planned-connection close lifetime (ASAN+TSAN)"
+            ],
+            [
+              "ok",
+              "0.130000",
+              "FLIP fingerprint publication (ASAN+TSAN)"
+            ]
+          ],
+          "ledger_sha256": "963ef83bec0757998b066c3bdabdf5609c723b1466e77dd38137d201a3572129",
+          "passed": 2,
+          "failed": 0,
+          "done": "0\t2\t0"
+        },
+        {
+          "name": "hexpread",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "1.210000",
+              "hexpread torn (1s)"
+            ],
+            [
+              "ok",
+              "3.360000",
+              "hexpread replies (1s)"
+            ],
+            [
+              "ok",
+              "1.150000",
+              "hexpread deferred (1s)"
+            ],
+            [
+              "ok",
+              "1.160000",
+              "hexpread OBJECT expiry (1s)"
+            ],
+            [
+              "ok",
+              "1.170000",
+              "hexpread torn (2s)"
+            ],
+            [
+              "ok",
+              "3.350000",
+              "hexpread replies (2s)"
+            ],
+            [
+              "ok",
+              "1.140000",
+              "hexpread deferred (2s)"
+            ],
+            [
+              "ok",
+              "1.130000",
+              "hexpread OBJECT expiry (2s)"
+            ]
+          ],
+          "ledger_sha256": "5a1ddb8f980de599e79b05a547fb903d3334d4b2b90f7994a4f02f699c13405e",
+          "passed": 8,
+          "failed": 0,
+          "done": "0\t8\t0"
+        },
+        {
+          "name": "iofix-deferred",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "26.710000",
+              "iofix WB4.1 deferred IO parks"
+            ]
+          ],
+          "ledger_sha256": "a6a96b9c75f59a6dcfa1040b68f07a1bd7b731960cb04debb668dc41780f822f",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "iofix-hz",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "41.870000",
+              "iofix IO4.9 Redis hz cron"
+            ]
+          ],
+          "ledger_sha256": "1a83229814c9fc45948eea06f0c3e0c68a5798575ca0c53c9235a78d3fa47b7d",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "iofix-signal",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "18.320000",
+              "iofix IO4.17 immediate signal shutdown"
+            ]
+          ],
+          "ledger_sha256": "5a10e8f12df3c56337e65b31a3f7b256a2f1c45ca03d504765c44e8cba399e6d",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "iofix-sleep",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "31.710000",
+              "iofix IO4.10 global DEBUG SLEEP"
+            ]
+          ],
+          "ledger_sha256": "e5030fbbf260440dee3a0116c949aee3fc61c51e5ba359ae1c7abf30249ac390",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "lb-stationary-1s",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "42.370000",
+              "stationary balanced LB holds still (1s)"
+            ]
+          ],
+          "ledger_sha256": "d2e7c6392717fee467b2350970de5352323583d71ea79cc28dbd06514ee154bd",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "lb-stationary-2s",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "42.370000",
+              "stationary balanced LB holds still (2s)"
+            ]
+          ],
+          "ledger_sha256": "124ffddca2494703fca691b828a5d5444d94cefbe4dc3a061afde6848787dd04",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "lbplanner_units",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.250000",
+              "LB sampler exceptional cleanup + negative control"
+            ],
+            [
+              "ok",
+              "0.250000",
+              "LB monitor plan handoff + negative controls"
+            ]
+          ],
+          "ledger_sha256": "9b969638ac56f90be2a2221d81896b5b96deed55a763fee585592cbdfb4b1334",
+          "passed": 2,
+          "failed": 0,
+          "done": "0\t2\t0"
+        },
+        {
+          "name": "moverfix",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "3.210000",
+              "moverfix conservation (1s, uring, databases 1, atomic 0)"
+            ],
+            [
+              "ok",
+              "3.060000",
+              "moverfix conservation (1s, uring, databases 16, atomic 0)"
+            ],
+            [
+              "ok",
+              "2.670000",
+              "moverfix conservation (1s, epoll, databases 1, atomic 0)"
+            ],
+            [
+              "ok",
+              "2.680000",
+              "moverfix conservation (1s, epoll, databases 16, atomic 0)"
+            ],
+            [
+              "ok",
+              "2.660000",
+              "moverfix conservation (2s, uring, databases 1, atomic 0)"
+            ],
+            [
+              "ok",
+              "2.650000",
+              "moverfix conservation (2s, uring, databases 16, atomic 0)"
+            ],
+            [
+              "ok",
+              "2.650000",
+              "moverfix conservation (2s, epoll, databases 1, atomic 0)"
+            ],
+            [
+              "ok",
+              "2.620000",
+              "moverfix conservation (2s, epoll, databases 16, atomic 0)"
+            ]
+          ],
+          "ledger_sha256": "00abc60524b365a5a5d250d53148212ec43034877ba35e876a68655528fa99db",
+          "passed": 8,
+          "failed": 0,
+          "done": "0\t8\t0"
+        },
+        {
+          "name": "multidb-1s-0-0",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "4.480000",
+              "multidb (1s, read-local 0, atomic 0)"
+            ],
+            [
+              "ok",
+              "0.110000",
+              "multidb (1s, read-local 0, atomic 0) SWAPDB serial order"
+            ],
+            [
+              "ok",
+              "0.270000",
+              "multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB"
+            ]
+          ],
+          "ledger_sha256": "9e627fad48b905920b7298470496046804b4f117395a165fb98a819dd94ab93c",
+          "passed": 3,
+          "failed": 0,
+          "done": "0\t3\t0"
+        },
+        {
+          "name": "multidb-1s-0-1",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "4.820000",
+              "multidb (1s, read-local 0, atomic 1)"
+            ],
+            [
+              "ok",
+              "0.120000",
+              "multidb (1s, read-local 0, atomic 1) SWAPDB serial order"
+            ],
+            [
+              "ok",
+              "0.280000",
+              "multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB"
+            ]
+          ],
+          "ledger_sha256": "2d6503a9a46774a41d62d44be4ff3fa903bb298652774187d2aa3c84c9d3ed5f",
+          "passed": 3,
+          "failed": 0,
+          "done": "0\t3\t0"
+        },
+        {
+          "name": "multidb-1s-1-0",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "4.470000",
+              "multidb (1s, read-local 1, atomic 0)"
+            ],
+            [
+              "ok",
+              "0.100000",
+              "multidb (1s, read-local 1, atomic 0) SWAPDB serial order"
+            ],
+            [
+              "ok",
+              "0.280000",
+              "multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB"
+            ]
+          ],
+          "ledger_sha256": "e7cf50a18592ddf05691d47f8c3912dcb2890a682d895f7aab4ac64f458c8746",
+          "passed": 3,
+          "failed": 0,
+          "done": "0\t3\t0"
+        },
+        {
+          "name": "multidb-1s-1-1",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "4.580000",
+              "multidb (1s, read-local 1, atomic 1)"
+            ],
+            [
+              "ok",
+              "0.160000",
+              "multidb (1s, read-local 1, atomic 1) SWAPDB serial order"
+            ],
+            [
+              "ok",
+              "0.280000",
+              "multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB"
+            ]
+          ],
+          "ledger_sha256": "0227ca1792b5768d1e15dcf549245d91ff9b1cfccd1143e62bc777efdab625bb",
+          "passed": 3,
+          "failed": 0,
+          "done": "0\t3\t0"
+        },
+        {
+          "name": "multidb-2s-0-0",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "4.590000",
+              "multidb (2s, read-local 0, atomic 0)"
+            ],
+            [
+              "ok",
+              "0.110000",
+              "multidb (2s, read-local 0, atomic 0) SWAPDB serial order"
+            ],
+            [
+              "ok",
+              "0.300000",
+              "multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB"
+            ]
+          ],
+          "ledger_sha256": "73152e89015a152606952c92077a8886ad139cce50c2734e87d1028260a83c5f",
+          "passed": 3,
+          "failed": 0,
+          "done": "0\t3\t0"
+        },
+        {
+          "name": "multidb-2s-0-1",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "4.390000",
+              "multidb (2s, read-local 0, atomic 1)"
+            ],
+            [
+              "ok",
+              "0.100000",
+              "multidb (2s, read-local 0, atomic 1) SWAPDB serial order"
+            ],
+            [
+              "ok",
+              "0.280000",
+              "multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB"
+            ]
+          ],
+          "ledger_sha256": "6e1084ba23a8b543f0fce64a77733512296acbcdf59260807d2743a66699b8b8",
+          "passed": 3,
+          "failed": 0,
+          "done": "0\t3\t0"
+        },
+        {
+          "name": "multidb-2s-1-0",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "4.370000",
+              "multidb (2s, read-local 1, atomic 0)"
+            ],
+            [
+              "ok",
+              "0.120000",
+              "multidb (2s, read-local 1, atomic 0) SWAPDB serial order"
+            ],
+            [
+              "ok",
+              "0.280000",
+              "multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB"
+            ]
+          ],
+          "ledger_sha256": "f33a934bdb1f90885a2d9efa46d19bef9ae096d9ef1504f198a4d71fdfb4211f",
+          "passed": 3,
+          "failed": 0,
+          "done": "0\t3\t0"
+        },
+        {
+          "name": "multidb-2s-1-1",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "4.470000",
+              "multidb (2s, read-local 1, atomic 1)"
+            ],
+            [
+              "ok",
+              "0.140000",
+              "multidb (2s, read-local 1, atomic 1) SWAPDB serial order"
+            ],
+            [
+              "ok",
+              "0.290000",
+              "multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB"
+            ]
+          ],
+          "ledger_sha256": "56790f9ab66438def6c36ff33f995a4519088322819b60792601b93e406d7449",
+          "passed": 3,
+          "failed": 0,
+          "done": "0\t3\t0"
+        },
+        {
+          "name": "multifix-1s-epoll",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "11.100000",
+              "multifix RESET-IN-MULTI (1s epoll)"
+            ],
+            [
+              "ok",
+              "11.120000",
+              "multifix WATCH-SPURIOUS-INVALIDATION (1s epoll)"
+            ],
+            [
+              "ok",
+              "11.570000",
+              "multifix EXEC-REPEATED-KEY-LINEAR (1s epoll)"
+            ],
+            [
+              "ok",
+              "15.280000",
+              "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)"
+            ],
+            [
+              "ok",
+              "28.740000",
+              "multifix PAUSE-IN-MULTI (1s epoll)"
+            ],
+            [
+              "ok",
+              "12.010000",
+              "multifix PAUSE-EXEC-NOT-HELD (1s epoll)"
+            ]
+          ],
+          "ledger_sha256": "e5337e51a8bfe0187b4929b4415b8b3fe01a543529757d868697b5279db627ff",
+          "passed": 6,
+          "failed": 0,
+          "done": "0\t6\t0"
+        },
+        {
+          "name": "multifix-1s-uring",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "11.180000",
+              "multifix RESET-IN-MULTI (1s uring)"
+            ],
+            [
+              "ok",
+              "11.270000",
+              "multifix WATCH-SPURIOUS-INVALIDATION (1s uring)"
+            ],
+            [
+              "ok",
+              "11.560000",
+              "multifix EXEC-REPEATED-KEY-LINEAR (1s uring)"
+            ],
+            [
+              "ok",
+              "15.300000",
+              "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)"
+            ],
+            [
+              "ok",
+              "28.620000",
+              "multifix PAUSE-IN-MULTI (1s uring)"
+            ],
+            [
+              "ok",
+              "11.870000",
+              "multifix PAUSE-EXEC-NOT-HELD (1s uring)"
+            ]
+          ],
+          "ledger_sha256": "f5632ebea79a45b94a5aae33f96ac33457b0caf4da28be4a83ac2a445db32934",
+          "passed": 6,
+          "failed": 0,
+          "done": "0\t6\t0"
+        },
+        {
+          "name": "multifix-2s-epoll",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "11.090000",
+              "multifix RESET-IN-MULTI (2s epoll)"
+            ],
+            [
+              "ok",
+              "11.120000",
+              "multifix WATCH-SPURIOUS-INVALIDATION (2s epoll)"
+            ],
+            [
+              "ok",
+              "11.520000",
+              "multifix EXEC-REPEATED-KEY-LINEAR (2s epoll)"
+            ],
+            [
+              "ok",
+              "15.340000",
+              "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)"
+            ],
+            [
+              "ok",
+              "28.620000",
+              "multifix PAUSE-IN-MULTI (2s epoll)"
+            ],
+            [
+              "ok",
+              "11.970000",
+              "multifix PAUSE-EXEC-NOT-HELD (2s epoll)"
+            ]
+          ],
+          "ledger_sha256": "5c286f37968733a49a738b2c68e5cfce126fff582d842ae53979b44c4289f4a6",
+          "passed": 6,
+          "failed": 0,
+          "done": "0\t6\t0"
+        },
+        {
+          "name": "multifix-2s-uring",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "11.090000",
+              "multifix RESET-IN-MULTI (2s uring)"
+            ],
+            [
+              "ok",
+              "11.120000",
+              "multifix WATCH-SPURIOUS-INVALIDATION (2s uring)"
+            ],
+            [
+              "ok",
+              "11.530000",
+              "multifix EXEC-REPEATED-KEY-LINEAR (2s uring)"
+            ],
+            [
+              "ok",
+              "15.280000",
+              "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)"
+            ],
+            [
+              "ok",
+              "28.660000",
+              "multifix PAUSE-IN-MULTI (2s uring)"
+            ],
+            [
+              "ok",
+              "12.000000",
+              "multifix PAUSE-EXEC-NOT-HELD (2s uring)"
+            ]
+          ],
+          "ledger_sha256": "810ed568aa847f695881aac92bf21dff28e225ab24166dd739a9588419d0d7ee",
+          "passed": 6,
+          "failed": 0,
+          "done": "0\t6\t0"
+        },
+        {
+          "name": "netcmd_units",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.000000",
+              "netcmd regression build"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "netcmd streams regression"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "netcmd zpop regression"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "netcmd notify-oom regression"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "netcmd notify-retry regression"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "netcmd flush regression"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "netcmd output regression"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "netcmd pubsub regression"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "netcmd receive regression"
+            ],
+            [
+              "ok",
+              "0.040000",
+              "netcmd config regression"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "netcmd wb-small-pipe regression"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "netcmd wb-complete-visits regression"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "netcmd hexpire-oom regression"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "encodingfix knob"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "encodingfix precedence"
+            ],
+            [
+              "ok",
+              "0.020000",
+              "NET1 serverless bounds + scan + reclamation"
+            ]
+          ],
+          "ledger_sha256": "4f5b9869c3aa479be93b61c7b7039c2c6ca8e405feef1bca7bb74834895e9b13",
+          "passed": 16,
+          "failed": 0,
+          "done": "0\t16\t0"
+        },
+        {
+          "name": "netio-1s",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "2.940000",
+              "epoll directed correctness (1s)"
+            ]
+          ],
+          "ledger_sha256": "5685b6945001549c5def91ce5f010021e63e33a03595f263c9e0e3236c011941",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "netio-2s",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "2.940000",
+              "epoll directed correctness (2s)"
+            ]
+          ],
+          "ledger_sha256": "75cb8b989447602789774b5f3ffb77dfd576daf6c53190b387366ec299174b05",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "ntnew4_live",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "1.190000",
+              "NT-new-4 command clock after dequeue (2s)"
+            ],
+            [
+              "ok",
+              "1.210000",
+              "NT-new-4 command clock after dequeue (1s)"
+            ],
+            [
+              "ok",
+              "1.200000",
+              "NT-new-4 command clock after dequeue (2s, epoll)"
+            ]
+          ],
+          "ledger_sha256": "fb6ddd7808dd34f690d0d0ed636b60c01634e26f465b9c85a28d416107335afa",
+          "passed": 3,
+          "failed": 0,
+          "done": "0\t3\t0"
+        },
+        {
+          "name": "perfex_live",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "15.270000",
+              "perfex TTL sampler beat (1s)"
+            ],
+            [
+              "ok",
+              "15.260000",
+              "perfex TTL sampler beat (2s)"
+            ]
+          ],
+          "ledger_sha256": "49db3171178faa6faeacdcf61248e3ab106cef5b3703b9b7aa99e2a40c4be8ea",
+          "passed": 2,
+          "failed": 0,
+          "done": "0\t2\t0"
+        },
+        {
+          "name": "perfex_units",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.190000",
+              "perfex clock binary regression"
+            ],
+            [
+              "ok",
+              "0.140000",
+              "perfex batch binary regression"
+            ]
+          ],
+          "ledger_sha256": "e81fb5de2cca69a7ba56286b2632cf93315b29f76327f246b76f58b3922b6160",
+          "passed": 2,
+          "failed": 0,
+          "done": "0\t2\t0"
+        },
+        {
+          "name": "perfio_stream",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.400000",
+              "perfio XREADGROUP bounded delivery + Redis metadata (1s)"
+            ],
+            [
+              "ok",
+              "0.390000",
+              "perfio XREADGROUP bounded delivery + Redis metadata (2s)"
+            ]
+          ],
+          "ledger_sha256": "ef064d01c3eaf917758bb83eb6eb03b5290868c2d499af5fafe6111942f97bc3",
+          "passed": 2,
+          "failed": 0,
+          "done": "0\t2\t0"
+        },
+        {
+          "name": "persistfix2_commands",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "55.120000",
+              "persistfix2 persistence command replies and scheduling"
+            ]
+          ],
+          "ledger_sha256": "9b245704a5a3a68e3c517ee73c1474a92cc8ff7fca0a54b8d61553b904e3fe80",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "persistfix2_errors",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "4.260000",
+              "persistfix2 AOF write-error refusal and read availability"
+            ]
+          ],
+          "ledger_sha256": "f537e03d0418831ba07eb3ce7e22c7502a888f2af72ec3972f5375afc280dff3",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "persistfix2_lastsave",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "7.990000",
+              "persistfix2 LASTSAVE and rewrite INFO"
+            ]
+          ],
+          "ledger_sha256": "230f7917339e14a3555ec696766d54282431b57376690d2f70725d872454de01",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "persistfix2_shutdown",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "60.840000",
+              "persistfix2 shutdown modifiers and signal policy"
+            ]
+          ],
+          "ledger_sha256": "ebc0719ae8cc0ad97a895d25a0ed6fd7d796232b524070895f014cd1bde297c7",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "persistfix_units",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.050000",
+              "AOF publication/shutdown witnesses + negative controls"
+            ]
+          ],
+          "ledger_sha256": "c96a4abfee5b3ce0ef93c7adc15cb46d98ea2caa6502c3abde41d1e4c75089b6",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "production_units",
+          "completed": true,
+          "rows": [],
+          "ledger_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "passed": 0,
+          "failed": 0,
+          "done": "0\t0\t0"
+        },
+        {
+          "name": "racefix_climon",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "1.550000",
+              "Climon armed refresh + stale-store suppression control"
+            ]
+          ],
+          "ledger_sha256": "66aacdf513c93b9e2743fae9aaebff5eb4db57dd3b470874212e4488626430db",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "racefix_counters",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "1.400000",
+              "INFO command/socket counters (TSan, both modes)"
+            ]
+          ],
+          "ledger_sha256": "da0b97b4c6de150c6d41c891d2f4d915600a3ad19bc0dc7cb43f63a4d4d60d5a",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "racefix_tsan_build",
+          "completed": true,
+          "rows": [],
+          "ledger_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "passed": 0,
+          "failed": 0,
+          "done": "0\t0\t0"
+        },
+        {
+          "name": "readonly",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "2.120000",
+              "read-only resize split read-local=0"
+            ],
+            [
+              "ok",
+              "2.070000",
+              "read-only resize split read-local=1"
+            ],
+            [
+              "ok",
+              "1.560000",
+              "read-only resize fused read-local=0"
+            ],
+            [
+              "ok",
+              "1.570000",
+              "read-only resize fused read-local=1"
+            ]
+          ],
+          "ledger_sha256": "153603c4e6e58e17ea413f57fff2f656380e482060a21fdb9ad2b21b77c7dde8",
+          "passed": 4,
+          "failed": 0,
+          "done": "0\t4\t0"
+        },
+        {
+          "name": "redis_tcl",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "186.740000",
+              "Redis 7.4.10 Tcl passing subset (2s)"
+            ],
+            [
+              "ok",
+              "190.140000",
+              "Redis 7.4.10 Tcl passing subset (1s)"
+            ]
+          ],
+          "ledger_sha256": "ab27cdb63fd4886b291a8fee12e03989316fa7e2267b086163d6ab305720d7b7",
+          "passed": 2,
+          "failed": 0,
+          "done": "0\t2\t0"
+        },
+        {
+          "name": "release",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.000000",
+              "release build (+footprint locks)"
+            ]
+          ],
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "release_batteries",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "6.710000",
+              "torture battery"
+            ],
+            [
+              "ok",
+              "1.100000",
+              "RYOW battery"
+            ],
+            [
+              "ok",
+              "0.080000",
+              "ACL category runtime table"
+            ],
+            [
+              "ok",
+              "0.080000",
+              "ACL LOAD/SAVE no-file errors"
+            ],
+            [
+              "ok",
+              "1.080000",
+              "idle loop ceiling (LBSIGNALS, 1s)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "shutdown invariants (nothing stuck)"
+            ],
+            [
+              "ok",
+              "0.020000",
+              "direct-reply fired (direct=N)"
+            ],
+            [
+              "ok",
+              "0.040000",
+              "dispatched==executed (N)"
+            ]
+          ],
+          "ledger_sha256": "4c87320acefffb1de611586b4b446573436c57d9b857e56eac17d2c7deba56bb",
+          "passed": 8,
+          "failed": 0,
+          "done": "0\t8\t0"
+        },
+        {
+          "name": "reorder_bounds",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.060000",
+              "R7 linear scan and lazy construction bounds (both databases)"
+            ]
+          ],
+          "ledger_sha256": "e5ed7969ffdb143a445ace89c28540383d1c96847ef199f74432d4deb3b781c7",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "reorder_engagement",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "14.140000",
+              "R7 production engagement (both database runtimes)"
+            ]
+          ],
+          "ledger_sha256": "fb3f47733212c581138b64cfbad10bdaec245b52784bef2832ab9067d8fd1fab",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "reorder_identity",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "128.710000",
+              "R7 FIFO twin off-path identity + negative controls"
+            ]
+          ],
+          "ledger_sha256": "87a9abd409aa77f0ae9c741ea09b17999997c05dbff06d12f7a9f6de8ba0e31d",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "reorder_sync",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.950000",
+              "R7 generated envelope parity"
+            ]
+          ],
+          "ledger_sha256": "63d11fac88b25697f4f36c9b7b59674507afc65585b067ac2a7b80f9bf500f5f",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "respcompat",
+          "completed": true,
+          "rows": [
+            [
+              "FAIL",
+              "179.650000",
+              "RESP protocol error compatibility"
+            ],
+            [
+              "FAIL",
+              "0",
+              "correctness family respcompat"
+            ]
+          ],
+          "ledger_sha256": "462b9e1cb5bd81bb70ad5f6d72d8fd312027d94631ce4844a58c4d1e832ea90e",
+          "passed": 0,
+          "failed": 2,
+          "done": "1\t0\t2"
+        },
+        {
+          "name": "respresume-cpu-1s-epoll",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "2.610000",
+              "RESP resumable cpu (1s, epoll)"
+            ]
+          ],
+          "ledger_sha256": "ead9b457f79406deee355f8f29488a288e4a10ebaef9f540798f4333299b708d",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "respresume-cpu-1s-uring",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "2.620000",
+              "RESP resumable cpu (1s, uring)"
+            ]
+          ],
+          "ledger_sha256": "45dd014e27fc74f26e1a699d782e6223b1141d0e29542c86b3d2db0876405210",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "respresume-cpu-2s-epoll",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "2.610000",
+              "RESP resumable cpu (2s, epoll)"
+            ]
+          ],
+          "ledger_sha256": "dde8aec2c9517ecdef96eaa9e7db88ff28691f2c8f069fe8b8bc1869cac80224",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "respresume-cpu-2s-uring",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "2.610000",
+              "RESP resumable cpu (2s, uring)"
+            ]
+          ],
+          "ledger_sha256": "5c30397c9543842c736ab62a599848360f025662f64ed309b6544031855fd0e8",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "respresume-fragment-1s-epoll",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "14.800000",
+              "RESP resumable fragment (1s, epoll)"
+            ]
+          ],
+          "ledger_sha256": "cbae48008104d015415518443d74aa5f12b41f6f3226c53faa1b0b97bc8b2af5",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "respresume-fragment-1s-uring",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "14.790000",
+              "RESP resumable fragment (1s, uring)"
+            ]
+          ],
+          "ledger_sha256": "21c55732d954e349da3d992c4156a230db3f00e0eda98718ef4e325602d5c4d6",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "respresume-fragment-2s-epoll",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "14.580000",
+              "RESP resumable fragment (2s, epoll)"
+            ]
+          ],
+          "ledger_sha256": "7ad0fb22ec9b2abb72967cbd6bd9a07e24f76c1f0b85dda72f1754f201c3bdae",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "respresume-fragment-2s-uring",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "14.550000",
+              "RESP resumable fragment (2s, uring)"
+            ]
+          ],
+          "ledger_sha256": "33ec918b39a0855c461343bb7737e744978d7b7a01d524f4fc034a9aba81a7d5",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "respresume-neighbour-1s-epoll",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.800000",
+              "RESP resumable neighbour (1s, epoll)"
+            ]
+          ],
+          "ledger_sha256": "8bf5e8f49a19f9b7381a5efbc6d2a814370ec5fe13065759f78055c4a6396bc4",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "respresume-neighbour-1s-uring",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.800000",
+              "RESP resumable neighbour (1s, uring)"
+            ]
+          ],
+          "ledger_sha256": "a188883c93b305e71ae7a27535708f9c78bece37b49d5fb8495e9ae8ff02ca17",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "respresume-neighbour-2s-epoll",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.790000",
+              "RESP resumable neighbour (2s, epoll)"
+            ]
+          ],
+          "ledger_sha256": "95ae501301a18b873b76d43dc575d25a5fba2db170b4aea3183491996d816236",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "respresume-neighbour-2s-uring",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.790000",
+              "RESP resumable neighbour (2s, uring)"
+            ]
+          ],
+          "ledger_sha256": "58b8f90940484cf3341c03b67c11abb51e4823ab9932e2a4a92a5969ed5302f8",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "ring_unit",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "1.140000",
+              "read-local write ring + arming transient unit"
+            ],
+            [
+              "ok",
+              "0.020000",
+              "climon 128-owner delivery mask"
+            ],
+            [
+              "ok",
+              "0.090000",
+              "read-local MGET fence symmetry unit"
+            ]
+          ],
+          "ledger_sha256": "42462f698cec97fcf4a6d0ae1510afb5414594341f96326d74097487a3cac8d0",
+          "passed": 3,
+          "failed": 0,
+          "done": "0\t3\t0"
+        },
+        {
+          "name": "rldbg",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "74.660000",
+              "read-local ownership-invariant build"
+            ]
+          ],
+          "ledger_sha256": "cd3bf83fef254bee014c738aa0861202b9452cd68677d73ef5412865a6753dba",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "rob_portable",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.770000",
+              "ROB portable completion without BMI"
+            ]
+          ],
+          "ledger_sha256": "7c86d5c6ed300e897cf74e3988313b213fe8de08e0c0d947021f909a210b98a6",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "slotless",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "2.090000",
+              "slotless remote completions (1s, epoll)"
+            ],
+            [
+              "ok",
+              "2.070000",
+              "slotless remote completions (1s, uring)"
+            ],
+            [
+              "ok",
+              "1.980000",
+              "slotless remote completions (2s, epoll)"
+            ],
+            [
+              "ok",
+              "1.960000",
+              "slotless remote completions (2s, uring)"
+            ]
+          ],
+          "ledger_sha256": "f35c5afcbbe226603199b944ee60cf85d3db77bb0a5be1217304335464fa2b74",
+          "passed": 4,
+          "failed": 0,
+          "done": "0\t4\t0"
+        },
+        {
+          "name": "snapshot-epoll",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.640000",
+              "snapshot concurrent cut (epoll)"
+            ],
+            [
+              "ok",
+              "0.190000",
+              "snapshot cut reload (epoll)"
+            ],
+            [
+              "ok",
+              "2.780000",
+              "snapshot never tears a cross-shard MSET group (epoll, atomic 1)"
+            ],
+            [
+              "ok",
+              "5.260000",
+              "snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)"
+            ],
+            [
+              "ok",
+              "0.060000",
+              "typed snapshot save (epoll)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "typed snapshot reload (epoll)"
+            ],
+            [
+              "ok",
+              "0.160000",
+              "typed snapshot preimage race (epoll)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "typed snapshot race reload (epoll)"
+            ],
+            [
+              "ok",
+              "0.830000",
+              "shutdown keeps acknowledged writes (1s, sigterm, epoll)"
+            ],
+            [
+              "ok",
+              "0.840000",
+              "shutdown keeps acknowledged writes (1s, command, epoll)"
+            ],
+            [
+              "ok",
+              "0.990000",
+              "shutdown cancels BGSAVE capture (1s, atomic 0, epoll)"
+            ],
+            [
+              "ok",
+              "0.970000",
+              "shutdown cancels BGSAVE capture (1s, atomic 1, epoll)"
+            ],
+            [
+              "ok",
+              "0.850000",
+              "shutdown keeps acknowledged writes (2s, sigterm, epoll)"
+            ],
+            [
+              "ok",
+              "0.850000",
+              "shutdown keeps acknowledged writes (2s, command, epoll)"
+            ],
+            [
+              "ok",
+              "1.060000",
+              "shutdown cancels BGSAVE capture (2s, atomic 0, epoll)"
+            ],
+            [
+              "ok",
+              "1.090000",
+              "shutdown cancels BGSAVE capture (2s, atomic 1, epoll)"
+            ]
+          ],
+          "ledger_sha256": "eb5266a7e51f9963c9286d33d50e4562ee949f198417aa14fb5f89730ff01397",
+          "passed": 16,
+          "failed": 0,
+          "done": "0\t16\t0"
+        },
+        {
+          "name": "snapshot-uring",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.630000",
+              "snapshot concurrent cut (uring)"
+            ],
+            [
+              "ok",
+              "0.180000",
+              "snapshot cut reload (uring)"
+            ],
+            [
+              "ok",
+              "2.820000",
+              "snapshot never tears a cross-shard MSET group (uring, atomic 1)"
+            ],
+            [
+              "ok",
+              "5.310000",
+              "snapshot never tears a MULTI/EXEC group (uring, default atomic 0)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "typed snapshot save (uring)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "typed snapshot reload (uring)"
+            ],
+            [
+              "ok",
+              "0.160000",
+              "typed snapshot preimage race (uring)"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "typed snapshot race reload (uring)"
+            ],
+            [
+              "ok",
+              "0.850000",
+              "shutdown keeps acknowledged writes (1s, sigterm, uring)"
+            ],
+            [
+              "ok",
+              "0.830000",
+              "shutdown keeps acknowledged writes (1s, command, uring)"
+            ],
+            [
+              "ok",
+              "0.980000",
+              "shutdown cancels BGSAVE capture (1s, atomic 0, uring)"
+            ],
+            [
+              "ok",
+              "0.980000",
+              "shutdown cancels BGSAVE capture (1s, atomic 1, uring)"
+            ],
+            [
+              "ok",
+              "0.840000",
+              "shutdown keeps acknowledged writes (2s, sigterm, uring)"
+            ],
+            [
+              "ok",
+              "0.840000",
+              "shutdown keeps acknowledged writes (2s, command, uring)"
+            ],
+            [
+              "ok",
+              "1.080000",
+              "shutdown cancels BGSAVE capture (2s, atomic 0, uring)"
+            ],
+            [
+              "ok",
+              "1.090000",
+              "shutdown cancels BGSAVE capture (2s, atomic 1, uring)"
+            ]
+          ],
+          "ledger_sha256": "7ec03b8da356a3e2bdda86aefa880a5ebb467db18466e5ddece8bc44beb904b2",
+          "passed": 16,
+          "failed": 0,
+          "done": "0\t16\t0"
+        },
+        {
+          "name": "splitlocal_units",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.990000",
+              "splitlocal template forwarding + old-argument controls"
+            ]
+          ],
+          "ledger_sha256": "1d98a34a5e33faa0cf58dfc75071e57f379b634fa9b42e1824b78b0fcff8df5b",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "storage_units",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.000000",
+              "storage unlinked regression"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "storage randomkey regression"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "storage rehash regression"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "storage rollback regression"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "storage snapshot-eviction regression"
+            ],
+            [
+              "ok",
+              "0.070000",
+              "storage flags regression"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "storage aof-eviction regression"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "storage intents regression"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "storage imported-hash regression"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "storage field-index-failure regression"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "storage hash-bytes regression"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "storage deadline-allocation-failure regression"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "storage flush-prepared-capacity regression"
+            ]
+          ],
+          "ledger_sha256": "6474176cf3552e6495dea6b265d62e82edd552405d0faef248b2eb5ef904a8bd",
+          "passed": 13,
+          "failed": 0,
+          "done": "0\t13\t0"
+        },
+        {
+          "name": "streamfix",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "71.640000",
+              "streamfix STREAM-TRIM-APPROX-LIMIT vs Redis 7.4"
+            ],
+            [
+              "FAIL",
+              "27.510000",
+              "streamfix XREAD-PLUS-LAST vs Redis 7.4"
+            ],
+            [
+              "FAIL",
+              "0",
+              "correctness family streamfix"
+            ]
+          ],
+          "ledger_sha256": "79aec7312495d91c127ad94468aeb0cc142cd279268f6e6f2f643bfb0dc8c60f",
+          "passed": 1,
+          "failed": 2,
+          "done": "1\t1\t2"
+        },
+        {
+          "name": "wait_units",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.050000",
+              "waits config publication + admission unit"
+            ],
+            [
+              "ok",
+              "1.010000",
+              "reads never wait for retirement quiescence"
+            ]
+          ],
+          "ledger_sha256": "d4810c586b8e891daf8257931479858db59edd5b38cb844f1ece64ed70d699b4",
+          "passed": 2,
+          "failed": 0,
+          "done": "0\t2\t0"
+        },
+        {
+          "name": "waits_tsan_build",
+          "completed": true,
+          "rows": [],
+          "ledger_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "passed": 0,
+          "failed": 0,
+          "done": "0\t0\t0"
+        },
+        {
+          "name": "wb_mixed",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "12.210000",
+              "writeback mixed replies and live knob bounds (1s, epoll)"
+            ],
+            [
+              "ok",
+              "12.220000",
+              "writeback mixed replies and live knob bounds (1s, uring)"
+            ],
+            [
+              "ok",
+              "12.480000",
+              "writeback mixed replies and live knob bounds (2s, epoll)"
+            ],
+            [
+              "ok",
+              "12.480000",
+              "writeback mixed replies and live knob bounds (2s, uring)"
+            ]
+          ],
+          "ledger_sha256": "dfb9bc29e5f9e76311c280ec0349c58482d648fea87a0823b39749477c4fccef",
+          "passed": 4,
+          "failed": 0,
+          "done": "0\t4\t0"
+        },
+        {
+          "name": "wb_policy",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "5.980000",
+              "writeback policies 0/1: 22 standard fixtures"
+            ]
+          ],
+          "ledger_sha256": "4d86f4d1e4a5e40c2e9314d6d232a5018c2a6e93f31cfc8bc88e5dfc8d99df86",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "wb_rule_units",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.110000",
+              "writeback c12 policy witnesses + negative controls"
+            ],
+            [
+              "ok",
+              "5.270000",
+              "writeback c12 phase witnesses + negative controls"
+            ],
+            [
+              "ok",
+              "2.090000",
+              "writeback c12 stages witnesses + negative controls"
+            ],
+            [
+              "ok",
+              "5.620000",
+              "writeback c12 split-phase witnesses + negative controls"
+            ]
+          ],
+          "ledger_sha256": "0a2504908fec5010614af3f8f41b037b5d4410c84ce0e8efad26621ea5b0fcb3",
+          "passed": 4,
+          "failed": 0,
+          "done": "0\t4\t0"
+        },
+        {
+          "name": "wbland_units",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "7.100000",
+              "writeback policy clauses witnesses + negative controls"
+            ],
+            [
+              "ok",
+              "1.990000",
+              "writeback policy paths witnesses + negative controls"
+            ]
+          ],
+          "ledger_sha256": "060a9dfe4e516254d38dd2e3a570f6cedb354fb4ad206a5c992ebda58c1720d5",
+          "passed": 2,
+          "failed": 0,
+          "done": "0\t2\t0"
         }
       ],
       "plan_sha256": "a049484f3562ecbb4d63fa53e82bd2facdfff118c22df63a9103fbe031e256d2",
