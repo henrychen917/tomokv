@@ -441,11 +441,13 @@ def case_bgsave_script(args, directory, mode, engine, atomic, oracle):
     return result
 
 
-def bgsave_loop_bounded(args, directory, mode, engine, atomic, oracle, saves=12):
+def bgsave_loop_bounded(args, directory, mode, engine, atomic, oracle, saves=None):
     """(c) Back-to-back BGSAVEs must not grow the process. PRE sized every snapshot's fresh table as
     twice the CURRENT capacity and never shrank it after the merge, so each BGSAVE doubled every
     shard's table: RSS doubled per save and each Preparing first had to finish merging the
     previous doubled table while the armed atomic barrier held every new unit."""
+    saves = getattr(args, 'saves', 12) if saves is None else saves
+    assert saves >= 3, 'RSS comparison requires at least three completed saves'
     with Boot(args, directory, mode, engine, atomic, oracle, (), 'loop') as b:
         c = b.c
         c.must('SET', 'snapfix:loop', 1)
@@ -464,9 +466,12 @@ def bgsave_loop_bounded(args, directory, mode, engine, atomic, oracle, saves=12)
             assert completed == save + 1, ('BGSAVE never completed its cut', save + 1, completed)
             seconds.append(round(time.monotonic() - began, 3))
             rss.append(stats(c, 'memory')['used_memory_rss'])
+        result = dict(rss=rss, seconds=seconds, start_seconds=start_seconds, completed_saves=completed)
+        # Keep the complete curves even when the growth assertion rejects PRE.
+        (directory / 'rss.json').write_text(json.dumps(result, indent=2) + '\n')
         # PRE: about 21 MB after the second save and about 1 GB after the twelfth.
         assert max(rss[2:]) <= 3 * rss[1] + (64 << 20), ('BGSAVE loop grew the process', rss)
-        return dict(rss=rss, seconds=seconds, start_seconds=start_seconds, completed_saves=completed)
+        return result
 
 
 def same_owner(c, prefix, owner, shard=None):
@@ -605,6 +610,7 @@ def main():
     p.add_argument('--atomics', nargs='+', type=int, default=[0, 1])
     p.add_argument('--no-oracle', action='store_true')
     p.add_argument('--seconds', type=float, default=6)
+    p.add_argument('--saves', type=int, default=12, help='completed saves in bgsave-loop only')
     p.add_argument('--stall', type=float, default=5)
     p.add_argument('--dataset', type=int, default=30000)
     p.add_argument('--writers', type=int, default=4)

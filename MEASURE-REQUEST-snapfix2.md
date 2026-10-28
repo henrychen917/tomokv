@@ -258,3 +258,20 @@ is command send to BGSAVE acceptance reply; sample INFO memory RSS after each
 completed save. Plot all 16 save indices. The capacity/RSS growth and start-wait
 curves decide this stability effect. Correctness RSS checks in this lane do not
 establish a latency or throughput result.
+
+Run these two commands separately on the quiet box. BASE is expected to exit 1
+at the RSS assertion; each of its four `rss.json` files must nevertheless contain
+all 16 samples and `completed_saves: 16`. POST must pass. The runner records the
+curves before making the assertion. These 16-save latency measurements are
+**NOT RUN in this lane**, as requested.
+
+```sh
+taskset -c 8-15 python3 tests/snapfix.py --case bgsave-loop \
+  --binary build/snapfix2/base/tomokv --saves 16 --stall 300 \
+  --oracle /home/user/Projects/redis/src/redis-server --no-oracle \
+  --cores 0-7 --port 20100 --atomics 1 --output build/snapfix2/merit-base
+taskset -c 8-15 python3 tests/snapfix.py --case bgsave-loop \
+  --binary build/tomokv --saves 16 --stall 300 \
+  --oracle /home/user/Projects/redis/src/redis-server --no-oracle \
+  --cores 0-7 --port 20100 --atomics 1 --output build/snapfix2/merit-post
+```
