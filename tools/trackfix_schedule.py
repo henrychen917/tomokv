@@ -114,13 +114,18 @@ def main():
     source = output / 'source'
     source.mkdir(parents=True, exist_ok=True)
     if args.ref:
-        archive = subprocess.check_output(['git', 'archive', args.ref, 'src', 'third_party', 'Makefile'], cwd=root)
+        archive = subprocess.check_output(['git', 'archive', args.ref, 'src', 'third_party',
+                                           'Makefile', 'tools/assert_map.py'], cwd=root)
         with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
             tar.extractall(source, filter='data')
     else:
         for name in ('src', 'third_party'):
             shutil.copytree(root / name, source / name, dirs_exist_ok=True)
         shutil.copy2(root / 'Makefile', source / 'Makefile')
+        # `all` also generates the stable assertion map. Keep its prerequisite
+        # in this private tree so recipe discovery checks the real build graph.
+        (source / 'tools').mkdir(exist_ok=True)
+        shutil.copy2(root / 'tools/assert_map.py', source / 'tools/assert_map.py')
     path = source / 'src/cmd/tracking.cc'
     text = path.read_text()
     patches = [('namespace tomo {', 'namespace tomo {\n' + STATE + SERVE),

@@ -78,6 +78,10 @@ could not find the cost-witness SHA sidecar under the frozen POST filename.
 Its 24 live oracle legs passed, but its instruction leg did not run. The original
 source-built witness/server hashes and POST byte identity have now been verified
 (`docs/exec1s/blockfix-cost-binding.json`); an unchanged gate-job rerun is pending.
+The `trackfix_order` scheduling-copy build also failed before any live leg: its
+copy omitted `tools/assert_map.py`, now required by `make all`. The copy helper
+is repaired without changing its hooks or assertions; the complete job rerun is
+pending. Both original failures remain in the run ledger.
 The Redis Tcl dependency passed both modes against the unchanged PRE manifest:
 all 70 file/mode assertion inventories match. Its existing named `appendonly`
 block-setup error remains visible in the raw logs and is checked exactly, not
