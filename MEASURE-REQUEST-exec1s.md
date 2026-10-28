@@ -48,7 +48,7 @@ in this lane.
 
 ### Rebuilt artifacts
 
-Rebuild and proof are IN PROGRESS. Only completed records in
+All nine images (PRE, X1–X5, POST, POST-layout and PAD-A) are rebuilt. Records in
 `docs/exec1s/arms.json` and `docs/exec1s/SHA256SUMS` identify current images.
 `tools/exec1s_build.py` builds one frozen source snapshot at a time, constructs
 its relevant probes, records hashes, then deletes that snapshot and object tree.
@@ -113,8 +113,17 @@ namespaces (`docs/exec1s/allocation-comparison.json`):
 | POST 2s/16 → 1s/64 shards, bytes | 4,315 | 4,490 | PASS: 1.041×, target <=1.2× |
 
 The initial allocation alone is not substituted for this complete scope; POST
-allocates participant arrays after discovery. The instruction-based acceptance
-checks are still pending the fresh traces.
+allocates participant arrays after discovery. The fresh X3 idle-rotation proof also misses its target:
+
+| Namespace | X2 | X3 | Delta | Verdict |
+| --- | ---: | ---: | ---: | --- |
+| normal | 3,665 | 3,695 | +30 | FAIL: target <=+2 |
+| db0 | 3,631 | 3,647 | +16 | FAIL: target <=+2 |
+
+The scope is one actual linked production fused rotation, iteration [2,3),
+with every hint clear. The unchanged fixture asserts that the rotation window
+opened and that no extra owner pass ran. These misses are disclosed for owner
+judgment; no ordinary-command or rate equivalence is inferred from them.
 
 ### Gate row accounting
 

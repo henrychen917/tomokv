@@ -123,5 +123,23 @@
     ],
     "build_macro": "TOMO_EXEC1S_WB",
     "source_snapshot": "/home/user/Projects/cx-exec1s-c/build/exec1s/x4-current-source"
+  },
+  {
+    "arm": "X5",
+    "binary": "/home/user/Projects/cx-exec1s-c/build/exec1s-X5",
+    "sha256": "37a52b13deb9c15e638e574c2b35d3dcf69c586590f1ced54434243cc15da657",
+    "bytes": 218242368,
+    "source_commit": "6e1a805edc753ae97f78c2e49922175a639d24ae",
+    "production_source_tree": "eb6767df283e54832b1a89b3ae38fecadcc541de",
+    "makefile_blob": "cdc7af27b9d5028c6a67f12842ea0b57fa367ee3",
+    "command": [
+      "make",
+      "-C",
+      "/home/user/Projects/cx-exec1s-c/build/exec1s/x5-current-source",
+      "-j16",
+      "all"
+    ],
+    "build_macro": "",
+    "source_snapshot": "/home/user/Projects/cx-exec1s-c/build/exec1s/x5-current-source"
   }
 ]
