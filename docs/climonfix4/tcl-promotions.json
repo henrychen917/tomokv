@@ -1,0 +1,27 @@
+{
+  "unit/introspection": [
+    "CLIENT INFO",
+    "CLIENT LIST",
+    "CLIENT LIST with IDs",
+    "CLIENT KILL SKIPME YES/NO will kill all clients",
+    "MONITOR can log commands issued by the scripting engine",
+    "RESET does NOT clean library name"
+  ],
+  "unit/other": [
+    "RESET clears MONITOR state"
+  ],
+  "unit/pause": [
+    "CLIENT UNBLOCK is not allow to unblock client blocked by CLIENT PAUSE",
+    "Test RO scripts are not blocked by pause RO",
+    "Test multiple clients can be queued up and unblocked",
+    "Test new pause time is smaller than old one, then old time preserved",
+    "Test read-only scripts in multi-exec are not blocked by pause RO",
+    "Test read/admin multi-execs are not blocked by pause RO",
+    "Test scripts are blocked by pause RO",
+    "Test special commands are paused by RO",
+    "Test write commands are paused by RO"
+  ],
+  "unit/type/list": [
+    "Blocking timeout following PAUSE should honor the timeout"
+  ]
+}

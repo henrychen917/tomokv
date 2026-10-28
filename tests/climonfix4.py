@@ -16,6 +16,127 @@ ROOT = Path(__file__).resolve().parents[1]
 ROOTS = ("PAUSE-BLOCKED-COUNT", "PAUSE-CLIENT-EXEMPT", "PAUSE-MAY-REPLICATE",
          "PAUSE-SCRIPT-FLAGS", "MONITOR-SCRIPT-CMDS", "RESET-CLEARS-LIBNAME",
          "RESET-MONITOR-ECHO", "CLIENT-LIST-CMD-NAME", "CONNECTED-CLIENTS-LAG")
+FIXED = tuple(root for root in ROOTS if root != "PAUSE-CLIENT-EXEMPT")
+
+
+def directed(host, port, root):
+    """A fresh gate boot per root; assertion failures are never converted to skips."""
+    clients = []
+    def new():
+        c = Conn(host, port, timeout=3, buffering=0)
+        clients.append(c)
+        return c
+    def fields(c, *args):
+        return dict(item.split(b"=", 1) for item in c.cmd("CLIENT", *args).split())
+    def info(c, field):
+        return int(re.search(rb"\b" + field.encode() + rb":(\d+)", c.cmd("INFO", "clients"))[1])
+    def until(fn):
+        for _ in range(200):
+            if fn():
+                return
+            time.sleep(.01)
+        raise AssertionError("required state never opened")
+    def held(c):
+        assert read(c, .05) == {"timeout": True}, "command escaped PAUSE WRITE"
+    try:
+        a = new()
+        if root == "PAUSE-BLOCKED-COUNT":
+            b = new()
+            bid = b.cmd("CLIENT", "ID")
+            assert a.cmd("CLIENT", "PAUSE", 10000, "WRITE") == b"OK"
+            b.send("SET", "paused", "value")
+            until(lambda: info(a, "blocked_clients") == 1)
+            line = fields(a, "LIST", "ID", bid)
+            assert b"b" in line[b"flags"], line
+            assert line[b"cmd"] == b"set", line
+            assert a.cmd("CLIENT", "UNBLOCK", bid) == 0
+            held(b)
+            assert a.cmd("CLIENT", "UNPAUSE") == b"OK"
+            assert b.read() == b"OK"
+            until(lambda: info(a, "blocked_clients") == 0)
+            assert b"b" not in fields(a, "LIST", "ID", bid)[b"flags"]
+        elif root == "PAUSE-MAY-REPLICATE":
+            assert a.cmd("PFADD", "hll", "x") == 1
+            b, c = new(), new()
+            assert a.cmd("CLIENT", "PAUSE", 10000, "WRITE") == b"OK"
+            b.send("PFCOUNT", "hll")
+            c.send("PUBLISH", "channel", "message")
+            until(lambda: info(a, "blocked_clients") == 2)
+            held(b); held(c)
+            assert a.cmd("CLIENT", "UNPAUSE") == b"OK"
+            assert b.read() == 1 and c.read() == 0
+        elif root == "PAUSE-SCRIPT-FLAGS":
+            source = "#!lua flags=no-writes\nreturn 42"
+            digest = a.cmd("SCRIPT", "LOAD", source)
+            assert a.cmd("FUNCTION", "LOAD", "#!lua name=cm4\nredis.register_function{function_name='cm4', callback=function() return 42 end, flags={'no-writes'}}") == b"cm4"
+            b = new()
+            assert a.cmd("CLIENT", "PAUSE", 10000, "WRITE") == b"OK"
+            for command in (("EVAL", source, 0), ("EVALSHA", digest, 0),
+                            ("FCALL", "cm4", 0), ("EVAL_RO", "return 42", 0),
+                            ("FCALL_RO", "cm4", 0)):
+                b.send(*command)
+                assert read(b, 1) == 42, command
+            assert b.cmd("MULTI") == b"OK"
+            assert b.cmd("EVAL", source, 0) == b"QUEUED"
+            assert b.cmd("FCALL", "cm4", 0) == b"QUEUED"
+            b.send("EXEC")
+            assert read(b, 1) == [42, 42]
+            assert info(a, "blocked_clients") == 0
+            # The flag must not grant permission to write.
+            rejected = b.cmd("EVAL", "#!lua flags=no-writes\nreturn redis.call('set',KEYS[1],'bad')", 1, "guard")
+            assert isinstance(rejected, RespError) and "read-only" in str(rejected), rejected
+            assert a.cmd("GET", "guard") is None
+            assert a.cmd("CLIENT", "UNPAUSE") == b"OK"
+        elif root == "MONITOR-SCRIPT-CMDS":
+            m = new()
+            assert m.cmd("MONITOR") == b"OK"
+            script = "redis.call('set',KEYS[1],ARGV[1]); return redis.call('get',KEYS[1])"
+            assert a.cmd("EVAL", script, 1, "mon", 'v"\\\n') == b'v"\\\n'
+            lines = [read(m, 1) for _ in range(3)]
+            assert all(isinstance(line, str) for line in lines), lines
+            assert '] "EVAL" ' in lines[0], lines
+            assert '[0 lua] "set" "mon" "v\\"\\\\\\n"' in lines[1], lines
+            assert '[0 lua] "get" "mon"' in lines[2], lines
+        elif root == "RESET-CLEARS-LIBNAME":
+            assert a.cmd("CLIENT", "SETINFO", "lib-name", "redis.py") == b"OK"
+            assert a.cmd("CLIENT", "SETINFO", "lib-ver", "1.0") == b"OK"
+            assert a.cmd("CLIENT", "SETNAME", "old") == b"OK"
+            assert a.cmd("RESET") == b"RESET"
+            row = fields(a, "INFO")
+            assert row[b"lib-name"] == b"redis.py" and row[b"lib-ver"] == b"1.0", row
+            assert row[b"name"] == b""
+        elif root == "RESET-MONITOR-ECHO":
+            assert a.cmd("MONITOR") == b"OK"
+            a.send("RESET")
+            assert read(a, 1) == "RESET", "RESET echoed to its former monitor"
+            assert a.cmd("PING") == b"PONG"
+        elif root == "CLIENT-LIST-CMD-NAME":
+            assert fields(a, "INFO")[b"cmd"] == b"client|info"
+            aid = a.cmd("CLIENT", "ID")
+            assert fields(a, "LIST", "ID", aid)[b"cmd"] == b"client|list"
+            b = new()
+            for _ in range(70):
+                assert a.cmd("CLIENT", "SETNAME", "name") == b"OK"
+            assert fields(b, "LIST", "ID", aid)[b"cmd"] == b"client|setname"
+            assert a.cmd("PING") == b"PONG"
+            assert fields(b, "LIST", "ID", aid)[b"cmd"] == b"ping"
+            assert a.cmd("CONFIG", "GET", "maxclients")
+            assert fields(b, "LIST", "ID", aid)[b"cmd"] == b"config|get"
+        elif root == "CONNECTED-CLIENTS-LAG":
+            for _ in range(3):
+                assert new().cmd("PING") == b"PONG"
+            # Readiness probes from the boot helper must be fully gone first.
+            until(lambda: info(a, "connected_clients") == 4)
+            assert a.cmd("CONFIG", "SET", "maxclients", 2) == b"OK"
+            assert a.cmd("CLIENT", "KILL", "SKIPME", "YES") == 3
+            assert info(a, "connected_clients") == 1
+            assert new().cmd("PING") == b"PONG", "killed clients still consume maxclients"
+        else:
+            raise AssertionError(root)
+        print("PASS", root, flush=True)
+    finally:
+        for c in clients:
+            c.close()
 
 
 def wire(value):
@@ -109,15 +230,22 @@ def projection(result):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--binary", type=Path, required=True)
+    p.add_argument("--binary", type=Path)
+    p.add_argument("--case", choices=FIXED)
+    p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--oracle", type=Path, default=Path("/home/user/Projects/redis74/src/redis-server"))
     p.add_argument("--cores", default="16-23")
     p.add_argument("--port", type=int, default=20200)
     p.add_argument("--ratio", default="6:2")
     p.add_argument("--engine", choices=("uring", "epoll"), default="uring")
-    p.add_argument("--output", type=Path, required=True)
+    p.add_argument("--output", type=Path)
     p.add_argument("--root", action="append", choices=ROOTS)
     args = p.parse_args()
+    if args.case:
+        directed(args.host, args.port, args.case)
+        return
+    if not args.binary or not args.output:
+        p.error("reproductions require --binary and --output")
     args.binary = args.binary.resolve()
     args.output = args.output.resolve()
     args.output.mkdir(parents=True, exist_ok=True)

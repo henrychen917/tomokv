@@ -994,6 +994,7 @@ job_body(){
     iofix-sleep) job_iofix_sleep "$name";;
     iofix-signal) job_iofix_signal "$name";;
     multifix-*) job_multifix "$name";;
+    climonfix4-*) job_climonfix4 "$name";;
     multidb-*) job_multidb "$name";;
     feature-cell-*) job_feature_cell "$name";;
     snapshot-*) job_snapshot "$name";;
@@ -1132,6 +1133,7 @@ plan_jobs(){
   JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build)
   for MF_MODE in 1s 2s; do for MF_ENGINE in uring epoll; do
     JOB_NAMES+=("multifix-$MF_MODE-$MF_ENGINE")
+    JOB_NAMES+=("climonfix4-$MF_MODE-$MF_ENGINE")
   done; done
   [ "$TIER" != full ] || JOB_NAMES+=(rldbg)
   JOB_NAMES+=(datafix1_randscan datafix1_hexpire datafix1_bitfield datafix1_locale datafix1_lists datafix1_spop datafix1_geo config_unit flip_unit filter_unit ring_unit storage_units
@@ -5322,6 +5324,30 @@ job_multifix(){
   done
 }
 
+# Eight roots in both modes/engines, collected before the quick exit: DQ=DF=+32.
+# PAUSE-CLIENT-EXEMPT is an owner-decision restriction and retains its named skip.
+job_climonfix4(){
+  local prefix mode engine root label databases atomic read_local passed boot_fn
+  IFS=- read -r prefix mode engine <<< "$1"
+  boot_fn=boot
+  [ "$mode" != 1s ] || boot_fn=boot_fused
+  for root in PAUSE-BLOCKED-COUNT PAUSE-MAY-REPLICATE PAUSE-SCRIPT-FLAGS \
+      MONITOR-SCRIPT-CMDS RESET-CLEARS-LIBNAME RESET-MONITOR-ECHO \
+      CLIENT-LIST-CMD-NAME CONNECTED-CLIENTS-LAG; do
+    label="climonfix4 $root ($mode $engine)"
+    row_begin "$label"; passed=1
+    for databases in 1 16; do for atomic in 0 1; do for read_local in 0 1; do
+      if "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine" --databases "$databases" \
+          --atomic "$atomic" --read-local "$read_local" --save ''; then
+        py tests/climonfix4.py --host 127.0.0.1 --port "$PORT" --case "$root" \
+            >"$TMPDIR/$root-db$databases-a$atomic-r$read_local.log" 2>&1 || passed=0
+      else passed=0; fi
+      stop
+    done; done; done
+    [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/$root-*.log"
+  done
+}
+
 job_redis_tcl(){
   local mode passed=1 label
   for mode in 2s 1s; do
@@ -5798,6 +5824,9 @@ collect_job ring_unit
 
 # SV2: collect all seven shutdown rows before the quick-tier exit.
 collect_job climonfix
+for CM_MODE in 1s 2s; do for CM_ENGINE in uring epoll; do
+  collect_job "climonfix4-$CM_MODE-$CM_ENGINE"
+done; done
 collect_job racefix_counters
 collect_job racefix_climon
 collect_job lbplanner_units

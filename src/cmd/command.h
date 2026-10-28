@@ -21,6 +21,7 @@ namespace tomo {
 
 class Shard;
 class Op;
+class Client;
 
 // Static executor scheduling cost. This is deliberately coarse: the policy needs a cheap verb
 // class, not a runtime estimate from argv or clocks. Point includes GET and unarmed SET; the armed
