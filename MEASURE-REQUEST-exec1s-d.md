@@ -6,7 +6,8 @@ The branch integrates exec1s-c with wave 9 and repairs the repeated-key reuse
 walk, per-EXEC allocation, and ordinary-command instruction drift. This is **not
 a green landing request**: X3's idle rotation remains +7 instructions against a
 budget of +2, and the historical seed-22 SAVE admission rejection has not yet
-been reproduced or classified. No throughput measurement or claim is made here.
+been reproduced or classified. Correctness also retains a slowlog failure reproduced
+on headline PRE. No throughput measurement or claim is made here.
 
 The final production source is `cf3bdaa9e`;
 later commits contain evidence, build/proof tools, and this request. The frozen
@@ -189,6 +190,14 @@ and final POST (`4111f5c6…`) also passed 235/235. The final native replay reta
 the original seed-22 plan and used no debugger; see
 [save-full-native-POST-final.json](docs/exec1s-d/save-full-native-POST-final.json).
 These successful replays do not prove the historical failure fixed or pre-existing.
+
+A further full-plan replay used breakpoints only on the **taken Busy reply
+branch**, resolved from each frozen binary's disassembly. Both C-PRE and MERGE
+passed 235/235 again, with two breakpoint locations armed and zero Busy hits.
+Successful admissions never execute those breakpoints; debugger attachment
+still changes initial timing. These runs also leave the cause unclassified:
+[C-PRE receipt](docs/exec1s-d/save-full-busy-only-C-PRE.json),
+[MERGE receipt](docs/exec1s-d/save-full-busy-only-MERGE.json).
 
 Bounded native repeats of unchanged `tests/differ.py ... psfix 22` reproduce a
 different failure on both C-PRE and MERGE: repeats 0–5 pass, then repeat 6
@@ -395,4 +404,5 @@ For a fresh copy of an attribution arm use `tools/exec1sd_arms.py ARM`; the
 builder compiles one source tree, records the binary and bounded counts, then
 retires its source/objects and large traces. PRE objects are kept only until
 the common-image PAD link. Frozen production binaries, compact receipts and
-failure logs remain reviewable. No push was performed.
+failure logs remain reviewable. `build/` occupies about 27 GiB; no arm source
+trees or large instruction traces remain. No push was performed.
