@@ -129,12 +129,40 @@ def traces(arm, kinds):
                 rows = list(pool.map(lambda case:fast.run(case,prepared),cases))
         save(DOCS/(kind+'-'+arm+'-counts.json'),rows)
 
+def retire(arm):
+    """Retain hash-bound build/count/log receipts, then discard completed probes."""
+    records=[]
+    for kind in ('ORD','EXEC','RL','IDLE'):
+        label=kind+'-'+arm
+        counts=DOCS/(label+'-counts.json')
+        if not counts.exists():continue
+        rows=json.loads(counts.read_text())
+        for ns in ('normal','db0'):
+            folder=OUT/'scopes'/(label+'-'+ns)
+            if not folder.exists():continue
+            receipt=json.loads((OUT/'counts'/(label+'-'+ns+'-build.json')).read_text())
+            digest=sha(folder/'probe')
+            assert receipt['sha256']==digest
+            assert all(row['probe_sha256']==digest for row in rows if row['namespace']==ns)
+            receipt.update(arm=arm,kind=kind,namespace=ns,count_file=str(counts),count_sha256=sha(counts))
+            records.append(receipt)
+            shutil.rmtree(folder)
+        for path in (OUT/'scopes').glob(label+'-*'):
+            if path.is_file():path.unlink()
+        # Individual step results duplicate the retained count matrix. Keep
+        # hashed terminal receipts, not megabytes of ptrace plans or step logs.
+        for path in (OUT/'counts').glob(label+'-*'):
+            if path.is_file():
+                records.append(dict(retired=str(path),sha256=sha(path),bytes=path.stat().st_size))
+                path.unlink()
+    if records:save(DOCS/(arm+'-probe-retirements.json'),records)
+
 def main():
     assert os.sched_getaffinity(0) <= set(range(64, 96)), 'taskset -c 64-95 required'
     OUT.mkdir(parents=True, exist_ok=True)
     DOCS.mkdir(parents=True, exist_ok=True)
     p = argparse.ArgumentParser()
-    p.add_argument('action', choices=['build', 'probes', 'allocations', 'trace'])
+    p.add_argument('action', choices=['build', 'probes', 'allocations', 'trace', 'retire'])
     p.add_argument('arm')
     p.add_argument('--ref')
     p.add_argument('--kinds', default='ORD,EXEC,RL')
@@ -148,6 +176,8 @@ def main():
         probes(a.arm, source, a.kinds)
     elif a.action == 'allocations':
         allocations(a.arm, source)
+    elif a.action=='retire':
+        retire(a.arm)
     else:
         traces(a.arm, a.kinds)
 

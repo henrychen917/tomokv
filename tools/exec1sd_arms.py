@@ -29,6 +29,7 @@ def finish(arm, source, ref, kinds):
     provenance(arm,source,ref)
     d.probes(arm,source,kinds)
     d.traces(arm,kinds)
+    d.retire(arm)
     shutil.rmtree(source)
 
 def main():
@@ -62,12 +63,15 @@ def main():
         for path in d.OUT.glob('X12-multi*'):path.unlink()
     elif arm=='X5':
         source,ref=d.snapshot('d602c8c36',arm)
+        for name in ('src/core/io_loop.h','src/core/reorder.cc','src/core/ex_loop.h',
+                     'src/cmd/multi.inc','src/cmd/multi_execute.inc'):
+            (source/name).write_bytes(subprocess.check_output(['git','show',ref+':'+name],cwd=d.ROOT))
         for name in ('src/core/io_loop.h','src/core/reorder.cc'):
             path=source/name;text=path.read_text()
-            text,n=re.subn(r'                if constexpr \(Fused && !SplitLocal\) \{\n'
-                r'                    if \(fused_executor_->fused_owner_ready\(\)\)\n'
-                r'                        did \+= fused_executor_->fused_owner_turn(?:<true>)?\(\);\n'
-                r'                \}\n','',text)
+            text,n=re.subn(r'(?m)^[ ]+if constexpr \(Fused && !SplitLocal\) \{\n'
+                r'[ ]+if \(fused_executor_->fused_owner_ready\(\)\)\n'
+                r'[ ]+did \+= fused_executor_->fused_owner_turn(?:<true>)?\(\);\n'
+                r'[ ]+\}\n','',text)
             assert n==2,(name,n);path.write_text(text)
         replace(source/'src/core/ex_loop.h','        ring_fused_owner();\n','',2)
         for name in ('multi.inc','multi_execute.inc'):
@@ -84,6 +88,7 @@ def main():
         d.run(['make','-j32','all'],d.OUT/'evidence/PRE-build.log',cwd=source)
         d.record(arm,source,ref);provenance(arm,source,ref)
         d.probes(arm,source,'ORD,EXEC,RL');d.traces(arm,'ORD,EXEC,RL')
+        d.retire(arm)
         # Keep PRE objects until the final common-image PAD-A link, then retire them.
     else:
         source,ref=d.snapshot('393d6ceb1',arm)

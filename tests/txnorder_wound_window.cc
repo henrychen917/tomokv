@@ -245,7 +245,7 @@ void d2_group(Server& server, bool blind, int pause) {
         require(!txn_group_ready(state, server.shard(0), run.request.op), "crossing cancels placement");
     } else {
         Client older_client{-1}; older_client.set_id(813);
-        auto* older = allocate_state(server, older_client, 0, MultiStateKind::Execute);
+        auto* older = fixture_allocate_state(server, older_client, 0, MultiStateKind::Execute);
         require(older, "older unit allocated");
         older->decision.age_ns = attempt->age_ns - 1;
         txn_add_claim(older->claims[1], slice(a), TxnClaimMode::Write);
@@ -348,7 +348,7 @@ void d2_exec(Server& server, bool blind, int pause) {
     if (blind) require(execute_watch_phase(*state, server.shard(0)), "blind placement ends aborted");
     else {
         Client older_client{-1}; older_client.set_id(815);
-        auto* older = allocate_state(server, older_client, 0, MultiStateKind::Execute);
+        auto* older = fixture_allocate_state(server, older_client, 0, MultiStateKind::Execute);
         require(older, "older EXEC allocated"); older->decision.age_ns = state->decision.age_ns - 1;
         txn_add_claim(older->claims[1], slice(b), TxnClaimMode::Write);
         Shard::WatchReservation claim{older, &older->decision.epoch, &older->decision.aborted,
@@ -376,7 +376,7 @@ void d2_rank(Server& server) {
     struct Unit {
         Server& server; Client client{-1}; MultiExecState* exec;
         ScatterState group; TxnGroupAttempt attempt; bool grouped;
-        Unit(Server& s, bool g) : server(s), exec(allocate_state(s, client, 0, MultiStateKind::Execute)), grouped(g) {
+        Unit(Server& s, bool g) : server(s), exec(fixture_allocate_state(s, client, 0, MultiStateKind::Execute)), grouped(g) {
             require(exec, "rank unit allocated"); group.server = &server;
             group.group_attempt_storage = &attempt; group.watch_refs.store(ScatterState::kGroupAttemptRef);
             attempt.arrived.resize(server.nshards());

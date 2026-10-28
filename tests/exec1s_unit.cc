@@ -243,7 +243,11 @@ void reuse_check(Server& server) {
         void* entry = nullptr; KvObj* value = nullptr;
         require(store.atomic_prepare_transaction(key, hash, 991, &parent.decision.epoch,
             &parent.record_refs, &aborted, &owner_refs, entry), "parent layer prepared");
+        // The production parent pre-counts one reference per installing owner;
+        // the store consumes that reference when its last owner record leaves.
+        parent.record_refs.store(1);
         store.atomic_install_transaction(hash, key, entry, value); ++owner_refs;
+        require(parent.record_refs.load() == 1 && owner_refs == 1, "parent lifetime really armed");
         check(true, 1);
         // An unrelated newest record must not hide a reusable private layer.
         const auto other_name = key_on(server, 0, "exec1sd-other:");
