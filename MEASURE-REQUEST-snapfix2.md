@@ -244,7 +244,8 @@ Section sizes and merit-cell digests: `docs/snapfix2/arms.json`. POST release
 
 Use the gate's own ABBA instrument for the 14 generic cells in
 `docs/execfair/cells/generic14.txt` and 2s GET/SET p1/p32 (`tests/headline_cells.txt`
-h17, h18, h49, h50). BASE vs POST is the sizing-fix comparison; retain PRE vs POST
+h17, h18, h49, h50). The exact 18-cell combined input is
+`docs/snapfix2/cells.txt`, hashed in `arms.json`. BASE vs POST is the sizing-fix comparison; retain PRE vs POST
 for the combined snapfix change. PAD is **A, behaviour twin**: BASE behaviour in
 the exact POST-layout common image. Compare POST-layout vs PAD-A separately from
 the release binaries. Command counts are equal; matched offered

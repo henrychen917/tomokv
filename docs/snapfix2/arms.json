@@ -31,6 +31,7 @@
   },
   "merit_cells": {
     "docs/execfair/cells/generic14.txt": "ac3719760fcd07f05a090bcba536162c4d713cdbef3f24e52d886e8d83880311",
-    "tests/headline_cells.txt": "f62b7a4c59cb8a9844d0baafeb19c0328f2e6790ca6103dffb21abb5ee0e20f6"
+    "tests/headline_cells.txt": "f62b7a4c59cb8a9844d0baafeb19c0328f2e6790ca6103dffb21abb5ee0e20f6",
+    "docs/snapfix2/cells.txt": "e81c782a2cd42155a92c9210a808d69e71dd5559acbf845514de8b6f6690fd80"
   }
 }
