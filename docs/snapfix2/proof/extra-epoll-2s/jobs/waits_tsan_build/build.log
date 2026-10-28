@@ -1,0 +1,1 @@
+  row budget: 900s; median=1.48s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); build dependency: waits-unit-tsan

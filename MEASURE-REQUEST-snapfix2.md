@@ -130,7 +130,10 @@ both BGSAVE and FLUSHALL made all eight TomoKV legs and Redis clean on every arm
 The independent `tests/snapfix2_flush.py --case flush-pair` tears on **all eight
 TomoKV legs on PRE, BASE and POST** with one serial EXEC/FLUSHALL connection and
 one MGET observer. Each completed command leaves either `[1,1]` or `[nil,nil]`;
-a mixed pair is invalid. Redis has zero tears in 215,641 / 211,328 / 216,468
+a mixed pair on the atomic-1 legs establishes the visibility defect. Atomic-0
+counts are diagnostic: the documented relaxation of ordinary multi-shard writes
+means those FLUSHALL observations alone do not establish a contract violation.
+Redis has zero tears in 215,641 / 211,328 / 216,468
 observations in those three corresponding runs.
 
 | Variant | PRE torn legs / 8 | BASE torn legs / 8 | POST torn legs / 8 |
@@ -245,6 +248,12 @@ The supplementary mode/battery passes remain in progress. Initial
 `tests/gates_test.py` hit three fixture timeout failures while compilation and
 instruction tracing overlapped; it will be repeated in isolation, with the
 original log retained. No assertion or timeout is weakened.
+Both completed supplementary split passes (uring and epoll) have 100 passes and
+no failures each. The uring fused pass has 203 passes and one failure in `txn_nx` at atomic 1: bare
+concurrent RENAMENX returned `ERR no such key` for one contender while its source
+remained present. The transactional half completed all 8,192 rounds cleanly.
+Its original failing receipt is retained in `proof/extra-uring-1s/`; independent
+PRE/BASE/POST/Redis controls using the unchanged contender check are queued.
 
 ### Arms
 

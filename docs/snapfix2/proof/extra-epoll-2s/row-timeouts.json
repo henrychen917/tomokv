@@ -1,0 +1,4445 @@
+{
+  "created_at": 1793213252.5728517,
+  "defaults": {
+    "fallback_seconds": 900,
+    "floor_seconds": 30.0,
+    "multiplier": 4.0
+  },
+  "legacy_sources": [],
+  "rows": {
+    "ACL LOAD/SAVE no-file errors": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "ACL category runtime table": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "AOF always recovery after quiescent SIGKILL": {
+      "basis": "own-row-history",
+      "max_over_median": 1.3333333333333335,
+      "max_seconds": 0.04,
+      "median_seconds": 0.03,
+      "min_seconds": 0.02,
+      "samples": 5,
+      "timeout_seconds": 30
+    },
+    "AOF always sync + reply gate fired": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.02,
+      "samples": 5,
+      "timeout_seconds": 30
+    },
+    "AOF atomic-group recovery + writer order": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 5,
+      "timeout_seconds": 30
+    },
+    "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0114942528735633,
+      "max_seconds": 0.44,
+      "median_seconds": 0.435,
+      "min_seconds": 0.43,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0454545454545454,
+      "max_seconds": 0.46,
+      "median_seconds": 0.44,
+      "min_seconds": 0.42,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0232558139534884,
+      "max_seconds": 0.44,
+      "median_seconds": 0.43,
+      "min_seconds": 0.41,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0238095238095237,
+      "max_seconds": 0.43,
+      "median_seconds": 0.42,
+      "min_seconds": 0.41,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "AOF commit order crossing": {
+      "basis": "own-row-history",
+      "max_over_median": 1.056203605514316,
+      "max_seconds": 4.98,
+      "median_seconds": 4.715,
+      "min_seconds": 4.45,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "AOF commit order rewrite": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0197802197802197,
+      "max_seconds": 4.64,
+      "median_seconds": 4.55,
+      "min_seconds": 4.46,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "AOF commit order single": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0077120822622108,
+      "max_seconds": 9.8,
+      "median_seconds": 9.725000000000001,
+      "min_seconds": 9.65,
+      "samples": 2,
+      "timeout_seconds": 39
+    },
+    "AOF control frame never inside a large record (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0571428571428572,
+      "max_seconds": 0.37,
+      "median_seconds": 0.35,
+      "min_seconds": 0.33,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "AOF control frame never inside a large record (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.33,
+      "median_seconds": 0.33,
+      "min_seconds": 0.33,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "AOF directed group interruption fired": {
+      "basis": "own-row-history",
+      "max_over_median": 4.285714285714286,
+      "max_seconds": 0.3,
+      "median_seconds": 0.07,
+      "min_seconds": 0.05,
+      "samples": 5,
+      "timeout_seconds": 30
+    },
+    "AOF everysec durability window + tail warning": {
+      "basis": "own-row-history",
+      "max_over_median": 1.5,
+      "max_seconds": 0.03,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 5,
+      "timeout_seconds": 30
+    },
+    "AOF everysec write gate + idle sync fired": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.3,
+      "median_seconds": 1.3,
+      "min_seconds": 1.3,
+      "samples": 5,
+      "timeout_seconds": 30
+    },
+    "AOF group shutdown invariants": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 5,
+      "timeout_seconds": 30
+    },
+    "AOF in-window kill recovery (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0055248618784531,
+      "max_seconds": 0.91,
+      "median_seconds": 0.905,
+      "min_seconds": 0.9,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "AOF in-window kill recovery (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1931818181818181,
+      "max_seconds": 1.05,
+      "median_seconds": 0.88,
+      "min_seconds": 0.88,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "AOF in-window kill recovery (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0055248618784531,
+      "max_seconds": 0.91,
+      "median_seconds": 0.905,
+      "min_seconds": 0.9,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "AOF in-window kill recovery (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1123595505617978,
+      "max_seconds": 0.99,
+      "median_seconds": 0.89,
+      "min_seconds": 0.88,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "AOF in-window term recovery (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0114416475972539,
+      "max_seconds": 2.21,
+      "median_seconds": 2.185,
+      "min_seconds": 2.16,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "AOF in-window term recovery (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.2395833333333333,
+      "max_seconds": 3.57,
+      "median_seconds": 2.88,
+      "min_seconds": 2.83,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "AOF in-window term recovery (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.010615711252654,
+      "max_seconds": 2.38,
+      "median_seconds": 2.355,
+      "min_seconds": 2.33,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "AOF in-window term recovery (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1630901287553648,
+      "max_seconds": 2.71,
+      "median_seconds": 2.33,
+      "min_seconds": 1.83,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "AOF native snapshot streams byte-exact": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.04,
+      "median_seconds": 0.04,
+      "min_seconds": 0.03,
+      "samples": 10,
+      "timeout_seconds": 30
+    },
+    "AOF no-sync bypassed sync + reply gate": {
+      "basis": "own-row-history",
+      "max_over_median": 1.5,
+      "max_seconds": 0.03,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 5,
+      "timeout_seconds": 30
+    },
+    "AOF process-restart script replay (epoll, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "AOF process-restart script replay (epoll, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1111111111111112,
+      "max_seconds": 0.05,
+      "median_seconds": 0.045,
+      "min_seconds": 0.04,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "AOF process-restart script replay (uring, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.04,
+      "median_seconds": 0.04,
+      "min_seconds": 0.04,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "AOF process-restart script replay (uring, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.04,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "AOF publication/shutdown witnesses + negative controls": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1666666666666667,
+      "max_seconds": 0.07,
+      "median_seconds": 0.060000000000000005,
+      "min_seconds": 0.05,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "AOF replay fired (records=N skipped=N)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.0,
+      "samples": 10,
+      "timeout_seconds": 30
+    },
+    "AOF rewrite atomic/stage/corruption matrix": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0588235294117647,
+      "max_seconds": 5.58,
+      "median_seconds": 5.27,
+      "min_seconds": 5.21,
+      "samples": 5,
+      "timeout_seconds": 30
+    },
+    "AOF rewrite triggers + observability matrix": {
+      "basis": "own-row-history",
+      "max_over_median": 1.055956678700361,
+      "max_seconds": 5.85,
+      "median_seconds": 5.54,
+      "min_seconds": 5.45,
+      "samples": 5,
+      "timeout_seconds": 30
+    },
+    "AOF writer fired (records=N)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.04,
+      "median_seconds": 0.04,
+      "min_seconds": 0.04,
+      "samples": 10,
+      "timeout_seconds": 30
+    },
+    "AOF-off negative control lost data": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 5,
+      "timeout_seconds": 30
+    },
+    "AOF-off negative-control seed landed": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.0,
+      "samples": 5,
+      "timeout_seconds": 30
+    },
+    "ASAN build": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.9702602230483273,
+      "max_seconds": 76.85,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 39.004999999999995,
+      "min_seconds": 1.16,
+      "samples": 2,
+      "timeout_seconds": 900.0
+    },
+    "ASAN clean": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "DUMP/RESTORE cross-restart round-trip": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "DUMP/RESTORE prepare + native SAVE": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.06,
+      "median_seconds": 0.06,
+      "min_seconds": 0.06,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "DUMP/RESTORE restart shutdown invariants": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "EXEC fast-lane polls": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0008232388568739,
+      "max_seconds": 42.55,
+      "median_seconds": 42.515,
+      "min_seconds": 42.48,
+      "samples": 2,
+      "timeout_seconds": 171
+    },
+    "EXECABORT releases WATCH reservation": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1111111111111112,
+      "max_seconds": 0.1,
+      "median_seconds": 0.09,
+      "min_seconds": 0.08,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "FLIP TTL + expiry events": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0034602076124568,
+      "max_seconds": 1.45,
+      "median_seconds": 1.4449999999999998,
+      "min_seconds": 1.44,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "FLIP applies under saturated load": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0032948929159802,
+      "max_seconds": 6.09,
+      "median_seconds": 6.07,
+      "min_seconds": 6.05,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "FLIP close during FLIP (epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0092592592592593,
+      "max_seconds": 2.18,
+      "median_seconds": 2.16,
+      "min_seconds": 2.14,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "FLIP close during FLIP (uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0180995475113122,
+      "max_seconds": 2.25,
+      "median_seconds": 2.21,
+      "min_seconds": 2.17,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "FLIP fingerprint publication (ASAN+TSAN)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.037037037037037,
+      "max_seconds": 0.14,
+      "median_seconds": 0.135,
+      "min_seconds": 0.13,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "FLIP listener conservation (ex-io, complete)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0011959678797198,
+      "max_seconds": 29.3,
+      "median_seconds": 29.265,
+      "min_seconds": 29.23,
+      "samples": 2,
+      "timeout_seconds": 118
+    },
+    "FLIP listener conservation (ex-io, rollback)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0402640264026404,
+      "max_seconds": 31.52,
+      "median_seconds": 30.299999999999997,
+      "min_seconds": 29.08,
+      "samples": 2,
+      "timeout_seconds": 122
+    },
+    "FLIP listener conservation (io-ex, complete)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.006169751542438,
+      "max_seconds": 30.17,
+      "median_seconds": 29.985,
+      "min_seconds": 29.8,
+      "samples": 2,
+      "timeout_seconds": 120
+    },
+    "FLIP listener conservation (io-ex, rollback)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 29.71,
+      "median_seconds": 29.71,
+      "min_seconds": 29.71,
+      "samples": 2,
+      "timeout_seconds": 119
+    },
+    "FLIP planned-connection close lifetime (ASAN+TSAN)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.5737704918032787,
+      "max_seconds": 0.48,
+      "median_seconds": 0.305,
+      "min_seconds": 0.13,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "FLIP signal stop during FLIP + second SIGINT": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0128755364806865,
+      "max_seconds": 1.18,
+      "median_seconds": 1.165,
+      "min_seconds": 1.15,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "FLIP state battery": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0344827586206895,
+      "max_seconds": 0.15,
+      "median_seconds": 0.14500000000000002,
+      "min_seconds": 0.14,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "FLIP under verified load": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.04,
+      "median_seconds": 1.04,
+      "min_seconds": 1.04,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "Lua feature battery": {
+      "basis": "own-row-history",
+      "max_over_median": 1.2,
+      "max_seconds": 0.03,
+      "median_seconds": 0.025,
+      "min_seconds": 0.02,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "MULTI admin command replies": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0454545454545454,
+      "max_seconds": 0.23,
+      "median_seconds": 0.22,
+      "min_seconds": 0.21,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "MULTI feature battery": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0024096385542167,
+      "max_seconds": 2.08,
+      "median_seconds": 2.075,
+      "min_seconds": 2.07,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "RYOW battery": {
+      "basis": "own-row-history",
+      "max_over_median": 1.03,
+      "max_seconds": 1.03,
+      "median_seconds": 1.0,
+      "min_seconds": 0.97,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "RYOW under ASAN": {
+      "basis": "own-row-history",
+      "max_over_median": 1.005128205128205,
+      "max_seconds": 0.98,
+      "median_seconds": 0.975,
+      "min_seconds": 0.97,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "Redis 7.4 differential part (armed fused, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.003248144937752,
+      "max_seconds": 526.62,
+      "median_seconds": 524.915,
+      "min_seconds": 523.21,
+      "samples": 2,
+      "timeout_seconds": 2100
+    },
+    "Redis 7.4 differential part (armed fused, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0038150552328893,
+      "max_seconds": 528.87,
+      "median_seconds": 526.86,
+      "min_seconds": 524.85,
+      "samples": 2,
+      "timeout_seconds": 2108
+    },
+    "Redis 7.4 differential part (split, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.002201332136615,
+      "max_seconds": 530.39,
+      "median_seconds": 529.2249999999999,
+      "min_seconds": 528.06,
+      "samples": 2,
+      "timeout_seconds": 2117
+    },
+    "Redis 7.4 differential part (split, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0040447835430801,
+      "max_seconds": 534.94,
+      "median_seconds": 532.7850000000001,
+      "min_seconds": 530.63,
+      "samples": 2,
+      "timeout_seconds": 2132
+    },
+    "aclsel battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aclsel battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 error (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.18,
+      "median_seconds": 0.18,
+      "min_seconds": 0.18,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "aoffix2 error (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1111111111111112,
+      "max_seconds": 0.2,
+      "median_seconds": 0.18,
+      "min_seconds": 0.17,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "aoffix2 error (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.027027027027027,
+      "max_seconds": 0.19,
+      "median_seconds": 0.185,
+      "min_seconds": 0.18,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "aoffix2 error (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0588235294117645,
+      "max_seconds": 0.18,
+      "median_seconds": 0.17,
+      "min_seconds": 0.17,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "aoffix2 exec_tickets (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0442477876106195,
+      "max_seconds": 0.59,
+      "median_seconds": 0.565,
+      "min_seconds": 0.54,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "aoffix2 exec_tickets (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0714285714285714,
+      "max_seconds": 0.6,
+      "median_seconds": 0.56,
+      "min_seconds": 0.54,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "aoffix2 exec_tickets (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0085470085470085,
+      "max_seconds": 0.59,
+      "median_seconds": 0.585,
+      "min_seconds": 0.58,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "aoffix2 exec_tickets (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1272727272727272,
+      "max_seconds": 0.62,
+      "median_seconds": 0.55,
+      "min_seconds": 0.54,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "aoffix2 filename (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.023102310231023,
+      "max_seconds": 1.55,
+      "median_seconds": 1.5150000000000001,
+      "min_seconds": 1.48,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "aoffix2 filename (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1013513513513513,
+      "max_seconds": 1.63,
+      "median_seconds": 1.48,
+      "min_seconds": 1.42,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "aoffix2 filename (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.57,
+      "median_seconds": 1.57,
+      "min_seconds": 1.57,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "aoffix2 filename (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0457516339869282,
+      "max_seconds": 1.6,
+      "median_seconds": 1.53,
+      "min_seconds": 1.51,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "aoffix2 large (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.35,
+      "median_seconds": 0.35,
+      "min_seconds": 0.35,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "aoffix2 large (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0588235294117645,
+      "max_seconds": 0.36,
+      "median_seconds": 0.34,
+      "min_seconds": 0.34,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "aoffix2 large_placed (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0243902439024388,
+      "max_seconds": 0.21,
+      "median_seconds": 0.20500000000000002,
+      "min_seconds": 0.2,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "aoffix2 large_placed (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0499999999999998,
+      "max_seconds": 0.21,
+      "median_seconds": 0.2,
+      "min_seconds": 0.2,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "aoffix2 manifest_missing (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0158730158730158,
+      "max_seconds": 0.32,
+      "median_seconds": 0.315,
+      "min_seconds": 0.31,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "aoffix2 manifest_missing (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0645161290322582,
+      "max_seconds": 0.33,
+      "median_seconds": 0.31,
+      "min_seconds": 0.31,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "aoffix2 manifest_missing (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.32,
+      "median_seconds": 0.32,
+      "min_seconds": 0.32,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "aoffix2 manifest_missing (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0666666666666667,
+      "max_seconds": 0.32,
+      "median_seconds": 0.3,
+      "min_seconds": 0.3,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "aoffix2 off-writer acknowledgement always (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0163934426229508,
+      "max_seconds": 0.31,
+      "median_seconds": 0.305,
+      "min_seconds": 0.3,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "aoffix2 off-writer acknowledgement always (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1034482758620692,
+      "max_seconds": 0.32,
+      "median_seconds": 0.29,
+      "min_seconds": 0.28,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "aoffix2 off-writer acknowledgement always (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0476190476190477,
+      "max_seconds": 0.33,
+      "median_seconds": 0.315,
+      "min_seconds": 0.3,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "aoffix2 off-writer acknowledgement always (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0689655172413794,
+      "max_seconds": 0.31,
+      "median_seconds": 0.29,
+      "min_seconds": 0.28,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "aoffix2 off-writer acknowledgement everysec (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0163934426229508,
+      "max_seconds": 0.31,
+      "median_seconds": 0.305,
+      "min_seconds": 0.3,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "aoffix2 off-writer acknowledgement everysec (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0714285714285714,
+      "max_seconds": 0.3,
+      "median_seconds": 0.28,
+      "min_seconds": 0.27,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "aoffix2 off-writer acknowledgement everysec (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0163934426229508,
+      "max_seconds": 0.31,
+      "median_seconds": 0.305,
+      "min_seconds": 0.3,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "aoffix2 off-writer acknowledgement everysec (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0344827586206897,
+      "max_seconds": 0.3,
+      "median_seconds": 0.29,
+      "min_seconds": 0.28,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "aoffix2 resurrection (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0265486725663717,
+      "max_seconds": 0.58,
+      "median_seconds": 0.565,
+      "min_seconds": 0.55,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "aoffix2 resurrection (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0545454545454545,
+      "max_seconds": 0.58,
+      "median_seconds": 0.55,
+      "min_seconds": 0.55,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "aoffix2 resurrection (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.58,
+      "median_seconds": 0.58,
+      "min_seconds": 0.58,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "aoffix2 resurrection (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1272727272727272,
+      "max_seconds": 0.62,
+      "median_seconds": 0.55,
+      "min_seconds": 0.53,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "aoffix2 rewrite_fail2 (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.035294117647059,
+      "max_seconds": 0.44,
+      "median_seconds": 0.425,
+      "min_seconds": 0.41,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "aoffix2 rewrite_fail2 (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0238095238095237,
+      "max_seconds": 0.43,
+      "median_seconds": 0.42,
+      "min_seconds": 0.41,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "aoffix2 rewrite_fail2 (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0232558139534884,
+      "max_seconds": 0.44,
+      "median_seconds": 0.43,
+      "min_seconds": 0.42,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "aoffix2 rewrite_fail2 (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.024390243902439,
+      "max_seconds": 0.42,
+      "median_seconds": 0.41,
+      "min_seconds": 0.34,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "aoffix2 snapshot (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0112359550561798,
+      "max_seconds": 0.45,
+      "median_seconds": 0.445,
+      "min_seconds": 0.44,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "aoffix2 snapshot (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1627906976744187,
+      "max_seconds": 0.5,
+      "median_seconds": 0.43,
+      "min_seconds": 0.43,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "aoffix2 snapshot (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.45,
+      "median_seconds": 0.45,
+      "min_seconds": 0.45,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "aoffix2 snapshot (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0697674418604652,
+      "max_seconds": 0.46,
+      "median_seconds": 0.43,
+      "min_seconds": 0.42,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "aoffix2 tickets (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0178571428571426,
+      "max_seconds": 0.57,
+      "median_seconds": 0.56,
+      "min_seconds": 0.55,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "aoffix2 tickets (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0714285714285714,
+      "max_seconds": 0.6,
+      "median_seconds": 0.56,
+      "min_seconds": 0.55,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "aoffix2 tickets (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.58,
+      "median_seconds": 0.58,
+      "min_seconds": 0.58,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "aoffix2 tickets (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0535714285714284,
+      "max_seconds": 0.59,
+      "median_seconds": 0.56,
+      "min_seconds": 0.54,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "arity battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "arity battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "armed resize retirement: atomic-growth": {
+      "basis": "own-row-history",
+      "max_over_median": 1.9,
+      "max_seconds": 0.19,
+      "median_seconds": 0.1,
+      "min_seconds": 0.01,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "armed resize retirement: flush-prepared": {
+      "basis": "own-row-history",
+      "max_over_median": 2.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.005,
+      "min_seconds": 0.0,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "atomfix battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 2.0,
+      "max_seconds": 0.08,
+      "median_seconds": 0.04,
+      "min_seconds": 0.04,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "atomfix battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.04,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "atomfix5 WATCH key count (both modes, both engines, atomic 0/1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0025188916876575,
+      "max_seconds": 1.99,
+      "median_seconds": 1.9849999999999999,
+      "min_seconds": 1.98,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "atomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0039187744923406,
+      "max_seconds": 14.09,
+      "median_seconds": 14.035,
+      "min_seconds": 13.98,
+      "samples": 2,
+      "timeout_seconds": 57
+    },
+    "atomic RYOW under ASAN": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 4.07,
+      "median_seconds": 4.07,
+      "min_seconds": 4.07,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "atomic RYOW/mixed-write battery": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 4.06,
+      "median_seconds": 4.06,
+      "min_seconds": 4.06,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "atomic commit publication catches up at quiescence": {
+      "basis": "own-row-history",
+      "max_over_median": 2.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.01,
+      "min_seconds": 0.0,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "atomic owner-local hazard battery": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 4.24,
+      "median_seconds": 4.24,
+      "min_seconds": 4.24,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "atomic shutdown invariants": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: admission": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: closure": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: instruction_limit": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: library_limit": {
+      "basis": "own-row-history",
+      "max_over_median": 2.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.005,
+      "min_seconds": 0.0,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: lua_conversion": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.0,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: lua_lines": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: mset_arity": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: post_apply_probe": {
+      "basis": "own-row-history",
+      "max_over_median": 2.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.005,
+      "min_seconds": 0.0,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: rename_overlay": {
+      "basis": "own-row-history",
+      "max_over_median": 2.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.005,
+      "min_seconds": 0.0,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: script_apply": {
+      "basis": "own-row-history",
+      "max_over_median": 2.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.005,
+      "min_seconds": 0.0,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: script_keys": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: stage_flag": {
+      "basis": "own-row-history",
+      "max_over_median": 1.3333333333333335,
+      "max_seconds": 0.02,
+      "median_seconds": 0.015,
+      "min_seconds": 0.01,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: watch_cycle": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: watch_oom": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: watch_parent": {
+      "basis": "own-row-history",
+      "max_over_median": 2.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.005,
+      "min_seconds": 0.0,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: write_latest": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "atomic survivors unit build": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": null,
+      "max_seconds": 0.0,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 2,
+      "timeout_seconds": 900.0
+    },
+    "atomic torn/window battery": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 32.54,
+      "median_seconds": 32.54,
+      "min_seconds": 25.05,
+      "samples": 3,
+      "timeout_seconds": 131
+    },
+    "atomic torn/window under ASAN": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0005982053838485,
+      "max_seconds": 25.09,
+      "median_seconds": 25.075,
+      "min_seconds": 25.06,
+      "samples": 2,
+      "timeout_seconds": 101
+    },
+    "bitfield battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "bitfield battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "blocking battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.54,
+      "median_seconds": 1.54,
+      "min_seconds": 1.54,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "blocking battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.51,
+      "median_seconds": 1.51,
+      "min_seconds": 1.51,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "blocking feature battery": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0222222222222221,
+      "max_seconds": 1.61,
+      "median_seconds": 1.5750000000000002,
+      "min_seconds": 1.54,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "blockmulti battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.45,
+      "median_seconds": 0.45,
+      "min_seconds": 0.45,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "blockmulti battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.45,
+      "median_seconds": 0.45,
+      "min_seconds": 0.45,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "build dependency: core-concurrency-tsan": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 34.306345733041574,
+      "max_seconds": 78.39,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 2.285,
+      "min_seconds": 1.68,
+      "samples": 4,
+      "timeout_seconds": 900.0
+    },
+    "build dependency: make build/aoforder-scheduled,build/at15-db0-unit,build/at15-unit,build/atomic-survivors-unit,build/core-concurrency-unit,build/encodingfix-unit,build/exbatch-db0-unit,build/exbatch-unit,build/execabort-watch-db0-unit,build/execabort-watch-unit,build/expire-notify-unit,build/flushfix-units,build/ktls-keyupdate,build/ktls-keyupdate-unit,build/ktls-lifetime-unit,build/lbplanner-units,build/moverfix-db0-unit,build/moverfix-unit,build/multidb-boundary-unit,build/multidb-unit,build/netcap-unit,build/netcmd-unit,build/persistfix-units,build/publishfix-unit,build/racefix-climon,build/rehash-waits-unit,build/reorder-engagement-unit,build/reorder-engagement-unit-db0,build/respresume-migration,build/respresume-unit,build/rltopo-unit,build/shutdown-unit,build/splitlocal-unit,build/storesize-unit,build/txnorder-episodes,build/txnorder-episodes-debug,build/txnorder-index-db0-unit,build/txnorder-index-unit,build/txnorder-retry-unit,build/txnorder-wake-unit,build/txnorder-watch-db0-unit,build/txnorder-watch-unit,build/waits-unit,build/wb-rule-units,build/wbland-units": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 9938.666666666668,
+      "max_seconds": 596.32,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 0.06,
+      "min_seconds": 0.05,
+      "samples": 5,
+      "timeout_seconds": 1193
+    },
+    "build dependency: make build/blockfix-cost": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1020.25,
+      "max_seconds": 40.81,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 0.04,
+      "min_seconds": 0.03,
+      "samples": 5,
+      "timeout_seconds": 900.0
+    },
+    "build dependency: make default": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 2546.1111111111113,
+      "max_seconds": 229.15,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 0.09,
+      "min_seconds": 0.08,
+      "samples": 5,
+      "timeout_seconds": 900.0
+    },
+    "build dependency: store-regression": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 39.17391304347826,
+      "max_seconds": 9.01,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 0.23,
+      "min_seconds": 0.21,
+      "samples": 3,
+      "timeout_seconds": 900.0
+    },
+    "build dependency: store-regression-tsan": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 31.416666666666668,
+      "max_seconds": 7.54,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 0.24,
+      "min_seconds": 0.23,
+      "samples": 3,
+      "timeout_seconds": 900.0
+    },
+    "build dependency: waits-unit-tsan": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.0,
+      "max_seconds": 1.48,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 1.48,
+      "min_seconds": 1.48,
+      "samples": 1,
+      "timeout_seconds": 900.0
+    },
+    "climon battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.15,
+      "median_seconds": 1.15,
+      "min_seconds": 1.15,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "climon battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.14,
+      "median_seconds": 1.14,
+      "min_seconds": 1.14,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "climon2 battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 3.36,
+      "median_seconds": 3.36,
+      "min_seconds": 3.36,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "climon2 battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 3.34,
+      "median_seconds": 3.34,
+      "min_seconds": 3.34,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "cmdgap battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "cmdgap battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "concur battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.81,
+      "median_seconds": 2.81,
+      "min_seconds": 2.81,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "concur battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.78,
+      "median_seconds": 2.78,
+      "min_seconds": 2.78,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "configuration reduction + actual geometry (epoll, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.07,
+      "median_seconds": 0.07,
+      "min_seconds": 0.07,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "configuration reduction + actual geometry (epoll, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.07,
+      "median_seconds": 0.07,
+      "min_seconds": 0.07,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "configuration reduction + actual geometry (uring, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.07,
+      "median_seconds": 0.07,
+      "min_seconds": 0.07,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "configuration reduction + actual geometry (uring, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1428571428571428,
+      "max_seconds": 0.08,
+      "median_seconds": 0.07,
+      "min_seconds": 0.07,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "contarity battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "contarity battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "core concurrency config": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.17,
+      "median_seconds": 0.17,
+      "min_seconds": 0.17,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "core concurrency drain": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.11,
+      "median_seconds": 0.11,
+      "min_seconds": 0.11,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "core concurrency lifetime": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.32,
+      "median_seconds": 0.32,
+      "min_seconds": 0.32,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "core concurrency notify": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.18,
+      "median_seconds": 0.18,
+      "min_seconds": 0.18,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "core concurrency route": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 6.94,
+      "median_seconds": 6.94,
+      "min_seconds": 6.94,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "core concurrency snapshot": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.11,
+      "median_seconds": 0.11,
+      "min_seconds": 0.11,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "core concurrency watch": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.11,
+      "median_seconds": 0.11,
+      "min_seconds": 0.11,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "direct-reply fired (direct=N)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "dispatched==executed (N) [fused=0]": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.04,
+      "median_seconds": 0.04,
+      "min_seconds": 0.04,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "dispatched==executed (N) [fused=1]": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "dumprestore battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.06,
+      "median_seconds": 0.06,
+      "min_seconds": 0.06,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "dumprestore battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.06,
+      "median_seconds": 0.06,
+      "min_seconds": 0.06,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "edgeenc battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.35,
+      "median_seconds": 0.35,
+      "min_seconds": 0.35,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "edgeenc battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.34,
+      "median_seconds": 0.34,
+      "min_seconds": 0.34,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "edgeproto battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.58,
+      "median_seconds": 0.58,
+      "min_seconds": 0.58,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "edgeproto battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.62,
+      "median_seconds": 0.62,
+      "min_seconds": 0.62,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "edgetime battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 3.79,
+      "median_seconds": 3.79,
+      "min_seconds": 3.79,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "edgetime battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 3.6,
+      "median_seconds": 3.6,
+      "min_seconds": 3.6,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "execatomic battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 14.47,
+      "median_seconds": 14.47,
+      "min_seconds": 14.46,
+      "samples": 3,
+      "timeout_seconds": 58
+    },
+    "execatomic battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 14.47,
+      "median_seconds": 14.47,
+      "min_seconds": 14.47,
+      "samples": 3,
+      "timeout_seconds": 58
+    },
+    "execfix battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0217391304347825,
+      "max_seconds": 0.47,
+      "median_seconds": 0.46,
+      "min_seconds": 0.45,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "execfix battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0217391304347825,
+      "max_seconds": 0.47,
+      "median_seconds": 0.46,
+      "min_seconds": 0.46,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "execiso battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0008417508417509,
+      "max_seconds": 11.89,
+      "median_seconds": 11.88,
+      "min_seconds": 11.87,
+      "samples": 3,
+      "timeout_seconds": 48
+    },
+    "execiso battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 11.88,
+      "median_seconds": 11.88,
+      "min_seconds": 11.86,
+      "samples": 3,
+      "timeout_seconds": 48
+    },
+    "expwide battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 98.96,
+      "median_seconds": 98.96,
+      "min_seconds": 98.96,
+      "samples": 1,
+      "timeout_seconds": 396
+    },
+    "expwide battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 94.89,
+      "median_seconds": 94.89,
+      "min_seconds": 94.89,
+      "samples": 1,
+      "timeout_seconds": 380
+    },
+    "feature battery shutdown invariants": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "feature shutdown invariants (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "feature shutdown invariants (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "flip battery shutdown invariants": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "flip controller model unit": {
+      "basis": "own-row-history",
+      "max_over_median": 3.3168498168498166,
+      "max_seconds": 18.11,
+      "median_seconds": 5.46,
+      "min_seconds": 5.13,
+      "samples": 3,
+      "timeout_seconds": 37
+    },
+    "flip controller: ramp gate, hold, surge + mix re-maneuvers": {
+      "basis": "own-row-history",
+      "max_over_median": 1.007047056149125,
+      "max_seconds": 132.9,
+      "median_seconds": 131.97,
+      "min_seconds": 123.89,
+      "samples": 3,
+      "timeout_seconds": 528
+    },
+    "flushfix flush witnesses": {
+      "basis": "own-row-history",
+      "max_over_median": 1.040339702760085,
+      "max_seconds": 2.45,
+      "median_seconds": 2.355,
+      "min_seconds": 2.26,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "flushfix headers witnesses": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1111111111111112,
+      "max_seconds": 0.2,
+      "median_seconds": 0.18,
+      "min_seconds": 0.16,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "fused atomfix battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1111111111111112,
+      "max_seconds": 0.05,
+      "median_seconds": 0.045,
+      "min_seconds": 0.04,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "fused atomfix battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.04,
+      "median_seconds": 0.04,
+      "min_seconds": 0.04,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "fused boot line (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0188679245283019,
+      "max_seconds": 0.27,
+      "median_seconds": 0.265,
+      "min_seconds": 0.26,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "fused boot line (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.26,
+      "median_seconds": 0.26,
+      "min_seconds": 0.26,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "fused edgeproto battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.020979020979021,
+      "max_seconds": 0.73,
+      "median_seconds": 0.715,
+      "min_seconds": 0.7,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "fused edgeproto battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.020979020979021,
+      "max_seconds": 0.73,
+      "median_seconds": 0.715,
+      "min_seconds": 0.7,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "fused multi_exec battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.08,
+      "median_seconds": 2.08,
+      "min_seconds": 2.08,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "fused multi_exec battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.08,
+      "median_seconds": 2.08,
+      "min_seconds": 2.08,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "fused s6 battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0292887029288704,
+      "max_seconds": 1.23,
+      "median_seconds": 1.1949999999999998,
+      "min_seconds": 1.16,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "fused s6 battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0085470085470085,
+      "max_seconds": 1.18,
+      "median_seconds": 1.17,
+      "min_seconds": 1.16,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "fused shutdown report (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.16,
+      "median_seconds": 1.16,
+      "min_seconds": 1.16,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "fused shutdown report (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.16,
+      "median_seconds": 1.16,
+      "min_seconds": 1.16,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "fused spinprobe battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.23,
+      "median_seconds": 2.23,
+      "min_seconds": 2.23,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "fused spinprobe battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.23,
+      "median_seconds": 2.23,
+      "min_seconds": 2.23,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "fused txn_nx battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.5,
+      "median_seconds": 1.5,
+      "min_seconds": 1.5,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "fused txn_nx battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0190114068441065,
+      "max_seconds": 2.68,
+      "median_seconds": 2.63,
+      "min_seconds": 2.58,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "fused txngroup battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.000778816199377,
+      "max_seconds": 12.85,
+      "median_seconds": 12.84,
+      "min_seconds": 12.83,
+      "samples": 2,
+      "timeout_seconds": 52
+    },
+    "fused txniso battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0233853006681513,
+      "max_seconds": 9.19,
+      "median_seconds": 8.98,
+      "min_seconds": 8.77,
+      "samples": 2,
+      "timeout_seconds": 36
+    },
+    "fused txniso battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0347533632286996,
+      "max_seconds": 9.23,
+      "median_seconds": 8.92,
+      "min_seconds": 8.61,
+      "samples": 2,
+      "timeout_seconds": 36
+    },
+    "fused+armed aclsel battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed aclsel battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed arity battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed arity battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed bitfield battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.04,
+      "median_seconds": 0.04,
+      "min_seconds": 0.04,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed bitfield battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed blocking battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.6,
+      "median_seconds": 1.6,
+      "min_seconds": 1.6,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed blocking battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.63,
+      "median_seconds": 1.63,
+      "min_seconds": 1.63,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed blockmulti battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.45,
+      "median_seconds": 0.45,
+      "min_seconds": 0.45,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed blockmulti battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.45,
+      "median_seconds": 0.45,
+      "min_seconds": 0.45,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed boot line (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.26,
+      "median_seconds": 0.26,
+      "min_seconds": 0.26,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed boot line (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.26,
+      "median_seconds": 0.26,
+      "min_seconds": 0.26,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed climon battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.13,
+      "median_seconds": 1.13,
+      "min_seconds": 1.13,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed climon battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.12,
+      "median_seconds": 1.12,
+      "min_seconds": 1.12,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed climon2 battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 3.34,
+      "median_seconds": 3.34,
+      "min_seconds": 3.34,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed climon2 battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 3.37,
+      "median_seconds": 3.37,
+      "min_seconds": 3.37,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed cmdgap battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed cmdgap battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed concur battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.82,
+      "median_seconds": 2.82,
+      "min_seconds": 2.82,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed concur battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.81,
+      "median_seconds": 2.81,
+      "min_seconds": 2.81,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed contarity battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed contarity battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed dumprestore battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.06,
+      "median_seconds": 0.06,
+      "min_seconds": 0.06,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed dumprestore battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.06,
+      "median_seconds": 0.06,
+      "min_seconds": 0.06,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed edgeenc battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.37,
+      "median_seconds": 0.37,
+      "min_seconds": 0.37,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed edgeenc battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.38,
+      "median_seconds": 0.38,
+      "min_seconds": 0.38,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed edgeproto battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.74,
+      "median_seconds": 0.74,
+      "min_seconds": 0.74,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed edgeproto battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.73,
+      "median_seconds": 0.73,
+      "min_seconds": 0.73,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed edgetime battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 3.79,
+      "median_seconds": 3.79,
+      "min_seconds": 3.79,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed edgetime battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 3.81,
+      "median_seconds": 3.81,
+      "min_seconds": 3.81,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed expwide battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 53.43,
+      "median_seconds": 53.43,
+      "min_seconds": 53.43,
+      "samples": 1,
+      "timeout_seconds": 214
+    },
+    "fused+armed expwide battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 47.86,
+      "median_seconds": 47.86,
+      "min_seconds": 47.86,
+      "samples": 1,
+      "timeout_seconds": 192
+    },
+    "fused+armed geo battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed geo battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed hexpire battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 3.05,
+      "median_seconds": 3.05,
+      "min_seconds": 3.05,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed hexpire battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 3.05,
+      "median_seconds": 3.05,
+      "min_seconds": 3.05,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed infofix battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 4.15,
+      "median_seconds": 4.15,
+      "min_seconds": 4.15,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed infofix battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 4.2,
+      "median_seconds": 4.2,
+      "min_seconds": 4.2,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed lcs battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.16,
+      "median_seconds": 0.16,
+      "min_seconds": 0.16,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed lcs battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.16,
+      "median_seconds": 0.16,
+      "min_seconds": 0.16,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed limits battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 15.28,
+      "median_seconds": 15.28,
+      "min_seconds": 15.28,
+      "samples": 1,
+      "timeout_seconds": 62
+    },
+    "fused+armed limits battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 15.14,
+      "median_seconds": 15.14,
+      "min_seconds": 15.14,
+      "samples": 1,
+      "timeout_seconds": 61
+    },
+    "fused+armed lua_scripting battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed lua_scripting battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed multi_exec battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.08,
+      "median_seconds": 2.08,
+      "min_seconds": 2.08,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed multi_exec battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.07,
+      "median_seconds": 2.07,
+      "min_seconds": 2.07,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed netcmd battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed netcmd battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed pubsub battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.91,
+      "median_seconds": 0.91,
+      "min_seconds": 0.91,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed pubsub battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.89,
+      "median_seconds": 0.89,
+      "min_seconds": 0.89,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed pushtear battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 5.43,
+      "median_seconds": 5.43,
+      "min_seconds": 5.43,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed pushtear battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 5.44,
+      "median_seconds": 5.44,
+      "min_seconds": 5.44,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed resp3 battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed resp3 battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed s6 battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.17,
+      "median_seconds": 1.17,
+      "min_seconds": 1.17,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed s6 battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.18,
+      "median_seconds": 1.18,
+      "min_seconds": 1.18,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed scriptsurf battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed scriptsurf battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed servertail battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.57,
+      "median_seconds": 0.57,
+      "min_seconds": 0.57,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed servertail battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.57,
+      "median_seconds": 0.57,
+      "min_seconds": 0.57,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed shutdown report + lane fired (hits=N, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.17,
+      "median_seconds": 1.17,
+      "min_seconds": 1.17,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed shutdown report + lane fired (hits=N, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.16,
+      "median_seconds": 1.16,
+      "min_seconds": 1.16,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed stream battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.51,
+      "median_seconds": 0.51,
+      "min_seconds": 0.51,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed stream battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.52,
+      "median_seconds": 0.52,
+      "min_seconds": 0.52,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed streamgroups battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed streamgroups battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed tracking battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 13.24,
+      "median_seconds": 13.24,
+      "min_seconds": 13.24,
+      "samples": 1,
+      "timeout_seconds": 53
+    },
+    "fused+armed tracking battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 13.24,
+      "median_seconds": 13.24,
+      "min_seconds": 13.24,
+      "samples": 1,
+      "timeout_seconds": 53
+    },
+    "fused+armed zsetops battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused+armed zsetops battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "geo battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "geo battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "hexpire battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 3.29,
+      "median_seconds": 3.29,
+      "min_seconds": 3.29,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "hexpire battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 3.29,
+      "median_seconds": 3.29,
+      "min_seconds": 3.29,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "idle loop ceiling (LBSIGNALS, 1s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.03,
+      "median_seconds": 1.03,
+      "min_seconds": 1.03,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "infofix battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 4.2,
+      "median_seconds": 4.2,
+      "min_seconds": 4.2,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "infofix battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 4.2,
+      "median_seconds": 4.2,
+      "min_seconds": 4.2,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "iofix IO4.17 immediate signal shutdown": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0002710761724043,
+      "max_seconds": 18.45,
+      "median_seconds": 18.445,
+      "min_seconds": 18.44,
+      "samples": 2,
+      "timeout_seconds": 74
+    },
+    "keyspace notification battery (atomic 0/1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0007578218036157,
+      "max_seconds": 46.22,
+      "median_seconds": 46.185,
+      "min_seconds": 46.15,
+      "samples": 2,
+      "timeout_seconds": 185
+    },
+    "lbsignals battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.16,
+      "median_seconds": 0.16,
+      "min_seconds": 0.16,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "lbsignals battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.17,
+      "median_seconds": 0.17,
+      "min_seconds": 0.16,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "lcs battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.16,
+      "median_seconds": 0.16,
+      "min_seconds": 0.16,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "lcs battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.15,
+      "median_seconds": 0.15,
+      "min_seconds": 0.15,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "limits battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 14.75,
+      "median_seconds": 14.75,
+      "min_seconds": 14.75,
+      "samples": 1,
+      "timeout_seconds": 59
+    },
+    "limits battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 15.06,
+      "median_seconds": 15.06,
+      "min_seconds": 15.06,
+      "samples": 1,
+      "timeout_seconds": 61
+    },
+    "local script notification AOF vs Redis 7.4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0004178854993733,
+      "max_seconds": 11.97,
+      "median_seconds": 11.965,
+      "min_seconds": 11.96,
+      "samples": 2,
+      "timeout_seconds": 48
+    },
+    "lua_scripting battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "lua_scripting battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "lualibs CC4.7 vs Redis 7.4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0003944773175542,
+      "max_seconds": 38.04,
+      "median_seconds": 38.025,
+      "min_seconds": 38.01,
+      "samples": 2,
+      "timeout_seconds": 153
+    },
+    "mode equivalence part (all execution modes and knobs)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.004186046511628,
+      "max_seconds": 21.59,
+      "median_seconds": 21.5,
+      "min_seconds": 21.41,
+      "samples": 2,
+      "timeout_seconds": 86
+    },
+    "moverfix conservation (1s, epoll, databases 1, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.002020202020202,
+      "max_seconds": 2.48,
+      "median_seconds": 2.475,
+      "min_seconds": 2.47,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "moverfix conservation (1s, epoll, databases 16, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0120481927710843,
+      "max_seconds": 2.52,
+      "median_seconds": 2.49,
+      "min_seconds": 2.46,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "moverfix conservation (1s, uring, databases 1, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.006012024048096,
+      "max_seconds": 2.51,
+      "median_seconds": 2.495,
+      "min_seconds": 2.48,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "moverfix conservation (1s, uring, databases 16, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0641509433962264,
+      "max_seconds": 2.82,
+      "median_seconds": 2.65,
+      "min_seconds": 2.48,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "moverfix conservation (2s, epoll, databases 1, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.5,
+      "median_seconds": 2.5,
+      "min_seconds": 2.5,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "moverfix conservation (2s, epoll, databases 16, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.002004008016032,
+      "max_seconds": 2.5,
+      "median_seconds": 2.495,
+      "min_seconds": 2.49,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "moverfix conservation (2s, uring, databases 1, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.001996007984032,
+      "max_seconds": 2.51,
+      "median_seconds": 2.505,
+      "min_seconds": 2.5,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "moverfix conservation (2s, uring, databases 16, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.5,
+      "median_seconds": 2.5,
+      "min_seconds": 2.5,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "multi_exec battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.07,
+      "median_seconds": 2.07,
+      "min_seconds": 2.07,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "multi_exec battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.08,
+      "median_seconds": 2.08,
+      "min_seconds": 2.08,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "multidb global namespace boundary": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "multidb serverless owners": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0312075983717774,
+      "max_seconds": 3.8,
+      "median_seconds": 3.6849999999999996,
+      "min_seconds": 3.57,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "multirace battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0266666666666666,
+      "max_seconds": 0.77,
+      "median_seconds": 0.75,
+      "min_seconds": 0.74,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "multirace battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.76,
+      "median_seconds": 0.76,
+      "min_seconds": 0.74,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "multires battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.3333333333333335,
+      "max_seconds": 0.16,
+      "median_seconds": 0.12,
+      "min_seconds": 0.12,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "multires battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.25,
+      "max_seconds": 0.15,
+      "median_seconds": 0.12,
+      "min_seconds": 0.11,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "netcmd battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "netcmd battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "partial-frame conn parks (no io spin)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.23,
+      "median_seconds": 2.23,
+      "min_seconds": 2.23,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "perfio stale epoll registration (epoll-flip)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0091743119266054,
+      "max_seconds": 0.55,
+      "median_seconds": 0.545,
+      "min_seconds": 0.54,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "perfio stale epoll registration (epoll-lb)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0045248868778283,
+      "max_seconds": 1.11,
+      "median_seconds": 1.105,
+      "min_seconds": 1.1,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "persistfix2 AOF write-error refusal and read availability": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0070921985815602,
+      "max_seconds": 4.26,
+      "median_seconds": 4.23,
+      "min_seconds": 4.2,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "persistfix2 LASTSAVE and rewrite INFO": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0371287128712872,
+      "max_seconds": 8.38,
+      "median_seconds": 8.08,
+      "min_seconds": 7.86,
+      "samples": 3,
+      "timeout_seconds": 33
+    },
+    "persistfix2 persistence command replies and scheduling": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0037729069349624,
+      "max_seconds": 55.87,
+      "median_seconds": 55.66,
+      "min_seconds": 55.45,
+      "samples": 2,
+      "timeout_seconds": 223
+    },
+    "persistfix2 shutdown modifiers and signal policy": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0260626745268382,
+      "max_seconds": 66.14,
+      "median_seconds": 64.46000000000001,
+      "min_seconds": 62.78,
+      "samples": 2,
+      "timeout_seconds": 258
+    },
+    "plain-write lost updates (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0877005347593582,
+      "max_seconds": 10.17,
+      "median_seconds": 9.35,
+      "min_seconds": 9.16,
+      "samples": 3,
+      "timeout_seconds": 38
+    },
+    "plain-write lost updates (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.160453808752026,
+      "max_seconds": 7.16,
+      "median_seconds": 6.17,
+      "min_seconds": 6.16,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "production source identity + stable assertion ids": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0023872242344418,
+      "max_seconds": 121.77,
+      "median_seconds": 121.48,
+      "min_seconds": 115.68,
+      "samples": 3,
+      "timeout_seconds": 486
+    },
+    "pubsub battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.88,
+      "median_seconds": 0.88,
+      "min_seconds": 0.88,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "pubsub battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.91,
+      "median_seconds": 0.91,
+      "min_seconds": 0.91,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "pubsub feature battery": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0113636363636365,
+      "max_seconds": 0.89,
+      "median_seconds": 0.88,
+      "min_seconds": 0.87,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "pushtear battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.93,
+      "median_seconds": 2.93,
+      "min_seconds": 2.93,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "pushtear battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 5.44,
+      "median_seconds": 5.44,
+      "min_seconds": 5.44,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "read-local topology demotion (1s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.81,
+      "median_seconds": 0.81,
+      "min_seconds": 0.81,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "read-local topology demotion (2s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.58,
+      "median_seconds": 0.58,
+      "min_seconds": 0.58,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "reads never wait for retirement quiescence": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.0,
+      "max_seconds": 1.01,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 1.01,
+      "min_seconds": 1.01,
+      "samples": 1,
+      "timeout_seconds": 900.0
+    },
+    "release build (+footprint locks)": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.6666666666666667,
+      "max_seconds": 0.05,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 7,
+      "timeout_seconds": 900.0
+    },
+    "release build (+footprint locks) [external-candidate]": {
+      "basis": "own-row-history",
+      "max_over_median": 2.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.005,
+      "min_seconds": 0.0,
+      "samples": 4,
+      "timeout_seconds": 30
+    },
+    "resp3 battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "resp3 battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "s6 battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.45,
+      "median_seconds": 2.45,
+      "min_seconds": 2.45,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "s6 battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.44,
+      "median_seconds": 2.44,
+      "min_seconds": 2.44,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "scriptatomic battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.04,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "scriptatomic battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.04,
+      "median_seconds": 0.04,
+      "min_seconds": 0.04,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "scriptfix dump (1s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0054054054054054,
+      "max_seconds": 0.93,
+      "median_seconds": 0.925,
+      "min_seconds": 0.92,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "scriptfix dump (2s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0054054054054054,
+      "max_seconds": 0.93,
+      "median_seconds": 0.925,
+      "min_seconds": 0.92,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "scriptfix functions (1s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0434782608695652,
+      "max_seconds": 0.12,
+      "median_seconds": 0.11499999999999999,
+      "min_seconds": 0.11,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "scriptfix functions (2s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.11,
+      "median_seconds": 0.11,
+      "min_seconds": 0.11,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "scriptfix replies (1s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0071942446043165,
+      "max_seconds": 0.7,
+      "median_seconds": 0.695,
+      "min_seconds": 0.69,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "scriptfix replies (2s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.006993006993007,
+      "max_seconds": 0.72,
+      "median_seconds": 0.715,
+      "min_seconds": 0.71,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "scriptfix sandbox (1s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.11,
+      "median_seconds": 0.11,
+      "min_seconds": 0.11,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "scriptfix sandbox (2s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0434782608695652,
+      "max_seconds": 0.12,
+      "median_seconds": 0.11499999999999999,
+      "min_seconds": 0.11,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "scriptsurf battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.08,
+      "median_seconds": 0.08,
+      "min_seconds": 0.08,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "scriptsurf battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "serverfix SV4.5 WAITAOF wait lifecycle": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0007262164124908,
+      "max_seconds": 6.89,
+      "median_seconds": 6.885,
+      "min_seconds": 6.88,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "servertail battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.58,
+      "median_seconds": 0.58,
+      "min_seconds": 0.58,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "servertail battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.56,
+      "median_seconds": 0.56,
+      "min_seconds": 0.56,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "session_monotonic battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0006550933508025,
+      "max_seconds": 30.55,
+      "median_seconds": 30.53,
+      "min_seconds": 30.49,
+      "samples": 3,
+      "timeout_seconds": 123
+    },
+    "session_monotonic battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0003275466754011,
+      "max_seconds": 30.54,
+      "median_seconds": 30.53,
+      "min_seconds": 30.5,
+      "samples": 3,
+      "timeout_seconds": 123
+    },
+    "shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0691489361702127,
+      "max_seconds": 2.01,
+      "median_seconds": 1.88,
+      "min_seconds": 1.75,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "shutdown cancels AOF rewrite capture (1s, atomic 0, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0052083333333333,
+      "max_seconds": 1.93,
+      "median_seconds": 1.92,
+      "min_seconds": 1.89,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0025062656641603,
+      "max_seconds": 2.0,
+      "median_seconds": 1.995,
+      "min_seconds": 1.99,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "shutdown cancels AOF rewrite capture (1s, atomic 1, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0261780104712042,
+      "max_seconds": 1.96,
+      "median_seconds": 1.91,
+      "min_seconds": 1.84,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.017283950617284,
+      "max_seconds": 2.06,
+      "median_seconds": 2.025,
+      "min_seconds": 1.99,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "shutdown cancels AOF rewrite capture (2s, atomic 0, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.2102564102564102,
+      "max_seconds": 2.36,
+      "median_seconds": 1.95,
+      "min_seconds": 1.95,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0212765957446808,
+      "max_seconds": 2.16,
+      "median_seconds": 2.115,
+      "min_seconds": 2.07,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "shutdown cancels AOF rewrite capture (2s, atomic 1, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1365853658536587,
+      "max_seconds": 2.33,
+      "median_seconds": 2.05,
+      "min_seconds": 1.99,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "shutdown cancels BGSAVE capture (1s, atomic 0, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.02,
+      "max_seconds": 1.02,
+      "median_seconds": 1.0,
+      "min_seconds": 0.98,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "shutdown cancels BGSAVE capture (1s, atomic 0, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0384615384615385,
+      "max_seconds": 1.08,
+      "median_seconds": 1.04,
+      "min_seconds": 0.99,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "shutdown cancels BGSAVE capture (1s, atomic 1, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.03,
+      "max_seconds": 1.03,
+      "median_seconds": 1.0,
+      "min_seconds": 0.97,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "shutdown cancels BGSAVE capture (1s, atomic 1, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.029126213592233,
+      "max_seconds": 1.06,
+      "median_seconds": 1.03,
+      "min_seconds": 0.96,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "shutdown cancels BGSAVE capture (2s, atomic 0, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0228310502283104,
+      "max_seconds": 1.12,
+      "median_seconds": 1.0950000000000002,
+      "min_seconds": 1.07,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "shutdown cancels BGSAVE capture (2s, atomic 0, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0714285714285714,
+      "max_seconds": 1.2,
+      "median_seconds": 1.12,
+      "min_seconds": 1.07,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "shutdown cancels BGSAVE capture (2s, atomic 1, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0181818181818183,
+      "max_seconds": 1.12,
+      "median_seconds": 1.1,
+      "min_seconds": 1.08,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "shutdown cancels BGSAVE capture (2s, atomic 1, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0089285714285712,
+      "max_seconds": 1.13,
+      "median_seconds": 1.12,
+      "min_seconds": 1.06,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "shutdown invariants (nothing stuck)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1111111111111112,
+      "max_seconds": 0.05,
+      "median_seconds": 0.045,
+      "min_seconds": 0.04,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "shutdown keeps acknowledged writes (1s, command, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.087912087912088,
+      "max_seconds": 0.99,
+      "median_seconds": 0.9099999999999999,
+      "min_seconds": 0.83,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "shutdown keeps acknowledged writes (1s, command, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.101123595505618,
+      "max_seconds": 0.98,
+      "median_seconds": 0.89,
+      "min_seconds": 0.81,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "shutdown keeps acknowledged writes (1s, sigterm, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0828729281767955,
+      "max_seconds": 0.98,
+      "median_seconds": 0.905,
+      "min_seconds": 0.83,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "shutdown keeps acknowledged writes (1s, sigterm, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1666666666666667,
+      "max_seconds": 0.98,
+      "median_seconds": 0.84,
+      "min_seconds": 0.81,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "shutdown keeps acknowledged writes (2s, command, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0869565217391306,
+      "max_seconds": 1.0,
+      "median_seconds": 0.9199999999999999,
+      "min_seconds": 0.84,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "shutdown keeps acknowledged writes (2s, command, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1222222222222222,
+      "max_seconds": 1.01,
+      "median_seconds": 0.9,
+      "min_seconds": 0.82,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "shutdown keeps acknowledged writes (2s, sigterm, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.081081081081081,
+      "max_seconds": 1.0,
+      "median_seconds": 0.925,
+      "min_seconds": 0.85,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "shutdown keeps acknowledged writes (2s, sigterm, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.125,
+      "max_seconds": 0.99,
+      "median_seconds": 0.88,
+      "min_seconds": 0.83,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "shutdown persistence (1s, command)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.34,
+      "median_seconds": 0.34,
+      "min_seconds": 0.34,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "shutdown persistence (1s, sigint)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.13,
+      "median_seconds": 0.13,
+      "min_seconds": 0.13,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "shutdown persistence (1s, sigterm)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.037037037037037,
+      "max_seconds": 0.14,
+      "median_seconds": 0.135,
+      "min_seconds": 0.13,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "shutdown persistence (2s, command)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.34,
+      "median_seconds": 0.34,
+      "min_seconds": 0.34,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "shutdown persistence (2s, sigint)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.037037037037037,
+      "max_seconds": 0.14,
+      "median_seconds": 0.135,
+      "min_seconds": 0.13,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "shutdown persistence (2s, sigterm)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.13,
+      "median_seconds": 0.13,
+      "min_seconds": 0.13,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "shutdown policy + signal handoff serverless": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1428571428571428,
+      "max_seconds": 0.04,
+      "median_seconds": 0.035,
+      "min_seconds": 0.03,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "slowlog battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.49,
+      "median_seconds": 1.49,
+      "min_seconds": 1.49,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "slowlog battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0067567567567568,
+      "max_seconds": 1.49,
+      "median_seconds": 1.48,
+      "min_seconds": 1.48,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "snapfix SNAP-STORM-1 BGSAVE under EXEC + writer storm (both modes, both engines, atomic 0/1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.000721240533718,
+      "max_seconds": 55.5,
+      "median_seconds": 55.46,
+      "min_seconds": 55.42,
+      "samples": 2,
+      "timeout_seconds": 222
+    },
+    "snapfix SNAP-STORM-1 BGSAVE under script storm (both modes, both engines, atomic 0/1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0005122950819672,
+      "max_seconds": 58.59,
+      "median_seconds": 58.56,
+      "min_seconds": 58.53,
+      "samples": 2,
+      "timeout_seconds": 235
+    },
+    "snapfix XS-SHUT-1 SHUTDOWN NOSAVE in script storm (both modes, both engines, atomic 0/1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.015625,
+      "max_seconds": 0.65,
+      "median_seconds": 0.64,
+      "min_seconds": 0.63,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "snapfix2 repeated BGSAVE bounds RSS (both modes, both engines, atomic 0/1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.99,
+      "median_seconds": 1.99,
+      "min_seconds": 1.99,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "snapshot concurrent cut (epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.64,
+      "median_seconds": 0.64,
+      "min_seconds": 0.64,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "snapshot concurrent cut (uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0158730158730158,
+      "max_seconds": 0.64,
+      "median_seconds": 0.63,
+      "min_seconds": 0.62,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "snapshot cut reload (epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.2,
+      "median_seconds": 0.2,
+      "min_seconds": 0.2,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "snapshot cut reload (uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1764705882352942,
+      "max_seconds": 0.2,
+      "median_seconds": 0.17,
+      "min_seconds": 0.17,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0180436847103513,
+      "max_seconds": 5.36,
+      "median_seconds": 5.265000000000001,
+      "min_seconds": 5.17,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "snapshot never tears a MULTI/EXEC group (uring, default atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.007766990291262,
+      "max_seconds": 5.19,
+      "median_seconds": 5.15,
+      "min_seconds": 5.12,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "snapshot never tears a cross-shard MSET group (epoll, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0090744101633393,
+      "max_seconds": 2.78,
+      "median_seconds": 2.755,
+      "min_seconds": 2.73,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "snapshot never tears a cross-shard MSET group (uring, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0183823529411764,
+      "max_seconds": 2.77,
+      "median_seconds": 2.72,
+      "min_seconds": 2.66,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "storage aof-eviction regression": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.01,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "storage deadline-allocation-failure regression": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": null,
+      "max_seconds": 0.01,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 3,
+      "timeout_seconds": 900.0
+    },
+    "storage field-index-failure regression": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.0,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "storage flags regression": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.857142857142857,
+      "max_seconds": 0.13,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 0.07,
+      "min_seconds": 0.07,
+      "samples": 3,
+      "timeout_seconds": 900.0
+    },
+    "storage flush-prepared-capacity regression": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.01,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "storage hash-bytes regression": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.02,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "storage imported-hash regression": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "storage intents regression": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.01,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "storage randomkey regression": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.01,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "storage rehash regression": {
+      "basis": "own-row-history",
+      "max_over_median": 2.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "storage rollback regression": {
+      "basis": "own-row-history",
+      "max_over_median": 2.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "storage snapshot-eviction regression": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.01,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "storage unlinked regression": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.0,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "storesize published monitoring": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0493873004084664,
+      "max_seconds": 14.13,
+      "median_seconds": 13.465,
+      "min_seconds": 12.8,
+      "samples": 2,
+      "timeout_seconds": 54
+    },
+    "stream battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.53,
+      "median_seconds": 0.53,
+      "min_seconds": 0.53,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "stream battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.53,
+      "median_seconds": 0.53,
+      "min_seconds": 0.53,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "streamgroups battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.04,
+      "median_seconds": 0.04,
+      "min_seconds": 0.04,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "streamgroups battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "torture battery": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0067214339058999,
+      "max_seconds": 6.74,
+      "median_seconds": 6.695,
+      "min_seconds": 6.65,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "torture under ASAN": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0028735632183907,
+      "max_seconds": 6.98,
+      "median_seconds": 6.960000000000001,
+      "min_seconds": 6.94,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "tracking battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 13.26,
+      "median_seconds": 13.26,
+      "min_seconds": 13.26,
+      "samples": 1,
+      "timeout_seconds": 54
+    },
+    "tracking battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 13.32,
+      "median_seconds": 13.32,
+      "min_seconds": 13.32,
+      "samples": 1,
+      "timeout_seconds": 54
+    },
+    "txn_nx battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0794392523364487,
+      "max_seconds": 2.31,
+      "median_seconds": 2.14,
+      "min_seconds": 1.98,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "txn_nx battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.040767386091127,
+      "max_seconds": 2.17,
+      "median_seconds": 2.085,
+      "min_seconds": 2.0,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "txngroup battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0034843205574915,
+      "max_seconds": 12.96,
+      "median_seconds": 12.915,
+      "min_seconds": 12.87,
+      "samples": 2,
+      "timeout_seconds": 52
+    },
+    "txniso battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.063526834611172,
+      "max_seconds": 9.71,
+      "median_seconds": 9.13,
+      "min_seconds": 8.84,
+      "samples": 3,
+      "timeout_seconds": 37
+    },
+    "txniso battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.116144018583043,
+      "max_seconds": 9.61,
+      "median_seconds": 8.61,
+      "min_seconds": 8.57,
+      "samples": 3,
+      "timeout_seconds": 35
+    },
+    "txnorder battery (fused, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0048488600020633,
+      "max_seconds": 48.7,
+      "median_seconds": 48.465,
+      "min_seconds": 48.23,
+      "samples": 2,
+      "timeout_seconds": 194
+    },
+    "txnorder battery (fused, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 48.41,
+      "median_seconds": 48.41,
+      "min_seconds": 48.41,
+      "samples": 2,
+      "timeout_seconds": 194
+    },
+    "txnorder battery (split, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0017717561229806,
+      "max_seconds": 48.06,
+      "median_seconds": 47.975,
+      "min_seconds": 47.89,
+      "samples": 2,
+      "timeout_seconds": 192
+    },
+    "txnorder battery (split, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0019793728513386,
+      "max_seconds": 48.09,
+      "median_seconds": 47.995000000000005,
+      "min_seconds": 47.9,
+      "samples": 2,
+      "timeout_seconds": 192
+    },
+    "txnorder index complexity": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0163934426229508,
+      "max_seconds": 2.79,
+      "median_seconds": 2.745,
+      "min_seconds": 2.7,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "txnorder index oracle": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0054280544710028,
+      "max_seconds": 105.58,
+      "median_seconds": 105.00999999999999,
+      "min_seconds": 104.44,
+      "samples": 2,
+      "timeout_seconds": 421
+    },
+    "txnorder2 WATCH flush": {
+      "basis": "own-row-history",
+      "max_over_median": 1.006726825266612,
+      "max_seconds": 30.68,
+      "median_seconds": 30.475,
+      "min_seconds": 30.27,
+      "samples": 2,
+      "timeout_seconds": 122
+    },
+    "txnorder2 WATCH readonly": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0117001828153565,
+      "max_seconds": 27.67,
+      "median_seconds": 27.35,
+      "min_seconds": 27.03,
+      "samples": 2,
+      "timeout_seconds": 110
+    },
+    "txnorder2 WATCH serve": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0026466696074106,
+      "max_seconds": 22.73,
+      "median_seconds": 22.67,
+      "min_seconds": 22.61,
+      "samples": 2,
+      "timeout_seconds": 91
+    },
+    "txnorder2 busy owner inbox wake": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "txnorder2 direct RENAME owner join": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0909090909090908,
+      "max_seconds": 0.06,
+      "median_seconds": 0.055,
+      "min_seconds": 0.05,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R1": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1428571428571428,
+      "max_seconds": 0.04,
+      "median_seconds": 0.035,
+      "min_seconds": 0.03,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R10": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R11": {
+      "basis": "own-row-history",
+      "max_over_median": 1.2,
+      "max_seconds": 0.03,
+      "median_seconds": 0.025,
+      "min_seconds": 0.02,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R12": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0021881838074398,
+      "max_seconds": 4.58,
+      "median_seconds": 4.57,
+      "min_seconds": 4.56,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R2": {
+      "basis": "own-row-history",
+      "max_over_median": 1.2,
+      "max_seconds": 0.03,
+      "median_seconds": 0.025,
+      "min_seconds": 0.02,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R3": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.2,
+      "max_seconds": 0.03,
+      "median_seconds": 0.025,
+      "min_seconds": 0.02,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R5": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R6": {
+      "basis": "own-row-history",
+      "max_over_median": 1.2,
+      "max_seconds": 0.03,
+      "median_seconds": 0.025,
+      "min_seconds": 0.02,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R7": {
+      "basis": "own-row-history",
+      "max_over_median": 1.2,
+      "max_seconds": 0.03,
+      "median_seconds": 0.025,
+      "min_seconds": 0.02,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R8": {
+      "basis": "own-row-history",
+      "max_over_median": 1.7627118644067794,
+      "max_seconds": 0.52,
+      "median_seconds": 0.29500000000000004,
+      "min_seconds": 0.07,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R9": {
+      "basis": "own-row-history",
+      "max_over_median": 1.2,
+      "max_seconds": 0.03,
+      "median_seconds": 0.025,
+      "min_seconds": 0.02,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "typed snapshot preimage race (epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.17,
+      "median_seconds": 0.17,
+      "min_seconds": 0.17,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "typed snapshot preimage race (uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.125,
+      "max_seconds": 0.18,
+      "median_seconds": 0.16,
+      "min_seconds": 0.16,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "typed snapshot race reload (epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "typed snapshot race reload (uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.06,
+      "median_seconds": 0.06,
+      "min_seconds": 0.06,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "typed snapshot reload (epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1111111111111112,
+      "max_seconds": 0.05,
+      "median_seconds": 0.045,
+      "min_seconds": 0.04,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "typed snapshot reload (uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "typed snapshot save (epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.2857142857142856,
+      "max_seconds": 0.09,
+      "median_seconds": 0.07,
+      "min_seconds": 0.05,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "typed snapshot save (uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "waits config publication + admission unit": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 1,
+      "timeout_seconds": 900.0
+    },
+    "xacct battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.37,
+      "median_seconds": 0.37,
+      "min_seconds": 0.36,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "xacct battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.37,
+      "median_seconds": 0.37,
+      "min_seconds": 0.36,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "xmove battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0857142857142859,
+      "max_seconds": 0.38,
+      "median_seconds": 0.35,
+      "min_seconds": 0.27,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "xmove battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1515151515151514,
+      "max_seconds": 0.38,
+      "median_seconds": 0.33,
+      "min_seconds": 0.28,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "xscript battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.016042780748663,
+      "max_seconds": 1.9,
+      "median_seconds": 1.87,
+      "min_seconds": 1.86,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "xscript battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0053475935828875,
+      "max_seconds": 1.88,
+      "median_seconds": 1.87,
+      "min_seconds": 1.86,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "xscript limit control": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "xscript window control": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.54,
+      "median_seconds": 0.54,
+      "min_seconds": 0.53,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "zsetops battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.08,
+      "median_seconds": 0.08,
+      "min_seconds": 0.08,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "zsetops battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 1,
+      "timeout_seconds": 30
+    }
+  },
+  "schema": 1
+}
