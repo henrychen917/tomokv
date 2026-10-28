@@ -59,6 +59,16 @@ def run(label, cmd, binary, timeout=3600, env=None):
                 p.wait()
             record['exit'] = p.returncode
     record.update(seconds=round(time.monotonic()-started, 3), log_sha256=sha(log))
+    # Tests have completed their reload checks before returning. Keep digests of
+    # their snapshot/AOF payloads instead of committing or retaining those data.
+    removed = {}
+    if directory.is_dir():
+        for path in directory.rglob('*'):
+            if path.is_file() and path.suffix in {'.tomo', '.rdb', '.aof', '.tmp'}:
+                removed[str(path.relative_to(directory))] = dict(
+                    bytes=path.stat().st_size, sha256=sha(path))
+                path.unlink()
+    record['removed_data'] = removed
     directory.with_suffix('.command.json').write_text(json.dumps(record, indent=2)+'\n')
     print(label, 'exit', record['exit'], 'seconds', record['seconds'], flush=True)
     return record, log
@@ -71,11 +81,16 @@ def matrix(script, case, label, arm='post', extra=(), timeout=1500):
                       *extra], ARMS[arm], timeout)
 
 
-def gate(engine, differ=False):
-    label = ('differ-' if differ else 'proof-')+engine
-    jobs = 'differ-split differ-armed' if differ else ' '.join(JOBS)
+def gate(engine, differ=False, extra=False, fused=False):
+    label = ('extra-' if extra else 'differ-' if differ else 'proof-')+engine
+    if extra:
+        label += '-1s' if fused else '-2s'
+    jobs = ('release_batteries asan_batteries' if extra else
+            'differ-split differ-armed' if differ else ' '.join(JOBS))
     env = dict(GATE_ONLY_JOBS=jobs, REDIS74_ROOT='/home/user/Projects/redis',
-               GATE_NET_IO=engine, GATE_DIFFER_NET_IO=engine)
+               GATE_NET_IO=engine, GATE_DIFFER_NET_IO=engine, GATE_PROOF_NO_RATES='1')
+    if extra:
+        env['GATE_TXN_FUSED'] = '1' if fused else '0'
     cmd = ['taskset', '-c', '0-15', 'tests/gate.sh', 'iteration',
            '--server-cores', '0-7', '--load-cores', '8-15', '--server-smt', '',
            '--load-smt', '', '--ports', '20100-20199']
@@ -92,13 +107,25 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('phase', choices=['gate-uring', 'gate-epoll', 'differ-uring', 'differ-epoll',
                                     'isolation', 'minimal', 'ingredients', 'rss', 'diagnostic',
-                                    'long', 'neighbours'])
+                                    'long', 'neighbours', 'pad', 'extra'])
     a = p.parse_args()
     os.chdir(ROOT)
     os.sched_setaffinity(0, range(16))
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     if a.phase.startswith(('gate-', 'differ-')):
         gate(a.phase.split('-')[1], a.phase.startswith('differ'))
+    elif a.phase == 'extra':
+        for engine in ['uring', 'epoll']:
+            for fused in [False, True]:
+                gate(engine, extra=True, fused=fused)
+    elif a.phase == 'pad':
+        for arm, binary in [('post-layout', 'build/snapfix2/POST-layout'),
+                            ('pad-a', 'build/snapfix2/PAD-A')]:
+            ARMS[arm] = binary
+            # The layout twin must pass; BASE-behaviour PAD-A must retain the
+            # doubling failure. The individual command receipts retain both.
+            matrix('snapfix', 'bgsave-loop', 'pad/'+arm, arm,
+                   ['--atomics', '1', '--no-oracle'])
     elif a.phase == 'isolation':
         for arm in ARMS:
             for label, extra in [('no-save', ['--flushall-bgsave', '0']),

@@ -90,9 +90,11 @@ Neither the body comparison nor equal command counts proves a throughput null;
 the release and PAD-A merit comparisons remain required. No rate claim here.
 
 Serverless GET/SET/INCR/MGET and MSET (atomic 0/1), batch 1/32, both modes and
-both namespaces are being counted on PRE, BASE and POST by
+both namespaces were counted on PRE, BASE and POST by
 `tools/snapfix2_artifacts.py scope`. This launches GDB only on the serverless
-fixture; it never attaches to or debugs a server. Final totals are recorded in
+fixture; it never attaches to or debugs a server. All **48 cells per arm**, hence
+**96 PRE/BASE-vs-POST comparisons**, have identical totals and per-function
+counts: zero added executed instructions. Totals are recorded in
 `docs/snapfix2/instructions/comparison.json`.
 
 ### FLUSHALL: pre-existing atomicity defect, separate repair required
