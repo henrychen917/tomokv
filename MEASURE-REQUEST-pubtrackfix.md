@@ -71,7 +71,7 @@ jobs only and report `GATE(PARTIAL)`, with no ABBA, NIC or full-tier run.
 <!-- PROOF-STATUS -->
 - Before the final flush-preservation correction: 228 selected affected-job rows passed, including all directed geometries and both Tcl modes. That run is retained under proof/post-before-flush-preservation.
 - The new pass-boundary assertion fails on the prior candidate and passes after the correction; see bcast-flush-control.json.
-- Final arms, counts, freshness and full selected proof: REFRESHING; replace before handoff.
+- Final arms and all 52 zero-delta instruction comparisons are refreshed and bound to the final binary. The directed matrix passes all 160 candidate and five oracle legs. All production-unit targets and 56 freshness queries pass. The remaining selected proof is RUNNING; replace before handoff.
 <!-- /PROOF-STATUS -->
 
 **NOT RUN:** positive POST regression rows and Tcl promotions for the three
