@@ -12,5 +12,12 @@
     "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/C-PRE",
     "sha256": "47c4cc498a212922433220c57efca3b7e249e3c23889623a0c7de0e0feeb043b",
     "bytes": 218187712
+  },
+  {
+    "arm": "POST",
+    "source_commit": "ba92b3e8118b5168818f8388489b981d457a8a5d",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/POST",
+    "sha256": "893bf7e6d8adcdf924a5181dd0e94e4ba0e7401de7c6c17cc75b666ca51d8c3c",
+    "bytes": 220116456
   }
 ]
