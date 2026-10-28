@@ -1,0 +1,106 @@
+void tomo::(anonymous namespace)::cmd_xgroup<true>(tomo::Shard&, tomo::Op&) [clone .cold]
+--- headline
+
++++ post
+
+@@ -1,51 +1,51 @@
+
+-CLONE 0 0000 [ 7] lea -0x120(%rbp),%rdi
+-CLONE 0 0007 [ 3] vzeroupper
+-CLONE 0 000a [ 5] call <tomo::ObjectSizeTracker::finish()>
+-CLONE 0 000f [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 0013 [ 9] sub %fs:0x28,%rax
+-CLONE 0 001c [ 6] jne <+0x12c>
+-CLONE 0 0022 [ 3] mov %rbx,%rdi
+-CLONE 0 0025 [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 002a [ 3] mov %r15,%rdi
+-CLONE 0 002d [ 3] vzeroupper
+-CLONE 0 0030 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0035 [ 7] mov -0x188(%rbp),%r15
+-CLONE 0 003c [ 3] mov %r13,%rdi
+-CLONE 0 003f [ 5] call <tomo::(anonymous namespace)::StreamGroup::~StreamGroup()>
+-CLONE 0 0044 [ 3] dec %r15
+-CLONE 0 0047 [ 2] jne <+0xae>
+-CLONE 0 0049 [ 3] mov %r12,%rdi
+-CLONE 0 004c [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 0051 [ 3] mov %r14,%rdi
+-CLONE 0 0054 [ 5] call <tomo::(anonymous namespace)::maybe_release_groups(tomo::StreamVal&)>
+-CLONE 0 0059 [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
+-CLONE 0 0060 [ 3] mov %r13,%rdi
+-CLONE 0 0063 [ 7] mov %rbx,-0xe0(%rbp)
+-CLONE 0 006a [ 7] movb $0x0,-0xd8(%rbp)
+-CLONE 0 0071 [ 5] call <void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)>
+-CLONE 0 0076 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 007b [ 5] jmp <void tomo::(anonymous namespace)::cmd_xgroup<true>(tomo::Shard&, tomo::Op&)+0x65f>
+-CLONE 0 0080 [ 3] mov %r13,%rdi
+-CLONE 0 0083 [ 3] vzeroupper
+-CLONE 0 0086 [ 5] call <tomo::ObjectSizeTracker::finish()>
+-CLONE 0 008b [ 3] mov %r15,%rdi
+-CLONE 0 008e [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0093 [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 0097 [ 9] sub %fs:0x28,%rax
+-CLONE 0 00a0 [ 6] jne <+0x131>
+-CLONE 0 00a6 [ 3] mov %rbx,%rdi
+-CLONE 0 00a9 [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 00ae [ 7] lea -0x140(%rbp),%rdi
+-CLONE 0 00b5 [ 5] call <tomo::ObjectSizeTracker::finish()>
+-CLONE 0 00ba [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 00be [ 9] sub %fs:0x28,%rax
+-CLONE 0 00c7 [ 2] jne <+0xd1>
+-CLONE 0 00c9 [ 3] mov %r12,%rdi
+-CLONE 0 00cc [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 00d1 [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 00d6 [ 7] lea -0xe0(%rbp),%rdi
+-CLONE 0 00dd [ 3] vzeroupper
+-CLONE 0 00e0 [ 5] call <tomo::ObjectSizeTracker::finish()>
++CLONE 0 0000 [ 3] mov %r15,%rdi
++CLONE 0 0003 [ 3] vzeroupper
++CLONE 0 0006 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 000b [ 7] mov -0x188(%rbp),%r15
++CLONE 0 0012 [ 3] mov %r12,%rdi
++CLONE 0 0015 [ 5] call <tomo::(anonymous namespace)::StreamGroup::~StreamGroup()>
++CLONE 0 001a [ 3] dec %r15
++CLONE 0 001d [ 2] je <+0x9b>
++CLONE 0 001f [ 7] lea -0x140(%rbp),%rdi
++CLONE 0 0026 [ 5] call <tomo::ObjectSizeTracker::finish()>
++CLONE 0 002b [ 4] mov -0x38(%rbp),%rax
++CLONE 0 002f [ 9] sub %fs:0x28,%rax
++CLONE 0 0038 [ 6] jne <+0x12c>
++CLONE 0 003e [ 3] mov %r13,%rdi
++CLONE 0 0041 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0046 [ 7] lea -0xe0(%rbp),%rdi
++CLONE 0 004d [ 3] vzeroupper
++CLONE 0 0050 [ 5] call <tomo::ObjectSizeTracker::finish()>
++CLONE 0 0055 [ 4] mov -0x38(%rbp),%rax
++CLONE 0 0059 [ 9] sub %fs:0x28,%rax
++CLONE 0 0062 [ 2] jne <+0x96>
++CLONE 0 0064 [ 3] mov %rbx,%rdi
++CLONE 0 0067 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 006c [ 7] lea -0x120(%rbp),%rdi
++CLONE 0 0073 [ 3] vzeroupper
++CLONE 0 0076 [ 5] call <tomo::ObjectSizeTracker::finish()>
++CLONE 0 007b [ 4] mov -0x38(%rbp),%rax
++CLONE 0 007f [ 9] sub %fs:0x28,%rax
++CLONE 0 0088 [ 6] jne <+0x131>
++CLONE 0 008e [ 3] mov %rbx,%rdi
++CLONE 0 0091 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0096 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 009b [ 3] mov %r13,%rdi
++CLONE 0 009e [ 5] call <__cxa_begin_catch@plt>
++CLONE 0 00a3 [ 3] mov %r14,%rdi
++CLONE 0 00a6 [ 5] call <tomo::(anonymous namespace)::maybe_release_groups(tomo::StreamVal&)>
++CLONE 0 00ab [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
++CLONE 0 00b2 [ 3] mov %r12,%rdi
++CLONE 0 00b5 [ 7] mov %rbx,-0xe0(%rbp)
++CLONE 0 00bc [ 7] movb $0x0,-0xd8(%rbp)
++CLONE 0 00c3 [ 5] call <void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)>
++CLONE 0 00c8 [ 5] call <__cxa_end_catch@plt>
++CLONE 0 00cd [ 5] jmp <void tomo::(anonymous namespace)::cmd_xgroup<true>(tomo::Shard&, tomo::Op&)+0x65f>
++CLONE 0 00d2 [ 3] mov %r12,%rdi
++CLONE 0 00d5 [ 3] vzeroupper
++CLONE 0 00d8 [ 5] call <tomo::ObjectSizeTracker::finish()>
++CLONE 0 00dd [ 3] mov %r15,%rdi
++CLONE 0 00e0 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+ CLONE 0 00e5 [ 4] mov -0x38(%rbp),%rax
+ CLONE 0 00e9 [ 9] sub %fs:0x28,%rax
+ CLONE 0 00f2 [ 2] jne <+0x122>

@@ -1,0 +1,44 @@
+tomo_db0::notify_take_batch(tomo_db0::Op&)
+--- headline
+
++++ post
+
+@@ -53,10 +53,10 @@
+
+ CLONE 0 00d5 [ 1] pop %rbx
+ CLONE 0 00d6 [ 1] ret
+ CLONE 0 00d7 [ 9] nopw 0x0(%rax,%rax,1)
+-CLONE 0 00e0 [ 7] movzbl 0x598(%rax),%edx
++CLONE 0 00e0 [ 7] movzbl 0x5a0(%rax),%edx
+ CLONE 0 00e7 [ 2] test %dl,%dl
+ CLONE 0 00e9 [ 2] jne <+0x120>
+-CLONE 0 00eb [ 7] movzbl 0x5fc(%rax),%edx
++CLONE 0 00eb [ 7] movzbl 0x604(%rax),%edx
+ CLONE 0 00f2 [ 2] test %dl,%dl
+ CLONE 0 00f4 [ 2] jne <+0x120>
+ CLONE 0 00f6 [ 7] mov 0xa8(%rbx),%rax
+@@ -70,11 +70,11 @@
+
+ CLONE 0 0114 [11] data16 cs nopw 0x0(%rax,%rax,1)
+ CLONE 0 011f [ 1] nop
+ CLONE 0 0120 [ 2] xor %edi,%edi
+-CLONE 0 0122 [ 7] xchg %rdi,0x618(%rax)
++CLONE 0 0122 [ 7] xchg %rdi,0x620(%rax)
+ CLONE 0 0129 [ 1] pop %rbx
+ CLONE 0 012a [ 5] jmp <tomo_db0::(anonymous namespace)::notify_keep_physical(tomo_db0::NotifyBatch*)>
+ CLONE 0 012f [ 1] nop
+-CLONE 0 0130 [ 7] lea 0x618(%rax),%rdx
++CLONE 0 0130 [ 7] lea 0x620(%rax),%rdx
+ CLONE 0 0137 [ 2] jmp <+0xc8>
+ CLONE 0 0139 [ 7] nopl 0x0(%rax)
+ CLONE 0 0140 [ 2] xor %edi,%edi
+@@ -82,7 +82,7 @@
+
+ CLONE 0 0149 [ 1] pop %rbx
+ CLONE 0 014a [ 5] jmp <tomo_db0::(anonymous namespace)::notify_keep_physical(tomo_db0::NotifyBatch*)>
+ CLONE 0 014f [ 1] nop
+-CLONE 0 0150 [ 7] lea 0xd0(%rax),%rdx
++CLONE 0 0150 [ 7] lea 0xe8(%rax),%rdx
+ CLONE 0 0157 [ 5] jmp <+0xc8>
+ CLONE 0 015c [ 4] nopl 0x0(%rax)
+ CLONE 0 0160 [ 7] mov 0xa8(%rbx),%rax

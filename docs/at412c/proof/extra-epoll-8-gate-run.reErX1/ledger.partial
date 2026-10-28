@@ -1,0 +1,32 @@
+PARTIAL	0	GATE_ONLY_JOBS=fused-0 fused-1 flip flipctl flip_saturated; NOT A RECEIPT
+ok	0.030000	release build (+footprint locks)
+ok	130.900000	flip controller: ramp gate, hold, surge + mix re-maneuvers
+ok	0.140000	FLIP state battery
+ok	1.040000	FLIP under verified load
+ok	1.550000	FLIP TTL + expiry events
+ok	2.230000	partial-frame conn parks (no io spin)
+ok	2.220000	FLIP close during FLIP (uring)
+ok	2.170000	FLIP close during FLIP (epoll)
+ok	1.220000	FLIP signal stop during FLIP + second SIGINT
+ok	0.540000	perfio stale epoll registration (epoll-flip)
+ok	1.110000	perfio stale epoll registration (epoll-lb)
+ok	6.050000	FLIP applies under saturated load
+ok	0.020000	flip battery shutdown invariants
+ok	0.260000	fused boot line (atomic 0)
+ok	1.150000	fused s6 battery (atomic 0)
+ok	2.070000	fused multi_exec battery (atomic 0)
+ok	0.730000	fused edgeproto battery (atomic 0)
+ok	0.040000	fused atomfix battery (atomic 0)
+ok	2.230000	fused spinprobe battery (atomic 0)
+ok	1.160000	fused shutdown report (atomic 0)
+ok	1.540000	fused txn_nx battery (atomic 0)
+ok	8.520000	fused txniso battery (atomic 0)
+ok	0.260000	fused boot line (atomic 1)
+ok	1.150000	fused s6 battery (atomic 1)
+ok	2.080000	fused multi_exec battery (atomic 1)
+ok	0.740000	fused edgeproto battery (atomic 1)
+ok	0.050000	fused atomfix battery (atomic 1)
+ok	2.230000	fused spinprobe battery (atomic 1)
+ok	1.170000	fused shutdown report (atomic 1)
+ok	2.590000	fused txn_nx battery (atomic 1)
+ok	8.720000	fused txniso battery (atomic 1)

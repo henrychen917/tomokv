@@ -1,0 +1,28 @@
+{
+  "objects": 118,
+  "functions": 19388,
+  "changed": 71,
+  "hot": 1774,
+  "hot_equal": 1744,
+  "hot_raw_equal": 1739,
+  "changed_objects": {
+    "db0/src/core/fliplisten.o": 6,
+    "db0/src/core/genthread.o": 8,
+    "db0/src/core/reorder.o": 8,
+    "db0/src/core/rl2s.o": 6,
+    "db0/src/main.o": 6,
+    "src/core/fliplisten.o": 6,
+    "src/core/genthread.o": 9,
+    "src/core/reorder.o": 7,
+    "src/core/rl2s.o": 7,
+    "src/main.o": 8
+  },
+  "PRE": {
+    "sha256": "37b3a2f583859dff5e9bc74dd864f7257b6f486371883a0df4d12a0d5393912b",
+    "text_bytes": 8435415
+  },
+  "POST": {
+    "sha256": "e99c3f23182c0872214c2e1475cb64cb4d8aa3dd27ebeaf769ca0197c4b5ba5b",
+    "text_bytes": 8437351
+  }
+}

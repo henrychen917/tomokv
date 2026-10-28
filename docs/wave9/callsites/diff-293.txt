@@ -1,0 +1,15 @@
+unsigned int tomo::IoLoop::epoll_pass<true, false, true>(int)
+--- headline
+
++++ post
+
+@@ -25,7 +25,7 @@
+
+ CLONE 0 0059 [ 7] mov 0x190(%r15),%rax
+ CLONE 0 0060 [ 3] movslq %r12d,%rdx
+ CLONE 0 0063 [ 2] xor %ebp,%ebp
+-CLONE 0 0065 [ 7] lea <rip>(%rip),%r13 # <typeinfo name for std::_Sp_counted_ptr_inplace<tomo::SlowlogIdentity const, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>+0x5ac>
++CLONE 0 0065 [ 7] lea <rip>(%rip),%r13 # <typeinfo name for std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >+0x3c4>
+ CLONE 0 006c [ 7] add %rdx,0x520(%rax)
+ CLONE 0 0073 [ 7] lea 0xac8(%r15),%rax
+ CLONE 0 007a [ 5] mov %rax,0x8(%rsp)

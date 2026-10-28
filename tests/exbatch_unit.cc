@@ -124,8 +124,11 @@ void watch_lifecycle() {
     check(!sh.watch_write_ready(key) && sh.stats().watch_reservation_waits > 0,
           "undecided blocking reservation observed");
     epoch = 1;
-    check(sh.watch_write_ready(key) && refs == 0 && !watches(sh),
+    // The negative control patches this finalizer's cache update. Exercise it
+    // directly: indexed watch_write_ready can retire the same entry itself.
+    check(sh.watch_finalize_reservation(owned) && refs == 0 && !watches(sh),
           "commit finalizes last reservation and clears gate");
+    check(sh.watch_write_ready(key), "finalized commit leaves the key write-ready");
 
     // Execindex's ready path may retire via the queue-specific overload. Exercise
     // the explicit finalizer too: its planted cache-update break must fail here,

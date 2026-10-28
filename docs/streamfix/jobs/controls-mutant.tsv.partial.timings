@@ -1,0 +1,9 @@
+ok	0.010000	release build (+footprint locks)
+FAIL	432.220000	Redis 7.4.10 Tcl passing subset (2s)
+FAIL	289.610000	Redis 7.4.10 Tcl passing subset (1s)
+FAIL	72.350000	streamfix STREAM-TRIM-APPROX-LIMIT vs Redis 7.4
+FAIL	38.830000	streamfix XREAD-PLUS-LAST vs Redis 7.4
+FAIL	35.300000	streamfix XRANGE-EXCLUSIVE-SENTINEL vs Redis 7.4
+FAIL	35.280000	streamfix STREAM-GROUP-ID-DASH vs Redis 7.4
+FAIL	59.420000	streamfix XAUTOCLAIM-COUNT-RANGE vs Redis 7.4
+FAIL	35.440000	streamfix MPOP-ARG-ERROR-TEXT vs Redis 7.4

@@ -1,0 +1,232 @@
+[
+  {
+    "path": "build/multifix/expire-notify-unit",
+    "source": "build/expire-notify-unit",
+    "sha256": "f5bdda58f91f18c7ffbcca0ce01bb195685ce89721231f21e80cfa7f5291197f"
+  },
+  {
+    "path": "build/multifix/ktls-lifetime-unit",
+    "source": "build/ktls-lifetime-unit",
+    "sha256": "21680b26634728188122aa2cd940c738fa2905f1b8ab3bfc6faa5f84fbc3e140"
+  },
+  {
+    "path": "build/multifix/moverfix-unit",
+    "source": "build/moverfix-unit",
+    "sha256": "7d23c0cc0a76ff969d34be3b32d21ac46e50b4c0bfe3f6633ccb62a41699e46f"
+  },
+  {
+    "path": "build/multifix/moverfix-db0-unit",
+    "source": "build/moverfix-db0-unit",
+    "sha256": "d227dd7ee0572aeeb5ff96a9c3ed0424c9d6634d0bdc2b2c8b1106f4f15c6de1"
+  },
+  {
+    "path": "build/multifix/publishfix-unit",
+    "source": "build/publishfix-unit",
+    "sha256": "e737fc0d95067b6d2fdd018dafe8d646a457f73b2802016a9abad171de145f70"
+  },
+  {
+    "path": "build/multifix/at15-unit",
+    "source": "build/at15-unit",
+    "sha256": "96939bc446219da11240ffc4876a05459c63ea5ea18ca1e27e43c2e2ac7f8b24"
+  },
+  {
+    "path": "build/multifix/at15-db0-unit",
+    "source": "build/at15-db0-unit",
+    "sha256": "c3f4eb3f531b0ecca76530a255c023555f342e6957e2b36b92ea62b7608a6163"
+  },
+  {
+    "path": "build/multifix/execabort-watch-unit",
+    "source": "build/execabort-watch-unit",
+    "sha256": "f1229a50e01ed3ad4d86a431748c9704584ee06d4e7f850badff9ec80e97403f"
+  },
+  {
+    "path": "build/multifix/execabort-watch-db0-unit",
+    "source": "build/execabort-watch-db0-unit",
+    "sha256": "b95da962fd8b9aceee12e11a25f137941b0d91602c90bf9a7df3b1d52d14332f"
+  },
+  {
+    "path": "build/multifix/core-concurrency-unit",
+    "source": "build/core-concurrency-unit",
+    "sha256": "c26ca3e0b94020bc6b16fb307db3e0a65a846a856718a84f96f2cf0313893f45"
+  },
+  {
+    "path": "build/multifix/atomic-survivors-unit",
+    "source": "build/atomic-survivors-unit",
+    "sha256": "afc3c2e1ef32ee5ccb2cd1c3e1533b54b0caa4c1e5b6ce6a28642a33280a6837"
+  },
+  {
+    "path": "build/multifix/txnorder-index-unit",
+    "source": "build/txnorder-index-unit",
+    "sha256": "40d05ec81c2e1483b2f258ec82904624e22b7bfbad70478a06c8a81745488a76"
+  },
+  {
+    "path": "build/multifix/txnorder-index-db0-unit",
+    "source": "build/txnorder-index-db0-unit",
+    "sha256": "d0eedaf1c7fba6fd091f6d4a2f0955484211cdcc595893e7ee50f710bc674598"
+  },
+  {
+    "path": "build/multifix/txnorder-retry-unit",
+    "source": "build/txnorder-retry-unit",
+    "sha256": "7563a17a925489e99de40e9672f225a10ec9b5568465e454daf42d89285e13cd"
+  },
+  {
+    "path": "build/multifix/txnorder-wake-unit",
+    "source": "build/txnorder-wake-unit",
+    "sha256": "2faf0d7a7b3ff7a6fe0a49868d9579271e0bbbd79fd1c5e43552dbcd82f0cdae"
+  },
+  {
+    "path": "build/multifix/txnorder-episodes",
+    "source": "build/txnorder-episodes",
+    "sha256": "f6c5b0d58b6803a6baeb099996c38714a82ffcb399bf03f861cea113d90ae8fa"
+  },
+  {
+    "path": "build/multifix/txnorder-episodes-debug",
+    "source": "build/txnorder-episodes-debug",
+    "sha256": "397ee16ee8352db12834d53064508a24b4d59343eb5b82b27fee27c874dba050"
+  },
+  {
+    "path": "build/multifix/txnorder-watch-unit",
+    "source": "build/txnorder-watch-unit",
+    "sha256": "9b70274fb4cace8f8a2e93d1ebf2853551ac8e39945153bc221ec05e8df1f6bf"
+  },
+  {
+    "path": "build/multifix/txnorder-watch-db0-unit",
+    "source": "build/txnorder-watch-db0-unit",
+    "sha256": "ea34302b77a55a261b34768c976ff4dc4885105d9f19cb6f7bd6fb3a206b99c3"
+  },
+  {
+    "path": "build/multifix/netcmd-unit",
+    "source": "build/netcmd-unit",
+    "sha256": "72a3640906a3c30903ad310f6eb2c300ad47607459708555443de218bfad9a39"
+  },
+  {
+    "path": "build/multifix/encodingfix-unit",
+    "source": "build/encodingfix-unit",
+    "sha256": "7b388a6a4e038aa628212172f8a756e1c23280956cc75c76b57e37149abfe7f4"
+  },
+  {
+    "path": "build/multifix/netcap-unit",
+    "source": "build/netcap-unit",
+    "sha256": "827f844a48eceda23816fdb0d2b30c0e51f25988c5f61055a21f354866dd454e"
+  },
+  {
+    "path": "build/multifix/waits-unit",
+    "source": "build/waits-unit",
+    "sha256": "8533d30f76e1558571348432b3f5d4bbb57d64627c604926671352ab32d695a6"
+  },
+  {
+    "path": "build/multifix/rehash-waits-unit",
+    "source": "build/rehash-waits-unit",
+    "sha256": "0538d285bd7feb91b129ed073d1cd32ed19323813123a7daec5e467261d250f1"
+  },
+  {
+    "path": "build/multifix/multidb-unit",
+    "source": "build/multidb-unit",
+    "sha256": "36452144bbf9b638e375381afbbc41f06f847f85a925269a51395dd3f83cfddf"
+  },
+  {
+    "path": "build/multifix/multidb-boundary-unit",
+    "source": "build/multidb-boundary-unit",
+    "sha256": "190bd3251ebbb364c450d98d0803a1c3c84e24cf0de24e3aa6f36f65491f48de"
+  },
+  {
+    "path": "build/multifix/storesize-unit",
+    "source": "build/storesize-unit",
+    "sha256": "a057f19f5bbea3498bdd9a2964cc344045f06b1ff02276549cfe1c586cfee1c8"
+  },
+  {
+    "path": "build/multifix/respresume-unit",
+    "source": "build/respresume-unit",
+    "sha256": "cd87d70495b8463e66b758b7dae6a7566104d15024652deb3b327f69c1777a2c"
+  },
+  {
+    "path": "build/multifix/respresume-migration",
+    "source": "build/respresume-migration",
+    "sha256": "a33aaa81b5d40e07c4136c60328a06604b5a10e821fc164eb9a78e02f9c6639c"
+  },
+  {
+    "path": "build/multifix/exbatch-unit",
+    "source": "build/exbatch-unit",
+    "sha256": "70ebaffab85b7a9d7b9917cad84400ac6e974be87c6e5186a39040c5bb6e5d02"
+  },
+  {
+    "path": "build/multifix/exbatch-db0-unit",
+    "source": "build/exbatch-db0-unit",
+    "sha256": "e49553066356765c0b6c3347407b16c579323d3e0572383a6857a663d2764c62"
+  },
+  {
+    "path": "build/multifix/wb-rule-units",
+    "source": "build/wb-rule-units",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "build/multifix/wbland-units",
+    "source": "build/wbland-units",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "build/multifix/rltopo-unit",
+    "source": "build/rltopo-unit",
+    "sha256": "f0ca9705fb51d66115adc943b42d6f3fc50d07c06334dbf81855cc150ae720e8"
+  },
+  {
+    "path": "build/multifix/lbplanner-units",
+    "source": "build/lbplanner-units",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "build/multifix/shutdown-unit",
+    "source": "build/shutdown-unit",
+    "sha256": "d86b5b5eefc828a32b1dd015c70be96436cd12b5e57019509d210bf51683e287"
+  },
+  {
+    "path": "build/multifix/persistfix-units",
+    "source": "build/persistfix-units",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "build/multifix/ktls-keyupdate",
+    "source": "build/ktls-keyupdate",
+    "sha256": "b442daa5322b25bc823592d42d68cc79d57fc42725a25a737e0e16826a402c02"
+  },
+  {
+    "path": "build/multifix/ktls-keyupdate-unit",
+    "source": "build/ktls-keyupdate-unit",
+    "sha256": "48692f8c3c69f4587f7a4223b12192ab38c95f545eefb7590e1987f97721ffa6"
+  },
+  {
+    "path": "build/multifix/flushfix-units",
+    "source": "build/flushfix-units",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "build/multifix/splitlocal-unit",
+    "source": "build/splitlocal-unit",
+    "sha256": "ebe15e1cd1cb150b27f1ddbf658b20a3d024cf00338eb40ca00700d2a07ff489"
+  },
+  {
+    "path": "build/multifix/reorder-engagement-unit",
+    "source": "build/reorder-engagement-unit",
+    "sha256": "7a1a9e04582cd26816139754d85c106932a16264d5156d43283a1d7b65827c10"
+  },
+  {
+    "path": "build/multifix/reorder-engagement-unit-db0",
+    "source": "build/reorder-engagement-unit-db0",
+    "sha256": "4a15b0e39ac23c4d8d7673a16435f6c03540732ef05493d706006c1d21a7f643"
+  },
+  {
+    "path": "build/multifix/racefix-climon",
+    "source": "build/racefix-climon",
+    "sha256": "67c7effb89ede2be3b9ae36c25b4532e4f1a14d3eda16eaf1c0983a7a0fa6f78"
+  },
+  {
+    "path": "build/multifix/aoforder-scheduled",
+    "source": "build/aoforder-scheduled",
+    "sha256": "f7d52daf4fd3ab31ad9aa1c7abc57bbc0c3b6721ed09348ff519e4a238bd4152"
+  },
+  {
+    "path": "build/multifix/blockfix-cost",
+    "source": "build/blockfix-cost",
+    "sha256": "b298a6f1750eadf13eeffbbd6ba37de1cdef14f6a7c1dbce49d26f71e03a5879"
+  }
+]

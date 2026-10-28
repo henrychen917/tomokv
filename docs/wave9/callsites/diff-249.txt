@@ -1,0 +1,12 @@
+tomo_db0::XshardElementResult tomo_db0::(anonymous namespace)::xshard_push_list_element_impl<false>(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, bool, tomo_db0::Slice) [clone .cold]
+--- headline
+
++++ post
+
+@@ -1,4 +1,4 @@
+
+-CLONE 0 0000 [ 7] mov -0x168(%rbp),%rdi
++CLONE 0 0000 [ 7] mov -0x158(%rbp),%rdi
+ CLONE 0 0007 [ 3] vzeroupper
+ CLONE 0 000a [ 5] call <tomo_db0::ListVal::~ListVal()>
+ CLONE 0 000f [ 7] lea -0xe0(%rbp),%rdi

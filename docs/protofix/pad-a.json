@@ -1,0 +1,134 @@
+{
+  "kind": "A: behaviour twin",
+  "behavior": "PRE 83e0b809d inline parser and validator; POST elsewhere",
+  "matched": "Every POST function address and section size; all bytes outside the four listed inline-only bodies and build-id",
+  "limitation": "Throwaway parser slots retain POST debug/unwind metadata; do not use this arm for parser stack-unwind diagnostics.",
+  "changes": [
+    {
+      "pre_symbol": "_ZN4tomo17resp_parse_inlineEPKcjRjRNS_2OpEPS1_S2_",
+      "post_slot": "_ZN4tomo17resp_parse_inlineEPKcjRjRNS_2OpEPS1_S2_",
+      "address": "0x454e30",
+      "file_offset": 4542000,
+      "pre_size": 382,
+      "slot_size": 483,
+      "relocations": [
+        {
+          "offset": 178,
+          "target": "_ZN4tomo24resp_inline_quotes_validEPKcS1_",
+          "old": "0x4440d",
+          "new": "0x44707"
+        },
+        {
+          "offset": 193,
+          "target": "ERR Protocol error: unbalanced quotes in request",
+          "old": "0x832620",
+          "new": "0x832620"
+        },
+        {
+          "offset": 211,
+          "target": "ERR Protocol error: too big inline request",
+          "old": "0x832658",
+          "new": "0x832688"
+        },
+        {
+          "offset": 293,
+          "target": "_ZN4tomo2Op8push_argENS_5SliceE",
+          "old": "0x454430",
+          "new": "0x454aa0"
+        },
+        {
+          "offset": 373,
+          "target": "ERR out of memory parsing inline command",
+          "old": "0x832688",
+          "new": "0x832658"
+        }
+      ]
+    },
+    {
+      "pre_symbol": "_ZN4tomo24resp_inline_quotes_validEPKcS1_",
+      "post_slot": "_ZN4tomo17RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj",
+      "address": "0x44707",
+      "file_offset": 280327,
+      "pre_size": 141,
+      "slot_size": 594,
+      "relocations": [
+        {
+          "offset": 83,
+          "target": "isspace@plt",
+          "old": "0x1f0f0",
+          "new": "0x1f0f0"
+        }
+      ]
+    },
+    {
+      "pre_symbol": "_ZN8tomo_db017resp_parse_inlineEPKcjRjRNS_2OpEPS1_S2_",
+      "post_slot": "_ZN8tomo_db017resp_parse_inlineEPKcjRjRNS_2OpEPS1_S2_",
+      "address": "0x7e600",
+      "file_offset": 517632,
+      "pre_size": 382,
+      "slot_size": 483,
+      "relocations": [
+        {
+          "offset": 178,
+          "target": "_ZN8tomo_db024resp_inline_quotes_validEPKcS1_",
+          "old": "0x216f1",
+          "new": "0x21713"
+        },
+        {
+          "offset": 193,
+          "target": "ERR Protocol error: unbalanced quotes in request",
+          "old": "0x832620",
+          "new": "0x832620"
+        },
+        {
+          "offset": 211,
+          "target": "ERR Protocol error: too big inline request",
+          "old": "0x832658",
+          "new": "0x832688"
+        },
+        {
+          "offset": 293,
+          "target": "_ZN8tomo_db02Op8push_argENS_5SliceE",
+          "old": "0x7dcb0",
+          "new": "0x7e260"
+        },
+        {
+          "offset": 373,
+          "target": "ERR out of memory parsing inline command",
+          "old": "0x832688",
+          "new": "0x832658"
+        }
+      ]
+    },
+    {
+      "pre_symbol": "_ZN8tomo_db024resp_inline_quotes_validEPKcS1_",
+      "post_slot": "_ZN8tomo_db017RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj",
+      "address": "0x21713",
+      "file_offset": 136979,
+      "pre_size": 141,
+      "slot_size": 589,
+      "relocations": [
+        {
+          "offset": 83,
+          "target": "isspace@plt",
+          "old": "0x1f0f0",
+          "new": "0x1f0f0"
+        }
+      ]
+    }
+  ],
+  "arms": {
+    "PRE": {
+      "path": "build/protofix/pre-source/build/tomokv",
+      "sha256": "37b3a2f583859dff5e9bc74dd864f7257b6f486371883a0df4d12a0d5393912b"
+    },
+    "POST": {
+      "path": "build/tomokv",
+      "sha256": "e99c3f23182c0872214c2e1475cb64cb4d8aa3dd27ebeaf769ca0197c4b5ba5b"
+    },
+    "PAD-A": {
+      "path": "build/tomokv-protofix-PAD-A",
+      "sha256": "f78a694afa361d939699df9993f98239c67adf8b6bf589671a1a051b0af9f9a8"
+    }
+  }
+}

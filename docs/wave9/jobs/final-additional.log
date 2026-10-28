@@ -1,0 +1,123 @@
+GATE(full): 32 physical cores; 1 correctness slots = min(8/8 server, 24/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 24 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-wave9/build/gate-run.oF9xrT
+PARTIAL jobs (including prerequisites): release production_units perfio_stream climonfix perfex_units perfex_live ntnew4_live netcap netfix_unix netfix_config netfix_tls netfix_idle_buffers boot_grammar dbdefault readonly hexpread rlfix3_zc sort serverfix_hll serverfix_acllog aof_frame
+PARTIAL jobs (including prerequisites): release production_units perfio_stream climonfix perfex_units perfex_live ntnew4_live netcap netfix_unix netfix_config netfix_tls netfix_idle_buffers boot_grammar dbdefault readonly hexpread rlfix3_zc sort serverfix_hll serverfix_acllog aof_frame
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; perfio XREADGROUP bounded delivery + Redis metadata (1s)
+  perfio XREADGROUP bounded delivery + Redis metadata (1s) ok
+  row budget: 900s; median=-s; no-history-conservative-default; perfio XREADGROUP bounded delivery + Redis metadata (2s)
+  perfio XREADGROUP bounded delivery + Redis metadata (2s) ok
+  row budget: 900s; median=-s; no-history-conservative-default; shutdown policy + signal handoff serverless
+  shutdown policy + signal handoff serverless          ok
+  row budget: 900s; median=-s; no-history-conservative-default; shutdown persistence (1s, command)
+  shutdown persistence (1s, command)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; shutdown persistence (1s, sigterm)
+  shutdown persistence (1s, sigterm)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; shutdown persistence (1s, sigint)
+  shutdown persistence (1s, sigint)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; shutdown persistence (2s, command)
+  shutdown persistence (2s, command)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; shutdown persistence (2s, sigterm)
+  shutdown persistence (2s, sigterm)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; shutdown persistence (2s, sigint)
+  shutdown persistence (2s, sigint)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; perfex clock binary regression
+  perfex clock binary regression                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; perfex batch binary regression
+  perfex batch binary regression                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; perfex TTL sampler beat (1s)
+  perfex TTL sampler beat (1s)                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; perfex TTL sampler beat (2s)
+  perfex TTL sampler beat (2s)                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; NT-new-4 command clock after dequeue (2s)
+  NT-new-4 command clock after dequeue (2s)            ok
+  row budget: 900s; median=-s; no-history-conservative-default; NT-new-4 command clock after dequeue (1s)
+  NT-new-4 command clock after dequeue (1s)            ok
+  row budget: 900s; median=-s; no-history-conservative-default; NT-new-4 command clock after dequeue (2s, epoll)
+  NT-new-4 command clock after dequeue (2s, epoll)     ok
+  row budget: 900s; median=-s; no-history-conservative-default; NET1 inline + query cap (1s, uring)
+  NET1 inline + query cap (1s, uring)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; NET1 inline + query cap (1s, epoll)
+  NET1 inline + query cap (1s, epoll)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; NET1 inline + query cap (2s, uring)
+  NET1 inline + query cap (2s, uring)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; NET1 inline + query cap (2s, epoll)
+  NET1 inline + query cap (2s, epoll)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; netfix NT4.11 Unix pathname parity
+  netfix NT4.11 Unix pathname parity                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; netfix NT4.8 network CONFIG error parity
+  netfix NT4.8 network CONFIG error parity             ok
+  row budget: 900s; median=-s; no-history-conservative-default; netfix NT4.7 TLS default cipher parity
+  netfix NT4.7 TLS default cipher parity               ok
+  row budget: 900s; median=-s; no-history-conservative-default; netfix NT4.19 idle buffer reclamation
+  netfix NT4.19 idle buffer reclamation                ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject --mode (flag deleted)
+  reject --mode (flag deleted)                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject --spread
+  reject --spread                                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject --nodes
+  reject --nodes                                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject 3-part ratio
+  reject 3-part ratio                                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject missing conf
+  reject missing conf                                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject bad conf key
+  reject bad conf key                                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject aclfile + conf user lines
+  reject aclfile + conf user lines                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; Redis default databases 16 (both modes)
+  Redis default databases 16 (both modes)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-only resize split read-local=0
+  read-only resize split read-local=0                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-only resize split read-local=1
+  read-only resize split read-local=1                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-only resize fused read-local=0
+  read-only resize fused read-local=0                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-only resize fused read-local=1
+  read-only resize fused read-local=1                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread torn (1s)
+  hexpread torn (1s)                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread replies (1s)
+  hexpread replies (1s)                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread deferred (1s)
+  hexpread deferred (1s)                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread OBJECT expiry (1s)
+  hexpread OBJECT expiry (1s)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread torn (2s)
+  hexpread torn (2s)                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread replies (2s)
+  hexpread replies (2s)                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread deferred (2s)
+  hexpread deferred (2s)                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread OBJECT expiry (2s)
+  hexpread OBJECT expiry (2s)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (1s, epoll, read-local 0)
+  read-local borrow capability (1s, epoll, read-local 0) ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (1s, epoll, read-local 1)
+  read-local borrow capability (1s, epoll, read-local 1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (1s, uring, read-local 0)
+  read-local borrow capability (1s, uring, read-local 0) ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (1s, uring, read-local 1)
+  read-local borrow capability (1s, uring, read-local 1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (2s, epoll, read-local 0)
+  read-local borrow capability (2s, epoll, read-local 0) ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (2s, epoll, read-local 1)
+  read-local borrow capability (2s, epoll, read-local 1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (2s, uring, read-local 0)
+  read-local borrow capability (2s, uring, read-local 0) ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (2s, uring, read-local 1)
+  read-local borrow capability (2s, uring, read-local 1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; cross-owner SORT battery (atomic 0)
+  cross-owner SORT battery (atomic 0)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; cross-owner SORT battery (atomic 1)
+  cross-owner SORT battery (atomic 1)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; serverfix SV4.8 HyperLogLog self-test controls
+  serverfix SV4.8 HyperLogLog self-test controls       ok
+  row budget: 900s; median=-s; no-history-conservative-default; serverfix CC4.26 disabled ACL log allocation
+  serverfix CC4.26 disabled ACL log allocation         ok
+  row budget: 900s; median=-s; no-history-conservative-default; AOF control frame never inside a large record (atomic 0)
+  AOF control frame never inside a large record (atomic 0) ok
+  row budget: 900s; median=-s; no-history-conservative-default; AOF control frame never inside a large record (atomic 1)
+  AOF control frame never inside a large record (atomic 1) ok
+GATE(PARTIAL): 59 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave9/docs/wave9/jobs/final-additional.tsv.partial

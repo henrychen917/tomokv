@@ -1,0 +1,40 @@
+tomo_db0::multi_execute_task_tracked(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*, tomo_db0::MultiRetryPromoter const*)::{lambda()#1}::operator()() const
+--- headline
+
++++ post
+
+@@ -7,26 +7,26 @@
+
+ CLONE 0 0011 [ 3] mov 0x46(%rdx),%al
+ CLONE 0 0014 [ 2] test %al,%al
+ CLONE 0 0016 [ 2] jne <+0x50>
+-CLONE 0 0018 [ 7] mov 0x248(%rdx),%rsi
+-CLONE 0 001f [ 7] sub 0x240(%rdx),%rsi
++CLONE 0 0018 [ 7] mov 0x250(%rdx),%rsi
++CLONE 0 001f [ 7] sub 0x248(%rdx),%rsi
+ CLONE 0 0026 [ 4] cmp $0x4,%rsi
+ CLONE 0 002a [ 2] je <+0x52>
+-CLONE 0 002c [ 6] mov 0x604(%rdx),%edx
++CLONE 0 002c [ 6] mov 0x60c(%rdx),%edx
+ CLONE 0 0032 [ 4] mov 0x8(%rdi),%rsi
+-CLONE 0 0036 [ 7] mov 0x248(%rsi),%rax
+-CLONE 0 003d [ 7] sub 0x240(%rsi),%rax
++CLONE 0 0036 [ 7] mov 0x250(%rsi),%rax
++CLONE 0 003d [ 7] sub 0x248(%rsi),%rax
+ CLONE 0 0044 [ 4] sar $0x2,%rax
+ CLONE 0 0048 [ 3] cmp %rdx,%rax
+ CLONE 0 004b [ 3] setne %al
+ CLONE 0 004e [ 2] jmp <+0x52>
+ CLONE 0 0050 [ 2] xor %eax,%eax
+ CLONE 0 0052 [ 4] mov 0x8(%rdi),%rsi
+-CLONE 0 0056 [ 7] mov 0x288(%rsi),%rdx
++CLONE 0 0056 [ 7] mov 0x290(%rsi),%rdx
+ CLONE 0 005d [ 4] cmpb $0x0,(%rdx,%rcx,1)
+ CLONE 0 0061 [ 2] jne <+0x78>
+ CLONE 0 0063 [ 2] test %al,%al
+ CLONE 0 0065 [ 2] jne <+0x78>
+-CLONE 0 0067 [ 7] mov 0x2e8(%rsi),%rax
++CLONE 0 0067 [ 7] mov 0x2f0(%rsi),%rax
+ CLONE 0 006e [ 3] mov (%rax,%rcx,1),%al
+ CLONE 0 0071 [ 3] shr $0x4,%al
+ CLONE 0 0074 [ 3] and $0x1,%eax

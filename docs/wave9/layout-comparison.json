@@ -1,0 +1,242 @@
+[
+  {
+    "name": "tomo::StreamNode",
+    "pre_size": 112,
+    "post_size": 120,
+    "pad_size": 120,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo::BlockingState",
+    "pre_size": 216,
+    "post_size": 240,
+    "pad_size": 240,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo::MultiCommand",
+    "pre_size": 376,
+    "post_size": 408,
+    "pad_size": 408,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo::MultiExecState",
+    "pre_size": 1600,
+    "post_size": 1608,
+    "pad_size": 1608,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo::Server",
+    "pre_size": 141696,
+    "post_size": 141760,
+    "pad_size": 141760,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo::MultiRetryLane",
+    "pre_size": 64,
+    "post_size": 64,
+    "pad_size": 64,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo::ScatterState",
+    "pre_size": 896,
+    "post_size": 896,
+    "pad_size": 896,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo::Op",
+    "pre_size": 336,
+    "post_size": 336,
+    "pad_size": 336,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo::Client",
+    "pre_size": 1984,
+    "post_size": 1984,
+    "pad_size": 1984,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo::ThreadCtx",
+    "pre_size": 1408,
+    "post_size": 1408,
+    "pad_size": 1408,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo::Shard",
+    "pre_size": 1440,
+    "post_size": 1440,
+    "pad_size": 1440,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo::FlatStore",
+    "pre_size": 944,
+    "post_size": 944,
+    "pad_size": 944,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo::Rob<64>",
+    "pre_size": 192,
+    "post_size": 192,
+    "pad_size": 192,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo::AtomicEntry",
+    "pre_size": 144,
+    "post_size": 144,
+    "pad_size": 144,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo::Config",
+    "pre_size": 624,
+    "post_size": 624,
+    "pad_size": 624,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo_db0::StreamNode",
+    "pre_size": 112,
+    "post_size": 120,
+    "pad_size": 120,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo_db0::BlockingState",
+    "pre_size": 216,
+    "post_size": 240,
+    "pad_size": 240,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo_db0::MultiCommand",
+    "pre_size": 376,
+    "post_size": 408,
+    "pad_size": 408,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo_db0::MultiExecState",
+    "pre_size": 1600,
+    "post_size": 1608,
+    "pad_size": 1608,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo_db0::Server",
+    "pre_size": 141312,
+    "post_size": 141376,
+    "pad_size": 141376,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo_db0::MultiRetryLane",
+    "pre_size": 64,
+    "post_size": 64,
+    "pad_size": 64,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo_db0::ScatterState",
+    "pre_size": 896,
+    "post_size": 896,
+    "pad_size": 896,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo_db0::Op",
+    "pre_size": 336,
+    "post_size": 336,
+    "pad_size": 336,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo_db0::Client",
+    "pre_size": 1984,
+    "post_size": 1984,
+    "pad_size": 1984,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo_db0::ThreadCtx",
+    "pre_size": 1408,
+    "post_size": 1408,
+    "pad_size": 1408,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo_db0::Shard",
+    "pre_size": 1440,
+    "post_size": 1440,
+    "pad_size": 1440,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo_db0::FlatStore",
+    "pre_size": 944,
+    "post_size": 944,
+    "pad_size": 944,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo_db0::Rob<64>",
+    "pre_size": 192,
+    "post_size": 192,
+    "pad_size": 192,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo_db0::AtomicEntry",
+    "pre_size": 144,
+    "post_size": 144,
+    "pad_size": 144,
+    "common_old_fields_match": true,
+    "match": true
+  },
+  {
+    "name": "tomo_db0::Config",
+    "pre_size": 624,
+    "post_size": 624,
+    "pad_size": 624,
+    "common_old_fields_match": true,
+    "match": true
+  }
+]

@@ -1,0 +1,22 @@
+1s-db1-uring PASS repeats 20 group wounds 6602 EXEC wounds 9387 order violations 0
+1s-db1-epoll PASS repeats 20 group wounds 3843 EXEC wounds 3258 order violations 0
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-woundfix/tools/woundfix_live.py", line 112, in <module>
+    if __name__ == '__main__': main()
+                               ^^^^^^
+  File "/home/user/Projects/cx-woundfix/tools/woundfix_live.py", line 83, in main
+    result = subprocess.run(test, cwd=ROOT, text=True, capture_output=True, timeout=600)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2115, in _communicate
+    ready = selector.select(timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/selectors.py", line 415, in select
+    fd_event_list = self._selector.poll(timeout)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt

@@ -34,7 +34,9 @@ def main():
     root = Path(__file__).resolve().parents[1]
     output = a.output.resolve()
     assert output.is_relative_to(root / 'build')
-    assert set(os.sched_getaffinity(0)) <= set(range(96, 112))
+    # Inherit the invoking lane's allocation; never move a build to another lane.
+    cores = sorted(os.sched_getaffinity(0))
+    assert cores
     source = output / 'source'
     source.mkdir(parents=True, exist_ok=False)
     for name in ('src', 'third_party'):
@@ -52,7 +54,7 @@ def main():
     assert text.count(anchor) == 1
     text = text.replace('#pragma once', '#pragma once\n#include <fcntl.h>\n#include <thread>\n#include <unistd.h>')
     header.write_text(text.replace(anchor, anchor + '\n' + HOOK))
-    argv = ['taskset', '-c', '96-111', 'make', '-j16',
+    argv = ['taskset', '-c', ','.join(map(str, cores)), 'make', f'-j{min(32, len(cores))}',
             f'BUILD_ROOT={output / "objects"}', 'all']
     (output / 'command.json').write_text(json.dumps(dict(argv=argv, cwd=str(source)), indent=2) + '\n')
     with (output / 'build.log').open('w') as log:

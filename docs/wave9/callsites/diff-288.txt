@@ -1,0 +1,25 @@
+tomo_db0::xshard_prepare_script(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)
+--- at412c
+
++++ post
+
+@@ -46,7 +46,7 @@
+
+ CLONE 0 00dc [12] movq $0x0,0x1b0(%rsp)
+ CLONE 0 00e8 [ 6] vmovd 0x70(%rsp),%xmm2
+ CLONE 0 00ee [ 8] vpinsrd $0x1,0x74(%rsp),%xmm2,%xmm0
+-CLONE 0 00f6 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xc40>
++CLONE 0 00f6 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xca0>
+ CLONE 0 00fd [ 8] mov %rax,0x88(%rsp)
+ CLONE 0 0105 [ 9] vmovq %xmm0,0x80(%rsp)
+ CLONE 0 010e [ 4] vpxor %xmm0,%xmm0,%xmm0
+@@ -397,7 +397,7 @@
+
+ CLONE 0 07cf [ 8] mov %rax,0xd0(%rsp)
+ CLONE 0 07d7 [ 9] vmovdqa %xmm0,0xc0(%rsp)
+ CLONE 0 07e0 [ 5] call <std::_Vector_base<double, std::allocator<double> >::~_Vector_base()>
+-CLONE 0 07e5 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xc40>
++CLONE 0 07e5 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xca0>
+ CLONE 0 07ec [11] vmovdqu64 0x120(%rsp),%zmm1
+ CLONE 0 07f7 [11] vmovdqu64 0x148(%rsp),%zmm3
+ CLONE 0 0802 [ 7] lea 0x1d0(%r13),%rdi

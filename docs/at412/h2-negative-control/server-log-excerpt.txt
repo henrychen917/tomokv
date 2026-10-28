@@ -1,0 +1,1 @@
+Snapshot error: snapshot cancelled by shutdown

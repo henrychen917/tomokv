@@ -1,0 +1,261 @@
+tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&) [clone .cold]
+--- headline
+
++++ post
+
+@@ -34,7 +34,7 @@
+
+ CLONE 0 00a5 [ 7] mov -0x158(%rbp),%rax
+ CLONE 0 00ac [ 6] movw $0x40a,0x2f(%rax)
+ CLONE 0 00b2 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 00b7 [ 5] jmp <tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&)+0x18d3>
++CLONE 0 00b7 [ 5] jmp <tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&)+0x18f7>
+ CLONE 0 00bc [ 5] mov $0x8,%edi
+ CLONE 0 00c1 [ 5] call <__cxa_allocate_exception@plt>
+ CLONE 0 00c6 [ 3] mov %rax,%rdi
+@@ -56,12 +56,12 @@
+
+ CLONE 0 0115 [ 7] mov -0x158(%rbp),%rax
+ CLONE 0 011c [ 6] movw $0x40a,0x2f(%rax)
+ CLONE 0 0122 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 0127 [ 5] jmp <tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&)+0x13c3>
++CLONE 0 0127 [ 5] jmp <tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&)+0x13e3>
+ CLONE 0 012c [ 3] mov %rdi,%rbx
+ CLONE 0 012f [ 7] mov -0x170(%rbp),%rdi
+ CLONE 0 0136 [ 3] vzeroupper
+ CLONE 0 0139 [ 5] call <std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()>
+-CLONE 0 013e [ 3] mov %r13,%rdi
++CLONE 0 013e [ 3] mov %r12,%rdi
+ CLONE 0 0141 [ 5] call <std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()>
+ CLONE 0 0146 [ 4] mov -0x38(%rbp),%rax
+ CLONE 0 014a [ 9] sub %fs:0x28,%rax
+@@ -89,130 +89,129 @@
+
+ CLONE 0 01b3 [ 7] mov -0x160(%rbp),%rdi
+ CLONE 0 01ba [ 3] vzeroupper
+ CLONE 0 01bd [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 01c2 [ 3] mov %rbx,%rax
+-CLONE 0 01c5 [ 3] dec %rax
+-CLONE 0 01c8 [ 6] jne <+0x38a>
+-CLONE 0 01ce [ 3] mov %r12,%rdi
++CLONE 0 01c2 [ 3] mov %r13,%rdi
++CLONE 0 01c5 [ 3] mov %rbx,%rax
++CLONE 0 01c8 [ 3] dec %rax
++CLONE 0 01cb [ 6] jne <+0x420>
+ CLONE 0 01d1 [ 5] call <__cxa_begin_catch@plt>
+ CLONE 0 01d6 [ 7] mov -0x158(%rbp),%rax
+ CLONE 0 01dd [ 6] movw $0x40a,0x2f(%rax)
+ CLONE 0 01e3 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 01e8 [ 5] jmp <tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&)+0x15ea>
++CLONE 0 01e8 [ 5] jmp <tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&)+0x1609>
+ CLONE 0 01ed [ 4] mov -0x38(%rbp),%rax
+ CLONE 0 01f1 [ 9] sub %fs:0x28,%rax
+-CLONE 0 01fa [ 6] jne <+0x3ce>
++CLONE 0 01fa [ 6] jne <+0x37e>
+ CLONE 0 0200 [ 3] vzeroupper
+ CLONE 0 0203 [ 5] call <_Unwind_Resume@plt>
+ CLONE 0 0208 [ 3] dec %rax
+-CLONE 0 020b [ 6] je <+0x3db>
++CLONE 0 020b [ 6] je <+0x3ce>
+ CLONE 0 0211 [ 3] mov %rdi,%rbx
+ CLONE 0 0214 [ 7] mov -0x170(%rbp),%rdi
+ CLONE 0 021b [ 3] vzeroupper
+ CLONE 0 021e [ 5] call <std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()>
+-CLONE 0 0223 [ 3] mov %r13,%rdi
++CLONE 0 0223 [ 3] mov %r12,%rdi
+ CLONE 0 0226 [ 5] call <std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()>
+ CLONE 0 022b [ 4] mov -0x38(%rbp),%rax
+ CLONE 0 022f [ 9] sub %fs:0x28,%rax
+-CLONE 0 0238 [ 6] jne <+0x39b>
++CLONE 0 0238 [ 6] jne <+0x3ed>
+ CLONE 0 023e [ 3] mov %rbx,%rdi
+ CLONE 0 0241 [ 5] call <_Unwind_Resume@plt>
+ CLONE 0 0246 [ 7] mov -0x160(%rbp),%rdi
+ CLONE 0 024d [ 3] vzeroupper
+ CLONE 0 0250 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0255 [ 3] dec %r13
+-CLONE 0 0258 [ 2] jne <+0x287>
+-CLONE 0 025a [ 3] mov %r12,%rdi
++CLONE 0 0255 [ 3] mov %r12,%rdi
++CLONE 0 0258 [ 3] dec %r13
++CLONE 0 025b [ 2] jne <+0x287>
+ CLONE 0 025d [ 5] call <__cxa_begin_catch@plt>
+ CLONE 0 0262 [ 7] mov -0x158(%rbp),%rax
+ CLONE 0 0269 [ 6] movw $0x40a,0x2f(%rax)
+ CLONE 0 026f [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 0274 [ 7] mov -0xf8(%rbp),%r12
++CLONE 0 0274 [ 7] mov -0xf8(%rbp),%r13
+ CLONE 0 027b [ 7] mov -0x100(%rbp),%rdx
+-CLONE 0 0282 [ 5] jmp <tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&)+0xbac>
++CLONE 0 0282 [ 5] jmp <tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&)+0xbdc>
+ CLONE 0 0287 [ 7] lea -0x120(%rbp),%rax
+-CLONE 0 028e [ 7] lea -0x100(%rbp),%r13
+-CLONE 0 0295 [ 7] mov %rax,-0x178(%rbp)
+-CLONE 0 029c [ 3] mov %r13,%rdi
+-CLONE 0 029f [ 5] call <std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> >::~vector()>
+-CLONE 0 02a4 [ 7] mov -0x178(%rbp),%rdi
+-CLONE 0 02ab [ 5] call <std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> >::~vector()>
+-CLONE 0 02b0 [ 7] mov -0x198(%rbp),%rdi
+-CLONE 0 02b7 [ 5] call <std::vector<tomo::(anonymous namespace)::ZImageItem, std::allocator<tomo::(anonymous namespace)::ZImageItem> >::~vector()>
+-CLONE 0 02bc [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 02c0 [ 9] sub %fs:0x28,%rax
+-CLONE 0 02c9 [ 6] jne <+0x3d6>
+-CLONE 0 02cf [ 3] mov %r12,%rdi
+-CLONE 0 02d2 [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 02d7 [ 7] mov -0x170(%rbp),%rdi
+-CLONE 0 02de [ 3] vzeroupper
+-CLONE 0 02e1 [ 3] mov %rbx,%r14
+-CLONE 0 02e4 [ 5] call <std::_Hashtable<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Identity, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::clear()>
+-CLONE 0 02e9 [ 7] mov -0x170(%rbp),%rdi
+-CLONE 0 02f0 [ 5] call <std::_Hashtable<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Identity, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::_M_deallocate_buckets()>
+-CLONE 0 02f5 [ 3] dec %r14
+-CLONE 0 02f8 [ 2] jne <+0x34f>
+-CLONE 0 02fa [ 3] mov %r13,%rdi
+-CLONE 0 02fd [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 0302 [ 7] mov -0x158(%rbp),%rax
+-CLONE 0 0309 [ 6] movw $0x40a,0x2f(%rax)
+-CLONE 0 030f [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 0314 [ 7] mov -0xf8(%rbp),%rbx
+-CLONE 0 031b [ 7] mov -0xf0(%rbp),%rcx
+-CLONE 0 0322 [ 7] mov -0x100(%rbp),%rax
+-CLONE 0 0329 [ 7] mov %rbx,-0x160(%rbp)
+-CLONE 0 0330 [ 7] mov %rcx,-0x178(%rbp)
+-CLONE 0 0337 [ 3] cmp %rbx,%rax
+-CLONE 0 033a [ 2] je <+0x377>
+-CLONE 0 033c [ 7] mov -0x160(%rbp),%rdx
+-CLONE 0 0343 [ 7] mov %rax,-0x160(%rbp)
+-CLONE 0 034a [ 5] jmp <tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&)+0x1dcc>
+-CLONE 0 034f [ 7] lea -0x100(%rbp),%rdi
+-CLONE 0 0356 [ 5] call <std::vector<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >, std::allocator<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > > >::~vector()>
+-CLONE 0 035b [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 035f [ 9] sub %fs:0x28,%rax
+-CLONE 0 0368 [ 2] jne <+0x372>
+-CLONE 0 036a [ 3] mov %r13,%rdi
+-CLONE 0 036d [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 0372 [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 0377 [ 8] cmpq $0x0,-0x160(%rbp)
+-CLONE 0 037f [ 6] jne <tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&)+0x1e47>
+-CLONE 0 0385 [ 5] jmp <tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&)+0x135>
+-CLONE 0 038a [ 7] mov -0x170(%rbp),%rdi
+-CLONE 0 0391 [ 5] call <std::vector<tomo::(anonymous namespace)::ZImageItem, std::allocator<tomo::(anonymous namespace)::ZImageItem> >::~vector()>
+-CLONE 0 0396 [ 5] jmp <+0x29c>
+-CLONE 0 039b [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 03a0 [ 7] mov -0x170(%rbp),%rdi
+-CLONE 0 03a7 [ 3] vzeroupper
+-CLONE 0 03aa [ 5] call <std::vector<tomo::(anonymous namespace)::ZImageItem, std::allocator<tomo::(anonymous namespace)::ZImageItem> >::~vector()>
+-CLONE 0 03af [ 3] mov %r13,%rdi
+-CLONE 0 03b2 [ 5] call <std::vector<tomo::(anonymous namespace)::ZImageItem, std::allocator<tomo::(anonymous namespace)::ZImageItem> >::~vector()>
+-CLONE 0 03b7 [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 03bb [ 9] sub %fs:0x28,%rax
+-CLONE 0 03c4 [ 2] jne <+0x43d>
+-CLONE 0 03c6 [ 3] mov %rbx,%rdi
+-CLONE 0 03c9 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 028e [ 3] mov %rdi,%rbx
++CLONE 0 0291 [ 7] lea -0x100(%rbp),%r12
++CLONE 0 0298 [ 7] mov %rax,-0x178(%rbp)
++CLONE 0 029f [ 3] mov %r12,%rdi
++CLONE 0 02a2 [ 5] call <std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> >::~vector()>
++CLONE 0 02a7 [ 7] mov -0x178(%rbp),%rdi
++CLONE 0 02ae [ 5] call <std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> >::~vector()>
++CLONE 0 02b3 [ 7] mov -0x198(%rbp),%rdi
++CLONE 0 02ba [ 5] call <std::vector<tomo::(anonymous namespace)::ZImageItem, std::allocator<tomo::(anonymous namespace)::ZImageItem> >::~vector()>
++CLONE 0 02bf [ 4] mov -0x38(%rbp),%rax
++CLONE 0 02c3 [ 9] sub %fs:0x28,%rax
++CLONE 0 02cc [ 6] jne <+0x3c9>
++CLONE 0 02d2 [ 3] mov %rbx,%rdi
++CLONE 0 02d5 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 02da [ 7] mov -0x170(%rbp),%rdi
++CLONE 0 02e1 [ 3] vzeroupper
++CLONE 0 02e4 [ 3] mov %rbx,%r14
++CLONE 0 02e7 [ 5] call <std::_Hashtable<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Identity, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::clear()>
++CLONE 0 02ec [ 7] mov -0x170(%rbp),%rdi
++CLONE 0 02f3 [ 5] call <std::_Hashtable<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Identity, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::_M_deallocate_buckets()>
++CLONE 0 02f8 [ 3] dec %r14
++CLONE 0 02fb [ 2] jne <+0x356>
++CLONE 0 02fd [ 3] mov %r13,%rdi
++CLONE 0 0300 [ 5] call <__cxa_begin_catch@plt>
++CLONE 0 0305 [ 7] mov -0x158(%rbp),%rax
++CLONE 0 030c [ 6] movw $0x40a,0x2f(%rax)
++CLONE 0 0312 [ 5] call <__cxa_end_catch@plt>
++CLONE 0 0317 [ 7] mov -0x100(%rbp),%rax
++CLONE 0 031e [ 7] mov -0xf0(%rbp),%rbx
++CLONE 0 0325 [ 7] mov -0xf8(%rbp),%rdx
++CLONE 0 032c [ 7] mov %rax,-0x160(%rbp)
++CLONE 0 0333 [ 7] mov %rbx,-0x178(%rbp)
++CLONE 0 033a [ 3] cmp %rax,%rdx
++CLONE 0 033d [ 6] jne <tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&)+0x1de6>
++CLONE 0 0343 [ 8] cmpq $0x0,-0x160(%rbp)
++CLONE 0 034b [ 6] jne <tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&)+0x1e67>
++CLONE 0 0351 [ 5] jmp <tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&)+0x135>
++CLONE 0 0356 [ 7] lea -0x100(%rbp),%rdi
++CLONE 0 035d [ 5] call <std::vector<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >, std::allocator<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > > >::~vector()>
++CLONE 0 0362 [ 4] mov -0x38(%rbp),%rax
++CLONE 0 0366 [ 9] sub %fs:0x28,%rax
++CLONE 0 036f [ 2] jne <+0x379>
++CLONE 0 0371 [ 3] mov %r13,%rdi
++CLONE 0 0374 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0379 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 037e [ 3] vzeroupper
++CLONE 0 0381 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 0386 [ 3] dec %rax
++CLONE 0 0389 [ 2] jne <+0x3aa>
++CLONE 0 038b [ 3] vzeroupper
++CLONE 0 038e [ 5] call <__cxa_begin_catch@plt>
++CLONE 0 0393 [ 7] mov -0x158(%rbp),%rax
++CLONE 0 039a [ 6] movw $0x40a,0x2f(%rax)
++CLONE 0 03a0 [ 5] call <__cxa_end_catch@plt>
++CLONE 0 03a5 [ 5] jmp <tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&)+0x135>
++CLONE 0 03aa [ 4] mov -0x38(%rbp),%rax
++CLONE 0 03ae [ 9] sub %fs:0x28,%rax
++CLONE 0 03b7 [ 2] jne <+0x3c1>
++CLONE 0 03b9 [ 3] vzeroupper
++CLONE 0 03bc [ 5] call <_Unwind_Resume@plt>
++CLONE 0 03c1 [ 3] vzeroupper
++CLONE 0 03c4 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 03c9 [ 5] call <__stack_chk_fail@plt>
+ CLONE 0 03ce [ 3] vzeroupper
+-CLONE 0 03d1 [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 03d6 [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 03db [ 3] vzeroupper
+-CLONE 0 03de [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 03e3 [ 7] mov -0x158(%rbp),%rax
+-CLONE 0 03ea [ 6] movw $0x40a,0x2f(%rax)
+-CLONE 0 03f0 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 03f5 [ 5] jmp <tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&)+0x18d3>
+-CLONE 0 03fa [ 3] dec %rax
+-CLONE 0 03fd [ 2] jne <+0x41e>
+-CLONE 0 03ff [ 3] vzeroupper
+-CLONE 0 0402 [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 0407 [ 7] mov -0x158(%rbp),%rax
+-CLONE 0 040e [ 6] movw $0x40a,0x2f(%rax)
+-CLONE 0 0414 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 0419 [ 5] jmp <tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&)+0x135>
+-CLONE 0 041e [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 0422 [ 9] sub %fs:0x28,%rax
+-CLONE 0 042b [ 2] jne <+0x435>
+-CLONE 0 042d [ 3] vzeroupper
+-CLONE 0 0430 [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 0435 [ 3] vzeroupper
+-CLONE 0 0438 [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 043d [ 5] call <__stack_chk_fail@plt>
++CLONE 0 03d1 [ 5] call <__cxa_begin_catch@plt>
++CLONE 0 03d6 [ 7] mov -0x158(%rbp),%rax
++CLONE 0 03dd [ 6] movw $0x40a,0x2f(%rax)
++CLONE 0 03e3 [ 5] call <__cxa_end_catch@plt>
++CLONE 0 03e8 [ 5] jmp <tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&)+0x18f7>
++CLONE 0 03ed [ 5] call <__stack_chk_fail@plt>
++CLONE 0 03f2 [ 7] mov -0x170(%rbp),%rdi
++CLONE 0 03f9 [ 3] vzeroupper
++CLONE 0 03fc [ 5] call <std::vector<tomo::(anonymous namespace)::ZImageItem, std::allocator<tomo::(anonymous namespace)::ZImageItem> >::~vector()>
++CLONE 0 0401 [ 3] mov %r12,%rdi
++CLONE 0 0404 [ 5] call <std::vector<tomo::(anonymous namespace)::ZImageItem, std::allocator<tomo::(anonymous namespace)::ZImageItem> >::~vector()>
++CLONE 0 0409 [ 4] mov -0x38(%rbp),%rax
++CLONE 0 040d [ 9] sub %fs:0x28,%rax
++CLONE 0 0416 [ 2] jne <+0x434>
++CLONE 0 0418 [ 3] mov %rbx,%rdi
++CLONE 0 041b [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0420 [ 3] mov %rdi,%rbx
++CLONE 0 0423 [ 7] mov -0x170(%rbp),%rdi
++CLONE 0 042a [ 5] call <std::vector<tomo::(anonymous namespace)::ZImageItem, std::allocator<tomo::(anonymous namespace)::ZImageItem> >::~vector()>
++CLONE 0 042f [ 5] jmp <+0x29f>
++CLONE 0 0434 [ 5] call <__stack_chk_fail@plt>

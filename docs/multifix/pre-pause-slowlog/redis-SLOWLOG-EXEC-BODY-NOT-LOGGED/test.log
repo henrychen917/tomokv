@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-multifix/tests/multifix.py", line 156, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/home/user/Projects/cx-multifix/tests/multifix.py", line 152, in main
+    CASES[args.case](a,b,args.oracle)
+  File "/home/user/Projects/cx-multifix/tests/multifix.py", line 79, in slowlog
+    expect(a.cmd('CLIENT','SETNAME','multifix slow'),OK)
+  File "/home/user/Projects/cx-multifix/tests/multifix.py", line 12, in expect
+    assert actual == expected, (actual, expected)
+           ^^^^^^^^^^^^^^^^^^
+AssertionError: (RespError(b'ERR Client names cannot contain spaces, newlines or special characters.'), b'OK')

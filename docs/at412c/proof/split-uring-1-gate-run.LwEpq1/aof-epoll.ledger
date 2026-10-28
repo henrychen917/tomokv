@@ -1,0 +1,54 @@
+ok	0.080000	configuration reduction + actual geometry (epoll, atomic 0)
+ok	0.430000	AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)
+ok	0.040000	AOF writer fired (records=N)
+ok	0.050000	AOF process-restart script replay (epoll, atomic 0)
+ok	0.040000	AOF native snapshot streams byte-exact
+ok	0.010000	AOF replay fired (records=N skipped=N)
+ok	0.070000	configuration reduction + actual geometry (epoll, atomic 1)
+ok	0.420000	AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)
+ok	0.040000	AOF writer fired (records=N)
+ok	0.050000	AOF process-restart script replay (epoll, atomic 1)
+ok	0.040000	AOF native snapshot streams byte-exact
+ok	0.010000	AOF replay fired (records=N skipped=N)
+ok	0.050000	AOF directed group interruption fired
+ok	0.050000	AOF atomic-group recovery + writer order
+ok	0.020000	AOF group shutdown invariants
+ok	0.080000	AOF always sync + reply gate fired
+ok	0.020000	AOF always recovery after quiescent SIGKILL
+ok	0.860000	AOF in-window kill recovery (2s, epoll)
+ok	2.370000	AOF in-window term recovery (2s, epoll)
+ok	0.860000	AOF in-window kill recovery (1s, epoll)
+ok	2.200000	AOF in-window term recovery (1s, epoll)
+ok	1.650000	shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)
+ok	1.780000	shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)
+ok	1.860000	shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)
+ok	1.970000	shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)
+ok	1.290000	AOF everysec write gate + idle sync fired
+ok	0.030000	AOF everysec durability window + tail warning
+ok	0.030000	AOF no-sync bypassed sync + reply gate
+ok	5.170000	AOF rewrite atomic/stage/corruption matrix
+ok	5.440000	AOF rewrite triggers + observability matrix
+ok	0.010000	AOF-off negative-control seed landed
+ok	0.000000	AOF-off negative control lost data
+ok	0.420000	aoffix2 snapshot (1s, epoll)
+ok	1.530000	aoffix2 filename (1s, epoll)
+ok	0.180000	aoffix2 error (1s, epoll)
+ok	0.540000	aoffix2 tickets (1s, epoll)
+ok	0.550000	aoffix2 exec_tickets (1s, epoll)
+ok	0.540000	aoffix2 resurrection (1s, epoll)
+ok	0.420000	aoffix2 rewrite_fail2 (1s, epoll)
+ok	0.300000	aoffix2 manifest_missing (1s, epoll)
+ok	0.280000	aoffix2 off-writer acknowledgement everysec (1s, epoll)
+ok	0.290000	aoffix2 off-writer acknowledgement always (1s, epoll)
+ok	0.410000	aoffix2 snapshot (2s, epoll)
+ok	1.520000	aoffix2 filename (2s, epoll)
+ok	0.180000	aoffix2 error (2s, epoll)
+ok	0.540000	aoffix2 tickets (2s, epoll)
+ok	0.550000	aoffix2 exec_tickets (2s, epoll)
+ok	0.540000	aoffix2 resurrection (2s, epoll)
+ok	0.420000	aoffix2 rewrite_fail2 (2s, epoll)
+ok	0.310000	aoffix2 manifest_missing (2s, epoll)
+ok	0.280000	aoffix2 off-writer acknowledgement everysec (2s, epoll)
+ok	0.290000	aoffix2 off-writer acknowledgement always (2s, epoll)
+ok	0.340000	aoffix2 large (1s, epoll)
+ok	0.200000	aoffix2 large_placed (1s, epoll)

@@ -1,0 +1,38 @@
+{
+  "unit": "src/main.o",
+  "budget": "current",
+  "initial": 100389,
+  "changed": [
+    "unsigned int tomo::IoLoop::flush_ready<false, false, false, false, false, false>()",
+    "unsigned int tomo::IoLoop::flush_ready<false, true, false, false, false, false>()",
+    "unsigned int tomo::IoLoop::flush_ready<true, false, false, false, false, false>()",
+    "unsigned int tomo::IoLoop::flush_ready<true, true, false, false, false, false>()"
+  ],
+  "total": 77,
+  "command": [
+    "taskset",
+    "-c",
+    "48-63",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "-DTOMO_DUAL_DATABASE",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=146058",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/main.cc",
+    "-o",
+    "/home/user/Projects/cx-at412/build/at412/budgets2/src_main.o-current.o",
+    "-g0",
+    "-fdump-ipa-inline=/home/user/Projects/cx-at412/build/at412/budgets2/src_main.o-current.inline"
+  ]
+}

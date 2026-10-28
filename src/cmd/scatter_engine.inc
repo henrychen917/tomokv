@@ -1,9 +1,11 @@
+#include "client_pause.h"
 // scatter_engine.inc — arena-backed scatter/gather state and execution engine.
 //
 // This file is textually included by xshard.cc. It deliberately remains part of that one
 // translation unit and shares its anonymous namespace; there are no new external symbols or
 // build-system inputs.
 
+#include <type_traits>
 
 namespace tomo {
 namespace {
@@ -18,7 +20,8 @@ enum class Kind : uint8_t {
     Script,
 };
 
-enum class ScriptPhase : uint8_t { None, Pin, Read, Run, Validate, Apply, Unpin };
+// Place: an escalated attempt's first wave (AT4.12 TO-B placement, then the read at UINT64_MAX).
+enum class ScriptPhase : uint8_t { None, Pin, Read, Run, Validate, Apply, Unpin, Place };
 
 enum class BitOperation : uint8_t { And, Or, Xor, Not };
 enum class ZAggregate : uint8_t { Sum, Min, Max };
@@ -170,6 +173,8 @@ struct ImageRangeOptions {
 };
 
 struct SortOptions {
+    // Both preparation instantiations must retain PRE's inline copy.
+    [[gnu::always_inline]] SortOptions& operator=(const SortOptions&) = default;
     bool alpha = false;
     bool descending = false;
     bool store = false;
@@ -500,6 +505,13 @@ struct ScatterState : SnapshotCut {
     // Set for a child lowered inside EXEC. The child keeps its own decision words, but the parent
     // publishes their common ticket and owns the outer transaction decision.
     bool multi_child = false;
+    // AT4.12: one byte of the padding before multi_parent (offset 61), so no established member
+    // moves and MGET/MSET keep their field displacements. Both flags share that byte, which the
+    // constructor's existing store of multi_child (offset 60) widens to cover: the constructor
+    // executes PRE's instruction count. Never written concurrently: the IO writes slot_live
+    // before publication or after Done; the driving EX writes both inside the state machine.
+    bool script_slot_live : 1 = false;
+    bool script_escalate_after_unpin : 1 = false;
     const void* multi_parent = nullptr;    // WATCH readiness uses the enclosing EXEC's token
     bool barrier = false;
     bool pooled = false;
@@ -685,6 +697,18 @@ template <bool IofusedPrivateQueue>
 template <bool IofusedPrivateQueue>
 void txn_group_redispatch(Server&, ThreadCtx&, Ring&, ScatterArenaPool&, ScatterState&);
 void txn_group_shutdown(ScatterState&, ScatterArenaPool&);
+[[gnu::noinline]] bool script_window_wait(Server&, uint32_t, Client&);
+[[gnu::noinline]] bool script_window_admissible(Server&, uint32_t, Client*, bool);
+[[gnu::noinline]] bool script_window_admit(ScatterState&);
+[[gnu::noinline]] void script_window_release(ScatterState&);
+[[gnu::noinline]] void script_window_refresh(Server&, uint32_t);
+[[gnu::noinline]] void script_window_retire(ScatterState&);
+// Cold: the call sits in execute_script_phase, which GCC inlines into xshard_execute (MGET/MSET).
+[[gnu::noinline, gnu::cold]] ScatterTaskResult script_group_read(ScatterState&, Shard&, Op&);
+[[gnu::noinline]] ScatterFinish script_escalate_handoff(Server&, ThreadCtx&, Ring&, const Task&, Op&);
+[[gnu::noinline]] ScatterFinish script_group_final(Server&, ThreadCtx&, Ring&, const Task&, Op&, WorkError);
+template <bool IofusedPrivateQueue>
+void script_escalate_redispatch(Server&, ThreadCtx&, Ring&, ScatterArenaPool&, ScatterState&);
 
 struct XshardCommitBatch {
     ScatterState* head = nullptr;
@@ -826,7 +850,9 @@ uint32_t key_count_for(const XshardKeyPlan& keys, bool snapshot_writes_only = fa
     return count;
 }
 
-uint32_t key_arg_for(const XshardKeyPlan& keys, uint32_t key,
+// Preparation has two instantiations. Keep its formerly singleton leaves inline so ordinary
+// scatters do not gain calls just because the script specialization also uses these helpers.
+[[gnu::always_inline]] inline uint32_t key_arg_for(const XshardKeyPlan& keys, uint32_t key,
                      bool snapshot_writes_only = false) {
     for (uint32_t i = 0; i < keys.span_count; i++) {
         const XshardKeySpan& span = keys.spans[i];
@@ -846,12 +872,12 @@ bool has_status(Kind kind, bool atomic_write) {
            kind == Kind::Exists || kind == Kind::Touch || kind == Kind::Pfcount ||
            kind == Kind::Xread || kind == Kind::Lcs || is_two_hop(kind);
 }
-bool has_images(Kind kind) {
+[[gnu::always_inline]] inline bool has_images(Kind kind) {
     return kind == Kind::Pfcount || kind == Kind::Xread || kind == Kind::Lcs ||
            (is_two_hop(kind) && kind != Kind::Msetnx);
 }
 
-size_t arena_layout_bytes(Kind kind, uint32_t key_count, uint32_t group_cap,
+[[gnu::always_inline]] inline size_t arena_layout_bytes(Kind kind, uint32_t key_count, uint32_t group_cap,
                           uint32_t shard_slots, bool atomic_write, bool atomic_apply,
                           uint32_t owner_slots, bool sort_deref) {
     const bool atomic_install = atomic_write || atomic_apply;
@@ -885,7 +911,7 @@ T* carve_at(char* base, size_t& off, uint32_t count) {
     return result;
 }
 
-void init_arena_arrays(ScatterState& state) {
+[[gnu::always_inline]] inline void init_arena_arrays(ScatterState& state) {
     char* base = reinterpret_cast<char*>(&state);
     size_t off = sizeof(ScatterState);
     state.groups = carve_at<ShardGroup>(base, off, state.group_cap);
@@ -1564,15 +1590,23 @@ void ScatterArenaPool::release(void* ptr, bool pooled) {
     ++count_;
 }
 
-ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
+[[gnu::noinline]] ScatterPrepare xshard_prepare_script(
+    Server&, Op&, ScatterArenaPool&, uint32_t, uint64_t, ScatterDispatch&, bool, Client*);
+
+// One implementation, two compiled routes. The ordinary route classifies once and hands scripts
+// off before constructing the reload lifetime guard. The FIFO call and its argument liveness
+// belong only to the script route; no script admission state is added to an ordinary command.
+template<bool ScriptOnly>
+[[gnu::always_inline]] inline ScatterPrepare xshard_prepare_body(Server& server, Op& op, ScatterArenaPool& pool,
                               uint32_t owner_io, uint64_t origin_conn_id,
                               ScatterDispatch& dispatch, bool force_atomic,
                               Client* origin_client) {
-    const bool all_shards = (op.spec->flags & CmdFlags::AllShards) ||
+    const bool all_shards = !ScriptOnly && ((op.spec->flags & CmdFlags::AllShards) ||
                             ((op.spec->flags & CmdFlags::ConfigRoute) &&
-                             command_config_routes_all_shards(op, force_atomic));
+                             command_config_routes_all_shards(op, force_atomic)));
     Kind kind;
-    if (all_shards)
+    if constexpr (ScriptOnly) kind = Kind::Script;
+    else if (all_shards)
         kind = op.cmd_name().eq_icase("randomkey") ? Kind::RandomKey :
                op.cmd_name().eq_icase("info") ? Kind::DatabaseInfo :
                op.cmd_name().eq_icase("swapdb") ? Kind::Swapdb :
@@ -1596,10 +1630,16 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
             return ScatterPrepare::Backpressure;
     }
 
-    if (op.cmd_name().eq_icase("move")) {
+    if constexpr (!ScriptOnly) if (op.cmd_name().eq_icase("move")) {
         // Both ordinary dispatch and EXEC already identified this operation's
         // keys from one map. Never resolve a second map during lowering.
         if (!multidb_prepare_move(server, op)) return ScatterPrepare::Error;
+    }
+
+    if constexpr (!ScriptOnly) {
+        if (kind == Kind::Script)
+            return xshard_prepare_script(server, op, pool, owner_io, origin_conn_id,
+                                         dispatch, force_atomic, origin_client);
     }
 
     // DEBUG RELOAD/LOADAOF are asynchronous all-owner loads. Publish that fact before any file
@@ -1647,10 +1687,13 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         key_hints.first = script_first;
         key_hints.count = script_count;
     }
-    std::unique_ptr<SnapshotLoadPlan> reload_plan;
-    std::unique_ptr<SnapshotLoadPlan> aof_reload_base;
-    std::vector<std::unique_ptr<AofReplayPlan>> aof_reload_increments;
-    if (all_shards) {
+    // Scripts cannot reload. Do not instantiate a second set of loader destructors: doing so
+    // changes GCC's inline decisions for the ordinary route's otherwise unchanged cleanup.
+    struct NoReload {};
+    std::conditional_t<ScriptOnly, NoReload, std::unique_ptr<SnapshotLoadPlan>> reload_plan;
+    std::conditional_t<ScriptOnly, NoReload, std::unique_ptr<SnapshotLoadPlan>> aof_reload_base;
+    std::conditional_t<ScriptOnly, NoReload, std::vector<std::unique_ptr<AofReplayPlan>>> aof_reload_increments;
+    if constexpr (!ScriptOnly) if (all_shards) {
         if (kind == Kind::DebugBorrowCount) {
             if (!debug_command_allowed(server, origin_client)) {
                 reply_debug_command_denied(op);
@@ -2002,14 +2045,16 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         (!force_atomic && (tracking || read_fanout) &&
          (key_count || kind == Kind::Keys || kind == Kind::DbsizeExact) &&
          !(atomic_write && kind == Kind::Mset) && !latest_msetnx);
-    if (kind == Kind::Script &&
-        !pool.can_register_snapshot(server.script_crossshard_cut_slots())) {
-        if (routes != route_stack) delete[] routes;
-        server.note_script_window_refusal();
-        reply_err(op.sink(), "BUSY Cross-shard script snapshot window is full");
-        return ScatterPrepare::Error;
-    }
-    if (needs_snapshot && (atomic_mode & ~Server::kAtomicEnabledBit) &&
+    // AT4.12 §3.2: a cross-shard script never refuses. It waits for one of four optimistic slots
+    // on its IO (per-IO FIFO, frame left unconsumed) instead of the old BUSY, and jumps over the
+    // general 8-cut window (its own slots bound it). The slot is counted in txn_group_prepare,
+    // after the last exit that could still refuse it.
+    if constexpr (ScriptOnly) {
+        if (!script_window_admissible(server, owner_io, origin_client, force_atomic)) {
+            if (routes != route_stack) delete[] routes;
+            return ScatterPrepare::Backpressure;
+        }
+    } else if (needs_snapshot && (atomic_mode & ~Server::kAtomicEnabledBit) &&
         !pool.can_register_snapshot()) {
         if (routes != route_stack) delete[] routes;
         return ScatterPrepare::Backpressure;
@@ -2101,9 +2146,11 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     state->range_options = range_options;
     state->range_spec = range_spec;
     state->sort_options = sort_options;
-    state->reload_plan = std::move(reload_plan);
-    state->aof_reload_base = std::move(aof_reload_base);
-    state->aof_reload_increments = std::move(aof_reload_increments);
+    if constexpr (!ScriptOnly) {
+        state->reload_plan = std::move(reload_plan);
+        state->aof_reload_base = std::move(aof_reload_base);
+        state->aof_reload_increments = std::move(aof_reload_increments);
+    }
     // MSET is a blind replacement. Registering a read cut for it only pins predecessors across a
     // deep pipeline; atomic-ON MSETNX and delete keep their dispatch snapshot for existence.
     // A read that IO already stamped reuses that exact cut, so a plain read and a multi-key read
@@ -2234,9 +2281,26 @@ int32_t xshard_dispatch_shard(const ScatterDispatch& dispatch, uint32_t index) {
     return index < dispatch.state->nsub ? dispatch.state->groups[index].shard : -1;
 }
 
+ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
+                              uint32_t owner_io, uint64_t origin_conn_id,
+                              ScatterDispatch& dispatch, bool force_atomic,
+                              Client* origin_client) {
+    return xshard_prepare_body<false>(server, op, pool, owner_io, origin_conn_id,
+                                      dispatch, force_atomic, origin_client);
+}
+
+ScatterPrepare xshard_prepare_script(Server& server, Op& op, ScatterArenaPool& pool,
+                                     uint32_t owner_io, uint64_t origin_conn_id,
+                                     ScatterDispatch& dispatch, bool force_atomic,
+                                     Client* origin_client) {
+    return xshard_prepare_body<true>(server, op, pool, owner_io, origin_conn_id,
+                                     dispatch, force_atomic, origin_client);
+}
+
 void xshard_abandon_unpublished(ScatterState* state, ScatterArenaPool& pool,
                                 uint32_t owner_io) {
     if (!state) return;
+    if (state->kind == Kind::Script) script_window_retire(*state);
     // No task was published, hence no AtomicEntry can name these counts. Clear only the pre-counted
     // phantom pins; ordinary destruction must leave installed-node lifetime accounting untouched.
     clear_unpublished_owner_record_refs(*state);
@@ -2470,6 +2534,10 @@ void script_clear_attempt(ScatterState& state, Op& op) {
     state.script_staged_bytes.store(0, std::memory_order_relaxed);
     state.script_conflict.store(false, std::memory_order_relaxed);
     notify_discard_speculative(state.notify);
+    // Re-arm on fresh staged state. A nine-conflict witness must open nine
+    // different READ windows, rather than race an already expired deadline.
+    if (state.debug_script_defer_us)
+        state.debug_script_defer_deadline = now_ns() + uint64_t{state.debug_script_defer_us} * 1000;
 }
 
 uint32_t script_select_positions(ScatterState& state, ScriptPhase phase) {
@@ -2489,6 +2557,18 @@ ScriptPostResult script_post_phase(Server& server, ThreadCtx& self, Ring& ring,
                                    ScriptPhase phase) {
     state.script_phase = phase;
     state.phase = phase == ScriptPhase::Apply ? 2 : 1;
+    // AT4.12 TEST HOOKS, armed here so the shared deferral gate (xshard_task_should_defer) keeps
+    // PRE's code. DEBUG SCRIPT-APPLY-DEFER parks every APPLY owner but the coordinator's through
+    // the generic fan-out park (one lead, one deadline); DEBUG SCRIPT-STAGE-WATCH counts READ
+    // launches of the watched connection, after its cut is chosen.
+    if (phase == ScriptPhase::Apply) {
+        if (const uint32_t us = server.debug_script_apply_defer()) {
+            state.debug_fanout_lead = state.script_coordinator_shard;
+            state.debug_fanout_deadline = now_ns() + uint64_t{us} * 1000;
+        }
+    } else if (phase == ScriptPhase::Read) {
+        server.note_debug_script_stage_watch(state.origin_conn_id);
+    }
 
     int32_t one_shard = -1;
     if (phase == ScriptPhase::Run) {
@@ -2748,6 +2828,10 @@ ScatterTaskResult execute_script_phase(const Task& task, Shard& shard, Op& op) {
                 state.script_pinned[pos] = 0;
             }
             return ScatterTaskResult::Complete;
+        case ScriptPhase::Place:
+            // AT4.12: a separate phase and a cold callee keep the optimistic phases (inlined
+            // into xshard_execute) PRE-identical; see script_group_read.
+            return script_group_read(state, shard, op);
         case ScriptPhase::Apply:
         case ScriptPhase::None:
             break;
@@ -3470,6 +3554,11 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
             }
             case Kind::RandomKey:
             case Kind::Keys: {
+                // Redis RANDOMKEY can return an expired resident key while
+                // PAUSE suppresses physical expiry. Retain the MVCC read cut;
+                // only this cold command's expiry clock sees the resident set.
+                PinnedNowMs paused_randomkey(shard,
+                    state.kind == Kind::RandomKey && client_pause_expiry_held() ? -1 : 0);
                 if (!group.aux) group.aux = new GroupAux;
                 const Slice pattern = state.kind == Kind::RandomKey ? Slice("*", 1) : op.arg(1);
                 group.scan_cursor = shard.store().scan(group.scan_cursor, 256, [&](KvObj* object) {
@@ -3619,6 +3708,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
 }
 
 void script_snapshot_done(Server& server, ScatterState& state) {
+    script_window_release(state);
     if (state.snapshot_registered &&
         !state.snapshot_complete.exchange(true, std::memory_order_acq_rel))
         server.note_atomic_snapshot_complete(state.owner_io);
@@ -3678,6 +3768,24 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
         driving = false;
 
         switch (state.script_phase) {
+            case ScriptPhase::Place: {
+                // The escalated attempt's PLACE+READ wave has completed on every owner.
+                auto* attempt = state.group_attempt();
+                if (!attempt) std::abort();
+                // AT4-WOUND-1 is fixed elsewhere. A script never consumes
+                // a failed placement as an engine result or commits it.
+                if (attempt->phase.load(std::memory_order_acquire) == TxnPhase::Wounded)
+                    return script_escalate_handoff(server, self, ring, task, op);
+                WorkError error = WorkError::None;
+                if (script_group_error(state, error) || state.aborted.load(std::memory_order_acquire))
+                    return script_group_final(server, self, ring, task, op,
+                                              error == WorkError::None ? WorkError::Oom : error);
+                if (attempt->phase.load(std::memory_order_acquire) != TxnPhase::Executing)
+                    std::abort();
+                if (!launch(ScriptPhase::Run)) return outcome;
+                driving = true;
+                continue;
+            }
             case ScriptPhase::Pin: {
                 WorkError error = WorkError::None;
                 if (script_group_error(state, error) ||
@@ -3724,6 +3832,23 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                 continue;
             }
             case ScriptPhase::Run:
+                if (state.group_attempt()) {
+                    if (state.aborted.load(std::memory_order_acquire))
+                        return script_group_final(server, self, ring, task, op, state.final_error);
+                    // The escalated attempt holds Write claims on every declared key, so its
+                    // APPLY validates nothing: clearing the read-set bit makes the optimistic
+                    // validation in execute_atomic_apply (shared with MSET) select no key.
+                    state.script_has_writes = false;
+                    for (uint32_t i = 0; i < state.key_count; ++i) {
+                        state.script_has_writes |= (state.status[i] & 2u) != 0;
+                        state.status[i] &= ~1u;
+                    }
+                    if (!state.script_has_writes)
+                        return script_group_final(server, self, ring, task, op, WorkError::None);
+                    if (!launch(ScriptPhase::Apply)) return outcome;
+                    driving = true;
+                    continue;
+                }
                 if (state.aborted.load(std::memory_order_acquire)) {
                     server.note_script_abort_oom();
                     script_engine_error_reply(op, state, state.final_error);
@@ -3755,6 +3880,13 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                 // plain writers remain fully concurrent and are caught by the ordinary
                 // read-set validation below.
                 if (!server.script_try_certification()) {
+                    if (__builtin_expect(server.debug_script_escalate_force(), false)) {
+                        state.script_escalate_after_unpin = true;
+                        state.script_apply_after_unpin = false;
+                        if (!launch(ScriptPhase::Unpin)) return outcome;
+                        driving = true;
+                        continue;
+                    }
                     if (state.script_retries++ < server.script_crossshard_conflict_retries()) {
                         server.note_script_retry();
                         script_clear_attempt(state, op);
@@ -3763,10 +3895,7 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                         driving = true;
                         continue;
                     }
-                    server.note_script_giveup();
-                    op.clear_reply();
-                    reply_err(op.sink(), "TRYAGAIN Cross-shard script conflicted, retry");
-                    notify_discard_speculative(state.notify);
+                    state.script_escalate_after_unpin = true;
                     state.script_apply_after_unpin = false;
                     state.script_commit_after_unpin = false;
                     if (!launch(ScriptPhase::Unpin)) return outcome;
@@ -3789,6 +3918,13 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                     if (!state.script_certifier) std::abort();
                     server.script_finish_certification();
                     state.script_certifier = false;
+                    if (__builtin_expect(server.debug_script_escalate_force(), false)) {
+                        state.script_escalate_after_unpin = true;
+                        state.script_apply_after_unpin = false;
+                        if (!launch(ScriptPhase::Unpin)) return outcome;
+                        driving = true;
+                        continue;
+                    }
                     if (state.script_retries++ < server.script_crossshard_conflict_retries()) {
                         server.note_script_retry();
                         script_clear_attempt(state, op);
@@ -3797,10 +3933,7 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                         driving = true;
                         continue;
                     }
-                    server.note_script_giveup();
-                    op.clear_reply();
-                    reply_err(op.sink(), "TRYAGAIN Cross-shard script conflicted, retry");
-                    notify_discard_speculative(state.notify);
+                    state.script_escalate_after_unpin = true;
                     state.script_apply_after_unpin = false;
                     state.script_commit_after_unpin = false;
                     if (!launch(ScriptPhase::Unpin)) return outcome;
@@ -3818,6 +3951,8 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
 
             case ScriptPhase::Unpin:
                 state.script_pins_live = false;
+                if (state.script_escalate_after_unpin)
+                    return script_escalate_handoff(server, self, ring, task, op);
                 if (state.script_apply_after_unpin) {
                     state.script_apply_after_unpin = false;
                     if (!launch(ScriptPhase::Apply)) return outcome;
@@ -3838,6 +3973,12 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                 WorkError error = state.final_error;
                 bool failed = script_group_error(state, error) ||
                               state.aborted.load(std::memory_order_acquire);
+                if (state.group_attempt()) {
+                    if (state.script_conflict.load(std::memory_order_acquire))
+                        return script_escalate_handoff(server, self, ring, task, op);
+                    return script_group_final(server, self, ring, task, op,
+                        failed && error == WorkError::None ? WorkError::Oom : error);
+                }
                 if (!failed) {
                     uint64_t undecided = 0;
                     if (!state.epoch.compare_exchange_strong(undecided, state.script_ticket,
@@ -3850,8 +3991,7 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                 }
                 if (failed) {
                     const bool conflict = state.script_conflict.load(std::memory_order_acquire);
-                    if (conflict) server.note_script_giveup();
-                    else server.note_script_abort_oom();
+                    if (!conflict) server.note_script_abort_oom();
                     state.aborted.store(true, std::memory_order_release);
                     aof_abort_scatter_group(state);
                     notify_discard_speculative(state.notify);
@@ -3863,10 +4003,9 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                         server.script_finish_certification();
                         state.script_certifier = false;
                     }
-                    if (conflict) {
-                        op.clear_reply();
-                        reply_err(op.sink(), "TRYAGAIN Cross-shard script conflicted, retry");
-                    } else script_engine_error_reply(op, state, error);
+                    if (conflict)
+                        return script_escalate_handoff(server, self, ring, task, op);
+                    script_engine_error_reply(op, state, error);
                     script_snapshot_done(server, state);
                     return ScatterFinish::Final;
                 }
@@ -3891,6 +4030,23 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
     }
 }
 
+// S1/H2: SAVE may be draining on this script's IO. Its last owner closes the apply window before
+// publishing a Final completion; no owner wave (including an error UNPIN) can remain at Final.
+// Out of line and tail-called, so xshard_complete_impl keeps PRE's code for every other kind.
+template <bool IofusedPrivateQueue>
+[[gnu::noinline]] ScatterFinish xshard_complete_script_final(Server& server, ThreadCtx& self, Ring& ring,
+                                                             const Task& task, Op& op,
+                                                             ScatterState& state) {
+    const auto result = xshard_complete_script<IofusedPrivateQueue>(
+        server, self, ring, task, op, state);
+    if (result == ScatterFinish::Final) {
+        if (state.script_ticket_live || state.script_certifier || state.script_pins_live)
+            std::abort();
+        server.atomic_apply_close(self.id(), state.apply_open);
+    }
+    return result;
+}
+
 template <bool IofusedPrivateQueue>
 ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
                                    const Task& task, Op& op) {
@@ -3898,7 +4054,7 @@ ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
     if (state.kind == Kind::Script) {
         if (state.script_phase == ScriptPhase::Apply && !state.script_resume_post &&
             !complete_owner_record_wave(state, self.id())) return ScatterFinish::Waiting;
-        return xshard_complete_script<IofusedPrivateQueue>(
+        return xshard_complete_script_final<IofusedPrivateQueue>(
             server, self, ring, task, op, state);
     }
     auto final = [&]() {
@@ -4127,8 +4283,9 @@ void xshard_flush_commits_impl(Server& server, ThreadCtx& self, Ring& ring,
                 }
                 aof_abort_scatter_group(*state);
             }
-            if (state->phase == 2 &&
-                __builtin_expect(server.blocking_waiters() != 0, false))
+            // Atomic MSET/DEL publish in phase one as well: replacement of a
+            // stream must reprobe its group readers at the commit decision.
+            if (__builtin_expect(server.blocking_waiters() != 0, false))
                 blocking_atomic_published(server, self, ring, *state);
             if (op.spec->flags & CmdFlags::NotifySelected)
                 notify_xshard_finished(server.shard(state->commit_shard), op, *state);

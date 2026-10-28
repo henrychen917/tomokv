@@ -1,0 +1,38 @@
+[
+  {
+    "name": "verified-protocol-uring",
+    "exit": 0
+  },
+  {
+    "name": "verified-protocol-epoll",
+    "exit": 0
+  },
+  {
+    "name": "verified-feature-cells",
+    "exit": 0
+  },
+  {
+    "name": "verified-features-uring",
+    "exit": 0
+  },
+  {
+    "name": "verified-fused-uring",
+    "exit": 1
+  },
+  {
+    "name": "verified-differ-uring",
+    "exit": 0
+  },
+  {
+    "name": "verified-features-epoll",
+    "exit": 0
+  },
+  {
+    "name": "verified-fused-epoll",
+    "exit": 0
+  },
+  {
+    "name": "verified-differ-epoll",
+    "exit": 0
+  }
+]

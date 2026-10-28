@@ -1,0 +1,88 @@
+void tomo_db0::(anonymous namespace)::cmd_xgroup<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]
+--- headline
+
++++ post
+
+@@ -1,36 +1,45 @@
+
+-CLONE 0 0000 [ 7] lea -0xe0(%rbp),%rdi
+-CLONE 0 0007 [ 3] vzeroupper
+-CLONE 0 000a [ 5] call <tomo_db0::ObjectSizeTracker::finish()>
+-CLONE 0 000f [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 0013 [ 9] sub %fs:0x28,%rax
+-CLONE 0 001c [ 2] jne <+0x7c>
+-CLONE 0 001e [ 3] mov %rbx,%rdi
+-CLONE 0 0021 [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 0026 [ 3] mov %r14,%rdi
+-CLONE 0 0029 [ 3] vzeroupper
+-CLONE 0 002c [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0031 [ 7] mov -0x188(%rbp),%r14
+-CLONE 0 0038 [ 3] mov %r13,%rdi
+-CLONE 0 003b [ 5] call <tomo_db0::(anonymous namespace)::StreamGroup::~StreamGroup()>
+-CLONE 0 0040 [ 3] dec %r14
+-CLONE 0 0043 [ 2] jne <+0x81>
+-CLONE 0 0045 [ 3] mov %r15,%rdi
+-CLONE 0 0048 [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 004d [ 3] mov %r12,%rdi
+-CLONE 0 0050 [ 5] call <tomo_db0::(anonymous namespace)::maybe_release_groups(tomo_db0::StreamVal&)>
+-CLONE 0 0055 [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
+-CLONE 0 005c [ 3] mov %r13,%rdi
+-CLONE 0 005f [ 7] mov %rbx,-0xe0(%rbp)
+-CLONE 0 0066 [ 7] movb $0x0,-0xd8(%rbp)
+-CLONE 0 006d [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
+-CLONE 0 0072 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 0077 [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xgroup<false>(tomo_db0::Shard&, tomo_db0::Op&)+0x68f>
+-CLONE 0 007c [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 0081 [ 7] lea -0x140(%rbp),%rdi
+-CLONE 0 0088 [ 5] call <tomo_db0::ObjectSizeTracker::finish()>
+-CLONE 0 008d [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 0091 [ 9] sub %fs:0x28,%rax
+-CLONE 0 009a [ 2] jne <+0xa4>
+-CLONE 0 009c [ 3] mov %r15,%rdi
+-CLONE 0 009f [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 00a4 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 0000 [ 3] mov %r14,%rdi
++CLONE 0 0003 [ 3] vzeroupper
++CLONE 0 0006 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 000b [ 7] mov -0x188(%rbp),%r14
++CLONE 0 0012 [ 3] mov %r13,%rdi
++CLONE 0 0015 [ 5] call <tomo_db0::(anonymous namespace)::StreamGroup::~StreamGroup()>
++CLONE 0 001a [ 3] dec %r14
++CLONE 0 001d [ 6] jne <+0xab>
++CLONE 0 0023 [ 3] mov %r15,%rdi
++CLONE 0 0026 [ 5] call <__cxa_begin_catch@plt>
++CLONE 0 002b [ 3] mov %r12,%rdi
++CLONE 0 002e [ 5] call <tomo_db0::(anonymous namespace)::maybe_release_groups(tomo_db0::StreamVal&)>
++CLONE 0 0033 [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
++CLONE 0 003a [ 3] mov %r13,%rdi
++CLONE 0 003d [ 7] mov %rbx,-0xe0(%rbp)
++CLONE 0 0044 [ 7] movb $0x0,-0xd8(%rbp)
++CLONE 0 004b [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
++CLONE 0 0050 [ 5] call <__cxa_end_catch@plt>
++CLONE 0 0055 [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xgroup<false>(tomo_db0::Shard&, tomo_db0::Op&)+0x64c>
++CLONE 0 005a [ 7] lea -0xe0(%rbp),%rdi
++CLONE 0 0061 [ 3] vzeroupper
++CLONE 0 0064 [ 5] call <tomo_db0::ObjectSizeTracker::finish()>
++CLONE 0 0069 [ 4] mov -0x38(%rbp),%rax
++CLONE 0 006d [ 9] sub %fs:0x28,%rax
++CLONE 0 0076 [ 2] jne <+0x80>
++CLONE 0 0078 [ 3] mov %rbx,%rdi
++CLONE 0 007b [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0080 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 0085 [ 7] lea -0xe0(%rbp),%rdi
++CLONE 0 008c [ 3] vzeroupper
++CLONE 0 008f [ 5] call <tomo_db0::ObjectSizeTracker::finish()>
++CLONE 0 0094 [ 4] mov -0x38(%rbp),%rax
++CLONE 0 0098 [ 9] sub %fs:0x28,%rax
++CLONE 0 00a1 [ 2] jne <+0xd3>
++CLONE 0 00a3 [ 3] mov %rbx,%rdi
++CLONE 0 00a6 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 00ab [ 7] lea -0x140(%rbp),%rdi
++CLONE 0 00b2 [ 5] call <tomo_db0::ObjectSizeTracker::finish()>
++CLONE 0 00b7 [ 4] mov -0x38(%rbp),%rax
++CLONE 0 00bb [ 9] sub %fs:0x28,%rax
++CLONE 0 00c4 [ 2] jne <+0xce>
++CLONE 0 00c6 [ 3] mov %r15,%rdi
++CLONE 0 00c9 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 00ce [ 5] call <__stack_chk_fail@plt>
++CLONE 0 00d3 [ 5] call <__stack_chk_fail@plt>

@@ -1,0 +1,606 @@
+tomo::IoLoop::client_routing_prepare(tomo::IoLoop::ClientMigration&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)
+--- multifix
+
++++ post
+
+@@ -17,7 +17,7 @@
+
+ CLONE 0 003a [ 3] setne %al
+ CLONE 0 003d [ 8] mov 0xe8(%rsp),%rdx
+ CLONE 0 0045 [ 9] sub %fs:0x28,%rdx
+-CLONE 0 004e [ 6] jne <+0x828>
++CLONE 0 004e [ 6] jne <+0x970>
+ CLONE 0 0054 [ 7] add $0xf8,%rsp
+ CLONE 0 005b [ 1] pop %rbx
+ CLONE 0 005c [ 2] pop %r12
+@@ -78,7 +78,7 @@
+
+ CLONE 0 0165 [ 3] vzeroupper
+ CLONE 0 0168 [ 5] call <auto tomo::IoLoop::pubsub_prepare_rebind_events(tomo::IoLoop::PubSubLocalConn const&, unsigned long, unsigned int, std::vector<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >&)::{lambda(auto:1 const&, bool)#1}::operator()<std::unordered_set<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >(std::unordered_set<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, bool) const>
+ CLONE 0 016d [ 2] test %al,%al
+-CLONE 0 016f [ 6] jne <+0x520>
++CLONE 0 016f [ 6] jne <+0x660>
+ CLONE 0 0175 [ 5] mov 0x48(%rsp),%rdi
+ CLONE 0 017a [ 7] lea <rip>(%rip),%rsi # <literal-string-636f756c64206e6f7420616c6c6f63617465207075622f73756220726562696e64206576656e747300>
+ CLONE 0 0181 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::assign(char const*) [clone .isra.0]>
+@@ -89,12 +89,12 @@
+
+ CLONE 0 0198 [ 4] lea 0x10(%rcx),%rax
+ CLONE 0 019c [ 4] mov 0x8(%rcx),%rdx
+ CLONE 0 01a0 [ 3] cmp %rax,%rsi
+-CLONE 0 01a3 [ 6] je <+0x760>
++CLONE 0 01a3 [ 6] je <+0x8a0>
+ CLONE 0 01a9 [ 5] cmpq $0x2b,0x10(%rcx)
+-CLONE 0 01ae [ 6] jbe <+0x760>
++CLONE 0 01ae [ 6] jbe <+0x8a0>
+ CLONE 0 01b4 [ 7] lea <rip>(%rip),%rcx # <literal-string-636f6e6e656374696f6e206861732061207472616e7369656e74207075622f737562206f7065726174696f6e00>
+ CLONE 0 01bb [ 3] cmp %rsi,%rcx
+-CLONE 0 01be [ 6] jae <+0x4b0>
++CLONE 0 01be [ 6] jae <+0x5f0>
+ CLONE 0 01c4 [ 8] vmovdqa <rip>(%rip),%ymm2 # <literal-load-636f6e6e656374696f6e206861732061207472616e7369656e74207075622f73>
+ CLONE 0 01cc [ 8] vmovdqa <rip>(%rip),%xmm0 # <literal-load-75622f737562206f7065726174696f6e>
+ CLONE 0 01d4 [ 4] vmovdqu %ymm2,(%rsi)
+@@ -159,7 +159,7 @@
+
+ CLONE 0 0309 [ 4] mov %r11,0x8(%rax)
+ CLONE 0 030d [ 5] movzbl 0x40(%rsp),%eax
+ CLONE 0 0312 [ 5] mov %al,0x12(%r12)
+-CLONE 0 0317 [ 6] je <+0x4d0>
++CLONE 0 0317 [ 6] je <+0x610>
+ CLONE 0 031d [ 5] mov 0x78(%rsp),%rsi
+ CLONE 0 0322 [ 2] xor %edx,%edx
+ CLONE 0 0324 [ 3] mov %r11,%rax
+@@ -169,9 +169,9 @@
+
+ CLONE 0 0332 [ 3] mov %rdx,%r13
+ CLONE 0 0335 [ 5] call <std::_Hashtable<unsigned long, std::pair<unsigned long const, tomo::IoLoop::ClientForwardRoute>, std::allocator<std::pair<unsigned long const, tomo::IoLoop::ClientForwardRoute> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_find_before_node(unsigned long, unsigned long const&, unsigned long) const [clone .isra.0]>
+ CLONE 0 033a [ 3] test %rax,%rax
+-CLONE 0 033d [ 6] je <+0x4ff>
++CLONE 0 033d [ 6] je <+0x63f>
+ CLONE 0 0343 [ 4] cmpq $0x0,(%rax)
+-CLONE 0 0347 [ 6] je <+0x4ff>
++CLONE 0 0347 [ 6] je <+0x63f>
+ CLONE 0 034d [ 5] mov $0x18,%esi
+ CLONE 0 0352 [ 3] mov %r12,%rdi
+ CLONE 0 0355 [ 5] call <_ZdlPvm@plt>
+@@ -186,11 +186,11 @@
+
+ CLONE 0 0379 [ 5] call <std::_Hashtable<unsigned long, std::pair<unsigned long const, tomo::IoLoop::ClientForwardRoute>, std::allocator<std::pair<unsigned long const, tomo::IoLoop::ClientForwardRoute> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_find_before_node(unsigned long, unsigned long const&, unsigned long) const [clone .isra.0]>
+ CLONE 0 037e [ 3] mov %rax,%r12
+ CLONE 0 0381 [ 3] test %rax,%rax
+-CLONE 0 0384 [ 6] je <+0x790>
++CLONE 0 0384 [ 6] je <+0x8d0>
+ CLONE 0 038a [ 3] mov (%rax),%r8
+ CLONE 0 038d [ 3] mov (%r8),%rdi
+ CLONE 0 0390 [ 5] cmp 0x0(%r13,%r11,8),%rax
+-CLONE 0 0395 [ 6] je <+0x7f0>
++CLONE 0 0395 [ 6] je <+0x930>
+ CLONE 0 039b [ 3] test %rdi,%rdi
+ CLONE 0 039e [ 2] je <+0x3b6>
+ CLONE 0 03a0 [ 4] mov 0x8(%rdi),%rax
+@@ -217,242 +217,285 @@
+
+ CLONE 0 03f7 [ 4] mov %rax,0x38(%r14)
+ CLONE 0 03fb [ 4] mov %r12,0x40(%r14)
+ CLONE 0 03ff [ 5] call <_Znwm@plt>
+-CLONE 0 0404 [ 3] mov %rax,%rdi
+-CLONE 0 0407 [ 3] mov %rax,%r12
+-CLONE 0 040a [ 5] call <tomo::PubSubEvent::PubSubEvent()>
+-CLONE 0 040f [ 7] mov 0x80(%r14),%rax
+-CLONE 0 0416 [ 4] mov %r12,0x78(%r14)
+-CLONE 0 041a [ 5] movb $0x1d,(%r12)
+-CLONE 0 041f [ 5] mov %rax,0x10(%r12)
+-CLONE 0 0424 [ 7] mov 0x88(%r14),%eax
+-CLONE 0 042b [ 5] mov %eax,0x8(%r12)
+-CLONE 0 0430 [ 8] mov 0x80(%rsp),%r12
+-CLONE 0 0438 [ 3] test %r12,%r12
+-CLONE 0 043b [ 2] je <+0x456>
+-CLONE 0 043d [ 3] nopl (%rax)
+-CLONE 0 0440 [ 3] mov %r12,%rdi
+-CLONE 0 0443 [ 4] mov (%r12),%r12
+-CLONE 0 0447 [ 5] mov $0x18,%esi
+-CLONE 0 044c [ 5] call <_ZdlPvm@plt>
+-CLONE 0 0451 [ 3] test %r12,%r12
+-CLONE 0 0454 [ 2] jne <+0x440>
+-CLONE 0 0456 [ 5] mov 0x78(%rsp),%rax
+-CLONE 0 045b [ 5] mov 0x70(%rsp),%rdi
+-CLONE 0 0460 [ 2] xor %esi,%esi
+-CLONE 0 0462 [ 8] lea 0x0(,%rax,8),%rdx
+-CLONE 0 046a [ 5] call <memset@plt>
+-CLONE 0 046f [ 5] mov 0x70(%rsp),%rdi
+-CLONE 0 0474 [ 5] mov 0x78(%rsp),%rsi
+-CLONE 0 0479 [12] movq $0x0,0x88(%rsp)
+-CLONE 0 0485 [12] movq $0x0,0x80(%rsp)
+-CLONE 0 0491 [ 3] cmp %r15,%rdi
+-CLONE 0 0494 [ 6] je <+0x248>
+-CLONE 0 049a [ 4] shl $0x3,%rsi
+-CLONE 0 049e [ 5] call <_ZdlPvm@plt>
+-CLONE 0 04a3 [ 5] jmp <+0x248>
+-CLONE 0 04a8 [ 8] nopl 0x0(%rax,%rax,1)
+-CLONE 0 04b0 [ 4] lea (%rsi,%rdx,1),%rax
+-CLONE 0 04b4 [ 3] cmp %rcx,%rax
+-CLONE 0 04b7 [ 6] jae <tomo::IoLoop::client_routing_prepare(tomo::IoLoop::ClientMigration&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .cold]+0x7f>
+-CLONE 0 04bd [ 5] jmp <+0x1c4>
+-CLONE 0 04c2 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 04cd [ 3] nopl (%rax)
+-CLONE 0 04d0 [ 8] mov 0x80(%rsp),%rax
+-CLONE 0 04d8 [ 3] test %rax,%rax
+-CLONE 0 04db [ 2] je <+0x4f2>
+-CLONE 0 04dd [ 3] nopl (%rax)
+-CLONE 0 04e0 [ 4] cmp %r11,0x8(%rax)
+-CLONE 0 04e4 [ 6] je <+0x34d>
+-CLONE 0 04ea [ 3] mov (%rax),%rax
+-CLONE 0 04ed [ 3] test %rax,%rax
+-CLONE 0 04f0 [ 2] jne <+0x4e0>
+-CLONE 0 04f2 [ 3] mov %r11,%rax
+-CLONE 0 04f5 [ 2] xor %edx,%edx
+-CLONE 0 04f7 [ 5] divq 0x78(%rsp)
+-CLONE 0 04fc [ 3] mov %rdx,%r13
+-CLONE 0 04ff [ 5] lea 0x70(%rsp),%rdi
+-CLONE 0 0504 [ 6] mov $0x1,%r8d
+-CLONE 0 050a [ 3] mov %r12,%rcx
+-CLONE 0 050d [ 3] mov %r11,%rdx
+-CLONE 0 0510 [ 3] mov %r13,%rsi
+-CLONE 0 0513 [ 5] call <std::_Hashtable<unsigned long, std::pair<unsigned long const, tomo::IoLoop::ClientForwardRoute>, std::allocator<std::pair<unsigned long const, tomo::IoLoop::ClientForwardRoute> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_insert_unique_node(unsigned long, unsigned long, std::__detail::_Hash_node<std::pair<unsigned long const, tomo::IoLoop::ClientForwardRoute>, false>*, unsigned long)>
+-CLONE 0 0518 [ 5] jmp <+0x35a>
+-CLONE 0 051d [ 3] nopl (%rax)
+-CLONE 0 0520 [ 7] lea 0x88(%r13),%rsi
+-CLONE 0 0527 [ 5] mov $0x1,%edx
+-CLONE 0 052c [ 3] mov %r12,%rdi
+-CLONE 0 052f [ 5] call <auto tomo::IoLoop::pubsub_prepare_rebind_events(tomo::IoLoop::PubSubLocalConn const&, unsigned long, unsigned int, std::vector<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >&)::{lambda(auto:1 const&, bool)#1}::operator()<std::unordered_set<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >(std::unordered_set<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, bool) const>
+-CLONE 0 0534 [ 2] test %al,%al
+-CLONE 0 0536 [ 6] je <+0x175>
+-CLONE 0 053c [ 7] mov 0x188(%r15),%rdx
+-CLONE 0 0543 [ 7] mov 0x350(%rdx),%rcx
+-CLONE 0 054a [ 7] mov 0x348(%rdx),%rax
+-CLONE 0 0551 [ 4] mov %rcx,(%rsp)
+-CLONE 0 0555 [ 3] cmp %rcx,%rax
+-CLONE 0 0558 [ 6] je <+0x745>
+-CLONE 0 055e [ 5] mov %rax,0x18(%rsp)
+-CLONE 0 0563 [ 8] lea 0xd0(%rsp),%rax
+-CLONE 0 056b [ 5] mov %rax,0x20(%rsp)
+-CLONE 0 0570 [ 8] lea 0xb0(%rsp),%rax
+-CLONE 0 0578 [ 5] mov %rax,0x10(%rsp)
+-CLONE 0 057d [ 8] lea 0xc0(%rsp),%rax
+-CLONE 0 0585 [ 5] mov %rax,0x40(%rsp)
+-CLONE 0 058a [ 5] mov 0x30(%rsp),%r13
+-CLONE 0 058f [ 5] mov 0x18(%rsp),%rax
+-CLONE 0 0594 [ 5] cmpq $0x0,0x68(%r13)
+-CLONE 0 0599 [ 2] mov (%rax),%esi
+-CLONE 0 059b [ 6] je <+0x745>
+-CLONE 0 05a1 [ 5] mov 0x8(%rsp),%rdi
+-CLONE 0 05a6 [ 2] xor %ecx,%ecx
+-CLONE 0 05a8 [ 5] mov $0x1,%edx
+-CLONE 0 05ad [ 5] call <tomo::IoLoop::pubsub_prepare_rebind_events(tomo::IoLoop::PubSubLocalConn const&, unsigned long, unsigned int, std::vector<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >&)::{lambda(unsigned int, bool, bool)#1}::operator()(unsigned int, bool, bool) const>
+-CLONE 0 05b2 [ 5] mov %rax,0x28(%rsp)
+-CLONE 0 05b7 [ 3] test %rax,%rax
+-CLONE 0 05ba [ 6] je <+0x175>
+-CLONE 0 05c0 [ 4] mov 0x60(%r13),%r13
+-CLONE 0 05c4 [ 3] test %r13,%r13
+-CLONE 0 05c7 [ 6] jne <+0x66e>
+-CLONE 0 05cd [ 5] jmp <+0x730>
+-CLONE 0 05d2 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 05dd [ 3] nopl (%rax)
+-CLONE 0 05e0 [ 4] cmp $0x1,%r12
+-CLONE 0 05e4 [ 6] je <+0x6f0>
+-CLONE 0 05ea [ 3] test %r12,%r12
+-CLONE 0 05ed [ 6] jne <+0x7c0>
+-CLONE 0 05f3 [ 5] mov 0x20(%rsp),%rax
+-CLONE 0 05f8 [ 8] mov %r12,0xc8(%rsp)
+-CLONE 0 0600 [ 5] movb $0x0,(%rax,%r12,1)
+-CLONE 0 0605 [ 5] mov 0x28(%rsp),%r12
+-CLONE 0 060a [ 8] mov 0x140(%r12),%rsi
+-CLONE 0 0612 [ 8] cmp 0x148(%r12),%rsi
+-CLONE 0 061a [ 6] je <+0x710>
+-CLONE 0 0620 [ 7] mov 0xb0(%rsp),%eax
+-CLONE 0 0627 [ 4] lea 0x10(%rsi),%rdi
+-CLONE 0 062b [ 2] mov %eax,(%rsi)
+-CLONE 0 062d [ 8] movzbl 0xb4(%rsp),%eax
+-CLONE 0 0635 [ 3] mov %al,0x4(%rsi)
+-CLONE 0 0638 [ 8] mov 0xb8(%rsp),%rax
+-CLONE 0 0640 [ 4] mov %rax,0x8(%rsi)
+-CLONE 0 0644 [ 5] mov 0x40(%rsp),%rsi
+-CLONE 0 0649 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&&)>
+-CLONE 0 064e [ 9] addq $0x30,0x140(%r12)
+-CLONE 0 0657 [ 5] mov 0x40(%rsp),%rdi
+-CLONE 0 065c [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0661 [ 4] mov 0x0(%r13),%r13
+-CLONE 0 0665 [ 3] test %r13,%r13
+-CLONE 0 0668 [ 6] je <+0x730>
+-CLONE 0 066e [ 5] mov 0x20(%rsp),%rax
+-CLONE 0 0673 [ 4] vpxor %xmm0,%xmm0,%xmm0
+-CLONE 0 0677 [ 4] mov 0x10(%r13),%r12
+-CLONE 0 067b [ 9] vmovdqa %xmm0,0xb0(%rsp)
+-CLONE 0 0684 [ 8] mov %rax,0xc0(%rsp)
+-CLONE 0 068c [ 4] mov 0x8(%r13),%rax
+-CLONE 0 0690 [ 5] mov %rax,0x38(%rsp)
+-CLONE 0 0695 [ 4] cmp $0xf,%r12
+-CLONE 0 0699 [ 6] jbe <+0x5e0>
+-CLONE 0 069f [ 3] test %r12,%r12
+-CLONE 0 06a2 [ 6] js <+0x82d>
+-CLONE 0 06a8 [ 3] mov %r12,%rdi
+-CLONE 0 06ab [ 3] inc %rdi
+-CLONE 0 06ae [ 6] js <+0x7d0>
+-CLONE 0 06b4 [ 5] call <_Znwm@plt>
+-CLONE 0 06b9 [ 3] mov %rax,%rdi
+-CLONE 0 06bc [ 8] mov %rax,0xc0(%rsp)
+-CLONE 0 06c4 [ 8] mov %r12,0xd0(%rsp)
+-CLONE 0 06cc [ 5] mov 0x38(%rsp),%rsi
+-CLONE 0 06d1 [ 3] mov %r12,%rdx
+-CLONE 0 06d4 [ 5] call <memcpy@plt>
+-CLONE 0 06d9 [ 8] mov 0xc0(%rsp),%rax
+-CLONE 0 06e1 [ 5] jmp <+0x5f8>
+-CLONE 0 06e6 [10] cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 06f0 [ 5] mov 0x38(%rsp),%rax
+-CLONE 0 06f5 [ 3] movzbl (%rax),%eax
+-CLONE 0 06f8 [ 7] mov %al,0xd0(%rsp)
+-CLONE 0 06ff [ 5] jmp <+0x5f3>
+-CLONE 0 0704 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 070f [ 1] nop
+-CLONE 0 0710 [ 5] mov 0x28(%rsp),%rax
+-CLONE 0 0715 [ 5] mov 0x10(%rsp),%rdx
+-CLONE 0 071a [ 7] lea 0x138(%rax),%rdi
+-CLONE 0 0721 [ 5] call <void std::vector<tomo::PubSubEventItem, std::allocator<tomo::PubSubEventItem> >::_M_realloc_insert<tomo::PubSubEventItem>(__gnu_cxx::__normal_iterator<tomo::PubSubEventItem*, std::vector<tomo::PubSubEventItem, std::allocator<tomo::PubSubEventItem> > >, tomo::PubSubEventItem&&)>
+-CLONE 0 0726 [ 5] jmp <+0x657>
+-CLONE 0 072b [ 5] nopl 0x0(%rax,%rax,1)
+-CLONE 0 0730 [ 6] addq $0x4,0x18(%rsp)
+-CLONE 0 0736 [ 5] mov 0x18(%rsp),%rax
+-CLONE 0 073b [ 4] cmp %rax,(%rsp)
+-CLONE 0 073f [ 6] jne <+0x58a>
+-CLONE 0 0745 [ 7] mov 0x80(%r14),%rsi
+-CLONE 0 074c [ 5] jmp <+0x213>
+-CLONE 0 0751 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 075c [ 4] nopl 0x0(%rax)
+-CLONE 0 0760 [ 5] mov 0x48(%rsp),%rdi
+-CLONE 0 0765 [ 6] mov $0x2c,%r8d
+-CLONE 0 076b [ 7] lea <rip>(%rip),%rcx # <literal-string-636f6e6e656374696f6e206861732061207472616e7369656e74207075622f737562206f7065726174696f6e00>
+-CLONE 0 0772 [ 2] xor %esi,%esi
+-CLONE 0 0774 [ 3] vzeroupper
+-CLONE 0 0777 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_mutate(unsigned long, unsigned long, char const*, unsigned long)>
+-CLONE 0 077c [ 5] jmp <+0x1e0>
+-CLONE 0 0781 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 078c [ 4] nopl 0x0(%rax)
+-CLONE 0 0790 [ 4] mov 0x30(%r14),%rdi
+-CLONE 0 0794 [ 3] test %rdi,%rdi
+-CLONE 0 0797 [ 2] je <+0x7ab>
+-CLONE 0 0799 [ 5] mov $0x18,%esi
+-CLONE 0 079e [ 5] call <_ZdlPvm@plt>
+-CLONE 0 07a3 [ 8] movq $0x0,0x30(%r14)
+-CLONE 0 07ab [ 2] xor %eax,%eax
+-CLONE 0 07ad [ 5] jmp <+0x3f2>
+-CLONE 0 07b2 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 07bd [ 3] nopl (%rax)
+-CLONE 0 07c0 [ 5] mov 0x20(%rsp),%rdi
+-CLONE 0 07c5 [ 5] jmp <+0x6cc>
+-CLONE 0 07ca [ 6] nopw 0x0(%rax,%rax,1)
+-CLONE 0 07d0 [ 8] mov 0xe8(%rsp),%rax
+-CLONE 0 07d8 [ 9] sub %fs:0x28,%rax
+-CLONE 0 07e1 [ 2] jne <+0x828>
+-CLONE 0 07e3 [ 5] call <_ZSt17__throw_bad_allocv@plt>
+-CLONE 0 07e8 [ 8] nopl 0x0(%rax,%rax,1)
+-CLONE 0 07f0 [ 2] xor %ecx,%ecx
+-CLONE 0 07f2 [ 3] test %rdi,%rdi
+-CLONE 0 07f5 [ 2] je <+0x803>
+-CLONE 0 07f7 [ 4] mov 0x8(%rdi),%rax
+-CLONE 0 07fb [ 2] xor %edx,%edx
+-CLONE 0 07fd [ 3] div %rsi
+-CLONE 0 0800 [ 3] mov %rdx,%rcx
+-CLONE 0 0803 [ 5] lea 0x70(%rsp),%rax
+-CLONE 0 0808 [ 3] mov %rdi,%rdx
+-CLONE 0 080b [ 3] mov %r11,%rsi
+-CLONE 0 080e [ 5] mov %r8,0x40(%rsp)
+-CLONE 0 0813 [ 3] mov %rax,%rdi
+-CLONE 0 0816 [ 5] call <std::_Hashtable<unsigned long, std::pair<unsigned long const, tomo::IoLoop::ClientForwardRoute>, std::allocator<std::pair<unsigned long const, tomo::IoLoop::ClientForwardRoute> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_remove_bucket_begin(unsigned long, std::__detail::_Hash_node<std::pair<unsigned long const, tomo::IoLoop::ClientForwardRoute>, false>*, unsigned long)>
+-CLONE 0 081b [ 5] mov 0x40(%rsp),%r8
+-CLONE 0 0820 [ 3] mov (%r8),%rdi
+-CLONE 0 0823 [ 5] jmp <+0x3b6>
+-CLONE 0 0828 [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 082d [ 8] mov 0xe8(%rsp),%rax
+-CLONE 0 0835 [ 9] sub %fs:0x28,%rax
+-CLONE 0 083e [ 2] jne <+0x828>
+-CLONE 0 0840 [ 7] lea <rip>(%rip),%rdi # <literal-string-62617369635f737472696e673a3a5f4d5f63726561746500>
+-CLONE 0 0847 [ 5] call <_ZSt20__throw_length_errorPKc@plt>
+-CLONE 0 084c [ 4] endbr64
+-CLONE 0 0850 [ 3] mov %rax,%rbx
+-CLONE 0 0853 [ 3] mov %rdx,%r12
+-CLONE 0 0856 [ 3] vzeroupper
+-CLONE 0 0859 [ 5] jmp <tomo::IoLoop::client_routing_prepare(tomo::IoLoop::ClientMigration&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .cold]+0x6>
+-CLONE 0 085e [ 4] endbr64
+-CLONE 0 0862 [ 3] mov %rax,%rbx
+-CLONE 0 0865 [ 3] mov %rdx,%r12
+-CLONE 0 0868 [ 5] jmp <tomo::IoLoop::client_routing_prepare(tomo::IoLoop::ClientMigration&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .cold]>
+-CLONE 0 086d [ 4] endbr64
+-CLONE 0 0871 [ 3] mov %rax,%rbx
+-CLONE 0 0874 [ 3] mov %rdx,%r12
+-CLONE 0 0877 [ 5] jmp <tomo::IoLoop::client_routing_prepare(tomo::IoLoop::ClientMigration&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .cold]+0x3b>
+-CLONE 0 087c [ 4] endbr64
+-CLONE 0 0880 [ 3] mov %rax,%rbx
+-CLONE 0 0883 [ 3] mov %rdx,%r12
+-CLONE 0 0886 [ 3] vzeroupper
+-CLONE 0 0889 [ 5] jmp <tomo::IoLoop::client_routing_prepare(tomo::IoLoop::ClientMigration&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .cold]+0x60>
+-CLONE 0 088e [ 4] endbr64
+-CLONE 0 0892 [ 3] mov %rax,%rbx
+-CLONE 0 0895 [ 3] mov %rdx,%r13
+-CLONE 0 0898 [ 5] jmp <tomo::IoLoop::client_routing_prepare(tomo::IoLoop::ClientMigration&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .cold]+0x4d>
++CLONE 0 0404 [ 7] lea 0x88(%rax),%rdx
++CLONE 0 040b [ 4] vpxor %xmm0,%xmm0,%xmm0
++CLONE 0 040f [ 5] vmovdqu %xmm0,0x30(%rax)
++CLONE 0 0414 [ 4] vpxor %xmm0,%xmm0,%xmm0
++CLONE 0 0418 [ 4] mov %rdx,0x78(%rax)
++CLONE 0 041c [ 7] lea 0xa8(%rax),%rdx
++CLONE 0 0423 [10] vmovdqu64 %zmm0,0x138(%rax)
++CLONE 0 042d [ 7] movl $0x0,0x4(%rax)
++CLONE 0 0434 [ 7] mov %rdx,0x98(%rax)
++CLONE 0 043b [ 7] lea 0xc8(%rax),%rdx
++CLONE 0 0442 [ 8] movq $0x0,0x18(%rax)
++CLONE 0 044a [ 7] movl $0x0,0x20(%rax)
++CLONE 0 0451 [ 7] mov %rdx,0xb8(%rax)
++CLONE 0 0458 [ 7] lea 0xe8(%rax),%rdx
++CLONE 0 045f [ 8] movq $0x0,0x28(%rax)
++CLONE 0 0467 [ 7] movl $0x0,0x40(%rax)
++CLONE 0 046e [ 7] mov %rdx,0xd8(%rax)
++CLONE 0 0475 [ 7] lea 0x108(%rax),%rdx
++CLONE 0 047c [ 8] movq $0x0,0x48(%rax)
++CLONE 0 0484 [ 7] movl $0x0,0x50(%rax)
++CLONE 0 048b [ 7] mov %rdx,0xf8(%rax)
++CLONE 0 0492 [ 7] lea 0x128(%rax),%rdx
++CLONE 0 0499 [ 4] movb $0xff,0x54(%rax)
++CLONE 0 049d [ 8] movq $0x0,0x58(%rax)
++CLONE 0 04a5 [ 7] mov %rdx,0x118(%rax)
++CLONE 0 04ac [ 8] movq $0x0,0x60(%rax)
++CLONE 0 04b4 [ 8] movq $0x0,0x68(%rax)
++CLONE 0 04bc [ 6] movw $0x0,0x70(%rax)
++CLONE 0 04c2 [11] movq $0x0,0x80(%rax)
++CLONE 0 04cd [ 7] movb $0x0,0x88(%rax)
++CLONE 0 04d4 [11] movq $0x0,0xa0(%rax)
++CLONE 0 04df [ 7] movb $0x0,0xa8(%rax)
++CLONE 0 04e6 [11] movq $0x0,0xc0(%rax)
++CLONE 0 04f1 [ 7] movb $0x0,0xc8(%rax)
++CLONE 0 04f8 [11] movq $0x0,0xe0(%rax)
++CLONE 0 0503 [ 7] movb $0x0,0xe8(%rax)
++CLONE 0 050a [11] movq $0x0,0x100(%rax)
++CLONE 0 0515 [ 7] movb $0x0,0x108(%rax)
++CLONE 0 051c [11] movq $0x0,0x120(%rax)
++CLONE 0 0527 [ 7] movb $0x0,0x128(%rax)
++CLONE 0 052e [ 4] vpxor %xmm0,%xmm0,%xmm0
++CLONE 0 0532 [ 8] vmovdqu %ymm0,0x178(%rax)
++CLONE 0 053a [ 7] mov 0x80(%r14),%rdx
++CLONE 0 0541 [ 8] mov 0x80(%rsp),%r12
++CLONE 0 0549 [11] movq $0x0,0x198(%rax)
++CLONE 0 0554 [ 4] mov %rax,0x78(%r14)
++CLONE 0 0558 [ 3] movb $0x1d,(%rax)
++CLONE 0 055b [ 4] mov %rdx,0x10(%rax)
++CLONE 0 055f [ 7] mov 0x88(%r14),%edx
++CLONE 0 0566 [ 3] mov %edx,0x8(%rax)
++CLONE 0 0569 [ 3] test %r12,%r12
++CLONE 0 056c [ 6] je <+0x968>
++CLONE 0 0572 [ 3] vzeroupper
++CLONE 0 0575 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 0580 [ 3] mov %r12,%rdi
++CLONE 0 0583 [ 4] mov (%r12),%r12
++CLONE 0 0587 [ 5] mov $0x18,%esi
++CLONE 0 058c [ 5] call <_ZdlPvm@plt>
++CLONE 0 0591 [ 3] test %r12,%r12
++CLONE 0 0594 [ 2] jne <+0x580>
++CLONE 0 0596 [ 5] mov 0x78(%rsp),%rax
++CLONE 0 059b [ 5] mov 0x70(%rsp),%rdi
++CLONE 0 05a0 [ 2] xor %esi,%esi
++CLONE 0 05a2 [ 8] lea 0x0(,%rax,8),%rdx
++CLONE 0 05aa [ 5] call <memset@plt>
++CLONE 0 05af [ 5] mov 0x70(%rsp),%rdi
++CLONE 0 05b4 [ 5] mov 0x78(%rsp),%rsi
++CLONE 0 05b9 [12] movq $0x0,0x88(%rsp)
++CLONE 0 05c5 [12] movq $0x0,0x80(%rsp)
++CLONE 0 05d1 [ 3] cmp %r15,%rdi
++CLONE 0 05d4 [ 6] je <+0x248>
++CLONE 0 05da [ 4] shl $0x3,%rsi
++CLONE 0 05de [ 5] call <_ZdlPvm@plt>
++CLONE 0 05e3 [ 5] jmp <+0x248>
++CLONE 0 05e8 [ 8] nopl 0x0(%rax,%rax,1)
++CLONE 0 05f0 [ 4] lea (%rsi,%rdx,1),%rax
++CLONE 0 05f4 [ 3] cmp %rcx,%rax
++CLONE 0 05f7 [ 6] jae <tomo::IoLoop::client_routing_prepare(tomo::IoLoop::ClientMigration&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .cold]>
++CLONE 0 05fd [ 5] jmp <+0x1c4>
++CLONE 0 0602 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 060d [ 3] nopl (%rax)
++CLONE 0 0610 [ 8] mov 0x80(%rsp),%rax
++CLONE 0 0618 [ 3] test %rax,%rax
++CLONE 0 061b [ 2] je <+0x632>
++CLONE 0 061d [ 3] nopl (%rax)
++CLONE 0 0620 [ 4] cmp %r11,0x8(%rax)
++CLONE 0 0624 [ 6] je <+0x34d>
++CLONE 0 062a [ 3] mov (%rax),%rax
++CLONE 0 062d [ 3] test %rax,%rax
++CLONE 0 0630 [ 2] jne <+0x620>
++CLONE 0 0632 [ 3] mov %r11,%rax
++CLONE 0 0635 [ 2] xor %edx,%edx
++CLONE 0 0637 [ 5] divq 0x78(%rsp)
++CLONE 0 063c [ 3] mov %rdx,%r13
++CLONE 0 063f [ 5] lea 0x70(%rsp),%rdi
++CLONE 0 0644 [ 6] mov $0x1,%r8d
++CLONE 0 064a [ 3] mov %r12,%rcx
++CLONE 0 064d [ 3] mov %r11,%rdx
++CLONE 0 0650 [ 3] mov %r13,%rsi
++CLONE 0 0653 [ 5] call <std::_Hashtable<unsigned long, std::pair<unsigned long const, tomo::IoLoop::ClientForwardRoute>, std::allocator<std::pair<unsigned long const, tomo::IoLoop::ClientForwardRoute> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_insert_unique_node(unsigned long, unsigned long, std::__detail::_Hash_node<std::pair<unsigned long const, tomo::IoLoop::ClientForwardRoute>, false>*, unsigned long)>
++CLONE 0 0658 [ 5] jmp <+0x35a>
++CLONE 0 065d [ 3] nopl (%rax)
++CLONE 0 0660 [ 7] lea 0x88(%r13),%rsi
++CLONE 0 0667 [ 5] mov $0x1,%edx
++CLONE 0 066c [ 3] mov %r12,%rdi
++CLONE 0 066f [ 5] call <auto tomo::IoLoop::pubsub_prepare_rebind_events(tomo::IoLoop::PubSubLocalConn const&, unsigned long, unsigned int, std::vector<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >&)::{lambda(auto:1 const&, bool)#1}::operator()<std::unordered_set<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >(std::unordered_set<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, bool) const>
++CLONE 0 0674 [ 2] test %al,%al
++CLONE 0 0676 [ 6] je <+0x175>
++CLONE 0 067c [ 7] mov 0x188(%r15),%rdx
++CLONE 0 0683 [ 7] mov 0x350(%rdx),%rcx
++CLONE 0 068a [ 7] mov 0x348(%rdx),%rax
++CLONE 0 0691 [ 4] mov %rcx,(%rsp)
++CLONE 0 0695 [ 3] cmp %rcx,%rax
++CLONE 0 0698 [ 6] je <+0x885>
++CLONE 0 069e [ 5] mov %rax,0x18(%rsp)
++CLONE 0 06a3 [ 8] lea 0xd0(%rsp),%rax
++CLONE 0 06ab [ 5] mov %rax,0x20(%rsp)
++CLONE 0 06b0 [ 8] lea 0xb0(%rsp),%rax
++CLONE 0 06b8 [ 5] mov %rax,0x10(%rsp)
++CLONE 0 06bd [ 8] lea 0xc0(%rsp),%rax
++CLONE 0 06c5 [ 5] mov %rax,0x40(%rsp)
++CLONE 0 06ca [ 5] mov 0x30(%rsp),%r13
++CLONE 0 06cf [ 5] mov 0x18(%rsp),%rax
++CLONE 0 06d4 [ 5] cmpq $0x0,0x68(%r13)
++CLONE 0 06d9 [ 2] mov (%rax),%esi
++CLONE 0 06db [ 6] je <+0x885>
++CLONE 0 06e1 [ 5] mov 0x8(%rsp),%rdi
++CLONE 0 06e6 [ 2] xor %ecx,%ecx
++CLONE 0 06e8 [ 5] mov $0x1,%edx
++CLONE 0 06ed [ 5] call <tomo::IoLoop::pubsub_prepare_rebind_events(tomo::IoLoop::PubSubLocalConn const&, unsigned long, unsigned int, std::vector<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >&)::{lambda(unsigned int, bool, bool)#1}::operator()(unsigned int, bool, bool) const>
++CLONE 0 06f2 [ 5] mov %rax,0x28(%rsp)
++CLONE 0 06f7 [ 3] test %rax,%rax
++CLONE 0 06fa [ 6] je <+0x175>
++CLONE 0 0700 [ 4] mov 0x60(%r13),%r13
++CLONE 0 0704 [ 3] test %r13,%r13
++CLONE 0 0707 [ 6] jne <+0x7ae>
++CLONE 0 070d [ 5] jmp <+0x870>
++CLONE 0 0712 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 071d [ 3] nopl (%rax)
++CLONE 0 0720 [ 4] cmp $0x1,%r12
++CLONE 0 0724 [ 6] je <+0x830>
++CLONE 0 072a [ 3] test %r12,%r12
++CLONE 0 072d [ 6] jne <+0x900>
++CLONE 0 0733 [ 5] mov 0x20(%rsp),%rax
++CLONE 0 0738 [ 8] mov %r12,0xc8(%rsp)
++CLONE 0 0740 [ 5] movb $0x0,(%rax,%r12,1)
++CLONE 0 0745 [ 5] mov 0x28(%rsp),%r12
++CLONE 0 074a [ 8] mov 0x140(%r12),%rsi
++CLONE 0 0752 [ 8] cmp 0x148(%r12),%rsi
++CLONE 0 075a [ 6] je <+0x850>
++CLONE 0 0760 [ 7] mov 0xb0(%rsp),%eax
++CLONE 0 0767 [ 4] lea 0x10(%rsi),%rdi
++CLONE 0 076b [ 2] mov %eax,(%rsi)
++CLONE 0 076d [ 8] movzbl 0xb4(%rsp),%eax
++CLONE 0 0775 [ 3] mov %al,0x4(%rsi)
++CLONE 0 0778 [ 8] mov 0xb8(%rsp),%rax
++CLONE 0 0780 [ 4] mov %rax,0x8(%rsi)
++CLONE 0 0784 [ 5] mov 0x40(%rsp),%rsi
++CLONE 0 0789 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&&)>
++CLONE 0 078e [ 9] addq $0x30,0x140(%r12)
++CLONE 0 0797 [ 5] mov 0x40(%rsp),%rdi
++CLONE 0 079c [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 07a1 [ 4] mov 0x0(%r13),%r13
++CLONE 0 07a5 [ 3] test %r13,%r13
++CLONE 0 07a8 [ 6] je <+0x870>
++CLONE 0 07ae [ 5] mov 0x20(%rsp),%rax
++CLONE 0 07b3 [ 4] vpxor %xmm0,%xmm0,%xmm0
++CLONE 0 07b7 [ 4] mov 0x10(%r13),%r12
++CLONE 0 07bb [ 9] vmovdqa %xmm0,0xb0(%rsp)
++CLONE 0 07c4 [ 8] mov %rax,0xc0(%rsp)
++CLONE 0 07cc [ 4] mov 0x8(%r13),%rax
++CLONE 0 07d0 [ 5] mov %rax,0x38(%rsp)
++CLONE 0 07d5 [ 4] cmp $0xf,%r12
++CLONE 0 07d9 [ 6] jbe <+0x720>
++CLONE 0 07df [ 3] test %r12,%r12
++CLONE 0 07e2 [ 6] js <+0x975>
++CLONE 0 07e8 [ 3] mov %r12,%rdi
++CLONE 0 07eb [ 3] inc %rdi
++CLONE 0 07ee [ 6] js <+0x910>
++CLONE 0 07f4 [ 5] call <_Znwm@plt>
++CLONE 0 07f9 [ 3] mov %rax,%rdi
++CLONE 0 07fc [ 8] mov %rax,0xc0(%rsp)
++CLONE 0 0804 [ 8] mov %r12,0xd0(%rsp)
++CLONE 0 080c [ 5] mov 0x38(%rsp),%rsi
++CLONE 0 0811 [ 3] mov %r12,%rdx
++CLONE 0 0814 [ 5] call <memcpy@plt>
++CLONE 0 0819 [ 8] mov 0xc0(%rsp),%rax
++CLONE 0 0821 [ 5] jmp <+0x738>
++CLONE 0 0826 [10] cs nopw 0x0(%rax,%rax,1)
++CLONE 0 0830 [ 5] mov 0x38(%rsp),%rax
++CLONE 0 0835 [ 3] movzbl (%rax),%eax
++CLONE 0 0838 [ 7] mov %al,0xd0(%rsp)
++CLONE 0 083f [ 5] jmp <+0x733>
++CLONE 0 0844 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 084f [ 1] nop
++CLONE 0 0850 [ 5] mov 0x28(%rsp),%rax
++CLONE 0 0855 [ 5] mov 0x10(%rsp),%rdx
++CLONE 0 085a [ 7] lea 0x138(%rax),%rdi
++CLONE 0 0861 [ 5] call <void std::vector<tomo::PubSubEventItem, std::allocator<tomo::PubSubEventItem> >::_M_realloc_insert<tomo::PubSubEventItem>(__gnu_cxx::__normal_iterator<tomo::PubSubEventItem*, std::vector<tomo::PubSubEventItem, std::allocator<tomo::PubSubEventItem> > >, tomo::PubSubEventItem&&)>
++CLONE 0 0866 [ 5] jmp <+0x797>
++CLONE 0 086b [ 5] nopl 0x0(%rax,%rax,1)
++CLONE 0 0870 [ 6] addq $0x4,0x18(%rsp)
++CLONE 0 0876 [ 5] mov 0x18(%rsp),%rax
++CLONE 0 087b [ 4] cmp %rax,(%rsp)
++CLONE 0 087f [ 6] jne <+0x6ca>
++CLONE 0 0885 [ 7] mov 0x80(%r14),%rsi
++CLONE 0 088c [ 5] jmp <+0x213>
++CLONE 0 0891 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 089c [ 4] nopl 0x0(%rax)
++CLONE 0 08a0 [ 5] mov 0x48(%rsp),%rdi
++CLONE 0 08a5 [ 6] mov $0x2c,%r8d
++CLONE 0 08ab [ 7] lea <rip>(%rip),%rcx # <literal-string-636f6e6e656374696f6e206861732061207472616e7369656e74207075622f737562206f7065726174696f6e00>
++CLONE 0 08b2 [ 2] xor %esi,%esi
++CLONE 0 08b4 [ 3] vzeroupper
++CLONE 0 08b7 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_mutate(unsigned long, unsigned long, char const*, unsigned long)>
++CLONE 0 08bc [ 5] jmp <+0x1e0>
++CLONE 0 08c1 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 08cc [ 4] nopl 0x0(%rax)
++CLONE 0 08d0 [ 4] mov 0x30(%r14),%rdi
++CLONE 0 08d4 [ 3] test %rdi,%rdi
++CLONE 0 08d7 [ 2] je <+0x8eb>
++CLONE 0 08d9 [ 5] mov $0x18,%esi
++CLONE 0 08de [ 5] call <_ZdlPvm@plt>
++CLONE 0 08e3 [ 8] movq $0x0,0x30(%r14)
++CLONE 0 08eb [ 2] xor %eax,%eax
++CLONE 0 08ed [ 5] jmp <+0x3f2>
++CLONE 0 08f2 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 08fd [ 3] nopl (%rax)
++CLONE 0 0900 [ 5] mov 0x20(%rsp),%rdi
++CLONE 0 0905 [ 5] jmp <+0x80c>
++CLONE 0 090a [ 6] nopw 0x0(%rax,%rax,1)
++CLONE 0 0910 [ 8] mov 0xe8(%rsp),%rax
++CLONE 0 0918 [ 9] sub %fs:0x28,%rax
++CLONE 0 0921 [ 2] jne <+0x970>
++CLONE 0 0923 [ 5] call <_ZSt17__throw_bad_allocv@plt>
++CLONE 0 0928 [ 8] nopl 0x0(%rax,%rax,1)
++CLONE 0 0930 [ 2] xor %ecx,%ecx
++CLONE 0 0932 [ 3] test %rdi,%rdi
++CLONE 0 0935 [ 2] je <+0x943>
++CLONE 0 0937 [ 4] mov 0x8(%rdi),%rax
++CLONE 0 093b [ 2] xor %edx,%edx
++CLONE 0 093d [ 3] div %rsi
++CLONE 0 0940 [ 3] mov %rdx,%rcx
++CLONE 0 0943 [ 5] lea 0x70(%rsp),%rax
++CLONE 0 0948 [ 3] mov %rdi,%rdx
++CLONE 0 094b [ 3] mov %r11,%rsi
++CLONE 0 094e [ 5] mov %r8,0x40(%rsp)
++CLONE 0 0953 [ 3] mov %rax,%rdi
++CLONE 0 0956 [ 5] call <std::_Hashtable<unsigned long, std::pair<unsigned long const, tomo::IoLoop::ClientForwardRoute>, std::allocator<std::pair<unsigned long const, tomo::IoLoop::ClientForwardRoute> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_remove_bucket_begin(unsigned long, std::__detail::_Hash_node<std::pair<unsigned long const, tomo::IoLoop::ClientForwardRoute>, false>*, unsigned long)>
++CLONE 0 095b [ 5] mov 0x40(%rsp),%r8
++CLONE 0 0960 [ 3] mov (%r8),%rdi
++CLONE 0 0963 [ 5] jmp <+0x3b6>
++CLONE 0 0968 [ 3] vzeroupper
++CLONE 0 096b [ 5] jmp <+0x596>
++CLONE 0 0970 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 0975 [ 8] mov 0xe8(%rsp),%rax
++CLONE 0 097d [ 9] sub %fs:0x28,%rax
++CLONE 0 0986 [ 2] jne <+0x970>
++CLONE 0 0988 [ 7] lea <rip>(%rip),%rdi # <literal-string-62617369635f737472696e673a3a5f4d5f63726561746500>
++CLONE 0 098f [ 5] call <_ZSt20__throw_length_errorPKc@plt>
++CLONE 0 0994 [ 4] endbr64
++CLONE 0 0998 [ 3] mov %rax,%rbx
++CLONE 0 099b [ 3] mov %rdx,%r12
++CLONE 0 099e [ 5] jmp <tomo::IoLoop::client_routing_prepare(tomo::IoLoop::ClientMigration&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .cold]+0x24>
++CLONE 0 09a3 [ 4] endbr64
++CLONE 0 09a7 [ 3] mov %rax,%rbx
++CLONE 0 09aa [ 3] mov %rdx,%r12
++CLONE 0 09ad [ 3] vzeroupper
++CLONE 0 09b0 [ 5] jmp <tomo::IoLoop::client_routing_prepare(tomo::IoLoop::ClientMigration&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .cold]+0x34>
++CLONE 0 09b5 [ 4] endbr64
++CLONE 0 09b9 [ 3] mov %rax,%rbx
++CLONE 0 09bc [ 3] mov %rdx,%r12
++CLONE 0 09bf [ 3] vzeroupper
++CLONE 0 09c2 [ 5] jmp <tomo::IoLoop::client_routing_prepare(tomo::IoLoop::ClientMigration&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .cold]+0xc1>
++CLONE 0 09c7 [ 4] endbr64
++CLONE 0 09cb [ 3] mov %rax,%rbx
++CLONE 0 09ce [ 3] mov %rdx,%r13
++CLONE 0 09d1 [ 5] jmp <tomo::IoLoop::client_routing_prepare(tomo::IoLoop::ClientMigration&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .cold]+0xae>
++CLONE 0 09d6 [ 4] endbr64
++CLONE 0 09da [ 3] mov %rax,%rbx
++CLONE 0 09dd [ 3] mov %rdx,%r12
++CLONE 0 09e0 [ 5] jmp <tomo::IoLoop::client_routing_prepare(tomo::IoLoop::ClientMigration&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .cold]+0x12c>

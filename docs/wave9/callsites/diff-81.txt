@@ -1,0 +1,89 @@
+tomo::(anonymous namespace)::snapshot_command(tomo::Op&, bool)
+--- headline
+
++++ post
+
+@@ -37,11 +37,11 @@
+
+ CLONE 0 008d [ 2] cmp $0x1,%al
+ CLONE 0 008f [ 6] je <+0x150>
+ CLONE 0 0095 [ 2] cmp $0x2,%al
+-CLONE 0 0097 [ 6] je <+0x230>
++CLONE 0 0097 [ 6] je <+0x1d0>
+ CLONE 0 009d [ 4] mov %rbx,-0x60(%rbp)
+ CLONE 0 00a1 [ 4] movb $0x0,-0x58(%rbp)
+ CLONE 0 00a5 [ 3] test %r14b,%r14b
+-CLONE 0 00a8 [ 6] je <+0x1d0>
++CLONE 0 00a8 [ 6] je <tomo::(anonymous namespace)::snapshot_command(tomo::Op&, bool) [clone .cold]>
+ CLONE 0 00ae [ 4] cmpb $0x0,0x1e(%rbx)
+ CLONE 0 00b2 [ 6] je <+0x170>
+ CLONE 0 00b8 [ 4] cmpb $0x0,0x1d(%rbx)
+@@ -69,7 +69,7 @@
+
+ CLONE 0 0123 [ 5] call <void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)>
+ CLONE 0 0128 [ 4] mov -0x28(%rbp),%rax
+ CLONE 0 012c [ 9] sub %fs:0x28,%rax
+-CLONE 0 0135 [ 6] jne <+0x279>
++CLONE 0 0135 [ 6] jne <+0x20b>
+ CLONE 0 013b [ 4] lea -0x20(%rbp),%rsp
+ CLONE 0 013f [ 1] pop %rbx
+ CLONE 0 0140 [ 2] pop %r12
+@@ -105,41 +105,19 @@
+
+ CLONE 0 01c3 [ 5] call <void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)>
+ CLONE 0 01c8 [ 5] jmp <+0x128>
+ CLONE 0 01cd [ 3] nopl (%rax)
+-CLONE 0 01d0 [ 4] lea -0x60(%rbp),%rbx
+-CLONE 0 01d4 [ 5] mov $0x1,%esi
+-CLONE 0 01d9 [ 3] mov %rbx,%rdi
+-CLONE 0 01dc [ 5] call <tomo::Op::Sink::reserve(unsigned long)>
+-CLONE 0 01e1 [ 4] cmpb $0x0,-0x58(%rbp)
+-CLONE 0 01e5 [ 3] movb $0x2b,(%rax)
+-CLONE 0 01e8 [ 4] mov -0x60(%rbp),%rax
+-CLONE 0 01ec [ 6] je <+0x270>
+-CLONE 0 01f2 [ 6] incl 0xa4(%rax)
+-CLONE 0 01f8 [ 3] mov %rbx,%rdi
+-CLONE 0 01fb [ 5] mov $0x19,%edx
+-CLONE 0 0200 [ 7] lea <rip>(%rip),%rsi # <literal-string-4261636b67726f756e6420736176696e67207374617274656400>
+-CLONE 0 0207 [ 5] call <tomo::Op::Sink::append(char const*, unsigned long)>
+-CLONE 0 020c [ 5] mov $0x2,%edx
+-CLONE 0 0211 [ 7] lea <rip>(%rip),%rsi # <literal-string-0d0a00>
+-CLONE 0 0218 [ 3] mov %rbx,%rdi
+-CLONE 0 021b [ 5] call <tomo::Op::Sink::append(char const*, unsigned long)>
+-CLONE 0 0220 [ 5] jmp <+0xf4>
+-CLONE 0 0225 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 0230 [ 4] mov -0x50(%rbp),%rcx
+-CLONE 0 0234 [ 7] mov <rip>(%rip),%rdi # <stderr@GLIBC_2.2.5>
+-CLONE 0 023b [ 7] lea <rip>(%rip),%rdx # <literal-string-536e617073686f74206572726f723a2025730a00>
+-CLONE 0 0242 [ 5] mov $0x2,%esi
+-CLONE 0 0247 [ 2] xor %eax,%eax
+-CLONE 0 0249 [ 5] call <__fprintf_chk@plt>
+-CLONE 0 024e [ 4] lea -0x60(%rbp),%rdi
+-CLONE 0 0252 [ 7] lea <rip>(%rip),%rsi # <literal-string-45525200>
+-CLONE 0 0259 [ 4] mov %rbx,-0x60(%rbp)
+-CLONE 0 025d [ 4] movb $0x0,-0x58(%rbp)
+-CLONE 0 0261 [ 5] call <void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)>
+-CLONE 0 0266 [ 5] jmp <+0xf4>
+-CLONE 0 026b [ 5] nopl 0x0(%rax,%rax,1)
+-CLONE 0 0270 [ 4] incq 0x28(%rax)
+-CLONE 0 0274 [ 5] jmp <+0x1f8>
+-CLONE 0 0279 [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 027e [ 4] endbr64
+-CLONE 0 0282 [ 3] mov %rax,%rbx
+-CLONE 0 0285 [ 5] jmp <tomo::(anonymous namespace)::snapshot_command(tomo::Op&, bool) [clone .cold]>
++CLONE 0 01d0 [ 4] mov -0x50(%rbp),%rcx
++CLONE 0 01d4 [ 7] mov <rip>(%rip),%rdi # <stderr@GLIBC_2.2.5>
++CLONE 0 01db [ 7] lea <rip>(%rip),%rdx # <literal-string-536e617073686f74206572726f723a2025730a00>
++CLONE 0 01e2 [ 5] mov $0x2,%esi
++CLONE 0 01e7 [ 2] xor %eax,%eax
++CLONE 0 01e9 [ 5] call <__fprintf_chk@plt>
++CLONE 0 01ee [ 4] lea -0x60(%rbp),%rdi
++CLONE 0 01f2 [ 7] lea <rip>(%rip),%rsi # <literal-string-45525200>
++CLONE 0 01f9 [ 4] mov %rbx,-0x60(%rbp)
++CLONE 0 01fd [ 4] movb $0x0,-0x58(%rbp)
++CLONE 0 0201 [ 5] call <void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)>
++CLONE 0 0206 [ 5] jmp <+0xf4>
++CLONE 0 020b [ 5] call <__stack_chk_fail@plt>
++CLONE 0 0210 [ 4] endbr64
++CLONE 0 0214 [ 3] mov %rax,%rbx
++CLONE 0 0217 [ 5] jmp <tomo::(anonymous namespace)::snapshot_command(tomo::Op&, bool) [clone .cold]+0x15>

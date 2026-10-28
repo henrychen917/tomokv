@@ -77,6 +77,7 @@
 #include "../core/atomic_tripwire.h"
 #include "eviction.h"
 #include "../cmd/notify.h"
+#include "../cmd/client_pause.h"
 #include "kv_block_cache.h"
 #include "kvobj.h"
 #include "object_idle.h"
@@ -1208,7 +1209,7 @@ public:
         if (!candidate && rehashing()) candidate = find_in(1, h, key);
         const bool expired = candidate && deadline_elapsed(h, candidate, cached_now_ms_) &&
                              !(snapshot_active_ && candidate == find_in(1, h, key));
-        if (expired && !notify_read_resolves_versions() && read_retirement_available())
+        if (expired && !client_pause_expiry_held() && !notify_read_resolves_versions() && read_retirement_available())
             notify_emit(sink, NOTIFY_EXPIRED, NotifyEventId::Expired, candidate->key());
         KvObj* found = find(h, key);
         if (!found) notify_emit(sink, NOTIFY_KEY_MISS, NotifyEventId::Keymiss, key);
@@ -1572,6 +1573,8 @@ public:
         // Count structural work even without TTL keys, including the final step. Idle owners
         // must revisit an unfinished resize instead of parking until another command arrives.
         uint32_t removed = resizing ? 1 : 0;
+        // Pause expiry, not the resize progress needed by already admitted work.
+        if (client_pause_expiry_held()) return removed;
         expires_.sample(budget, [&](uint64_t h) {
             KvObj* o = find_hash_in(0, h);
             if (!o && rehashing()) o = find_hash_in(1, h);
@@ -1866,6 +1869,13 @@ public:
     // of a sparse table's probability. Resolve the owner's read cut before sampling, including
     // predecessors whose candidate is a physical deletion. Frozen snapshot objects stay resident.
     KvObj* random_live() {
+        const bool paused = client_pause_expiry_held();
+        struct ExpiryClock {
+            int64_t& clock;
+            int64_t saved;
+            ~ExpiryClock() { clock = saved; }
+        } expiry_clock{cached_now_ms_, cached_now_ms_};
+        if (paused) cached_now_ms_ = -1;
         const uint64_t total = static_cast<uint64_t>(cap_[0]) + cap_[1];
         if (!total) return nullptr;
         const uint64_t start_pos = next_random() % total;
@@ -1881,7 +1891,7 @@ public:
             const uint64_t h = hash_key(o->key());
             if (atomic_pending_ && atomic_pending_->live) {
                 o = atomic_resolve(h, o->key(), atomic_read_epoch_);
-            } else {
+            } else if (!paused) {
                 if (deadline_elapsed(h, o, cached_now_ms_) && !(snapshot_active_ && t == 1))
                     notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, o->key());
                 o = live_or_expire(t, h, o->key(), o);
@@ -2575,6 +2585,7 @@ private:
             // An epoch record, not this physical candidate, owns logical expiry and pointer
             // lifetime. The walker callback resolves it at its registered cut.
             if (atomic_has_record(h, o->key())) { fn(o); return; }
+            if (client_pause_expiry_held()) return;
             // During capture the frozen table is the cut, not a normal mutable scan source.
             // Report the key logically absent but leave its slot for snapshot traversal, just
             // like find()/active_expire().  KEYS uses this bounded scan while capture runs.
@@ -2659,7 +2670,14 @@ private:
         if (!o->has_ttl_slot()) return o;
         const int64_t at = deadline(h, o);
         if (at < 0 || at >= cached_now_ms_) return o;  // Redis: still live at now == at
+        return expire_found(t, h, key);
+    }
+
+    // Keep maintenance-only checks out of the non-expiring lookup's inline
+    // body and register allocation. No pause clock is read for a live key.
+    [[gnu::noinline]] KvObj* expire_found(int t, uint64_t h, Slice key) {
         if (snapshot_active_ && t == 1) return nullptr;
+        if (client_pause_expiry_held()) return nullptr;
         // Logical expiry never needs reclamation. With a full armed ring, leave the object and
         // its deadline index resident for owner maintenance. Only the eventual physical delete
         // emits expiry/AOF/accounting effects; repeated reads cannot enqueue or wait for grace.
@@ -3258,6 +3276,14 @@ private:
         return static_cast<Enc>(object->enc) == Enc::Extern ? kvobj_external_bytes(object) : 0;
     }
 
+    // Logical retirement, before QSBR destruction: only the existing external
+    // stream type arm signals blocked group readers. String retirement retains
+    // its ordinary encoding test and adds no waiter test or callback.
+    size_t retiring_external_bytes(const KvObj* object) {
+        return static_cast<Enc>(object->enc) == Enc::Extern
+            ? kvobj_external_bytes<true>(object, this) : 0;
+    }
+
     // Decode the header ONCE, exactly as unarmed retire_obj() does: the size class computed for
     // accounting is also the sized-free length. It travels to the reclaim callback as the ring's
     // auxiliary word, so the free after the grace period does not re-derive it from a header that
@@ -3265,7 +3291,7 @@ private:
     // the layout bits, so the class cannot change between retire and reclaim.
     void retire_obj_read_local(KvObj* object) {
         const size_t capacity = kvobj_capacity(object);
-        const size_t bytes = capacity + read_local_external_bytes(object);
+        const size_t bytes = capacity + retiring_external_bytes(object);
         obj_bytes_ -= bytes;
         read_local_store_state_armed().retire_sink.retire(
             this, object, capacity, &FlatStore::read_local_reclaim_object);
@@ -3579,7 +3605,7 @@ private:
     // The header is decoded once: the class computed for accounting is the sized-free length.
     void retire_obj(KvObj* o) {
         const size_t capacity = kvobj_capacity(o);
-        const size_t bytes = capacity + kvobj_external_bytes(o);
+        const size_t bytes = capacity + retiring_external_bytes(o);
         obj_bytes_ -= bytes;
         if (outstanding_borrows_ == 0) { kvobj_free_with_capacity(o, capacity); return; }
         const char* ptr = (static_cast<Type>(o->type) == Type::String && !o->is_int())

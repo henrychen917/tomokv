@@ -1,0 +1,25 @@
+tomo::(anonymous namespace)::multi_tripwire_fragment_begin(tomo::MultiExecState&, tomo::Shard&) [clone .part.0]
+--- headline
+
++++ post
+
+@@ -14,7 +14,7 @@
+
+ CLONE 0 0025 [ 3] mov (%rdi),%rcx
+ CLONE 0 0028 [ 5] mov %rcx,0x28(%rsp)
+ CLONE 0 002d [ 4] lea (%rax,%rax,2),%rdx
+-CLONE 0 0031 [ 7] mov 0x258(%r11),%rax
++CLONE 0 0031 [ 7] mov 0x260(%r11),%rax
+ CLONE 0 0038 [ 4] lea (%rax,%rdx,8),%rax
+ CLONE 0 003c [ 4] mov 0x8(%rax),%r13
+ CLONE 0 0040 [ 3] mov (%rax),%rbx
+@@ -28,7 +28,7 @@
+
+ CLONE 0 0060 [ 4] add $0x4,%r12
+ CLONE 0 0064 [ 3] cmp %r12,%r15
+ CLONE 0 0067 [ 6] je <+0x47b>
+-CLONE 0 006d [ 7] mov 0x80(%r11),%rax
++CLONE 0 006d [ 7] mov 0x88(%r11),%rax
+ CLONE 0 0074 [ 4] mov (%r12),%edx
+ CLONE 0 0078 [ 4] mov (%rax,%rdx,8),%r13
+ CLONE 0 007c [ 5] movzbl 0x28(%r13),%eax

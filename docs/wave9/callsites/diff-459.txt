@@ -1,0 +1,2231 @@
+void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&)
+--- streamfix
+
++++ post
+
+@@ -39,7 +39,7 @@
+
+ CLONE 0 00af [ 1] nop
+ CLONE 0 00b0 [ 4] mov -0x38(%rbp),%rax
+ CLONE 0 00b4 [ 9] sub %fs:0x28,%rax
+-CLONE 0 00bd [ 6] jne <+0x19fb>
++CLONE 0 00bd [ 6] jne <+0x19ae>
+ CLONE 0 00c3 [ 4] lea -0x28(%rbp),%rsp
+ CLONE 0 00c7 [ 1] pop %rbx
+ CLONE 0 00c8 [ 2] pop %r12
+@@ -67,7 +67,7 @@
+
+ CLONE 0 0121 [ 7] mov %rax,-0x3f8(%rbp)
+ CLONE 0 0128 [ 7] mov %rax,-0x3b8(%rbp)
+ CLONE 0 012f [ 3] test %rax,%rax
+-CLONE 0 0132 [ 6] je <+0x6ba>
++CLONE 0 0132 [ 6] je <+0x930>
+ CLONE 0 0138 [ 7] mov -0x3f8(%rbp),%rax
+ CLONE 0 013f [ 3] cmpb $0x5,(%rax)
+ CLONE 0 0142 [ 2] je <+0x170>
+@@ -88,7 +88,7 @@
+
+ CLONE 0 019e [ 3] vzeroupper
+ CLONE 0 01a1 [ 5] call <tomo_db0::(anonymous namespace)::object_header(tomo_db0::KvObj*, tomo_db0::StreamHeader&)>
+ CLONE 0 01a6 [ 2] test %al,%al
+-CLONE 0 01a8 [ 6] je <+0x8fe>
++CLONE 0 01a8 [ 6] je <+0xb6e>
+ CLONE 0 01ae [ 7] mov -0x430(%rbp),%rsi
+ CLONE 0 01b5 [ 7] mov -0x3f0(%rbp),%rdi
+ CLONE 0 01bc [ 7] lea -0x3b0(%rbp),%rax
+@@ -99,90 +99,90 @@
+
+ CLONE 0 01db [11] movq $0x0,-0x3a8(%rbp)
+ CLONE 0 01e6 [ 7] mov %rax,-0x438(%rbp)
+ CLONE 0 01ed [ 5] call <tomo_db0::(anonymous namespace)::resolve_add_id(tomo_db0::Shard&, tomo_db0::StreamHeader const&, tomo_db0::(anonymous namespace)::AddId const&, tomo_db0::StreamID&, tomo_db0::Op&) [clone .constprop.0]>
+-CLONE 0 01f2 [ 2] test %al,%al
+-CLONE 0 01f4 [ 6] je <+0xb0>
+-CLONE 0 01fa [ 6] mov -0x218(%rbp),%eax
+-CLONE 0 0200 [ 8] vmovq -0x428(%rbp),%xmm4
+-CLONE 0 0208 [ 7] mov -0x3f8(%rbp),%rsi
+-CLONE 0 020f [ 6] mov %eax,-0x448(%rbp)
+-CLONE 0 0215 [ 2] inc %eax
+-CLONE 0 0217 [ 6] mov %eax,-0x444(%rbp)
+-CLONE 0 021d [ 7] lea -0x390(%rbp),%rax
+-CLONE 0 0224 [ 6] vpinsrq $0x1,%rsi,%xmm4,%xmm3
+-CLONE 0 022a [ 3] mov %rax,%rdi
+-CLONE 0 022d [ 7] mov %rax,-0x440(%rbp)
+-CLONE 0 0234 [ 8] vmovdqa %xmm3,-0x460(%rbp)
+-CLONE 0 023c [ 5] call <tomo_db0::CollectionRef::CollectionRef(tomo_db0::KvObj*)>
+-CLONE 0 0241 [ 8] vmovdqa -0x290(%rbp),%xmm7
+-CLONE 0 0249 [ 7] mov -0x380(%rbp),%rax
+-CLONE 0 0250 [ 4] vpxor %xmm0,%xmm0,%xmm0
+-CLONE 0 0254 [11] movq $0x0,-0x360(%rbp)
+-CLONE 0 025f [ 8] vmovdqa %xmm0,-0x370(%rbp)
+-CLONE 0 0267 [ 7] mov %rax,-0x450(%rbp)
+-CLONE 0 026e [ 8] vmovdqa %xmm7,-0x3a0(%rbp)
+-CLONE 0 0276 [ 3] test %rax,%rax
+-CLONE 0 0279 [ 6] je <+0x924>
+-CLONE 0 027f [ 7] mov -0x440(%rbp),%rsi
+-CLONE 0 0286 [ 7] lea -0x2f0(%rbp),%rdi
+-CLONE 0 028d [ 5] call <tomo_db0::CollectionRef::compact() const>
+-CLONE 0 0292 [ 7] mov -0x2f0(%rbp),%rax
+-CLONE 0 0299 [ 8] vmovdqa -0x290(%rbp),%xmm3
+-CLONE 0 02a1 [ 4] vpxor %xmm0,%xmm0,%xmm0
+-CLONE 0 02a5 [ 8] vmovdqa %xmm0,-0x2d0(%rbp)
+-CLONE 0 02ad [11] movq $0x0,-0x2c0(%rbp)
+-CLONE 0 02b8 [11] movq $0x0,-0x1b0(%rbp)
+-CLONE 0 02c3 [10] movl $0x1,-0x3e8(%rbp)
+-CLONE 0 02cd [ 4] vpxor %xmm0,%xmm0,%xmm0
+-CLONE 0 02d1 [10] vmovdqa64 %zmm0,-0x1f0(%rbp)
+-CLONE 0 02db [ 7] mov %rax,-0x418(%rbp)
+-CLONE 0 02e2 [ 7] mov -0x2e8(%rbp),%rax
+-CLONE 0 02e9 [ 8] vmovdqa %xmm3,-0x330(%rbp)
+-CLONE 0 02f1 [ 7] mov %rax,-0x420(%rbp)
+-CLONE 0 02f8 [ 7] lea -0x1f0(%rbp),%rax
+-CLONE 0 02ff [ 7] mov %rax,-0x400(%rbp)
+-CLONE 0 0306 [ 7] lea -0x2d0(%rbp),%rax
+-CLONE 0 030d [ 7] mov %rax,-0x408(%rbp)
+-CLONE 0 0314 [ 7] lea -0x310(%rbp),%rax
+-CLONE 0 031b [ 7] mov %rax,-0x410(%rbp)
+-CLONE 0 0322 [ 3] vzeroupper
+-CLONE 0 0325 [ 7] mov -0x418(%rbp),%rax
+-CLONE 0 032c [ 3] test %rax,%rax
+-CLONE 0 032f [ 6] je <+0x56c>
+-CLONE 0 0335 [ 6] mov -0x3e8(%rbp),%ecx
+-CLONE 0 033b [ 3] cmp 0x3c(%rax),%ecx
+-CLONE 0 033e [ 6] jae <+0xe2e>
+-CLONE 0 0344 [ 6] mov -0x3e8(%rbp),%esi
+-CLONE 0 034a [ 7] mov -0x418(%rbp),%rdi
+-CLONE 0 0351 [ 7] lea -0x2b0(%rbp),%rdx
+-CLONE 0 0358 [11] movq $0x0,-0x2b0(%rbp)
+-CLONE 0 0363 [10] movl $0x0,-0x2a8(%rbp)
+-CLONE 0 036d [11] movq $0x0,-0x2a0(%rbp)
+-CLONE 0 0378 [10] movl $0x0,-0x298(%rbp)
+-CLONE 0 0382 [ 5] call <tomo_db0::Compact::at(unsigned int, tomo_db0::Compact::Entry&) const>
+-CLONE 0 0387 [ 2] test %al,%al
+-CLONE 0 0389 [ 6] je <+0x640>
+-CLONE 0 038f [ 7] mov -0x400(%rbp),%r8
+-CLONE 0 0396 [ 7] mov -0x408(%rbp),%rcx
+-CLONE 0 039d [ 6] mov -0x2a8(%rbp),%esi
+-CLONE 0 03a3 [ 7] lea -0x1d8(%rbp),%rax
+-CLONE 0 03aa [ 7] mov -0x2b0(%rbp),%rdi
+-CLONE 0 03b1 [ 7] lea -0x330(%rbp),%rbx
+-CLONE 0 03b8 [ 7] mov %rax,-0x3e0(%rbp)
+-CLONE 0 03bf [ 3] mov %rbx,%rdx
+-CLONE 0 03c2 [ 7] lea -0x370(%rbp),%rax
+-CLONE 0 03c9 [ 7] mov %rax,-0x3d8(%rbp)
+-CLONE 0 03d0 [ 5] call <tomo_db0::(anonymous namespace)::decode_record(tomo_db0::Slice, tomo_db0::StreamID const&, std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> > const&, tomo_db0::(anonymous namespace)::RecordView&) [clone .isra.0]>
+-CLONE 0 03d5 [ 2] test %al,%al
+-CLONE 0 03d7 [ 6] je <+0x640>
+-CLONE 0 03dd [ 8] vmovdqa -0x1f0(%rbp),%xmm5
+-CLONE 0 03e5 [ 7] mov -0x370(%rbp),%r13
+-CLONE 0 03ec [ 7] mov -0x368(%rbp),%r12
+-CLONE 0 03f3 [ 8] vmovdqa %xmm5,-0x3a0(%rbp)
+-CLONE 0 03fb [ 3] cmp %r12,%r13
+-CLONE 0 03fe [ 2] je <+0x439>
+-CLONE 0 0400 [ 3] mov %r13,%rbx
+-CLONE 0 0403 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 040e [ 2] xchg %ax,%ax
++CLONE 0 01f2 [ 6] mov %al,-0x441(%rbp)
++CLONE 0 01f8 [ 2] test %al,%al
++CLONE 0 01fa [ 6] je <+0xb0>
++CLONE 0 0200 [ 6] mov -0x218(%rbp),%eax
++CLONE 0 0206 [ 8] vmovq -0x428(%rbp),%xmm4
++CLONE 0 020e [ 7] mov -0x3f8(%rbp),%rsi
++CLONE 0 0215 [ 6] mov %eax,-0x464(%rbp)
++CLONE 0 021b [ 2] inc %eax
++CLONE 0 021d [ 6] mov %eax,-0x448(%rbp)
++CLONE 0 0223 [ 7] lea -0x390(%rbp),%rax
++CLONE 0 022a [ 6] vpinsrq $0x1,%rsi,%xmm4,%xmm3
++CLONE 0 0230 [ 3] mov %rax,%rdi
++CLONE 0 0233 [ 7] mov %rax,-0x440(%rbp)
++CLONE 0 023a [ 8] vmovdqa %xmm3,-0x460(%rbp)
++CLONE 0 0242 [ 5] call <tomo_db0::CollectionRef::CollectionRef(tomo_db0::KvObj*)>
++CLONE 0 0247 [ 8] vmovdqa -0x290(%rbp),%xmm7
++CLONE 0 024f [ 7] mov -0x380(%rbp),%rax
++CLONE 0 0256 [ 4] vpxor %xmm0,%xmm0,%xmm0
++CLONE 0 025a [11] movq $0x0,-0x360(%rbp)
++CLONE 0 0265 [ 8] vmovdqa %xmm0,-0x370(%rbp)
++CLONE 0 026d [ 7] mov %rax,-0x450(%rbp)
++CLONE 0 0274 [ 8] vmovdqa %xmm7,-0x3a0(%rbp)
++CLONE 0 027c [ 3] test %rax,%rax
++CLONE 0 027f [ 6] je <+0xb94>
++CLONE 0 0285 [ 7] mov -0x440(%rbp),%rsi
++CLONE 0 028c [ 7] lea -0x2f0(%rbp),%rdi
++CLONE 0 0293 [ 5] call <tomo_db0::CollectionRef::compact() const>
++CLONE 0 0298 [ 7] mov -0x2f0(%rbp),%rax
++CLONE 0 029f [ 8] vmovdqa -0x290(%rbp),%xmm3
++CLONE 0 02a7 [ 4] vpxor %xmm0,%xmm0,%xmm0
++CLONE 0 02ab [ 8] vmovdqa %xmm0,-0x2d0(%rbp)
++CLONE 0 02b3 [11] movq $0x0,-0x2c0(%rbp)
++CLONE 0 02be [11] movq $0x0,-0x1b0(%rbp)
++CLONE 0 02c9 [10] movl $0x1,-0x3e8(%rbp)
++CLONE 0 02d3 [ 4] vpxor %xmm0,%xmm0,%xmm0
++CLONE 0 02d7 [10] vmovdqa64 %zmm0,-0x1f0(%rbp)
++CLONE 0 02e1 [ 7] mov %rax,-0x410(%rbp)
++CLONE 0 02e8 [ 7] mov -0x2e8(%rbp),%rax
++CLONE 0 02ef [ 8] vmovdqa %xmm3,-0x330(%rbp)
++CLONE 0 02f7 [ 7] mov %rax,-0x420(%rbp)
++CLONE 0 02fe [ 7] lea -0x1f0(%rbp),%rax
++CLONE 0 0305 [ 7] mov %rax,-0x400(%rbp)
++CLONE 0 030c [ 7] lea -0x310(%rbp),%rax
++CLONE 0 0313 [ 7] mov %rax,-0x408(%rbp)
++CLONE 0 031a [ 3] vzeroupper
++CLONE 0 031d [ 7] mov -0x410(%rbp),%rax
++CLONE 0 0324 [ 3] test %rax,%rax
++CLONE 0 0327 [ 6] je <+0x56c>
++CLONE 0 032d [ 6] mov -0x3e8(%rbp),%ecx
++CLONE 0 0333 [ 3] cmp 0x3c(%rax),%ecx
++CLONE 0 0336 [ 6] jae <+0x647>
++CLONE 0 033c [ 6] mov -0x3e8(%rbp),%esi
++CLONE 0 0342 [ 7] mov -0x410(%rbp),%rdi
++CLONE 0 0349 [ 7] lea -0x2b0(%rbp),%rdx
++CLONE 0 0350 [11] movq $0x0,-0x2b0(%rbp)
++CLONE 0 035b [10] movl $0x0,-0x2a8(%rbp)
++CLONE 0 0365 [11] movq $0x0,-0x2a0(%rbp)
++CLONE 0 0370 [10] movl $0x0,-0x298(%rbp)
++CLONE 0 037a [ 5] call <tomo_db0::Compact::at(unsigned int, tomo_db0::Compact::Entry&) const>
++CLONE 0 037f [ 2] test %al,%al
++CLONE 0 0381 [ 6] je <+0x640>
++CLONE 0 0387 [ 7] mov -0x400(%rbp),%r8
++CLONE 0 038e [ 6] mov -0x2a8(%rbp),%esi
++CLONE 0 0394 [ 7] mov -0x2b0(%rbp),%rdi
++CLONE 0 039b [ 7] lea -0x1d8(%rbp),%rax
++CLONE 0 03a2 [ 7] lea -0x330(%rbp),%rbx
++CLONE 0 03a9 [ 7] mov %rax,-0x3e0(%rbp)
++CLONE 0 03b0 [ 7] lea -0x2d0(%rbp),%rcx
++CLONE 0 03b7 [ 7] lea -0x370(%rbp),%rax
++CLONE 0 03be [ 3] mov %rbx,%rdx
++CLONE 0 03c1 [ 7] mov %rcx,-0x418(%rbp)
++CLONE 0 03c8 [ 7] mov %rax,-0x3d8(%rbp)
++CLONE 0 03cf [ 5] call <tomo_db0::(anonymous namespace)::decode_record(tomo_db0::Slice, tomo_db0::StreamID const&, std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> > const&, tomo_db0::(anonymous namespace)::RecordView&) [clone .isra.0]>
++CLONE 0 03d4 [ 2] test %al,%al
++CLONE 0 03d6 [ 6] je <+0x640>
++CLONE 0 03dc [ 8] vmovdqa -0x1f0(%rbp),%xmm5
++CLONE 0 03e4 [ 7] mov -0x370(%rbp),%r13
++CLONE 0 03eb [ 7] mov -0x368(%rbp),%r12
++CLONE 0 03f2 [ 8] vmovdqa %xmm5,-0x3a0(%rbp)
++CLONE 0 03fa [ 3] cmp %r12,%r13
++CLONE 0 03fd [ 2] je <+0x439>
++CLONE 0 03ff [ 3] mov %r13,%rbx
++CLONE 0 0402 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 040d [ 3] nopl (%rax)
+ CLONE 0 0410 [ 3] mov (%rbx),%rdi
+ CLONE 0 0413 [ 4] lea 0x10(%rbx),%rax
+ CLONE 0 0417 [ 3] cmp %rax,%rdi
+@@ -208,13 +208,13 @@
+
+ CLONE 0 0475 [ 3] test %r14,%r14
+ CLONE 0 0478 [ 2] jne <+0x483>
+ CLONE 0 047a [ 3] test %r12,%r12
+-CLONE 0 047d [ 6] jne <+0x194d>
++CLONE 0 047d [ 6] jne <+0x192a>
+ CLONE 0 0483 [ 4] cmp $0xf,%r12
+-CLONE 0 0487 [ 6] ja <+0x840>
++CLONE 0 0487 [ 6] ja <+0xab0>
+ CLONE 0 048d [ 4] cmp $0x1,%r12
+-CLONE 0 0491 [ 6] je <+0x890>
++CLONE 0 0491 [ 6] je <+0xb00>
+ CLONE 0 0497 [ 3] test %r12,%r12
+-CLONE 0 049a [ 6] jne <+0x870>
++CLONE 0 049a [ 6] jne <+0xae0>
+ CLONE 0 04a0 [ 4] mov %r12,0x8(%rbx)
+ CLONE 0 04a4 [ 4] add $0x20,%rbx
+ CLONE 0 04a8 [ 4] add $0x10,%r13
+@@ -227,7 +227,7 @@
+
+ CLONE 0 04ce [ 8] vmovdqa %xmm1,-0x310(%rbp)
+ CLONE 0 04d6 [ 7] cmp -0x360(%rbp),%rbx
+ CLONE 0 04dd [ 2] jne <+0x460>
+-CLONE 0 04df [ 7] mov -0x410(%rbp),%rdx
++CLONE 0 04df [ 7] mov -0x408(%rbp),%rdx
+ CLONE 0 04e6 [ 7] lea -0x370(%rbp),%rdi
+ CLONE 0 04ed [ 7] lea -0x1d8(%rbp),%rax
+ CLONE 0 04f4 [ 7] lea -0x308(%rbp),%rcx
+@@ -239,21 +239,21 @@
+
+ CLONE 0 0515 [ 7] cmp %r13,-0x3d0(%rbp)
+ CLONE 0 051c [ 2] jne <+0x4c1>
+ CLONE 0 051e [ 8] vmovdqa -0x1f0(%rbp),%xmm6
+-CLONE 0 0526 [ 7] mov -0x408(%rbp),%rdi
++CLONE 0 0526 [ 7] mov -0x418(%rbp),%rdi
+ CLONE 0 052d [ 7] lea -0x1d8(%rbp),%rsi
+ CLONE 0 0534 [ 7] lea -0x370(%rbp),%rax
+ CLONE 0 053b [ 7] mov %rsi,-0x3e0(%rbp)
+ CLONE 0 0542 [ 7] mov %rax,-0x3d8(%rbp)
+ CLONE 0 0549 [ 8] vmovdqa %xmm6,-0x330(%rbp)
+ CLONE 0 0551 [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::operator=(std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> > const&) [clone .isra.0]>
+-CLONE 0 0556 [ 7] mov -0x418(%rbp),%rax
++CLONE 0 0556 [ 7] mov -0x410(%rbp),%rax
+ CLONE 0 055d [ 6] incl -0x3e8(%rbp)
+ CLONE 0 0563 [ 3] test %rax,%rax
+-CLONE 0 0566 [ 6] jne <+0x335>
++CLONE 0 0566 [ 6] jne <+0x32d>
+ CLONE 0 056c [ 7] mov -0x420(%rbp),%rax
+ CLONE 0 0573 [ 6] mov -0x3e8(%rbp),%ecx
+ CLONE 0 0579 [ 2] cmp (%rax),%ecx
+-CLONE 0 057b [ 6] jae <+0xe2e>
++CLONE 0 057b [ 6] jae <+0x647>
+ CLONE 0 0581 [ 7] mov -0x420(%rbp),%rbx
+ CLONE 0 0588 [10] movl $0x0,-0x2a8(%rbp)
+ CLONE 0 0592 [11] movq $0x0,-0x2a0(%rbp)
+@@ -300,992 +300,986 @@
+
+ CLONE 0 0624 [ 3] add %rdi,%rdx
+ CLONE 0 0627 [ 3] add %rdx,%rcx
+ CLONE 0 062a [ 3] cmp %rcx,%r12
+-CLONE 0 062d [ 6] jae <+0x8a0>
++CLONE 0 062d [ 6] jae <+0xb10>
+ CLONE 0 0633 [11] data16 cs nopw 0x0(%rax,%rax,1)
+ CLONE 0 063e [ 2] xchg %ax,%ax
+-CLONE 0 0640 [ 7] mov -0x1c0(%rbp),%rdi
+-CLONE 0 0647 [ 7] mov -0x1b0(%rbp),%rax
++CLONE 0 0640 [ 7] movb $0x0,-0x441(%rbp)
++CLONE 0 0647 [ 7] mov -0x1c0(%rbp),%rdi
+ CLONE 0 064e [ 3] test %rdi,%rdi
+-CLONE 0 0651 [ 6] je <+0xc7e>
+-CLONE 0 0657 [ 3] sub %rdi,%rax
+-CLONE 0 065a [ 3] mov %rax,%rsi
++CLONE 0 0651 [ 2] je <+0x662>
++CLONE 0 0653 [ 7] mov -0x1b0(%rbp),%rsi
++CLONE 0 065a [ 3] sub %rdi,%rsi
+ CLONE 0 065d [ 5] call <_ZdlPvm@plt>
+-CLONE 0 0662 [ 7] lea -0x1d8(%rbp),%rdi
+-CLONE 0 0669 [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
+-CLONE 0 066e [ 7] mov -0x408(%rbp),%rdi
+-CLONE 0 0675 [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
+-CLONE 0 067a [ 7] mov -0x400(%rbp),%rdi
+-CLONE 0 0681 [ 7] lea <rip>(%rip),%rsi # <literal-string-45525220636f72727570742073747265616d20656e636f64696e6700>
+-CLONE 0 0688 [ 7] mov %r15,-0x1f0(%rbp)
+-CLONE 0 068f [ 7] movb $0x0,-0x1e8(%rbp)
+-CLONE 0 0696 [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
+-CLONE 0 069b [ 7] lea -0x370(%rbp),%rax
+-CLONE 0 06a2 [ 7] mov %rax,-0x3d8(%rbp)
+-CLONE 0 06a9 [ 7] mov -0x3d8(%rbp),%rdi
+-CLONE 0 06b0 [ 5] call <std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()>
+-CLONE 0 06b5 [ 5] jmp <+0xb0>
+-CLONE 0 06ba [ 7] cmpb $0x0,-0x250(%rbp)
+-CLONE 0 06c1 [ 6] jne <+0xc9b>
+-CLONE 0 06c7 [ 7] mov -0x3f0(%rbp),%rdi
+-CLONE 0 06ce [ 7] lea -0x3b0(%rbp),%rax
+-CLONE 0 06d5 [ 4] vpxor %xmm0,%xmm0,%xmm0
+-CLONE 0 06d9 [ 7] lea -0x210(%rbp),%rdx
+-CLONE 0 06e0 [ 8] vmovdqa %ymm0,-0x290(%rbp)
+-CLONE 0 06e8 [ 7] lea -0x290(%rbp),%rsi
+-CLONE 0 06ef [ 3] mov %r15,%r8
+-CLONE 0 06f2 [ 3] mov %rax,%rcx
+-CLONE 0 06f5 [10] vmovdqu8 %ymm0,-0x278(%rbp)
+-CLONE 0 06ff [ 7] mov %rax,-0x438(%rbp)
+-CLONE 0 0706 [11] movq $0x0,-0x3b0(%rbp)
+-CLONE 0 0711 [11] movq $0x0,-0x3a8(%rbp)
+-CLONE 0 071c [ 3] vzeroupper
+-CLONE 0 071f [ 5] call <tomo_db0::(anonymous namespace)::resolve_add_id(tomo_db0::Shard&, tomo_db0::StreamHeader const&, tomo_db0::(anonymous namespace)::AddId const&, tomo_db0::StreamID&, tomo_db0::Op&) [clone .constprop.0]>
+-CLONE 0 0724 [ 2] test %al,%al
+-CLONE 0 0726 [ 6] je <+0xb0>
+-CLONE 0 072c [ 6] mov -0x218(%rbp),%eax
+-CLONE 0 0732 [ 7] lea <rip>(%rip),%r13 # <_ZSt7nothrow@GLIBCXX_3.4>
+-CLONE 0 0739 [ 5] mov $0x158,%edi
+-CLONE 0 073e [ 3] mov %r13,%rsi
+-CLONE 0 0741 [ 6] mov %eax,-0x3d8(%rbp)
+-CLONE 0 0747 [ 5] call <_ZnwmRKSt9nothrow_t@plt>
+-CLONE 0 074c [ 3] mov %rax,%r12
+-CLONE 0 074f [ 3] test %rax,%rax
+-CLONE 0 0752 [ 6] je <+0x19d5>
+-CLONE 0 0758 [ 3] mov %r12,%rdi
+-CLONE 0 075b [ 5] call <tomo_db0::StreamVal::StreamVal()>
+-CLONE 0 0760 [ 8] vmovdqa -0x3b0(%rbp),%xmm0
+-CLONE 0 0768 [ 5] lea 0x68(%r12),%rax
+-CLONE 0 076d [ 4] lea -0x80(%rbp),%r13
+-CLONE 0 0771 [ 7] mov %r12,-0x2d0(%rbp)
+-CLONE 0 0778 [ 3] mov %rax,%rsi
+-CLONE 0 077b [ 3] mov %r13,%rdi
+-CLONE 0 077e [ 7] mov %rax,-0x3d0(%rbp)
+-CLONE 0 0785 [12] movq $0x1,0x98(%r12)
+-CLONE 0 0791 [ 4] lea -0x60(%rbp),%r14
+-CLONE 0 0795 [ 7] vmovdqu %xmm0,0x78(%r12)
+-CLONE 0 079c [ 7] vmovdqu %xmm0,0x68(%r12)
+-CLONE 0 07a3 [10] vmovdqu %xmm0,0xa0(%r12)
+-CLONE 0 07ad [ 5] call <tomo_db0::(anonymous namespace)::header_bytes(tomo_db0::StreamHeader const&)>
+-CLONE 0 07b2 [ 5] cmpb $0x0,(%r12)
+-CLONE 0 07b7 [ 4] lea -0x50(%rbp),%rax
+-CLONE 0 07bb [ 4] mov -0x78(%rbp),%rdx
+-CLONE 0 07bf [ 4] mov %rax,-0x60(%rbp)
+-CLONE 0 07c3 [ 7] lea -0x1f0(%rbp),%rax
+-CLONE 0 07ca [ 4] mov -0x80(%rbp),%rsi
+-CLONE 0 07ce [ 8] movq $0x0,-0x58(%rbp)
+-CLONE 0 07d6 [ 4] movb $0x0,-0x50(%rbp)
+-CLONE 0 07da [ 7] mov %rax,-0x400(%rbp)
+-CLONE 0 07e1 [ 6] je <+0xc4c>
+-CLONE 0 07e7 [ 3] mov %r12,%rdi
+-CLONE 0 07ea [ 5] call <tomo_db0::StreamVal::~StreamVal()>
+-CLONE 0 07ef [ 5] mov $0x158,%esi
+-CLONE 0 07f4 [ 3] mov %r12,%rdi
+-CLONE 0 07f7 [ 5] call <_ZdlPvm@plt>
+-CLONE 0 07fc [ 7] mov -0x400(%rbp),%rdi
+-CLONE 0 0803 [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
+-CLONE 0 080a [ 7] mov %r15,-0x1f0(%rbp)
+-CLONE 0 0811 [ 7] movb $0x0,-0x1e8(%rbp)
+-CLONE 0 0818 [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
+-CLONE 0 081d [ 3] mov %r14,%rdi
+-CLONE 0 0820 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0825 [ 3] mov %r13,%rdi
+-CLONE 0 0828 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 082d [ 5] jmp <+0xb0>
+-CLONE 0 0832 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 083d [ 3] nopl (%rax)
+-CLONE 0 0840 [ 7] lea -0x1d8(%rbp),%rax
+-CLONE 0 0847 [ 5] lea 0x1(%r12),%rdi
+-CLONE 0 084c [ 7] mov %rax,-0x3e0(%rbp)
+-CLONE 0 0853 [ 7] lea -0x370(%rbp),%rax
+-CLONE 0 085a [ 7] mov %rax,-0x3d8(%rbp)
+-CLONE 0 0861 [ 5] call <_Znwm@plt>
+-CLONE 0 0866 [ 3] mov %rax,%rdi
+-CLONE 0 0869 [ 3] mov %rax,(%rbx)
+-CLONE 0 086c [ 4] mov %r12,0x10(%rbx)
+-CLONE 0 0870 [ 3] mov %r12,%rdx
+-CLONE 0 0873 [ 3] mov %r14,%rsi
+-CLONE 0 0876 [ 5] call <memcpy@plt>
+-CLONE 0 087b [ 3] mov (%rbx),%rdi
+-CLONE 0 087e [ 5] jmp <+0x4a0>
+-CLONE 0 0883 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 088e [ 2] xchg %ax,%ax
+-CLONE 0 0890 [ 4] movzbl (%r14),%eax
+-CLONE 0 0894 [ 3] mov %al,0x10(%rbx)
+-CLONE 0 0897 [ 5] jmp <+0x4a0>
+-CLONE 0 089c [ 4] nopl 0x0(%rax)
+-CLONE 0 08a0 [ 3] add %r8d,%eax
+-CLONE 0 08a3 [ 3] cmp %r13d,%r11d
+-CLONE 0 08a6 [ 2] je <+0x8c0>
+-CLONE 0 08a8 [ 3] inc %r11d
+-CLONE 0 08ab [ 3] add %eax,%r10d
+-CLONE 0 08ae [ 5] jmp <+0x5c0>
+-CLONE 0 08b3 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 08be [ 2] xchg %ax,%ax
+-CLONE 0 08c0 [ 5] vmovd %r10d,%xmm2
+-CLONE 0 08c5 [ 7] mov %r8d,-0x2a8(%rbp)
+-CLONE 0 08cc [ 6] vpinsrd $0x1,%eax,%xmm2,%xmm0
+-CLONE 0 08d2 [ 7] mov -0x420(%rbp),%rax
+-CLONE 0 08d9 [ 8] vmovq %xmm0,-0x2a0(%rbp)
+-CLONE 0 08e1 [ 5] lea 0x20(%rax,%rdx,1),%rax
+-CLONE 0 08e6 [ 7] mov %rax,-0x2b0(%rbp)
+-CLONE 0 08ed [ 6] mov -0x3e8(%rbp),%eax
+-CLONE 0 08f3 [ 6] mov %eax,-0x298(%rbp)
+-CLONE 0 08f9 [ 5] jmp <+0x38f>
+-CLONE 0 08fe [ 7] lea -0x1f0(%rbp),%rdi
+-CLONE 0 0905 [ 7] lea <rip>(%rip),%rsi # <literal-string-45525220636f72727570742073747265616d20656e636f64696e6700>
+-CLONE 0 090c [ 7] mov %r15,-0x1f0(%rbp)
+-CLONE 0 0913 [ 7] movb $0x0,-0x1e8(%rbp)
+-CLONE 0 091a [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
+-CLONE 0 091f [ 5] jmp <+0xb0>
+-CLONE 0 0924 [ 7] mov -0x388(%rbp),%rax
+-CLONE 0 092b [ 3] cmpb $0x0,(%rax)
+-CLONE 0 092e [ 6] je <+0x27f>
+-CLONE 0 0934 [ 7] mov -0x3f8(%rbp),%rsi
+-CLONE 0 093b [ 7] lea -0x350(%rbp),%r13
+-CLONE 0 0942 [ 3] mov %r13,%rdi
+-CLONE 0 0945 [ 5] call <tomo_db0::CollectionRef::CollectionRef(tomo_db0::KvObj*)>
+-CLONE 0 094a [ 8] vmovdqa -0x460(%rbp),%xmm4
+-CLONE 0 0952 [ 7] lea -0x370(%rbp),%rax
+-CLONE 0 0959 [ 7] mov %rax,-0x3d8(%rbp)
+-CLONE 0 0960 [ 8] vmovdqa %xmm4,-0x330(%rbp)
+-CLONE 0 0968 [ 7] mov -0x3f8(%rbp),%rdi
+-CLONE 0 096f [ 5] call <tomo_db0::kvobj_size(tomo_db0::KvObj const*)>
+-CLONE 0 0974 [ 8] vmovdqa -0x3b0(%rbp),%xmm0
+-CLONE 0 097c [ 7] mov -0x340(%rbp),%r12
+-CLONE 0 0983 [ 7] mov %rax,-0x320(%rbp)
+-CLONE 0 098a [ 7] incq -0x260(%rbp)
+-CLONE 0 0991 [ 8] vmovdqa %xmm0,-0x280(%rbp)
+-CLONE 0 0999 [ 3] test %r12,%r12
+-CLONE 0 099c [ 6] je <+0x112b>
+-CLONE 0 09a2 [ 4] lea -0x50(%rbp),%rax
+-CLONE 0 09a6 [ 7] lea -0x310(%rbp),%rdi
+-CLONE 0 09ad [ 3] mov %r13,%rsi
+-CLONE 0 09b0 [ 8] movq $0x0,-0x58(%rbp)
+-CLONE 0 09b8 [ 4] mov %rax,-0x60(%rbp)
+-CLONE 0 09bc [ 4] movb $0x0,-0x50(%rbp)
+-CLONE 0 09c0 [ 5] call <tomo_db0::CollectionRef::compact() const>
+-CLONE 0 09c5 [ 7] mov -0x310(%rbp),%rax
+-CLONE 0 09cc [ 3] test %rax,%rax
+-CLONE 0 09cf [ 6] je <+0x1337>
+-CLONE 0 09d5 [ 3] mov 0x3c(%rax),%eax
+-CLONE 0 09d8 [ 3] xor %r9d,%r9d
+-CLONE 0 09db [ 3] cmp $0x1,%eax
+-CLONE 0 09de [ 4] lea -0x60(%rbp),%r14
+-CLONE 0 09e2 [ 4] sete %r9b
+-CLONE 0 09e6 [ 4] sub $0x8,%rsp
+-CLONE 0 09ea [ 7] lea -0x3a0(%rbp),%rsi
+-CLONE 0 09f1 [ 3] mov %r15,%rdx
+-CLONE 0 09f4 [ 2] push %r14
+-CLONE 0 09f6 [ 7] mov -0x3d8(%rbp),%r8
+-CLONE 0 09fd [ 6] mov -0x444(%rbp),%ecx
+-CLONE 0 0a03 [ 7] mov -0x438(%rbp),%rdi
+-CLONE 0 0a0a [ 5] call <tomo_db0::(anonymous namespace)::encode_record_from_op(tomo_db0::StreamID const&, tomo_db0::StreamID const&, tomo_db0::Op&, unsigned int, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)>
+-CLONE 0 0a0f [ 1] pop %rdi
+-CLONE 0 0a10 [ 2] pop %r8
+-CLONE 0 0a12 [ 2] test %al,%al
+-CLONE 0 0a14 [ 6] je <+0xd08>
+-CLONE 0 0a1a [ 3] mov -0x58(%rbp),%ebx
+-CLONE 0 0a1d [ 4] mov -0x60(%rbp),%rdx
+-CLONE 0 0a21 [ 3] test %r12,%r12
+-CLONE 0 0a24 [ 6] je <+0xcf8>
+-CLONE 0 0a2a [ 7] lea -0x1f0(%rbp),%rax
+-CLONE 0 0a31 [ 3] mov %r13,%rsi
+-CLONE 0 0a34 [ 7] mov %rdx,-0x3d0(%rbp)
+-CLONE 0 0a3b [ 3] mov %rax,%rdi
+-CLONE 0 0a3e [ 7] mov %rax,-0x400(%rbp)
+-CLONE 0 0a45 [ 5] call <tomo_db0::CollectionRef::compact() const>
+-CLONE 0 0a4a [ 7] mov -0x1f0(%rbp),%rax
+-CLONE 0 0a51 [ 7] mov -0x3d0(%rbp),%rdx
+-CLONE 0 0a58 [ 3] test %rax,%rax
+-CLONE 0 0a5b [ 6] je <+0x1810>
+-CLONE 0 0a61 [ 3] mov 0x34(%rax),%esi
+-CLONE 0 0a64 [ 3] sub 0x30(%rax),%esi
+-CLONE 0 0a67 [ 7] mov -0x400(%rbp),%rdi
+-CLONE 0 0a6e [ 2] mov %ebx,%ecx
+-CLONE 0 0a70 [ 5] call <tomo_db0::CompactView::insert(unsigned int, tomo_db0::Slice) [clone .isra.0]>
+-CLONE 0 0a75 [ 2] test %al,%al
+-CLONE 0 0a77 [ 6] je <+0xd16>
+-CLONE 0 0a7d [ 7] mov -0x430(%rbp),%rsi
+-CLONE 0 0a84 [ 7] mov -0x3f8(%rbp),%rdi
+-CLONE 0 0a8b [ 5] call <tomo_db0::(anonymous namespace)::update_object_header(tomo_db0::KvObj*, tomo_db0::StreamHeader const&)>
+-CLONE 0 0a90 [ 2] test %al,%al
+-CLONE 0 0a92 [ 6] je <+0xd16>
+-CLONE 0 0a98 [ 3] mov %r14,%rdi
+-CLONE 0 0a9b [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0aa0 [ 7] lea -0x330(%rbp),%rdi
+-CLONE 0 0aa7 [ 5] call <tomo_db0::ObjectSizeTracker::finish()>
+-CLONE 0 0aac [ 7] mov -0x3d8(%rbp),%rdi
+-CLONE 0 0ab3 [ 5] call <std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()>
+-CLONE 0 0ab8 [ 8] vmovq -0x428(%rbp),%xmm7
+-CLONE 0 0ac0 [ 7] mov -0x3b8(%rbp),%r12
+-CLONE 0 0ac7 [11] movq $0x0,-0x330(%rbp)
+-CLONE 0 0ad2 [ 6] vpinsrq $0x1,%r12,%xmm7,%xmm0
+-CLONE 0 0ad8 [ 8] vmovdqa %xmm0,-0x1f0(%rbp)
+-CLONE 0 0ae0 [ 3] test %r12,%r12
+-CLONE 0 0ae3 [ 6] jne <+0x12b5>
+-CLONE 0 0ae9 [ 2] xor %eax,%eax
+-CLONE 0 0aeb [ 7] cmpb $0x0,-0x248(%rbp)
+-CLONE 0 0af2 [ 7] mov %rax,-0x1e0(%rbp)
+-CLONE 0 0af9 [ 6] je <+0x1253>
+-CLONE 0 0aff [ 8] vmovdqu -0x248(%rbp),%ymm4
+-CLONE 0 0b07 [ 4] sub $0x30,%rsp
+-CLONE 0 0b0b [ 7] mov -0x3f0(%rbp),%r14
+-CLONE 0 0b12 [ 7] lea -0x330(%rbp),%rdx
+-CLONE 0 0b19 [ 3] mov %r12,%rdi
+-CLONE 0 0b1c [ 7] lea 0x4b8(%r14),%rsi
+-CLONE 0 0b23 [ 5] vmovdqu %ymm4,(%rsp)
+-CLONE 0 0b28 [ 8] vmovdqu -0x228(%rbp),%xmm7
+-CLONE 0 0b30 [ 6] vmovdqu %xmm7,0x20(%rsp)
+-CLONE 0 0b36 [ 3] vzeroupper
+-CLONE 0 0b39 [ 5] call <tomo_db0::(anonymous namespace)::trim_stream(tomo_db0::KvObj*, tomo_db0::(anonymous namespace)::TrimSpec, tomo_db0::StreamLimits const&, unsigned long&) [clone .constprop.0]>
+-CLONE 0 0b3e [ 4] add $0x30,%rsp
+-CLONE 0 0b42 [ 2] test %al,%al
+-CLONE 0 0b44 [ 6] je <+0x1852>
+-CLONE 0 0b4a [ 7] mov -0x400(%rbp),%rdi
+-CLONE 0 0b51 [ 7] mov -0x330(%rbp),%rbx
+-CLONE 0 0b58 [ 5] call <tomo_db0::ObjectSizeTracker::finish()>
+-CLONE 0 0b5d [ 3] mov %r15,%rdi
+-CLONE 0 0b60 [ 5] call <tomo_db0::Op::key() const>
+-CLONE 0 0b65 [ 4] sub $0x8,%rsp
+-CLONE 0 0b69 [ 5] mov $0x34,%ecx
+-CLONE 0 0b6e [ 3] mov %r15,%rsi
+-CLONE 0 0b71 [ 2] push $0x1
+-CLONE 0 0b73 [ 3] mov %rdx,%r9
+-CLONE 0 0b76 [ 3] mov %rax,%r8
+-CLONE 0 0b79 [ 5] mov $0x400,%edx
+-CLONE 0 0b7e [ 3] mov %r14,%rdi
+-CLONE 0 0b81 [ 5] call <bool tomo_db0::notify_record<tomo_db0::Shard>(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice, bool) [clone .isra.0]>
+-CLONE 0 0b86 [ 1] pop %rcx
+-CLONE 0 0b87 [ 1] pop %rsi
+-CLONE 0 0b88 [ 3] test %rbx,%rbx
+-CLONE 0 0b8b [ 2] je <+0xbbc>
+-CLONE 0 0b8d [ 3] mov %r15,%rdi
+-CLONE 0 0b90 [ 5] call <tomo_db0::Op::key() const>
+-CLONE 0 0b95 [ 4] sub $0x8,%rsp
+-CLONE 0 0b99 [ 5] mov $0x36,%ecx
+-CLONE 0 0b9e [ 2] push $0x1
+-CLONE 0 0ba0 [ 3] mov %rax,%r8
+-CLONE 0 0ba3 [ 3] mov %rdx,%r9
+-CLONE 0 0ba6 [ 7] mov -0x3f0(%rbp),%rdi
+-CLONE 0 0bad [ 5] mov $0x400,%edx
+-CLONE 0 0bb2 [ 3] mov %r15,%rsi
+-CLONE 0 0bb5 [ 5] call <bool tomo_db0::notify_record<tomo_db0::Shard>(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice, bool) [clone .isra.0]>
+-CLONE 0 0bba [ 1] pop %rax
+-CLONE 0 0bbb [ 1] pop %rdx
+-CLONE 0 0bbc [ 7] mov -0x3a8(%rbp),%rdx
+-CLONE 0 0bc3 [ 7] mov -0x3b0(%rbp),%rsi
+-CLONE 0 0bca [ 7] mov %r15,-0x1f0(%rbp)
+-CLONE 0 0bd1 [ 7] movb $0x0,-0x1e8(%rbp)
+-CLONE 0 0bd8 [ 7] mov -0x400(%rbp),%rdi
+-CLONE 0 0bdf [ 5] call <void tomo_db0::(anonymous namespace)::reply_id_to<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&, tomo_db0::StreamID const&) [clone .constprop.0] [clone .isra.0]>
+-CLONE 0 0be4 [ 7] mov -0x3f0(%rbp),%rax
+-CLONE 0 0beb [ 7] mov 0x4b0(%rax),%rax
+-CLONE 0 0bf2 [ 3] test %rax,%rax
+-CLONE 0 0bf5 [ 6] je <+0xb0>
+-CLONE 0 0bfb [ 3] mov %r15,%rdi
+-CLONE 0 0bfe [ 5] call <tomo_db0::Op::key() const>
+-CLONE 0 0c03 [ 3] mov %r15,%rdi
+-CLONE 0 0c06 [ 2] mov %edx,%ebx
+-CLONE 0 0c08 [ 5] call <tomo_db0::Op::key() const>
+-CLONE 0 0c0d [ 3] mov %rax,%rdx
+-CLONE 0 0c10 [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 0c14 [ 9] sub %fs:0x28,%rax
+-CLONE 0 0c1d [ 6] jne <+0x19fb>
+-CLONE 0 0c23 [ 4] mov 0x10(%r15),%rsi
+-CLONE 0 0c27 [ 7] mov -0x3f0(%rbp),%rdi
+-CLONE 0 0c2e [ 4] lea -0x28(%rbp),%rsp
+-CLONE 0 0c32 [ 2] mov %ebx,%ecx
+-CLONE 0 0c34 [ 1] pop %rbx
+-CLONE 0 0c35 [ 2] pop %r12
+-CLONE 0 0c37 [ 2] pop %r13
+-CLONE 0 0c39 [ 3] xor %r8d,%r8d
+-CLONE 0 0c3c [ 2] pop %r14
+-CLONE 0 0c3e [ 2] pop %r15
+-CLONE 0 0c40 [ 1] pop %rbp
+-CLONE 0 0c41 [ 4] lea -0x10(%r13),%rsp
+-CLONE 0 0c45 [ 2] pop %r13
+-CLONE 0 0c47 [ 5] jmp <tomo_db0::blocking_publish_key(tomo_db0::Shard&, unsigned long, char const*, unsigned int, unsigned char)>
+-CLONE 0 0c4c [ 5] lea 0x8(%r12),%rdi
+-CLONE 0 0c51 [ 7] mov %rdi,-0x3e0(%rbp)
+-CLONE 0 0c58 [ 5] call <tomo_db0::Compact::append(tomo_db0::Slice) [clone .isra.0]>
+-CLONE 0 0c5d [ 6] mov %al,-0x3e8(%rbp)
+-CLONE 0 0c63 [ 2] test %al,%al
+-CLONE 0 0c65 [ 6] jne <+0xd50>
+-CLONE 0 0c6b [ 7] lea -0x1f0(%rbp),%rax
+-CLONE 0 0c72 [ 7] mov %rax,-0x400(%rbp)
+-CLONE 0 0c79 [ 5] jmp <+0x7e7>
+-CLONE 0 0c7e [ 7] lea -0x1d8(%rbp),%rdi
+-CLONE 0 0c85 [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
+-CLONE 0 0c8a [ 7] mov -0x408(%rbp),%rdi
+-CLONE 0 0c91 [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
+-CLONE 0 0c96 [ 5] jmp <+0x67a>
+-CLONE 0 0c9b [ 5] movzbl 0x1e(%r15),%eax
+-CLONE 0 0ca0 [ 5] testb $0x4,0x1c(%r15)
+-CLONE 0 0ca5 [ 6] je <+0xde1>
+-CLONE 0 0cab [ 2] test %al,%al
+-CLONE 0 0cad [ 6] je <+0xdc4>
+-CLONE 0 0cb3 [ 5] cmpb $0x0,0x1d(%r15)
+-CLONE 0 0cb8 [ 6] jne <+0xdc4>
+-CLONE 0 0cbe [ 7] mov 0xa4(%r15),%esi
+-CLONE 0 0cc5 [ 2] test %esi,%esi
+-CLONE 0 0cc7 [ 6] jne <+0xdc4>
+-CLONE 0 0ccd [ 5] cmpq $0x0,0x28(%r15)
+-CLONE 0 0cd2 [ 6] jne <+0xdc4>
+-CLONE 0 0cd8 [ 5] movb $0x6,0x1d(%r15)
+-CLONE 0 0cdd [11] movl $0x0,0xbc(%r15)
+-CLONE 0 0ce8 [11] movq $0x0,0x98(%r15)
+-CLONE 0 0cf3 [ 5] jmp <+0xb0>
+-CLONE 0 0cf8 [ 7] mov -0x348(%rbp),%rax
+-CLONE 0 0cff [ 3] cmpb $0x0,(%rax)
+-CLONE 0 0d02 [ 6] je <+0xa2a>
+-CLONE 0 0d08 [ 7] lea -0x1f0(%rbp),%rax
+-CLONE 0 0d0f [ 7] mov %rax,-0x400(%rbp)
+-CLONE 0 0d16 [ 7] mov -0x400(%rbp),%rdi
+-CLONE 0 0d1d [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
+-CLONE 0 0d24 [ 7] mov %r15,-0x1f0(%rbp)
+-CLONE 0 0d2b [ 7] movb $0x0,-0x1e8(%rbp)
+-CLONE 0 0d32 [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
+-CLONE 0 0d37 [ 3] mov %r14,%rdi
+-CLONE 0 0d3a [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0d3f [ 7] lea -0x330(%rbp),%rdi
+-CLONE 0 0d46 [ 5] call <tomo_db0::ObjectSizeTracker::finish()>
+-CLONE 0 0d4b [ 5] jmp <+0x6a9>
+-CLONE 0 0d50 [ 7] lea -0x1f0(%rbp),%r8
+-CLONE 0 0d57 [ 4] sub $0x8,%rsp
+-CLONE 0 0d5b [ 4] lea -0x60(%rbp),%r14
+-CLONE 0 0d5f [ 6] mov -0x3d8(%rbp),%ecx
+-CLONE 0 0d65 [11] movq $0x0,-0x1f0(%rbp)
+-CLONE 0 0d70 [11] movq $0x0,-0x1e8(%rbp)
+-CLONE 0 0d7b [11] movq $0x0,-0x1e0(%rbp)
+-CLONE 0 0d86 [ 7] mov %r8,-0x400(%rbp)
+-CLONE 0 0d8d [ 2] push %r14
+-CLONE 0 0d8f [ 7] mov -0x438(%rbp),%rsi
+-CLONE 0 0d96 [ 6] mov $0x1,%r9d
+-CLONE 0 0d9c [ 3] mov %r15,%rdx
+-CLONE 0 0d9f [ 2] inc %ecx
+-CLONE 0 0da1 [ 3] mov %rsi,%rdi
+-CLONE 0 0da4 [ 5] call <tomo_db0::(anonymous namespace)::encode_record_from_op(tomo_db0::StreamID const&, tomo_db0::StreamID const&, tomo_db0::Op&, unsigned int, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)>
+-CLONE 0 0da9 [ 1] pop %rdx
+-CLONE 0 0daa [ 1] pop %rcx
+-CLONE 0 0dab [ 2] test %al,%al
+-CLONE 0 0dad [ 6] jne <+0x1345>
+-CLONE 0 0db3 [ 7] mov -0x400(%rbp),%rdi
+-CLONE 0 0dba [ 5] call <std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()>
+-CLONE 0 0dbf [ 5] jmp <+0x7e7>
+-CLONE 0 0dc4 [ 7] lea -0x1f0(%rbp),%rdi
+-CLONE 0 0dcb [ 5] mov $0x3,%edx
+-CLONE 0 0dd0 [ 7] lea <rip>(%rip),%rsi # <literal-string-5f0d0a00>
+-CLONE 0 0dd7 [ 5] call <tomo_db0::Op::Sink::append(char const*, unsigned long)>
+-CLONE 0 0ddc [ 5] jmp <+0xb0>
+-CLONE 0 0de1 [ 2] test %al,%al
+-CLONE 0 0de3 [ 6] je <+0x1537>
+-CLONE 0 0de9 [ 5] cmpb $0x0,0x1d(%r15)
+-CLONE 0 0dee [ 6] jne <+0x1537>
+-CLONE 0 0df4 [ 7] mov 0xa4(%r15),%edi
+-CLONE 0 0dfb [ 2] test %edi,%edi
+-CLONE 0 0dfd [ 6] jne <+0x1537>
+-CLONE 0 0e03 [ 5] cmpq $0x0,0x28(%r15)
+-CLONE 0 0e08 [ 6] jne <+0x1537>
+-CLONE 0 0e0e [ 5] movb $0x2,0x1d(%r15)
+-CLONE 0 0e13 [11] movl $0x0,0xbc(%r15)
+-CLONE 0 0e1e [11] movq $0x0,0x98(%r15)
+-CLONE 0 0e29 [ 5] jmp <+0xb0>
+-CLONE 0 0e2e [ 7] mov -0x1c0(%rbp),%rdi
+-CLONE 0 0e35 [ 3] test %rdi,%rdi
+-CLONE 0 0e38 [ 2] je <+0xe49>
+-CLONE 0 0e3a [ 7] mov -0x1b0(%rbp),%rsi
+-CLONE 0 0e41 [ 3] sub %rdi,%rsi
+-CLONE 0 0e44 [ 5] call <_ZdlPvm@plt>
+-CLONE 0 0e49 [ 7] lea -0x1d8(%rbp),%rdi
+-CLONE 0 0e50 [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
+-CLONE 0 0e55 [ 7] mov -0x408(%rbp),%rdi
+-CLONE 0 0e5c [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
+-CLONE 0 0e61 [ 7] mov -0x440(%rbp),%rsi
+-CLONE 0 0e68 [ 7] mov -0x400(%rbp),%rdi
+-CLONE 0 0e6f [ 5] call <tomo_db0::CollectionRef::compact() const>
+-CLONE 0 0e74 [ 7] mov -0x1f0(%rbp),%rax
+-CLONE 0 0e7b [ 3] test %rax,%rax
+-CLONE 0 0e7e [ 6] je <+0x111d>
+-CLONE 0 0e84 [ 3] mov 0x3c(%rax),%eax
+-CLONE 0 0e87 [ 3] cmp $0x1,%eax
+-CLONE 0 0e8a [ 2] jne <+0xea4>
+-CLONE 0 0e8c [ 8] vmovdqa -0x3b0(%rbp),%xmm0
+-CLONE 0 0e94 [ 8] vmovdqa %xmm0,-0x3a0(%rbp)
+-CLONE 0 0e9c [ 8] vmovdqa %xmm0,-0x290(%rbp)
+-CLONE 0 0ea4 [ 7] mov -0x440(%rbp),%rsi
+-CLONE 0 0eab [ 7] mov -0x400(%rbp),%rdi
+-CLONE 0 0eb2 [ 4] lea -0x50(%rbp),%rax
+-CLONE 0 0eb6 [ 8] movq $0x0,-0x58(%rbp)
+-CLONE 0 0ebe [ 4] mov %rax,-0x60(%rbp)
+-CLONE 0 0ec2 [ 4] movb $0x0,-0x50(%rbp)
+-CLONE 0 0ec6 [ 5] call <tomo_db0::CollectionRef::compact() const>
+-CLONE 0 0ecb [ 7] mov -0x1f0(%rbp),%rax
+-CLONE 0 0ed2 [ 3] test %rax,%rax
+-CLONE 0 0ed5 [ 6] je <+0x110f>
+-CLONE 0 0edb [ 3] mov 0x3c(%rax),%eax
+-CLONE 0 0ede [ 3] xor %r9d,%r9d
+-CLONE 0 0ee1 [ 3] cmp $0x1,%eax
+-CLONE 0 0ee4 [ 4] lea -0x60(%rbp),%r14
+-CLONE 0 0ee8 [ 7] lea -0x370(%rbp),%rax
+-CLONE 0 0eef [ 4] sete %r9b
+-CLONE 0 0ef3 [ 4] sub $0x8,%rsp
+-CLONE 0 0ef7 [ 7] lea -0x3a0(%rbp),%rsi
+-CLONE 0 0efe [ 7] mov %rax,-0x3d8(%rbp)
+-CLONE 0 0f05 [ 2] push %r14
+-CLONE 0 0f07 [ 6] mov -0x444(%rbp),%ecx
+-CLONE 0 0f0d [ 7] mov -0x438(%rbp),%rdi
+-CLONE 0 0f14 [ 3] mov %rax,%r8
+-CLONE 0 0f17 [ 3] mov %r15,%rdx
+-CLONE 0 0f1a [ 5] call <tomo_db0::(anonymous namespace)::encode_record_from_op(tomo_db0::StreamID const&, tomo_db0::StreamID const&, tomo_db0::Op&, unsigned int, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)>
+-CLONE 0 0f1f [ 2] pop %r10
+-CLONE 0 0f21 [ 2] pop %r11
+-CLONE 0 0f23 [ 2] test %al,%al
+-CLONE 0 0f25 [ 6] je <+0x10e1>
+-CLONE 0 0f2b [ 7] mov -0x440(%rbp),%rsi
+-CLONE 0 0f32 [ 7] mov -0x400(%rbp),%rdi
+-CLONE 0 0f39 [ 5] call <tomo_db0::CollectionRef::compact() const>
+-CLONE 0 0f3e [ 7] mov -0x1f0(%rbp),%rax
+-CLONE 0 0f45 [ 3] test %rax,%rax
+-CLONE 0 0f48 [ 6] je <+0x1591>
+-CLONE 0 0f4e [ 3] mov 0x34(%rax),%ecx
+-CLONE 0 0f51 [ 3] sub 0x30(%rax),%ecx
+-CLONE 0 0f54 [ 7] mov %rcx,-0x3e8(%rbp)
+-CLONE 0 0f5b [ 4] mov -0x58(%rbp),%r12
+-CLONE 0 0f5f [ 4] cmp $0x7f,%r12d
+-CLONE 0 0f63 [ 6] jbe <+0x188c>
+-CLONE 0 0f69 [ 3] mov %r12d,%eax
+-CLONE 0 0f6c [ 5] mov $0x1,%ebx
+-CLONE 0 0f71 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 0f7c [ 4] nopl 0x0(%rax)
+-CLONE 0 0f80 [ 3] shr $0x7,%eax
+-CLONE 0 0f83 [ 2] inc %ebx
+-CLONE 0 0f85 [ 3] cmp $0x7f,%eax
+-CLONE 0 0f88 [ 2] ja <+0xf80>
+-CLONE 0 0f8a [ 7] mov -0x3f0(%rbp),%rax
+-CLONE 0 0f91 [ 7] mov 0xcc(%r15),%edx
+-CLONE 0 0f98 [ 6] add $0x4b8,%rax
+-CLONE 0 0f9e [ 7] mov %rax,-0x3d0(%rbp)
+-CLONE 0 0fa5 [ 6] mov -0x444(%rbp),%eax
+-CLONE 0 0fab [ 2] cmp %edx,%eax
+-CLONE 0 0fad [ 6] jae <+0x1884>
+-CLONE 0 0fb3 [ 6] mov -0x448(%rbp),%edi
+-CLONE 0 0fb9 [ 7] mov 0xc0(%r15),%rcx
+-CLONE 0 0fc0 [ 2] mov %eax,%esi
+-CLONE 0 0fc2 [ 3] xor %r8d,%r8d
+-CLONE 0 0fc5 [ 3] mov %rsi,%rax
+-CLONE 0 0fc8 [ 7] lea 0xd0(%r15),%r9
+-CLONE 0 0fcf [ 4] shl $0x4,%rax
+-CLONE 0 0fd3 [ 2] sub %edi,%edx
+-CLONE 0 0fd5 [ 3] sub $0x2,%edx
+-CLONE 0 0fd8 [ 5] lea 0x1(%rsi,%rdx,1),%rdi
+-CLONE 0 0fdd [ 4] shl $0x4,%rdi
+-CLONE 0 0fe1 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 0fec [ 4] nopl 0x0(%rax)
+-CLONE 0 0ff0 [ 3] test %rcx,%rcx
+-CLONE 0 0ff3 [ 4] lea (%rcx,%rax,1),%rsi
+-CLONE 0 0ff7 [ 4] lea (%r9,%rax,1),%rdx
+-CLONE 0 0ffb [ 4] cmovne %rsi,%rdx
+-CLONE 0 0fff [ 4] add $0x10,%rax
+-CLONE 0 1003 [ 3] mov 0x8(%rdx),%edx
+-CLONE 0 1006 [ 3] add %rdx,%r8
+-CLONE 0 1009 [ 3] cmp %rax,%rdi
+-CLONE 0 100c [ 2] jne <+0xff0>
+-CLONE 0 100e [ 7] mov -0x440(%rbp),%rsi
+-CLONE 0 1015 [ 7] mov -0x408(%rbp),%rdi
+-CLONE 0 101c [ 7] mov %r8,-0x3e0(%rbp)
+-CLONE 0 1023 [ 7] lea -0x350(%rbp),%r13
+-CLONE 0 102a [ 5] call <tomo_db0::CollectionRef::compact() const>
+-CLONE 0 102f [ 8] vmovdqa -0x2d0(%rbp),%xmm7
+-CLONE 0 1037 [ 4] sub $0x20,%rsp
+-CLONE 0 103b [ 3] mov %r13,%rcx
+-CLONE 0 103e [ 5] vmovdqu %xmm7,(%rsp)
+-CLONE 0 1043 [ 7] mov -0x2c0(%rbp),%rax
+-CLONE 0 104a [ 5] mov %rax,0x10(%rsp)
+-CLONE 0 104f [ 7] mov -0x3d0(%rbp),%rdx
+-CLONE 0 1056 [ 7] mov -0x3e0(%rbp),%rsi
+-CLONE 0 105d [ 7] mov -0x430(%rbp),%rdi
+-CLONE 0 1064 [ 5] call <tomo_db0::(anonymous namespace)::stream_node_rollover(tomo_db0::CompactView, tomo_db0::StreamID const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const*, unsigned long, tomo_db0::StreamLimits const&, bool&) [clone .constprop.0]>
+-CLONE 0 1069 [ 4] add $0x20,%rsp
+-CLONE 0 106d [ 2] test %al,%al
+-CLONE 0 106f [ 6] je <+0x182c>
+-CLONE 0 1075 [ 8] cmpq $0x0,-0x450(%rbp)
+-CLONE 0 107d [ 6] je <+0x15a7>
+-CLONE 0 1083 [ 7] cmpb $0x0,-0x350(%rbp)
+-CLONE 0 108a [ 6] jne <+0x12c2>
+-CLONE 0 1090 [ 7] mov -0x390(%rbp),%rdi
+-CLONE 0 1097 [ 5] call <tomo_db0::embedded_compact_capacity(tomo_db0::KvObj const*)>
+-CLONE 0 109c [ 7] mov -0x3e8(%rbp),%rcx
+-CLONE 0 10a3 [ 2] mov %eax,%edx
+-CLONE 0 10a5 [ 4] lea (%rbx,%r12,1),%eax
+-CLONE 0 10a9 [ 3] add %rcx,%rax
+-CLONE 0 10ac [ 3] cmp %rax,%rdx
+-CLONE 0 10af [ 6] jb <+0x12c2>
+-CLONE 0 10b5 [ 3] mov %r14,%rdi
+-CLONE 0 10b8 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 10bd [ 7] mov -0x3f8(%rbp),%rsi
+-CLONE 0 10c4 [ 3] mov %r13,%rdi
+-CLONE 0 10c7 [ 5] call <tomo_db0::CollectionRef::CollectionRef(tomo_db0::KvObj*)>
+-CLONE 0 10cc [ 8] vmovdqa -0x460(%rbp),%xmm4
+-CLONE 0 10d4 [ 8] vmovdqa %xmm4,-0x330(%rbp)
+-CLONE 0 10dc [ 5] jmp <+0x968>
+-CLONE 0 10e1 [ 7] mov -0x400(%rbp),%rdi
+-CLONE 0 10e8 [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
+-CLONE 0 10ef [ 7] mov %r15,-0x1f0(%rbp)
+-CLONE 0 10f6 [ 7] movb $0x0,-0x1e8(%rbp)
+-CLONE 0 10fd [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
+-CLONE 0 1102 [ 3] mov %r14,%rdi
+-CLONE 0 1105 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 110a [ 5] jmp <+0x6a9>
+-CLONE 0 110f [ 7] mov -0x1e8(%rbp),%rax
+-CLONE 0 1116 [ 2] mov (%rax),%eax
+-CLONE 0 1118 [ 5] jmp <+0xede>
+-CLONE 0 111d [ 7] mov -0x1e8(%rbp),%rax
+-CLONE 0 1124 [ 2] mov (%rax),%eax
+-CLONE 0 1126 [ 5] jmp <+0xe87>
+-CLONE 0 112b [ 7] mov -0x348(%rbp),%rbx
+-CLONE 0 1132 [ 3] cmpb $0x0,(%rbx)
+-CLONE 0 1135 [ 6] je <+0x9a2>
+-CLONE 0 113b [ 7] mov 0xc0(%rbx),%rax
+-CLONE 0 1142 [ 7] cmp %rax,0xe0(%rbx)
+-CLONE 0 1149 [ 6] je <+0x1896>
+-CLONE 0 114f [ 8] vmovdqa -0x290(%rbp),%ymm7
+-CLONE 0 1157 [ 8] vmovdqu -0x278(%rbp),%ymm4
+-CLONE 0 115f [ 7] lea 0xc0(%rbx),%r13
+-CLONE 0 1166 [ 7] lea 0xe0(%rbx),%r14
+-CLONE 0 116d [ 3] mov %r13,%rsi
+-CLONE 0 1170 [ 7] lea 0xb0(%rbx),%r12
+-CLONE 0 1177 [ 3] mov %r14,%rdi
+-CLONE 0 117a [ 5] vmovdqu %ymm7,0x68(%rbx)
+-CLONE 0 117f [ 8] vmovdqu %ymm4,0x80(%rbx)
+-CLONE 0 1187 [ 3] vzeroupper
+-CLONE 0 118a [ 5] call <std::operator-(std::_Deque_iterator<tomo_db0::StreamNode, tomo_db0::StreamNode&, tomo_db0::StreamNode*> const&, std::_Deque_iterator<tomo_db0::StreamNode, tomo_db0::StreamNode&, tomo_db0::StreamNode*> const&)>
+-CLONE 0 118f [ 3] mov %r12,%rdi
+-CLONE 0 1192 [ 7] mov %rax,-0x3d0(%rbp)
+-CLONE 0 1199 [ 5] call <std::deque<tomo_db0::StreamNode, std::allocator<tomo_db0::StreamNode> >::back()>
+-CLONE 0 119e [ 3] mov %rax,%rdi
+-CLONE 0 11a1 [ 5] call <tomo_db0::Compact::capacity_bytes() const>
+-CLONE 0 11a6 [ 3] mov %rax,%r12
+-CLONE 0 11a9 [ 3] mov %rbx,%rdi
+-CLONE 0 11ac [ 5] call <tomo_db0::(anonymous namespace)::tail_field_bytes(tomo_db0::StreamVal const&)>
+-CLONE 0 11b1 [ 6] mov -0x444(%rbp),%ecx
+-CLONE 0 11b7 [ 7] mov -0x438(%rbp),%rsi
+-CLONE 0 11be [ 3] mov %r15,%rdx
+-CLONE 0 11c1 [ 7] mov %rax,-0x3e0(%rbp)
+-CLONE 0 11c8 [ 7] mov -0x3f0(%rbp),%rax
+-CLONE 0 11cf [ 7] lea 0x4b8(%rax),%r8
+-CLONE 0 11d6 [ 5] call <tomo_db0::(anonymous namespace)::append_op_external(tomo_db0::StreamVal&, tomo_db0::StreamID const&, tomo_db0::Op&, unsigned int, tomo_db0::StreamLimits const&)>
+-CLONE 0 11db [ 2] test %al,%al
+-CLONE 0 11dd [ 6] je <+0x1927>
+-CLONE 0 11e3 [ 3] mov %r13,%rsi
+-CLONE 0 11e6 [ 3] mov %r14,%rdi
+-CLONE 0 11e9 [ 5] call <std::operator-(std::_Deque_iterator<tomo_db0::StreamNode, tomo_db0::StreamNode&, tomo_db0::StreamNode*> const&, std::_Deque_iterator<tomo_db0::StreamNode, tomo_db0::StreamNode&, tomo_db0::StreamNode*> const&)>
+-CLONE 0 11ee [ 7] mov -0x3d0(%rbp),%rcx
+-CLONE 0 11f5 [ 3] cmp %rcx,%rax
+-CLONE 0 11f8 [ 6] je <+0x18e6>
+-CLONE 0 11fe [ 3] mov %rbx,%rdi
+-CLONE 0 1201 [ 5] call <tomo_db0::(anonymous namespace)::measure_node_allocation(tomo_db0::StreamVal const&)>
+-CLONE 0 1206 [ 3] incl 0x50(%rbx)
+-CLONE 0 1209 [ 8] cmpq $0x0,0xa0(%rbx)
+-CLONE 0 1211 [ 7] mov %rax,0x148(%rbx)
+-CLONE 0 1218 [ 4] mov %rax,0x60(%rbx)
+-CLONE 0 121c [ 7] lea -0x1f0(%rbp),%rax
+-CLONE 0 1223 [ 7] mov %rax,-0x400(%rbp)
+-CLONE 0 122a [ 6] jne <+0xaa0>
+-CLONE 0 1230 [ 8] cmpq $0x0,0xa8(%rbx)
+-CLONE 0 1238 [ 6] jne <+0xaa0>
+-CLONE 0 123e [ 8] vmovdqa -0x3b0(%rbp),%xmm7
+-CLONE 0 1246 [ 8] vmovdqu %xmm7,0xa0(%rbx)
+-CLONE 0 124e [ 5] jmp <+0xaa0>
+-CLONE 0 1253 [ 7] mov -0x400(%rbp),%rdi
+-CLONE 0 125a [ 5] call <tomo_db0::ObjectSizeTracker::finish()>
+-CLONE 0 125f [ 3] mov %r15,%rdi
+-CLONE 0 1262 [ 5] call <tomo_db0::Op::key() const>
+-CLONE 0 1267 [ 4] sub $0x8,%rsp
+-CLONE 0 126b [ 5] mov $0x34,%ecx
+-CLONE 0 1270 [ 2] push $0x1
+-CLONE 0 1272 [ 3] mov %rax,%r8
+-CLONE 0 1275 [ 3] mov %rdx,%r9
+-CLONE 0 1278 [ 5] jmp <+0xba6>
+-CLONE 0 127d [ 3] mov %r14,%rdi
+-CLONE 0 1280 [ 7] mov %r12,-0x3b8(%rbp)
+-CLONE 0 1287 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 128c [ 3] mov %r13,%rdi
+-CLONE 0 128f [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 1294 [ 8] vmovq -0x428(%rbp),%xmm5
+-CLONE 0 129c [11] movq $0x0,-0x330(%rbp)
+-CLONE 0 12a7 [ 6] vpinsrq $0x1,%r12,%xmm5,%xmm0
+-CLONE 0 12ad [ 8] vmovdqa %xmm0,-0x1f0(%rbp)
+-CLONE 0 12b5 [ 3] mov %r12,%rdi
+-CLONE 0 12b8 [ 5] call <tomo_db0::kvobj_size(tomo_db0::KvObj const*)>
+-CLONE 0 12bd [ 5] jmp <+0xaeb>
+-CLONE 0 12c2 [ 7] mov -0x3f0(%rbp),%rdi
+-CLONE 0 12c9 [ 7] lea -0x3b8(%rbp),%rdx
+-CLONE 0 12d0 [ 3] mov %r15,%rsi
+-CLONE 0 12d3 [ 5] call <bool tomo_db0::(anonymous namespace)::externalize_stream<true>(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::KvObj*&)>
+-CLONE 0 12d8 [ 2] test %al,%al
+-CLONE 0 12da [ 6] je <+0x1102>
+-CLONE 0 12e0 [ 8] vmovq -0x428(%rbp),%xmm6
+-CLONE 0 12e8 [ 7] mov -0x3b8(%rbp),%rbx
+-CLONE 0 12ef [ 3] mov %r14,%rdi
+-CLONE 0 12f2 [ 7] mov %rbx,-0x3f8(%rbp)
+-CLONE 0 12f9 [ 6] vpinsrq $0x1,%rbx,%xmm6,%xmm0
+-CLONE 0 12ff [ 8] vmovdqa %xmm0,-0x3d0(%rbp)
+-CLONE 0 1307 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 130c [ 3] mov %rbx,%rsi
+-CLONE 0 130f [ 3] mov %r13,%rdi
+-CLONE 0 1312 [ 5] call <tomo_db0::CollectionRef::CollectionRef(tomo_db0::KvObj*)>
+-CLONE 0 1317 [ 8] vmovdqa -0x3d0(%rbp),%xmm0
+-CLONE 0 131f [ 8] vmovdqa %xmm0,-0x330(%rbp)
+-CLONE 0 1327 [ 3] test %rbx,%rbx
+-CLONE 0 132a [ 6] jne <+0x968>
+-CLONE 0 1330 [ 2] xor %eax,%eax
+-CLONE 0 1332 [ 5] jmp <+0x974>
+-CLONE 0 1337 [ 7] mov -0x308(%rbp),%rax
+-CLONE 0 133e [ 2] mov (%rax),%eax
+-CLONE 0 1340 [ 5] jmp <+0x9d8>
+-CLONE 0 1345 [ 5] cmpb $0x0,(%r12)
+-CLONE 0 134a [ 4] mov -0x58(%rbp),%rdx
+-CLONE 0 134e [ 4] mov -0x60(%rbp),%rsi
+-CLONE 0 1352 [ 6] jne <+0xdb3>
+-CLONE 0 1358 [ 7] mov -0x3e0(%rbp),%rdi
+-CLONE 0 135f [ 5] call <tomo_db0::Compact::append(tomo_db0::Slice) [clone .isra.0]>
+-CLONE 0 1364 [ 2] test %al,%al
+-CLONE 0 1366 [ 6] je <+0xdb3>
+-CLONE 0 136c [ 7] mov -0x400(%rbp),%rdi
+-CLONE 0 1373 [ 5] call <std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()>
+-CLONE 0 1378 [ 5] mov 0x3c(%r12),%eax
+-CLONE 0 137d [ 5] sub 0x38(%r12),%eax
+-CLONE 0 1382 [ 5] cmp $0xc0,%eax
+-CLONE 0 1387 [ 6] jbe <+0x1444>
+-CLONE 0 138d [ 7] mov -0x3e0(%rbp),%rax
+-CLONE 0 1394 [11] movq $0x0,-0x1e8(%rbp)
+-CLONE 0 139f [ 4] sub $0x20,%rsp
+-CLONE 0 13a3 [ 7] lea -0x2b0(%rbp),%rsi
+-CLONE 0 13aa [10] movl $0x0,-0x1e0(%rbp)
+-CLONE 0 13b4 [11] movq $0x0,-0x2a0(%rbp)
+-CLONE 0 13bf [ 7] mov %rsi,-0x3d8(%rbp)
+-CLONE 0 13c6 [ 4] vpxor %xmm0,%xmm0,%xmm0
+-CLONE 0 13ca [ 8] vmovdqa %xmm0,-0x2b0(%rbp)
+-CLONE 0 13d2 [ 2] xor %edx,%edx
+-CLONE 0 13d4 [ 7] mov %rax,-0x1f0(%rbp)
+-CLONE 0 13db [ 8] vmovdqa -0x1f0(%rbp),%xmm4
+-CLONE 0 13e3 [ 5] vmovdqu %xmm4,(%rsp)
+-CLONE 0 13e8 [ 7] mov -0x1e0(%rbp),%rax
+-CLONE 0 13ef [ 5] mov %rax,0x10(%rsp)
+-CLONE 0 13f4 [ 7] mov -0x3d0(%rbp),%rdi
+-CLONE 0 13fb [ 5] call <tomo_db0::(anonymous namespace)::collect_compact(tomo_db0::CompactView, tomo_db0::StreamID const&, std::vector<tomo_db0::(anonymous namespace)::OwnedRecord, std::allocator<tomo_db0::(anonymous namespace)::OwnedRecord> >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const*)>
+-CLONE 0 1400 [ 4] add $0x20,%rsp
+-CLONE 0 1404 [ 2] test %al,%al
+-CLONE 0 1406 [ 6] je <+0x14cb>
+-CLONE 0 140c [ 7] mov -0x3f0(%rbp),%rax
+-CLONE 0 1413 [ 7] mov -0x3d8(%rbp),%rdx
+-CLONE 0 141a [ 7] mov -0x3d0(%rbp),%rsi
+-CLONE 0 1421 [ 3] mov %r12,%rdi
+-CLONE 0 1424 [ 7] lea 0x4b8(%rax),%rcx
+-CLONE 0 142b [ 5] call <tomo_db0::(anonymous namespace)::build_external(tomo_db0::StreamVal&, tomo_db0::StreamHeader const&, std::vector<tomo_db0::(anonymous namespace)::OwnedRecord, std::allocator<tomo_db0::(anonymous namespace)::OwnedRecord> > const&, tomo_db0::StreamLimits const&)>
+-CLONE 0 1430 [ 2] test %al,%al
+-CLONE 0 1432 [ 6] je <+0x14cb>
+-CLONE 0 1438 [ 7] mov -0x3d8(%rbp),%rdi
+-CLONE 0 143f [ 5] call <std::vector<tomo_db0::(anonymous namespace)::OwnedRecord, std::allocator<tomo_db0::(anonymous namespace)::OwnedRecord> >::~vector()>
+-CLONE 0 1444 [ 3] mov %r15,%rdi
+-CLONE 0 1447 [ 5] call <tomo_db0::Op::key() const>
+-CLONE 0 144c [ 3] xor %r8d,%r8d
+-CLONE 0 144f [ 7] mov $0xffffffffffffffff,%rcx
+-CLONE 0 1456 [ 3] mov %rdx,%rsi
+-CLONE 0 1459 [ 3] mov %rax,%rdi
+-CLONE 0 145c [ 7] lea -0x2d0(%rbp),%rdx
+-CLONE 0 1463 [ 5] call <tomo_db0::kvobj_adopt_stream(tomo_db0::Slice, tomo_db0::StreamVal*&, long, bool)>
+-CLONE 0 1468 [ 3] mov %rax,%r12
+-CLONE 0 146b [ 3] test %rax,%rax
+-CLONE 0 146e [ 6] je <+0x1512>
+-CLONE 0 1474 [ 4] mov 0x10(%r15),%rsi
+-CLONE 0 1478 [ 7] mov -0x428(%rbp),%rdi
+-CLONE 0 147f [ 3] mov %rbx,%rcx
+-CLONE 0 1482 [ 3] mov %rax,%rdx
+-CLONE 0 1485 [ 5] call <tomo_db0::FlatStore::insert_notify(unsigned long, tomo_db0::KvObj*, tomo_db0::FlatNotifySink*)>
+-CLONE 0 148a [ 2] mov %eax,%ebx
+-CLONE 0 148c [ 2] test %al,%al
+-CLONE 0 148e [ 6] je <+0x127d>
+-CLONE 0 1494 [ 3] mov %r12,%rdi
+-CLONE 0 1497 [ 5] call <tomo_db0::kvobj_free(tomo_db0::KvObj*) [clone .part.0]>
+-CLONE 0 149c [ 3] cmp $0x1,%bl
+-CLONE 0 149f [ 6] je <+0x181f>
+-CLONE 0 14a5 [ 7] mov -0x400(%rbp),%rdi
+-CLONE 0 14ac [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206b6579737061636520696e73657274206661696c656400>
+-CLONE 0 14b3 [ 7] mov %r15,-0x1f0(%rbp)
+-CLONE 0 14ba [ 7] movb $0x0,-0x1e8(%rbp)
+-CLONE 0 14c1 [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
+-CLONE 0 14c6 [ 5] jmp <+0x81d>
+-CLONE 0 14cb [ 3] mov %r12,%rdi
+-CLONE 0 14ce [ 5] call <tomo_db0::StreamVal::~StreamVal()>
+-CLONE 0 14d3 [ 3] mov %r12,%rdi
+-CLONE 0 14d6 [ 5] mov $0x158,%esi
+-CLONE 0 14db [ 5] call <_ZdlPvm@plt>
+-CLONE 0 14e0 [ 7] mov -0x400(%rbp),%rdi
+-CLONE 0 14e7 [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
+-CLONE 0 14ee [ 7] mov %r15,-0x1f0(%rbp)
+-CLONE 0 14f5 [ 7] movb $0x0,-0x1e8(%rbp)
+-CLONE 0 14fc [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
+-CLONE 0 1501 [ 7] mov -0x3d8(%rbp),%rdi
+-CLONE 0 1508 [ 5] call <std::vector<tomo_db0::(anonymous namespace)::OwnedRecord, std::allocator<tomo_db0::(anonymous namespace)::OwnedRecord> >::~vector()>
+-CLONE 0 150d [ 5] jmp <+0x81d>
+-CLONE 0 1512 [ 7] mov -0x2d0(%rbp),%rbx
+-CLONE 0 1519 [ 3] test %rbx,%rbx
+-CLONE 0 151c [ 6] je <+0x7fc>
+-CLONE 0 1522 [ 3] mov %rbx,%rdi
+-CLONE 0 1525 [ 5] call <tomo_db0::StreamVal::~StreamVal()>
+-CLONE 0 152a [ 5] mov $0x158,%esi
+-CLONE 0 152f [ 3] mov %rbx,%rdi
+-CLONE 0 1532 [ 5] jmp <+0x7f7>
+-CLONE 0 1537 [ 7] lea -0x1f0(%rbp),%rdi
+-CLONE 0 153e [ 5] mov $0x5,%esi
+-CLONE 0 1543 [ 5] call <tomo_db0::Op::Sink::reserve(unsigned long)>
+-CLONE 0 1548 [ 6] movl $0xd312d24,(%rax)
+-CLONE 0 154e [ 4] movb $0xa,0x4(%rax)
+-CLONE 0 1552 [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 1556 [ 9] sub %fs:0x28,%rax
+-CLONE 0 155f [ 6] jne <+0x19fb>
+-CLONE 0 1565 [ 7] movzbl -0x1e8(%rbp),%esi
+-CLONE 0 156c [ 7] mov -0x1f0(%rbp),%rdi
+-CLONE 0 1573 [ 4] lea -0x28(%rbp),%rsp
+-CLONE 0 1577 [ 5] mov $0x5,%edx
+-CLONE 0 157c [ 1] pop %rbx
+-CLONE 0 157d [ 2] pop %r12
+-CLONE 0 157f [ 2] pop %r13
+-CLONE 0 1581 [ 2] pop %r14
+-CLONE 0 1583 [ 2] pop %r15
+-CLONE 0 1585 [ 1] pop %rbp
+-CLONE 0 1586 [ 4] lea -0x10(%r13),%rsp
+-CLONE 0 158a [ 2] pop %r13
+-CLONE 0 158c [ 5] jmp <tomo_db0::Op::Sink::advance(unsigned long) [clone .isra.0]>
+-CLONE 0 1591 [ 7] mov -0x1e8(%rbp),%rax
+-CLONE 0 1598 [ 3] mov 0x4(%rax),%eax
+-CLONE 0 159b [ 7] mov %rax,-0x3e8(%rbp)
+-CLONE 0 15a2 [ 5] jmp <+0xf5b>
+-CLONE 0 15a7 [ 7] mov -0x400(%rbp),%rdi
+-CLONE 0 15ae [ 4] vpxor %xmm0,%xmm0,%xmm0
+-CLONE 0 15b2 [11] movq $0x0,-0x320(%rbp)
+-CLONE 0 15bd [ 8] vmovdqa %xmm0,-0x330(%rbp)
+-CLONE 0 15c5 [ 5] call <tomo_db0::StreamVal::StreamVal()>
+-CLONE 0 15ca [ 7] mov -0x440(%rbp),%rsi
+-CLONE 0 15d1 [ 7] lea -0x2b0(%rbp),%rdi
+-CLONE 0 15d8 [ 7] lea -0x330(%rbp),%rbx
+-CLONE 0 15df [ 5] call <tomo_db0::CollectionRef::compact() const>
+-CLONE 0 15e4 [ 8] vmovdqa -0x2b0(%rbp),%xmm4
+-CLONE 0 15ec [ 4] sub $0x20,%rsp
+-CLONE 0 15f0 [ 2] xor %edx,%edx
+-CLONE 0 15f2 [ 3] mov %rbx,%rsi
+-CLONE 0 15f5 [ 5] vmovdqu %xmm4,(%rsp)
+-CLONE 0 15fa [ 7] mov -0x2a0(%rbp),%rax
+-CLONE 0 1601 [ 5] mov %rax,0x10(%rsp)
+-CLONE 0 1606 [ 7] mov -0x430(%rbp),%rdi
+-CLONE 0 160d [ 5] call <tomo_db0::(anonymous namespace)::collect_compact(tomo_db0::CompactView, tomo_db0::StreamID const&, std::vector<tomo_db0::(anonymous namespace)::OwnedRecord, std::allocator<tomo_db0::(anonymous namespace)::OwnedRecord> >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const*)>
+-CLONE 0 1612 [ 4] add $0x20,%rsp
+-CLONE 0 1616 [ 2] test %al,%al
+-CLONE 0 1618 [ 6] je <+0x1988>
+-CLONE 0 161e [ 7] mov -0x3d0(%rbp),%rcx
+-CLONE 0 1625 [ 7] mov -0x430(%rbp),%rsi
+-CLONE 0 162c [ 7] mov -0x400(%rbp),%rdi
+-CLONE 0 1633 [ 3] mov %rbx,%rdx
+-CLONE 0 1636 [ 5] call <tomo_db0::(anonymous namespace)::build_external(tomo_db0::StreamVal&, tomo_db0::StreamHeader const&, std::vector<tomo_db0::(anonymous namespace)::OwnedRecord, std::allocator<tomo_db0::(anonymous namespace)::OwnedRecord> > const&, tomo_db0::StreamLimits const&)>
+-CLONE 0 163b [ 2] test %al,%al
+-CLONE 0 163d [ 6] je <+0x1988>
+-CLONE 0 1643 [ 8] vmovdqa -0x460(%rbp),%xmm7
+-CLONE 0 164b [ 7] mov -0x3f8(%rbp),%rdi
+-CLONE 0 1652 [ 8] vmovdqa %xmm7,-0x310(%rbp)
+-CLONE 0 165a [ 5] call <tomo_db0::kvobj_size(tomo_db0::KvObj const*)>
+-CLONE 0 165f [ 7] mov -0x388(%rbp),%r12
+-CLONE 0 1666 [ 3] xor %r9d,%r9d
+-CLONE 0 1669 [ 4] vpxor %xmm1,%xmm1,%xmm1
+-CLONE 0 166d [ 7] mov %rax,-0x300(%rbp)
+-CLONE 0 1674 [ 8] vmovdqu64 0xc0(%r12),%zmm0
+-CLONE 0 167c [ 8] mov 0xb0(%r12),%rdx
+-CLONE 0 1684 [ 8] vmovdqu64 %zmm1,0xc0(%r12)
+-CLONE 0 168c [ 8] mov 0xb8(%r12),%rax
+-CLONE 0 1694 [ 8] mov %r9,0xb0(%r12)
+-CLONE 0 169c [ 8] mov %r9,0xb8(%r12)
+-CLONE 0 16a4 [ 7] vmovdqu64 -0x140(%rbp),%zmm4
+-CLONE 0 16ab [11] vmovdqu64 %zmm4,0xb0(%r12)
+-CLONE 0 16b6 [ 8] vmovdqa -0x100(%rbp),%xmm7
+-CLONE 0 16be [10] vmovdqu %xmm7,0xf0(%r12)
+-CLONE 0 16c8 [ 7] mov %rax,-0x138(%rbp)
+-CLONE 0 16cf [ 7] mov -0xf0(%rbp),%rax
+-CLONE 0 16d6 [ 7] mov %rdx,-0x140(%rbp)
+-CLONE 0 16dd [10] vmovdqa64 %zmm0,-0x130(%rbp)
+-CLONE 0 16e7 [ 8] vmovdqu64 0x100(%r12),%zmm0
+-CLONE 0 16ef [ 8] mov %rax,0x100(%r12)
+-CLONE 0 16f7 [ 7] mov -0xe8(%rbp),%rax
+-CLONE 0 16fe [ 8] mov %rax,0x108(%r12)
+-CLONE 0 1706 [ 7] mov -0xe0(%rbp),%rax
+-CLONE 0 170d [ 8] mov %rax,0x110(%r12)
+-CLONE 0 1715 [ 7] mov -0xd8(%rbp),%rax
+-CLONE 0 171c [ 8] mov %rax,0x118(%r12)
+-CLONE 0 1724 [ 7] mov -0xd0(%rbp),%rax
+-CLONE 0 172b [ 7] mov -0xc0(%rbp),%rdx
+-CLONE 0 1732 [ 8] mov %rax,0x120(%r12)
+-CLONE 0 173a [ 7] mov -0xc8(%rbp),%rax
+-CLONE 0 1741 [ 8] mov %rdx,0x130(%r12)
+-CLONE 0 1749 [ 7] mov -0xb8(%rbp),%rdx
+-CLONE 0 1750 [ 8] mov %rax,0x128(%r12)
+-CLONE 0 1758 [ 8] mov 0x140(%r12),%rax
+-CLONE 0 1760 [ 8] mov %rdx,0x138(%r12)
+-CLONE 0 1768 [ 7] mov -0xb0(%rbp),%rdx
+-CLONE 0 176f [ 8] vmovdqa -0x150(%rbp),%xmm4
+-CLONE 0 1777 [ 7] cmpb $0x0,-0x1f0(%rbp)
+-CLONE 0 177e [ 8] mov %rdx,0x140(%r12)
+-CLONE 0 1786 [ 7] mov %rax,-0xb0(%rbp)
+-CLONE 0 178d [ 7] mov -0xa8(%rbp),%rax
+-CLONE 0 1794 [10] vmovdqa64 %zmm0,-0xf0(%rbp)
+-CLONE 0 179e [10] vmovdqu %xmm4,0xa0(%r12)
+-CLONE 0 17a8 [ 8] mov %rax,0x148(%r12)
+-CLONE 0 17b0 [ 6] jne <+0x19c2>
+-CLONE 0 17b6 [ 8] vmovq -0x1a8(%rbp),%xmm0
+-CLONE 0 17be [ 6] mov -0x1ac(%rbp),%edx
+-CLONE 0 17c4 [ 6] vpinsrq $0x1,%rax,%xmm0,%xmm0
+-CLONE 0 17ca [ 5] lea 0x8(%r12),%rdi
+-CLONE 0 17cf [ 5] mov %edx,0x50(%r12)
+-CLONE 0 17d4 [ 7] vmovdqu %xmm0,0x58(%r12)
+-CLONE 0 17db [ 3] vzeroupper
+-CLONE 0 17de [ 5] call <tomo_db0::Compact::clear()>
+-CLONE 0 17e3 [ 7] lea -0x310(%rbp),%rdi
+-CLONE 0 17ea [ 5] movb $0x2,(%r12)
+-CLONE 0 17ef [ 5] call <tomo_db0::ObjectSizeTracker::finish()>
+-CLONE 0 17f4 [ 7] mov -0x400(%rbp),%rdi
+-CLONE 0 17fb [ 5] call <tomo_db0::StreamVal::~StreamVal()>
+-CLONE 0 1800 [ 3] mov %rbx,%rdi
+-CLONE 0 1803 [ 5] call <std::vector<tomo_db0::(anonymous namespace)::OwnedRecord, std::allocator<tomo_db0::(anonymous namespace)::OwnedRecord> >::~vector()>
+-CLONE 0 1808 [ 5] jmp <+0x10b5>
+-CLONE 0 180d [ 3] nopl (%rax)
+-CLONE 0 1810 [ 7] mov -0x1e8(%rbp),%rax
+-CLONE 0 1817 [ 3] mov 0x4(%rax),%esi
+-CLONE 0 181a [ 5] jmp <+0xa67>
+-CLONE 0 181f [ 3] mov %r15,%rdi
+-CLONE 0 1822 [ 5] call <tomo_db0::reply_maxmemory_oom(tomo_db0::Op&)>
+-CLONE 0 1827 [ 5] jmp <+0x81d>
+-CLONE 0 182c [ 7] mov -0x400(%rbp),%rdi
+-CLONE 0 1833 [ 7] lea <rip>(%rip),%rsi # <literal-string-45525220636f72727570742073747265616d20656e636f64696e6700>
+-CLONE 0 183a [ 7] mov %r15,-0x1f0(%rbp)
+-CLONE 0 1841 [ 7] movb $0x0,-0x1e8(%rbp)
+-CLONE 0 1848 [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
+-CLONE 0 184d [ 5] jmp <+0x1102>
+-CLONE 0 1852 [ 7] lea -0x310(%rbp),%rdi
+-CLONE 0 1859 [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
+-CLONE 0 1860 [ 7] mov %r15,-0x310(%rbp)
+-CLONE 0 1867 [ 7] movb $0x0,-0x308(%rbp)
+-CLONE 0 186e [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
+-CLONE 0 1873 [ 7] mov -0x400(%rbp),%rdi
+-CLONE 0 187a [ 5] call <tomo_db0::ObjectSizeTracker::finish()>
+-CLONE 0 187f [ 5] jmp <+0xb0>
+-CLONE 0 1884 [ 3] xor %r8d,%r8d
+-CLONE 0 1887 [ 5] jmp <+0x100e>
+-CLONE 0 188c [ 5] mov $0x1,%ebx
+-CLONE 0 1891 [ 5] jmp <+0xf8a>
+-CLONE 0 1896 [ 8] vmovdqu -0x278(%rbp),%ymm4
+-CLONE 0 189e [ 8] vmovdqa %xmm0,-0x290(%rbp)
+-CLONE 0 18a6 [ 8] vmovdqa -0x290(%rbp),%ymm7
+-CLONE 0 18ae [ 7] lea 0xc0(%rbx),%r13
+-CLONE 0 18b5 [ 7] lea 0xe0(%rbx),%r14
+-CLONE 0 18bc [ 3] mov %r13,%rsi
+-CLONE 0 18bf [ 3] mov %r14,%rdi
+-CLONE 0 18c2 [ 5] vmovdqu %ymm7,0x68(%rbx)
+-CLONE 0 18c7 [ 8] vmovdqu %ymm4,0x80(%rbx)
+-CLONE 0 18cf [ 3] vzeroupper
+-CLONE 0 18d2 [ 5] call <std::operator-(std::_Deque_iterator<tomo_db0::StreamNode, tomo_db0::StreamNode&, tomo_db0::StreamNode*> const&, std::_Deque_iterator<tomo_db0::StreamNode, tomo_db0::StreamNode&, tomo_db0::StreamNode*> const&)>
+-CLONE 0 18d7 [ 3] xor %r12d,%r12d
+-CLONE 0 18da [ 7] mov %rax,-0x3d0(%rbp)
+-CLONE 0 18e1 [ 5] jmp <+0x11a9>
+-CLONE 0 18e6 [ 7] mov -0x3e0(%rbp),%rax
+-CLONE 0 18ed [ 7] lea 0xb0(%rbx),%rdi
+-CLONE 0 18f4 [ 7] mov 0x148(%rbx),%r13
+-CLONE 0 18fb [ 3] add %rax,%r12
+-CLONE 0 18fe [ 5] call <std::deque<tomo_db0::StreamNode, std::allocator<tomo_db0::StreamNode> >::back()>
+-CLONE 0 1903 [ 3] mov %rax,%rdi
+-CLONE 0 1906 [ 5] call <tomo_db0::Compact::capacity_bytes() const>
+-CLONE 0 190b [ 3] mov %rbx,%rdi
+-CLONE 0 190e [ 3] mov %rax,%r9
+-CLONE 0 1911 [ 5] call <tomo_db0::(anonymous namespace)::tail_field_bytes(tomo_db0::StreamVal const&)>
+-CLONE 0 1916 [ 3] add %r9,%rax
+-CLONE 0 1919 [ 3] sub %r12,%rax
+-CLONE 0 191c [ 3] add %r13,%rax
+-CLONE 0 191f [ 3] vzeroupper
+-CLONE 0 1922 [ 5] jmp <+0x1206>
+-CLONE 0 1927 [ 7] lea -0x1f0(%rbp),%rdi
+-CLONE 0 192e [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
+-CLONE 0 1935 [ 7] mov %r15,-0x1f0(%rbp)
+-CLONE 0 193c [ 7] movb $0x0,-0x1e8(%rbp)
+-CLONE 0 1943 [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
+-CLONE 0 1948 [ 5] jmp <+0xd3f>
+-CLONE 0 194d [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 1951 [ 9] sub %fs:0x28,%rax
+-CLONE 0 195a [ 6] jne <+0x19fb>
+-CLONE 0 1960 [ 7] lea -0x1d8(%rbp),%rax
+-CLONE 0 1967 [ 7] lea <rip>(%rip),%rdi # <literal-string-62617369635f737472696e673a20636f6e737472756374696f6e2066726f6d206e756c6c206973206e6f742076616c696400>
+-CLONE 0 196e [ 7] mov %rax,-0x3e0(%rbp)
+-CLONE 0 1975 [ 7] lea -0x370(%rbp),%rax
+-CLONE 0 197c [ 7] mov %rax,-0x3d8(%rbp)
+-CLONE 0 1983 [ 5] call <_ZSt19__throw_logic_errorPKc@plt>
+-CLONE 0 1988 [ 7] lea -0x310(%rbp),%rdi
+-CLONE 0 198f [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
+-CLONE 0 1996 [ 7] mov %r15,-0x310(%rbp)
+-CLONE 0 199d [ 7] movb $0x0,-0x308(%rbp)
+-CLONE 0 19a4 [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
+-CLONE 0 19a9 [ 7] mov -0x400(%rbp),%rdi
+-CLONE 0 19b0 [ 5] call <tomo_db0::StreamVal::~StreamVal()>
+-CLONE 0 19b5 [ 3] mov %rbx,%rdi
+-CLONE 0 19b8 [ 5] call <std::vector<tomo_db0::(anonymous namespace)::OwnedRecord, std::allocator<tomo_db0::(anonymous namespace)::OwnedRecord> >::~vector()>
+-CLONE 0 19bd [ 5] jmp <+0x1102>
+-CLONE 0 19c2 [ 8] vmovq -0x198(%rbp),%xmm0
+-CLONE 0 19ca [ 6] mov -0x1a0(%rbp),%edx
+-CLONE 0 19d0 [ 5] jmp <+0x17c4>
+-CLONE 0 19d5 [ 7] lea -0x1f0(%rbp),%rdi
+-CLONE 0 19dc [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
+-CLONE 0 19e3 [ 7] mov %r15,-0x1f0(%rbp)
+-CLONE 0 19ea [ 7] movb $0x0,-0x1e8(%rbp)
+-CLONE 0 19f1 [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
+-CLONE 0 19f6 [ 5] jmp <+0xb0>
+-CLONE 0 19fb [ 5] call <__stack_chk_fail@plt>
++CLONE 0 0662 [ 7] mov -0x1d8(%rbp),%rdi
++CLONE 0 0669 [ 3] test %rdi,%rdi
++CLONE 0 066c [ 2] je <+0x67d>
++CLONE 0 066e [ 7] mov -0x1c8(%rbp),%rsi
++CLONE 0 0675 [ 3] sub %rdi,%rsi
++CLONE 0 0678 [ 5] call <_ZdlPvm@plt>
++CLONE 0 067d [ 7] mov -0x2d0(%rbp),%rdi
++CLONE 0 0684 [ 3] test %rdi,%rdi
++CLONE 0 0687 [ 2] je <+0x698>
++CLONE 0 0689 [ 7] mov -0x2c0(%rbp),%rsi
++CLONE 0 0690 [ 3] sub %rdi,%rsi
++CLONE 0 0693 [ 5] call <_ZdlPvm@plt>
++CLONE 0 0698 [ 7] cmpb $0x0,-0x441(%rbp)
++CLONE 0 069f [ 6] je <+0xeee>
++CLONE 0 06a5 [ 7] mov -0x440(%rbp),%rsi
++CLONE 0 06ac [ 7] mov -0x400(%rbp),%rdi
++CLONE 0 06b3 [ 5] call <tomo_db0::CollectionRef::compact() const>
++CLONE 0 06b8 [ 7] mov -0x1f0(%rbp),%rax
++CLONE 0 06bf [ 3] test %rax,%rax
++CLONE 0 06c2 [ 6] je <+0x124f>
++CLONE 0 06c8 [ 3] mov 0x3c(%rax),%eax
++CLONE 0 06cb [ 3] cmp $0x1,%eax
++CLONE 0 06ce [ 2] jne <+0x6e8>
++CLONE 0 06d0 [ 8] vmovdqa -0x3b0(%rbp),%xmm0
++CLONE 0 06d8 [ 8] vmovdqa %xmm0,-0x3a0(%rbp)
++CLONE 0 06e0 [ 8] vmovdqa %xmm0,-0x290(%rbp)
++CLONE 0 06e8 [ 7] mov -0x440(%rbp),%rsi
++CLONE 0 06ef [ 7] mov -0x400(%rbp),%rdi
++CLONE 0 06f6 [ 4] lea -0x50(%rbp),%rax
++CLONE 0 06fa [ 8] movq $0x0,-0x58(%rbp)
++CLONE 0 0702 [ 4] mov %rax,-0x60(%rbp)
++CLONE 0 0706 [ 4] movb $0x0,-0x50(%rbp)
++CLONE 0 070a [ 5] call <tomo_db0::CollectionRef::compact() const>
++CLONE 0 070f [ 7] mov -0x1f0(%rbp),%rax
++CLONE 0 0716 [ 3] test %rax,%rax
++CLONE 0 0719 [ 6] je <+0x1241>
++CLONE 0 071f [ 3] mov 0x3c(%rax),%eax
++CLONE 0 0722 [ 3] xor %r9d,%r9d
++CLONE 0 0725 [ 3] cmp $0x1,%eax
++CLONE 0 0728 [ 4] lea -0x60(%rbp),%r14
++CLONE 0 072c [ 7] lea -0x370(%rbp),%rax
++CLONE 0 0733 [ 4] sete %r9b
++CLONE 0 0737 [ 4] sub $0x8,%rsp
++CLONE 0 073b [ 7] lea -0x3a0(%rbp),%rsi
++CLONE 0 0742 [ 7] mov %rax,-0x3d8(%rbp)
++CLONE 0 0749 [ 2] push %r14
++CLONE 0 074b [ 6] mov -0x448(%rbp),%ecx
++CLONE 0 0751 [ 7] mov -0x438(%rbp),%rdi
++CLONE 0 0758 [ 3] mov %rax,%r8
++CLONE 0 075b [ 3] mov %r15,%rdx
++CLONE 0 075e [ 5] call <tomo_db0::(anonymous namespace)::encode_record_from_op(tomo_db0::StreamID const&, tomo_db0::StreamID const&, tomo_db0::Op&, unsigned int, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)>
++CLONE 0 0763 [ 2] pop %r10
++CLONE 0 0765 [ 2] pop %r11
++CLONE 0 0767 [ 2] test %al,%al
++CLONE 0 0769 [ 6] je <+0x10c1>
++CLONE 0 076f [ 7] mov -0x440(%rbp),%rsi
++CLONE 0 0776 [ 7] mov -0x400(%rbp),%rdi
++CLONE 0 077d [ 5] call <tomo_db0::CollectionRef::compact() const>
++CLONE 0 0782 [ 7] mov -0x1f0(%rbp),%rax
++CLONE 0 0789 [ 3] test %rax,%rax
++CLONE 0 078c [ 6] je <+0x1571>
++CLONE 0 0792 [ 3] mov 0x34(%rax),%ecx
++CLONE 0 0795 [ 3] sub 0x30(%rax),%ecx
++CLONE 0 0798 [ 7] mov %rcx,-0x3e8(%rbp)
++CLONE 0 079f [ 4] mov -0x58(%rbp),%r12
++CLONE 0 07a3 [ 4] cmp $0x7f,%r12d
++CLONE 0 07a7 [ 6] jbe <+0x1887>
++CLONE 0 07ad [ 3] mov %r12d,%eax
++CLONE 0 07b0 [ 5] mov $0x1,%ebx
++CLONE 0 07b5 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 07c0 [ 3] shr $0x7,%eax
++CLONE 0 07c3 [ 2] inc %ebx
++CLONE 0 07c5 [ 3] cmp $0x7f,%eax
++CLONE 0 07c8 [ 2] ja <+0x7c0>
++CLONE 0 07ca [ 7] mov -0x3f0(%rbp),%rax
++CLONE 0 07d1 [ 7] mov 0xcc(%r15),%edx
++CLONE 0 07d8 [ 6] add $0x4b8,%rax
++CLONE 0 07de [ 7] mov %rax,-0x3d0(%rbp)
++CLONE 0 07e5 [ 6] mov -0x448(%rbp),%eax
++CLONE 0 07eb [ 2] cmp %edx,%eax
++CLONE 0 07ed [ 6] jae <+0x187f>
++CLONE 0 07f3 [ 6] mov -0x464(%rbp),%edi
++CLONE 0 07f9 [ 7] mov 0xc0(%r15),%rcx
++CLONE 0 0800 [ 2] mov %eax,%esi
++CLONE 0 0802 [ 3] xor %r8d,%r8d
++CLONE 0 0805 [ 3] mov %rsi,%rax
++CLONE 0 0808 [ 7] lea 0xd0(%r15),%r9
++CLONE 0 080f [ 4] shl $0x4,%rax
++CLONE 0 0813 [ 2] sub %edi,%edx
++CLONE 0 0815 [ 3] sub $0x2,%edx
++CLONE 0 0818 [ 5] lea 0x1(%rsi,%rdx,1),%rdi
++CLONE 0 081d [ 4] shl $0x4,%rdi
++CLONE 0 0821 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 082c [ 4] nopl 0x0(%rax)
++CLONE 0 0830 [ 3] test %rcx,%rcx
++CLONE 0 0833 [ 4] lea (%rcx,%rax,1),%rsi
++CLONE 0 0837 [ 4] lea (%r9,%rax,1),%rdx
++CLONE 0 083b [ 4] cmovne %rsi,%rdx
++CLONE 0 083f [ 4] add $0x10,%rax
++CLONE 0 0843 [ 3] mov 0x8(%rdx),%edx
++CLONE 0 0846 [ 3] add %rdx,%r8
++CLONE 0 0849 [ 3] cmp %rax,%rdi
++CLONE 0 084c [ 2] jne <+0x830>
++CLONE 0 084e [ 7] mov -0x440(%rbp),%rsi
++CLONE 0 0855 [ 7] lea -0x2d0(%rbp),%rdi
++CLONE 0 085c [ 7] mov %r8,-0x3e0(%rbp)
++CLONE 0 0863 [ 7] lea -0x350(%rbp),%r13
++CLONE 0 086a [ 5] call <tomo_db0::CollectionRef::compact() const>
++CLONE 0 086f [ 8] vmovdqa -0x2d0(%rbp),%xmm7
++CLONE 0 0877 [ 4] sub $0x20,%rsp
++CLONE 0 087b [ 3] mov %r13,%rcx
++CLONE 0 087e [ 5] vmovdqu %xmm7,(%rsp)
++CLONE 0 0883 [ 7] mov -0x2c0(%rbp),%rax
++CLONE 0 088a [ 5] mov %rax,0x10(%rsp)
++CLONE 0 088f [ 7] mov -0x3d0(%rbp),%rdx
++CLONE 0 0896 [ 7] mov -0x3e0(%rbp),%rsi
++CLONE 0 089d [ 7] mov -0x430(%rbp),%rdi
++CLONE 0 08a4 [ 5] call <tomo_db0::(anonymous namespace)::stream_node_rollover(tomo_db0::CompactView, tomo_db0::StreamID const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const*, unsigned long, tomo_db0::StreamLimits const&, bool&) [clone .constprop.0]>
++CLONE 0 08a9 [ 4] add $0x20,%rsp
++CLONE 0 08ad [ 2] test %al,%al
++CLONE 0 08af [ 6] je <+0x17fc>
++CLONE 0 08b5 [ 8] cmpq $0x0,-0x450(%rbp)
++CLONE 0 08bd [ 6] je <+0x1596>
++CLONE 0 08c3 [ 7] cmpb $0x0,-0x350(%rbp)
++CLONE 0 08ca [ 6] jne <+0x12b0>
++CLONE 0 08d0 [ 7] mov -0x390(%rbp),%rdi
++CLONE 0 08d7 [ 5] call <tomo_db0::embedded_compact_capacity(tomo_db0::KvObj const*)>
++CLONE 0 08dc [ 7] mov -0x3e8(%rbp),%rcx
++CLONE 0 08e3 [ 2] mov %eax,%edx
++CLONE 0 08e5 [ 4] lea (%rbx,%r12,1),%eax
++CLONE 0 08e9 [ 3] add %rcx,%rax
++CLONE 0 08ec [ 3] cmp %rax,%rdx
++CLONE 0 08ef [ 6] jb <+0x12b0>
++CLONE 0 08f5 [ 3] mov %r14,%rdi
++CLONE 0 08f8 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 08fd [ 7] mov -0x3f8(%rbp),%rsi
++CLONE 0 0904 [ 3] mov %r13,%rdi
++CLONE 0 0907 [ 5] call <tomo_db0::CollectionRef::CollectionRef(tomo_db0::KvObj*)>
++CLONE 0 090c [ 8] vmovdqa -0x460(%rbp),%xmm4
++CLONE 0 0914 [ 8] vmovdqa %xmm4,-0x330(%rbp)
++CLONE 0 091c [ 5] jmp <+0xbd8>
++CLONE 0 0921 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 092c [ 4] nopl 0x0(%rax)
++CLONE 0 0930 [ 7] cmpb $0x0,-0x250(%rbp)
++CLONE 0 0937 [ 6] jne <+0xf2e>
++CLONE 0 093d [ 7] mov -0x3f0(%rbp),%rdi
++CLONE 0 0944 [ 7] lea -0x3b0(%rbp),%rax
++CLONE 0 094b [ 4] vpxor %xmm0,%xmm0,%xmm0
++CLONE 0 094f [ 7] lea -0x210(%rbp),%rdx
++CLONE 0 0956 [ 8] vmovdqa %ymm0,-0x290(%rbp)
++CLONE 0 095e [ 7] lea -0x290(%rbp),%rsi
++CLONE 0 0965 [ 3] mov %r15,%r8
++CLONE 0 0968 [ 3] mov %rax,%rcx
++CLONE 0 096b [10] vmovdqu8 %ymm0,-0x278(%rbp)
++CLONE 0 0975 [ 7] mov %rax,-0x438(%rbp)
++CLONE 0 097c [11] movq $0x0,-0x3b0(%rbp)
++CLONE 0 0987 [11] movq $0x0,-0x3a8(%rbp)
++CLONE 0 0992 [ 3] vzeroupper
++CLONE 0 0995 [ 5] call <tomo_db0::(anonymous namespace)::resolve_add_id(tomo_db0::Shard&, tomo_db0::StreamHeader const&, tomo_db0::(anonymous namespace)::AddId const&, tomo_db0::StreamID&, tomo_db0::Op&) [clone .constprop.0]>
++CLONE 0 099a [ 2] test %al,%al
++CLONE 0 099c [ 6] je <+0xb0>
++CLONE 0 09a2 [ 6] mov -0x218(%rbp),%eax
++CLONE 0 09a8 [ 7] lea <rip>(%rip),%r13 # <_ZSt7nothrow@GLIBCXX_3.4>
++CLONE 0 09af [ 5] mov $0x158,%edi
++CLONE 0 09b4 [ 3] mov %r13,%rsi
++CLONE 0 09b7 [ 6] mov %eax,-0x3d8(%rbp)
++CLONE 0 09bd [ 5] call <_ZnwmRKSt9nothrow_t@plt>
++CLONE 0 09c2 [ 3] mov %rax,%r12
++CLONE 0 09c5 [ 3] test %rax,%rax
++CLONE 0 09c8 [ 6] je <+0x19b3>
++CLONE 0 09ce [ 3] mov %r12,%rdi
++CLONE 0 09d1 [ 5] call <tomo_db0::StreamVal::StreamVal()>
++CLONE 0 09d6 [ 8] vmovdqa -0x3b0(%rbp),%xmm0
++CLONE 0 09de [ 5] lea 0x68(%r12),%rax
++CLONE 0 09e3 [ 4] lea -0x80(%rbp),%r13
++CLONE 0 09e7 [ 7] mov %r12,-0x2d0(%rbp)
++CLONE 0 09ee [ 3] mov %rax,%rsi
++CLONE 0 09f1 [ 3] mov %r13,%rdi
++CLONE 0 09f4 [ 7] mov %rax,-0x3d0(%rbp)
++CLONE 0 09fb [12] movq $0x1,0x98(%r12)
++CLONE 0 0a07 [ 4] lea -0x60(%rbp),%r14
++CLONE 0 0a0b [ 7] vmovdqu %xmm0,0x78(%r12)
++CLONE 0 0a12 [ 7] vmovdqu %xmm0,0x68(%r12)
++CLONE 0 0a19 [10] vmovdqu %xmm0,0xa0(%r12)
++CLONE 0 0a23 [ 5] call <tomo_db0::(anonymous namespace)::header_bytes(tomo_db0::StreamHeader const&)>
++CLONE 0 0a28 [ 5] cmpb $0x0,(%r12)
++CLONE 0 0a2d [ 4] lea -0x50(%rbp),%rax
++CLONE 0 0a31 [ 4] mov -0x78(%rbp),%rdx
++CLONE 0 0a35 [ 4] mov %rax,-0x60(%rbp)
++CLONE 0 0a39 [ 7] lea -0x1f0(%rbp),%rax
++CLONE 0 0a40 [ 4] mov -0x80(%rbp),%rsi
++CLONE 0 0a44 [ 8] movq $0x0,-0x58(%rbp)
++CLONE 0 0a4c [ 4] movb $0x0,-0x50(%rbp)
++CLONE 0 0a50 [ 7] mov %rax,-0x400(%rbp)
++CLONE 0 0a57 [ 6] je <+0xebc>
++CLONE 0 0a5d [ 3] mov %r12,%rdi
++CLONE 0 0a60 [ 5] call <tomo_db0::StreamVal::~StreamVal()>
++CLONE 0 0a65 [ 5] mov $0x158,%esi
++CLONE 0 0a6a [ 3] mov %r12,%rdi
++CLONE 0 0a6d [ 5] call <_ZdlPvm@plt>
++CLONE 0 0a72 [ 7] mov -0x400(%rbp),%rdi
++CLONE 0 0a79 [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
++CLONE 0 0a80 [ 7] mov %r15,-0x1f0(%rbp)
++CLONE 0 0a87 [ 7] movb $0x0,-0x1e8(%rbp)
++CLONE 0 0a8e [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
++CLONE 0 0a93 [ 3] mov %r14,%rdi
++CLONE 0 0a96 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0a9b [ 3] mov %r13,%rdi
++CLONE 0 0a9e [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0aa3 [ 5] jmp <+0xb0>
++CLONE 0 0aa8 [ 8] nopl 0x0(%rax,%rax,1)
++CLONE 0 0ab0 [ 7] lea -0x1d8(%rbp),%rax
++CLONE 0 0ab7 [ 5] lea 0x1(%r12),%rdi
++CLONE 0 0abc [ 7] mov %rax,-0x3e0(%rbp)
++CLONE 0 0ac3 [ 7] lea -0x370(%rbp),%rax
++CLONE 0 0aca [ 7] mov %rax,-0x3d8(%rbp)
++CLONE 0 0ad1 [ 5] call <_Znwm@plt>
++CLONE 0 0ad6 [ 3] mov %rax,%rdi
++CLONE 0 0ad9 [ 3] mov %rax,(%rbx)
++CLONE 0 0adc [ 4] mov %r12,0x10(%rbx)
++CLONE 0 0ae0 [ 3] mov %r12,%rdx
++CLONE 0 0ae3 [ 3] mov %r14,%rsi
++CLONE 0 0ae6 [ 5] call <memcpy@plt>
++CLONE 0 0aeb [ 3] mov (%rbx),%rdi
++CLONE 0 0aee [ 5] jmp <+0x4a0>
++CLONE 0 0af3 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 0afe [ 2] xchg %ax,%ax
++CLONE 0 0b00 [ 4] movzbl (%r14),%eax
++CLONE 0 0b04 [ 3] mov %al,0x10(%rbx)
++CLONE 0 0b07 [ 5] jmp <+0x4a0>
++CLONE 0 0b0c [ 4] nopl 0x0(%rax)
++CLONE 0 0b10 [ 3] add %r8d,%eax
++CLONE 0 0b13 [ 3] cmp %r13d,%r11d
++CLONE 0 0b16 [ 2] je <+0xb30>
++CLONE 0 0b18 [ 3] inc %r11d
++CLONE 0 0b1b [ 3] add %eax,%r10d
++CLONE 0 0b1e [ 5] jmp <+0x5c0>
++CLONE 0 0b23 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 0b2e [ 2] xchg %ax,%ax
++CLONE 0 0b30 [ 5] vmovd %r10d,%xmm2
++CLONE 0 0b35 [ 7] mov %r8d,-0x2a8(%rbp)
++CLONE 0 0b3c [ 6] vpinsrd $0x1,%eax,%xmm2,%xmm0
++CLONE 0 0b42 [ 7] mov -0x420(%rbp),%rax
++CLONE 0 0b49 [ 8] vmovq %xmm0,-0x2a0(%rbp)
++CLONE 0 0b51 [ 5] lea 0x20(%rax,%rdx,1),%rax
++CLONE 0 0b56 [ 7] mov %rax,-0x2b0(%rbp)
++CLONE 0 0b5d [ 6] mov -0x3e8(%rbp),%eax
++CLONE 0 0b63 [ 6] mov %eax,-0x298(%rbp)
++CLONE 0 0b69 [ 5] jmp <+0x387>
++CLONE 0 0b6e [ 7] lea -0x1f0(%rbp),%rdi
++CLONE 0 0b75 [ 7] lea <rip>(%rip),%rsi # <literal-string-45525220636f72727570742073747265616d20656e636f64696e6700>
++CLONE 0 0b7c [ 7] mov %r15,-0x1f0(%rbp)
++CLONE 0 0b83 [ 7] movb $0x0,-0x1e8(%rbp)
++CLONE 0 0b8a [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
++CLONE 0 0b8f [ 5] jmp <+0xb0>
++CLONE 0 0b94 [ 7] mov -0x388(%rbp),%rax
++CLONE 0 0b9b [ 3] cmpb $0x0,(%rax)
++CLONE 0 0b9e [ 6] je <+0x285>
++CLONE 0 0ba4 [ 7] mov -0x3f8(%rbp),%rsi
++CLONE 0 0bab [ 7] lea -0x350(%rbp),%r13
++CLONE 0 0bb2 [ 3] mov %r13,%rdi
++CLONE 0 0bb5 [ 5] call <tomo_db0::CollectionRef::CollectionRef(tomo_db0::KvObj*)>
++CLONE 0 0bba [ 8] vmovdqa -0x460(%rbp),%xmm4
++CLONE 0 0bc2 [ 7] lea -0x370(%rbp),%rax
++CLONE 0 0bc9 [ 7] mov %rax,-0x3d8(%rbp)
++CLONE 0 0bd0 [ 8] vmovdqa %xmm4,-0x330(%rbp)
++CLONE 0 0bd8 [ 7] mov -0x3f8(%rbp),%rdi
++CLONE 0 0bdf [ 5] call <tomo_db0::kvobj_size(tomo_db0::KvObj const*)>
++CLONE 0 0be4 [ 8] vmovdqa -0x3b0(%rbp),%xmm0
++CLONE 0 0bec [ 7] mov -0x340(%rbp),%r12
++CLONE 0 0bf3 [ 7] mov %rax,-0x320(%rbp)
++CLONE 0 0bfa [ 7] incq -0x260(%rbp)
++CLONE 0 0c01 [ 8] vmovdqa %xmm0,-0x280(%rbp)
++CLONE 0 0c09 [ 3] test %r12,%r12
++CLONE 0 0c0c [ 6] je <+0x1119>
++CLONE 0 0c12 [ 4] lea -0x50(%rbp),%rax
++CLONE 0 0c16 [ 7] lea -0x310(%rbp),%rdi
++CLONE 0 0c1d [ 3] mov %r13,%rsi
++CLONE 0 0c20 [ 8] movq $0x0,-0x58(%rbp)
++CLONE 0 0c28 [ 4] mov %rax,-0x60(%rbp)
++CLONE 0 0c2c [ 4] movb $0x0,-0x50(%rbp)
++CLONE 0 0c30 [ 5] call <tomo_db0::CollectionRef::compact() const>
++CLONE 0 0c35 [ 7] mov -0x310(%rbp),%rax
++CLONE 0 0c3c [ 3] test %rax,%rax
++CLONE 0 0c3f [ 6] je <+0x12a2>
++CLONE 0 0c45 [ 3] mov 0x3c(%rax),%eax
++CLONE 0 0c48 [ 3] xor %r9d,%r9d
++CLONE 0 0c4b [ 3] cmp $0x1,%eax
++CLONE 0 0c4e [ 4] lea -0x60(%rbp),%r14
++CLONE 0 0c52 [ 4] sete %r9b
++CLONE 0 0c56 [ 4] sub $0x8,%rsp
++CLONE 0 0c5a [ 7] lea -0x3a0(%rbp),%rsi
++CLONE 0 0c61 [ 3] mov %r15,%rdx
++CLONE 0 0c64 [ 2] push %r14
++CLONE 0 0c66 [ 7] mov -0x3d8(%rbp),%r8
++CLONE 0 0c6d [ 6] mov -0x448(%rbp),%ecx
++CLONE 0 0c73 [ 7] mov -0x438(%rbp),%rdi
++CLONE 0 0c7a [ 5] call <tomo_db0::(anonymous namespace)::encode_record_from_op(tomo_db0::StreamID const&, tomo_db0::StreamID const&, tomo_db0::Op&, unsigned int, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)>
++CLONE 0 0c7f [ 1] pop %rdi
++CLONE 0 0c80 [ 2] pop %r8
++CLONE 0 0c82 [ 2] test %al,%al
++CLONE 0 0c84 [ 6] je <+0xf9b>
++CLONE 0 0c8a [ 3] mov -0x58(%rbp),%ebx
++CLONE 0 0c8d [ 4] mov -0x60(%rbp),%rdx
++CLONE 0 0c91 [ 3] test %r12,%r12
++CLONE 0 0c94 [ 6] je <+0xf8b>
++CLONE 0 0c9a [ 7] lea -0x1f0(%rbp),%rax
++CLONE 0 0ca1 [ 3] mov %r13,%rsi
++CLONE 0 0ca4 [ 7] mov %rdx,-0x3d0(%rbp)
++CLONE 0 0cab [ 3] mov %rax,%rdi
++CLONE 0 0cae [ 7] mov %rax,-0x400(%rbp)
++CLONE 0 0cb5 [ 5] call <tomo_db0::CollectionRef::compact() const>
++CLONE 0 0cba [ 7] mov -0x1f0(%rbp),%rax
++CLONE 0 0cc1 [ 7] mov -0x3d0(%rbp),%rdx
++CLONE 0 0cc8 [ 3] test %rax,%rax
++CLONE 0 0ccb [ 6] je <+0x1587>
++CLONE 0 0cd1 [ 3] mov 0x34(%rax),%esi
++CLONE 0 0cd4 [ 3] sub 0x30(%rax),%esi
++CLONE 0 0cd7 [ 7] mov -0x400(%rbp),%rdi
++CLONE 0 0cde [ 2] mov %ebx,%ecx
++CLONE 0 0ce0 [ 5] call <tomo_db0::CompactView::insert(unsigned int, tomo_db0::Slice) [clone .isra.0]>
++CLONE 0 0ce5 [ 2] test %al,%al
++CLONE 0 0ce7 [ 6] je <+0xfa9>
++CLONE 0 0ced [ 7] mov -0x430(%rbp),%rsi
++CLONE 0 0cf4 [ 7] mov -0x3f8(%rbp),%rdi
++CLONE 0 0cfb [ 5] call <tomo_db0::(anonymous namespace)::update_object_header(tomo_db0::KvObj*, tomo_db0::StreamHeader const&)>
++CLONE 0 0d00 [ 2] test %al,%al
++CLONE 0 0d02 [ 6] je <+0xfa9>
++CLONE 0 0d08 [ 3] mov %r14,%rdi
++CLONE 0 0d0b [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0d10 [ 7] lea -0x330(%rbp),%rdi
++CLONE 0 0d17 [ 5] call <tomo_db0::ObjectSizeTracker::finish()>
++CLONE 0 0d1c [ 7] mov -0x3d8(%rbp),%rdi
++CLONE 0 0d23 [ 5] call <std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()>
++CLONE 0 0d28 [ 8] vmovq -0x428(%rbp),%xmm7
++CLONE 0 0d30 [ 7] mov -0x3b8(%rbp),%r12
++CLONE 0 0d37 [11] movq $0x0,-0x330(%rbp)
++CLONE 0 0d42 [ 6] vpinsrq $0x1,%r12,%xmm7,%xmm0
++CLONE 0 0d48 [ 8] vmovdqa %xmm0,-0x1f0(%rbp)
++CLONE 0 0d50 [ 3] test %r12,%r12
++CLONE 0 0d53 [ 6] jne <+0x1295>
++CLONE 0 0d59 [ 2] xor %eax,%eax
++CLONE 0 0d5b [ 7] cmpb $0x0,-0x248(%rbp)
++CLONE 0 0d62 [ 7] mov %rax,-0x1e0(%rbp)
++CLONE 0 0d69 [ 6] je <+0x10ef>
++CLONE 0 0d6f [ 8] vmovdqu -0x248(%rbp),%ymm4
++CLONE 0 0d77 [ 4] sub $0x30,%rsp
++CLONE 0 0d7b [ 7] mov -0x3f0(%rbp),%r14
++CLONE 0 0d82 [ 7] lea -0x330(%rbp),%rdx
++CLONE 0 0d89 [ 3] mov %r12,%rdi
++CLONE 0 0d8c [ 7] lea 0x4b8(%r14),%rsi
++CLONE 0 0d93 [ 5] vmovdqu %ymm4,(%rsp)
++CLONE 0 0d98 [ 8] vmovdqu -0x228(%rbp),%xmm7
++CLONE 0 0da0 [ 6] vmovdqu %xmm7,0x20(%rsp)
++CLONE 0 0da6 [ 3] vzeroupper
++CLONE 0 0da9 [ 5] call <tomo_db0::(anonymous namespace)::trim_stream(tomo_db0::KvObj*, tomo_db0::(anonymous namespace)::TrimSpec, tomo_db0::StreamLimits const&, unsigned long&) [clone .constprop.0]>
++CLONE 0 0dae [ 4] add $0x30,%rsp
++CLONE 0 0db2 [ 2] test %al,%al
++CLONE 0 0db4 [ 6] je <+0x1891>
++CLONE 0 0dba [ 7] mov -0x400(%rbp),%rdi
++CLONE 0 0dc1 [ 7] mov -0x330(%rbp),%rbx
++CLONE 0 0dc8 [ 5] call <tomo_db0::ObjectSizeTracker::finish()>
++CLONE 0 0dcd [ 3] mov %r15,%rdi
++CLONE 0 0dd0 [ 5] call <tomo_db0::Op::key() const>
++CLONE 0 0dd5 [ 4] sub $0x8,%rsp
++CLONE 0 0dd9 [ 5] mov $0x34,%ecx
++CLONE 0 0dde [ 3] mov %r15,%rsi
++CLONE 0 0de1 [ 2] push $0x1
++CLONE 0 0de3 [ 3] mov %rdx,%r9
++CLONE 0 0de6 [ 3] mov %rax,%r8
++CLONE 0 0de9 [ 5] mov $0x400,%edx
++CLONE 0 0dee [ 3] mov %r14,%rdi
++CLONE 0 0df1 [ 5] call <bool tomo_db0::notify_record<tomo_db0::Shard>(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice, bool) [clone .isra.0]>
++CLONE 0 0df6 [ 1] pop %rcx
++CLONE 0 0df7 [ 1] pop %rsi
++CLONE 0 0df8 [ 3] test %rbx,%rbx
++CLONE 0 0dfb [ 2] je <+0xe2c>
++CLONE 0 0dfd [ 3] mov %r15,%rdi
++CLONE 0 0e00 [ 5] call <tomo_db0::Op::key() const>
++CLONE 0 0e05 [ 4] sub $0x8,%rsp
++CLONE 0 0e09 [ 5] mov $0x36,%ecx
++CLONE 0 0e0e [ 2] push $0x1
++CLONE 0 0e10 [ 3] mov %rax,%r8
++CLONE 0 0e13 [ 3] mov %rdx,%r9
++CLONE 0 0e16 [ 7] mov -0x3f0(%rbp),%rdi
++CLONE 0 0e1d [ 5] mov $0x400,%edx
++CLONE 0 0e22 [ 3] mov %r15,%rsi
++CLONE 0 0e25 [ 5] call <bool tomo_db0::notify_record<tomo_db0::Shard>(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice, bool) [clone .isra.0]>
++CLONE 0 0e2a [ 1] pop %rax
++CLONE 0 0e2b [ 1] pop %rdx
++CLONE 0 0e2c [ 7] mov -0x3a8(%rbp),%rdx
++CLONE 0 0e33 [ 7] mov -0x3b0(%rbp),%rsi
++CLONE 0 0e3a [ 7] mov %r15,-0x1f0(%rbp)
++CLONE 0 0e41 [ 7] movb $0x0,-0x1e8(%rbp)
++CLONE 0 0e48 [ 7] mov -0x400(%rbp),%rdi
++CLONE 0 0e4f [ 5] call <void tomo_db0::(anonymous namespace)::reply_id_to<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&, tomo_db0::StreamID const&) [clone .constprop.0] [clone .isra.0]>
++CLONE 0 0e54 [ 7] mov -0x3f0(%rbp),%rax
++CLONE 0 0e5b [ 7] mov 0x4b0(%rax),%rax
++CLONE 0 0e62 [ 3] test %rax,%rax
++CLONE 0 0e65 [ 6] je <+0xb0>
++CLONE 0 0e6b [ 3] mov %r15,%rdi
++CLONE 0 0e6e [ 5] call <tomo_db0::Op::key() const>
++CLONE 0 0e73 [ 3] mov %r15,%rdi
++CLONE 0 0e76 [ 2] mov %edx,%ebx
++CLONE 0 0e78 [ 5] call <tomo_db0::Op::key() const>
++CLONE 0 0e7d [ 3] mov %rax,%rdx
++CLONE 0 0e80 [ 4] mov -0x38(%rbp),%rax
++CLONE 0 0e84 [ 9] sub %fs:0x28,%rax
++CLONE 0 0e8d [ 6] jne <+0x19ae>
++CLONE 0 0e93 [ 4] mov 0x10(%r15),%rsi
++CLONE 0 0e97 [ 7] mov -0x3f0(%rbp),%rdi
++CLONE 0 0e9e [ 4] lea -0x28(%rbp),%rsp
++CLONE 0 0ea2 [ 2] mov %ebx,%ecx
++CLONE 0 0ea4 [ 1] pop %rbx
++CLONE 0 0ea5 [ 2] pop %r12
++CLONE 0 0ea7 [ 2] pop %r13
++CLONE 0 0ea9 [ 3] xor %r8d,%r8d
++CLONE 0 0eac [ 2] pop %r14
++CLONE 0 0eae [ 2] pop %r15
++CLONE 0 0eb0 [ 1] pop %rbp
++CLONE 0 0eb1 [ 4] lea -0x10(%r13),%rsp
++CLONE 0 0eb5 [ 2] pop %r13
++CLONE 0 0eb7 [ 5] jmp <tomo_db0::blocking_publish_key(tomo_db0::Shard&, unsigned long, char const*, unsigned int, unsigned char)>
++CLONE 0 0ebc [ 5] lea 0x8(%r12),%rdi
++CLONE 0 0ec1 [ 7] mov %rdi,-0x3e0(%rbp)
++CLONE 0 0ec8 [ 5] call <tomo_db0::Compact::append(tomo_db0::Slice) [clone .isra.0]>
++CLONE 0 0ecd [ 6] mov %al,-0x3e8(%rbp)
++CLONE 0 0ed3 [ 2] test %al,%al
++CLONE 0 0ed5 [ 6] jne <+0xfe3>
++CLONE 0 0edb [ 7] lea -0x1f0(%rbp),%rax
++CLONE 0 0ee2 [ 7] mov %rax,-0x400(%rbp)
++CLONE 0 0ee9 [ 5] jmp <+0xa5d>
++CLONE 0 0eee [ 7] mov -0x400(%rbp),%rdi
++CLONE 0 0ef5 [ 7] lea <rip>(%rip),%rsi # <literal-string-45525220636f72727570742073747265616d20656e636f64696e6700>
++CLONE 0 0efc [ 7] mov %r15,-0x1f0(%rbp)
++CLONE 0 0f03 [ 7] movb $0x0,-0x1e8(%rbp)
++CLONE 0 0f0a [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
++CLONE 0 0f0f [ 7] lea -0x370(%rbp),%rax
++CLONE 0 0f16 [ 7] mov %rax,-0x3d8(%rbp)
++CLONE 0 0f1d [ 7] mov -0x3d8(%rbp),%rdi
++CLONE 0 0f24 [ 5] call <std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()>
++CLONE 0 0f29 [ 5] jmp <+0xb0>
++CLONE 0 0f2e [ 5] movzbl 0x1e(%r15),%eax
++CLONE 0 0f33 [ 5] testb $0x4,0x1c(%r15)
++CLONE 0 0f38 [ 6] je <+0x1074>
++CLONE 0 0f3e [ 2] test %al,%al
++CLONE 0 0f40 [ 6] je <+0x1057>
++CLONE 0 0f46 [ 5] cmpb $0x0,0x1d(%r15)
++CLONE 0 0f4b [ 6] jne <+0x1057>
++CLONE 0 0f51 [ 7] mov 0xa4(%r15),%esi
++CLONE 0 0f58 [ 2] test %esi,%esi
++CLONE 0 0f5a [ 6] jne <+0x1057>
++CLONE 0 0f60 [ 5] cmpq $0x0,0x28(%r15)
++CLONE 0 0f65 [ 6] jne <+0x1057>
++CLONE 0 0f6b [ 5] movb $0x6,0x1d(%r15)
++CLONE 0 0f70 [11] movl $0x0,0xbc(%r15)
++CLONE 0 0f7b [11] movq $0x0,0x98(%r15)
++CLONE 0 0f86 [ 5] jmp <+0xb0>
++CLONE 0 0f8b [ 7] mov -0x348(%rbp),%rax
++CLONE 0 0f92 [ 3] cmpb $0x0,(%rax)
++CLONE 0 0f95 [ 6] je <+0xc9a>
++CLONE 0 0f9b [ 7] lea -0x1f0(%rbp),%rax
++CLONE 0 0fa2 [ 7] mov %rax,-0x400(%rbp)
++CLONE 0 0fa9 [ 7] mov -0x400(%rbp),%rdi
++CLONE 0 0fb0 [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
++CLONE 0 0fb7 [ 7] mov %r15,-0x1f0(%rbp)
++CLONE 0 0fbe [ 7] movb $0x0,-0x1e8(%rbp)
++CLONE 0 0fc5 [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
++CLONE 0 0fca [ 3] mov %r14,%rdi
++CLONE 0 0fcd [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0fd2 [ 7] lea -0x330(%rbp),%rdi
++CLONE 0 0fd9 [ 5] call <tomo_db0::ObjectSizeTracker::finish()>
++CLONE 0 0fde [ 5] jmp <+0xf1d>
++CLONE 0 0fe3 [ 7] lea -0x1f0(%rbp),%r8
++CLONE 0 0fea [ 4] sub $0x8,%rsp
++CLONE 0 0fee [ 4] lea -0x60(%rbp),%r14
++CLONE 0 0ff2 [ 6] mov -0x3d8(%rbp),%ecx
++CLONE 0 0ff8 [11] movq $0x0,-0x1f0(%rbp)
++CLONE 0 1003 [11] movq $0x0,-0x1e8(%rbp)
++CLONE 0 100e [11] movq $0x0,-0x1e0(%rbp)
++CLONE 0 1019 [ 7] mov %r8,-0x400(%rbp)
++CLONE 0 1020 [ 2] push %r14
++CLONE 0 1022 [ 7] mov -0x438(%rbp),%rsi
++CLONE 0 1029 [ 6] mov $0x1,%r9d
++CLONE 0 102f [ 3] mov %r15,%rdx
++CLONE 0 1032 [ 2] inc %ecx
++CLONE 0 1034 [ 3] mov %rsi,%rdi
++CLONE 0 1037 [ 5] call <tomo_db0::(anonymous namespace)::encode_record_from_op(tomo_db0::StreamID const&, tomo_db0::StreamID const&, tomo_db0::Op&, unsigned int, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)>
++CLONE 0 103c [ 1] pop %rdx
++CLONE 0 103d [ 1] pop %rcx
++CLONE 0 103e [ 2] test %al,%al
++CLONE 0 1040 [ 6] jne <+0x137f>
++CLONE 0 1046 [ 7] mov -0x400(%rbp),%rdi
++CLONE 0 104d [ 5] call <std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()>
++CLONE 0 1052 [ 5] jmp <+0xa5d>
++CLONE 0 1057 [ 7] lea -0x1f0(%rbp),%rdi
++CLONE 0 105e [ 5] mov $0x3,%edx
++CLONE 0 1063 [ 7] lea <rip>(%rip),%rsi # <literal-string-5f0d0a00>
++CLONE 0 106a [ 5] call <tomo_db0::Op::Sink::append(char const*, unsigned long)>
++CLONE 0 106f [ 5] jmp <+0xb0>
++CLONE 0 1074 [ 2] test %al,%al
++CLONE 0 1076 [ 6] je <+0x1325>
++CLONE 0 107c [ 5] cmpb $0x0,0x1d(%r15)
++CLONE 0 1081 [ 6] jne <+0x1325>
++CLONE 0 1087 [ 7] mov 0xa4(%r15),%edi
++CLONE 0 108e [ 2] test %edi,%edi
++CLONE 0 1090 [ 6] jne <+0x1325>
++CLONE 0 1096 [ 5] cmpq $0x0,0x28(%r15)
++CLONE 0 109b [ 6] jne <+0x1325>
++CLONE 0 10a1 [ 5] movb $0x2,0x1d(%r15)
++CLONE 0 10a6 [11] movl $0x0,0xbc(%r15)
++CLONE 0 10b1 [11] movq $0x0,0x98(%r15)
++CLONE 0 10bc [ 5] jmp <+0xb0>
++CLONE 0 10c1 [ 7] mov -0x400(%rbp),%rdi
++CLONE 0 10c8 [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
++CLONE 0 10cf [ 7] mov %r15,-0x1f0(%rbp)
++CLONE 0 10d6 [ 7] movb $0x0,-0x1e8(%rbp)
++CLONE 0 10dd [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
++CLONE 0 10e2 [ 3] mov %r14,%rdi
++CLONE 0 10e5 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 10ea [ 5] jmp <+0xf1d>
++CLONE 0 10ef [ 7] mov -0x400(%rbp),%rdi
++CLONE 0 10f6 [ 5] call <tomo_db0::ObjectSizeTracker::finish()>
++CLONE 0 10fb [ 3] mov %r15,%rdi
++CLONE 0 10fe [ 5] call <tomo_db0::Op::key() const>
++CLONE 0 1103 [ 4] sub $0x8,%rsp
++CLONE 0 1107 [ 5] mov $0x34,%ecx
++CLONE 0 110c [ 2] push $0x1
++CLONE 0 110e [ 3] mov %rax,%r8
++CLONE 0 1111 [ 3] mov %rdx,%r9
++CLONE 0 1114 [ 5] jmp <+0xe16>
++CLONE 0 1119 [ 7] mov -0x348(%rbp),%rbx
++CLONE 0 1120 [ 3] cmpb $0x0,(%rbx)
++CLONE 0 1123 [ 6] je <+0xc12>
++CLONE 0 1129 [ 7] mov 0xc0(%rbx),%rax
++CLONE 0 1130 [ 7] cmp %rax,0xe0(%rbx)
++CLONE 0 1137 [ 6] je <+0x182f>
++CLONE 0 113d [ 8] vmovdqa -0x290(%rbp),%ymm7
++CLONE 0 1145 [ 8] vmovdqu -0x278(%rbp),%ymm4
++CLONE 0 114d [ 7] lea 0xc0(%rbx),%r13
++CLONE 0 1154 [ 7] lea 0xe0(%rbx),%r14
++CLONE 0 115b [ 3] mov %r13,%rsi
++CLONE 0 115e [ 7] lea 0xb0(%rbx),%r12
++CLONE 0 1165 [ 3] mov %r14,%rdi
++CLONE 0 1168 [ 5] vmovdqu %ymm7,0x68(%rbx)
++CLONE 0 116d [ 8] vmovdqu %ymm4,0x80(%rbx)
++CLONE 0 1175 [ 3] vzeroupper
++CLONE 0 1178 [ 5] call <std::operator-(std::_Deque_iterator<tomo_db0::StreamNode, tomo_db0::StreamNode&, tomo_db0::StreamNode*> const&, std::_Deque_iterator<tomo_db0::StreamNode, tomo_db0::StreamNode&, tomo_db0::StreamNode*> const&)>
++CLONE 0 117d [ 3] mov %r12,%rdi
++CLONE 0 1180 [ 7] mov %rax,-0x3d0(%rbp)
++CLONE 0 1187 [ 5] call <std::deque<tomo_db0::StreamNode, std::allocator<tomo_db0::StreamNode> >::back()>
++CLONE 0 118c [ 3] mov %rax,%rdi
++CLONE 0 118f [ 5] call <tomo_db0::Compact::capacity_bytes() const>
++CLONE 0 1194 [ 3] mov %rax,%r12
++CLONE 0 1197 [ 3] mov %rbx,%rdi
++CLONE 0 119a [ 5] call <tomo_db0::(anonymous namespace)::tail_field_bytes(tomo_db0::StreamVal const&)>
++CLONE 0 119f [ 6] mov -0x448(%rbp),%ecx
++CLONE 0 11a5 [ 7] mov -0x438(%rbp),%rsi
++CLONE 0 11ac [ 3] mov %r15,%rdx
++CLONE 0 11af [ 7] mov %rax,-0x3e0(%rbp)
++CLONE 0 11b6 [ 7] mov -0x3f0(%rbp),%rax
++CLONE 0 11bd [ 7] lea 0x4b8(%rax),%r8
++CLONE 0 11c4 [ 5] call <tomo_db0::(anonymous namespace)::append_op_external(tomo_db0::StreamVal&, tomo_db0::StreamID const&, tomo_db0::Op&, unsigned int, tomo_db0::StreamLimits const&)>
++CLONE 0 11c9 [ 2] test %al,%al
++CLONE 0 11cb [ 6] je <+0x1904>
++CLONE 0 11d1 [ 3] mov %r13,%rsi
++CLONE 0 11d4 [ 3] mov %r14,%rdi
++CLONE 0 11d7 [ 5] call <std::operator-(std::_Deque_iterator<tomo_db0::StreamNode, tomo_db0::StreamNode&, tomo_db0::StreamNode*> const&, std::_Deque_iterator<tomo_db0::StreamNode, tomo_db0::StreamNode&, tomo_db0::StreamNode*> const&)>
++CLONE 0 11dc [ 7] mov -0x3d0(%rbp),%rcx
++CLONE 0 11e3 [ 3] cmp %rcx,%rax
++CLONE 0 11e6 [ 6] je <+0x18c3>
++CLONE 0 11ec [ 3] mov %rbx,%rdi
++CLONE 0 11ef [ 5] call <tomo_db0::(anonymous namespace)::measure_node_allocation(tomo_db0::StreamVal const&)>
++CLONE 0 11f4 [ 3] incl 0x50(%rbx)
++CLONE 0 11f7 [ 8] cmpq $0x0,0xa0(%rbx)
++CLONE 0 11ff [ 7] mov %rax,0x148(%rbx)
++CLONE 0 1206 [ 4] mov %rax,0x60(%rbx)
++CLONE 0 120a [ 7] lea -0x1f0(%rbp),%rax
++CLONE 0 1211 [ 7] mov %rax,-0x400(%rbp)
++CLONE 0 1218 [ 6] jne <+0xd10>
++CLONE 0 121e [ 8] cmpq $0x0,0xa8(%rbx)
++CLONE 0 1226 [ 6] jne <+0xd10>
++CLONE 0 122c [ 8] vmovdqa -0x3b0(%rbp),%xmm7
++CLONE 0 1234 [ 8] vmovdqu %xmm7,0xa0(%rbx)
++CLONE 0 123c [ 5] jmp <+0xd10>
++CLONE 0 1241 [ 7] mov -0x1e8(%rbp),%rax
++CLONE 0 1248 [ 2] mov (%rax),%eax
++CLONE 0 124a [ 5] jmp <+0x722>
++CLONE 0 124f [ 7] mov -0x1e8(%rbp),%rax
++CLONE 0 1256 [ 2] mov (%rax),%eax
++CLONE 0 1258 [ 5] jmp <+0x6cb>
++CLONE 0 125d [ 3] mov %r14,%rdi
++CLONE 0 1260 [ 7] mov %r12,-0x3b8(%rbp)
++CLONE 0 1267 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 126c [ 3] mov %r13,%rdi
++CLONE 0 126f [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 1274 [ 8] vmovq -0x428(%rbp),%xmm5
++CLONE 0 127c [11] movq $0x0,-0x330(%rbp)
++CLONE 0 1287 [ 6] vpinsrq $0x1,%r12,%xmm5,%xmm0
++CLONE 0 128d [ 8] vmovdqa %xmm0,-0x1f0(%rbp)
++CLONE 0 1295 [ 3] mov %r12,%rdi
++CLONE 0 1298 [ 5] call <tomo_db0::kvobj_size(tomo_db0::KvObj const*)>
++CLONE 0 129d [ 5] jmp <+0xd5b>
++CLONE 0 12a2 [ 7] mov -0x308(%rbp),%rax
++CLONE 0 12a9 [ 2] mov (%rax),%eax
++CLONE 0 12ab [ 5] jmp <+0xc48>
++CLONE 0 12b0 [ 7] mov -0x3f0(%rbp),%rdi
++CLONE 0 12b7 [ 7] lea -0x3b8(%rbp),%rdx
++CLONE 0 12be [ 3] mov %r15,%rsi
++CLONE 0 12c1 [ 5] call <bool tomo_db0::(anonymous namespace)::externalize_stream<true>(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::KvObj*&)>
++CLONE 0 12c6 [ 2] test %al,%al
++CLONE 0 12c8 [ 6] je <+0x10e2>
++CLONE 0 12ce [ 8] vmovq -0x428(%rbp),%xmm6
++CLONE 0 12d6 [ 7] mov -0x3b8(%rbp),%rbx
++CLONE 0 12dd [ 3] mov %r14,%rdi
++CLONE 0 12e0 [ 7] mov %rbx,-0x3f8(%rbp)
++CLONE 0 12e7 [ 6] vpinsrq $0x1,%rbx,%xmm6,%xmm0
++CLONE 0 12ed [ 8] vmovdqa %xmm0,-0x3d0(%rbp)
++CLONE 0 12f5 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 12fa [ 3] mov %rbx,%rsi
++CLONE 0 12fd [ 3] mov %r13,%rdi
++CLONE 0 1300 [ 5] call <tomo_db0::CollectionRef::CollectionRef(tomo_db0::KvObj*)>
++CLONE 0 1305 [ 8] vmovdqa -0x3d0(%rbp),%xmm0
++CLONE 0 130d [ 8] vmovdqa %xmm0,-0x330(%rbp)
++CLONE 0 1315 [ 3] test %rbx,%rbx
++CLONE 0 1318 [ 6] jne <+0xbd8>
++CLONE 0 131e [ 2] xor %eax,%eax
++CLONE 0 1320 [ 5] jmp <+0xbe4>
++CLONE 0 1325 [ 7] lea -0x1f0(%rbp),%rdi
++CLONE 0 132c [ 5] mov $0x5,%esi
++CLONE 0 1331 [ 5] call <tomo_db0::Op::Sink::reserve(unsigned long)>
++CLONE 0 1336 [ 6] movl $0xd312d24,(%rax)
++CLONE 0 133c [ 4] movb $0xa,0x4(%rax)
++CLONE 0 1340 [ 4] mov -0x38(%rbp),%rax
++CLONE 0 1344 [ 9] sub %fs:0x28,%rax
++CLONE 0 134d [ 6] jne <+0x19ae>
++CLONE 0 1353 [ 7] movzbl -0x1e8(%rbp),%esi
++CLONE 0 135a [ 7] mov -0x1f0(%rbp),%rdi
++CLONE 0 1361 [ 4] lea -0x28(%rbp),%rsp
++CLONE 0 1365 [ 5] mov $0x5,%edx
++CLONE 0 136a [ 1] pop %rbx
++CLONE 0 136b [ 2] pop %r12
++CLONE 0 136d [ 2] pop %r13
++CLONE 0 136f [ 2] pop %r14
++CLONE 0 1371 [ 2] pop %r15
++CLONE 0 1373 [ 1] pop %rbp
++CLONE 0 1374 [ 4] lea -0x10(%r13),%rsp
++CLONE 0 1378 [ 2] pop %r13
++CLONE 0 137a [ 5] jmp <tomo_db0::Op::Sink::advance(unsigned long) [clone .isra.0]>
++CLONE 0 137f [ 5] cmpb $0x0,(%r12)
++CLONE 0 1384 [ 4] mov -0x58(%rbp),%rdx
++CLONE 0 1388 [ 4] mov -0x60(%rbp),%rsi
++CLONE 0 138c [ 6] jne <+0x1046>
++CLONE 0 1392 [ 7] mov -0x3e0(%rbp),%rdi
++CLONE 0 1399 [ 5] call <tomo_db0::Compact::append(tomo_db0::Slice) [clone .isra.0]>
++CLONE 0 139e [ 2] test %al,%al
++CLONE 0 13a0 [ 6] je <+0x1046>
++CLONE 0 13a6 [ 7] mov -0x400(%rbp),%rdi
++CLONE 0 13ad [ 5] call <std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()>
++CLONE 0 13b2 [ 5] mov 0x3c(%r12),%eax
++CLONE 0 13b7 [ 5] sub 0x38(%r12),%eax
++CLONE 0 13bc [ 5] cmp $0xc0,%eax
++CLONE 0 13c1 [ 6] jbe <+0x147e>
++CLONE 0 13c7 [ 7] mov -0x3e0(%rbp),%rax
++CLONE 0 13ce [11] movq $0x0,-0x1e8(%rbp)
++CLONE 0 13d9 [ 4] sub $0x20,%rsp
++CLONE 0 13dd [ 7] lea -0x2b0(%rbp),%rsi
++CLONE 0 13e4 [10] movl $0x0,-0x1e0(%rbp)
++CLONE 0 13ee [11] movq $0x0,-0x2a0(%rbp)
++CLONE 0 13f9 [ 7] mov %rsi,-0x3d8(%rbp)
++CLONE 0 1400 [ 4] vpxor %xmm0,%xmm0,%xmm0
++CLONE 0 1404 [ 8] vmovdqa %xmm0,-0x2b0(%rbp)
++CLONE 0 140c [ 2] xor %edx,%edx
++CLONE 0 140e [ 7] mov %rax,-0x1f0(%rbp)
++CLONE 0 1415 [ 8] vmovdqa -0x1f0(%rbp),%xmm4
++CLONE 0 141d [ 5] vmovdqu %xmm4,(%rsp)
++CLONE 0 1422 [ 7] mov -0x1e0(%rbp),%rax
++CLONE 0 1429 [ 5] mov %rax,0x10(%rsp)
++CLONE 0 142e [ 7] mov -0x3d0(%rbp),%rdi
++CLONE 0 1435 [ 5] call <tomo_db0::(anonymous namespace)::collect_compact(tomo_db0::CompactView, tomo_db0::StreamID const&, std::vector<tomo_db0::(anonymous namespace)::OwnedRecord, std::allocator<tomo_db0::(anonymous namespace)::OwnedRecord> >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const*)>
++CLONE 0 143a [ 4] add $0x20,%rsp
++CLONE 0 143e [ 2] test %al,%al
++CLONE 0 1440 [ 6] je <+0x1505>
++CLONE 0 1446 [ 7] mov -0x3f0(%rbp),%rax
++CLONE 0 144d [ 7] mov -0x3d8(%rbp),%rdx
++CLONE 0 1454 [ 7] mov -0x3d0(%rbp),%rsi
++CLONE 0 145b [ 3] mov %r12,%rdi
++CLONE 0 145e [ 7] lea 0x4b8(%rax),%rcx
++CLONE 0 1465 [ 5] call <tomo_db0::(anonymous namespace)::build_external(tomo_db0::StreamVal&, tomo_db0::StreamHeader const&, std::vector<tomo_db0::(anonymous namespace)::OwnedRecord, std::allocator<tomo_db0::(anonymous namespace)::OwnedRecord> > const&, tomo_db0::StreamLimits const&)>
++CLONE 0 146a [ 2] test %al,%al
++CLONE 0 146c [ 6] je <+0x1505>
++CLONE 0 1472 [ 7] mov -0x3d8(%rbp),%rdi
++CLONE 0 1479 [ 5] call <std::vector<tomo_db0::(anonymous namespace)::OwnedRecord, std::allocator<tomo_db0::(anonymous namespace)::OwnedRecord> >::~vector()>
++CLONE 0 147e [ 3] mov %r15,%rdi
++CLONE 0 1481 [ 5] call <tomo_db0::Op::key() const>
++CLONE 0 1486 [ 3] xor %r8d,%r8d
++CLONE 0 1489 [ 7] mov $0xffffffffffffffff,%rcx
++CLONE 0 1490 [ 3] mov %rdx,%rsi
++CLONE 0 1493 [ 3] mov %rax,%rdi
++CLONE 0 1496 [ 7] lea -0x2d0(%rbp),%rdx
++CLONE 0 149d [ 5] call <tomo_db0::kvobj_adopt_stream(tomo_db0::Slice, tomo_db0::StreamVal*&, long, bool)>
++CLONE 0 14a2 [ 3] mov %rax,%r12
++CLONE 0 14a5 [ 3] test %rax,%rax
++CLONE 0 14a8 [ 6] je <+0x154c>
++CLONE 0 14ae [ 4] mov 0x10(%r15),%rsi
++CLONE 0 14b2 [ 7] mov -0x428(%rbp),%rdi
++CLONE 0 14b9 [ 3] mov %rbx,%rcx
++CLONE 0 14bc [ 3] mov %rax,%rdx
++CLONE 0 14bf [ 5] call <tomo_db0::FlatStore::insert_notify(unsigned long, tomo_db0::KvObj*, tomo_db0::FlatNotifySink*)>
++CLONE 0 14c4 [ 2] mov %eax,%ebx
++CLONE 0 14c6 [ 2] test %al,%al
++CLONE 0 14c8 [ 6] je <+0x125d>
++CLONE 0 14ce [ 3] mov %r12,%rdi
++CLONE 0 14d1 [ 5] call <tomo_db0::kvobj_free(tomo_db0::KvObj*) [clone .part.0]>
++CLONE 0 14d6 [ 3] cmp $0x1,%bl
++CLONE 0 14d9 [ 6] je <+0x1822>
++CLONE 0 14df [ 7] mov -0x400(%rbp),%rdi
++CLONE 0 14e6 [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206b6579737061636520696e73657274206661696c656400>
++CLONE 0 14ed [ 7] mov %r15,-0x1f0(%rbp)
++CLONE 0 14f4 [ 7] movb $0x0,-0x1e8(%rbp)
++CLONE 0 14fb [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
++CLONE 0 1500 [ 5] jmp <+0xa93>
++CLONE 0 1505 [ 3] mov %r12,%rdi
++CLONE 0 1508 [ 5] call <tomo_db0::StreamVal::~StreamVal()>
++CLONE 0 150d [ 3] mov %r12,%rdi
++CLONE 0 1510 [ 5] mov $0x158,%esi
++CLONE 0 1515 [ 5] call <_ZdlPvm@plt>
++CLONE 0 151a [ 7] mov -0x400(%rbp),%rdi
++CLONE 0 1521 [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
++CLONE 0 1528 [ 7] mov %r15,-0x1f0(%rbp)
++CLONE 0 152f [ 7] movb $0x0,-0x1e8(%rbp)
++CLONE 0 1536 [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
++CLONE 0 153b [ 7] mov -0x3d8(%rbp),%rdi
++CLONE 0 1542 [ 5] call <std::vector<tomo_db0::(anonymous namespace)::OwnedRecord, std::allocator<tomo_db0::(anonymous namespace)::OwnedRecord> >::~vector()>
++CLONE 0 1547 [ 5] jmp <+0xa93>
++CLONE 0 154c [ 7] mov -0x2d0(%rbp),%rbx
++CLONE 0 1553 [ 3] test %rbx,%rbx
++CLONE 0 1556 [ 6] je <+0xa72>
++CLONE 0 155c [ 3] mov %rbx,%rdi
++CLONE 0 155f [ 5] call <tomo_db0::StreamVal::~StreamVal()>
++CLONE 0 1564 [ 5] mov $0x158,%esi
++CLONE 0 1569 [ 3] mov %rbx,%rdi
++CLONE 0 156c [ 5] jmp <+0xa6d>
++CLONE 0 1571 [ 7] mov -0x1e8(%rbp),%rax
++CLONE 0 1578 [ 3] mov 0x4(%rax),%eax
++CLONE 0 157b [ 7] mov %rax,-0x3e8(%rbp)
++CLONE 0 1582 [ 5] jmp <+0x79f>
++CLONE 0 1587 [ 7] mov -0x1e8(%rbp),%rax
++CLONE 0 158e [ 3] mov 0x4(%rax),%esi
++CLONE 0 1591 [ 5] jmp <+0xcd7>
++CLONE 0 1596 [ 7] mov -0x400(%rbp),%rdi
++CLONE 0 159d [ 4] vpxor %xmm0,%xmm0,%xmm0
++CLONE 0 15a1 [11] movq $0x0,-0x320(%rbp)
++CLONE 0 15ac [ 8] vmovdqa %xmm0,-0x330(%rbp)
++CLONE 0 15b4 [ 5] call <tomo_db0::StreamVal::StreamVal()>
++CLONE 0 15b9 [ 7] mov -0x440(%rbp),%rsi
++CLONE 0 15c0 [ 7] lea -0x2b0(%rbp),%rdi
++CLONE 0 15c7 [ 7] lea -0x330(%rbp),%rbx
++CLONE 0 15ce [ 5] call <tomo_db0::CollectionRef::compact() const>
++CLONE 0 15d3 [ 8] vmovdqa -0x2b0(%rbp),%xmm4
++CLONE 0 15db [ 4] sub $0x20,%rsp
++CLONE 0 15df [ 2] xor %edx,%edx
++CLONE 0 15e1 [ 3] mov %rbx,%rsi
++CLONE 0 15e4 [ 5] vmovdqu %xmm4,(%rsp)
++CLONE 0 15e9 [ 7] mov -0x2a0(%rbp),%rax
++CLONE 0 15f0 [ 5] mov %rax,0x10(%rsp)
++CLONE 0 15f5 [ 7] mov -0x430(%rbp),%rdi
++CLONE 0 15fc [ 5] call <tomo_db0::(anonymous namespace)::collect_compact(tomo_db0::CompactView, tomo_db0::StreamID const&, std::vector<tomo_db0::(anonymous namespace)::OwnedRecord, std::allocator<tomo_db0::(anonymous namespace)::OwnedRecord> >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const*)>
++CLONE 0 1601 [ 4] add $0x20,%rsp
++CLONE 0 1605 [ 2] test %al,%al
++CLONE 0 1607 [ 6] je <+0x1961>
++CLONE 0 160d [ 7] mov -0x3d0(%rbp),%rcx
++CLONE 0 1614 [ 7] mov -0x430(%rbp),%rsi
++CLONE 0 161b [ 7] mov -0x400(%rbp),%rdi
++CLONE 0 1622 [ 3] mov %rbx,%rdx
++CLONE 0 1625 [ 5] call <tomo_db0::(anonymous namespace)::build_external(tomo_db0::StreamVal&, tomo_db0::StreamHeader const&, std::vector<tomo_db0::(anonymous namespace)::OwnedRecord, std::allocator<tomo_db0::(anonymous namespace)::OwnedRecord> > const&, tomo_db0::StreamLimits const&)>
++CLONE 0 162a [ 2] test %al,%al
++CLONE 0 162c [ 6] je <+0x1961>
++CLONE 0 1632 [ 8] vmovdqa -0x460(%rbp),%xmm7
++CLONE 0 163a [ 7] mov -0x3f8(%rbp),%rdi
++CLONE 0 1641 [ 8] vmovdqa %xmm7,-0x310(%rbp)
++CLONE 0 1649 [ 5] call <tomo_db0::kvobj_size(tomo_db0::KvObj const*)>
++CLONE 0 164e [ 7] mov -0x388(%rbp),%r12
++CLONE 0 1655 [ 3] xor %r9d,%r9d
++CLONE 0 1658 [ 4] vpxor %xmm1,%xmm1,%xmm1
++CLONE 0 165c [ 7] mov %rax,-0x300(%rbp)
++CLONE 0 1663 [ 8] vmovdqu64 0xc0(%r12),%zmm0
++CLONE 0 166b [ 8] mov 0xb0(%r12),%rdx
++CLONE 0 1673 [ 8] vmovdqu64 %zmm1,0xc0(%r12)
++CLONE 0 167b [ 8] mov 0xb8(%r12),%rax
++CLONE 0 1683 [ 8] mov %r9,0xb0(%r12)
++CLONE 0 168b [ 8] mov %r9,0xb8(%r12)
++CLONE 0 1693 [ 7] vmovdqu64 -0x140(%rbp),%zmm4
++CLONE 0 169a [11] vmovdqu64 %zmm4,0xb0(%r12)
++CLONE 0 16a5 [ 8] vmovdqa -0x100(%rbp),%xmm7
++CLONE 0 16ad [10] vmovdqu %xmm7,0xf0(%r12)
++CLONE 0 16b7 [ 7] mov %rax,-0x138(%rbp)
++CLONE 0 16be [ 7] mov -0xf0(%rbp),%rax
++CLONE 0 16c5 [ 7] mov %rdx,-0x140(%rbp)
++CLONE 0 16cc [10] vmovdqa64 %zmm0,-0x130(%rbp)
++CLONE 0 16d6 [ 8] vmovdqu64 0x100(%r12),%zmm0
++CLONE 0 16de [ 8] mov %rax,0x100(%r12)
++CLONE 0 16e6 [ 7] mov -0xe8(%rbp),%rax
++CLONE 0 16ed [ 8] mov %rax,0x108(%r12)
++CLONE 0 16f5 [ 7] mov -0xe0(%rbp),%rax
++CLONE 0 16fc [ 8] mov %rax,0x110(%r12)
++CLONE 0 1704 [ 7] mov -0xd8(%rbp),%rax
++CLONE 0 170b [ 8] mov %rax,0x118(%r12)
++CLONE 0 1713 [ 7] mov -0xd0(%rbp),%rax
++CLONE 0 171a [ 7] mov -0xc0(%rbp),%rdx
++CLONE 0 1721 [ 8] mov %rax,0x120(%r12)
++CLONE 0 1729 [ 7] mov -0xc8(%rbp),%rax
++CLONE 0 1730 [ 8] mov %rdx,0x130(%r12)
++CLONE 0 1738 [ 7] mov -0xb8(%rbp),%rdx
++CLONE 0 173f [ 8] mov %rax,0x128(%r12)
++CLONE 0 1747 [ 8] mov 0x140(%r12),%rax
++CLONE 0 174f [ 8] mov %rdx,0x138(%r12)
++CLONE 0 1757 [ 7] mov -0xb0(%rbp),%rdx
++CLONE 0 175e [ 8] vmovdqa -0x150(%rbp),%xmm4
++CLONE 0 1766 [ 7] cmpb $0x0,-0x1f0(%rbp)
++CLONE 0 176d [ 8] mov %rdx,0x140(%r12)
++CLONE 0 1775 [ 7] mov %rax,-0xb0(%rbp)
++CLONE 0 177c [ 7] mov -0xa8(%rbp),%rax
++CLONE 0 1783 [10] vmovdqa64 %zmm0,-0xf0(%rbp)
++CLONE 0 178d [10] vmovdqu %xmm4,0xa0(%r12)
++CLONE 0 1797 [ 8] mov %rax,0x148(%r12)
++CLONE 0 179f [ 6] jne <+0x199b>
++CLONE 0 17a5 [ 8] vmovq -0x1a8(%rbp),%xmm0
++CLONE 0 17ad [ 6] mov -0x1ac(%rbp),%edx
++CLONE 0 17b3 [ 6] vpinsrq $0x1,%rax,%xmm0,%xmm0
++CLONE 0 17b9 [ 5] lea 0x8(%r12),%rdi
++CLONE 0 17be [ 5] mov %edx,0x50(%r12)
++CLONE 0 17c3 [ 7] vmovdqu %xmm0,0x58(%r12)
++CLONE 0 17ca [ 3] vzeroupper
++CLONE 0 17cd [ 5] call <tomo_db0::Compact::clear()>
++CLONE 0 17d2 [ 7] lea -0x310(%rbp),%rdi
++CLONE 0 17d9 [ 5] movb $0x2,(%r12)
++CLONE 0 17de [ 5] call <tomo_db0::ObjectSizeTracker::finish()>
++CLONE 0 17e3 [ 7] mov -0x400(%rbp),%rdi
++CLONE 0 17ea [ 5] call <tomo_db0::StreamVal::~StreamVal()>
++CLONE 0 17ef [ 3] mov %rbx,%rdi
++CLONE 0 17f2 [ 5] call <std::vector<tomo_db0::(anonymous namespace)::OwnedRecord, std::allocator<tomo_db0::(anonymous namespace)::OwnedRecord> >::~vector()>
++CLONE 0 17f7 [ 5] jmp <+0x8f5>
++CLONE 0 17fc [ 7] mov -0x400(%rbp),%rdi
++CLONE 0 1803 [ 7] lea <rip>(%rip),%rsi # <literal-string-45525220636f72727570742073747265616d20656e636f64696e6700>
++CLONE 0 180a [ 7] mov %r15,-0x1f0(%rbp)
++CLONE 0 1811 [ 7] movb $0x0,-0x1e8(%rbp)
++CLONE 0 1818 [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
++CLONE 0 181d [ 5] jmp <+0x10e2>
++CLONE 0 1822 [ 3] mov %r15,%rdi
++CLONE 0 1825 [ 5] call <tomo_db0::reply_maxmemory_oom(tomo_db0::Op&)>
++CLONE 0 182a [ 5] jmp <+0xa93>
++CLONE 0 182f [ 8] vmovdqu -0x278(%rbp),%ymm4
++CLONE 0 1837 [ 8] vmovdqa %xmm0,-0x290(%rbp)
++CLONE 0 183f [ 8] vmovdqa -0x290(%rbp),%ymm7
++CLONE 0 1847 [ 7] lea 0xc0(%rbx),%r13
++CLONE 0 184e [ 7] lea 0xe0(%rbx),%r14
++CLONE 0 1855 [ 3] mov %r13,%rsi
++CLONE 0 1858 [ 3] mov %r14,%rdi
++CLONE 0 185b [ 5] vmovdqu %ymm7,0x68(%rbx)
++CLONE 0 1860 [ 8] vmovdqu %ymm4,0x80(%rbx)
++CLONE 0 1868 [ 3] vzeroupper
++CLONE 0 186b [ 5] call <std::operator-(std::_Deque_iterator<tomo_db0::StreamNode, tomo_db0::StreamNode&, tomo_db0::StreamNode*> const&, std::_Deque_iterator<tomo_db0::StreamNode, tomo_db0::StreamNode&, tomo_db0::StreamNode*> const&)>
++CLONE 0 1870 [ 3] xor %r12d,%r12d
++CLONE 0 1873 [ 7] mov %rax,-0x3d0(%rbp)
++CLONE 0 187a [ 5] jmp <+0x1197>
++CLONE 0 187f [ 3] xor %r8d,%r8d
++CLONE 0 1882 [ 5] jmp <+0x84e>
++CLONE 0 1887 [ 5] mov $0x1,%ebx
++CLONE 0 188c [ 5] jmp <+0x7ca>
++CLONE 0 1891 [ 7] lea -0x310(%rbp),%rdi
++CLONE 0 1898 [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
++CLONE 0 189f [ 7] mov %r15,-0x310(%rbp)
++CLONE 0 18a6 [ 7] movb $0x0,-0x308(%rbp)
++CLONE 0 18ad [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
++CLONE 0 18b2 [ 7] mov -0x400(%rbp),%rdi
++CLONE 0 18b9 [ 5] call <tomo_db0::ObjectSizeTracker::finish()>
++CLONE 0 18be [ 5] jmp <+0xb0>
++CLONE 0 18c3 [ 7] mov -0x3e0(%rbp),%rax
++CLONE 0 18ca [ 7] lea 0xb0(%rbx),%rdi
++CLONE 0 18d1 [ 7] mov 0x148(%rbx),%r13
++CLONE 0 18d8 [ 3] add %rax,%r12
++CLONE 0 18db [ 5] call <std::deque<tomo_db0::StreamNode, std::allocator<tomo_db0::StreamNode> >::back()>
++CLONE 0 18e0 [ 3] mov %rax,%rdi
++CLONE 0 18e3 [ 5] call <tomo_db0::Compact::capacity_bytes() const>
++CLONE 0 18e8 [ 3] mov %rbx,%rdi
++CLONE 0 18eb [ 3] mov %rax,%r9
++CLONE 0 18ee [ 5] call <tomo_db0::(anonymous namespace)::tail_field_bytes(tomo_db0::StreamVal const&)>
++CLONE 0 18f3 [ 3] add %r9,%rax
++CLONE 0 18f6 [ 3] sub %r12,%rax
++CLONE 0 18f9 [ 3] add %r13,%rax
++CLONE 0 18fc [ 3] vzeroupper
++CLONE 0 18ff [ 5] jmp <+0x11f4>
++CLONE 0 1904 [ 7] lea -0x1f0(%rbp),%rdi
++CLONE 0 190b [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
++CLONE 0 1912 [ 7] mov %r15,-0x1f0(%rbp)
++CLONE 0 1919 [ 7] movb $0x0,-0x1e8(%rbp)
++CLONE 0 1920 [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
++CLONE 0 1925 [ 5] jmp <+0xfd2>
++CLONE 0 192a [ 4] mov -0x38(%rbp),%rax
++CLONE 0 192e [ 9] sub %fs:0x28,%rax
++CLONE 0 1937 [ 2] jne <+0x19ae>
++CLONE 0 1939 [ 7] lea -0x1d8(%rbp),%rax
++CLONE 0 1940 [ 7] lea <rip>(%rip),%rdi # <literal-string-62617369635f737472696e673a20636f6e737472756374696f6e2066726f6d206e756c6c206973206e6f742076616c696400>
++CLONE 0 1947 [ 7] mov %rax,-0x3e0(%rbp)
++CLONE 0 194e [ 7] lea -0x370(%rbp),%rax
++CLONE 0 1955 [ 7] mov %rax,-0x3d8(%rbp)
++CLONE 0 195c [ 5] call <_ZSt19__throw_logic_errorPKc@plt>
++CLONE 0 1961 [ 7] lea -0x310(%rbp),%rdi
++CLONE 0 1968 [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
++CLONE 0 196f [ 7] mov %r15,-0x310(%rbp)
++CLONE 0 1976 [ 7] movb $0x0,-0x308(%rbp)
++CLONE 0 197d [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
++CLONE 0 1982 [ 7] mov -0x400(%rbp),%rdi
++CLONE 0 1989 [ 5] call <tomo_db0::StreamVal::~StreamVal()>
++CLONE 0 198e [ 3] mov %rbx,%rdi
++CLONE 0 1991 [ 5] call <std::vector<tomo_db0::(anonymous namespace)::OwnedRecord, std::allocator<tomo_db0::(anonymous namespace)::OwnedRecord> >::~vector()>
++CLONE 0 1996 [ 5] jmp <+0x10e2>
++CLONE 0 199b [ 8] vmovq -0x198(%rbp),%xmm0
++CLONE 0 19a3 [ 6] mov -0x1a0(%rbp),%edx
++CLONE 0 19a9 [ 5] jmp <+0x17b3>
++CLONE 0 19ae [ 5] call <__stack_chk_fail@plt>
++CLONE 0 19b3 [ 7] lea -0x1f0(%rbp),%rdi
++CLONE 0 19ba [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
++CLONE 0 19c1 [ 7] mov %r15,-0x1f0(%rbp)
++CLONE 0 19c8 [ 7] movb $0x0,-0x1e8(%rbp)
++CLONE 0 19cf [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
++CLONE 0 19d4 [ 5] jmp <+0xb0>
++CLONE 0 19d9 [ 4] endbr64
++CLONE 0 19dd [ 3] mov %rax,%rbx
++CLONE 0 19e0 [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]>
++CLONE 0 19e5 [ 4] endbr64
++CLONE 0 19e9 [ 3] mov %rax,%rbx
++CLONE 0 19ec [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0x26>
++CLONE 0 19f1 [ 4] endbr64
++CLONE 0 19f5 [ 3] mov %rax,%rbx
++CLONE 0 19f8 [ 3] vzeroupper
++CLONE 0 19fb [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0x78>
+ CLONE 0 1a00 [ 4] endbr64
+ CLONE 0 1a04 [ 3] mov %rax,%rbx
+ CLONE 0 1a07 [ 3] vzeroupper
+-CLONE 0 1a0a [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0x1a>
++CLONE 0 1a0a [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0x4d>
+ CLONE 0 1a0f [ 4] endbr64
+ CLONE 0 1a13 [ 3] mov %rax,%rbx
+-CLONE 0 1a16 [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0x45>
++CLONE 0 1a16 [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0x86>
+ CLONE 0 1a1b [ 4] endbr64
+-CLONE 0 1a1f [ 3] mov %rax,%rbx
+-CLONE 0 1a22 [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0x90>
++CLONE 0 1a1f [ 3] mov %rax,%r12
++CLONE 0 1a22 [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0xa9>
+ CLONE 0 1a27 [ 4] endbr64
+-CLONE 0 1a2b [ 3] mov %rax,%rbx
+-CLONE 0 1a2e [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0x6e>
+-CLONE 0 1a33 [ 4] endbr64
+-CLONE 0 1a37 [ 3] mov %rax,%rbx
+-CLONE 0 1a3a [ 3] vzeroupper
+-CLONE 0 1a3d [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0xbb>
+-CLONE 0 1a42 [ 4] endbr64
+-CLONE 0 1a46 [ 3] mov %rax,%r12
+-CLONE 0 1a49 [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]>
+-CLONE 0 1a4e [ 4] endbr64
+-CLONE 0 1a52 [ 3] mov %rax,%r12
+-CLONE 0 1a55 [ 7] lea -0x330(%rbp),%rbx
+-CLONE 0 1a5c [ 3] vzeroupper
+-CLONE 0 1a5f [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0xf>
++CLONE 0 1a2b [ 3] mov %rax,%r12
++CLONE 0 1a2e [ 7] lea -0x330(%rbp),%rbx
++CLONE 0 1a35 [ 3] vzeroupper
++CLONE 0 1a38 [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0xb8>
++CLONE 0 1a3d [ 4] endbr64
++CLONE 0 1a41 [ 3] mov %rax,%rbx
++CLONE 0 1a44 [ 3] vzeroupper
++CLONE 0 1a47 [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0xc3>
++CLONE 0 1a4c [ 4] endbr64
++CLONE 0 1a50 [ 3] mov %rax,%rbx
++CLONE 0 1a53 [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0x6d>
++CLONE 0 1a58 [ 4] endbr64
++CLONE 0 1a5c [ 3] mov %rax,%rbx
++CLONE 0 1a5f [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0xcd>
+ CLONE 0 1a64 [ 4] endbr64
+ CLONE 0 1a68 [ 3] mov %rax,%rbx
+-CLONE 0 1a6b [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0xcc>
+-CLONE 0 1a70 [ 4] endbr64
+-CLONE 0 1a74 [ 3] mov %rax,%rbx
+-CLONE 0 1a77 [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0x100>
+-CLONE 0 1a7c [ 4] endbr64
+-CLONE 0 1a80 [ 3] mov %rax,%rbx
+-CLONE 0 1a83 [ 3] vzeroupper
+-CLONE 0 1a86 [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0x22>
+-CLONE 0 1a8b [ 4] endbr64
+-CLONE 0 1a8f [ 3] mov %rax,%rbx
+-CLONE 0 1a92 [ 3] vzeroupper
+-CLONE 0 1a95 [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0xdb>
+-CLONE 0 1a9a [ 4] endbr64
+-CLONE 0 1a9e [ 3] mov %rax,%rbx
+-CLONE 0 1aa1 [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0xb0>
+-CLONE 0 1aa6 [ 4] endbr64
+-CLONE 0 1aaa [ 3] mov %rax,%rbx
+-CLONE 0 1aad [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0x109>
++CLONE 0 1a6b [ 3] vzeroupper
++CLONE 0 1a6e [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0xd4>
++CLONE 0 1a73 [ 4] endbr64
++CLONE 0 1a77 [ 3] mov %rax,%rbx
++CLONE 0 1a7a [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0xfc>
++CLONE 0 1a7f [ 4] endbr64
++CLONE 0 1a83 [ 3] mov %rax,%rbx
++CLONE 0 1a86 [ 5] jmp <void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]+0x116>

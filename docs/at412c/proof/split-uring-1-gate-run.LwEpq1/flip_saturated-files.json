@@ -1,0 +1,12 @@
+[
+  {
+    "path": "gate-srv-main.4MCvJn",
+    "bytes": 8560,
+    "sha256": "94d3c1fe33d8fc46aac4be2dc262999b6776b28899226a179f69d31f59063551"
+  },
+  {
+    "path": "output.log",
+    "bytes": 311,
+    "sha256": "d990d51ad956f3ab86bbd65ffd61fd002e18917df4eb0ff70b1b78b2854d434e"
+  }
+]

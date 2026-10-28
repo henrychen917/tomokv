@@ -12,13 +12,11 @@ int main(int argc, char** argv) {
     const bool post = std::string(argv[1]) == "post";
     T::require(tomo::command_registry_init(false), "command registry");
     constructions = visits = 0;
-    for (uint32_t overlap : {0u, 1u}) {
-        T::io_dispatch_membership<false, true>(tomo::ThreadMode::Fused, overlap, 1);
-        T::io_dispatch_membership<true>(tomo::ThreadMode::Fused, overlap, 1);
-    }
-    // Four fresh clients, one incomplete and one successful SET pass each.
-    T::require(constructions == (post ? 0 : 8), "RO2 no-Long production construction count");
-    std::printf("PASS RO2 production: 8 no-Long passes, %llu constructions, %llu visits\n",
+    T::io_dispatch_membership<false, true>(tomo::ThreadMode::Fused, 1);
+    T::io_dispatch_membership<true>(tomo::ThreadMode::Fused, 1);
+    // Two fresh clients, one incomplete and one successful SET pass each.
+    T::require(constructions == (post ? 0 : 4), "RO2 no-Long production construction count");
+    std::printf("PASS RO2 production: 4 no-Long passes, %llu constructions, %llu visits\n",
                 (unsigned long long)constructions, (unsigned long long)visits);
     constructions = visits = 0;
     T::shadow_foreign_passes();

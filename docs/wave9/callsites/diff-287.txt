@@ -1,0 +1,83 @@
+tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*) [clone .cold]
+--- at412c
+
++++ post
+
+@@ -16,44 +16,44 @@
+
+ CLONE 0 0051 [ 7] lea -0x568(%rbp),%rdi
+ CLONE 0 0058 [ 5] call <std::unique_ptr<tomo_db0::SnapshotLoadPlan, std::default_delete<tomo_db0::SnapshotLoadPlan> >::~unique_ptr()>
+ CLONE 0 005d [ 7] cmpb $0x0,-0x5d0(%rbp)
+-CLONE 0 0064 [ 2] je <+0xa8>
++CLONE 0 0064 [ 2] je <+0xb4>
+ CLONE 0 0066 [ 7] mov -0x5e0(%rbp),%rcx
+ CLONE 0 006d [ 3] or $0xffffffff,%eax
+ CLONE 0 0070 [ 8] lock xadd %eax,0x149f0(%rcx)
+ CLONE 0 0078 [ 2] test %eax,%eax
+-CLONE 0 007a [ 2] jne <+0xa8>
++CLONE 0 007a [ 2] jne <+0xb4>
+ CLONE 0 007c [ 5] call <abort@plt>
+ CLONE 0 0081 [ 3] mov %r13,%rdi
+ CLONE 0 0084 [ 3] vzeroupper
+ CLONE 0 0087 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 008c [ 7] mov -0x600(%rbp),%rdi
+-CLONE 0 0093 [ 7] lea -0x500(%rbp),%r15
+-CLONE 0 009a [ 7] lea -0x560(%rbp),%r14
+-CLONE 0 00a1 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 00a6 [ 2] jmp <+0x41>
+-CLONE 0 00a8 [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 00ac [ 9] sub %fs:0x28,%rax
+-CLONE 0 00b5 [ 2] jne <+0xbf>
+-CLONE 0 00b7 [ 3] mov %rbx,%rdi
+-CLONE 0 00ba [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 00bf [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 00c4 [ 3] mov %r13,%rdi
+-CLONE 0 00c7 [ 3] vzeroupper
+-CLONE 0 00ca [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 00cf [ 7] mov -0x5f0(%rbp),%rdi
++CLONE 0 008c [ 7] mov -0x5f0(%rbp),%rdi
++CLONE 0 0093 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0098 [ 7] mov -0x600(%rbp),%rdi
++CLONE 0 009f [ 7] lea -0x500(%rbp),%r15
++CLONE 0 00a6 [ 7] lea -0x560(%rbp),%r14
++CLONE 0 00ad [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 00b2 [ 2] jmp <+0x41>
++CLONE 0 00b4 [ 4] mov -0x38(%rbp),%rax
++CLONE 0 00b8 [ 9] sub %fs:0x28,%rax
++CLONE 0 00c1 [ 2] jne <+0xcb>
++CLONE 0 00c3 [ 3] mov %rbx,%rdi
++CLONE 0 00c6 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 00cb [ 5] call <__stack_chk_fail@plt>
++CLONE 0 00d0 [ 3] mov %r13,%rdi
++CLONE 0 00d3 [ 3] vzeroupper
+ CLONE 0 00d6 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 00db [ 2] jmp <+0x8c>
+-CLONE 0 00dd [ 3] mov %r13,%rdi
+-CLONE 0 00e0 [ 3] vzeroupper
+-CLONE 0 00e3 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 00e8 [ 7] mov -0x5f0(%rbp),%rdi
+-CLONE 0 00ef [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 00f4 [ 5] jmp <+0x41>
+-CLONE 0 00f9 [ 7] mov -0x5f0(%rbp),%rdi
+-CLONE 0 0100 [ 3] vzeroupper
+-CLONE 0 0103 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0108 [ 2] jmp <+0x8c>
+-CLONE 0 010a [ 3] mov %r13,%rdi
+-CLONE 0 010d [ 3] vzeroupper
+-CLONE 0 0110 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0115 [ 5] jmp <+0x8c>
++CLONE 0 00db [ 2] jmp <+0x98>
++CLONE 0 00dd [ 7] mov -0x5f0(%rbp),%rdi
++CLONE 0 00e4 [ 3] vzeroupper
++CLONE 0 00e7 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 00ec [ 2] jmp <+0x98>
++CLONE 0 00ee [ 3] mov %r13,%rdi
++CLONE 0 00f1 [ 3] vzeroupper
++CLONE 0 00f4 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 00f9 [ 2] jmp <+0x98>
++CLONE 0 00fb [ 3] mov %r13,%rdi
++CLONE 0 00fe [ 3] vzeroupper
++CLONE 0 0101 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0106 [ 7] mov -0x5f0(%rbp),%rdi
++CLONE 0 010d [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0112 [ 5] jmp <+0x41>

@@ -1,0 +1,2 @@
+exec-window epoch=0 doomed=0 terminal=1 retry=0
+FAIL: wounded EXEC must restart, never return an aborted final reply

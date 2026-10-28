@@ -4,6 +4,7 @@
 // IO-thread call. Client metadata lives in a cold, locked catalog here rather than enlarging the
 // 1984-byte Client. Store handlers still receive only (Shard&, Op&) and never touch a socket.
 #include "command.h"
+#include "blocking.h"
 #include "acl.h"
 #include "auth.h"
 #include "cmdmeta.h"
@@ -1288,6 +1289,17 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         reply_int(op.sink(), xshard_plain_stale_cuts());
         return;
     }
+    if (eq_icase(subcommand, "script-stage-watch") && op.argc() == 3) {
+        uint64_t client = 0;
+        if (!parse_u64(op.arg(2), client)) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        g_server->set_debug_script_stage_watch(client);
+        reply_ok(op.sink());
+        return;
+    }
     // Nonblocking admission witness: unlike COMMIT-DELAY, this latch leaves both executors
     // available for CONFIG. It retains the existing commit queue until explicitly released.
     if (eq_icase(subcommand, "atomic-commit-hold") && op.argc() == 3) {
@@ -1411,6 +1423,19 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         }
         if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
         g_server->set_debug_script_stage_defer(static_cast<uint32_t>(microseconds));
+        reply_ok(op.sink());
+        return;
+    }
+    if ((eq_icase(subcommand, "script-apply-defer") || eq_icase(subcommand, "script-escalate-force")) && op.argc() == 3) {
+        uint64_t value = 0;
+        const bool force = eq_icase(subcommand, "script-escalate-force");
+        if (!parse_u64(op.arg(2), value) || value > (force ? 1u : 10000000u)) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (force) g_server->set_debug_script_escalate_force(value);
+        else g_server->set_debug_script_apply_defer(value);
         reply_ok(op.sink());
         return;
     }
@@ -2505,13 +2530,18 @@ void cmd_info(Shard&, Op& op) {
         }
     }
     if (info_section(op, "CLIENTS")) {
+        uint64_t blocking_keys = 0, blocking_on_nokey = 0;
+        if (g_server) blocking_key_counts(*g_server, blocking_keys, blocking_on_nokey);
         appendf(body, "# Clients\r\nconnected_clients:%llu\r\nblocked_clients:%llu\r\n"
-                      "tracking_clients:%llu\r\nmonitor_clients:%llu\r\n",
+                      "tracking_clients:%llu\r\nmonitor_clients:%llu\r\n"
+                      "total_blocking_keys:%llu\r\ntotal_blocking_keys_on_nokey:%llu\r\n",
                 static_cast<unsigned long long>(g_server ? g_server->live_clients() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->blocked_clients() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->climon_tracking_clients() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->climon_monitors() : 0));
+                static_cast<unsigned long long>(g_server ? g_server->climon_monitors() : 0),
+                static_cast<unsigned long long>(blocking_keys),
+                static_cast<unsigned long long>(blocking_on_nokey));
     }
     if (want_memory) {
         // used_memory follows the same accounted basis that admits/evicts writes and that MEMORY
@@ -2682,6 +2712,8 @@ void cmd_info(Shard&, Op& op) {
                       "script_crossshard_activations:%llu\r\nscript_group_commits:%llu\r\n"
                       "script_group_occ_retries:%llu\r\nscript_group_occ_giveups:%llu\r\n"
                       "script_staged_bytes_total:%llu\r\nscript_crossshard_window_refusals:%llu\r\n"
+                      "script_crossshard_window_waits:%llu\r\n"
+                      "script_escalations:%llu\r\nscript_escalated_commits:%llu\r\n"
                       "script_group_aborts_oom:%llu\r\n"
                       "script_keys_armed:%llu\r\nscript_keys_released:%llu\r\n"
                       "script_intents_live:%llu\r\nscript_write_tickets_forced:%llu\r\n"
@@ -2806,6 +2838,9 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->script_group_occ_giveups() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->script_staged_bytes_total() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->script_crossshard_window_refusals() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->script_crossshard_window_waits() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->script_escalations() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->script_escalated_commits() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->script_group_aborts_oom() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->script_keys_armed() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->script_keys_released() : 0),
@@ -2894,6 +2929,10 @@ void cmd_info(Shard&, Op& op) {
                     g_server ? g_server->barrier_owner_overlaps() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->barrier_releases_held() : 0));
+        appendf(body, "script_waiters_peak:%llu\r\n", static_cast<unsigned long long>(
+            g_server ? g_server->script_waiters_peak() : 0));
+        appendf(body, "script_stage_watch_tasks:%llu\r\n", static_cast<unsigned long long>(
+            g_server ? g_server->debug_script_stage_watch_tasks() : 0));
         static constexpr const char* txn_fields[] = {
             "atomic_txn_attempts", "atomic_txn_retries", "atomic_txn_dooms", "atomic_txn_wounds",
             "atomic_txn_waits", "atomic_txn_intents", "atomic_txn_intents_live",
@@ -3444,6 +3483,8 @@ void command_config_resetstat() {
 
 void command_bind_server(Server* server) {
     g_server = server;
+    client_pause_expiry_clock.store(server ? server->climon_pause_clock() : nullptr,
+                                   std::memory_order_release);
     scripting_bind_server(server);
     g_started_monotonic_ns = now_ns();
     info_stats_init(server);
@@ -3495,6 +3536,11 @@ void command_client_disconnected(Client* client) {
 
 void* command_client_migration_extract(Client* client) {
     if (!client) return nullptr;
+    // AT4.12: a connection leaving its IO leaves that IO's script FIFO (a no-op for a connection
+    // that never queued). finish_client_transfer calls this on the source IO, before the commit
+    // hands the connection to its destination, so no other thread can close it while queued.
+    // Out of line here, the IO templates keep their PRE bodies.
+    if (g_server) script_window_forget(*g_server, client->ifid_thread(), *client);
     auto* catalog = new (std::nothrow) ClientMigrationCatalog;
     if (!catalog) return nullptr;
     register_client_catalog();

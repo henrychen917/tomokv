@@ -1,0 +1,15 @@
+lua_setupvalue
+--- headline
+
++++ post
+
+@@ -57,7 +57,7 @@
+
+ CLONE 0 00c9 [ 3] cmp %edx,%r8d
+ CLONE 0 00cc [ 2] jg <+0xa9>
+ CLONE 0 00ce [ 3] dec %r8d
+-CLONE 0 00d1 [ 7] lea <rip>(%rip),%r10 # <_IO_stdin_used+0x788>
++CLONE 0 00d1 [ 7] lea <rip>(%rip),%r10 # <_IO_stdin_used+0x782>
+ CLONE 0 00d8 [ 3] movslq %r8d,%r8
+ CLONE 0 00db [ 4] shl $0x4,%r8
+ CLONE 0 00df [ 5] lea 0x28(%rax,%r8,1),%rcx

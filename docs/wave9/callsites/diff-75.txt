@@ -1,0 +1,21 @@
+tomo::(anonymous namespace)::prepare_local_write_keys(tomo::Server&, tomo::MultiExecState&, tomo::MultiCommand&, tomo::Shard&, unsigned int)
+--- headline
+
++++ post
+
+@@ -310,12 +310,12 @@
+
+ CLONE 0 0511 [11] data16 cs nopw 0x0(%rax,%rax,1)
+ CLONE 0 051c [ 4] nopl 0x0(%rax)
+ CLONE 0 0520 [ 4] mov -0x70(%rbp),%rax
+-CLONE 0 0524 [ 7] movb $0x1,0x598(%rax)
++CLONE 0 0524 [ 7] movb $0x1,0x5a0(%rax)
+ CLONE 0 052b [ 4] mov -0x50(%rbp),%rax
+ CLONE 0 052f [ 4] mov %rax,-0x78(%rbp)
+ CLONE 0 0533 [ 5] jmp <+0x47f>
+ CLONE 0 0538 [ 4] mov -0x70(%rbp),%rax
+-CLONE 0 053c [ 7] movb $0x1,0x598(%rax)
++CLONE 0 053c [ 7] movb $0x1,0x5a0(%rax)
+ CLONE 0 0543 [ 4] mov -0x50(%rbp),%rax
+ CLONE 0 0547 [ 4] mov -0x40(%rbp),%rsi
+ CLONE 0 054b [ 2] xor %ebx,%ebx

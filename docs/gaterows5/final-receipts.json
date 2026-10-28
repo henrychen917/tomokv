@@ -1,0 +1,38 @@
+[
+  {
+    "name": "feature-split-1-isolated",
+    "argv": [
+      "bash",
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "16-23",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "24-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "44851-44879"
+    ],
+    "env": {
+      "GATE_ONLY_JOBS": "feature-split-1",
+      "GATE_TEST_PORT": "44898"
+    },
+    "exit": 0,
+    "seconds": 111.49334548041224
+  },
+  {
+    "name": "gates-test-complete",
+    "argv": [
+      "python3",
+      "tests/gates_test.py"
+    ],
+    "env": {
+      "GATE_TEST_PORT": "44898"
+    },
+    "exit": 0,
+    "seconds": 94.96930726896971
+  }
+]

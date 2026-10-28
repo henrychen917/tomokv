@@ -1,0 +1,2 @@
+{"topologies": [["srcset{t}", "dstset{t}"]]}
+PASS WATCH-SPURIOUS-INVALIDATION

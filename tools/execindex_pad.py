@@ -7,6 +7,7 @@ PRE's entry. Both arms have identical text size, section layout, data, and every
 function address. Keep POST-release as the ordinary deployment/merit candidate;
 use POST-layout vs PAD-A to control the larger common image's layout separately.
 """
+import argparse
 import hashlib
 import json
 import re
@@ -28,8 +29,16 @@ def recipe(source, objects):
 def sha(path): return hashlib.sha256(path.read_bytes()).hexdigest()
 
 def main():
-    pre=OUT/'pre-source'
-    old=recipe(pre,pre/'build'); new=recipe(ROOT,ROOT/'build')
+    global OUT
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--output', type=Path, default=OUT)
+    parser.add_argument('--record', type=Path, default=ROOT/'docs/execindex/pad-a.json')
+    parser.add_argument('--pre-source', type=Path, default=OUT/'pre-source')
+    parser.add_argument('--pre-objects', type=Path, default=OUT/'pre-source/build')
+    args = parser.parse_args()
+    OUT = args.output.resolve(); OUT.mkdir(parents=True, exist_ok=True)
+    pre = args.pre_source.resolve(); pre_objects = args.pre_objects.resolve()
+    old=recipe(pre,pre_objects); new=recipe(ROOT,ROOT/'build')
     objects=[Path(x) for x in old if x.endswith('.o') and not x.endswith('/src/core/version.o')]
     symbols=set()
     for path in objects:
@@ -43,7 +52,7 @@ def main():
     mapping.write_text(''.join(f'{s} execindex_pre_{s}\n' for s in sorted(symbols)))
     renamed=[]
     for path in objects:
-        dest=OUT/'pad-objects'/path.relative_to(pre/'build')
+        dest=OUT/'pad-objects'/path.relative_to(pre_objects)
         dest.parent.mkdir(parents=True,exist_ok=True)
         subprocess.run(['objcopy','--redefine-syms',str(mapping),str(path),str(dest)],check=True)
         renamed.append(str(dest))
@@ -75,6 +84,6 @@ def main():
         entry_source=source,entry_target=target,link=link,
         pre_objects={str(p):sha(p) for p in objects},
         limitation='The exact twin is POST-layout, not the smaller release image. Measure the release null separately.')
-    (ROOT/'docs/execindex/pad-a.json').write_text(json.dumps(record,indent=2)+'\n')
+    args.record.write_text(json.dumps(record,indent=2)+'\n')
     print(json.dumps({k:v for k,v in record.items() if k not in ('link','pre_objects')},indent=2))
 if __name__=='__main__':main()

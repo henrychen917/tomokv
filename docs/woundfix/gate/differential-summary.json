@@ -1,0 +1,50 @@
+[
+  {
+    "engine": "uring",
+    "seeds": [
+      7,
+      19,
+      20,
+      23,
+      21
+    ],
+    "equivalence_seeds": [
+      21
+    ],
+    "gate_rows": [
+      6,
+      0
+    ],
+    "parts": {
+      "equivalence": 16,
+      "armed-0": 230,
+      "split-0": 235,
+      "split-1": 239,
+      "armed-1": 234
+    }
+  },
+  {
+    "engine": "epoll",
+    "seeds": [
+      7,
+      19,
+      20,
+      23,
+      22
+    ],
+    "equivalence_seeds": [
+      22
+    ],
+    "gate_rows": [
+      6,
+      0
+    ],
+    "parts": {
+      "equivalence": 16,
+      "armed-0": 230,
+      "split-0": 235,
+      "split-1": 239,
+      "armed-1": 234
+    }
+  }
+]

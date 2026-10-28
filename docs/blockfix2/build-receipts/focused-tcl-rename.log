@@ -1,0 +1,4 @@
+rename 1s POST PASS
+rename 1s BROKEN REJECTED
+rename 2s POST PASS
+rename 2s BROKEN REJECTED

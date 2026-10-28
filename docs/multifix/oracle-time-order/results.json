@@ -1,0 +1,48 @@
+[
+  {
+    "mode": "redis",
+    "root": "PAUSE-IN-MULTI",
+    "exit_code": 0,
+    "argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis74/src/redis-server",
+      "--port",
+      "20500",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "docs/multifix/oracle-time-order/redis-PAUSE-IN-MULTI",
+      "--enable-debug-command",
+      "yes"
+    ]
+  },
+  {
+    "mode": "redis",
+    "root": "SLOWLOG-EXEC-BODY-NOT-LOGGED",
+    "exit_code": 0,
+    "argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis74/src/redis-server",
+      "--port",
+      "20500",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "docs/multifix/oracle-time-order/redis-SLOWLOG-EXEC-BODY-NOT-LOGGED",
+      "--enable-debug-command",
+      "yes"
+    ]
+  }
+]

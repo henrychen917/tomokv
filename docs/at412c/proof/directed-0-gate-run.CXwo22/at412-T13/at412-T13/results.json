@@ -1,0 +1,326 @@
+[
+  {
+    "case": "T13",
+    "leg": "redis-redis-0-EVAL",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 0,
+      "escalated": 0
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "redis-redis-0-EVALSHA",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 0,
+      "escalated": 0
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "redis-redis-0-FCALL",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 0,
+      "escalated": 0
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "1s-uring-0-EVAL",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 156,
+      "escalated": 129
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "1s-uring-0-EVALSHA",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 154,
+      "escalated": 129
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "1s-uring-0-FCALL",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 154,
+      "escalated": 128
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "1s-uring-1-EVAL",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 153,
+      "escalated": 128
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "1s-uring-1-EVALSHA",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 154,
+      "escalated": 128
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "1s-uring-1-FCALL",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 152,
+      "escalated": 128
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "1s-epoll-0-EVAL",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 157,
+      "escalated": 129
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "1s-epoll-0-EVALSHA",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 155,
+      "escalated": 129
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "1s-epoll-0-FCALL",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 154,
+      "escalated": 129
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "1s-epoll-1-EVAL",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 156,
+      "escalated": 129
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "1s-epoll-1-EVALSHA",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 150,
+      "escalated": 127
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "1s-epoll-1-FCALL",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 154,
+      "escalated": 129
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "2s-uring-0-EVAL",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 153,
+      "escalated": 129
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "2s-uring-0-EVALSHA",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 144,
+      "escalated": 128
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "2s-uring-0-FCALL",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 143,
+      "escalated": 127
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "2s-uring-1-EVAL",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 150,
+      "escalated": 128
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "2s-uring-1-EVALSHA",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 141,
+      "escalated": 126
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "2s-uring-1-FCALL",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 148,
+      "escalated": 128
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "2s-epoll-0-EVAL",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 148,
+      "escalated": 128
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "2s-epoll-0-EVALSHA",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 143,
+      "escalated": 128
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "2s-epoll-0-FCALL",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 142,
+      "escalated": 128
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "2s-epoll-1-EVAL",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 149,
+      "escalated": 128
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "2s-epoll-1-EVALSHA",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 142,
+      "escalated": 127
+    },
+    "pass": true
+  },
+  {
+    "case": "T13",
+    "leg": "2s-epoll-1-FCALL",
+    "value": {
+      "scripts": 128,
+      "execs": 32,
+      "writers": 8,
+      "peak": 145,
+      "escalated": 128
+    },
+    "pass": true
+  }
+]

@@ -1,0 +1,15 @@
+unsigned long tomo::kvobj_external_bytes<true>(tomo::KvObj const*, void const*)
+--- blockfix2
+
++++ post
+
+@@ -14,7 +14,7 @@
+
+ CLONE 0 0030 [ 3] add %rdx,%rax
+ CLONE 0 0033 [ 3] notrack jmp *%rax
+ CLONE 0 0036 [10] cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 0040 [ 8] cmpq $0x0,<rip>(%rip) # <_GLOBAL_OFFSET_TABLE_+0xaa0>
++CLONE 0 0040 [ 8] cmpq $0x0,<rip>(%rip) # <_GLOBAL_OFFSET_TABLE_+0xab0>
+ CLONE 0 0048 [ 2] je <+0x83>
+ CLONE 0 004a [ 3] mov %rsi,%rdi
+ CLONE 0 004d [ 4] movzbl 0x2(%rbx),%eax

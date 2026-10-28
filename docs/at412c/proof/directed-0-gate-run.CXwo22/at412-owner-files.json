@@ -1,0 +1,12 @@
+[
+  {
+    "path": "at412-owner.log",
+    "bytes": 4616,
+    "sha256": "44957d1f1ff2da5314301abc05ec01f77d647ebd4e20e5a89c8c383a0df52651"
+  },
+  {
+    "path": "output.log",
+    "bytes": 134,
+    "sha256": "f0fdf32fdffd169cf2bd0fe2a8b5779a35f30c5d8cafc159c5ad1874fd1635fe"
+  }
+]

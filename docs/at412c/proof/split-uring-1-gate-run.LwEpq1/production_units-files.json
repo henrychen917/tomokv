@@ -1,0 +1,22 @@
+[
+  {
+    "path": "blockfix-cost-build.log",
+    "bytes": 207,
+    "sha256": "b6754255166f3eca6cb7a548acfb4d178c51d1ee7a4ba3d94dcbf9be0c55d3a2"
+  },
+  {
+    "path": "build.log",
+    "bytes": 3367,
+    "sha256": "d3855e50022f2a36260ab4166edfecbe3470d667ae937e32ea7772b83dde4fe1"
+  },
+  {
+    "path": "mdbqsbr-live-build.log",
+    "bytes": 757,
+    "sha256": "68c62c1c420facdf11bb1074ff8aeed02d38927ed4d4615f67a3ba6725bd9a94"
+  },
+  {
+    "path": "output.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

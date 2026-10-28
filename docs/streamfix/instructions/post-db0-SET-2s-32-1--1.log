@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-streamfix/build/streamfix/commands/post-db0-SET-2s-32-1--1.log
+SHA-256: 8e50aba20cc06584ec30b6e03cba970b8642948efcf749f20a2638500fe4df40
+Exit: 0
+2356	    }
+0x0000555555631c48	2356	    }
+0x0000555555631c51	2356	    }
+0x0000555555631c57	2356	    }
+0x0000555555631c5b	2356	    }
+0x0000555555631c5c	2356	    }
+0x0000555555631c5e	2356	    }
+0x0000555555631c60	2356	    }
+0x0000555555631c62	2356	    }
+0x0000555555631c64	2356	    }
+0x0000555555631c65	2356	    }
+0x0000555555d8fa84 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-streamfix/tests/txnorder_command_scope.cc:72
+72	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-streamfix/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "meTomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+mory");}
+[Inferior 1 (process 3869580) exited normally]
+COUNT 22547

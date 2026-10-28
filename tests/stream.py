@@ -155,7 +155,7 @@ note("XDEL tombstone count and idempotence",
      admin.cmd("XDEL", "stream:ids", "1000-0") == 0 and
      admin.cmd("XLEN", "stream:ids") == 2)
 
-# Exact MAXLEN/MINID, and '~' accepted with the deliberate exact implementation.
+# Exact MAXLEN/MINID preserve a partial macro node; '~' removes whole nodes only.
 admin.cmd("DEL", "stream:trim")
 for ident in range(1, 11): admin.cmd("XADD", "stream:trim", "%d-0" % ident, "f", ident)
 note("XTRIM MAXLEN exact boundary",
@@ -166,9 +166,9 @@ note("XTRIM MINID exact boundary",
      admin.cmd("XTRIM", "stream:trim", "MINID", "=", "9-0") == 2 and
      [e[0] for e in admin.cmd("XRANGE", "stream:trim", "-", "+")] == [b"9-0", b"10-0"])
 admin.cmd("XADD", "stream:trim", "11-0", "f", "11")
-note("approximate '~' parses and behaves exact",
-     admin.cmd("XTRIM", "stream:trim", "MAXLEN", "~", "1") == 2 and
-     admin.cmd("XLEN", "stream:trim") == 1)
+note("approximate '~' retains a partial macro node",
+     admin.cmd("XTRIM", "stream:trim", "MAXLEN", "~", "1") == 0 and
+     admin.cmd("XLEN", "stream:trim") == 3)
 
 # Immediate XREAD is a gather and preserves argument order, including multi-stream replies.
 admin.cmd("XADD", "stream:read-a", "1-0", "f", "a")

@@ -1,0 +1,315 @@
+[
+  {
+    "case": "T14",
+    "leg": "redis-redis-0-EVAL",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: 0488d0136e40029a4d7997710f1f5acb098f75f4, on @user_script:1.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "redis-redis-0-EVALSHA",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: 0488d0136e40029a4d7997710f1f5acb098f75f4, on @user_script:1.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": true
+    },
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "redis-redis-0-FCALL",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: at412_0488d0136e40, on @user_function:2.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "1s-uring-0-EVAL",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: 0488d0136e40029a4d7997710f1f5acb098f75f4, on @user_script:1.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "deviation": "XS-OOM-1",
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "1s-uring-0-EVALSHA",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: 0488d0136e40029a4d7997710f1f5acb098f75f4, on @user_script:1.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "deviation": "XS-OOM-1",
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "1s-uring-0-FCALL",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: at412_0488d0136e40, on @user_function:2.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "1s-uring-1-EVAL",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: 0488d0136e40029a4d7997710f1f5acb098f75f4, on @user_script:1.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "deviation": "XS-OOM-1",
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "1s-uring-1-EVALSHA",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: 0488d0136e40029a4d7997710f1f5acb098f75f4, on @user_script:1.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "deviation": "XS-OOM-1",
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "1s-uring-1-FCALL",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: at412_0488d0136e40, on @user_function:2.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "1s-epoll-0-EVAL",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: 0488d0136e40029a4d7997710f1f5acb098f75f4, on @user_script:1.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "deviation": "XS-OOM-1",
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "1s-epoll-0-EVALSHA",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: 0488d0136e40029a4d7997710f1f5acb098f75f4, on @user_script:1.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "deviation": "XS-OOM-1",
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "1s-epoll-0-FCALL",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: at412_0488d0136e40, on @user_function:2.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "1s-epoll-1-EVAL",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: 0488d0136e40029a4d7997710f1f5acb098f75f4, on @user_script:1.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "deviation": "XS-OOM-1",
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "1s-epoll-1-EVALSHA",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: 0488d0136e40029a4d7997710f1f5acb098f75f4, on @user_script:1.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "deviation": "XS-OOM-1",
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "1s-epoll-1-FCALL",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: at412_0488d0136e40, on @user_function:2.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "2s-uring-0-EVAL",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: 0488d0136e40029a4d7997710f1f5acb098f75f4, on @user_script:1.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "deviation": "XS-OOM-1",
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "2s-uring-0-EVALSHA",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: 0488d0136e40029a4d7997710f1f5acb098f75f4, on @user_script:1.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "deviation": "XS-OOM-1",
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "2s-uring-0-FCALL",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: at412_0488d0136e40, on @user_function:2.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "2s-uring-1-EVAL",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: 0488d0136e40029a4d7997710f1f5acb098f75f4, on @user_script:1.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "deviation": "XS-OOM-1",
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "2s-uring-1-EVALSHA",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: 0488d0136e40029a4d7997710f1f5acb098f75f4, on @user_script:1.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "deviation": "XS-OOM-1",
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "2s-uring-1-FCALL",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: at412_0488d0136e40, on @user_function:2.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "2s-epoll-0-EVAL",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: 0488d0136e40029a4d7997710f1f5acb098f75f4, on @user_script:1.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "deviation": "XS-OOM-1",
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "2s-epoll-0-EVALSHA",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: 0488d0136e40029a4d7997710f1f5acb098f75f4, on @user_script:1.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "deviation": "XS-OOM-1",
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "2s-epoll-0-FCALL",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: at412_0488d0136e40, on @user_function:2.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "2s-epoll-1-EVAL",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: 0488d0136e40029a4d7997710f1f5acb098f75f4, on @user_script:1.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "deviation": "XS-OOM-1",
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "2s-epoll-1-EVALSHA",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: 0488d0136e40029a4d7997710f1f5acb098f75f4, on @user_script:1.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "deviation": "XS-OOM-1",
+    "pass": true
+  },
+  {
+    "case": "T14",
+    "leg": "2s-epoll-1-FCALL",
+    "value": {
+      "wrongtype": "WRONGTYPE Operation against a key holding the wrong kind of value script: at412_0488d0136e40, on @user_function:2.",
+      "oom": "OOM command not allowed when used memory > 'maxmemory'.",
+      "kept": 2,
+      "oom_script_suffix": false
+    },
+    "pass": true
+  }
+]

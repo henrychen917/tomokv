@@ -1,0 +1,290 @@
+[
+  {
+    "mode": "1s",
+    "root": "MULTI-XREADGROUP-BLOCK-HANG",
+    "file": "unit/multi",
+    "name": "Blocking commands ignores the timeout",
+    "status": "ok",
+    "detail": "Blocking commands ignores the timeout"
+  },
+  {
+    "mode": "1s",
+    "root": "SLOWLOG-BLOCKED-NOT-LOGGED",
+    "file": "unit/slowlog",
+    "name": "SLOWLOG - Rewritten commands are logged as their original command",
+    "status": "ok",
+    "detail": "SLOWLOG - Rewritten commands are logged as their original command"
+  },
+  {
+    "mode": "1s",
+    "root": "SLOWLOG-BLOCKED-NOT-LOGGED",
+    "file": "unit/slowlog",
+    "name": "SLOWLOG - blocking command is reported only after unblocked",
+    "status": "ok",
+    "detail": "SLOWLOG - blocking command is reported only after unblocked"
+  },
+  {
+    "mode": "1s",
+    "root": "BLOCK-WAKE-RENAME-SORTSTORE",
+    "file": "unit/type/list",
+    "name": "BLMPOP_LEFT when new key is moved into place",
+    "status": "ok",
+    "detail": "BLMPOP_LEFT when new key is moved into place"
+  },
+  {
+    "mode": "1s",
+    "root": "BLOCK-WAKE-RENAME-SORTSTORE",
+    "file": "unit/type/list",
+    "name": "BLMPOP_LEFT when result key is created by SORT..STORE",
+    "status": "ok",
+    "detail": "BLMPOP_LEFT when result key is created by SORT..STORE"
+  },
+  {
+    "mode": "1s",
+    "root": "BLOCK-WAKE-RENAME-SORTSTORE",
+    "file": "unit/type/list",
+    "name": "BLPOP when new key is moved into place",
+    "status": "ok",
+    "detail": "BLPOP when new key is moved into place"
+  },
+  {
+    "mode": "1s",
+    "root": "BLOCK-WAKE-RENAME-SORTSTORE",
+    "file": "unit/type/list",
+    "name": "BLPOP when result key is created by SORT..STORE",
+    "status": "ok",
+    "detail": "BLPOP when result key is created by SORT..STORE"
+  },
+  {
+    "mode": "1s",
+    "root": "BLOCK-MOVE-WRONGTYPE-STRANDS",
+    "file": "unit/type/list",
+    "name": "BRPOPLPUSH with multiple blocked clients",
+    "status": "ok",
+    "detail": "BRPOPLPUSH with multiple blocked clients"
+  },
+  {
+    "mode": "1s",
+    "root": "INFO-TOTAL-BLOCKING-KEYS",
+    "file": "unit/type/stream-cgroups",
+    "name": "Blocking XREADGROUP for stream key that has clients blocked on list",
+    "status": "ok",
+    "detail": "Blocking XREADGROUP for stream key that has clients blocked on list"
+  },
+  {
+    "mode": "1s",
+    "root": "INFO-TOTAL-BLOCKING-KEYS; cascade of unit/type/stream-cgroups: Blocking XREADGROUP for stream key that has clients blocked on list",
+    "file": "unit/type/stream-cgroups",
+    "name": "Blocking XREADGROUP for stream key that has clients blocked on stream - avoid endless loop",
+    "status": "ok",
+    "detail": "Blocking XREADGROUP for stream key that has clients blocked on stream - avoid endless loop"
+  },
+  {
+    "mode": "1s",
+    "root": "INFO-TOTAL-BLOCKING-KEYS; cascade of unit/type/stream-cgroups: Blocking XREADGROUP for stream key that has clients blocked on list",
+    "file": "unit/type/stream-cgroups",
+    "name": "Blocking XREADGROUP for stream key that has clients blocked on stream - reprocessing command",
+    "status": "ok",
+    "detail": "Blocking XREADGROUP for stream key that has clients blocked on stream - reprocessing command"
+  },
+  {
+    "mode": "1s",
+    "root": "BLOCK-STREAM-REMOVED-NO-UNBLOCK",
+    "file": "unit/type/stream-cgroups",
+    "name": "Blocking XREADGROUP: flushed DB",
+    "status": "ok",
+    "detail": "Blocking XREADGROUP: flushed DB"
+  },
+  {
+    "mode": "1s",
+    "root": "BLOCK-STREAM-REMOVED-NO-UNBLOCK",
+    "file": "unit/type/stream-cgroups",
+    "name": "Blocking XREADGROUP: key deleted",
+    "status": "ok",
+    "detail": "Blocking XREADGROUP: key deleted"
+  },
+  {
+    "mode": "1s",
+    "root": "BLOCK-STREAM-REMOVED-NO-UNBLOCK",
+    "file": "unit/type/stream-cgroups",
+    "name": "Blocking XREADGROUP: key type changed with SET",
+    "status": "ok",
+    "detail": "Blocking XREADGROUP: key type changed with SET"
+  },
+  {
+    "mode": "1s",
+    "root": "BLOCK-STREAM-REMOVED-NO-UNBLOCK",
+    "file": "unit/type/stream-cgroups",
+    "name": "Blocking XREADGROUP: key type changed with transaction",
+    "status": "ok",
+    "detail": "Blocking XREADGROUP: key type changed with transaction"
+  },
+  {
+    "mode": "1s",
+    "root": "BLOCK-WAKE-RENAME-SORTSTORE",
+    "file": "unit/type/stream-cgroups",
+    "name": "RENAME can unblock XREADGROUP with -NOGROUP",
+    "status": "ok",
+    "detail": "RENAME can unblock XREADGROUP with -NOGROUP"
+  },
+  {
+    "mode": "1s",
+    "root": "BLOCK-WAKE-RENAME-SORTSTORE",
+    "file": "unit/type/stream-cgroups",
+    "name": "RENAME can unblock XREADGROUP with data",
+    "status": "ok",
+    "detail": "RENAME can unblock XREADGROUP with data"
+  },
+  {
+    "mode": "1s",
+    "root": "BLOCK-STREAM-REMOVED-NO-UNBLOCK",
+    "file": "unit/type/stream-cgroups",
+    "name": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP",
+    "status": "err",
+    "detail": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl\nExpected '' to match '*count=1*' (context: type eval line 13 cmd {assert_match {*count=1*} [errorrstat NOGROUP r]} proc ::test) "
+  },
+  {
+    "mode": "2s",
+    "root": "MULTI-XREADGROUP-BLOCK-HANG",
+    "file": "unit/multi",
+    "name": "Blocking commands ignores the timeout",
+    "status": "ok",
+    "detail": "Blocking commands ignores the timeout"
+  },
+  {
+    "mode": "2s",
+    "root": "SLOWLOG-BLOCKED-NOT-LOGGED",
+    "file": "unit/slowlog",
+    "name": "SLOWLOG - Rewritten commands are logged as their original command",
+    "status": "ok",
+    "detail": "SLOWLOG - Rewritten commands are logged as their original command"
+  },
+  {
+    "mode": "2s",
+    "root": "SLOWLOG-BLOCKED-NOT-LOGGED",
+    "file": "unit/slowlog",
+    "name": "SLOWLOG - blocking command is reported only after unblocked",
+    "status": "ok",
+    "detail": "SLOWLOG - blocking command is reported only after unblocked"
+  },
+  {
+    "mode": "2s",
+    "root": "BLOCK-WAKE-RENAME-SORTSTORE",
+    "file": "unit/type/list",
+    "name": "BLMPOP_LEFT when new key is moved into place",
+    "status": "ok",
+    "detail": "BLMPOP_LEFT when new key is moved into place"
+  },
+  {
+    "mode": "2s",
+    "root": "BLOCK-WAKE-RENAME-SORTSTORE",
+    "file": "unit/type/list",
+    "name": "BLMPOP_LEFT when result key is created by SORT..STORE",
+    "status": "ok",
+    "detail": "BLMPOP_LEFT when result key is created by SORT..STORE"
+  },
+  {
+    "mode": "2s",
+    "root": "BLOCK-WAKE-RENAME-SORTSTORE",
+    "file": "unit/type/list",
+    "name": "BLPOP when new key is moved into place",
+    "status": "ok",
+    "detail": "BLPOP when new key is moved into place"
+  },
+  {
+    "mode": "2s",
+    "root": "BLOCK-WAKE-RENAME-SORTSTORE",
+    "file": "unit/type/list",
+    "name": "BLPOP when result key is created by SORT..STORE",
+    "status": "ok",
+    "detail": "BLPOP when result key is created by SORT..STORE"
+  },
+  {
+    "mode": "2s",
+    "root": "BLOCK-MOVE-WRONGTYPE-STRANDS",
+    "file": "unit/type/list",
+    "name": "BRPOPLPUSH with multiple blocked clients",
+    "status": "ok",
+    "detail": "BRPOPLPUSH with multiple blocked clients"
+  },
+  {
+    "mode": "2s",
+    "root": "INFO-TOTAL-BLOCKING-KEYS",
+    "file": "unit/type/stream-cgroups",
+    "name": "Blocking XREADGROUP for stream key that has clients blocked on list",
+    "status": "ok",
+    "detail": "Blocking XREADGROUP for stream key that has clients blocked on list"
+  },
+  {
+    "mode": "2s",
+    "root": "INFO-TOTAL-BLOCKING-KEYS; cascade of unit/type/stream-cgroups: Blocking XREADGROUP for stream key that has clients blocked on list",
+    "file": "unit/type/stream-cgroups",
+    "name": "Blocking XREADGROUP for stream key that has clients blocked on stream - avoid endless loop",
+    "status": "ok",
+    "detail": "Blocking XREADGROUP for stream key that has clients blocked on stream - avoid endless loop"
+  },
+  {
+    "mode": "2s",
+    "root": "INFO-TOTAL-BLOCKING-KEYS; cascade of unit/type/stream-cgroups: Blocking XREADGROUP for stream key that has clients blocked on list",
+    "file": "unit/type/stream-cgroups",
+    "name": "Blocking XREADGROUP for stream key that has clients blocked on stream - reprocessing command",
+    "status": "ok",
+    "detail": "Blocking XREADGROUP for stream key that has clients blocked on stream - reprocessing command"
+  },
+  {
+    "mode": "2s",
+    "root": "BLOCK-STREAM-REMOVED-NO-UNBLOCK",
+    "file": "unit/type/stream-cgroups",
+    "name": "Blocking XREADGROUP: flushed DB",
+    "status": "ok",
+    "detail": "Blocking XREADGROUP: flushed DB"
+  },
+  {
+    "mode": "2s",
+    "root": "BLOCK-STREAM-REMOVED-NO-UNBLOCK",
+    "file": "unit/type/stream-cgroups",
+    "name": "Blocking XREADGROUP: key deleted",
+    "status": "ok",
+    "detail": "Blocking XREADGROUP: key deleted"
+  },
+  {
+    "mode": "2s",
+    "root": "BLOCK-STREAM-REMOVED-NO-UNBLOCK",
+    "file": "unit/type/stream-cgroups",
+    "name": "Blocking XREADGROUP: key type changed with SET",
+    "status": "ok",
+    "detail": "Blocking XREADGROUP: key type changed with SET"
+  },
+  {
+    "mode": "2s",
+    "root": "BLOCK-STREAM-REMOVED-NO-UNBLOCK",
+    "file": "unit/type/stream-cgroups",
+    "name": "Blocking XREADGROUP: key type changed with transaction",
+    "status": "ok",
+    "detail": "Blocking XREADGROUP: key type changed with transaction"
+  },
+  {
+    "mode": "2s",
+    "root": "BLOCK-WAKE-RENAME-SORTSTORE",
+    "file": "unit/type/stream-cgroups",
+    "name": "RENAME can unblock XREADGROUP with -NOGROUP",
+    "status": "ok",
+    "detail": "RENAME can unblock XREADGROUP with -NOGROUP"
+  },
+  {
+    "mode": "2s",
+    "root": "BLOCK-WAKE-RENAME-SORTSTORE",
+    "file": "unit/type/stream-cgroups",
+    "name": "RENAME can unblock XREADGROUP with data",
+    "status": "ok",
+    "detail": "RENAME can unblock XREADGROUP with data"
+  },
+  {
+    "mode": "2s",
+    "root": "BLOCK-STREAM-REMOVED-NO-UNBLOCK",
+    "file": "unit/type/stream-cgroups",
+    "name": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP",
+    "status": "err",
+    "detail": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl\nExpected '' to match '*count=1*' (context: type eval line 13 cmd {assert_match {*count=1*} [errorrstat NOGROUP r]} proc ::test) "
+  }
+]

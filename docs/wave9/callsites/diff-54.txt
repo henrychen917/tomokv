@@ -1,0 +1,15 @@
+tomo::(anonymous namespace)::create_sandbox_static(lua_State*, tomo::(anonymous namespace)::ScriptContext**)
+--- headline
+
++++ post
+
+@@ -2,7 +2,7 @@
+
+ CLONE 0 0002 [ 2] xor %edx,%edx
+ CLONE 0 0004 [ 2] push %r13
+ CLONE 0 0006 [ 2] push %r12
+-CLONE 0 0008 [ 7] lea <rip>(%rip),%r12 # <_IO_stdin_used+0x788>
++CLONE 0 0008 [ 7] lea <rip>(%rip),%r12 # <_IO_stdin_used+0x782>
+ CLONE 0 000f [ 1] push %rbp
+ CLONE 0 0010 [ 3] mov %rsi,%rbp
+ CLONE 0 0013 [ 1] push %rbx

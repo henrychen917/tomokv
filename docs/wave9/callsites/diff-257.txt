@@ -1,0 +1,83 @@
+tomo_db0::blocking_prepare(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned long, tomo_db0::BlockingDispatch&) [clone .cold]
+--- headline
+
++++ post
+
+@@ -9,9 +9,9 @@
+
+ CLONE 0 0020 [ 3] vzeroupper
+ CLONE 0 0023 [ 5] call <_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE15_M_replace_coldEPcmPKcmm@plt>
+ CLONE 0 0028 [ 8] mov 0xc8(%rsp),%rcx
+-CLONE 0 0030 [ 5] jmp <tomo_db0::blocking_prepare(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned long, tomo_db0::BlockingDispatch&)+0x349>
++CLONE 0 0030 [ 5] jmp <tomo_db0::blocking_prepare(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned long, tomo_db0::BlockingDispatch&)+0x369>
+ CLONE 0 0035 [ 4] endbr64
+-CLONE 0 0039 [ 5] jmp <tomo_db0::blocking_prepare(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned long, tomo_db0::BlockingDispatch&)+0x1ab3>
++CLONE 0 0039 [ 5] jmp <tomo_db0::blocking_prepare(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned long, tomo_db0::BlockingDispatch&)+0x1a85>
+ CLONE 0 003e [ 8] lea 0x98(%rsp),%rdi
+ CLONE 0 0046 [ 3] vzeroupper
+ CLONE 0 0049 [ 5] call <std::vector<unsigned int, std::allocator<unsigned int> >::~vector()>
+@@ -23,12 +23,12 @@
+
+ CLONE 0 006d [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+ CLONE 0 0072 [ 3] mov %rbx,%rdi
+ CLONE 0 0075 [ 3] dec %r12
+-CLONE 0 0078 [ 6] jne <+0x136>
++CLONE 0 0078 [ 6] jne <+0x159>
+ CLONE 0 007e [ 5] call <__cxa_begin_catch@plt>
+ CLONE 0 0083 [ 3] mov %r15,%rdi
+ CLONE 0 0086 [ 5] call <tomo_db0::BlockingState::~BlockingState()>
+ CLONE 0 008b [ 3] mov %r15,%rdi
+-CLONE 0 008e [ 5] mov $0xd8,%esi
++CLONE 0 008e [ 5] mov $0xf0,%esi
+ CLONE 0 0093 [ 5] call <_ZdlPvm@plt>
+ CLONE 0 0098 [ 5] mov 0x48(%rsp),%rax
+ CLONE 0 009d [ 8] lea 0x90(%rsp),%rdi
+@@ -37,7 +37,7 @@
+
+ CLONE 0 00b4 [ 8] mov %rax,0x90(%rsp)
+ CLONE 0 00bc [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
+ CLONE 0 00c1 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 00c6 [ 5] jmp <tomo_db0::blocking_prepare(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned long, tomo_db0::BlockingDispatch&)+0x91a>
++CLONE 0 00c6 [ 5] jmp <tomo_db0::blocking_prepare(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned long, tomo_db0::BlockingDispatch&)+0x93a>
+ CLONE 0 00cb [ 3] mov %r13,%rdi
+ CLONE 0 00ce [ 3] vzeroupper
+ CLONE 0 00d1 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+@@ -47,7 +47,7 @@
+
+ CLONE 0 00e9 [ 3] mov %rbx,%rdi
+ CLONE 0 00ec [ 5] call <_Unwind_Resume@plt>
+ CLONE 0 00f1 [ 3] dec %rax
+-CLONE 0 00f4 [ 2] jne <+0x153>
++CLONE 0 00f4 [ 2] jne <+0x136>
+ CLONE 0 00f6 [ 3] vzeroupper
+ CLONE 0 00f9 [ 5] call <__cxa_begin_catch@plt>
+ CLONE 0 00fe [ 5] mov 0x48(%rsp),%rax
+@@ -57,17 +57,17 @@
+
+ CLONE 0 011a [ 8] mov %rax,0x80(%rsp)
+ CLONE 0 0122 [ 5] call <void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)>
+ CLONE 0 0127 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 012c [ 5] jmp <tomo_db0::blocking_prepare(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned long, tomo_db0::BlockingDispatch&)+0x905>
++CLONE 0 012c [ 5] jmp <tomo_db0::blocking_prepare(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned long, tomo_db0::BlockingDispatch&)+0x925>
+ CLONE 0 0131 [ 5] call <__stack_chk_fail@plt>
+ CLONE 0 0136 [ 8] mov 0x1f8(%rsp),%rax
+ CLONE 0 013e [ 9] sub %fs:0x28,%rax
+-CLONE 0 0147 [ 2] jne <+0x14e>
+-CLONE 0 0149 [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 014e [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 0153 [ 8] mov 0x1f8(%rsp),%rax
+-CLONE 0 015b [ 9] sub %fs:0x28,%rax
+-CLONE 0 0164 [ 2] jne <+0x16e>
+-CLONE 0 0166 [ 3] vzeroupper
+-CLONE 0 0169 [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 016e [ 3] vzeroupper
++CLONE 0 0147 [ 2] jne <+0x151>
++CLONE 0 0149 [ 3] vzeroupper
++CLONE 0 014c [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0151 [ 3] vzeroupper
++CLONE 0 0154 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 0159 [ 8] mov 0x1f8(%rsp),%rax
++CLONE 0 0161 [ 9] sub %fs:0x28,%rax
++CLONE 0 016a [ 2] jne <+0x171>
++CLONE 0 016c [ 5] call <_Unwind_Resume@plt>
+ CLONE 0 0171 [ 5] call <__stack_chk_fail@plt>

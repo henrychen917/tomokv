@@ -1,0 +1,28 @@
+{
+  "code_commit": "dfae990e9618f71698fb612fab3dfa7ee6650266",
+  "base": "3700b51d7",
+  "archive": "receipts.tar.gz",
+  "sha256": "3988529d6cbc1310fa9c7400dec12051d60b96445ff4ae0add5e376801a36a90",
+  "bytes": 660414,
+  "files": 2119,
+  "source_runs": [
+    "build/gate-run.1RFPQ3",
+    "build/gate-run.2dQTrd",
+    "build/gate-run.Hxo2QZ",
+    "build/gate-run.Mr8QMk",
+    "build/gate-run.RMK2vi",
+    "build/gate-run.RrUAHs",
+    "build/gate-run.VfqKGL",
+    "build/gate-run.VhtZ0r",
+    "build/gate-run.glPkjq",
+    "build/gate-run.lrtS81",
+    "build/gate-run.pTil9S",
+    "build/gate-run.sUweMF",
+    "build/gate-run.utbdOv",
+    "build/gate-run.z8N2vl",
+    "build/scheduler-failure-aj894p0e"
+  ],
+  "final_jobs": "final-jobs.json",
+  "final_rows": "final-row-timings.tsv",
+  "new_rows": "new-row-timings.tsv"
+}

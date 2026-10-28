@@ -1,0 +1,83 @@
+tomo::blocking_prepare(tomo::Server&, tomo::Client&, tomo::Op&, unsigned long, tomo::BlockingDispatch&) [clone .cold]
+--- headline
+
++++ post
+
+@@ -8,9 +8,9 @@
+
+ CLONE 0 001b [ 3] vzeroupper
+ CLONE 0 001e [ 5] call <_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE15_M_replace_coldEPcmPKcmm@plt>
+ CLONE 0 0023 [ 8] mov 0xc8(%rsp),%rbx
+-CLONE 0 002b [ 5] jmp <tomo::blocking_prepare(tomo::Server&, tomo::Client&, tomo::Op&, unsigned long, tomo::BlockingDispatch&)+0x35c>
++CLONE 0 002b [ 5] jmp <tomo::blocking_prepare(tomo::Server&, tomo::Client&, tomo::Op&, unsigned long, tomo::BlockingDispatch&)+0x37c>
+ CLONE 0 0030 [ 4] endbr64
+-CLONE 0 0034 [ 5] jmp <tomo::blocking_prepare(tomo::Server&, tomo::Client&, tomo::Op&, unsigned long, tomo::BlockingDispatch&)+0x1aac>
++CLONE 0 0034 [ 5] jmp <tomo::blocking_prepare(tomo::Server&, tomo::Client&, tomo::Op&, unsigned long, tomo::BlockingDispatch&)+0x1a71>
+ CLONE 0 0039 [ 8] lea 0x98(%rsp),%rdi
+ CLONE 0 0041 [ 3] vzeroupper
+ CLONE 0 0044 [ 8] lea 0xc8(%rsp),%rbx
+@@ -21,12 +21,12 @@
+
+ CLONE 0 0061 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+ CLONE 0 0066 [ 3] mov %r12,%rdi
+ CLONE 0 0069 [ 3] dec %r13
+-CLONE 0 006c [ 6] jne <+0x12a>
++CLONE 0 006c [ 6] jne <+0x14d>
+ CLONE 0 0072 [ 5] call <__cxa_begin_catch@plt>
+ CLONE 0 0077 [ 3] mov %r15,%rdi
+ CLONE 0 007a [ 5] call <tomo::BlockingState::~BlockingState()>
+ CLONE 0 007f [ 3] mov %r15,%rdi
+-CLONE 0 0082 [ 5] mov $0xd8,%esi
++CLONE 0 0082 [ 5] mov $0xf0,%esi
+ CLONE 0 0087 [ 5] call <_ZdlPvm@plt>
+ CLONE 0 008c [ 5] mov 0x48(%rsp),%rax
+ CLONE 0 0091 [ 8] lea 0x90(%rsp),%rdi
+@@ -35,7 +35,7 @@
+
+ CLONE 0 00a8 [ 8] mov %rax,0x90(%rsp)
+ CLONE 0 00b0 [ 5] call <void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)>
+ CLONE 0 00b5 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 00ba [ 5] jmp <tomo::blocking_prepare(tomo::Server&, tomo::Client&, tomo::Op&, unsigned long, tomo::BlockingDispatch&)+0x91a>
++CLONE 0 00ba [ 5] jmp <tomo::blocking_prepare(tomo::Server&, tomo::Client&, tomo::Op&, unsigned long, tomo::BlockingDispatch&)+0x93a>
+ CLONE 0 00bf [ 3] mov %r13,%rdi
+ CLONE 0 00c2 [ 3] vzeroupper
+ CLONE 0 00c5 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+@@ -45,7 +45,7 @@
+
+ CLONE 0 00dd [ 3] mov %rbx,%rdi
+ CLONE 0 00e0 [ 5] call <_Unwind_Resume@plt>
+ CLONE 0 00e5 [ 3] dec %rax
+-CLONE 0 00e8 [ 2] jne <+0x147>
++CLONE 0 00e8 [ 2] jne <+0x12a>
+ CLONE 0 00ea [ 3] vzeroupper
+ CLONE 0 00ed [ 5] call <__cxa_begin_catch@plt>
+ CLONE 0 00f2 [ 5] mov 0x48(%rsp),%rax
+@@ -55,17 +55,17 @@
+
+ CLONE 0 010e [ 8] mov %rax,0x80(%rsp)
+ CLONE 0 0116 [ 5] call <void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)>
+ CLONE 0 011b [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 0120 [ 5] jmp <tomo::blocking_prepare(tomo::Server&, tomo::Client&, tomo::Op&, unsigned long, tomo::BlockingDispatch&)+0x905>
++CLONE 0 0120 [ 5] jmp <tomo::blocking_prepare(tomo::Server&, tomo::Client&, tomo::Op&, unsigned long, tomo::BlockingDispatch&)+0x925>
+ CLONE 0 0125 [ 5] call <__stack_chk_fail@plt>
+ CLONE 0 012a [ 8] mov 0x1f8(%rsp),%rax
+ CLONE 0 0132 [ 9] sub %fs:0x28,%rax
+-CLONE 0 013b [ 2] jne <+0x142>
+-CLONE 0 013d [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 0142 [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 0147 [ 8] mov 0x1f8(%rsp),%rax
+-CLONE 0 014f [ 9] sub %fs:0x28,%rax
+-CLONE 0 0158 [ 2] jne <+0x162>
+-CLONE 0 015a [ 3] vzeroupper
+-CLONE 0 015d [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 0162 [ 3] vzeroupper
++CLONE 0 013b [ 2] jne <+0x145>
++CLONE 0 013d [ 3] vzeroupper
++CLONE 0 0140 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0145 [ 3] vzeroupper
++CLONE 0 0148 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 014d [ 8] mov 0x1f8(%rsp),%rax
++CLONE 0 0155 [ 9] sub %fs:0x28,%rax
++CLONE 0 015e [ 2] jne <+0x165>
++CLONE 0 0160 [ 5] call <_Unwind_Resume@plt>
+ CLONE 0 0165 [ 5] call <__stack_chk_fail@plt>

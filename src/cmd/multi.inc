@@ -5,6 +5,7 @@
 // anonymous namespace and deliberately creates no extra translation unit.
 
 #include "cmdmeta.h"
+#include "client_pause.h"
 
 namespace tomo {
 
@@ -76,6 +77,10 @@ struct MultiCommand {
     std::atomic<long long> integer{0};
     std::atomic<bool> condition_failed{false};
     std::atomic<bool> finished{false};
+    std::atomic<uint64_t> slow_ns{0};
+    std::atomic<uint64_t> slow_sleep_started{0};
+    int64_t slow_threshold = -1; // published by command/attempt completion
+    bool io_effect_done = false; // pause effects publish inside the commit bracket
     ScatterState* scatter = nullptr;
     // ScatterState::groups is rebuilt between an xshard child's waves.  A barrier-only shard must
     // decide whether it belongs to the PUBLISHED wave without consulting that mutable table: the
@@ -172,6 +177,7 @@ struct alignas(8) MultiExecState : SnapshotCut {
     // through a transaction.  Unconditional: a single-owner transaction spans several tasks too,
     // and its clock moved between them just as readily.
     int64_t now_cut_ms = 0;
+    uint64_t now_cut_mono_ms = 0;
     // TEST HOOK (DEBUG ATOMIC-FANOUT-DEFER), the MULTI half.  Deadline and lead shard are written
     // once on the owning IO thread before the tasks are posted and read by the owners through the
     // task handoff's release/acquire pair.  Zero in production.
@@ -277,8 +283,11 @@ uint64_t multi_cancel_decision(MultiDecision& decision, uint32_t shard,
             decision.owner->server->worker_of_shard(shard), TxnCounter::OrderViolations);
         return epoch;
     }
-    if (!epoch && decision.epoch.compare_exchange_strong(
-            epoch, kAtomicCancelledEpoch, std::memory_order_acq_rel)) {
+    if (!epoch) decision.epoch.compare_exchange_strong(
+        epoch, kAtomicCancelledEpoch, std::memory_order_acq_rel);
+    if (!epoch || epoch == kAtomicCancelledEpoch) {
+        // The caller owns the successful blind-restart phase CAS. Count it
+        // even when the last placer completed cancellation in the phase gap.
         auto& state = *decision.owner;
         state.server->note_txn(state.server->worker_of_shard(shard), cause);
         decision.aborted.store(true, std::memory_order_release);
@@ -310,8 +319,18 @@ void multi_cancel_record(AtomicEntry& entry, const ScatterState* self) {
         if (!self) txn_group_cancel(script, shard);
         return;
     }
-    if (script.kind != Kind::Script || script.aborted.load(std::memory_order_acquire)) return;
+    if (script.kind != Kind::Script) return;
     uint64_t undecided = 0;
+    if (script.aborted.load(std::memory_order_acquire)) {
+        // An aborted activation never commits, but its coordinator may not have cancelled its
+        // epoch yet. Publish the cancellation here, keeping the recorded reason (an OOM stays an
+        // OOM), so callers that re-read the epoch (txn_group_touch, multi_touch_key) see a dead
+        // candidate instead of counting a spurious OrderViolation. AT4.12 escalated scripts
+        // touch such candidates routinely; the coordinator's own later CAS becomes a no-op.
+        script.epoch.compare_exchange_strong(undecided, kAtomicCancelledEpoch,
+                                             std::memory_order_acq_rel);
+        return;
+    }
     if (script.epoch.compare_exchange_strong(undecided, kAtomicCancelledEpoch,
                                             std::memory_order_acq_rel)) {
         script.script_conflict.store(true, std::memory_order_release);
@@ -1364,6 +1383,19 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
     const auto snapshot = shard.store().snapshot_prepare_write(hash, key);
     if (snapshot == FlatStore::SnapshotWriteResult::Pending) return MultiPrepareWrite::Retry;
     if (snapshot == FlatStore::SnapshotWriteResult::Error) return MultiPrepareWrite::Error;
+    // The newest parent-owned version is already private to this transaction.
+    // Preserve its one committed predecessor instead of cloning the growing
+    // value on every command. A child-scatter/foreign version above it requires
+    // a fresh parent layer: that child has its own runtime-error decision.
+    bool private_head = false;
+    shard.store().atomic_visit_unit_records(hash, key, false, [&](AtomicEntry& entry) {
+        private_head = entry.plain() && entry.group_epoch == &state.decision.epoch &&
+            entry.group_aborted == &state.shard_aborted[shard.id()];
+    });
+    if (private_head) {
+        shard.store().atomic_set_read_context(UINT64_MAX, state.origin_conn_id);
+        return MultiPrepareWrite::Ready;
+    }
     if (!shard.store().atomic_prepare_capacity(1)) return MultiPrepareWrite::Error;
 
     shard.store().atomic_set_read_context(UINT64_MAX, state.origin_conn_id);
@@ -1511,6 +1543,31 @@ void multi_tripwire_read_execution(MultiExecState& state, MultiCommand& command,
         shard.store().atomic_tripwire_plain_path());
 }
 
+// Only EXEC's cold path enters these hooks. Accumulate execution slices;
+// retries spend their parked interval outside the timer. DEBUG SLEEP is the
+// explicit exception: its requested sleep is part of the command's duration.
+uint64_t multi_slowlog_start(MultiExecState& state, uint32_t owner) {
+    return state.server->live_config_snapshot(owner).slowlog_log_slower_than >= 0
+        ? now_ns() : 0;
+}
+void multi_slowlog_part(MultiCommand& command, uint64_t started) {
+    if (started && command.kind != MultiCommandKind::DebugSleep)
+        command.slow_ns.fetch_add(now_ns() - started, std::memory_order_relaxed);
+}
+void multi_slowlog_finish(MultiExecState& state, MultiCommand& command, uint32_t owner) {
+    command.slow_threshold = state.server->live_config_snapshot(owner).slowlog_log_slower_than;
+    if (const uint64_t sleep = command.slow_sleep_started.exchange(0, std::memory_order_acq_rel))
+        command.slow_ns.fetch_add(now_ns() - sleep, std::memory_order_relaxed);
+}
+void multi_slowlog_record(MultiExecState& state, MultiCommand& command, uint32_t owner) {
+    if (command.slow_threshold < 0) return;
+    const SlowlogArm arm{command.slow_threshold, 0, false};
+    // EXEC's histogram is retired separately with its accumulated active slices.
+    // This direct recorder only emits the slowlog; its start argument is unused.
+    slowlog_record(owner, state.origin_conn_id, *command.op,
+                   command.slow_ns.load(std::memory_order_relaxed), state.now_cut_ms, arm, true, 0);
+}
+
 __attribute__((always_inline)) inline bool execute_local_command(Server& server, MultiExecState& state, MultiCommand& command,
                            Shard& shard, uint32_t owner_thread_id) {
     if (!(command.queued.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
@@ -1564,8 +1621,14 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
     // DEBUG SLEEP requests the global pause after the first all-owner join.
     if (command.kind == MultiCommandKind::Admin || command.kind == MultiCommandKind::DebugSleep) {
         if (stage == 0) return true;
-        if (command.kind == MultiCommandKind::DebugSleep)
-            return debug_sleep_exec(server, shard, command.integer, owner_thread_id);
+        if (command.kind == MultiCommandKind::DebugSleep) {
+            const bool starting = shard.id() == 0 && command.integer.load(std::memory_order_acquire) >= 0;
+            const uint64_t started = starting ? multi_slowlog_start(state, owner_thread_id) : 0;
+            const bool done = debug_sleep_exec(server, shard, command.integer, owner_thread_id);
+            if (started && command.integer.load(std::memory_order_acquire) < 0)
+                command.slow_sleep_started.store(started, std::memory_order_release);
+            return done;
+        }
         if (shard.id() == 0) {
             Client* previous_client = command_local_client();
             ThreadCtx* previous_thread = command_local_thread();
@@ -1812,14 +1875,23 @@ __attribute__((always_inline)) inline bool execute_watch_phase(MultiExecState& s
     state.watch_shard_done[static_cast<uint32_t>(shard.id())] = 1;
     if (state.watch_pending.fetch_sub(1, std::memory_order_acq_rel) == 1) {
         if (state.kind == MultiStateKind::Execute &&
-            state.final_reply != MultiFinalReply::ExecAbort &&
-            !state.decision.aborted.load(std::memory_order_acquire)) {
+            state.final_reply != MultiFinalReply::ExecAbort) {
+            // Even a placement error must close the phase: a concurrent wound
+            // takes precedence over its terminal abort and requires a retry.
             TxnPhase placing = TxnPhase::Placing;
             if (state.decision.phase.compare_exchange_strong(placing, TxnPhase::Executing,
-                                                             std::memory_order_acq_rel))
-                state.server->note_txn(state.server->worker_of_shard(shard.id()),
-                                       state.read_only ? TxnCounter::Readonly : TxnCounter::Executed);
-            else state.decision.aborted.store(true, std::memory_order_release);
+                                                             std::memory_order_acq_rel)) {
+                if (!state.decision.aborted.load(std::memory_order_acquire))
+                    state.server->note_txn(state.server->worker_of_shard(shard.id()),
+                                           state.read_only ? TxnCounter::Readonly : TxnCounter::Executed);
+            } else {
+                // Finish an observed wound before the finalizer can mistake
+                // it for a terminal execution error at undecided epoch zero.
+                uint64_t zero = 0;
+                state.decision.epoch.compare_exchange_strong(zero, kAtomicCancelledEpoch,
+                                                             std::memory_order_acq_rel);
+                state.decision.aborted.store(true, std::memory_order_release);
+            }
         }
         state.watch_phase_done.store(true, std::memory_order_release);
     }
@@ -1865,7 +1937,7 @@ __attribute__((always_inline)) inline void finalize_reservations(MultiExecState&
     state.final_shard_done[static_cast<uint32_t>(shard.id())] = 1;
 }
 
-__attribute__((always_inline)) inline void finish_command(MultiCommand& command, uint32_t stage) {
+__attribute__((always_inline)) inline void finish_command(MultiExecState& state, MultiCommand& command, uint32_t stage, uint32_t owner_thread_id) {
     if (command.pending.fetch_sub(1, std::memory_order_acq_rel) != 1) return;
     if (stage == 0 && (command.kind == MultiCommandKind::Admin ||
                        command.kind == MultiCommandKind::DebugSleep)) {
@@ -1887,6 +1959,8 @@ __attribute__((always_inline)) inline void finish_command(MultiCommand& command,
         command.kind != MultiCommandKind::Admin &&
         command.kind != MultiCommandKind::Swapdb &&
         command.kind != MultiCommandKind::Prebuilt) assemble_cross_reply(command);
+    if (command.kind != MultiCommandKind::IoLocal)
+        multi_slowlog_finish(state, command, owner_thread_id);
     command.finished.store(true, std::memory_order_release);
 }
 
@@ -1907,7 +1981,10 @@ void assemble_ownerless_replies(MultiExecState& state, uint32_t owner_thread_id)
             command->kind == MultiCommandKind::Prebuilt)
             continue;
         MultiLatencyPart<Tracked> latency(owner_thread_id, command->op.get());
+        const uint64_t started = multi_slowlog_start(state, owner_thread_id);
         assemble_cross_reply(*command);
+        multi_slowlog_part(*command, started);
+        multi_slowlog_finish(state, *command, owner_thread_id);
     }
 }
 
@@ -1950,6 +2027,14 @@ void abort_multi_children(MultiExecState& state) {
 }
 
 }  // namespace
+
+bool multi_pause_writes(const Client& client) {
+    const auto* session = client.multi_session();
+    if (!session || !session->active) return false;
+    for (const auto& command : session->queue)
+        if (command.spec->flags & CmdFlags::Write) return true;
+    return false;
+}
 
 bool multi_queueing(const Client& client) {
     return client.multi_session() && client.multi_session()->active;
@@ -2298,6 +2383,7 @@ bool multi_dispatch_attempt(Server& server, ThreadCtx& self, ScatterArenaPool& p
         if (delay) dispatch->debug_place_deadline = now_ns() + uint64_t(delay) * 1000;
     }
     dispatch->now_cut_ms = now_realtime_ms();
+    dispatch->now_cut_mono_ms = now_ns() / 1000000ull;
     for (const auto& command : dispatch->commands)
         if (command->scatter) command->scatter->now_cut_ms = dispatch->now_cut_ms;
 
@@ -2335,6 +2421,14 @@ bool multi_dispatch_attempt(Server& server, ThreadCtx& self, ScatterArenaPool& p
 
 template <bool IofusedPrivateQueue>
 bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t consumed) {
+    // RESET is immediate even inside MULTI. Use the existing owner-routed
+    // WATCH cleanup before the ordinary connection-local RESET handler.
+    if (multi_name(op, "reset")) {
+        multi_close_entry(loop, client);
+        client.next_watch_generation();
+        client.clear_watch_dirty();
+        return false;
+    }
     MultiSession* queue_session = client.multi_session();
     const bool was_queueing = queue_session && queue_session->active;
     const uint64_t op_id = client.rob().dispatch_id();
@@ -2412,6 +2506,7 @@ void multi_retire_entry(IoLoop& loop, Client& client, Op& op) {
             loop.scatter_pool_.unregister_snapshot(*loop.srv_, cut, loop.self_->id());
     }
     multi_retire(client, op, loop.multi_deferred_);
+    loop.climon_refresh_armed();
     snapshot_bind_io(nullptr, nullptr);
     command_set_local_context(nullptr, nullptr);
 }
@@ -2491,8 +2586,12 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
             if (node->kind == MultiRetryNode::Kind::Group) {
                 auto& previous = *static_cast<ScatterState*>(node->unit);
                 Client* client = previous.commit_client;
-                txn_group_redispatch<IofusedPrivateQueue>(
-                    *loop.srv_, *loop.self_, loop.ring_, loop.scatter_pool_, previous);
+                if (previous.kind == Kind::Script)
+                    script_escalate_redispatch<IofusedPrivateQueue>(
+                        *loop.srv_, *loop.self_, loop.ring_, loop.scatter_pool_, previous);
+                else
+                    txn_group_redispatch<IofusedPrivateQueue>(
+                        *loop.srv_, *loop.self_, loop.ring_, loop.scatter_pool_, previous);
                 loop.mark_active(client);
                 ++work;
                 continue;
@@ -2584,6 +2683,10 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
             if (__builtin_expect(loop.srv_->latency_tracking(), false))
                 for (size_t i = 0; i < previous->commands.size(); ++i)
                     latency_tracking_retry(*previous->commands[i]->op, *next->commands[i]->op);
+            for (size_t i = 0; i < previous->commands.size(); ++i)
+                next->commands[i]->slow_ns.fetch_add(
+                    previous->commands[i]->slow_ns.load(std::memory_order_relaxed),
+                    std::memory_order_relaxed);
             previous->watched.clear();
             previous->retired = true;
             loop.multi_deferred_.push_back(previous);
@@ -2647,6 +2750,13 @@ uint32_t multi_owner_pass_entry(IoLoop& loop) {
 }
 
 void multi_close_entry(IoLoop& loop, Client& client) {
+    // AT4.12: leave the per-IO script FIFO here. close_client calls this on EVERY non-dead entry,
+    // before mark_dead; QUIT, CLIENT KILL of self and the parse-error/receive-limit arms mark the
+    // connection closing first and reach close_client later from flush_ready, so a removal under
+    // close_client's !closing() block would free such a member with its pointer still queued.
+    // Living in this out-of-line function keeps close_client, which the IO templates inline into
+    // parse_and_dispatch, byte-identical to PRE. A no-op for a connection that never queued.
+    script_window_forget(*loop.srv_, loop.self_->id(), client);
     if (MultiExecState* cleanup = multi_prepare_close(*loop.srv_, client, loop.self_->id()))
         loop.pending_multi_cleanups_.push_back(cleanup);
 }
@@ -2817,16 +2927,25 @@ void multi_retire(Client& client, Op& op, std::vector<MultiExecState*>& deferred
         !state->decision.aborted.load(std::memory_order_acquire)) {
         // Connection-local handlers deliberately return to their owning IO thread.  This preserves
         // their thread-local client/snapshot context and keeps every shard-owning handler on EX.
-        for (const auto& command : state->commands)
-            if (command->kind == MultiCommandKind::IoLocal &&
+        for (const auto& command : state->commands) {
+            if (command->kind == MultiCommandKind::IoLocal && !command->io_effect_done &&
                 !(state->publication_started &&
                   (has_name(command->queued, "publish") || has_name(command->queued, "spublish"))))
             {
+                const uint64_t started = multi_slowlog_start(*state, state->owner_io);
                 if (__builtin_expect(state->server->latency_tracking(), false)) {
                     LatencyTrackingScope latency(state->owner_io, *command->op);
+                    if (!command_client_pause(*state->server, *command->op, state->now_cut_mono_ms))
+                        command->op->spec->handler(state->server->shard(0), *command->op);
+                } else if (!command_client_pause(*state->server, *command->op, state->now_cut_mono_ms))
                     command->op->spec->handler(state->server->shard(0), *command->op);
-                } else command->op->spec->handler(state->server->shard(0), *command->op);
+                multi_slowlog_part(*command, started);
+                multi_slowlog_finish(*state, *command, state->owner_io);
             }
+            // Emit once, in EXEC order, after the logical transaction commits.
+            // Wounded attempts contribute time but cannot leak log entries.
+            multi_slowlog_record(*state, *command, state->owner_io);
+        }
     }
     // A completed child can belong to an internally wounded attempt. Publish
     // samples only at logical EXEC retirement; retries transfer their active
@@ -2989,12 +3108,13 @@ bool txn_wound(const Shard::WatchReservation& holder, Shard& shard, Server& serv
     if (!view.phase->compare_exchange_strong(placing, TxnPhase::Wounded,
                                              std::memory_order_acq_rel)) return false;
     uint64_t zero = 0;
-    if (holder.epoch->compare_exchange_strong(zero, kAtomicCancelledEpoch,
-                                             std::memory_order_acq_rel)) {
-        server.note_txn(server.worker_of_shard(shard.id()), holder.unit_kind == 1
-            ? TxnCounter::Wounds : TxnCounter::GroupWounds);
-        holder.aborted->store(true, std::memory_order_release);
-    }
+    // The successful phase CAS is the wound. A victim can complete the epoch
+    // CAS first; that must neither lose the count nor suppress the abort store.
+    server.note_txn(server.worker_of_shard(shard.id()), holder.unit_kind == 1
+        ? TxnCounter::Wounds : TxnCounter::GroupWounds);
+    holder.epoch->compare_exchange_strong(zero, kAtomicCancelledEpoch,
+                                         std::memory_order_acq_rel);
+    holder.aborted->store(true, std::memory_order_release);
     return true;
 }
 }
@@ -3527,9 +3647,11 @@ bool txn_scatter_write_ready(const Task& task, Shard& shard, Op& op) {
             state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::WriterWaits);
             return false;
         }
-        // F2: APPLY owns a reserved ticket, so waiting here would freeze rule P
+        if (state.group_attempt())
+            state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::OrderViolations);
+        // F2: optimistic APPLY owns a reserved ticket, so waiting here would freeze rule P
         // behind the unit that owns this claim. Cancel and finish the APPLY wave;
-        // the existing script finalizer closes the bracket and restages (limit 8).
+        // the script finalizer closes the bracket and hands off to claims.
         uint64_t zero = 0;
         state.epoch.compare_exchange_strong(zero, kAtomicCancelledEpoch, std::memory_order_acq_rel);
         state.script_conflict.store(true, std::memory_order_release);
@@ -3574,7 +3696,7 @@ bool multi_shutdown_retirable(Server& server, WbEngine& wb, Client& client, Op& 
         !state->watch_failed.load(std::memory_order_acquire) &&
         !state->decision.aborted.load(std::memory_order_acquire))
         for (const auto& command : state->commands)
-            if (command->kind == MultiCommandKind::IoLocal &&
+            if (command->kind == MultiCommandKind::IoLocal && !command->io_effect_done &&
                 !(state->publication_started &&
                   (has_name(command->queued, "publish") || has_name(command->queued, "spublish"))))
                 return false;

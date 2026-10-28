@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-at412c/build/at412/commands/post-normal-EVAL-2s-1-0--1.log
+SHA-256: 5c3eed39b39759c139581c86406ce32773e0662751b0a1e79c1a250594774736
+Exit: 0
+0x0000555555a4178e	569	}
+0x0000555555a41790	569	}
+0x0000555555d693bc in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-at412c/tests/txnorder_command_scope.cc:94
+94	    if(activation&&command=="EVAL")scope_end();
+0x0000555555d693c3	93	    xshard_retire(server,server.thread(io),ring,client,*op,pool,io,nullptr,nullptr,nullptr);
+0x0000555555d693c7	94	    if(activation&&command=="EVAL")scope_end();
+0x0000555555d693ca	94	    if(activation&&command=="EVAL")scope_end();
+0x0000555555d693cc	94	    if(activation&&command=="EVAL")scope_end();
+0x0000555555d693d3	94	    if(activation&&command=="EVAL")scope_end();
+0x0000555555d693da	94	    if(activation&&command=="EVAL")scope_end();
+0x0000555555d693df	94	    if(activation&&command=="EVAL")scope_end();
+0x0000555555d693e1	94	    if(activation&&command=="EVAL")scope_end();
+0x0000555555d6a3ed	9TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+4	    if(activation&&command=="EVAL")scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-at412c/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 1842300) exited normally]
+COUNT 37974

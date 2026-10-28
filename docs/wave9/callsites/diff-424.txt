@@ -1,0 +1,31 @@
+void tomo::(anonymous namespace)::cmd_hrandfield<false>(tomo::Shard&, tomo::Op&) [clone .cold]
+--- headline
+
++++ post
+
+@@ -1,12 +1,12 @@
+
+-CLONE 0 0000 [ 4] mov (%rsp),%rdi
+-CLONE 0 0004 [ 5] lea 0x60(%rsp),%r13
+-CLONE 0 0009 [ 3] vzeroupper
+-CLONE 0 000c [ 5] call <std::vector<unsigned int, std::allocator<unsigned int> >::~vector()>
+-CLONE 0 0011 [ 3] mov %r13,%rdi
+-CLONE 0 0014 [ 5] call <std::vector<tomo::(anonymous namespace)::PairView, std::allocator<tomo::(anonymous namespace)::PairView> >::~vector()>
+-CLONE 0 0019 [ 8] mov 0xc8(%rsp),%rax
+-CLONE 0 0021 [ 9] sub %fs:0x28,%rax
+-CLONE 0 002a [ 2] jne <+0x34>
+-CLONE 0 002c [ 3] mov %rbx,%rdi
+-CLONE 0 002f [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 0034 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 0000 [ 5] mov 0x8(%rsp),%rdi
++CLONE 0 0005 [ 5] lea 0x60(%rsp),%r13
++CLONE 0 000a [ 3] vzeroupper
++CLONE 0 000d [ 5] call <std::vector<unsigned int, std::allocator<unsigned int> >::~vector()>
++CLONE 0 0012 [ 3] mov %r13,%rdi
++CLONE 0 0015 [ 5] call <std::vector<tomo::(anonymous namespace)::PairView, std::allocator<tomo::(anonymous namespace)::PairView> >::~vector()>
++CLONE 0 001a [ 8] mov 0xc8(%rsp),%rax
++CLONE 0 0022 [ 9] sub %fs:0x28,%rax
++CLONE 0 002b [ 2] jne <+0x35>
++CLONE 0 002d [ 3] mov %rbx,%rdi
++CLONE 0 0030 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0035 [ 5] call <__stack_chk_fail@plt>

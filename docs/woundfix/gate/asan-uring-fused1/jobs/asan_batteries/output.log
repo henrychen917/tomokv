@@ -1,0 +1,10 @@
+  row budget: 900s; median=6.96s; correctness-plan-fallback; torture under ASAN
+  torture under ASAN                                   ok
+  row budget: 900s; median=1.07s; correctness-plan-fallback; RYOW under ASAN
+  RYOW under ASAN                                      ok
+  row budget: 900s; median=32.56s; correctness-plan-fallback; atomic torn/window under ASAN
+  atomic torn/window under ASAN                        ok
+  row budget: 900s; median=4.1s; correctness-plan-fallback; atomic RYOW under ASAN
+  atomic RYOW under ASAN                               ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; ASAN clean
+  ASAN clean                                           ok

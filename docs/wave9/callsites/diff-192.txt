@@ -1,0 +1,105 @@
+tomo_db0::(anonymous namespace)::init_config(tomo_db0::Config const&)
+--- headline
+
++++ post
+
+@@ -101,7 +101,7 @@
+
+ CLONE 0 01f3 [ 7] lea <rip>(%rip),%rax # <literal-string-756e6978736f636b657400>
+ CLONE 0 01fa [ 4] vpxor %xmm0,%xmm0,%xmm0
+ CLONE 0 01fe [ 5] mov %rax,0x30(%rsp)
+-CLONE 0 0203 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 0203 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 020a [11] vmovdqu8 %xmm0,0x58(%rsp)
+ CLONE 0 0215 [ 3] mov %rbx,%rdi
+ CLONE 0 0218 [11] vmovdqu8 %ymm0,0x38(%rsp)
+@@ -606,7 +606,7 @@
+
+ CLONE 0 0ce3 [ 7] lea <rip>(%rip),%rax # <literal-string-746c732d636572742d66696c6500>
+ CLONE 0 0cea [ 4] vpxor %xmm0,%xmm0,%xmm0
+ CLONE 0 0cee [ 5] mov %rax,0x30(%rsp)
+-CLONE 0 0cf3 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 0cf3 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 0cfa [11] vmovdqu8 %xmm0,0x58(%rsp)
+ CLONE 0 0d05 [ 3] mov %rbx,%rdi
+ CLONE 0 0d08 [11] vmovdqu8 %ymm0,0x38(%rsp)
+@@ -623,7 +623,7 @@
+
+ CLONE 0 0d3f [ 7] lea <rip>(%rip),%rax # <literal-string-746c732d6b65792d66696c6500>
+ CLONE 0 0d46 [ 4] vpxor %xmm0,%xmm0,%xmm0
+ CLONE 0 0d4a [ 5] mov %rax,0x30(%rsp)
+-CLONE 0 0d4f [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 0d4f [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 0d56 [11] vmovdqu8 %xmm0,0x58(%rsp)
+ CLONE 0 0d61 [ 3] mov %rbx,%rdi
+ CLONE 0 0d64 [11] vmovdqu8 %ymm0,0x38(%rsp)
+@@ -640,7 +640,7 @@
+
+ CLONE 0 0d9b [ 7] lea <rip>(%rip),%rax # <literal-string-746c732d63612d636572742d66696c6500>
+ CLONE 0 0da2 [ 4] vpxor %xmm0,%xmm0,%xmm0
+ CLONE 0 0da6 [ 5] mov %rax,0x30(%rsp)
+-CLONE 0 0dab [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 0dab [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 0db2 [11] vmovdqu8 %xmm0,0x58(%rsp)
+ CLONE 0 0dbd [ 3] mov %rbx,%rdi
+ CLONE 0 0dc0 [11] vmovdqu8 %ymm0,0x38(%rsp)
+@@ -657,7 +657,7 @@
+
+ CLONE 0 0df7 [ 7] lea <rip>(%rip),%rax # <literal-string-746c732d63612d636572742d64697200>
+ CLONE 0 0dfe [ 4] vpxor %xmm0,%xmm0,%xmm0
+ CLONE 0 0e02 [ 5] mov %rax,0x30(%rsp)
+-CLONE 0 0e07 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 0e07 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 0e0e [11] vmovdqu8 %xmm0,0x58(%rsp)
+ CLONE 0 0e19 [ 3] mov %rbx,%rdi
+ CLONE 0 0e1c [11] vmovdqu8 %ymm0,0x38(%rsp)
+@@ -696,7 +696,7 @@
+
+ CLONE 0 0ec6 [ 7] lea <rip>(%rip),%rax # <literal-string-746c732d70726f746f636f6c7300>
+ CLONE 0 0ecd [ 4] vpxor %xmm0,%xmm0,%xmm0
+ CLONE 0 0ed1 [ 5] mov %rax,0x30(%rsp)
+-CLONE 0 0ed6 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 0ed6 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 0edd [11] vmovdqu8 %xmm0,0x58(%rsp)
+ CLONE 0 0ee8 [ 3] mov %rbx,%rdi
+ CLONE 0 0eeb [11] vmovdqu8 %ymm0,0x38(%rsp)
+@@ -713,7 +713,7 @@
+
+ CLONE 0 0f22 [ 7] lea <rip>(%rip),%rax # <literal-string-746c732d6369706865727300>
+ CLONE 0 0f29 [ 4] vpxor %xmm0,%xmm0,%xmm0
+ CLONE 0 0f2d [ 5] mov %rax,0x30(%rsp)
+-CLONE 0 0f32 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 0f32 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 0f39 [11] vmovdqu8 %xmm0,0x58(%rsp)
+ CLONE 0 0f44 [ 3] mov %rbx,%rdi
+ CLONE 0 0f47 [11] vmovdqu8 %ymm0,0x38(%rsp)
+@@ -730,7 +730,7 @@
+
+ CLONE 0 0f7e [ 7] lea <rip>(%rip),%rax # <literal-string-746c732d63697068657273756974657300>
+ CLONE 0 0f85 [ 4] vpxor %xmm0,%xmm0,%xmm0
+ CLONE 0 0f89 [ 5] mov %rax,0x30(%rsp)
+-CLONE 0 0f8e [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 0f8e [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 0f95 [11] vmovdqu8 %xmm0,0x58(%rsp)
+ CLONE 0 0fa0 [ 3] mov %rbx,%rdi
+ CLONE 0 0fa3 [11] vmovdqu8 %ymm0,0x38(%rsp)
+@@ -957,7 +957,7 @@
+
+ CLONE 0 143d [ 5] call <tomo_db0::(anonymous namespace)::add_config(char const*, tomo_db0::(anonymous namespace)::ConfigKind, unsigned long)>
+ CLONE 0 1442 [ 8] mov 0xa0(%r12),%r14
+ CLONE 0 144a [ 8] mov 0x244(%r12),%eax
+-CLONE 0 1452 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x788>
++CLONE 0 1452 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x782>
+ CLONE 0 1459 [ 3] test %r14,%r14
+ CLONE 0 145c [ 4] cmove %rdx,%r14
+ CLONE 0 1460 [ 2] test %eax,%eax
+@@ -1003,7 +1003,7 @@
+
+ CLONE 0 1528 [ 7] lea <rip>(%rip),%rax # <literal-string-61636c66696c6500>
+ CLONE 0 152f [ 4] vpxor %xmm0,%xmm0,%xmm0
+ CLONE 0 1533 [ 5] mov %rax,0x30(%rsp)
+-CLONE 0 1538 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 1538 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 153f [11] vmovdqu8 %xmm0,0x58(%rsp)
+ CLONE 0 154a [ 3] mov %rbx,%rdi
+ CLONE 0 154d [11] vmovdqu8 %ymm0,0x38(%rsp)

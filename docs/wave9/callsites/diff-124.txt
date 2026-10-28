@@ -1,0 +1,24 @@
+tomo::atomic_epoch(tomo::AtomicEntry const&)
+--- headline
+
++++ post
+
+@@ -26,17 +26,3 @@
+
+ CLONE 1 0026 [ 4] cmp $0xffffffffffffffff,%rax
+ CLONE 1 002a [ 4] cmove %rdx,%rax
+ CLONE 1 002e [ 1] ret
+-CLONE 2 0000 [ 4] mov 0x30(%rdi),%rax
+-CLONE 2 0004 [ 3] test %rax,%rax
+-CLONE 2 0007 [ 2] je <+0x20>
+-CLONE 2 0009 [ 3] mov (%rax),%rax
+-CLONE 2 000c [ 2] xor %edx,%edx
+-CLONE 2 000e [ 4] cmp $0xffffffffffffffff,%rax
+-CLONE 2 0012 [ 4] cmove %rdx,%rax
+-CLONE 2 0016 [ 1] ret
+-CLONE 2 0017 [ 9] nopw 0x0(%rax,%rax,1)
+-CLONE 2 0020 [ 4] mov 0x58(%rdi),%rax
+-CLONE 2 0024 [ 2] xor %edx,%edx
+-CLONE 2 0026 [ 4] cmp $0xffffffffffffffff,%rax
+-CLONE 2 002a [ 4] cmove %rdx,%rax
+-CLONE 2 002e [ 1] ret

@@ -1,0 +1,17 @@
+job	run	status	seconds	label
+witness_contracts	gate-run.Hxo2QZ	ok	0.670000	witness falsification contracts (testmap + placement)
+reorder_bounds	gate-run.lrtS81	ok	0.090000	R7 linear scan and lazy construction bounds (both databases)
+rob_portable	gate-run.RMK2vi	ok	0.760000	ROB portable completion without BMI
+layout_placement	gate-run.lrtS81	FAIL	0.000000	cross-thread heap and vector line placement
+inline_quoted	gate-run.RrUAHs	FAIL	1.480000	inline quoted argument decoding (1s, epoll)
+inline_quoted	gate-run.RrUAHs	FAIL	1.560000	inline quoted argument decoding (1s, uring)
+inline_quoted	gate-run.RrUAHs	FAIL	1.410000	inline quoted argument decoding (2s, epoll)
+inline_quoted	gate-run.RrUAHs	FAIL	1.520000	inline quoted argument decoding (2s, uring)
+slotless	gate-run.pTil9S	ok	2.080000	slotless remote completions (1s, epoll)
+slotless	gate-run.pTil9S	ok	2.070000	slotless remote completions (1s, uring)
+slotless	gate-run.pTil9S	ok	1.960000	slotless remote completions (2s, epoll)
+slotless	gate-run.pTil9S	ok	1.990000	slotless remote completions (2s, uring)
+wb_mixed	gate-run.RrUAHs	ok	13.360000	writeback mixed replies and live knob bounds (1s, epoll)
+wb_mixed	gate-run.RrUAHs	ok	13.560000	writeback mixed replies and live knob bounds (1s, uring)
+wb_mixed	gate-run.RrUAHs	ok	14.050000	writeback mixed replies and live knob bounds (2s, epoll)
+wb_mixed	gate-run.RrUAHs	ok	13.940000	writeback mixed replies and live knob bounds (2s, uring)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Run Redis's unchanged Tcl tests in a private external-server checkout."""
-import argparse, base64, hashlib, json, os, shutil, signal, socket, subprocess, sys, time
+import argparse, base64, copy, hashlib, json, os, shutil, signal, socket, subprocess, sys, time
 from collections import Counter
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
@@ -111,21 +111,39 @@ def run_file(args, tree, unit, only=None, extra=(), server_args=()):
     if only:
         for name in only: client+=['--only',name]
     client+=list(extra)
-    start=time.monotonic();server=None;test=None;failure=None;rc=None
+    start=time.monotonic();server=None;test=None;failure=None;rc=None;layout_attempts=[]
     with (folder/'server.log').open('w') as sl, (folder/'suite.log').open('w') as tl:
         try:
             with socket.socket() as probe:
                 probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 probe.bind(('127.0.0.1',port))
-            server=subprocess.Popen(command,stdout=sl,stderr=subprocess.STDOUT,start_new_session=True)
-            for _ in range(150):
-                if server.poll() is not None: raise RuntimeError('server exited during boot')
+            # The unchanged SMOVE assertion names fixed keys. TomoKV randomizes
+            # their placement at boot; only its same-shard branch exposed this
+            # WATCH regression. Reroll fresh boots, never skip an unarmed test.
+            arm_smove = (getattr(args, 'arm_smove', False) and
+                         args.mode != 'redis' and unit == 'unit/type/set')
+            for attempt in range(128 if arm_smove else 1):
+                server=subprocess.Popen(command,stdout=sl,stderr=subprocess.STDOUT,start_new_session=True)
+                for _ in range(150):
+                    if server.poll() is not None: raise RuntimeError('server exited during boot')
+                    try:
+                        c=Conn('127.0.0.1',port); reply=c.cmd('PING')
+                        if reply=='PONG' or reply==b'PONG': break
+                        c.close()
+                    except (OSError,RuntimeError): pass
+                    time.sleep(.05)
+                else: raise RuntimeError('server not ready')
+                armed=True
                 try:
-                    c=Conn('127.0.0.1',port); reply=c.cmd('PING');c.close()
-                    if reply=='PONG' or reply==b'PONG': break
-                except (OSError,RuntimeError): pass
-                time.sleep(.05)
-            else: raise RuntimeError('server not ready')
+                    if arm_smove:
+                        shards=[c.cmd('DEBUG','SHARD',key) for key in ('srcset{t}','dstset{t}')]
+                        assert all(isinstance(s,int) and 0 <= s < 16 for s in shards), shards
+                        armed=shards[0]==shards[1]
+                        layout_attempts.append(dict(attempt=attempt+1,shards=shards,armed=armed))
+                finally: c.close()
+                if armed: break
+                stop(server);server=None
+            else: raise RuntimeError('SMOVE same-shard arming failed after 128 fresh boots')
             # gate.sh uses LC_ALL=C. Upstream files contain UTF-8 test names;
             # bind their decoding so the same assertion inventory survives it.
             test=subprocess.Popen(client,cwd=tree,env=dict(os.environ,HARNESS5_TCL_EVENTS=str(event_path),
@@ -140,7 +158,7 @@ def run_file(args, tree, unit, only=None, extra=(), server_args=()):
     totals, complete = counts(observed, unit)
     row=dict(file=unit,mode=args.mode,**totals,complete=complete,exit_code=rc,error=failure,
              seconds=time.monotonic()-start,server_argv=command,suite_argv=client,
-             server_exit=server.returncode if server else None,events=observed)
+             server_exit=server.returncode if server else None,smove_layout_attempts=layout_attempts,events=observed)
     (folder/'result.json').write_text(json.dumps(row,indent=2)+'\n')
     return row
 
@@ -179,6 +197,86 @@ def validate_passing(row, expected, known_setup_errors=()):
             row['exit_code'] != expected_rc):
         raise ValueError('passing subset failed, incomplete, or assertion inventory changed')
 
+MONITOR_ORDER_TEST = 'MONITOR log blocked command only once in tests/unit/introspection.tcl'
+# Named upstream assertions that rely on cross-connection arrival order (single-threaded
+# Redis); each gets one fresh-server retry and nothing else. Maintainer 2026-10-28.
+ORDER_TESTS = {
+    'unit/introspection': MONITOR_ORDER_TEST,
+    'unit/type/list': 'BRPOPLPUSH does not affect WATCH while still blocked in tests/unit/type/list.tcl',
+}
+
+def retry_monitor_order(args, tree, unit, row, server_args):
+    """One fresh-server retry for the named cross-connection ordering assertion of this file.
+
+    Keep the failed receipt and never retry a file, timeout, missing assertion,
+    setup failure, or another named failure. The exact upstream assertion must
+    pass on its sole retry; it is not skipped or weakened.
+    """
+    failures = [event for event in row['events'] if event['status'] == 'err']
+    name = ORDER_TESTS.get(unit)
+    if (name is None or row['error'] or not row['complete'] or
+            row['exit_code'] != 1 or row['failed'] != 1 or len(failures) != 1 or
+            failures[0]['test'] != name):
+        return row
+    folder = args.output / unit
+    (folder / 'before-monitor-retry.json').write_text(json.dumps(row, indent=2) + '\n')
+    child = copy.copy(args)
+    child.output = folder / 'monitor-retry'
+    part = run_file(child, tree, unit, only=[name.split(' in tests/')[0]],
+                    server_args=server_args)
+    row['monitor_order_retry'] = dict(original_failure=failures[0],
+        result=str(child.output / unit / 'result.json'), passed=False)
+    try:
+        validate_passing(part, [name])
+    except ValueError:
+        return row
+    row['monitor_order_retry']['passed'] = True
+    row['events'] = [event for event in row['events'] if event is not failures[0]]
+    row['events'] += [event for event in part['events'] if event['status'] == 'ok']
+    row['failed'] = 0
+    row['passed'] += 1
+    row['exit_code'] = 0
+    row['seconds'] += part['seconds']
+    return row
+
+def run_manifest_file(args, tree, unit, spec, extra, server_args):
+    """Keep required assertions whose skipped predecessors changed their setup.
+
+    The upstream zero-capacity check leaves slowlog-max-len=0. Its skipped
+    successors normally restore capacity before the EXEC check. Run that
+    unchanged check on a fresh server; retain the zero-capacity assertion and
+    require both runs' exact assertion inventory and completion evidence.
+    """
+    row=run_file(args,tree,unit,extra=extra,server_args=server_args)
+    row=retry_monitor_order(args,tree,unit,row,server_args)
+    fresh=spec.get('fresh_tests', [])
+    if not fresh:
+        if 'monitor_order_retry' in row:
+            (args.output/unit/'result.json').write_text(json.dumps(row, indent=2)+'\n')
+        return row
+    folder=args.output/unit
+    (folder/'primary-result.json').write_text(json.dumps(row,indent=2)+'\n')
+    row['fresh_runs']=[]
+    for index, name in enumerate(fresh):
+        child=copy.copy(args);child.output=folder/'fresh'/str(index)
+        part=run_file(child,tree,unit,only=[name.split(' in tests/')[0]],
+                      extra=spec.get('extra_args', []),server_args=server_args)
+        # Validate this receipt independently: a missing, duplicated or failed
+        # isolated assertion cannot be covered by another segment's passes.
+        try: validate_passing(part,[name])
+        except ValueError as error:
+            part['error']='; '.join(filter(None,(part['error'],str(error))))
+        row['fresh_runs'].append(dict(test=name,result=str(child.output/unit/'result.json'),
+                                     error=part['error'],exit_code=part['exit_code']))
+        row['events']+=part['events']
+        for key in ('passed','failed','skipped','teardown_exceptions','seconds'):
+            row[key]+=part[key]
+        row['complete']=row['complete'] and part['complete']
+        row['exit_code']=row['exit_code'] or part['exit_code']
+        row['error']='; '.join(filter(None,(row['error'],part['error']))) or None
+    (folder/'result.json').write_text(json.dumps(row,indent=2)+'\n')
+    return row
+
 def load_manifest(path, redis_root, inventory):
     """The frozen subset: upstream bytes, required passes and NAMED known failures."""
     manifest=json.loads(Path(path).read_text())
@@ -194,6 +292,15 @@ def load_manifest(path, redis_root, inventory):
         required = {name.split(' in tests/')[0] for name in spec['passed_tests']}
         if not spec['passed_tests'] or set(spec.get('skip_tests', ())) & required:
             raise ValueError(f'manifest file has no required pass or skips a required test: {unit}')
+        fresh=spec.get('fresh_tests', [])
+        if fresh and (unit!='unit/slowlog' or fresh!=[
+                'SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl'] or
+                not set(fresh)<=set(spec['passed_tests'])):
+            raise ValueError(f'invalid fresh assertion setup: {unit}')
+        isolated = spec.get('isolated_tests', {})
+        if (not isinstance(isolated, dict) or not set(isolated) <= required or
+                any(not isinstance(reason, str) or not reason for reason in isolated.values())):
+            raise ValueError(f'invalid isolated required tests: {unit}')
         # The upstream histogram file assumes Redis's default yes. TomoKV's
         # owner-selected default is no, so this explicit, bound file setup
         # enables the feature under test without editing upstream assertions.
@@ -221,6 +328,7 @@ def main():
     p.add_argument('--resume',action='store_true');p.add_argument('--manifest',type=Path)
     p.add_argument('--controller-port', type=int)
     p.add_argument('--ratio', default='6:2')
+    p.add_argument('--arm-smove', action='store_true')
     args=p.parse_args();args.output=args.output.resolve();args.binary=args.binary.resolve();args.output.mkdir(parents=True,exist_ok=True)
     tree=args.output/'checkout';prepare(args.redis_root,tree,controller_port=args.controller_port)
     files=sorted([*args.redis_root.glob('tests/unit/**/*.tcl'),*args.redis_root.glob('tests/integration/**/*.tcl')])
@@ -239,16 +347,34 @@ def main():
             spec=manifest['files'][unit]
             server_args=spec.get('server_args', [])
             skipfile=args.output/unit/'skip.txt'; skipfile.parent.mkdir(parents=True,exist_ok=True)
-            skipfile.write_text(''.join(name+'\n' for name in sorted(spec.get('skip_tests', ()))), encoding='utf-8')
+            primary_skip=set(spec.get('skip_tests', ()))
+            primary_skip.update(name.split(' in tests/')[0] for name in spec.get('fresh_tests', []))
+            isolated = spec.get('isolated_tests', {})
+            primary_skip.update(isolated)
+            skipfile.write_text(''.join(name+'\n' for name in sorted(primary_skip)), encoding='utf-8')
             extra=['--skipfile',str(skipfile),*spec.get('extra_args',[])]
         if args.resume and path.exists(): row=json.loads(path.read_text())
+        elif args.manifest: row=run_manifest_file(args,tree,unit,spec,extra,server_args)
         else: row=run_file(args,tree,unit,extra=extra,server_args=server_args)
         if args.manifest:
             row['skip_tests']=sorted(spec.get('skip_tests', ()))
             row['setup_errors']=[dict(command=c, reply=r, count=n) for (c, r), n in sorted(setup_errors(row).items())]
-            try: validate_passing(row, spec['passed_tests'], spec.get('known_setup_errors', ()))
+            expected = [name for name in spec['passed_tests'] if name.split(' in tests/')[0] not in isolated]
+            try: validate_passing(row, expected, spec.get('known_setup_errors', ()))
             except ValueError as error: row['error'] = '; '.join(filter(None, (row['error'], str(error))))
         report['rows'].append(row)
+        if args.manifest:
+            for name, reason in isolated.items():
+                isolated_args = argparse.Namespace(**vars(args))
+                isolated_args.output = args.output / 'isolated' / hashlib.sha256(name.encode()).hexdigest()[:16]
+                isolated_row = run_file(isolated_args, tree, unit, only=[name],
+                    extra=spec.get('extra_args', ()), server_args=server_args)
+                isolated_row['isolation_reason'] = reason
+                expected = [label for label in spec['passed_tests'] if label.split(' in tests/')[0] == name]
+                try: validate_passing(isolated_row, expected)
+                except ValueError as error:
+                    isolated_row['error'] = '; '.join(filter(None, (isolated_row['error'], str(error))))
+                report['rows'].append(isolated_row)
         (args.output/'summary.json').write_text(json.dumps(report,indent=2)+'\n')
         print(f"{args.mode} {unit}: {row['passed']} pass {row['failed']} fail {row['skipped']} skip rc={row['exit_code']} complete={row['complete']}",flush=True)
     if sha(args.binary) != report['binary_sha256']: raise ValueError('candidate changed during suite')

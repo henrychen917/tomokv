@@ -1,0 +1,16 @@
+ok	0.290000	txnorder2 writer episode R1
+ok	0.020000	txnorder2 writer episode R2
+ok	0.020000	txnorder2 writer episode R3
+ok	0.030000	txnorder2 writer episode R4
+ok	0.030000	txnorder2 writer episode R5
+ok	0.020000	txnorder2 writer episode R6
+ok	0.030000	txnorder2 writer episode R7
+ok	0.090000	txnorder2 writer episode R8
+ok	0.030000	txnorder2 writer episode R9
+ok	0.020000	txnorder2 writer episode R10
+ok	0.030000	txnorder2 writer episode R11
+ok	4.570000	txnorder2 writer episode R12
+ok	0.050000	txnorder2 direct RENAME owner join
+ok	22.640000	txnorder2 WATCH serve
+ok	30.360000	txnorder2 WATCH flush
+ok	27.180000	txnorder2 WATCH readonly

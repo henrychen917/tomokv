@@ -1,0 +1,13 @@
+{
+  "source": "/home/user/Projects/cx-at412/tools/execindex_scope.py",
+  "source_sha256": "6acbdbaf9eacd56c750e2398eeb0809fc136f38d4a68fdb256463bb8b802deca",
+  "derived": "/home/user/Projects/cx-at412/build/at412/instrument-scope-scripts.py",
+  "derived_sha256": "516284f8df8b42eeac5f6e7f96bc7f2484df58719920324bb4f134c4e3076924",
+  "cpu": "56-63",
+  "substitutions": [
+    "execindex -> at412",
+    "96-103 -> 56-63",
+    "96-111 -> 56-63"
+  ],
+  "script_scopes": true
+}

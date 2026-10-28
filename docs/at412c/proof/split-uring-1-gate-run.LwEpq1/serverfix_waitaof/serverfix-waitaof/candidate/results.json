@@ -1,0 +1,738 @@
+{
+  "binary": "/home/user/Projects/cx-at412c/build/tomokv",
+  "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7",
+  "checks": [
+    {
+      "label": "1s-uring immediate",
+      "passed": true,
+      "actual": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "1s-uring grammar 0",
+      "passed": true,
+      "actual": {
+        "error": "ERR value is out of range, must be positive"
+      }
+    },
+    {
+      "label": "1s-uring grammar 1",
+      "passed": true,
+      "actual": {
+        "error": "ERR timeout is negative"
+      }
+    },
+    {
+      "label": "1s-uring grammar 2",
+      "passed": true,
+      "actual": {
+        "error": "ERR timeout is not an integer or out of range"
+      }
+    },
+    {
+      "label": "1s-uring grammar 3",
+      "passed": true,
+      "actual": {
+        "error": "ERR value is not an integer or out of range"
+      }
+    },
+    {
+      "label": "1s-uring grammar 4",
+      "passed": true,
+      "actual": {
+        "error": "ERR timeout is out of range"
+      }
+    },
+    {
+      "label": "1s-uring grammar 5",
+      "passed": true,
+      "actual": {
+        "error": "ERR WAITAOF cannot be used when numlocal is set but appendonly is disabled."
+      }
+    },
+    {
+      "label": "1s-uring finite blocked witness",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring no premature reply",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "1s-uring deadline reply",
+      "passed": true,
+      "actual": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "1s-uring finite next command",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-uring finite observation window opened",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring forever parked TIMEOUT",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring forever has no reply TIMEOUT",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "1s-uring unblock TIMEOUT",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring unblock reply TIMEOUT",
+      "passed": true,
+      "actual": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "1s-uring resumed TIMEOUT",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-uring no lingering waiter",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-uring forever parked ERROR",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring forever has no reply ERROR",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "1s-uring unblock ERROR",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring unblock reply ERROR",
+      "passed": true,
+      "actual": {
+        "error": "UNBLOCKED client unblocked via CLIENT UNBLOCK"
+      }
+    },
+    {
+      "label": "1s-uring resumed ERROR",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-uring no lingering waiter",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-uring disconnect parked",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring disconnected waiter removed",
+      "passed": true,
+      "actual": {}
+    },
+    {
+      "label": "1s-uring disconnected cannot unblock",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-uring MULTI",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-uring queued WAITAOF",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-uring EXEC never parks",
+      "passed": true,
+      "actual": [
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "label": "1s-epoll immediate",
+      "passed": true,
+      "actual": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "1s-epoll grammar 0",
+      "passed": true,
+      "actual": {
+        "error": "ERR value is out of range, must be positive"
+      }
+    },
+    {
+      "label": "1s-epoll grammar 1",
+      "passed": true,
+      "actual": {
+        "error": "ERR timeout is negative"
+      }
+    },
+    {
+      "label": "1s-epoll grammar 2",
+      "passed": true,
+      "actual": {
+        "error": "ERR timeout is not an integer or out of range"
+      }
+    },
+    {
+      "label": "1s-epoll grammar 3",
+      "passed": true,
+      "actual": {
+        "error": "ERR value is not an integer or out of range"
+      }
+    },
+    {
+      "label": "1s-epoll grammar 4",
+      "passed": true,
+      "actual": {
+        "error": "ERR timeout is out of range"
+      }
+    },
+    {
+      "label": "1s-epoll grammar 5",
+      "passed": true,
+      "actual": {
+        "error": "ERR WAITAOF cannot be used when numlocal is set but appendonly is disabled."
+      }
+    },
+    {
+      "label": "1s-epoll finite blocked witness",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll no premature reply",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll deadline reply",
+      "passed": true,
+      "actual": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "1s-epoll finite next command",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-epoll finite observation window opened",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll forever parked TIMEOUT",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll forever has no reply TIMEOUT",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll unblock TIMEOUT",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll unblock reply TIMEOUT",
+      "passed": true,
+      "actual": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "1s-epoll resumed TIMEOUT",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-epoll no lingering waiter",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-epoll forever parked ERROR",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll forever has no reply ERROR",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll unblock ERROR",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll unblock reply ERROR",
+      "passed": true,
+      "actual": {
+        "error": "UNBLOCKED client unblocked via CLIENT UNBLOCK"
+      }
+    },
+    {
+      "label": "1s-epoll resumed ERROR",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-epoll no lingering waiter",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-epoll disconnect parked",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll disconnected waiter removed",
+      "passed": true,
+      "actual": {}
+    },
+    {
+      "label": "1s-epoll disconnected cannot unblock",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-epoll MULTI",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-epoll queued WAITAOF",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-epoll EXEC never parks",
+      "passed": true,
+      "actual": [
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "label": "2s-uring immediate",
+      "passed": true,
+      "actual": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "2s-uring grammar 0",
+      "passed": true,
+      "actual": {
+        "error": "ERR value is out of range, must be positive"
+      }
+    },
+    {
+      "label": "2s-uring grammar 1",
+      "passed": true,
+      "actual": {
+        "error": "ERR timeout is negative"
+      }
+    },
+    {
+      "label": "2s-uring grammar 2",
+      "passed": true,
+      "actual": {
+        "error": "ERR timeout is not an integer or out of range"
+      }
+    },
+    {
+      "label": "2s-uring grammar 3",
+      "passed": true,
+      "actual": {
+        "error": "ERR value is not an integer or out of range"
+      }
+    },
+    {
+      "label": "2s-uring grammar 4",
+      "passed": true,
+      "actual": {
+        "error": "ERR timeout is out of range"
+      }
+    },
+    {
+      "label": "2s-uring grammar 5",
+      "passed": true,
+      "actual": {
+        "error": "ERR WAITAOF cannot be used when numlocal is set but appendonly is disabled."
+      }
+    },
+    {
+      "label": "2s-uring finite blocked witness",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring no premature reply",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "2s-uring deadline reply",
+      "passed": true,
+      "actual": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "2s-uring finite next command",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-uring finite observation window opened",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring forever parked TIMEOUT",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring forever has no reply TIMEOUT",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "2s-uring unblock TIMEOUT",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring unblock reply TIMEOUT",
+      "passed": true,
+      "actual": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "2s-uring resumed TIMEOUT",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-uring no lingering waiter",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-uring forever parked ERROR",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring forever has no reply ERROR",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "2s-uring unblock ERROR",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring unblock reply ERROR",
+      "passed": true,
+      "actual": {
+        "error": "UNBLOCKED client unblocked via CLIENT UNBLOCK"
+      }
+    },
+    {
+      "label": "2s-uring resumed ERROR",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-uring no lingering waiter",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-uring disconnect parked",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring disconnected waiter removed",
+      "passed": true,
+      "actual": {}
+    },
+    {
+      "label": "2s-uring disconnected cannot unblock",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-uring MULTI",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-uring queued WAITAOF",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-uring EXEC never parks",
+      "passed": true,
+      "actual": [
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "label": "2s-epoll immediate",
+      "passed": true,
+      "actual": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "2s-epoll grammar 0",
+      "passed": true,
+      "actual": {
+        "error": "ERR value is out of range, must be positive"
+      }
+    },
+    {
+      "label": "2s-epoll grammar 1",
+      "passed": true,
+      "actual": {
+        "error": "ERR timeout is negative"
+      }
+    },
+    {
+      "label": "2s-epoll grammar 2",
+      "passed": true,
+      "actual": {
+        "error": "ERR timeout is not an integer or out of range"
+      }
+    },
+    {
+      "label": "2s-epoll grammar 3",
+      "passed": true,
+      "actual": {
+        "error": "ERR value is not an integer or out of range"
+      }
+    },
+    {
+      "label": "2s-epoll grammar 4",
+      "passed": true,
+      "actual": {
+        "error": "ERR timeout is out of range"
+      }
+    },
+    {
+      "label": "2s-epoll grammar 5",
+      "passed": true,
+      "actual": {
+        "error": "ERR WAITAOF cannot be used when numlocal is set but appendonly is disabled."
+      }
+    },
+    {
+      "label": "2s-epoll finite blocked witness",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll no premature reply",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll deadline reply",
+      "passed": true,
+      "actual": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "2s-epoll finite next command",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-epoll finite observation window opened",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll forever parked TIMEOUT",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll forever has no reply TIMEOUT",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll unblock TIMEOUT",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll unblock reply TIMEOUT",
+      "passed": true,
+      "actual": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "2s-epoll resumed TIMEOUT",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-epoll no lingering waiter",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-epoll forever parked ERROR",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll forever has no reply ERROR",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll unblock ERROR",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll unblock reply ERROR",
+      "passed": true,
+      "actual": {
+        "error": "UNBLOCKED client unblocked via CLIENT UNBLOCK"
+      }
+    },
+    {
+      "label": "2s-epoll resumed ERROR",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-epoll no lingering waiter",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-epoll disconnect parked",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll disconnected waiter removed",
+      "passed": true,
+      "actual": {}
+    },
+    {
+      "label": "2s-epoll disconnected cannot unblock",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-epoll MULTI",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-epoll queued WAITAOF",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-epoll EXEC never parks",
+      "passed": true,
+      "actual": [
+        [
+          0,
+          0
+        ]
+      ]
+    }
+  ],
+  "slowlog": {
+    "0": {
+      "error": "ERR value is out of range, must be positive"
+    },
+    "1": {
+      "error": "ERR timeout is negative"
+    },
+    "2": {
+      "error": "ERR timeout is not an integer or out of range"
+    },
+    "3": {
+      "error": "ERR value is not an integer or out of range"
+    },
+    "4": {
+      "error": "ERR timeout is out of range"
+    },
+    "5": {
+      "error": "ERR WAITAOF cannot be used when numlocal is set but appendonly is disabled."
+    }
+  }
+}

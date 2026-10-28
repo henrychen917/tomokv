@@ -1,0 +1,23 @@
+{
+  "checked_at": "2026-10-27T11:46:35Z",
+  "freshness_checks": 52,
+  "all_fresh": true,
+  "binaries": [
+    {
+      "arm": "PRE",
+      "path": "build/blockfix2/pre-source/build/tomokv",
+      "sha256": "cbd6ed78f4625bcd24d6b26a1e99130de05bc552b96546271775e64307e24f1f"
+    },
+    {
+      "arm": "POST",
+      "path": "build/blockfix2/post/tomokv",
+      "sha256": "d79738936b83882fdf06de1f83f77ffa9e7674726eab8a231c9cd4eb199f48d3"
+    },
+    {
+      "arm": "PAD-A",
+      "path": "build/blockfix2/pad-a/tomokv",
+      "sha256": "82b6c78bb924015581e78e9397a2137f21ee015266d8aed2352c79e05a4e0d3d"
+    }
+  ],
+  "production_unchanged_since": "6fe190930"
+}

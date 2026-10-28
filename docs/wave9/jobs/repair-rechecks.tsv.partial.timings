@@ -1,0 +1,36 @@
+ok	0.000000	release build (+footprint locks)
+ok	0.080000	R7 linear scan and lazy construction bounds (both databases)
+ok	14.880000	at412 T1
+ok	134.590000	at412 T5
+ok	14.790000	at412 T12
+ok	0.080000	at412 owner
+ok	16.030000	exbatch publication unit + negative controls
+ok	41.770000	exbatch watch unit + negative controls
+ok	17.340000	exbatch metadata unit + negative controls
+ok	0.000000	atomic commit publication catches up at quiescence
+ok	2.300000	flushfix flush witnesses
+ok	0.150000	flushfix headers witnesses
+ok	3.530000	multidb serverless owners
+ok	0.040000	multidb global namespace boundary
+ok	15.320000	storesize published monitoring
+ok	0.220000	MULTI admin command replies
+ok	0.080000	EXECABORT releases WATCH reservation
+ok	0.000000	atomic survivors unit build
+ok	0.020000	atomic survivor: admission
+ok	0.010000	atomic survivor: closure
+ok	0.000000	atomic survivor: script_keys
+ok	0.010000	atomic survivor: rename_overlay
+ok	0.010000	atomic survivor: write_latest
+ok	0.000000	atomic survivor: script_apply
+FAIL	1.110000	atomic survivor: post_apply_probe
+ok	0.010000	atomic survivor: lua_conversion
+ok	0.010000	atomic survivor: watch_parent
+ok	0.000000	atomic survivor: watch_cycle
+ok	0.010000	atomic survivor: mset_arity
+ok	0.010000	atomic survivor: watch_oom
+ok	0.010000	atomic survivor: lua_lines
+ok	0.010000	atomic survivor: library_limit
+ok	0.010000	atomic survivor: stage_flag
+ok	0.000000	atomic survivor: instruction_limit
+ok	0.000000	armed resize retirement: atomic-growth
+ok	0.010000	armed resize retirement: flush-prepared

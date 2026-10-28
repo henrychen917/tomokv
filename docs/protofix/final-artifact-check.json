@@ -1,0 +1,20 @@
+{
+  "archive_sha256": "a325ddb1a0aaa6663607334dd772d38622a618219a3179c29c03067cadf4b2c2",
+  "verified_archive_members": 12184,
+  "gate_invocations": 17,
+  "artifacts": {
+    "PRE": {
+      "path": "build/tomokv-protofix-PRE",
+      "sha256": "37b3a2f583859dff5e9bc74dd864f7257b6f486371883a0df4d12a0d5393912b"
+    },
+    "POST": {
+      "path": "build/tomokv-protofix-POST",
+      "sha256": "e99c3f23182c0872214c2e1475cb64cb4d8aa3dd27ebeaf769ca0197c4b5ba5b"
+    },
+    "PAD-A": {
+      "path": "build/tomokv-protofix-PAD-A",
+      "sha256": "f78a694afa361d939699df9993f98239c67adf8b6bf589671a1a051b0af9f9a8"
+    }
+  },
+  "no_workload_processes_remaining": true
+}

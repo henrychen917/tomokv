@@ -1,0 +1,314 @@
+{
+  "uring": {
+    "job_receipt": "docs/multifix/jobs/final-differ-uring.json",
+    "job_receipt_sha256": "c0e6adb2b28f3136b4e049d9959a5df9cf28d1c8bf2637168ea9792510eb72d1",
+    "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+    "plan_sha256": "197fb71b6dee02ac52e4dea47c8813e46b8dc8e12d18ee80be8b233346394e87",
+    "plan": {
+      "schema": 1,
+      "manifest": {
+        "run": "full:gate-run.6145vi",
+        "permanent": [
+          7,
+          19,
+          20,
+          23
+        ],
+        "failed": [],
+        "rotating": 24,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          24
+        ],
+        "history": "/home/user/Projects/cx-multifix/.gate-history/differ"
+      },
+      "suites": [
+        "string",
+        "list",
+        "set",
+        "zset",
+        "hash",
+        "hexpire",
+        "edgetime",
+        "xshard",
+        "xmove",
+        "bitmap",
+        "hll",
+        "bitfield",
+        "cgaps",
+        "stream",
+        "script",
+        "streamgrp",
+        "zsetops",
+        "geo",
+        "doubles",
+        "scan",
+        "multi",
+        "encodingfix",
+        "edgeenc",
+        "edgeproto",
+        "cmdgap",
+        "cmdgap2",
+        "sort",
+        "servertail",
+        "arity",
+        "storeorder",
+        "infofix",
+        "multidb",
+        "blocking",
+        "pubsub",
+        "fanout",
+        "spubsub",
+        "notify",
+        "wiredump",
+        "climon",
+        "compatintro",
+        "aclsel",
+        "aclkeys",
+        "cmdmeta",
+        "s6fix",
+        "ccfix",
+        "psfix",
+        "monitor"
+      ],
+      "repeats": 4,
+      "equivalence_seeds": [
+        24
+      ]
+    },
+    "parts": [
+      {
+        "part": "split-0",
+        "pass": 235,
+        "fail": 0,
+        "runtime": "8m53s",
+        "command_coverage": [
+          "diffed 232 of 245 registered commands (1064304 recorded comparison witnesses, 235 legs)"
+        ],
+        "geometry_skips": [],
+        "output": "build/gate-run.6145vi/jobs/differ-split-0/output.log",
+        "output_sha256": "4f1c9f9584f87b2b24ee5958769671effec5cba98e9553b90f55685b1775d066",
+        "ledger": "ok\t532.690000\tRedis 7.4 differential part (split, atomic 0)"
+      },
+      {
+        "part": "split-1",
+        "pass": 239,
+        "fail": 0,
+        "runtime": "8m54s",
+        "command_coverage": [
+          "diffed 232 of 245 registered commands (1081494 recorded comparison witnesses, 239 legs)"
+        ],
+        "geometry_skips": [],
+        "output": "build/gate-run.6145vi/jobs/differ-split-1/output.log",
+        "output_sha256": "f5e7e7ac04be072f974b48903ed0d00692af359d67bf545d30f1b0a6d46d6740",
+        "ledger": "ok\t534.010000\tRedis 7.4 differential part (split, atomic 1)"
+      },
+      {
+        "part": "armed-0",
+        "pass": 231,
+        "fail": 0,
+        "runtime": "8m51s",
+        "command_coverage": [
+          "diffed 232 of 245 registered commands (1041285 recorded comparison witnesses, 230 legs)"
+        ],
+        "geometry_skips": [
+          [
+            "sort",
+            "suite requires the split 6:2 geometry"
+          ]
+        ],
+        "output": "build/gate-run.6145vi/jobs/differ-armed-0/output.log",
+        "output_sha256": "5fceba8e622c7e7f5e369525f099313d9c5e165f71660b85f0b451d3b26a354c",
+        "ledger": "ok\t532.040000\tRedis 7.4 differential part (armed fused, atomic 0)"
+      },
+      {
+        "part": "armed-1",
+        "pass": 235,
+        "fail": 0,
+        "runtime": "8m54s",
+        "command_coverage": [
+          "diffed 232 of 245 registered commands (1058094 recorded comparison witnesses, 234 legs)"
+        ],
+        "geometry_skips": [
+          [
+            "sort",
+            "suite requires the split 6:2 geometry"
+          ]
+        ],
+        "output": "build/gate-run.6145vi/jobs/differ-armed-1/output.log",
+        "output_sha256": "56f7e6eef6f6e9faabedea47530f808093e8483f19370452637770adf3eb02cc",
+        "ledger": "ok\t534.760000\tRedis 7.4 differential part (armed fused, atomic 1)"
+      },
+      {
+        "part": "equivalence",
+        "pass": 1,
+        "fail": 0,
+        "runtime": "0m22s",
+        "command_coverage": [],
+        "geometry_skips": [],
+        "output": "build/gate-run.6145vi/jobs/differ-equivalence/output.log",
+        "output_sha256": "e5c9554f59c8f606279d9b2df5339fcece010ef313ca66eb9eac78cd61372295",
+        "ledger": "ok\t21.720000\tmode equivalence part (all execution modes and knobs)"
+      }
+    ]
+  },
+  "epoll": {
+    "job_receipt": "docs/multifix/jobs/final-differ-epoll.json",
+    "job_receipt_sha256": "ec943deaf4445d65e9faa87373d4cfa61c4bf47b46ebcfdeae0bf9e92e1d82e8",
+    "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+    "plan_sha256": "dd7d035f3b160e56bc3c710895f0d210c4dae33f2061e43d709a27b685afb60b",
+    "plan": {
+      "schema": 1,
+      "manifest": {
+        "run": "full:gate-run.vrnAfA",
+        "permanent": [
+          7,
+          19,
+          20,
+          23
+        ],
+        "failed": [],
+        "rotating": 25,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          25
+        ],
+        "history": "/home/user/Projects/cx-multifix/.gate-history/differ"
+      },
+      "suites": [
+        "string",
+        "list",
+        "set",
+        "zset",
+        "hash",
+        "hexpire",
+        "edgetime",
+        "xshard",
+        "xmove",
+        "bitmap",
+        "hll",
+        "bitfield",
+        "cgaps",
+        "stream",
+        "script",
+        "streamgrp",
+        "zsetops",
+        "geo",
+        "doubles",
+        "scan",
+        "multi",
+        "encodingfix",
+        "edgeenc",
+        "edgeproto",
+        "cmdgap",
+        "cmdgap2",
+        "sort",
+        "servertail",
+        "arity",
+        "storeorder",
+        "infofix",
+        "multidb",
+        "blocking",
+        "pubsub",
+        "fanout",
+        "spubsub",
+        "notify",
+        "wiredump",
+        "climon",
+        "compatintro",
+        "aclsel",
+        "aclkeys",
+        "cmdmeta",
+        "s6fix",
+        "ccfix",
+        "psfix",
+        "monitor"
+      ],
+      "repeats": 4,
+      "equivalence_seeds": [
+        25
+      ]
+    },
+    "parts": [
+      {
+        "part": "split-0",
+        "pass": 235,
+        "fail": 0,
+        "runtime": "8m49s",
+        "command_coverage": [
+          "diffed 232 of 245 registered commands (1064182 recorded comparison witnesses, 235 legs)"
+        ],
+        "geometry_skips": [],
+        "output": "build/gate-run.vrnAfA/jobs/differ-split-0/output.log",
+        "output_sha256": "a5f83c9389d8613440b08af629ae357b496c8bacca9e44ec6c0cac832bf495ef",
+        "ledger": "ok\t528.850000\tRedis 7.4 differential part (split, atomic 0)"
+      },
+      {
+        "part": "split-1",
+        "pass": 239,
+        "fail": 0,
+        "runtime": "8m49s",
+        "command_coverage": [
+          "diffed 232 of 245 registered commands (1081285 recorded comparison witnesses, 239 legs)"
+        ],
+        "geometry_skips": [],
+        "output": "build/gate-run.vrnAfA/jobs/differ-split-1/output.log",
+        "output_sha256": "663bbbb89225f32ada1b7363274667f20d542001675a95f876ca98f36b020ecd",
+        "ledger": "ok\t530.110000\tRedis 7.4 differential part (split, atomic 1)"
+      },
+      {
+        "part": "armed-0",
+        "pass": 231,
+        "fail": 0,
+        "runtime": "8m55s",
+        "command_coverage": [
+          "diffed 232 of 245 registered commands (1041058 recorded comparison witnesses, 230 legs)"
+        ],
+        "geometry_skips": [
+          [
+            "sort",
+            "suite requires the split 6:2 geometry"
+          ]
+        ],
+        "output": "build/gate-run.vrnAfA/jobs/differ-armed-0/output.log",
+        "output_sha256": "f173e446233604f5b99115084b2e1682ef51cd52d0902a67127ed14b825feda1",
+        "ledger": "ok\t535.100000\tRedis 7.4 differential part (armed fused, atomic 0)"
+      },
+      {
+        "part": "armed-1",
+        "pass": 235,
+        "fail": 0,
+        "runtime": "8m47s",
+        "command_coverage": [
+          "diffed 232 of 245 registered commands (1058467 recorded comparison witnesses, 234 legs)"
+        ],
+        "geometry_skips": [
+          [
+            "sort",
+            "suite requires the split 6:2 geometry"
+          ]
+        ],
+        "output": "build/gate-run.vrnAfA/jobs/differ-armed-1/output.log",
+        "output_sha256": "df9cc51fd30354a0143ed39dff0bab94daf960d1ffa72c48bbb58fc38c12fa80",
+        "ledger": "ok\t526.700000\tRedis 7.4 differential part (armed fused, atomic 1)"
+      },
+      {
+        "part": "equivalence",
+        "pass": 1,
+        "fail": 0,
+        "runtime": "0m21s",
+        "command_coverage": [],
+        "geometry_skips": [],
+        "output": "build/gate-run.vrnAfA/jobs/differ-equivalence/output.log",
+        "output_sha256": "f9e4ef05a229d9af462eb6396c7d5f14ae1c0803f0d44d01de239eea25231b7e",
+        "ledger": "ok\t21.620000\tmode equivalence part (all execution modes and knobs)"
+      }
+    ]
+  }
+}

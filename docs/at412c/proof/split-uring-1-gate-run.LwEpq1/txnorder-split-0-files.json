@@ -1,0 +1,22 @@
+[
+  {
+    "path": "gate-srv-main.CEPi9l",
+    "bytes": 6210,
+    "sha256": "0608330f591c1313101d15f4ad46278c4d4732344f07b9fa62374013d6befec4"
+  },
+  {
+    "path": "gate-srv-main.tuCG90",
+    "bytes": 6171,
+    "sha256": "afc8b684362662d7b80618a3ad20d975a79ba6ee86d177a259edefbb4098dd22"
+  },
+  {
+    "path": "output.log",
+    "bytes": 157,
+    "sha256": "0dc96f3e806bbed1a5a179121a0e8ad282cf05831bc1dfcbd7ca226a0bd065e4"
+  },
+  {
+    "path": "txnorder-2s-0.txt",
+    "bytes": 4945,
+    "sha256": "f344c4aa1e4e55f4b831cf906bdae055b0190f27e07668e15b933835c131142a"
+  }
+]

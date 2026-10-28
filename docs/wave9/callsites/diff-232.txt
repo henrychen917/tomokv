@@ -1,0 +1,12 @@
+tomo_db0::IoLoop::climon_start_client_command(tomo_db0::Client*, tomo_db0::Op&) [clone .cold]
+--- crlffix
+
++++ post
+
+@@ -1,4 +1,4 @@
+
+ CLONE 0 0000 [ 3] mov (%rbx),%rdi
+ CLONE 0 0003 [ 5] call <strlen@plt>
+ CLONE 0 0008 [ 3] mov %rax,%rdx
+-CLONE 0 000b [ 5] jmp <tomo_db0::IoLoop::climon_start_client_command(tomo_db0::Client*, tomo_db0::Op&)+0x47f>
++CLONE 0 000b [ 5] jmp <tomo_db0::IoLoop::climon_start_client_command(tomo_db0::Client*, tomo_db0::Op&)+0x47c>

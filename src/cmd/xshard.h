@@ -103,6 +103,9 @@ public:
 private:
     friend ScatterPrepare xshard_prepare(Server&, Op&, ScatterArenaPool&, uint32_t,
                                           uint64_t, ScatterDispatch&, bool, Client*);
+    template<bool ScriptOnly>
+    friend ScatterPrepare xshard_prepare_body(Server&, Op&, ScatterArenaPool&, uint32_t,
+                                               uint64_t, ScatterDispatch&, bool, Client*);
     friend void xshard_destroy(ScatterState*, ScatterArenaPool&, uint32_t);
     friend void xshard_retire(Server&, ThreadCtx&, Ring&, Client&, Op&, ScatterArenaPool&,
                               uint32_t, void*, void (*)(void*, int32_t, const char*),

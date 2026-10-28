@@ -1,0 +1,105 @@
+tomo::(anonymous namespace)::emit_range_reply(tomo::Op&, tomo::KvObj*, tomo::StreamID, tomo::StreamID, unsigned long, bool) [clone .cold]
+--- headline
+
++++ post
+
+@@ -1,47 +1,55 @@
+
+ CLONE 0 0000 [ 4] cmp $0x1,%rdx
+-CLONE 0 0004 [ 2] je <+0x50>
++CLONE 0 0004 [ 2] je <+0x4f>
+ CLONE 0 0006 [ 3] mov %rax,%rbx
+ CLONE 0 0009 [ 3] vzeroupper
+-CLONE 0 000c [ 3] mov %r15,%rdi
++CLONE 0 000c [ 3] mov %r13,%rdi
+ CLONE 0 000f [ 5] call <std::vector<tomo::Slice, std::allocator<tomo::Slice> >::~vector()>
+-CLONE 0 0014 [ 2] jmp <+0x39>
+-CLONE 0 0016 [ 7] lea -0x190(%rbp),%rdi
+-CLONE 0 001d [ 3] vzeroupper
+-CLONE 0 0020 [ 5] call <std::vector<tomo::Slice, std::allocator<tomo::Slice> >::~vector()>
+-CLONE 0 0025 [ 7] mov -0x2f8(%rbp),%rdi
+-CLONE 0 002c [ 5] call <std::vector<tomo::Slice, std::allocator<tomo::Slice> >::~vector()>
+-CLONE 0 0031 [ 3] mov %r14,%rdi
+-CLONE 0 0034 [ 5] call <std::vector<tomo::Slice, std::allocator<tomo::Slice> >::~vector()>
+-CLONE 0 0039 [ 3] dec %r12
+-CLONE 0 003c [ 2] jne <+0x94>
+-CLONE 0 003e [ 3] mov %rbx,%rdi
+-CLONE 0 0041 [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 0046 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 004b [ 5] jmp <tomo::(anonymous namespace)::emit_range_reply(tomo::Op&, tomo::KvObj*, tomo::StreamID, tomo::StreamID, unsigned long, bool)+0x3a0>
+-CLONE 0 0050 [ 3] vzeroupper
+-CLONE 0 0053 [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 0058 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 005d [ 3] mov %r15,%rdi
+-CLONE 0 0060 [ 5] call <std::vector<tomo::Slice, std::allocator<tomo::Slice> >::~vector()>
+-CLONE 0 0065 [ 5] jmp <tomo::(anonymous namespace)::emit_range_reply(tomo::Op&, tomo::KvObj*, tomo::StreamID, tomo::StreamID, unsigned long, bool)+0x3a0>
+-CLONE 0 006a [ 7] lea -0x190(%rbp),%rdi
+-CLONE 0 0071 [ 3] vzeroupper
+-CLONE 0 0074 [ 5] call <std::vector<tomo::Slice, std::allocator<tomo::Slice> >::~vector()>
+-CLONE 0 0079 [ 7] mov -0x2f8(%rbp),%rdi
+-CLONE 0 0080 [ 5] call <std::vector<tomo::Slice, std::allocator<tomo::Slice> >::~vector()>
+-CLONE 0 0085 [ 2] jmp <+0xc>
+-CLONE 0 0087 [ 3] mov %r14,%rdi
+-CLONE 0 008a [ 3] vzeroupper
+-CLONE 0 008d [ 5] call <std::vector<tomo::(anonymous namespace)::OwnedRecord, std::allocator<tomo::(anonymous namespace)::OwnedRecord> >::~vector()>
+-CLONE 0 0092 [ 2] jmp <+0x39>
+-CLONE 0 0094 [ 7] mov -0x170(%rbp),%rdi
+-CLONE 0 009b [ 7] mov -0x310(%rbp),%rax
+-CLONE 0 00a2 [ 3] cmp %rax,%rdi
+-CLONE 0 00a5 [ 2] je <+0xac>
+-CLONE 0 00a7 [ 5] call <free@plt>
+-CLONE 0 00ac [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 00b0 [ 9] sub %fs:0x28,%rax
+-CLONE 0 00b9 [ 2] jne <+0xc3>
+-CLONE 0 00bb [ 3] mov %rbx,%rdi
+-CLONE 0 00be [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 00c3 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 0014 [ 3] dec %r12
++CLONE 0 0017 [ 2] jne <+0x84>
++CLONE 0 0019 [ 3] mov %rbx,%rdi
++CLONE 0 001c [ 5] call <__cxa_begin_catch@plt>
++CLONE 0 0021 [ 5] call <__cxa_end_catch@plt>
++CLONE 0 0026 [ 5] jmp <tomo::(anonymous namespace)::emit_range_reply(tomo::Op&, tomo::KvObj*, tomo::StreamID, tomo::StreamID, unsigned long, bool)+0x3bc>
++CLONE 0 002b [ 7] lea -0x190(%rbp),%rdi
++CLONE 0 0032 [ 3] vzeroupper
++CLONE 0 0035 [ 5] call <std::vector<tomo::Slice, std::allocator<tomo::Slice> >::~vector()>
++CLONE 0 003a [ 3] mov %rbx,%rdi
++CLONE 0 003d [ 3] mov %r13,%rbx
++CLONE 0 0040 [ 5] call <std::vector<tomo::Slice, std::allocator<tomo::Slice> >::~vector()>
++CLONE 0 0045 [ 3] mov %r15,%rdi
++CLONE 0 0048 [ 5] call <std::vector<tomo::Slice, std::allocator<tomo::Slice> >::~vector()>
++CLONE 0 004d [ 2] jmp <+0x14>
++CLONE 0 004f [ 3] vzeroupper
++CLONE 0 0052 [ 5] call <__cxa_begin_catch@plt>
++CLONE 0 0057 [ 5] call <__cxa_end_catch@plt>
++CLONE 0 005c [ 7] mov -0x230(%rbp),%rdi
++CLONE 0 0063 [ 7] mov -0x220(%rbp),%rsi
++CLONE 0 006a [ 3] sub %rdi,%rsi
++CLONE 0 006d [ 3] test %rdi,%rdi
++CLONE 0 0070 [ 2] je <+0xe7>
++CLONE 0 0072 [ 7] movzbl -0x2f8(%rbp),%ebx
++CLONE 0 0079 [ 6] mov $0x1,%r12d
++CLONE 0 007f [ 5] jmp <tomo::(anonymous namespace)::emit_range_reply(tomo::Op&, tomo::KvObj*, tomo::StreamID, tomo::StreamID, unsigned long, bool)+0xdeb>
++CLONE 0 0084 [ 7] mov -0x170(%rbp),%rdi
++CLONE 0 008b [ 7] mov -0x318(%rbp),%rax
++CLONE 0 0092 [ 3] cmp %rax,%rdi
++CLONE 0 0095 [ 2] je <+0x9c>
++CLONE 0 0097 [ 5] call <free@plt>
++CLONE 0 009c [ 4] mov -0x38(%rbp),%rax
++CLONE 0 00a0 [ 9] sub %fs:0x28,%rax
++CLONE 0 00a9 [ 2] jne <+0xb3>
++CLONE 0 00ab [ 3] mov %rbx,%rdi
++CLONE 0 00ae [ 5] call <_Unwind_Resume@plt>
++CLONE 0 00b3 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 00b8 [ 7] lea -0x190(%rbp),%rdi
++CLONE 0 00bf [ 3] vzeroupper
++CLONE 0 00c2 [ 5] call <std::vector<tomo::Slice, std::allocator<tomo::Slice> >::~vector()>
++CLONE 0 00c7 [ 3] mov %rbx,%rdi
++CLONE 0 00ca [ 3] mov %r14,%rbx
++CLONE 0 00cd [ 5] call <std::vector<tomo::Slice, std::allocator<tomo::Slice> >::~vector()>
++CLONE 0 00d2 [ 5] jmp <+0xc>
++CLONE 0 00d7 [ 3] mov %r14,%rdi
++CLONE 0 00da [ 3] vzeroupper
++CLONE 0 00dd [ 5] call <std::vector<tomo::(anonymous namespace)::OwnedRecord, std::allocator<tomo::(anonymous namespace)::OwnedRecord> >::~vector()>
++CLONE 0 00e2 [ 5] jmp <+0x14>
++CLONE 0 00e7 [ 5] jmp <tomo::(anonymous namespace)::emit_range_reply(tomo::Op&, tomo::KvObj*, tomo::StreamID, tomo::StreamID, unsigned long, bool)+0x3bc>

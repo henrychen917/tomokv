@@ -1,0 +1,127 @@
+[
+  {
+    "path": "lastsave-oracle-1s-epoll/lastsave/argv.json",
+    "bytes": 508,
+    "sha256": "89d81fbe94c5447f9c4474c20579f54376b97f7566b1c772deba744000ef9f36"
+  },
+  {
+    "path": "lastsave-oracle-1s-epoll/lastsave/server.log",
+    "bytes": 2407,
+    "sha256": "655104b9bc1545ca30f76cab885801daa891751b0fe0f0774f58545c335e6380"
+  },
+  {
+    "path": "lastsave-oracle-1s-epoll.log",
+    "bytes": 4307,
+    "sha256": "751c596e621ec757cb22ab88b3305da56d549a6c2060755b74f820fd26073816"
+  },
+  {
+    "path": "lastsave-oracle-1s-uring/lastsave/argv.json",
+    "bytes": 508,
+    "sha256": "e7cd3ce5b8cf04ce1a36d66374bade1392182465788b93c94f749054602f1768"
+  },
+  {
+    "path": "lastsave-oracle-1s-uring/lastsave/server.log",
+    "bytes": 2407,
+    "sha256": "260f00d1c3d50424e4d02b6473c60ebb8548973719269e2a71ffbbb78604dca5"
+  },
+  {
+    "path": "lastsave-oracle-1s-uring.log",
+    "bytes": 4307,
+    "sha256": "722b4d8203b9cbfdf11650c4564e0a79e697cd4590096fe4cdc67c323ebb0047"
+  },
+  {
+    "path": "lastsave-oracle-2s-epoll/lastsave/argv.json",
+    "bytes": 508,
+    "sha256": "8296dd04fb53098e3d0ed0885b93079ca12937d7a6fd0ceba9a6af0607206cf9"
+  },
+  {
+    "path": "lastsave-oracle-2s-epoll/lastsave/server.log",
+    "bytes": 2407,
+    "sha256": "309ad00fc0a656fc6b008bb5d6831de86cd5057c89234960d4fd6f3c3dfefee6"
+  },
+  {
+    "path": "lastsave-oracle-2s-epoll.log",
+    "bytes": 4307,
+    "sha256": "3f991828c74a57c1dd5494f1216019fbb615b5f9841e660a0afd89e25a83d2e0"
+  },
+  {
+    "path": "lastsave-oracle-2s-uring/lastsave/argv.json",
+    "bytes": 508,
+    "sha256": "3727703178d3d1300035e12948833fe2bddbcc3b03c6d225af93f58c59ec19c4"
+  },
+  {
+    "path": "lastsave-oracle-2s-uring/lastsave/server.log",
+    "bytes": 2407,
+    "sha256": "6d410a3c6902ff810fd3a3990506125f8a553d19a613b0b4577d51ee0169a2fe"
+  },
+  {
+    "path": "lastsave-oracle-2s-uring.log",
+    "bytes": 4307,
+    "sha256": "ac77f7be8d3058c9e09073433c45ad51238ebd7d5cd6f6715a6a2d4b08785116"
+  },
+  {
+    "path": "lastsave-target-1s-epoll/lastsave/argv.json",
+    "bytes": 615,
+    "sha256": "ef04b085cf54be92621c2d32b3d535b6038e92b6a0ad9217e4c2bb763a4d6bae"
+  },
+  {
+    "path": "lastsave-target-1s-epoll/lastsave/server.log",
+    "bytes": 7684,
+    "sha256": "805be3a23a21ab3ddbdc0b3e004f500ae7e74bf8aa570ac98706b56c6319e8c8"
+  },
+  {
+    "path": "lastsave-target-1s-epoll.log",
+    "bytes": 4482,
+    "sha256": "1ce3045d24d578a79a901bcbe5fae3db122a17659db244f1c0be935ac2b1185f"
+  },
+  {
+    "path": "lastsave-target-1s-uring/lastsave/argv.json",
+    "bytes": 615,
+    "sha256": "c4f956bec19373557c345dcaeb1f7caeaa40523c9e4353170ad1c8804c5c373f"
+  },
+  {
+    "path": "lastsave-target-1s-uring/lastsave/server.log",
+    "bytes": 7598,
+    "sha256": "aff11bb6d990a30c8a7d62cba9b121e61064b2462b0862054dd19de464ccc087"
+  },
+  {
+    "path": "lastsave-target-1s-uring.log",
+    "bytes": 4482,
+    "sha256": "e371b0228ab6f287512590c42df94fba3f0d1a35abb2801aeec916fa38b43e54"
+  },
+  {
+    "path": "lastsave-target-2s-epoll/lastsave/argv.json",
+    "bytes": 633,
+    "sha256": "f00c5f24744a9cc891d3a921b0a1f175c506cb282b6dc5f176c4000718793dee"
+  },
+  {
+    "path": "lastsave-target-2s-epoll/lastsave/server.log",
+    "bytes": 6737,
+    "sha256": "8e84404d141bcaa94471efd1a11b5f621a3a747c55fefb07c14fa714b86e9671"
+  },
+  {
+    "path": "lastsave-target-2s-epoll.log",
+    "bytes": 4500,
+    "sha256": "a1d53f6ac27a5a6321d5bf89e91519b6ae26fe5540ca88b04e07f8a296d95e6c"
+  },
+  {
+    "path": "lastsave-target-2s-uring/lastsave/argv.json",
+    "bytes": 633,
+    "sha256": "a0479a9e6f36890143fe17b89a68ad5d8d408479ae0e157f544d7ba3091d2c9b"
+  },
+  {
+    "path": "lastsave-target-2s-uring/lastsave/server.log",
+    "bytes": 6654,
+    "sha256": "73c0fba0a79579cf52030f05836be474aa68a918aecf47775ae23170dcd03151"
+  },
+  {
+    "path": "lastsave-target-2s-uring.log",
+    "bytes": 4500,
+    "sha256": "7a4777785cfeeb780e4b031ec4e57b826c267fdf56a23e5a0960b96d98f62ffe"
+  },
+  {
+    "path": "output.log",
+    "bytes": 160,
+    "sha256": "43cde3e78bbdb54ffffe3f323c62b817f0a5bd8c7a5f963b56e569ebe1539608"
+  }
+]

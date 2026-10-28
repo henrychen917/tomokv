@@ -1,0 +1,29 @@
+{
+  "arms": [
+    {
+      "path": "build/lottery/tomokv",
+      "sha256": "9896a3225abd5c290333ea9f6b49eecff0a60311641941f9c067d33ea4abd8ef",
+      "size": 225062456
+    },
+    {
+      "path": "build/lottery/tomokv-asan",
+      "sha256": "b35e0859cb6fde74b104c8733181e1b366cb68107fbe1b6d162ae159571b864a",
+      "size": 689503168
+    },
+    {
+      "path": "build/wave9/publishfix/tomokv",
+      "sha256": "1dbb63953fd61e92568a7129ec261f5580ec5de5835ac9f896f61023d1a7f270",
+      "size": 220090056
+    }
+  ],
+  "lottery_evidence": {
+    "exit": 0,
+    "tests": 17
+  },
+  "note": "Compile-only copied-source arms; no lottery nightly or performance run.",
+  "lottery_runner_controls": {
+    "exit": 0,
+    "log": "docs/wave9/lottery-runner-test.log",
+    "summary": "..LOTTERY battery sha256=2170b1b2743febf20ae3bca57600df1e7b9393347c715bc1abe99038da8f3db7 markers_only=1\n.LOTTERY battery sha256=316c9da2a2d079d702e1828727fc06435f0870089bd0279bf20d01210e71dcf7 markers_only=1\n..............\n----------------------------------------------------------------------\nRan 17 tests in 0.118s\n\nOK\n"
+  }
+}

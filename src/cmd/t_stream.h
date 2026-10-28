@@ -61,6 +61,8 @@ bool stream_parse_xreadgroup(Op& op, StreamXreadGroupArgs& parsed);
 bool stream_xread_has_block_option(const Op& op);
 bool stream_parse_xread_id(Slice input, StreamID& id, bool& latest);
 bool stream_object_last_id(const KvObj* object, StreamID& id);
+// Resolve the $/+-only cursor produced by stream_parse_xread_id on its owner.
+bool stream_resolve_xread_id(const KvObj* object, StreamID& cursor);
 bool stream_object_has_live_after(const KvObj* object, const StreamID& cursor);
 bool stream_object_header(KvObj* object, StreamHeader& header);
 bool stream_object_update_header(KvObj* object, const StreamHeader& header);
@@ -86,7 +88,7 @@ enum class StreamGroupProbe : uint8_t {
 StreamGroupProbe stream_group_probe(Shard& shard, Slice key, uint64_t hash, Slice group);
 StreamGroupProbe stream_group_prepare_waiter(Shard& shard, Slice key, uint64_t hash,
                                              Slice group, Slice consumer);
-bool stream_xreadgroup_execute(Shard& shard, Op& op);
+bool stream_xreadgroup_execute(Shard& shard, Op& op, bool may_block = true);
 void stream_xreadgroup_reply_nogroup(Op& op);
 
 uint64_t stream_groups_snapshot_size(const void* groups);

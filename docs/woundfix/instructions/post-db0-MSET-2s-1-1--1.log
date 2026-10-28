@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-woundfix/build/woundfix/final-commands/post-db0-MSET-2s-1-1--1.log
+SHA-256: 239fd65a64150c2f853778932b63209dedbe9c23dcb7af0bae03b992517e7553
+Exit: 0
+0x00005555556750c4	569	}
+0x00005555556750c6	569	}
+0x00005555556750c8	569	}
+0x0000555555d61076 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-woundfix/tests/txnorder_command_scope.cc:112
+112	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
+95	   for(unsigned i=0;i<n;i++){
+0x0000555555d61082	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d61089	95	   for(unsigned i=0;TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+i<n;i++){
+0x0000555555d61091	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d61098	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d6109e	115	   std::string want="+OK\r\n";
+0x0000555555d610a5	115	   std::string want="+OK\r\n";
+0x0000555555d610ac	114	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-woundfix/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 3326440) exited normally]
+COUNT 16166

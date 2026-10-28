@@ -5,6 +5,7 @@
 #include "command.h"
 #include "t_stream.h"
 #include "notify.h"
+#include "blocking.h"
 #include "../core/shard.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
@@ -223,27 +224,21 @@ void maybe_release_groups(StreamVal& stream) {
 }
 
 void reply_nogroup(Op& op, Slice key, Slice group, bool xreadgroup = false) {
-    auto sink = op.sink();
-    sink.push_back('-');
-    sink.append("NOGROUP No such key '", sizeof("NOGROUP No such key '") - 1);
-    reply_line_text(sink, key.p, key.n);
-    sink.append("' or consumer group '", sizeof("' or consumer group '") - 1);
-    reply_line_text(sink, group.p, group.n);
-    if (xreadgroup)
-        sink.append("' in XREADGROUP with GROUP option\r\n",
-                    sizeof("' in XREADGROUP with GROUP option\r\n") - 1);
-    else sink.append("'\r\n", sizeof("'\r\n") - 1);
+    std::string message = "NOGROUP No such key '";
+    message.append(key.p, key.n);
+    message += "' or consumer group '";
+    message.append(group.p, group.n);
+    message += xreadgroup ? "' in XREADGROUP with GROUP option" : "'";
+    reply_err(op.sink(), message.data(), message.size());
 }
 
 void reply_nogroup_subcommand(Op& op, Slice key, Slice group) {
-    auto sink = op.sink();
-    sink.push_back('-');
-    sink.append("NOGROUP No such consumer group '",
-                sizeof("NOGROUP No such consumer group '") - 1);
-    reply_line_text(sink, group.p, group.n);
-    sink.append("' for key name '", sizeof("' for key name '") - 1);
-    reply_line_text(sink, key.p, key.n);
-    sink.append("'\r\n", sizeof("'\r\n") - 1);
+    std::string message = "NOGROUP No such consumer group '";
+    message.append(group.p, group.n);
+    message += "' for key name '";
+    message.append(key.p, key.n);
+    message += "'";
+    reply_err(op.sink(), message.data(), message.size());
 }
 
 void reply_entry(Op& op, const StreamOwnedEntry& entry, bool tombstone_null) {
@@ -498,6 +493,8 @@ void cmd_xgroup(Shard& shard, Op& op) {
         if constexpr (kNotify)
             notify_record(shard, op, NOTIFY_STREAM, NotifyEventId::XgroupDestroy, key);
         reply_int(op.sink(), 1);
+        if (shard.has_blocking_waiters())
+            blocking_publish_key(shard, FlatStore::hash_key(key), key.p, key.n, key.ns);
         return;
     }
     if (!group) { reply_nogroup_subcommand(op, key, op.arg(3)); return; }
@@ -546,7 +543,7 @@ void cmd_xgroup(Shard& shard, Op& op) {
         }
         StreamID id{};
         if (op.arg(4).n == 1 && op.arg(4).p[0] == '$') id = header.last_id;
-        else if (!parse_id(op.arg(4), id)) { invalid_id(op); return; }
+        else if (!parse_id(op.arg(4), id, 0, true)) { invalid_id(op); return; }
         ObjectSizeTracker tracker(shard.store(), object);
         group->last_delivered = id;
         group->entries_read = entries_read;
@@ -562,7 +559,9 @@ void cmd_xgroup(Shard& shard, Op& op) {
 template <bool kNotify>
 void cmd_xreadgroup(Shard& shard, Op& op) {
     (void)kNotify;
-    (void)stream_xreadgroup_execute(shard, op);
+    // BLOCK is interpreted by blocking dispatch. A direct invocation (including
+    // an EXEC child) must complete now, while retaining full argument validation.
+    (void)stream_xreadgroup_execute(shard, op, false);
 }
 
 template <bool kNotify>
@@ -834,13 +833,16 @@ void cmd_xautoclaim(Shard& shard, Op& op) {
         }
         min_idle = parsed < 0 ? 0 : static_cast<uint64_t>(parsed);
     }
-    if (!parse_id(op.arg(5), start)) { invalid_id(op); return; }
+    if (!parse_id(op.arg(5), start, 0, true)) { invalid_id(op); return; }
     uint64_t count = 100; bool justid = false;
     for (uint32_t pos = 6; pos < op.argc();) {
         if (op.arg(pos).eq_icase("count") && pos + 1 < op.argc()) {
-            if (!parse_u64_exact(op.arg(pos + 1), count) || count == 0) {
+            int64_t parsed = 0;
+            if (!parse_i64_option(op.arg(pos + 1), parsed) || parsed < 1 ||
+                static_cast<uint64_t>(parsed) > uint64_t{INT64_MAX} / sizeof(StreamID)) {
                 reply_err(op.sink(), "ERR COUNT must be > 0"); return;
             }
+            count = static_cast<uint64_t>(parsed);
             pos += 2;
         } else if (op.arg(pos).eq_icase("justid") && !justid) {
             justid = true; pos++;
@@ -852,6 +854,14 @@ void cmd_xautoclaim(Shard& shard, Op& op) {
     StreamGroups* groups = groups_of(object);
     StreamGroup* group = find_group(object, op.arg(2));
     if (!group) { reply_nogroup(op, op.arg(1), op.arg(2)); return; }
+    std::vector<StreamID> deleted;
+    // Redis reserves COUNT IDs before creating/touching the consumer. A syntactically valid
+    // but unallocatable count has its own error and must leave group metadata unchanged.
+    try { deleted.reserve(count); }
+    catch (const std::bad_alloc&) {
+        reply_err(op.sink(), "ERR Insufficient memory, failed allocating transient memory, COUNT too high.");
+        return;
+    }
     ObjectSizeTracker tracker(shard.store(), object);
     const int64_t now = shard.now_ms();
     StreamConsumer* consumer = nullptr; bool created = false;
@@ -860,10 +870,8 @@ void cmd_xautoclaim(Shard& shard, Op& op) {
     }
     consumer->seen_time = now;
     std::vector<StreamOwnedEntry> claimed;
-    std::vector<StreamID> deleted;
-    // COUNT bounds work; it is not a request to allocate that many entries on an empty PEL.
     const size_t capacity = std::min<uint64_t>(count, group->pending.size());
-    try { claimed.reserve(capacity); deleted.reserve(capacity); }
+    try { claimed.reserve(capacity); }
     catch (const std::bad_alloc&) { reply_err(op.sink(), "ERR out of memory"); return; }
     const uint64_t max_scan = count > UINT64_MAX / 10 ? UINT64_MAX : count * 10;
     struct AutoClaimScan {
@@ -1316,7 +1324,7 @@ void stream_xreadgroup_reply_nogroup(Op& op) {
         reply_nogroup(op, op.arg(parsed.key_arg), op.arg(parsed.group_arg), true);
 }
 
-bool stream_xreadgroup_execute(Shard& shard, Op& op) {
+bool stream_xreadgroup_execute(Shard& shard, Op& op, bool may_block) {
     StreamXreadGroupArgs parsed;
     if (!stream_parse_xreadgroup(op, parsed)) return true;
     const Slice key = op.arg(parsed.key_arg);
@@ -1345,7 +1353,7 @@ bool stream_xreadgroup_execute(Shard& shard, Op& op) {
             reply_err(op.sink(), "ERR out of memory"); return true;
         }
         if (entries.empty()) {
-            if (parsed.block) return false;
+            if (parsed.block && may_block) return false;
             reply_null_array(op.sink(), op.resp3());
             return true;
         }

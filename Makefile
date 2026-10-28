@@ -76,6 +76,9 @@ $(ASSERT_MAP): tools/assert_map.py $(ASSERT_SOURCES) $(ASSERT_DIRS) Makefile
 	python3 tools/assert_map.py --output $@ --cxx "$(CXX)"
 
 
+# protofix: cold decoder IPA growth is +34. Compile-only trials in
+# docs/protofix/budgets retain ordinary dispatch/owner/read-local bodies;
+# remaining compiler differences are listed in the linked identity receipt.
 # Wave 7: compile-only per-unit trials in docs/wave7/budgets and
 # docs/wave7/budgets-dispatch preserve headline or lane POST hot bodies where
 # changes compose. The second sweep scores dispatch call sites, not just changed
@@ -169,8 +172,8 @@ $(BIN): $(OBJ) $(SERVER_ONLY_OBJ) $(DB0_OBJ) $(DB0_SERVER_ONLY_OBJ)
 # 85 distinct object bodies judged with the gate linked-instruction normalizer
 # against headline and the four frozen lane POSTs. See docs/wave4/budgets/selected.json.
 # Preserve established budgets on tied body scores; composed residuals remain merit inputs.
-$(BUILD_ROOT)/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=26265
-$(BUILD_ROOT)/db0/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=26780
+$(BUILD_ROOT)/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=26419
+$(BUILD_ROOT)/db0/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=26932
 
 # The clean string family intentionally excludes the armed instantiations, but its parsed template
 # bodies still move GCC just past the default large-unit threshold. 10600 restores the same inlining
@@ -189,14 +192,16 @@ $(BUILD_ROOT)/src/cmd/t_list.o: override CXXFLAGS += --param inline-unit-growth=
 # rlresize: see the budget note above $(BUILD_ROOT)/src/main.o.
 # wave2: see the re-derivation note above $(BUILD_ROOT)/src/main.o (31379 kept, db0 31776).
 # wave3: see the re-derivation note above $(BUILD_ROOT)/src/main.o (31388 / db0 31787).
-$(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=32703
+# at412: the new INFO fields / DEBUG hooks grow this unit; 32853 keeps cmd_reset and every other
+# handler outside cmd_info/cmd_debug_impl PRE-identical (tools/at412_budget.py, docs/at412/budgets2).
+$(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=33142
 # SV7/SV9 keep new INFO formatting cold; infofields_artifacts.py checks every ordinary body.
 # CC18/PS5/PS7/SV9 composition: preserve every unrelated server-command body.
 # txnorder2: compile-only trials retained in docs/txnorder2/budgets; remaining spillover is explicit.
 # perfex2: the two cold inline sample resets need 31737 to retain every ordinary
 # body from the merged perfex POST. Complete-body trials: docs/perfex2/budgets.py.
 # rlresize: see the budget note above $(BUILD_ROOT)/src/main.o.
-$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=33448 --param max-inline-insns-auto=16
+$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=33883 --param max-inline-insns-auto=16
 # PS4 AOF recovery adds cold code. Preserve 5146b78ee storage helper bodies
 # in both namespaces; the aoffix2 hot-body audit checks these compiler budgets.
 # rlresize: see the budget note above $(BUILD_ROOT)/src/main.o.
@@ -210,8 +215,8 @@ $(BUILD_ROOT)/db0/src/persist/aof.o: override CXXFLAGS += --param inline-unit-gr
 # wave1b: savefix's capture cancellation grows both units by 130; scans 14584-14760 / 14457-14620:
 # FlatStore::insert stays PRE and every changed body is savefix's at 14718 (= 14720); db0 fewest at 14562.
 # txnfix2: preserve PRE's ordinary store bodies after the cold unit-intent cleanup addition.
-$(BUILD_ROOT)/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=15191
-$(BUILD_ROOT)/db0/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14612
+$(BUILD_ROOT)/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=15335
+$(BUILD_ROOT)/db0/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14756
 # CD6/CD13 add cold scan/replacement work. Preserve GCC 13's ordinary set/zset bodies in
 # both database namespaces; tests/cdfix_checks.py audits every emitted function against PRE.
 # These are compile-time inlining budgets, with no runtime option or request-path branch.
@@ -260,16 +265,18 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # notifycompat: source-accurate IPA deltas are +2531/+2526. Bounded per-unit
 # trials (docs/notifycompat/budgets-final) reduce unrelated compiler spillover;
 # db0 prepare and shared execution deltas remain inventoried for merit review.
+# Wave 9: compile-only IPA and neighbour trials are in docs/wave9/budgets.
+# Selection preserves command bodies before residual hot and cold bodies.
 # Wave 8: 58 IPA surveys and 103 compile-only trials across all 29 pinned units.
 # Selected budgets and full reference scores: docs/wave8/budgets/selected.json.
 # wave8b: compile-only re-derivation of every affected pinned IO/scatter unit;
 # Final trials/scores: docs/wave8b/budgets-exact/selected.json, including
 # exact callback starts and WAIT slices. Identity is a proxy; merit is pending.
 # Instruction scopes and the maintainer merit still decide, not body identity.
-$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=148585
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=153471
 # AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
 # perfex2: compensate the inline cold clear reset; every other emitted body is PRE-identical.
-$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=147391
+$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=152280
 # ACL key extraction is isolated from the IO templates. Keep the merged baseline's
 # ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
 # aclfix grows the unit by 749/765 insns (+739/+750 here): the shared reply helpers this
@@ -369,7 +376,10 @@ $(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inli
 # wave4 merge (provisional, additive lane deltas over 8656f9fa9): genthread compat2 +29 and
 # clockcut +128; rl2s clockcut +256. The wave-4 budget commit re-derives these values.
 $(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=131218
-$(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=164621
+$(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=164610
+# Protofix late-listener bounds, subject to wave9 compile-only re-derivation.
+$(BUILD_ROOT)/src/core/fliplisten.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=46744
+$(BUILD_ROOT)/db0/src/core/fliplisten.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=46512
 # wave3: see the note above $(BUILD_ROOT)/src/main.o (first override of this object).
 # wave3 R7 round (7fa5cb0e0 regenerates rlfix's RL4.4 into the R7 envelope): units +82 / +80
 # (src / db0). Compile-only scans 147770-147970 / 148760-148949 (docs/wave3/identity/
@@ -385,11 +395,11 @@ $(BUILD_ROOT)/db0/src/main.o: override CXXFLAGS += --param inline-unit-growth=0 
 # txnorder2: compile-only trials retained in docs/txnorder2/budgets; remaining spillover is explicit.
 # wave4 merge (provisional, additive lane deltas over 8656f9fa9): db0 genthread compat2 +27
 # and clockcut +64; db0 reorder compat2 +39 and clockcut +128. Re-derived by the budget commit.
-$(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=132012 -Wa,--defsym,tomo_rlfence_text_pad=16
+$(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=131993 -Wa,--defsym,tomo_rlfence_text_pad=16
 $(BUILD_ROOT)/db0/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=167496
 # Keep PRE's first (rather than second) tombstone-compaction call inlined in the
 # R7 fused sweep; the cold miss body otherwise changes GCC's tied call ordering.
-$(BUILD_ROOT)/db0/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=150092 --param max-inline-insns-auto=14
+$(BUILD_ROOT)/db0/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=150089 --param max-inline-insns-auto=14
 $(BUILD_ROOT)/db0/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 
 # Separate C++ namespaces prevent accidental cross-variant inline/COMDAT binding.
@@ -727,6 +737,8 @@ build/txnorder-wake-unit: tests/txnorder_wake_unit.cc $(wildcard src/*/*.h) $(wi
 TXNORDER_UNIT_DEPS := tests/atomic_survivors_unit.cc tests/atomiccollapse_checks.inc tests/atomic_plain_checks.inc tests/txnorder_checks.inc $(wildcard src/*/*.inc) $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
 build/txnorder-episodes: tests/txnorder_episodes.cc $(TXNORDER_UNIT_DEPS) $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ))
 	$(CXX) $(filter-out -O3,$(CXXFLAGS)) -O0 $(JEFLAGS) -I. $< $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/at412-owner: tests/at412_owner.cc $(TXNORDER_UNIT_DEPS) $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ))
+	$(CXX) $(filter-out -O3,$(CXXFLAGS)) -O0 $(JEFLAGS) -DTOMO_TXNORDER_DEBUG -I. $< $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
 build/txnorder-episodes-debug: tests/txnorder_episodes.cc $(TXNORDER_UNIT_DEPS) $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ))
 	$(CXX) $(filter-out -O3,$(CXXFLAGS)) -O0 $(JEFLAGS) -DTOMO_TXNORDER_DEBUG -I. $< $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
 build/txnorder-watch-unit: tests/txnorder_watch_unit.cc $(TXNORDER_UNIT_DEPS) $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ))
@@ -734,6 +746,15 @@ build/txnorder-watch-unit: tests/txnorder_watch_unit.cc $(TXNORDER_UNIT_DEPS) $(
 
 build/txnorder-watch-db0-unit: tests/txnorder_watch_unit.cc $(TXNORDER_UNIT_DEPS) $(filter-out build/db0/src/main.o build/db0/src/cmd/xshard.o,$(DB0_OBJ)) $(filter-out build/src/main.o,$(OBJ))
 	$(CXX) $(filter-out -O3,$(CXXFLAGS)) -O0 $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< $(filter-out build/db0/src/main.o build/db0/src/cmd/xshard.o,$(DB0_OBJ)) $(filter-out build/src/main.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+
+# Wound publication and allocation-failure owner turns, both namespaces.
+# Pause seams exist only in the copied fixture source, never in release objects.
+build/woundfix-windows/stamp: tools/woundfix_windows.py $(wildcard src/*/*.cc) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	python3 tools/woundfix_windows.py build/woundfix-windows
+build/txnorder-wound-unit: tests/txnorder_wound_window.cc $(TXNORDER_UNIT_DEPS) build/woundfix-windows/stamp $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ))
+	$(CXX) $(filter-out -O3,$(CXXFLAGS)) -O0 $(JEFLAGS) -Ibuild/woundfix-windows -I. $< $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/txnorder-wound-db0-unit: tests/txnorder_wound_window.cc $(TXNORDER_UNIT_DEPS) build/woundfix-windows/stamp $(filter-out build/db0/src/main.o build/db0/src/cmd/xshard.o,$(DB0_OBJ)) $(filter-out build/src/main.o,$(OBJ))
+	$(CXX) $(filter-out -O3,$(CXXFLAGS)) -O0 $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -Ibuild/woundfix-windows -I. $< $(filter-out build/db0/src/main.o build/db0/src/cmd/xshard.o,$(DB0_OBJ)) $(filter-out build/src/main.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
 
 build/txnorder-retry-unit: tests/txnorder_retry_unit.cc $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< -o $@ $(JELIBS) $(LDLIBS)
@@ -1099,3 +1120,32 @@ $(BUILD_ROOT)/moverfix-unit: tests/moverfix_unit.cc src/cmd/xshard.cc $(filter-o
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(filter-out $(BUILD_ROOT)/src/main.o $(BUILD_ROOT)/src/cmd/xshard.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
 $(BUILD_ROOT)/moverfix-db0-unit: tests/moverfix_unit.cc src/cmd/xshard.cc $(filter-out $(BUILD_ROOT)/db0/src/main.o $(BUILD_ROOT)/db0/src/cmd/xshard.o,$(DB0_OBJ)) $(filter-out $(BUILD_ROOT)/src/main.o,$(OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< $(filter-out $(BUILD_ROOT)/db0/src/main.o $(BUILD_ROOT)/db0/src/cmd/xshard.o,$(DB0_OBJ)) $(filter-out $(BUILD_ROOT)/src/main.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+
+# gaterows5: source-only witnesses; no production object gains a hook or control.
+GATEROWS_SCAN_UNITS := build/reorderscan-unit build/reorderscan-db0-unit build/reorderscan-quadratic build/reorderscan-db0-quadratic build/reorderscan-eager build/reorderscan-db0-eager
+$(GATEROWS_SCAN_UNITS): tests/reorderscan_unit.cc $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
+build/reorderscan-db0-unit build/reorderscan-db0-quadratic build/reorderscan-db0-eager: override CXXFLAGS += -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0
+build/reorderscan-quadratic build/reorderscan-db0-quadratic: override CXXFLAGS += -DTOMO_REORDERSCAN_OLD_DEMOTION
+build/reorderscan-eager build/reorderscan-db0-eager: override CXXFLAGS += -DTOMO_REORDERSCAN_EAGER
+$(filter-out build/reorderscan-unit,$(GATEROWS_SCAN_UNITS)):
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -I. $< -o $@
+build/gaterows5/reorder.o: src/core/reorder.cc tests/reorderscan_witness.h $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -include tests/reorderscan_witness.h -I. -c $< -o $@
+build/gaterows5/reorder-db0.o: src/core/reorder.cc tests/reorderscan_witness.h $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -include tests/reorderscan_witness.h -I. -c $< -o $@
+build/reorderscan-paths: tests/reorderscan_paths.cc tests/reorder_engagement_unit.cc tests/reorderscan_witness.h build/gaterows5/reorder.o $(filter-out build/src/core/reorder.o,$(CORE_TEST_OBJ)) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -include tests/reorderscan_witness.h -I. $< build/gaterows5/reorder.o $(filter-out build/src/core/reorder.o,$(CORE_TEST_OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/reorderscan-db0-paths: tests/reorderscan_paths.cc tests/reorder_engagement_unit.cc tests/reorderscan_witness.h build/gaterows5/reorder-db0.o $(DB0_TEST_OBJ) $(CORE_TEST_OBJ) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -include tests/reorderscan_witness.h -I. $< build/gaterows5/reorder-db0.o $(filter-out build/db0/src/core/reorder.o,$(DB0_TEST_OBJ)) $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/rlfence-portable-unit: tests/rlfence_unit.cc $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) -mno-bmi -mno-bmi2 -I. $< -o $@
+build/slotless-unit build/slotless-drop-unit: tests/slotless_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) $(if $(findstring drop,$@),-DTOMO_SLOTLESS_DROP,) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/layout-placement: tests/layout_placement.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/gaterows5-units: $(GATEROWS_SCAN_UNITS) build/reorderscan-paths build/reorderscan-db0-paths build/rlfence-portable-unit build/slotless-unit build/slotless-drop-unit
+	@touch $@
+unit: $(GATEROWS_SCAN_UNITS) build/rlfence-portable-unit

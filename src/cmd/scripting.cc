@@ -198,20 +198,17 @@ bool parse_nonnegative(Slice value, uint32_t& result, bool& negative) {
     return true;
 }
 
-void reply_text_error(Op& op, std::string_view kind, std::string_view detail) {
-    auto sink = op.sink();
-    sink.push_back('-');
-    sink.append(kind.data(), kind.size());
-    if (!detail.empty()) { sink.push_back(' '); sink.append(detail.data(), detail.size()); }
-    sink.append("\r\n", 2);
+void reply_text_error(Op& op, std::string_view kind, std::string_view detail,
+                      bool trim = true) {
+    std::string message(kind);
+    if (!detail.empty()) { message.push_back(' '); message.append(detail); }
+    reply_err(op.sink(), message.data(), message.size(), trim);
 }
 
 // A script error already carries its own code word ("ERR ...", "WRONGTYPE ...", "My Error").
 void reply_raw_error(Op& op, std::string_view message) {
-    auto sink = op.sink();
-    sink.push_back('-');
-    sink.append(message.data(), message.size());
-    sink.append("\r\n", 2);
+    // Runtime errors use Redis's safe-SDS path (map without trimming).
+    reply_err(op.sink(), message.data(), message.size(), false);
 }
 
 std::string clean_error(const char* text, size_t length) {
@@ -230,6 +227,17 @@ std::string clean_error(const char* text, size_t length) {
 // compatible error text starts here.
 constexpr const char* kEvalChunkName = "@user_script";
 
+// EXEC's pause regression includes Redis's plain engine header. Hash/cache
+// the original source, but let Lua compile starting with its newline so error
+// line numbers retain the original source coordinates. Headers with metadata
+// continue through the existing validation path; flag support is separate.
+Slice eval_compile_source(Slice source) {
+    if (source.n >= 5 && std::memcmp(source.p, "#!lua", 5) == 0 &&
+        (source.n == 5 || source.p[5] == '\n'))
+        return Slice(source.p + 5, source.n - 5);
+    return source;
+}
+
 bool validate_source(Slice source, std::string& error) {
     if (source.n > kScriptMaxBytes) {
         error = "script exceeds the 1 MiB limit";
@@ -241,7 +249,8 @@ bool validate_source(Slice source, std::string& error) {
     }
     lua_State* state = luaL_newstate();
     if (!state) { error = "out of memory"; return false; }
-    const int status = luaL_loadbuffer(state, source.p, source.n, kEvalChunkName);
+    const int status = luaL_loadbuffer(state, eval_compile_source(source).p,
+                                             eval_compile_source(source).n, kEvalChunkName);
     if (status != 0) {
         size_t length = 0;
         const char* detail = lua_tolstring(state, -1, &length);
@@ -985,7 +994,7 @@ bool append_lua_result(lua_State* state, int index, SmallBuf<kInlineReply>& outp
         size_t length = 0;
         const char* value = lua_tolstring(state, -1, &length);
         if (!value) { lua_pop(state, 1); error = "invalid redis error table"; return false; }
-        output.push_back('-'); reply_line_text(output, value, length); output.append("\r\n", 2);
+        reply_err(output, value, length);
         lua_pop(state, 1);
         return true;
     }
@@ -995,7 +1004,7 @@ bool append_lua_result(lua_State* state, int index, SmallBuf<kInlineReply>& outp
         size_t length = 0;
         const char* value = lua_tolstring(state, -1, &length);
         if (!value) { lua_pop(state, 1); error = "invalid redis status table"; return false; }
-        output.push_back('+'); reply_line_text(output, value, length); output.append("\r\n", 2);
+        reply_simple(output, value, length);
         lua_pop(state, 1);
         return true;
     }
@@ -1386,7 +1395,8 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_h
     if (lua_isnil(state, -1)) {
         lua_pop(state, 1);
         g_compile_misses.fetch_add(1, std::memory_order_relaxed);
-        const int compiled = luaL_loadbuffer(state, source.p, source.n, kEvalChunkName);
+        const int compiled = luaL_loadbuffer(state, eval_compile_source(source).p,
+                                             eval_compile_source(source).n, kEvalChunkName);
         if (compiled != 0) {
             size_t length = 0;
             const char* text = lua_tolstring(state, -1, &length);

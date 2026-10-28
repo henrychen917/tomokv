@@ -1,0 +1,8 @@
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder wound group
+  txnorder wound group                                 ok
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder wound exec
+  txnorder wound exec                                  ok
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder wound oom
+  txnorder wound oom                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder wound d2
+  txnorder wound d2                                    FAIL (see /home/user/Projects/cx-woundfix/build/gate-run.e8qQ0W/jobs/txnorder_wound/d2-*)

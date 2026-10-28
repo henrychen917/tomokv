@@ -1,0 +1,5 @@
+PARTIAL	0	GATE_ONLY_JOBS=txnorder_wound; NOT A RECEIPT
+ok	37.400000	release build (+footprint locks)
+FAIL	0.040000	txnorder wound group
+FAIL	0.030000	txnorder wound exec
+FAIL	0.030000	txnorder wound oom

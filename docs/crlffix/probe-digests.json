@@ -1,0 +1,26 @@
+[
+  {
+    "file": "build/crlffix/commands/post-normal/probe",
+    "sha256": "a969dca37469786f18e0f9e5e02c07e88194944c7ca527013f365c719ed0d232"
+  },
+  {
+    "file": "build/crlffix/commands/post-db0/probe",
+    "sha256": "10d4a6d85a02097703707cb434c26eb8647cc17a441f90b1053909e819552a24"
+  },
+  {
+    "file": "build/crlffix/commands/initial-normal/probe",
+    "sha256": "650a18a3c26fc204cacbe36fe537ca481021fec6c6b212748ca371b83bc4eed1"
+  },
+  {
+    "file": "build/crlffix/commands/pre-db0/probe",
+    "sha256": "91b15a855a64cecd708dbe962abb2db9ba42dbb7d2b529a969100244ed3f5e89"
+  },
+  {
+    "file": "build/crlffix/commands/pre-normal/probe",
+    "sha256": "8de7f548320918a880295ba9ea535b5525fe5cd16d203c88dac4d345676e2df6"
+  },
+  {
+    "file": "build/crlffix/commands/initial-db0/probe",
+    "sha256": "b49758c428488bebad644d46f8dc087328ef4f3974892b4dfe224da70a1b2133"
+  }
+]

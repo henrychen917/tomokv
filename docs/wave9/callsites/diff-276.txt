@@ -1,0 +1,155 @@
+tomo_db0::parse_config_args(std::vector<char const*, std::allocator<char const*> > const&, tomo_db0::Config&, tomo_db0::ConfigParseState&, int, char const*, std::vector<unsigned long, std::allocator<unsigned long> > const*)
+--- headline
+
++++ post
+
+@@ -451,7 +451,7 @@
+
+ CLONE 0 07f2 [ 3] mov %ecx,0x4(%rax)
+ CLONE 0 07f5 [ 7] mov 0xa4(%rsp),%edi
+ CLONE 0 07fc [ 8] mov 0x98(%rsp),%rax
+-CLONE 0 0804 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x788>
++CLONE 0 0804 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x782>
+ CLONE 0 080b [ 8] lea 0x110(%rsp),%r12
+ CLONE 0 0813 [ 3] xor %r15d,%r15d
+ CLONE 0 0816 [ 2] mov %edi,(%rax)
+@@ -566,7 +566,7 @@
+
+ CLONE 0 0a10 [ 3] cmp %r15d,%ebp
+ CLONE 0 0a13 [ 6] jl <+0xb66>
+ CLONE 0 0a19 [ 7] mov 0xc4(%rsp),%ebp
+-CLONE 0 0a20 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 0a20 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 0a27 [ 5] mov 0x28(%rsp),%rdi
+ CLONE 0 0a2c [ 7] mov %rax,0x1b8(%rdi)
+ CLONE 0 0a33 [11] data16 cs nopw 0x0(%rax,%rax,1)
+@@ -630,7 +630,7 @@
+
+ CLONE 0 0b42 [ 3] cmp %r15d,%ebp
+ CLONE 0 0b45 [ 2] jl <+0xb77>
+ CLONE 0 0b47 [ 7] mov 0xc4(%rsp),%ebp
+-CLONE 0 0b4e [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 0b4e [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 0b55 [ 5] mov 0x28(%rsp),%rdi
+ CLONE 0 0b5a [ 7] mov %rax,0x1c0(%rdi)
+ CLONE 0 0b61 [ 5] jmp <+0xa40>
+@@ -646,7 +646,7 @@
+
+ CLONE 0 0b87 [ 3] cmp %r15d,%ebp
+ CLONE 0 0b8a [ 6] jl <+0xcea>
+ CLONE 0 0b90 [ 7] mov 0xc4(%rsp),%ebp
+-CLONE 0 0b97 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 0b97 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 0b9e [ 5] mov 0x28(%rsp),%rdi
+ CLONE 0 0ba3 [ 7] mov %rax,0x1d0(%rdi)
+ CLONE 0 0baa [ 5] jmp <+0xa40>
+@@ -667,7 +667,7 @@
+
+ CLONE 0 0bef [ 3] cmp %r15d,%ebp
+ CLONE 0 0bf2 [ 6] jl <+0xcd9>
+ CLONE 0 0bf8 [ 7] mov 0xc4(%rsp),%ebp
+-CLONE 0 0bff [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 0bff [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 0c06 [ 5] mov 0x28(%rsp),%rdi
+ CLONE 0 0c0b [ 7] mov %rax,0x1c8(%rdi)
+ CLONE 0 0c12 [ 5] jmp <+0xa40>
+@@ -780,7 +780,7 @@
+
+ CLONE 0 0dd2 [ 3] cmp %r15d,%ebp
+ CLONE 0 0dd5 [ 6] jl <+0xff0>
+ CLONE 0 0ddb [ 7] mov 0xc4(%rsp),%ebp
+-CLONE 0 0de2 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 0de2 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 0de9 [ 5] mov 0x28(%rsp),%rdi
+ CLONE 0 0dee [ 7] mov %rax,0x1e8(%rdi)
+ CLONE 0 0df5 [ 5] jmp <+0xa40>
+@@ -894,7 +894,7 @@
+
+ CLONE 0 0f8d [ 3] cmp %r15d,%ebp
+ CLONE 0 0f90 [ 2] jl <+0xfd0>
+ CLONE 0 0f92 [ 7] mov 0xc4(%rsp),%ebp
+-CLONE 0 0f99 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 0f99 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 0fa0 [ 5] mov 0x28(%rsp),%rdi
+ CLONE 0 0fa5 [ 7] mov %rax,0x1e0(%rdi)
+ CLONE 0 0fac [ 5] jmp <+0xa40>
+@@ -934,7 +934,7 @@
+
+ CLONE 0 1045 [ 3] cmp %r15d,%ebp
+ CLONE 0 1048 [ 6] jl <+0x118c>
+ CLONE 0 104e [ 7] mov 0xc4(%rsp),%ebp
+-CLONE 0 1055 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 1055 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 105c [ 5] mov 0x28(%rsp),%rdi
+ CLONE 0 1061 [ 7] mov %rax,0x1f0(%rdi)
+ CLONE 0 1068 [ 5] jmp <+0xa40>
+@@ -1101,7 +1101,7 @@
+
+ CLONE 0 12fd [ 3] cmp %r15d,%ebp
+ CLONE 0 1300 [ 2] jl <+0x132f>
+ CLONE 0 1302 [ 7] mov 0xc4(%rsp),%ebp
+-CLONE 0 1309 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 1309 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 1310 [ 5] mov 0x28(%rsp),%rdi
+ CLONE 0 1315 [ 4] mov %rax,0x38(%rdi)
+ CLONE 0 1319 [ 5] jmp <+0xa40>
+@@ -1331,7 +1331,7 @@
+
+ CLONE 0 173e [ 7] mov 0xc4(%rsp),%ebp
+ CLONE 0 1745 [ 5] jmp <+0xa40>
+ CLONE 0 174a [ 8] mov 0x90(%rsp),%rdi
+-CLONE 0 1752 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x788>
++CLONE 0 1752 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x782>
+ CLONE 0 1759 [ 5] call <tomo_db0::parse_config_args(std::vector<char const*, std::allocator<char const*> > const&, tomo_db0::Config&, tomo_db0::ConfigParseState&, int, char const*, std::vector<unsigned long, std::allocator<unsigned long> > const*)::{lambda(char const*)#1}::operator()(char const*) const>
+ CLONE 0 175e [ 2] xor %edi,%edi
+ CLONE 0 1760 [ 8] mov %rdi,0x130(%rsp)
+@@ -1900,7 +1900,7 @@
+
+ CLONE 0 21cd [ 5] call <void std::vector<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >, std::allocator<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > > >::_M_realloc_insert<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >(__gnu_cxx::__normal_iterator<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >*, std::vector<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >, std::allocator<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > > > >, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&&)>
+ CLONE 0 21d2 [ 2] jmp <+0x219e>
+ CLONE 0 21d4 [ 8] mov 0x90(%rsp),%rdi
+-CLONE 0 21dc [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x788>
++CLONE 0 21dc [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x782>
+ CLONE 0 21e3 [ 5] call <tomo_db0::parse_config_args(std::vector<char const*, std::allocator<char const*> > const&, tomo_db0::Config&, tomo_db0::ConfigParseState&, int, char const*, std::vector<unsigned long, std::allocator<unsigned long> > const*)::{lambda(char const*)#1}::operator()(char const*) const>
+ CLONE 0 21e8 [ 5] mov 0x28(%rsp),%rdi
+ CLONE 0 21ed [ 7] mov 0xc4(%rsp),%ebp
+@@ -2870,7 +2870,7 @@
+
+ CLONE 0 3369 [ 8] mov 0x98(%rsp),%rax
+ CLONE 0 3371 [ 7] mov 0xa4(%rsp),%ebx
+ CLONE 0 3378 [ 8] mov 0x90(%rsp),%rdi
+-CLONE 0 3380 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x788>
++CLONE 0 3380 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x782>
+ CLONE 0 3387 [ 3] mov %ebx,0x4(%rax)
+ CLONE 0 338a [ 5] call <tomo_db0::parse_config_args(std::vector<char const*, std::allocator<char const*> > const&, tomo_db0::Config&, tomo_db0::ConfigParseState&, int, char const*, std::vector<unsigned long, std::allocator<unsigned long> > const*)::{lambda(char const*)#1}::operator()(char const*) const>
+ CLONE 0 338f [ 5] mov 0x28(%rsp),%rdi
+@@ -3005,7 +3005,7 @@
+
+ CLONE 0 3606 [ 7] movb $0x0,0x130(%rax)
+ CLONE 0 360d [ 5] jmp <+0xa40>
+ CLONE 0 3612 [ 8] mov 0x90(%rsp),%rdi
+-CLONE 0 361a [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x788>
++CLONE 0 361a [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x782>
+ CLONE 0 3621 [ 5] call <tomo_db0::parse_config_args(std::vector<char const*, std::allocator<char const*> > const&, tomo_db0::Config&, tomo_db0::ConfigParseState&, int, char const*, std::vector<unsigned long, std::allocator<unsigned long> > const*)::{lambda(char const*)#1}::operator()(char const*) const>
+ CLONE 0 3626 [ 5] mov 0x28(%rsp),%rbx
+ CLONE 0 362b [ 7] mov 0xc4(%rsp),%ebp
+@@ -3117,7 +3117,7 @@
+
+ CLONE 0 384a [ 3] mov %rax,%rsi
+ CLONE 0 384d [ 3] test %rax,%rax
+ CLONE 0 3850 [ 2] jne <+0x3859>
+-CLONE 0 3852 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x788>
++CLONE 0 3852 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x782>
+ CLONE 0 3859 [ 8] lea 0x170(%rsp),%rbp
+ CLONE 0 3861 [ 7] lea <rip>(%rip),%r12 # <literal-string-2d2d00>
+ CLONE 0 3868 [ 3] mov %rbp,%rdi
+@@ -3392,7 +3392,7 @@
+
+ CLONE 0 3d9b [ 3] mov %rax,%rdi
+ CLONE 0 3d9e [ 5] call <strlen@plt>
+ CLONE 0 3da3 [ 2] xor %ecx,%ecx
+-CLONE 0 3da5 [ 7] lea <rip>(%rip),%rdi # <_IO_stdin_used+0x18490>
++CLONE 0 3da5 [ 7] lea <rip>(%rip),%rdi # <on_signal(int)::kInsist+0x2f0>
+ CLONE 0 3dac [ 2] mov %eax,%esi
+ CLONE 0 3dae [ 2] xor %eax,%eax
+ CLONE 0 3db0 [ 2] cmp %esi,%ecx

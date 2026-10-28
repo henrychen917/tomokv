@@ -16,13 +16,6 @@ import _lib
 from txniso import Battery
 
 
-# AT4.12: known contention refusals, not arbitrary TRYAGAIN/BUSY errors.
-SCRIPT_REFUSALS = {
-    b"TRYAGAIN Cross-shard script conflicted, retry": "TRYAGAIN",
-    b"BUSY Cross-shard script snapshot window is full": "BUSY",
-}
-
-
 class OrderBattery(Battery):
     def __init__(self, args):
         super().__init__(args)
@@ -279,7 +272,7 @@ class OrderBattery(Battery):
         lock = threading.Lock()
         executions = [0]
         config_count = [0]
-        script_refusals = dict.fromkeys(SCRIPT_REFUSALS.values(), 0)
+        script_refusals = dict(TRYAGAIN=0, BUSY=0)
         ping_latencies = []
         # WATCH and plain multi-key writers share the EXEC churn keys. Keeping
         # these on a separate keyspace would miss validation/placement cycles.
@@ -342,13 +335,9 @@ class OrderBattery(Battery):
             pair = [keys[0], keys[len(keys) // 2]]
             while time.monotonic() < end:
                 reply = c.cmd("EVAL", code, 2, *pair)
-                if isinstance(reply, _lib.RespError):
-                    assert reply.message in SCRIPT_REFUSALS, reply
-                    with lock:
-                        script_refusals[SCRIPT_REFUSALS[reply.message]] += 1
-                else:
-                    assert isinstance(reply, int), reply
-                    record(pair)
+                assert not isinstance(reply, _lib.RespError), reply
+                assert isinstance(reply, int), reply
+                record(pair)
 
         def producer():
             c = self.conn(timeout=5)

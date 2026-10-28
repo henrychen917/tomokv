@@ -1,0 +1,68 @@
+unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()
+--- headline
+
++++ post
+
+@@ -231,7 +231,7 @@
+
+ CLONE 0 0405 [ 5] cmpq $0x0,(%rsp)
+ CLONE 0 040a [ 6] jne <+0x790>
+ CLONE 0 0410 [ 5] cmpb $0x0,0x40(%rsp)
+-CLONE 0 0415 [ 6] jne <+0x7b0>
++CLONE 0 0415 [ 6] jne <+0x7bb>
+ CLONE 0 041b [ 8] mov 0x88(%rsp),%rax
+ CLONE 0 0423 [ 9] sub %fs:0x28,%rax
+ CLONE 0 042c [ 6] jne <+0xd29>
+@@ -428,18 +428,19 @@
+
+ CLONE 0 077b [ 5] cmpq $0x0,(%rsp)
+ CLONE 0 0780 [10] movl $0x0,0x15b8(%rbx)
+ CLONE 0 078a [ 6] je <+0x410>
+-CLONE 0 0790 [ 5] mov 0x10(%rsp),%rdi
+-CLONE 0 0795 [ 5] call <tomo_db0::Server::read_local_epoch() const>
+-CLONE 0 079a [ 3] mov %r15,%rdi
+-CLONE 0 079d [ 3] mov %rax,%rsi
+-CLONE 0 07a0 [ 5] call <tomo_db0::ThreadCtx::publish_read_local_tick(unsigned long)>
+-CLONE 0 07a5 [ 5] cmpb $0x0,0x40(%rsp)
+-CLONE 0 07aa [ 6] je <+0x41b>
+-CLONE 0 07b0 [ 5] mov 0x30(%rsp),%rax
+-CLONE 0 07b5 [ 5] mov 0x38(%rsp),%rdx
+-CLONE 0 07ba [ 3] mov %rdx,(%rax)
+-CLONE 0 07bd [ 5] jmp <+0x41b>
+-CLONE 0 07c2 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 0790 [ 5] mov 0x10(%rsp),%rax
++CLONE 0 0795 [ 7] mov 0x175d8(%rax),%rax
++CLONE 0 079c [ 3] test %rax,%rax
++CLONE 0 079f [ 6] je <+0xd61>
++CLONE 0 07a5 [ 3] mov (%rax),%rsi
++CLONE 0 07a8 [ 3] mov %r15,%rdi
++CLONE 0 07ab [ 5] call <tomo_db0::ThreadCtx::publish_read_local_tick(unsigned long)>
++CLONE 0 07b0 [ 5] cmpb $0x0,0x40(%rsp)
++CLONE 0 07b5 [ 6] je <+0x41b>
++CLONE 0 07bb [ 5] mov 0x30(%rsp),%rax
++CLONE 0 07c0 [ 5] mov 0x38(%rsp),%rdx
++CLONE 0 07c5 [ 3] mov %rdx,(%rax)
++CLONE 0 07c8 [ 5] jmp <+0x41b>
+ CLONE 0 07cd [ 3] nopl (%rax)
+ CLONE 0 07d0 [10] movabs $0xffffffffffff,%rax
+ CLONE 0 07da [ 3] mov %rbx,%rdi
+@@ -595,7 +596,7 @@
+
+ CLONE 0 0a8a [ 5] vmovq %xmm0,%r12
+ CLONE 0 0a8f [ 6] vpextrq $0x1,%xmm0,%r13
+ CLONE 0 0a95 [ 3] mov %r12,%r14
+-CLONE 0 0a98 [ 3] cmp %r12,%r13
++CLONE 0 0a98 [ 3] cmp %r13,%r12
+ CLONE 0 0a9b [ 6] je <+0xc3e>
+ CLONE 0 0aa1 [ 7] mov 0x150(%rbx),%rax
+ CLONE 0 0aa8 [ 3] mov %rbp,%rdi
+@@ -634,7 +635,7 @@
+
+ CLONE 0 0b5a [ 5] vmovq %xmm0,%r13
+ CLONE 0 0b5f [ 6] vmovq %xmm0,0x8(%rsp)
+ CLONE 0 0b65 [ 6] vpextrq $0x1,%xmm0,%r14
+-CLONE 0 0b6b [ 3] cmp %r14,%r13
++CLONE 0 0b6b [ 3] cmp %r13,%r14
+ CLONE 0 0b6e [ 6] je <+0xc34>
+ CLONE 0 0b74 [ 7] mov 0x150(%rbx),%rax
+ CLONE 0 0b7b [ 3] mov %rbp,%rdi

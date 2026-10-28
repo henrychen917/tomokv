@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "part": "split-0",
+  "run": "full:gate-run.nx4Shz",
+  "seeds": [
+    7,
+    19,
+    20,
+    23,
+    21
+  ],
+  "comparisons": 235,
+  "complete": true
+}

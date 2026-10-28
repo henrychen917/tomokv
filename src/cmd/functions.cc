@@ -86,12 +86,11 @@ struct LibraryDef {
 
 // ---- reply helpers ---------------------------------------------------------------------------
 
-void reply_text_error(Op& op, std::string_view kind, std::string_view detail) {
-    auto sink = op.sink();
-    sink.push_back('-');
-    sink.append(kind.data(), kind.size());
-    if (!detail.empty()) { sink.push_back(' '); sink.append(detail.data(), detail.size()); }
-    sink.append("\r\n", 2);
+void reply_text_error(Op& op, std::string_view kind, std::string_view detail,
+                      bool trim = true) {
+    std::string message(kind);
+    if (!detail.empty()) { message.push_back(' '); message.append(detail); }
+    reply_err(op.sink(), message.data(), message.size(), trim);
 }
 
 void reply_err_string(Op& op, const std::string& message) {
@@ -807,7 +806,8 @@ void function_list(Op& op) {
         char text[128];
         std::snprintf(text, sizeof(text), "Unknown argument %.*s",
                       static_cast<int>(std::min<uint32_t>(op.arg(i).n, 64)), op.arg(i).p);
-        reply_text_error(op, "ERR", text);
+        // Redis functionListCommand uses addReplyErrorSdsSafe: no trim.
+        reply_text_error(op, "ERR", text, false);
         return;
     }
     std::vector<LibraryDef> libraries;

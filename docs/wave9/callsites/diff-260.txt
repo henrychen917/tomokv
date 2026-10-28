@@ -1,0 +1,15 @@
+tomo_db0::command_metadata_init(tomo_db0::CommandSpec const*, unsigned long)
+--- headline
+
++++ post
+
+@@ -58,7 +58,7 @@
+
+ CLONE 0 00db [ 3] mov %rax,%rbx
+ CLONE 0 00de [ 3] test %rax,%rax
+ CLONE 0 00e1 [ 2] jne <+0x90>
+-CLONE 0 00e3 [ 7] lea <rip>(%rip),%r8 # <_IO_stdin_used+0x788>
++CLONE 0 00e3 [ 7] lea <rip>(%rip),%r8 # <_IO_stdin_used+0x782>
+ CLONE 0 00ea [ 4] mov 0x0(%rbp),%rcx
+ CLONE 0 00ee [ 7] mov <rip>(%rip),%rdi # <stderr@GLIBC_2.2.5>
+ CLONE 0 00f5 [ 7] lea <rip>(%rip),%rdx # <literal-string-636f6d6d616e64206d65746164617461206d697373696e6720666f72202225732225730a00>

@@ -1,0 +1,18 @@
+{
+  "unit/other": [
+    "RESET clears and discards MULTI state"
+  ],
+  "unit/type/set": [
+    "SMOVE only notify dstset when the addition is successful"
+  ],
+  "unit/slowlog": [
+    "SLOWLOG - EXEC is not logged, just executed commands"
+  ],
+  "unit/pause": [
+    "Test both active and passive expires are skipped during client pause",
+    "Test that client pause starts at the end of a transaction",
+    "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write",
+    "Test write multi-execs are blocked by pause RO",
+    "Test write scripts in multi-exec are blocked by pause RO"
+  ]
+}

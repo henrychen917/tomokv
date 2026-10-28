@@ -1,0 +1,342 @@
+tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int)
+--- headline
+
++++ post
+
+@@ -1,6 +1,6 @@
+
+ CLONE 0 0000 [ 4] endbr64
+ CLONE 0 0004 [ 3] test %rdi,%rdi
+-CLONE 0 0007 [ 6] je <+0x2c0>
++CLONE 0 0007 [ 6] je <+0x2a0>
+ CLONE 0 000d [ 2] push %r14
+ CLONE 0 000f [ 2] push %r13
+ CLONE 0 0011 [ 2] push %r12
+@@ -12,7 +12,7 @@
+
+ CLONE 0 0020 [ 2] mov %edx,%ebp
+ CLONE 0 0022 [ 2] je <+0x2e>
+ CLONE 0 0024 [ 4] cmpb $0x3,0x2e(%rdi)
+-CLONE 0 0028 [ 6] je <+0x270>
++CLONE 0 0028 [ 6] je <+0x250>
+ CLONE 0 002e [ 7] movzbl <rip>(%rip),%eax # <tomo_db0::atomic_tripwire_detail::armed>
+ CLONE 0 0035 [ 2] test %al,%al
+ CLONE 0 0037 [ 2] je <+0x90>
+@@ -22,13 +22,13 @@
+
+ CLONE 0 0045 [ 3] mov %r14,%rdi
+ CLONE 0 0048 [ 5] call <pthread_mutex_lock@plt>
+ CLONE 0 004d [ 2] test %eax,%eax
+-CLONE 0 004f [ 6] jne <+0x30f>
++CLONE 0 004f [ 6] jne <+0x2c0>
+ CLONE 0 0055 [ 7] mov 0x8a0(%r14),%rsi
+ CLONE 0 005c [ 7] lea 0x890(%r14),%r13
+ CLONE 0 0063 [ 3] test %rsi,%rsi
+ CLONE 0 0066 [ 2] je <+0x7a>
+ CLONE 0 0068 [ 4] cmp 0x8(%rsi),%rbx
+-CLONE 0 006c [ 6] je <+0x2b0>
++CLONE 0 006c [ 6] je <+0x290>
+ CLONE 0 0072 [ 3] mov (%rsi),%rsi
+ CLONE 0 0075 [ 3] test %rsi,%rsi
+ CLONE 0 0078 [ 2] jne <+0x68>
+@@ -39,159 +39,146 @@
+
+ CLONE 0 0090 [ 3] cmp %ebp,0x5c(%rbx)
+ CLONE 0 0093 [ 6] jne <tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int) [clone .cold]>
+ CLONE 0 0099 [ 4] cmpb $0x0,0xc(%rbx)
+-CLONE 0 009d [ 4] mov 0x78(%rbx),%rsi
+-CLONE 0 00a1 [ 2] je <+0xbd>
+-CLONE 0 00a3 [ 3] test %rsi,%rsi
+-CLONE 0 00a6 [ 6] je <+0x15c>
+-CLONE 0 00ac [ 2] mov %ebp,%ecx
+-CLONE 0 00ae [ 3] mov %rbx,%rdx
++CLONE 0 009d [ 4] mov 0x78(%rbx),%rdi
++CLONE 0 00a1 [ 2] je <+0xc0>
++CLONE 0 00a3 [ 3] test %rdi,%rdi
++CLONE 0 00a6 [ 6] je <+0x13c>
++CLONE 0 00ac [ 3] mov %rdi,%rsi
++CLONE 0 00af [ 2] mov %ebp,%ecx
+ CLONE 0 00b1 [ 3] mov %r12,%rdi
+-CLONE 0 00b4 [ 5] call <tomo_db0::ScatterArenaPool::unregister_snapshot(tomo_db0::Server&, tomo_db0::SnapshotCut*, unsigned int) [clone .part.0]>
+-CLONE 0 00b9 [ 4] mov 0x78(%rbx),%rsi
+-CLONE 0 00bd [ 3] test %rsi,%rsi
+-CLONE 0 00c0 [ 6] je <+0x15c>
+-CLONE 0 00c6 [ 7] mov 0x10370(%rsi),%rax
+-CLONE 0 00cd [ 7] sub 0x10368(%rsi),%rax
+-CLONE 0 00d4 [ 4] sar $0x3,%rax
+-CLONE 0 00d8 [ 2] cmp %eax,%ebp
+-CLONE 0 00da [ 6] jae <tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int) [clone .cold]>
+-CLONE 0 00e0 [ 4] movzbl 0x58(%rbx),%eax
+-CLONE 0 00e4 [ 4] lea 0x58(%rbx),%rdx
+-CLONE 0 00e8 [ 2] test %al,%al
+-CLONE 0 00ea [ 6] jne <+0x2e0>
+-CLONE 0 00f0 [ 4] cmpb $0x0,0x57(%rbx)
+-CLONE 0 00f4 [ 2] je <+0x15c>
+-CLONE 0 00f6 [ 4] mov 0x78(%rbx),%rax
+-CLONE 0 00fa [ 3] test %rax,%rax
+-CLONE 0 00fd [ 6] je <+0x300>
+-CLONE 0 0103 [ 3] mov 0x5c(%rbx),%ecx
+-CLONE 0 0106 [ 7] mov 0x10368(%rax),%rdx
+-CLONE 0 010d [ 5] cmpq $0x1,0x68(%rbx)
+-CLONE 0 0112 [ 4] mov (%rdx,%rcx,8),%rcx
+-CLONE 0 0116 [ 6] jne <tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int) [clone .cold]>
+-CLONE 0 011c [ 6] mov 0x1c0(%rcx),%edx
++CLONE 0 00b4 [ 3] mov %rbx,%rdx
++CLONE 0 00b7 [ 5] call <tomo_db0::ScatterArenaPool::unregister_snapshot(tomo_db0::Server&, tomo_db0::SnapshotCut*, unsigned int) [clone .part.0]>
++CLONE 0 00bc [ 4] mov 0x78(%rbx),%rdi
++CLONE 0 00c0 [ 3] test %rdi,%rdi
++CLONE 0 00c3 [ 2] je <+0x13c>
++CLONE 0 00c5 [ 4] lea 0x58(%rbx),%rdx
++CLONE 0 00c9 [ 2] mov %ebp,%esi
++CLONE 0 00cb [ 5] call <tomo_db0::Server::atomic_apply_close(unsigned int, std::atomic<bool>&)>
++CLONE 0 00d0 [ 4] cmpb $0x0,0x57(%rbx)
++CLONE 0 00d4 [ 2] je <+0x13c>
++CLONE 0 00d6 [ 4] mov 0x78(%rbx),%rax
++CLONE 0 00da [ 3] test %rax,%rax
++CLONE 0 00dd [ 6] je <+0x2c7>
++CLONE 0 00e3 [ 3] mov 0x5c(%rbx),%ecx
++CLONE 0 00e6 [ 7] mov 0x10368(%rax),%rdx
++CLONE 0 00ed [ 5] cmpq $0x1,0x68(%rbx)
++CLONE 0 00f2 [ 4] mov (%rdx,%rcx,8),%rcx
++CLONE 0 00f6 [ 6] jne <tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int) [clone .cold]>
++CLONE 0 00fc [ 6] mov 0x1c0(%rcx),%edx
++CLONE 0 0102 [ 2] test %edx,%edx
++CLONE 0 0104 [ 6] je <tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int) [clone .cold]>
++CLONE 0 010a [ 2] dec %edx
++CLONE 0 010c [ 6] mov %edx,0x1c0(%rcx)
++CLONE 0 0112 [ 7] mov $0xffffffffffffffff,%rdx
++CLONE 0 0119 [ 9] lock xadd %rdx,0x16bf0(%rax)
+ CLONE 0 0122 [ 2] test %edx,%edx
+ CLONE 0 0124 [ 6] je <tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int) [clone .cold]>
+-CLONE 0 012a [ 2] dec %edx
+-CLONE 0 012c [ 6] mov %edx,0x1c0(%rcx)
+-CLONE 0 0132 [ 7] mov $0xffffffffffffffff,%rdx
+-CLONE 0 0139 [ 9] lock xadd %rdx,0x16bf0(%rax)
+-CLONE 0 0142 [ 2] test %edx,%edx
+-CLONE 0 0144 [ 6] je <tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int) [clone .cold]>
+-CLONE 0 014a [ 6] mov 0x1c0(%rcx),%edx
+-CLONE 0 0150 [ 2] test %edx,%edx
+-CLONE 0 0152 [ 6] je <+0x2a0>
+-CLONE 0 0158 [ 4] movb $0x0,0x57(%rbx)
+-CLONE 0 015c [ 4] cmpb $0x0,0x3a(%rbx)
+-CLONE 0 0160 [ 2] je <+0x17f>
+-CLONE 0 0162 [ 4] mov 0x78(%rbx),%rax
+-CLONE 0 0166 [ 3] test %rax,%rax
+-CLONE 0 0169 [ 2] je <+0x1a7>
+-CLONE 0 016b [ 2] xor %edx,%edx
+-CLONE 0 016d [ 6] xchg %dl,0x174a8(%rax)
+-CLONE 0 0173 [ 2] test %dl,%dl
+-CLONE 0 0175 [ 6] je <tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int) [clone .cold]>
+-CLONE 0 017b [ 4] movb $0x0,0x3a(%rbx)
+-CLONE 0 017f [ 4] cmpb $0x0,0x3b(%rbx)
+-CLONE 0 0183 [ 2] je <+0x1a7>
+-CLONE 0 0185 [ 4] mov 0x78(%rbx),%rax
+-CLONE 0 0189 [ 3] test %rax,%rax
+-CLONE 0 018c [ 2] je <+0x1a7>
+-CLONE 0 018e [ 5] mov $0xffffffff,%edx
+-CLONE 0 0193 [ 8] lock xadd %edx,0x149f0(%rax)
+-CLONE 0 019b [ 2] test %edx,%edx
+-CLONE 0 019d [ 6] je <tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int) [clone .cold]>
+-CLONE 0 01a3 [ 4] movb $0x0,0x3b(%rbx)
+-CLONE 0 01a7 [ 7] mov 0x2b0(%rbx),%rax
+-CLONE 0 01ae [ 3] test %rax,%rax
+-CLONE 0 01b1 [ 2] je <+0x1bf>
+-CLONE 0 01b3 [ 3] mov (%rax),%rax
+-CLONE 0 01b6 [ 3] test %rax,%rax
+-CLONE 0 01b9 [ 6] je <+0x250>
+-CLONE 0 01bf [ 4] cmpb $0x0,0x59(%rbx)
+-CLONE 0 01c3 [ 4] movzbl 0x49(%rbx),%ebp
+-CLONE 0 01c7 [ 2] jne <+0x1d1>
+-CLONE 0 01c9 [ 3] mov %rbx,%rdi
+-CLONE 0 01cc [ 5] call <tomo_db0::(anonymous namespace)::free_state_contents(tomo_db0::ScatterState&) [clone .part.0]>
+-CLONE 0 01d1 [ 4] movb $0x1,0x5a(%rbx)
+-CLONE 0 01d5 [ 3] mov 0x14(%rbx),%eax
+-CLONE 0 01d8 [ 2] test %eax,%eax
+-CLONE 0 01da [ 2] jne <+0x1e3>
+-CLONE 0 01dc [ 3] mov 0x18(%rbx),%eax
+-CLONE 0 01df [ 2] test %eax,%eax
+-CLONE 0 01e1 [ 2] je <+0x200>
+-CLONE 0 01e3 [ 3] mov %rbx,%rsi
+-CLONE 0 01e6 [ 3] mov %r12,%rdi
+-CLONE 0 01e9 [ 1] pop %rbx
+-CLONE 0 01ea [ 1] pop %rbp
+-CLONE 0 01eb [ 2] pop %r12
+-CLONE 0 01ed [ 2] pop %r13
+-CLONE 0 01ef [ 2] pop %r14
+-CLONE 0 01f1 [ 5] jmp <tomo_db0::ScatterArenaPool::defer_destroy(tomo_db0::ScatterState*)>
+-CLONE 0 01f6 [10] cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 0200 [ 3] mov %rbx,%rdi
+-CLONE 0 0203 [ 5] call <tomo_db0::(anonymous namespace)::free_state_key_anchors(tomo_db0::ScatterState&)>
+-CLONE 0 0208 [ 3] mov %rbx,%rdi
+-CLONE 0 020b [ 5] call <tomo_db0::ScatterState::~ScatterState()>
+-CLONE 0 0210 [ 3] test %bpl,%bpl
+-CLONE 0 0213 [ 6] je <+0x2d0>
+-CLONE 0 0219 [ 8] mov 0x200(%r12),%eax
+-CLONE 0 0221 [ 2] xor %edx,%edx
+-CLONE 0 0223 [ 2] test %eax,%eax
+-CLONE 0 0225 [ 2] je <+0x22b>
+-CLONE 0 0227 [ 4] mov (%r12),%rdx
+-CLONE 0 022b [ 2] inc %eax
+-CLONE 0 022d [ 3] mov %rdx,(%rbx)
+-CLONE 0 0230 [ 4] mov %rbx,(%r12)
+-CLONE 0 0234 [ 8] mov %eax,0x200(%r12)
+-CLONE 0 023c [ 1] pop %rbx
+-CLONE 0 023d [ 1] pop %rbp
+-CLONE 0 023e [ 2] pop %r12
+-CLONE 0 0240 [ 2] pop %r13
+-CLONE 0 0242 [ 2] pop %r14
+-CLONE 0 0244 [ 1] ret
+-CLONE 0 0245 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 0250 [ 7] lea 0x2b0(%rbx),%rdi
+-CLONE 0 0257 [ 5] call <tomo_db0::aof_abort_group(std::shared_ptr<tomo_db0::AofGroupDecision> const&)>
+-CLONE 0 025c [ 5] jmp <+0x1bf>
+-CLONE 0 0261 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 026c [ 4] nopl 0x0(%rax)
+-CLONE 0 0270 [ 2] xor %edx,%edx
+-CLONE 0 0272 [ 3] mov %rdi,%rax
+-CLONE 0 0275 [ 9] lock cmpxchg %rdx,<rip>(%rip) # <tomo_db0::Server::databases_+0x18>
+-CLONE 0 027e [ 7] movzbl <rip>(%rip),%eax # <tomo_db0::atomic_tripwire_detail::armed>
+-CLONE 0 0285 [ 2] test %al,%al
+-CLONE 0 0287 [ 6] je <+0x90>
+-CLONE 0 028d [ 5] jmp <+0x39>
+-CLONE 0 0292 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 029d [ 3] nopl (%rax)
+-CLONE 0 02a0 [ 8] lock decq 0x16c08(%rax)
+-CLONE 0 02a8 [ 5] jmp <+0x158>
+-CLONE 0 02ad [ 3] nopl (%rax)
+-CLONE 0 02b0 [ 3] mov %r13,%rdi
+-CLONE 0 02b3 [ 5] call <std::_Hashtable<tomo_db0::atomic_tripwire_detail::ProbeKey, std::pair<tomo_db0::atomic_tripwire_detail::ProbeKey const, tomo_db0::atomic_tripwire_detail::Probe>, std::allocator<std::pair<tomo_db0::atomic_tripwire_detail::ProbeKey const, tomo_db0::atomic_tripwire_detail::Probe> >, std::__detail::_Select1st, std::equal_to<tomo_db0::atomic_tripwire_detail::ProbeKey>, tomo_db0::atomic_tripwire_detail::ProbeKeyHash, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true> >::erase(std::__detail::_Node_const_iterator<std::pair<tomo_db0::atomic_tripwire_detail::ProbeKey const, tomo_db0::atomic_tripwire_detail::Probe>, false, true>)>
+-CLONE 0 02b8 [ 3] mov %rax,%rsi
+-CLONE 0 02bb [ 5] jmp <+0x63>
+-CLONE 0 02c0 [ 1] ret
+-CLONE 0 02c1 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 02cc [ 4] nopl 0x0(%rax)
+-CLONE 0 02d0 [ 3] mov %rbx,%rdi
+-CLONE 0 02d3 [ 1] pop %rbx
+-CLONE 0 02d4 [ 1] pop %rbp
+-CLONE 0 02d5 [ 2] pop %r12
+-CLONE 0 02d7 [ 2] pop %r13
+-CLONE 0 02d9 [ 2] pop %r14
+-CLONE 0 02db [ 5] jmp <free@plt>
+-CLONE 0 02e0 [ 2] xor %eax,%eax
+-CLONE 0 02e2 [ 2] xchg %al,(%rdx)
+-CLONE 0 02e4 [ 2] test %al,%al
+-CLONE 0 02e6 [ 6] je <+0xf0>
+-CLONE 0 02ec [ 4] shl $0x6,%rbp
+-CLONE 0 02f0 [ 3] add %rbp,%rsi
+-CLONE 0 02f3 [ 8] lock incq 0x14b88(%rsi)
+-CLONE 0 02fb [ 5] jmp <+0xf0>
+-CLONE 0 0300 [ 4] cmpb $0x0,0x3a(%rbx)
+-CLONE 0 0304 [ 6] jne <+0x1a7>
+-CLONE 0 030a [ 5] jmp <+0x17f>
+-CLONE 0 030f [ 2] mov %eax,%edi
+-CLONE 0 0311 [ 5] call <_ZSt20__throw_system_errori@plt>
++CLONE 0 012a [ 6] mov 0x1c0(%rcx),%edx
++CLONE 0 0130 [ 2] test %edx,%edx
++CLONE 0 0132 [ 6] je <+0x280>
++CLONE 0 0138 [ 4] movb $0x0,0x57(%rbx)
++CLONE 0 013c [ 4] cmpb $0x0,0x3a(%rbx)
++CLONE 0 0140 [ 2] je <+0x15f>
++CLONE 0 0142 [ 4] mov 0x78(%rbx),%rax
++CLONE 0 0146 [ 3] test %rax,%rax
++CLONE 0 0149 [ 2] je <+0x187>
++CLONE 0 014b [ 2] xor %edx,%edx
++CLONE 0 014d [ 6] xchg %dl,0x174a8(%rax)
++CLONE 0 0153 [ 2] test %dl,%dl
++CLONE 0 0155 [ 6] je <tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int) [clone .cold]>
++CLONE 0 015b [ 4] movb $0x0,0x3a(%rbx)
++CLONE 0 015f [ 4] cmpb $0x0,0x3b(%rbx)
++CLONE 0 0163 [ 2] je <+0x187>
++CLONE 0 0165 [ 4] mov 0x78(%rbx),%rax
++CLONE 0 0169 [ 3] test %rax,%rax
++CLONE 0 016c [ 2] je <+0x187>
++CLONE 0 016e [ 5] mov $0xffffffff,%edx
++CLONE 0 0173 [ 8] lock xadd %edx,0x149f0(%rax)
++CLONE 0 017b [ 2] test %edx,%edx
++CLONE 0 017d [ 6] je <tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int) [clone .cold]>
++CLONE 0 0183 [ 4] movb $0x0,0x3b(%rbx)
++CLONE 0 0187 [ 7] mov 0x2b0(%rbx),%rax
++CLONE 0 018e [ 3] test %rax,%rax
++CLONE 0 0191 [ 2] je <+0x19f>
++CLONE 0 0193 [ 3] mov (%rax),%rax
++CLONE 0 0196 [ 3] test %rax,%rax
++CLONE 0 0199 [ 6] je <+0x230>
++CLONE 0 019f [ 4] cmpb $0x0,0x59(%rbx)
++CLONE 0 01a3 [ 4] movzbl 0x49(%rbx),%ebp
++CLONE 0 01a7 [ 2] jne <+0x1b1>
++CLONE 0 01a9 [ 3] mov %rbx,%rdi
++CLONE 0 01ac [ 5] call <tomo_db0::(anonymous namespace)::free_state_contents(tomo_db0::ScatterState&) [clone .part.0]>
++CLONE 0 01b1 [ 4] movb $0x1,0x5a(%rbx)
++CLONE 0 01b5 [ 3] mov 0x14(%rbx),%eax
++CLONE 0 01b8 [ 2] test %eax,%eax
++CLONE 0 01ba [ 2] jne <+0x1c3>
++CLONE 0 01bc [ 3] mov 0x18(%rbx),%eax
++CLONE 0 01bf [ 2] test %eax,%eax
++CLONE 0 01c1 [ 2] je <+0x1e0>
++CLONE 0 01c3 [ 3] mov %rbx,%rsi
++CLONE 0 01c6 [ 3] mov %r12,%rdi
++CLONE 0 01c9 [ 1] pop %rbx
++CLONE 0 01ca [ 1] pop %rbp
++CLONE 0 01cb [ 2] pop %r12
++CLONE 0 01cd [ 2] pop %r13
++CLONE 0 01cf [ 2] pop %r14
++CLONE 0 01d1 [ 5] jmp <tomo_db0::ScatterArenaPool::defer_destroy(tomo_db0::ScatterState*)>
++CLONE 0 01d6 [10] cs nopw 0x0(%rax,%rax,1)
++CLONE 0 01e0 [ 3] mov %rbx,%rdi
++CLONE 0 01e3 [ 5] call <tomo_db0::(anonymous namespace)::free_state_key_anchors(tomo_db0::ScatterState&)>
++CLONE 0 01e8 [ 3] mov %rbx,%rdi
++CLONE 0 01eb [ 5] call <tomo_db0::ScatterState::~ScatterState()>
++CLONE 0 01f0 [ 3] test %bpl,%bpl
++CLONE 0 01f3 [ 6] je <+0x2b0>
++CLONE 0 01f9 [ 8] mov 0x200(%r12),%eax
++CLONE 0 0201 [ 2] xor %edx,%edx
++CLONE 0 0203 [ 2] test %eax,%eax
++CLONE 0 0205 [ 2] je <+0x20b>
++CLONE 0 0207 [ 4] mov (%r12),%rdx
++CLONE 0 020b [ 2] inc %eax
++CLONE 0 020d [ 3] mov %rdx,(%rbx)
++CLONE 0 0210 [ 4] mov %rbx,(%r12)
++CLONE 0 0214 [ 8] mov %eax,0x200(%r12)
++CLONE 0 021c [ 1] pop %rbx
++CLONE 0 021d [ 1] pop %rbp
++CLONE 0 021e [ 2] pop %r12
++CLONE 0 0220 [ 2] pop %r13
++CLONE 0 0222 [ 2] pop %r14
++CLONE 0 0224 [ 1] ret
++CLONE 0 0225 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 0230 [ 7] lea 0x2b0(%rbx),%rdi
++CLONE 0 0237 [ 5] call <tomo_db0::aof_abort_group(std::shared_ptr<tomo_db0::AofGroupDecision> const&)>
++CLONE 0 023c [ 5] jmp <+0x19f>
++CLONE 0 0241 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 024c [ 4] nopl 0x0(%rax)
++CLONE 0 0250 [ 2] xor %edx,%edx
++CLONE 0 0252 [ 3] mov %rdi,%rax
++CLONE 0 0255 [ 9] lock cmpxchg %rdx,<rip>(%rip) # <tomo_db0::Server::databases_+0x18>
++CLONE 0 025e [ 7] movzbl <rip>(%rip),%eax # <tomo_db0::atomic_tripwire_detail::armed>
++CLONE 0 0265 [ 2] test %al,%al
++CLONE 0 0267 [ 6] je <+0x90>
++CLONE 0 026d [ 5] jmp <+0x39>
++CLONE 0 0272 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 027d [ 3] nopl (%rax)
++CLONE 0 0280 [ 8] lock decq 0x16c08(%rax)
++CLONE 0 0288 [ 5] jmp <+0x138>
++CLONE 0 028d [ 3] nopl (%rax)
++CLONE 0 0290 [ 3] mov %r13,%rdi
++CLONE 0 0293 [ 5] call <std::_Hashtable<tomo_db0::atomic_tripwire_detail::ProbeKey, std::pair<tomo_db0::atomic_tripwire_detail::ProbeKey const, tomo_db0::atomic_tripwire_detail::Probe>, std::allocator<std::pair<tomo_db0::atomic_tripwire_detail::ProbeKey const, tomo_db0::atomic_tripwire_detail::Probe> >, std::__detail::_Select1st, std::equal_to<tomo_db0::atomic_tripwire_detail::ProbeKey>, tomo_db0::atomic_tripwire_detail::ProbeKeyHash, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true> >::erase(std::__detail::_Node_const_iterator<std::pair<tomo_db0::atomic_tripwire_detail::ProbeKey const, tomo_db0::atomic_tripwire_detail::Probe>, false, true>)>
++CLONE 0 0298 [ 3] mov %rax,%rsi
++CLONE 0 029b [ 5] jmp <+0x63>
++CLONE 0 02a0 [ 1] ret
++CLONE 0 02a1 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 02ac [ 4] nopl 0x0(%rax)
++CLONE 0 02b0 [ 3] mov %rbx,%rdi
++CLONE 0 02b3 [ 1] pop %rbx
++CLONE 0 02b4 [ 1] pop %rbp
++CLONE 0 02b5 [ 2] pop %r12
++CLONE 0 02b7 [ 2] pop %r13
++CLONE 0 02b9 [ 2] pop %r14
++CLONE 0 02bb [ 5] jmp <free@plt>
++CLONE 0 02c0 [ 2] mov %eax,%edi
++CLONE 0 02c2 [ 5] call <_ZSt20__throw_system_errori@plt>
++CLONE 0 02c7 [ 4] cmpb $0x0,0x3a(%rbx)
++CLONE 0 02cb [ 6] jne <+0x187>
++CLONE 0 02d1 [ 5] jmp <+0x15f>

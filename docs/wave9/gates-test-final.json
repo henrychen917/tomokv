@@ -1,0 +1,11 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "88-95",
+    "python3",
+    "tests/gates_test.py"
+  ],
+  "exit": 0,
+  "source_sha256": "9be44e13faf6b4f8f3330e1b58cec39b721562d687f617b2aa2f4b5635276d85"
+}

@@ -1,0 +1,171 @@
+GATE(quick): 16 physical cores; 1 correctness slots = min(14/8 server, 2/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 14 server + 2 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-woundfix/build/gate-run.WGPvdU
+PARTIAL jobs (including prerequisites): release production_units debug-0 debug-1 atomfix5_watch atomfix5_accounting exbatch_units exbatch_live release_batteries atomic_batteries datafix2_watch script_bounds atomic_floor fused-0 fused-1 txn_group_fused txn_group_split execfair txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1
+PARTIAL jobs (including prerequisites): release production_units debug-0 debug-1 atomfix5_watch atomfix5_accounting exbatch_units exbatch_live release_batteries atomic_batteries datafix2_watch script_bounds atomic_floor fused-0 fused-1 txn_group_fused txn_group_split execfair txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1
+  row budget: 900s; median=0.04s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; plain-write lost updates (atomic 0)
+  plain-write lost updates (atomic 0)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; lbsignals battery (atomic 0)
+  lbsignals battery (atomic 0)                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; slowlog battery (atomic 0)
+  slowlog battery (atomic 0)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomfix battery (atomic 0)
+  atomfix battery (atomic 0)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptatomic battery (atomic 0)
+  scriptatomic battery (atomic 0)                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; execatomic battery (atomic 0)
+  execatomic battery (atomic 0)                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; execiso battery (atomic 0)
+  execiso battery (atomic 0)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; execfix battery (atomic 0)
+  execfix battery (atomic 0)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; multires battery (atomic 0)
+  multires battery (atomic 0)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; multirace battery (atomic 0)
+  multirace battery (atomic 0)                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; session_monotonic battery (atomic 0)
+  session_monotonic battery (atomic 0)                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; xacct battery (atomic 0)
+  xacct battery (atomic 0)                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; xmove battery (atomic 0)
+  xmove battery (atomic 0)                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; xscript battery (atomic 0)
+  xscript battery (atomic 0)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; txn_nx battery (atomic 0)
+  txn_nx battery (atomic 0)                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; txniso battery (atomic 0)
+  txniso battery (atomic 0)                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; plain-write lost updates (atomic 1)
+  plain-write lost updates (atomic 1)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; lbsignals battery (atomic 1)
+  lbsignals battery (atomic 1)                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; slowlog battery (atomic 1)
+  slowlog battery (atomic 1)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomfix battery (atomic 1)
+  atomfix battery (atomic 1)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptatomic battery (atomic 1)
+  scriptatomic battery (atomic 1)                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; execatomic battery (atomic 1)
+  execatomic battery (atomic 1)                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; execiso battery (atomic 1)
+  execiso battery (atomic 1)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; execfix battery (atomic 1)
+  execfix battery (atomic 1)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; multires battery (atomic 1)
+  multires battery (atomic 1)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; multirace battery (atomic 1)
+  multirace battery (atomic 1)                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; session_monotonic battery (atomic 1)
+  session_monotonic battery (atomic 1)                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; xacct battery (atomic 1)
+  xacct battery (atomic 1)                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; xmove battery (atomic 1)
+  xmove battery (atomic 1)                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; xscript battery (atomic 1)
+  xscript battery (atomic 1)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; txn_nx battery (atomic 1)
+  txn_nx battery (atomic 1)                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; txniso battery (atomic 1)
+  txniso battery (atomic 1)                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomfix5 WATCH key count (both modes, both engines, atomic 0/1)
+  atomfix5 WATCH key count (both modes, both engines, atomic 0/1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1)
+  atomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; exbatch publication unit + negative controls
+  exbatch publication unit + negative controls         ok
+  row budget: 900s; median=-s; no-history-conservative-default; exbatch watch unit + negative controls
+  exbatch watch unit + negative controls               FAIL (see /home/user/Projects/cx-woundfix/build/gate-run.WGPvdU/jobs/exbatch_units/exbatch-watch.log)
+  row budget: 900s; median=-s; no-history-conservative-default; exbatch metadata unit + negative controls
+  exbatch metadata unit + negative controls            ok
+  row budget: 900s; median=-s; no-history-conservative-default; exbatch publication and WATCH lifecycle (1s)
+  exbatch publication and WATCH lifecycle (1s)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; exbatch publication and WATCH lifecycle (2s)
+  exbatch publication and WATCH lifecycle (2s)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; torture battery
+  torture battery                                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; RYOW battery
+  RYOW battery                                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; ACL category runtime table
+  ACL category runtime table                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; ACL LOAD/SAVE no-file errors
+  ACL LOAD/SAVE no-file errors                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; idle loop ceiling (LBSIGNALS, 1s)
+  idle loop ceiling (LBSIGNALS, 1s)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; shutdown invariants (nothing stuck)
+LBSIGNALS IO tenure conservation: {'tenures': 6, 'fired': {'did_submit': 0, 'sweep_submit': 0, 'park': 0, 'role_exit': 0}, 'mixed': False}
+  shutdown invariants (nothing stuck)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; direct-reply fired (direct=N)
+  direct-reply fired (direct=11941)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; dispatched==executed (N)
+  dispatched==executed (55587)                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic torn/window battery
+  atomic torn/window battery                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic RYOW/mixed-write battery
+  atomic RYOW/mixed-write battery                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic owner-local hazard battery
+  atomic owner-local hazard battery                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; datafix2 CD4.9 write WATCH table vs Redis 7.4
+  datafix2 CD4.9 write WATCH table vs Redis 7.4        ok
+  row budget: 900s; median=-s; no-history-conservative-default; xscript limit control
+  xscript limit control                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; xscript window control
+  xscript window control                               ok
+NOT RUN: atomic MGET/MSET throughput floor (partial correctness-only request)
+  row budget: 900s; median=-s; no-history-conservative-default; tripwire arm/disarm round-trip
+  tripwire arm/disarm round-trip                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; pipelined same-conn program order (400 rolls)
+  pipelined same-conn program order (400 rolls)        ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused boot line (atomic 0)
+  fused boot line (atomic 0)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused s6 battery (atomic 0)
+  fused s6 battery (atomic 0)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused multi_exec battery (atomic 0)
+  fused multi_exec battery (atomic 0)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused edgeproto battery (atomic 0)
+  fused edgeproto battery (atomic 0)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused atomfix battery (atomic 0)
+  fused atomfix battery (atomic 0)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused spinprobe battery (atomic 0)
+  fused spinprobe battery (atomic 0)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused shutdown report (atomic 0)
+  fused shutdown report (atomic 0)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused txn_nx battery (atomic 0)
+  fused txn_nx battery (atomic 0)                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused txniso battery (atomic 0)
+  fused txniso battery (atomic 0)                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused boot line (atomic 1)
+  fused boot line (atomic 1)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused s6 battery (atomic 1)
+  fused s6 battery (atomic 1)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused multi_exec battery (atomic 1)
+  fused multi_exec battery (atomic 1)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused edgeproto battery (atomic 1)
+  fused edgeproto battery (atomic 1)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused atomfix battery (atomic 1)
+  fused atomfix battery (atomic 1)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused spinprobe battery (atomic 1)
+  fused spinprobe battery (atomic 1)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused shutdown report (atomic 1)
+  fused shutdown report (atomic 1)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused txn_nx battery (atomic 1)
+  fused txn_nx battery (atomic 1)                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused txniso battery (atomic 1)
+  fused txniso battery (atomic 1)                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused txngroup battery (atomic 1)
+  fused txngroup battery (atomic 1)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; txngroup battery (atomic 1)
+  txngroup battery (atomic 1)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; EXEC fast-lane polls
+  EXEC fast-lane polls                                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder battery (fused, atomic 0)
+  txnorder battery (fused, atomic 0)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder battery (fused, atomic 1)
+  txnorder battery (fused, atomic 1)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder battery (split, atomic 0)
+  txnorder battery (split, atomic 0)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder battery (split, atomic 1)
+  txnorder battery (split, atomic 1)                   ok
+GATE(PARTIAL): 81 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-woundfix/build/gate-run.WGPvdU/ledger.partial

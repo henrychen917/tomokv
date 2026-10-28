@@ -1,0 +1,22 @@
+diff --git a/home/user/Projects/cx-at412/src/cmd/multi.inc b/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/negcancel/src/cmd/multi.inc
+index 920c681a2..bfb2196db 100644
+--- a/home/user/Projects/cx-at412/src/cmd/multi.inc
++++ b/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/negcancel/src/cmd/multi.inc
+@@ -312,16 +312,7 @@ void multi_cancel_record(AtomicEntry& entry, const ScatterState* self) {
+     }
+     if (script.kind != Kind::Script) return;
+     uint64_t undecided = 0;
+-    if (script.aborted.load(std::memory_order_acquire)) {
+-        // An aborted activation never commits, but its coordinator may not have cancelled its
+-        // epoch yet. Publish the cancellation here, keeping the recorded reason (an OOM stays an
+-        // OOM), so callers that re-read the epoch (txn_group_touch, multi_touch_key) see a dead
+-        // candidate instead of counting a spurious OrderViolation. AT4.12 escalated scripts
+-        // touch such candidates routinely; the coordinator's own later CAS becomes a no-op.
+-        script.epoch.compare_exchange_strong(undecided, kAtomicCancelledEpoch,
+-                                             std::memory_order_acq_rel);
+-        return;
+-    }
++    if (script.aborted.load(std::memory_order_acquire)) return;  // NEGATIVE CONTROL: PRE behaviour
+     if (script.epoch.compare_exchange_strong(undecided, kAtomicCancelledEpoch,
+                                             std::memory_order_acq_rel)) {
+         script.script_conflict.store(true, std::memory_order_release);

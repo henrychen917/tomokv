@@ -1,0 +1,263 @@
+# AT4-WOUND-1 proof and measurement request
+
+## woundfix
+
+Worktree `/home/user/Projects/cx-woundfix`, branch `cx-woundfix`, base
+`7ae703778e854a7b76945af5792a5ec5e88061a6` (cx-execindex). No push.
+Every lane process is restricted to CPUs 32–47; correctness listeners use
+20300–20399. Builds use `taskset -c 32-47 make -j16`. Performance benchmarks
+and the full iteration gate belong to the maintainer. No throughput claim.
+
+### Change
+
+The last group or EXEC placer that observes `Wounded` now CASes its epoch
+from zero to `kAtomicCancelledEpoch` before publishing `aborted`. Completion
+therefore retries instead of returning an aborted command image with a commit
+ticket. The successful wound phase CAS owns the wound count, even if the
+victim wins the epoch CAS. Blind-restart publishers also finish abort/backoff
+and accounting when cancellation has already been helped. Placement OOM
+publishes a group `WorkError::Oom` before `aborted`; its wire reply is
+`ERR out of memory`. EXEC's existing non-wound execution-error reply and the
+ordinary failed MSETNX condition are unchanged.
+
+`DEFECT.md` §6 fixes the reported last-placer path, but the directed review
+found an additional legal overlap: an independent placement OOM or an NX veto
+can publish `aborted` inside the wound's phase/epoch gap. That bypasses the
+last-placer helper. The first POST still accepted a group ticket in this case;
+`docs/woundfix/initial/abort-gap.log` records it. The combined regression was
+committed before its correction (`407800086`, then `f90cfa1f3`).
+
+To close that overlap, EXEC resolves its last-placement phase even when already
+aborted. Before deciding an aborted group, `txn_group_decide` CASes Placing to
+Executing: this closes placement against a delayed wound, without executing a
+command. If Wounded already won, it finishes cancellation instead. Normal OOM,
+WATCH failure and failed-NX replies are preserved; a pending wound wins and
+retries. No new wait, layout, reader retry or in-place write permission was
+introduced. Production source is frozen at `f90cfa1f3`.
+
+### Deterministic negative controls and D2 proof
+
+The first three rows were committed before the production fix. Gate partial
+run `build/gate-run.KZiP2p` built PRE and recorded 1 build pass / 3 regression
+failures. Each regression fails in both namespaces and both modes. Full fields
+and the gate's own ledger are in `docs/woundfix/pre/`.
+
+| Directed case | PRE | POST |
+| --- | --- | --- |
+| Group's last placement inside phase/epoch gap | aborted, epoch 0; accepted ticket, unmaterialized `NoSuchKey` | cancelled epoch; ticket rejected |
+| EXEC finalizer inside phase/epoch gap | terminal EXEC abort, no retry | doomed, retry queued, no terminal reply |
+| `watch_place_unit` allocation failure | no work error; unmaterialized reply | exact OOM wire reply |
+
+The extended serverless fixture copies the production translation unit and
+inserts six pause seams only into that test copy. Release sources contain no
+pause hook. It suspends the foreign wound, group blind restart and EXEC blind
+restart between phase/epoch and epoch/aborted publication, then runs bounded
+owner turns. It asserts each gap opened exactly once. The `no-arm` negative
+control must fail; no skipped window is counted as a pass.
+
+The fixture runs the real completion/finalizer and group redispatch / EXEC
+attempt rebuild. Both namespaces and both modes pass: cancelled work cannot
+install a write, retry preserves all three original version components, and
+every successful phase wound contributes exactly one counter increment even
+when the publisher's epoch CAS loses. Seventy-two combinations cover both
+requester/holder kinds, placing/executing, and older/equal/younger versions at
+each lexicographic component. Only a strictly older unit wounds a placing
+holder; an executing holder is immune. **Blind crossings are the explicit
+§2.8 exception to the older-unit bound**, as already stated in D2's approved
+design. A non-wound failed MSETNX still returns terminal integer zero with its
+ordinary decision ticket; an NX veto overlapping a wound instead retries. Order violations are zero in these fixtures.
+
+The published INFO field for group wounds is `atomic_group_wounds` (there is
+no `atomic_txn_group_wounds` field). EXEC uses `atomic_txn_wounds`.
+
+### Gate accounting
+
+Four aggregate rows are added: `txnorder wound group`, `exec`, `oom`, `d2`.
+Their `collect_job txnorder_wound` is at line 5589, before the quick-tier exit
+at line 5692 in this diff, so this lane is **DQ=+4, DF=+4**. No `EXPECT_QUICK` or `EXPECT_FULL` assignment is edited.
+The inherited execindex rows already require +2/+2 against the literal
+798/815: the resulting declaration totals should be **804 quick / 821 full**.
+The maintainer owns that update.
+
+### Artifacts and PAD semantics
+
+All artifacts are under `build/woundfix/`; SHA-256s are recorded in
+`docs/woundfix/binaries.sha256`, sizes in `binaries.size`.
+`docs/woundfix/source-identity.json` verifies all 234 archived PRE build/source
+files against the base commit and records the compiler.
+
+| Arm | Path | SHA-256 |
+| --- | --- | --- |
+| PRE (frozen base source build) | `PRE/tomokv` | `5f8d8053475b4ca9fa9737f5323f591867790043d1b875949a5af3fe5cc0d877` |
+| POST release | `POST` | `e50e343c32bca46cfd5d2856225c97b9d313968209262f00f97b847d840d8ec6` |
+| POST-layout | `POST-layout` | `c22e5b3ba933e02058750b7089f28960edceecfad89481092273da8f1fbee178` |
+| PAD-A | `PAD-A` | `9cbeebd37dc3feb5f8092c9301982e4e88904c4b6ebe30b7bb27c1c439813feb` |
+
+PAD-A is **type A, behaviour twin**: PRE behaviour in the exact common image
+of POST-layout. Both link POST first and a symbol-isolated PRE second; PAD-A
+changes only five bytes at the entry to run PRE. Sections, function addresses,
+and data match. It is the exact twin of **POST-layout**, not the smaller release
+POST. The release `.text` shrinks by 224 bytes (GNU size text total: −196
+bytes). The common-image pair is an additional layout control, not a substitute
+for the release comparison.
+`docs/woundfix/pad-a.json` records all objects, link commands, patch and identity
+checks. The common-image pair passed 16 bounded boots in total (both arms,
+modes, engines and namespaces): exact EXEC data, WATCH abort, and zero order violations.
+
+### Maintainer measurement request — NOT RUN in this lane
+
+Use the gate's instrument on the quiet box, at matched offered load, with
+PRE/POST ABBA and a standing identical-arm null. Record per-cell cycles/op,
+instructions/op, IPC, and rate. Do not infer throughput from serverless counts.
+
+- `/home/user/Projects/calib/exec-merit.py`: **64 connections**, all eight cells:
+  `x2s_a0_unc`, `x2s_a0_hot`, `x2s_a1_unc`, `x2s_a1_hot`, `x1s_a0_unc`,
+  `x1s_a0_hot`, `x1s_a1_unc`, `x1s_a1_hot`; standard cell-specific settings. Compare release PRE against release POST.
+- All **14 generic cells**, verbatim in `docs/woundfix/generic14.cells.txt`:
+  h05, h06, p8g, p8s, d1g_l0, d1s_l0, m8g_l0, v1g_l0, d128g_l0,
+  d32g_l1, d8s_l1, d32s_l1, x9_32_l1, x9_32_l0. Preserve their rate/latency
+  score types and exact geometry/settings.
+- **2s GET and SET, p1 and p32**: h17, h18, h49, h50 from
+  `tests/headline_cells.txt`, copied verbatim to `docs/woundfix/split4.cells.txt`.
+  Keep the gate's standard split geometry and matched payload/client/load
+  settings on both arms; retain p1 latency and p32 rate scores.
+- Repeat those comparisons on **POST-layout vs PAD-A (type A)** to separate
+  behaviour from the common image's layout. Interpret this control separately
+  from the release binary sizes.
+
+Correctness is mandatory: zero wrong replies and zero order violations. For
+merit/nulls, the cell's rate or latency score at matched offered load is the
+verdict; cycles/op and its instructions/IPC factors explain it. A tiny rate
+change is not a claim without the gate's same-session spread and null.
+The last-placer and publication changes are on cancellation paths. The
+additional terminal-abort guard reads `aborted` at group decision and performs
+its phase CAS only for aborted units. The five requested command scopes below
+are instruction-identical; that finding does not establish unchanged cost for
+unmeasured group operations such as RENAMENX/MSETNX. Their group-decision guard
+remains a performance attribution limit until measured.
+
+### Completed live and command-scope proof
+
+The final binary passed 20 repetitions of `tests/txn_nx.py` in each of eight
+cells: both modes × both engines × databases 1/16, always atomic 1, 16 shards,
+eight server CPUs (split ratio 6:2). Each repetition runs 8,192 transactional
+rounds plus 8,192 bare rounds. Four concurrent drivers use fresh disjoint keys;
+each server CPU 32–39 also runs a 20 µs spin / 30 µs sleep injector. Clients
+use CPUs 40–47. Zero wrong replies, errors, unfinished threads or order
+violations occurred.
+
+An additional fused/uring, databases-1 boot ran 572 bare-only repetitions:
+4,685,824 rounds and **301,615 group wounds**, exceeding DEFECT §6's 300,000
+exposure requirement in the original symptom's posture. Its order violations
+and wrong replies are zero. In all nine completed cells, group and EXEC wound
+counts equal their respective completed retry counts, with zero blind restarts.
+`live/counter-conservation.json` records this cross-check. The serverless
+phase-gap fixture separately proves exact one-per-successful-CAS accounting.
+Commands, all repetition logs, counter deltas and binary identity are in `docs/woundfix/live/`.
+
+| Cell | Full repetitions | Extra bare repetitions | Group wounds | EXEC wounds |
+| --- | ---: | ---: | ---: | ---: |
+| 1s-db1-uring | 20 | 0 | 6751 | 10831 |
+| 1s-db1-epoll | 20 | 0 | 1795 | 2274 |
+| 1s-db16-uring | 20 | 0 | 1876 | 1859 |
+| 1s-db16-epoll | 20 | 0 | 2086 | 1433 |
+| 2s-db1-uring | 20 | 0 | 4268 | 3109 |
+| 2s-db1-epoll | 20 | 0 | 793 | 845 |
+| 2s-db16-uring | 20 | 0 | 6495 | 2520 |
+| 2s-db16-epoll | 20 | 0 | 1188 | 1958 |
+| exposure-1s-db1-uring | 0 | 572 | 301615 | 0 |
+
+All **48 command-scope instruction pairs are exactly equal**, including
+per-function counts: GET/SET/INCR/MGET/MSET, batch 1/32, 1s/2s, normal/db0;
+MSET additionally covers atomic 0. These are bounded serverless production
+entry/completion traces with exact-data assertions and deterministic clocks.
+Allocator/libc/kernel internals are outside the named production scope. There
+are zero added instructions in the measured uncontended paths; this is not a
+cycles or throughput claim. Full PRE/POST table, receipts and trace digests:
+`docs/woundfix/instructions/comparison.md` and adjacent JSON/logs.
+
+### Completed gate validation
+
+The serverless/unit group completed with 47 passed rows, including execindex's
+16 × 10-million-operation oracle cases, complexity controls, owner episodes,
+WATCH, wake and atomic units. Four new rows initially refused stale fixture
+binaries after an assertion edit. On rebuilding, D2's assertions passed but
+its `PASS D2` text did not satisfy the row's `PASS:` matcher. Normalizing that
+success prefix produced **5/5 passed** (release + four new rows) through the
+same gate interface. The failed runs are retained in `docs/woundfix/gate/`.
+
+`make all` and all 47 targets named by `job_production_units` built. All **51
+make -q checks pass**: release, the 47 targets, both nested mdbqsbr live arms,
+and the blockfix-cost witness/receipt pair. The phony mdbqsbr wrapper is checked
+through its two actual build roots. See `docs/woundfix/build/`.
+
+`python3 tests/gates_test.py`: **72 passed**, plus its 14-test persistence
+subsuite, pinned to 32–47 with port 20377. The earlier CPU-loaded run's 12
+fixed-deadline scheduler failures are retained; the final run changed no
+assertion or deadline. See `docs/woundfix/gates_test.log`.
+
+The runtime matrix is complete: 265 passed rows and one WATCH negative-control
+fixture failure, corrected by a dedicated **4/4** gate rerun. The finalizer
+control patches `watch_finalize_reservation`; the old fixture first retired
+its entry through indexed `watch_write_ready` and failed only in a later OOM
+cleanup. The fixture now explicitly tests the patched finalizer, then retains
+its independent write-ready assertion. No diagnostic matcher or tolerance was
+relaxed. All 20 positive/negative WATCH checks pass in both builds; evidence
+and patch receipts are in `docs/woundfix/watch-control/`.
+
+| Runtime gate invocation | Passed | Failed | Status |
+| --- | ---: | ---: | --- |
+| uring, split battery boots plus mode-specific jobs | 81 | 1 | WATCH fixture corrected below |
+| uring, fused battery boots | 47 | 0 | passed |
+| epoll, split battery boots plus mode-specific jobs | 78 | 0 | passed |
+| epoll, fused battery boots | 47 | 0 | passed |
+| xscript atomic-0 bounds, both modes/engines | 12 | 0 | four 3/3 runs |
+| corrected exbatch unit job | 4 | 0 | all controls passed |
+
+`docs/woundfix/gate/runtime.json` records every command, environment, binary
+hash and gate run. Job ledgers and raw-log manifests are adjacent. This covers
+debug-0/1 (multirace, xscript, scriptatomic, txn_nx, EXEC and txniso), atomic
+batteries, release batteries, fused-0/1, transaction groups, every txnorder
+mode/atomic combination, execfair, all WATCH jobs and the correctness portion
+of atomic_floor. The split txnorder stress retains the gate's explicit 4:4
+exception; ordinary split batteries retain 6:2. Server slots use 16 shards/eight CPUs.
+
+The ASAN gate job passed **24/24 rows** across both modes and engines (four
+6/6 runs): torture, RYOW, atomic torn/window, atomic RYOW and clean-shutdown
+checks, with the gate's source-bound instrumented build. No sanitizer findings.
+Receipts: `docs/woundfix/gate/sanitizers.json` and adjacent job logs.
+
+The uring standard differential completed: **6/6 gate rows**, split atomic 0/1
+(235/239 legs), armed fused atomic 0/1 (230/234 legs), and mode equivalence
+(16 configurations). All Redis comparisons and mechanism witnesses pass.
+Permanent seeds are 7/19/20/23; this run's rotating seed is 21. The 47-suite
+inventory is unchanged. `docs/woundfix/gate/differ-uring/` retains the frozen
+plan, completed part receipts, leg lists and log manifests.
+
+Epoll completed the same standard matrix: **6/6 gate rows**, the same
+235/239/230/234 leg counts and 16 mode-equivalence configurations. Its rotating
+seed is 22; the four permanent seeds remain unchanged. Across both engines,
+all **1,876 Redis suite/seed legs and 32 mode-equivalence configurations** pass.
+The Redis oracle is 7.4.10, with binary identity in `docs/woundfix/oracle.json`.
+Both complete plans and every part receipt are recorded under
+`docs/woundfix/gate/`; `differential-summary.json` gives the counts and seeds.
+These are selected `GATE_ONLY_JOBS` runs, not a full gate receipt.
+
+The final integrity check verified all four delivered SHA-256s, the unchanged
+release source and binary, and no listeners remaining on ports 20300–20399.
+See `docs/woundfix/final-integrity.json`. Source/fixture checks, gate outcomes
+and explicit exclusions are summarized in `docs/woundfix/validation.json`.
+
+### NOT RUN
+
+- Performance benchmarks, the EXEC merit campaign, the 14 generic cells and
+  four split GET/SET cells: assigned to the maintainer on the quiet box. Their
+  exact requested arms and cells are specified above; no throughput claim.
+- Full `tests/gate.sh iteration`: reserved to the maintainer. Every correctness
+  job listed above used the gate's own partial-job interface.
+- Atomic throughput-floor and RYOW rate assertions: deliberately excluded by
+  partial-only `GATE_PROOF_NO_RATES=1`; their correctness checks ran. The default
+  and full-gate behavior and row counts are unchanged.
+- Armed-fused SORT: the standard differential driver excludes it because the
+  suite requires split 6:2. SORT passed in both split atomic settings and both
+  engines. This exclusion is recorded as a skip, never as a pass.

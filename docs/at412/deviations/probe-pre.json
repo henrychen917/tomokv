@@ -1,0 +1,12 @@
+{
+  "binary": "/home/user/Projects/cx-at412/build/at412/pre/tomokv",
+  "mode": "2s",
+  "atomic": "1",
+  "two_key_eval": "1",
+  "events_after_two_key_script": "",
+  "tracking_after_two_key_script": "",
+  "events_after_one_key_script": "*4\r\n$8\r\npmessage\r\n$16\r\n__keyevent@0__:*\r\n$18\r\n__keyevent@0__:set\r\n$5\r\ndev:0\r\n",
+  "tracking_after_one_key_script": ">2\r\n$10\r\ninvalidate\r\n*1\r\n$5\r\ndev:0\r\n",
+  "two_key_eval_oom": "OOM command not allowed when used memory > 'maxmemory'.",
+  "one_key_eval_oom": "OOM command not allowed when used memory > 'maxmemory'. script: c06f7604419a0d5bacfbaddf9324df7791290782, on @user_script:1."
+}

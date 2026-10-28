@@ -1,0 +1,4 @@
+PARTIAL	0	GATE_ONLY_JOBS=script_bounds; NOT A RECEIPT
+ok	0.030000	release build (+footprint locks)
+ok	0.050000	xscript limit control
+ok	0.530000	xscript window control

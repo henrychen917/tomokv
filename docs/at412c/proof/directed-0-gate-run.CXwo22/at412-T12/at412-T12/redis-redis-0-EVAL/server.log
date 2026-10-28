@@ -1,0 +1,23 @@
+2309997:C 27 Oct 2026 18:58:01.597 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+2309997:C 27 Oct 2026 18:58:01.597 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+2309997:C 27 Oct 2026 18:58:01.597 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=2309997, just started
+2309997:C 27 Oct 2026 18:58:01.597 * Configuration loaded
+2309997:M 27 Oct 2026 18:58:01.598 * monotonic clock: POSIX clock_gettime
+2309997:M 27 Oct 2026 18:58:01.598 * Running mode=standalone, port=20201.
+2309997:M 27 Oct 2026 18:58:01.598 * Server initialized
+2309997:M 27 Oct 2026 18:58:01.599 * Creating AOF base file appendonly.aof.1.base.rdb on server start
+2309997:M 27 Oct 2026 18:58:01.599 * Creating AOF incr file appendonly.aof.1.incr.aof on server start
+2309997:M 27 Oct 2026 18:58:01.599 * Ready to accept connections tcp
+2309997:M 27 Oct 2026 18:58:01.618 * Reading RDB base file on AOF loading...
+2309997:M 27 Oct 2026 18:58:01.618 * Loading RDB produced by version 7.4.10
+2309997:M 27 Oct 2026 18:58:01.618 * RDB age 0 seconds
+2309997:M 27 Oct 2026 18:58:01.618 * RDB memory usage when created 0.91 Mb
+2309997:M 27 Oct 2026 18:58:01.618 * RDB is base AOF
+2309997:M 27 Oct 2026 18:58:01.618 * Done loading RDB, keys loaded: 0, keys expired: 0.
+2309997:M 27 Oct 2026 18:58:01.618 * DB loaded from base file appendonly.aof.1.base.rdb: 0.000 seconds
+2309997:M 27 Oct 2026 18:58:01.618 * DB loaded from incr file appendonly.aof.1.incr.aof: 0.000 seconds
+2309997:M 27 Oct 2026 18:58:01.618 * Append Only File loaded by DEBUG LOADAOF
+2309997:signal-handler (1793098681) Received SIGTERM scheduling shutdown...
+2309997:M 27 Oct 2026 18:58:01.699 * User requested shutdown...
+2309997:M 27 Oct 2026 18:58:01.699 * Calling fsync() on the AOF file.
+2309997:M 27 Oct 2026 18:58:01.699 # Redis is now ready to exit, bye bye...

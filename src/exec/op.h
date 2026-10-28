@@ -459,6 +459,9 @@ public:
     }
 
 private:
+    // The cold inline decoder packs immutable argv bytes after this Op's heap
+    // Slices; the existing retry, shrink and destruction lifetimes own both.
+    friend struct RespInlineDecoder;
     static constexpr uint8_t kAtomicHazard = 1u << 0;
     static constexpr uint8_t kNoBorrow = 1u << 1;
     static constexpr uint8_t kResp3 = 1u << 2;

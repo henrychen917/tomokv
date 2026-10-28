@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-streamfix/docs/streamfix/build_controls.py", line 81, in <module>
+    build(p.parse_args().kind)
+  File "/home/user/Projects/cx-streamfix/docs/streamfix/build_controls.py", line 76, in build
+    assert result.returncode == 0, log
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: /home/user/Projects/cx-streamfix/docs/streamfix/mutant-build.log

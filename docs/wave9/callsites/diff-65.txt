@@ -1,0 +1,63 @@
+tomo::(anonymous namespace)::initialize_multi_owner_record_refs(tomo::MultiExecState&)
+--- headline
+
++++ post
+
+@@ -1,7 +1,7 @@
+
+ CLONE 0 0000 [ 4] cmpb $0x0,0xe(%rdi)
+ CLONE 0 0004 [ 2] jne <+0x50>
+-CLONE 0 0006 [ 7] mov 0x80(%rdi),%rax
+-CLONE 0 000d [ 7] mov 0x88(%rdi),%r8
++CLONE 0 0006 [ 7] mov 0x88(%rdi),%rax
++CLONE 0 000d [ 7] mov 0x90(%rdi),%r8
+ CLONE 0 0014 [ 3] cmp %r8,%rax
+ CLONE 0 0017 [ 2] je <+0x50>
+ CLONE 0 0019 [ 7] nopl 0x0(%rax)
+@@ -25,13 +25,13 @@
+
+ CLONE 0 0051 [11] data16 cs nopw 0x0(%rax,%rax,1)
+ CLONE 0 005c [ 4] nopl 0x0(%rax)
+ CLONE 0 0060 [ 1] push %rbx
+-CLONE 0 0061 [ 7] mov 0x5f0(%rdi),%r8d
++CLONE 0 0061 [ 7] mov 0x5f8(%rdi),%r8d
+ CLONE 0 0068 [ 3] test %r8d,%r8d
+ CLONE 0 006b [ 6] jne <+0x158>
+-CLONE 0 0071 [ 7] cmpb $0x0,0x5f4(%rdi)
++CLONE 0 0071 [ 7] cmpb $0x0,0x5fc(%rdi)
+ CLONE 0 0078 [ 6] jne <tomo::(anonymous namespace)::initialize_multi_owner_record_refs(tomo::MultiExecState&) [clone .cold]>
+-CLONE 0 007e [ 7] mov 0x240(%rdi),%rcx
+-CLONE 0 0085 [ 7] mov 0x248(%rdi),%r9
++CLONE 0 007e [ 7] mov 0x248(%rdi),%rcx
++CLONE 0 0085 [ 7] mov 0x250(%rdi),%r9
+ CLONE 0 008c [ 3] cmp %rcx,%r9
+ CLONE 0 008f [ 6] je <tomo::(anonymous namespace)::initialize_multi_owner_record_refs(tomo::MultiExecState&) [clone .cold]>
+ CLONE 0 0095 [ 4] mov 0x10(%rdi),%rsi
+@@ -42,12 +42,12 @@
+
+ CLONE 0 00b3 [ 6] add $0x446e,%rax
+ CLONE 0 00b9 [ 3] mov (%rsi,%rax,4),%eax
+ CLONE 0 00bc [ 4] mov 0x10(%rdi),%rsi
+-CLONE 0 00c0 [ 7] mov 0x320(%rdi),%r11
++CLONE 0 00c0 [ 7] mov 0x328(%rdi),%r11
+ CLONE 0 00c7 [ 7] mov 0x103e8(%rsi),%rdx
+ CLONE 0 00ce [ 7] sub 0x103e0(%rsi),%rdx
+ CLONE 0 00d5 [ 4] sar $0x3,%rdx
+ CLONE 0 00d9 [ 2] cmp %edx,%eax
+-CLONE 0 00db [ 7] mov 0x328(%rdi),%rdx
++CLONE 0 00db [ 7] mov 0x330(%rdi),%rdx
+ CLONE 0 00e2 [ 4] cmovae %r10,%rax
+ CLONE 0 00e6 [ 3] sub %r11,%rdx
+ CLONE 0 00e9 [ 4] sar $0x2,%rdx
+@@ -74,8 +74,8 @@
+
+ CLONE 0 0139 [ 6] jne <+0xb0>
+ CLONE 0 013f [ 3] test %r8d,%r8d
+ CLONE 0 0142 [ 6] je <tomo::(anonymous namespace)::initialize_multi_owner_record_refs(tomo::MultiExecState&) [clone .cold]>
+-CLONE 0 0148 [ 7] movb $0x1,0x5f4(%rdi)
+-CLONE 0 014f [ 7] mov %r8d,0x5f0(%rdi)
++CLONE 0 0148 [ 7] movb $0x1,0x5fc(%rdi)
++CLONE 0 014f [ 7] mov %r8d,0x5f8(%rdi)
+ CLONE 0 0156 [ 1] pop %rbx
+ CLONE 0 0157 [ 1] ret
+ CLONE 0 0158 [ 5] jmp <tomo::(anonymous namespace)::initialize_multi_owner_record_refs(tomo::MultiExecState&) [clone .cold]>

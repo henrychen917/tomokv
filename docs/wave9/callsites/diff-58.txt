@@ -1,0 +1,15 @@
+tomo::(anonymous namespace)::encode_rdb_value(tomo::KvObj const&, std::vector<unsigned char, std::allocator<unsigned char> >&)
+--- headline
+
++++ post
+
+@@ -162,7 +162,7 @@
+
+ CLONE 0 02e6 [ 2] cmp $0x2,%al
+ CLONE 0 02e8 [ 2] ja <+0x2f8>
+ CLONE 0 02ea [ 3] movzbl %al,%eax
+-CLONE 0 02ed [ 7] lea <rip>(%rip),%rdx # <CSWTCH.1890>
++CLONE 0 02ed [ 7] lea <rip>(%rip),%rdx # <CSWTCH.1899>
+ CLONE 0 02f4 [ 4] movzbl (%rdx,%rax,1),%edx
+ CLONE 0 02f8 [ 5] mov 0x28(%rsp),%rbx
+ CLONE 0 02fd [ 5] lea 0x70(%rsp),%r15

@@ -1,0 +1,100 @@
+bool tomo::(anonymous namespace)::blocking_post_groups<true>(tomo::BlockingState&, tomo::ThreadCtx&, tomo::Ring&, tomo::BlockingPhase) [clone .constprop.0]
+--- headline
+
++++ post
+
+@@ -9,7 +9,7 @@
+
+ CLONE 0 0011 [ 3] mov %rsi,%r12
+ CLONE 0 0014 [ 3] mov %rdi,%rbx
+ CLONE 0 0017 [ 7] sub $0x438,%rsp
+-CLONE 0 001e [ 7] mov 0xc0(%rdi),%r9
++CLONE 0 001e [ 7] mov 0xd8(%rdi),%r9
+ CLONE 0 0025 [ 3] mov %rdx,%r13
+ CLONE 0 0028 [ 9] mov %fs:0x28,%rax
+ CLONE 0 0031 [ 8] mov %rax,0x428(%rsp)
+@@ -18,7 +18,7 @@
+
+ CLONE 0 0046 [11] vmovdqu8 %zmm0,0x60(%rsp)
+ CLONE 0 0051 [11] vmovdqu8 %zmm0,0xa0(%rsp)
+ CLONE 0 005c [11] vmovdqu8 %zmm0,0xe0(%rsp)
+-CLONE 0 0067 [ 7] mov 0xb8(%rdi),%rax
++CLONE 0 0067 [ 7] mov 0xd0(%rdi),%rax
+ CLONE 0 006e [11] vmovdqu8 %zmm0,0x120(%rsp)
+ CLONE 0 0079 [11] vmovdqu8 %zmm0,0x160(%rsp)
+ CLONE 0 0084 [11] vmovdqu8 %zmm0,0x1a0(%rsp)
+@@ -28,7 +28,7 @@
+
+ CLONE 0 00a3 [ 2] xor %ecx,%ecx
+ CLONE 0 00a5 [11] data16 cs nopw 0x0(%rax,%rax,1)
+ CLONE 0 00b0 [ 3] movslq (%rax),%rdx
+-CLONE 0 00b3 [ 4] mov 0x18(%rbx),%rsi
++CLONE 0 00b3 [ 4] mov 0x30(%rbx),%rsi
+ CLONE 0 00b7 [ 7] add $0x446e,%rdx
+ CLONE 0 00be [ 3] mov (%rsi,%rdx,4),%esi
+ CLONE 0 00c1 [ 4] mov 0x20(%rsp,%rsi,4),%edx
+@@ -53,7 +53,7 @@
+
+ CLONE 0 0110 [ 4] add $0x4,%rdx
+ CLONE 0 0114 [ 3] cmp %rdx,%r8
+ CLONE 0 0117 [ 2] je <+0x180>
+-CLONE 0 0119 [ 4] mov 0x18(%rbx),%rax
++CLONE 0 0119 [ 4] mov 0x30(%rbx),%rax
+ CLONE 0 011d [ 2] mov (%rdx),%esi
+ CLONE 0 011f [ 7] mov 0x103e0(%rax),%rax
+ CLONE 0 0126 [ 4] mov (%rax,%rsi,8),%rax
+@@ -80,18 +80,18 @@
+
+ CLONE 0 0178 [ 1] pop %rbp
+ CLONE 0 0179 [ 1] ret
+ CLONE 0 017a [ 6] nopw 0x0(%rax,%rax,1)
+-CLONE 0 0180 [ 7] mov 0xc0(%rbx),%r9
+-CLONE 0 0187 [ 7] mov 0xb8(%rbx),%rax
++CLONE 0 0180 [ 7] mov 0xd8(%rbx),%r9
++CLONE 0 0187 [ 7] mov 0xd0(%rbx),%rax
+ CLONE 0 018e [ 3] sub %rax,%r9
+ CLONE 0 0191 [ 4] sar $0x5,%r9
+ CLONE 0 0195 [ 4] mov %r9d,0x8(%rbx)
+-CLONE 0 0199 [ 7] mov 0xc0(%rbx),%rax
+-CLONE 0 01a0 [ 7] sub 0xb8(%rbx),%rax
++CLONE 0 0199 [ 7] mov 0xd8(%rbx),%rax
++CLONE 0 01a0 [ 7] sub 0xd0(%rbx),%rax
+ CLONE 0 01a7 [ 4] sar $0x5,%rax
+ CLONE 0 01ab [ 4] lock add %eax,0x4(%rbx)
+ CLONE 0 01af [ 4] movb $0x2,0x10(%rbx)
+-CLONE 0 01b3 [ 7] mov 0xc0(%rbx),%rdi
+-CLONE 0 01ba [ 7] mov 0xb8(%rbx),%rax
++CLONE 0 01b3 [ 7] mov 0xd8(%rbx),%rdi
++CLONE 0 01ba [ 7] mov 0xd0(%rbx),%rax
+ CLONE 0 01c1 [ 5] mov %rdi,0x18(%rsp)
+ CLONE 0 01c6 [ 3] cmp %rdi,%rax
+ CLONE 0 01c9 [ 6] je <+0x35e>
+@@ -135,13 +135,13 @@
+
+ CLONE 0 026d [ 5] cmp %rax,0x18(%rsp)
+ CLONE 0 0272 [ 6] je <+0x355>
+ CLONE 0 0278 [ 3] movslq (%rax),%rdx
+-CLONE 0 027b [ 4] mov 0x18(%rbx),%rsi
++CLONE 0 027b [ 4] mov 0x30(%rbx),%rsi
+ CLONE 0 027f [ 7] add $0x446e,%rdx
+ CLONE 0 0286 [ 3] mov (%rsi,%rdx,4),%edx
+-CLONE 0 0289 [ 4] mov 0x18(%rbx),%rsi
++CLONE 0 0289 [ 4] mov 0x30(%rbx),%rsi
+ CLONE 0 028d [ 8] mov 0x538(%r12),%r9d
+-CLONE 0 0295 [ 4] mov 0x20(%rbx),%rdi
+-CLONE 0 0299 [ 4] mov 0x28(%rbx),%r13
++CLONE 0 0295 [ 4] mov 0x38(%rbx),%rdi
++CLONE 0 0299 [ 4] mov 0x40(%rbx),%r13
+ CLONE 0 029d [ 2] mov (%rax),%ecx
+ CLONE 0 029f [ 7] mov 0x103e0(%rsi),%rsi
+ CLONE 0 02a6 [ 4] mov (%rsi,%rdx,8),%rsi
+@@ -195,7 +195,7 @@
+
+ CLONE 0 0385 [ 3] mov %rax,%rcx
+ CLONE 0 0388 [ 3] vzeroupper
+ CLONE 0 038b [ 5] nopl 0x0(%rax,%rax,1)
+-CLONE 0 0390 [ 4] mov 0x18(%r13),%rax
++CLONE 0 0390 [ 4] mov 0x30(%r13),%rax
+ CLONE 0 0394 [ 3] mov (%r14),%edx
+ CLONE 0 0397 [ 7] mov 0x103e0(%rax),%rax
+ CLONE 0 039e [ 4] mov (%rax,%rdx,8),%rsi

@@ -1,0 +1,35 @@
+[
+  {
+    "label": "wounds",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "32-45",
+      "--load-cores",
+      "46-47",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20301-20359"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "txnorder_wound",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_PROOF_NET_IO": "uring",
+      "GATE_TXN_FUSED": "0",
+      "GATE_DIFFER_NET_IO": "uring",
+      "GATE_DIFFER_ORACLE_CORES": "40-45",
+      "REDIS74_ROOT": "/home/user/Projects/redis"
+    },
+    "sha256": "e50e343c32bca46cfd5d2856225c97b9d313968209262f00f97b847d840d8ec6",
+    "exit": 0,
+    "counts": [
+      5,
+      0
+    ],
+    "artifacts": "/home/user/Projects/cx-woundfix/build/gate-run.BRGNQ3"
+  }
+]

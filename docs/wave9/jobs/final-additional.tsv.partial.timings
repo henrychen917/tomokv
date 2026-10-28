@@ -1,0 +1,59 @@
+ok	0.010000	release build (+footprint locks)
+ok	0.400000	perfio XREADGROUP bounded delivery + Redis metadata (1s)
+ok	0.390000	perfio XREADGROUP bounded delivery + Redis metadata (2s)
+ok	0.030000	shutdown policy + signal handoff serverless
+ok	0.340000	shutdown persistence (1s, command)
+ok	0.140000	shutdown persistence (1s, sigterm)
+ok	0.130000	shutdown persistence (1s, sigint)
+ok	0.340000	shutdown persistence (2s, command)
+ok	0.140000	shutdown persistence (2s, sigterm)
+ok	0.140000	shutdown persistence (2s, sigint)
+ok	0.140000	perfex clock binary regression
+ok	0.130000	perfex batch binary regression
+ok	15.270000	perfex TTL sampler beat (1s)
+ok	15.260000	perfex TTL sampler beat (2s)
+ok	1.180000	NT-new-4 command clock after dequeue (2s)
+ok	1.200000	NT-new-4 command clock after dequeue (1s)
+ok	1.180000	NT-new-4 command clock after dequeue (2s, epoll)
+ok	0.310000	NET1 inline + query cap (1s, uring)
+ok	0.310000	NET1 inline + query cap (1s, epoll)
+ok	0.310000	NET1 inline + query cap (2s, uring)
+ok	0.310000	NET1 inline + query cap (2s, epoll)
+ok	1.150000	netfix NT4.11 Unix pathname parity
+ok	2.020000	netfix NT4.8 network CONFIG error parity
+ok	10.100000	netfix NT4.7 TLS default cipher parity
+ok	312.220000	netfix NT4.19 idle buffer reclamation
+ok	0.010000	reject --mode (flag deleted)
+ok	0.010000	reject --spread
+ok	0.010000	reject --nodes
+ok	0.010000	reject 3-part ratio
+ok	0.010000	reject missing conf
+ok	0.010000	reject bad conf key
+ok	0.010000	reject aclfile + conf user lines
+ok	0.180000	Redis default databases 16 (both modes)
+ok	2.070000	read-only resize split read-local=0
+ok	2.070000	read-only resize split read-local=1
+ok	1.560000	read-only resize fused read-local=0
+ok	1.560000	read-only resize fused read-local=1
+ok	1.150000	hexpread torn (1s)
+ok	3.340000	hexpread replies (1s)
+ok	1.150000	hexpread deferred (1s)
+ok	1.150000	hexpread OBJECT expiry (1s)
+ok	1.150000	hexpread torn (2s)
+ok	3.330000	hexpread replies (2s)
+ok	1.150000	hexpread deferred (2s)
+ok	1.150000	hexpread OBJECT expiry (2s)
+ok	0.280000	read-local borrow capability (1s, epoll, read-local 0)
+ok	0.280000	read-local borrow capability (1s, epoll, read-local 1)
+ok	0.290000	read-local borrow capability (1s, uring, read-local 0)
+ok	0.290000	read-local borrow capability (1s, uring, read-local 1)
+ok	0.290000	read-local borrow capability (2s, epoll, read-local 0)
+ok	0.290000	read-local borrow capability (2s, epoll, read-local 1)
+ok	0.290000	read-local borrow capability (2s, uring, read-local 0)
+ok	0.290000	read-local borrow capability (2s, uring, read-local 1)
+ok	0.120000	cross-owner SORT battery (atomic 0)
+ok	0.120000	cross-owner SORT battery (atomic 1)
+ok	6.230000	serverfix SV4.8 HyperLogLog self-test controls
+ok	13.700000	serverfix CC4.26 disabled ACL log allocation
+ok	0.360000	AOF control frame never inside a large record (atomic 0)
+ok	0.350000	AOF control frame never inside a large record (atomic 1)

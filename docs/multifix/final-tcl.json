@@ -1,0 +1,320 @@
+{
+  "1s": {
+    "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+    "source_receipt": "/home/user/Projects/cx-multifix/build/gate-run.XW8cZW/jobs/redis_tcl/redis-tcl-1s/summary.json",
+    "source_receipt_sha256": "579870c3cc153c55dcd09aaff514ffc801c68917e25cfb8c4bb96d2ace4b3aa1",
+    "files": 35,
+    "required_passes": 1651,
+    "promoted": [
+      {
+        "file": "unit/other",
+        "name": "RESET clears and discards MULTI state",
+        "status": "ok"
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test both active and passive expires are skipped during client pause",
+        "status": "ok"
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test that client pause starts at the end of a transaction",
+        "status": "ok"
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write",
+        "status": "ok"
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test write multi-execs are blocked by pause RO",
+        "status": "ok"
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test write scripts in multi-exec are blocked by pause RO",
+        "status": "ok"
+      },
+      {
+        "file": "unit/slowlog",
+        "name": "SLOWLOG - EXEC is not logged, just executed commands",
+        "status": "ok"
+      },
+      {
+        "file": "unit/type/set",
+        "name": "SMOVE only notify dstset when the addition is successful",
+        "status": "ok"
+      }
+    ],
+    "smove_layout_attempts": [
+      {
+        "attempt": 1,
+        "shards": [
+          14,
+          10
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 2,
+        "shards": [
+          8,
+          2
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 3,
+        "shards": [
+          12,
+          1
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 4,
+        "shards": [
+          7,
+          0
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 5,
+        "shards": [
+          1,
+          7
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 6,
+        "shards": [
+          13,
+          4
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 7,
+        "shards": [
+          13,
+          8
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 8,
+        "shards": [
+          12,
+          7
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 9,
+        "shards": [
+          2,
+          1
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 10,
+        "shards": [
+          12,
+          15
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 11,
+        "shards": [
+          13,
+          3
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 12,
+        "shards": [
+          3,
+          7
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 13,
+        "shards": [
+          10,
+          14
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 14,
+        "shards": [
+          12,
+          4
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 15,
+        "shards": [
+          8,
+          11
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 16,
+        "shards": [
+          10,
+          9
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 17,
+        "shards": [
+          3,
+          7
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 18,
+        "shards": [
+          4,
+          3
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 19,
+        "shards": [
+          13,
+          3
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 20,
+        "shards": [
+          1,
+          6
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 21,
+        "shards": [
+          0,
+          12
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 22,
+        "shards": [
+          15,
+          1
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 23,
+        "shards": [
+          4,
+          8
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 24,
+        "shards": [
+          7,
+          7
+        ],
+        "armed": true
+      }
+    ],
+    "slowlog_fresh_runs": [
+      {
+        "test": "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl",
+        "result": "/home/user/Projects/cx-multifix/build/gate-run.XW8cZW/jobs/redis_tcl/redis-tcl-1s/unit/slowlog/fresh/0/unit/slowlog/result.json",
+        "error": null,
+        "exit_code": 0
+      }
+    ]
+  },
+  "2s": {
+    "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+    "source_receipt": "/home/user/Projects/cx-multifix/build/gate-run.XW8cZW/jobs/redis_tcl/redis-tcl-2s/summary.json",
+    "source_receipt_sha256": "9dfe12afea8436f5e31387a3308514ba4142945c94b7cf0b4de30563e732ec0b",
+    "files": 35,
+    "required_passes": 1651,
+    "promoted": [
+      {
+        "file": "unit/other",
+        "name": "RESET clears and discards MULTI state",
+        "status": "ok"
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test both active and passive expires are skipped during client pause",
+        "status": "ok"
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test that client pause starts at the end of a transaction",
+        "status": "ok"
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write",
+        "status": "ok"
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test write multi-execs are blocked by pause RO",
+        "status": "ok"
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test write scripts in multi-exec are blocked by pause RO",
+        "status": "ok"
+      },
+      {
+        "file": "unit/slowlog",
+        "name": "SLOWLOG - EXEC is not logged, just executed commands",
+        "status": "ok"
+      },
+      {
+        "file": "unit/type/set",
+        "name": "SMOVE only notify dstset when the addition is successful",
+        "status": "ok"
+      }
+    ],
+    "smove_layout_attempts": [
+      {
+        "attempt": 1,
+        "shards": [
+          15,
+          15
+        ],
+        "armed": true
+      }
+    ],
+    "slowlog_fresh_runs": [
+      {
+        "test": "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl",
+        "result": "/home/user/Projects/cx-multifix/build/gate-run.XW8cZW/jobs/redis_tcl/redis-tcl-2s/unit/slowlog/fresh/0/unit/slowlog/result.json",
+        "error": null,
+        "exit_code": 0
+      }
+    ]
+  }
+}

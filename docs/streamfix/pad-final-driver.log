@@ -1,0 +1,18 @@
+{
+  "PRE": {
+    "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+    "sha256": "41921f7270da1f141e0f6a85316cac965258dfad28fbeb3516d9d08607522647"
+  },
+  "PRE-layout": {
+    "path": "/home/user/Projects/cx-streamfix/build/streamfix/pad-layout-objects/tomokv",
+    "sha256": "7d500b32bdb0e97fa64ca018b39f0abf5285bb1e65c912756c99748ab8ed8609"
+  },
+  "POST": {
+    "path": "/home/user/Projects/cx-streamfix/build/streamfix/post-final/tomokv",
+    "sha256": "c671ede82505dda0c62da963e5230ba8aea8cd0edd08d1c5accf8948ed95ccf1"
+  },
+  "PAD-A": {
+    "path": "/home/user/Projects/cx-streamfix/build/streamfix/PAD-A",
+    "sha256": "31a7dd6d82480f2ec07e29d4a86a57a04639c34afc719f9830315df292e8a642"
+  }
+}

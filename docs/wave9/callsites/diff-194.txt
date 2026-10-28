@@ -1,0 +1,105 @@
+tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+--- headline
+
++++ post
+
+@@ -44,7 +44,7 @@
+
+ CLONE 0 007c [ 6] je <+0x310>
+ CLONE 0 0082 [ 8] vmovdqa <rip>(%rip),%xmm0 # <literal-load-30313233343536373839616263646566>
+ CLONE 0 008a [ 5] lea 0x20(%rsp),%rax
+-CLONE 0 008f [ 7] lea <rip>(%rip),%r15 # <tomo_db0::(anonymous namespace)::kCrc64Table+0x980>
++CLONE 0 008f [ 7] lea <rip>(%rip),%r15 # <tomo_db0::(anonymous namespace)::kCrc64Table+0x9f8>
+ CLONE 0 0096 [ 9] movq $0x1,0x18(%rsp)
+ CLONE 0 009f [ 5] mov %rax,0x8(%rsp)
+ CLONE 0 00a4 [ 5] mov %rax,0x10(%rsp)
+@@ -125,37 +125,37 @@
+
+ CLONE 0 01df [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::append(char const*)>
+ CLONE 0 01e4 [ 5] jmp <+0x110>
+ CLONE 0 01e9 [ 7] nopl 0x0(%rax)
+-CLONE 0 01f0 [ 5] lea 0x10(%rsp),%r13
+-CLONE 0 01f5 [ 7] lea <rip>(%rip),%rsi # <literal-string-5c7200>
+-CLONE 0 01fc [ 3] mov %r13,%rdi
+-CLONE 0 01ff [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::append(char const*)>
+-CLONE 0 0204 [ 5] jmp <+0x110>
+-CLONE 0 0209 [ 7] nopl 0x0(%rax)
+-CLONE 0 0210 [ 5] lea 0x10(%rsp),%r13
+-CLONE 0 0215 [ 7] lea <rip>(%rip),%rsi # <literal-string-5c6e00>
+-CLONE 0 021c [ 3] mov %r13,%rdi
+-CLONE 0 021f [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::append(char const*)>
+-CLONE 0 0224 [ 5] jmp <+0x110>
+-CLONE 0 0229 [ 7] nopl 0x0(%rax)
+-CLONE 0 0230 [ 5] mov 0x18(%rsp),%rsi
+-CLONE 0 0235 [10] movabs $0x7fffffffffffffff,%rax
+-CLONE 0 023f [ 3] sub %rsi,%rax
+-CLONE 0 0242 [ 4] cmp $0x1,%rax
+-CLONE 0 0246 [ 6] jbe <+0x4ad>
+-CLONE 0 024c [ 5] mov 0x10(%rsp),%rax
+-CLONE 0 0251 [ 5] mov 0x8(%rsp),%rdi
+-CLONE 0 0256 [ 4] lea 0x2(%rsi),%rbp
+-CLONE 0 025a [ 3] cmp %rdi,%rax
+-CLONE 0 025d [ 6] je <+0x3bc>
+-CLONE 0 0263 [ 5] mov 0x20(%rsp),%rdx
+-CLONE 0 0268 [ 3] cmp %rbp,%rdx
+-CLONE 0 026b [ 6] jb <+0x380>
+-CLONE 0 0271 [ 6] movw $0x745c,(%rax,%rsi,1)
+-CLONE 0 0277 [ 5] mov 0x10(%rsp),%rax
+-CLONE 0 027c [ 5] mov %rbp,0x18(%rsp)
+-CLONE 0 0281 [ 4] movb $0x0,(%rax,%rbp,1)
+-CLONE 0 0285 [ 5] jmp <+0x110>
+-CLONE 0 028a [ 6] nopw 0x0(%rax,%rax,1)
++CLONE 0 01f0 [ 5] mov 0x18(%rsp),%rsi
++CLONE 0 01f5 [10] movabs $0x7fffffffffffffff,%rax
++CLONE 0 01ff [ 3] sub %rsi,%rax
++CLONE 0 0202 [ 4] cmp $0x1,%rax
++CLONE 0 0206 [ 6] jbe <+0x4ad>
++CLONE 0 020c [ 5] mov 0x10(%rsp),%rax
++CLONE 0 0211 [ 5] mov 0x8(%rsp),%rdi
++CLONE 0 0216 [ 4] lea 0x2(%rsi),%rbp
++CLONE 0 021a [ 3] cmp %rdi,%rax
++CLONE 0 021d [ 6] je <+0x3bc>
++CLONE 0 0223 [ 5] mov 0x20(%rsp),%rdx
++CLONE 0 0228 [ 3] cmp %rbp,%rdx
++CLONE 0 022b [ 6] jb <+0x380>
++CLONE 0 0231 [ 6] movw $0x725c,(%rax,%rsi,1)
++CLONE 0 0237 [ 5] mov 0x10(%rsp),%rax
++CLONE 0 023c [ 5] mov %rbp,0x18(%rsp)
++CLONE 0 0241 [ 4] movb $0x0,(%rax,%rbp,1)
++CLONE 0 0245 [ 5] jmp <+0x110>
++CLONE 0 024a [ 6] nopw 0x0(%rax,%rax,1)
++CLONE 0 0250 [ 5] lea 0x10(%rsp),%r13
++CLONE 0 0255 [ 7] lea <rip>(%rip),%rsi # <literal-string-5c6e00>
++CLONE 0 025c [ 3] mov %r13,%rdi
++CLONE 0 025f [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::append(char const*)>
++CLONE 0 0264 [ 5] jmp <+0x110>
++CLONE 0 0269 [ 7] nopl 0x0(%rax)
++CLONE 0 0270 [ 5] lea 0x10(%rsp),%r13
++CLONE 0 0275 [ 7] lea <rip>(%rip),%rsi # <literal-string-5c7400>
++CLONE 0 027c [ 3] mov %r13,%rdi
++CLONE 0 027f [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::append(char const*)>
++CLONE 0 0284 [ 5] jmp <+0x110>
++CLONE 0 0289 [ 7] nopl 0x0(%rax)
+ CLONE 0 0290 [ 5] lea 0x10(%rsp),%r13
+ CLONE 0 0295 [ 7] lea <rip>(%rip),%rsi # <literal-string-5c6200>
+ CLONE 0 029c [ 3] mov %r13,%rdi
+@@ -215,7 +215,7 @@
+
+ CLONE 0 037c [ 4] nopl 0x0(%rax)
+ CLONE 0 0380 [ 5] lea 0x10(%rsp),%r13
+ CLONE 0 0385 [ 6] mov $0x2,%r8d
+-CLONE 0 038b [ 7] lea <rip>(%rip),%rcx # <literal-string-5c7400>
++CLONE 0 038b [ 7] lea <rip>(%rip),%rcx # <literal-string-5c7200>
+ CLONE 0 0392 [ 2] xor %edx,%edx
+ CLONE 0 0394 [ 3] mov %r13,%rdi
+ CLONE 0 0397 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_mutate(unsigned long, unsigned long, char const*, unsigned long)>
+@@ -228,7 +228,7 @@
+
+ CLONE 0 03b4 [ 3] mov %rax,(%rdi)
+ CLONE 0 03b7 [ 5] jmp <+0x32d>
+ CLONE 0 03bc [ 5] mov $0xf,%edx
+-CLONE 0 03c1 [ 5] jmp <+0x268>
++CLONE 0 03c1 [ 5] jmp <+0x228>
+ CLONE 0 03c6 [ 4] lea 0x1(%rcx),%rax
+ CLONE 0 03ca [ 3] cmp $0x8,%eax
+ CLONE 0 03cd [ 2] jae <+0x410>

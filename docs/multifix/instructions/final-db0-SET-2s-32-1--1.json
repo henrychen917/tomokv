@@ -1,0 +1,44 @@
+{
+  "binary_sha256": "d19de5f3fad96c5a105500100fbb6c235dd072fcceccaaade9e71da1ef54e263",
+  "total": 22163,
+  "functions": {
+    "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 400,
+    "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)": 7136,
+    "tomo_db0::multi_task_tagged(tomo_db0::Task const&)": 128,
+    "tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)": 640,
+    "void tomo_db0::(anonymous namespace)::cmd_set<false>(tomo_db0::Shard&, tomo_db0::Op&)": 2208,
+    "tomo_db0::Op::key() const": 352,
+    "tomo_db0::(anonymous namespace)::store_string(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool) [clone .isra.0]": 4416,
+    "tomo_db0::(anonymous namespace)::parse_i64(tomo_db0::Slice, long&) [clone .constprop.0] [clone .isra.0]": 224,
+    "tomo_db0::FlatStore::find_in(int, unsigned long, tomo_db0::Slice) const": 2912,
+    "tomo_db0::KvObj::key() const": 960,
+    "tomo_db0::good_size(unsigned long)": 768,
+    "tomo_db0::KvObj::val_ptr()": 512,
+    "tomo_db0::Op::Sink::reserve(unsigned long)": 768,
+    "tomo_db0::ExLoopT<false>::flush_notify_batch()": 435,
+    "tomo_db0::Shard::publish_size()": 216,
+    "tomo_db0::FlatStore::publish_database_counts() const": 88
+  },
+  "bodies": {
+    "0xddad0 void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 400,
+    "0xdc6f0 bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)": 7136,
+    "0x131fc0 tomo_db0::multi_task_tagged(tomo_db0::Task const&)": 128,
+    "0x89900 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)": 640,
+    "0x1f0740 void tomo_db0::(anonymous namespace)::cmd_set<false>(tomo_db0::Shard&, tomo_db0::Op&)": 2208,
+    "0x1f5bd0 tomo_db0::Op::key() const": 352,
+    "0x1efdc0 tomo_db0::(anonymous namespace)::store_string(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool) [clone .isra.0]": 4416,
+    "0x1eb0f0 tomo_db0::(anonymous namespace)::parse_i64(tomo_db0::Slice, long&) [clone .constprop.0] [clone .isra.0]": 224,
+    "0x84180 tomo_db0::FlatStore::find_in(int, unsigned long, tomo_db0::Slice) const": 2912,
+    "0x183aa0 tomo_db0::KvObj::key() const": 960,
+    "0x1f5a00 tomo_db0::good_size(unsigned long)": 768,
+    "0x1f5c40 tomo_db0::KvObj::val_ptr()": 512,
+    "0x183600 tomo_db0::Op::Sink::reserve(unsigned long)": 768,
+    "0xd22e0 tomo_db0::ExLoopT<false>::flush_notify_batch()": 435,
+    "0x3e7490 tomo_db0::Shard::publish_size()": 216,
+    "0x3e7450 tomo_db0::FlatStore::publish_database_counts() const": 88
+  },
+  "excluded": {
+    "memcpy@plt": 32
+  },
+  "clock_calls": 1
+}

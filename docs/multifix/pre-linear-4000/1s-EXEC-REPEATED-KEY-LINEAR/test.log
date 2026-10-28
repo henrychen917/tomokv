@@ -1,0 +1,13 @@
+{"xadds": 128, "installed_records": 128}
+{"xadds": 512, "installed_records": 512}
+{"xadds": 4000, "installed_records": 4000}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-multifix/tests/multifix.py", line 88, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/home/user/Projects/cx-multifix/tests/multifix.py", line 84, in main
+    CASES[args.case](a,b,args.oracle)
+  File "/home/user/Projects/cx-multifix/tests/multifix.py", line 74, in linear
+    assert all(installed == 1 for count,installed in counts), ('one private version per repeated-key transaction',counts)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('one private version per repeated-key transaction', [(128, 128), (512, 512), (4000, 4000)])

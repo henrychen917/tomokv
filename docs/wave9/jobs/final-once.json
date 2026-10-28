@@ -1,0 +1,46 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-87",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "88-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "20020-20029",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave9/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave9",
+  "env": {
+    "LANG": "en_US.UTF-8",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "source_identity lualibs latencyfix_grammar latencyfix_shape latencyfix_off iofix-deferred iofix-hz iofix-sleep iofix-signal execfair txnorder_index txnorder2 txnorder_wake reorder_identity reorder_sync reorder_engagement wb_rule_units wbland_units scriptfix atomfix5_watch datafix2_watch blockfix_structure blockfix_registry blockfix_mkstream serverfix_slowlog rlfix3_info compat3 netcmd_units atomic_units splitlocal_units exbatch_units moverfix core_units wait_units serverfix_waitaof netio-1s netio-2s asan rldbg netfix_query_stats ntfix_input persistfix2_lastsave racefix_counters notify_aof notify_order notifycompat exbatch_live atomfix5_accounting acl_recheck aclfix authfix bugs5 rlcache inline_quoted crlffix multifix-1s-uring multifix-1s-epoll multifix-2s-uring multifix-2s-epoll streamfix blockfix2 txnorder_wound witness_contracts rob_portable slotless wb_mixed wave8b_off reorder_bounds trackfix_order trackfix_accounting tracking_redirect aoforder racefix_climon dispatch_arity dispatch_errors dispatch_children serverfix_lines serverfix_scalar serverfix_hello serverfix_config bplus at412-T1 at412-T2 at412-T3 at412-T4 at412-T5 at412-T6 at412-T7 at412-T8 at412-T9 at412-T10 at412-T11a at412-T11b at412-T12 at412-T13 at412-T14 at412-T15 at412-T16 at412-owner",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_ZC_NET_IO": "uring",
+    "GATE_SHUTDOWN_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TEST_PORT": "20098",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave9/docs/wave9/jobs/final-once.tsv"
+  },
+  "binary_sha256": "2d1b626ac7ba7769d00bd5c0a16693fb928a9c2b3d0a488d41b3f7c8df51fb40",
+  "source_commit": "ed2f91ecc1ade073fb6d115b9081bf396b17b06a",
+  "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "gate_sha256": "18728ff1eb6b58b9d50524314adb8910401281216ff47aa02752a5b327166483",
+  "started": 1793151293.2937243,
+  "exit": 1,
+  "seconds": 1907.049066543579,
+  "artifacts": "/home/user/Projects/cx-wave9/build/gate-run.GFxcE7",
+  "summary": [
+    "GATE(PARTIAL): 271 ok, 4 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave9/docs/wave9/jobs/final-once.tsv.partial"
+  ],
+  "binary_unchanged": true
+}

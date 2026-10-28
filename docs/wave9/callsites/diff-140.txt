@@ -1,0 +1,48 @@
+tomo::multi_cancel_record(tomo::AtomicEntry&, tomo::ScatterState const*)
+--- headline
+
++++ post
+
+@@ -10,11 +10,11 @@
+
+ CLONE 0 0025 [ 2] je <+0xa0>
+ CLONE 0 0027 [ 3] test %rsi,%rsi
+ CLONE 0 002a [ 2] je <+0x3d>
+-CLONE 0 002c [ 7] mov 0x5b0(%rdx),%rcx
++CLONE 0 002c [ 7] mov 0x5b8(%rdx),%rcx
+ CLONE 0 0033 [ 4] cmp %rcx,0x40(%rsi)
+ CLONE 0 0037 [ 6] je <+0xf0>
+ CLONE 0 003d [ 4] mov 0x78(%rax),%r8d
+-CLONE 0 0041 [ 7] lea 0x590(%rdx),%rcx
++CLONE 0 0041 [ 7] lea 0x598(%rdx),%rcx
+ CLONE 0 0048 [ 7] mov 0x238(%rdi),%rdx
+ CLONE 0 004f [ 4] mov (%rdx,%r8,4),%edx
+ CLONE 0 0053 [ 4] shl $0x5,%rdx
+@@ -90,14 +90,16 @@
+
+ CLONE 0 0170 [ 4] cmpb $0x31,0x2e(%rdi)
+ CLONE 0 0174 [ 6] jne <+0x9d>
+ CLONE 0 017a [ 7] movzbl 0x348(%rdi),%eax
+-CLONE 0 0181 [ 2] test %al,%al
+-CLONE 0 0183 [ 6] jne <+0x9d>
+-CLONE 0 0189 [ 2] xor %eax,%eax
+-CLONE 0 018b [ 7] mov $0xffffffffffffffff,%rdx
+-CLONE 0 0192 [ 9] lock cmpxchg %rdx,0x340(%rdi)
+-CLONE 0 019b [ 6] jne <+0x9d>
+-CLONE 0 01a1 [ 4] movb $0x1,0x1d(%rdi)
+-CLONE 0 01a5 [ 7] movb $0x1,0x348(%rdi)
+-CLONE 0 01ac [ 1] ret
+-CLONE 0 01ad [ 3] nopl (%rax)
++CLONE 0 0181 [ 7] mov $0xffffffffffffffff,%rdx
++CLONE 0 0188 [ 2] test %al,%al
++CLONE 0 018a [ 5] mov $0x0,%eax
++CLONE 0 018f [ 2] jne <+0x1b1>
++CLONE 0 0191 [ 9] lock cmpxchg %rdx,0x340(%rdi)
++CLONE 0 019a [ 6] jne <+0x9d>
++CLONE 0 01a0 [ 4] movb $0x1,0x1d(%rdi)
++CLONE 0 01a4 [ 7] movb $0x1,0x348(%rdi)
++CLONE 0 01ab [ 1] ret
++CLONE 0 01ac [ 4] nopl 0x0(%rax)
+ CLONE 0 01b0 [ 1] ret
++CLONE 0 01b1 [ 9] lock cmpxchg %rdx,0x340(%rdi)
++CLONE 0 01ba [ 1] ret

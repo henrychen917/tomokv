@@ -1,0 +1,348 @@
+std::default_delete<tomo::NotifyShardState>::operator()(tomo::NotifyShardState*) const [clone .part.0]
+--- headline
+
++++ post
+
+@@ -38,7 +38,7 @@
+
+ CLONE 0 008e [ 4] lea 0x1(%rax),%rsi
+ CLONE 0 0092 [ 5] call <_ZdlPvm@plt>
+ CLONE 0 0097 [ 4] add $0x38,%r15
+-CLONE 0 009b [ 3] cmp %rbx,%r15
++CLONE 0 009b [ 3] cmp %r15,%rbx
+ CLONE 0 009e [ 2] je <+0xe0>
+ CLONE 0 00a0 [ 4] mov 0x30(%r15),%rdi
+ CLONE 0 00a4 [ 3] test %rdi,%rdi
+@@ -46,7 +46,7 @@
+
+ CLONE 0 00a9 [ 4] mov 0x8(%rdi),%rdx
+ CLONE 0 00ad [ 4] lea 0x8(%rdi),%rcx
+ CLONE 0 00b1 [ 3] cmp %r13,%rdx
+-CLONE 0 00b4 [ 6] je <+0x270>
++CLONE 0 00b4 [ 6] je <+0x190>
+ CLONE 0 00ba [ 7] cmpb $0x0,<rip>(%rip) # <__libc_single_threaded@GLIBC_2.32>
+ CLONE 0 00c1 [ 2] jne <+0x70>
+ CLONE 0 00c3 [ 5] mov $0xffffffff,%edx
+@@ -62,18 +62,18 @@
+
+ CLONE 0 00ec [ 6] jb <+0x60>
+ CLONE 0 00f2 [ 5] mov 0x28(%rsp),%rcx
+ CLONE 0 00f7 [ 5] cmp %rcx,0x10(%rsp)
+-CLONE 0 00fc [ 6] je <+0x1cc>
++CLONE 0 00fc [ 6] je <+0x321>
+ CLONE 0 0102 [ 5] mov 0x18(%rsp),%rax
+ CLONE 0 0107 [10] movabs $0x100000001,%rbx
+ CLONE 0 0111 [ 3] cmp %rax,%rbp
+-CLONE 0 0114 [ 2] jne <+0x159>
+-CLONE 0 0116 [ 5] jmp <+0x291>
++CLONE 0 0114 [ 2] jne <+0x155>
++CLONE 0 0116 [ 5] jmp <+0x1b1>
+ CLONE 0 011b [ 5] nopl 0x0(%rax,%rax,1)
+ CLONE 0 0120 [ 4] mov 0x8(%r13),%eax
+ CLONE 0 0124 [ 3] lea -0x1(%rax),%edx
+ CLONE 0 0127 [ 4] mov %edx,0x8(%r13)
+ CLONE 0 012b [ 3] cmp $0x1,%eax
+-CLONE 0 012e [ 2] je <+0x18a>
++CLONE 0 012e [ 2] je <+0x186>
+ CLONE 0 0130 [ 4] mov 0x0(%rbp),%rdi
+ CLONE 0 0134 [ 4] lea 0x10(%rbp),%rax
+ CLONE 0 0138 [ 3] cmp %rax,%rdi
+@@ -83,136 +83,164 @@
+
+ CLONE 0 0145 [ 5] call <_ZdlPvm@plt>
+ CLONE 0 014a [ 4] add $0x38,%rbp
+ CLONE 0 014e [ 5] cmp %rbp,0x18(%rsp)
+-CLONE 0 0153 [ 6] je <+0x291>
+-CLONE 0 0159 [ 4] mov 0x30(%rbp),%r13
+-CLONE 0 015d [ 3] test %r13,%r13
+-CLONE 0 0160 [ 2] je <+0x130>
+-CLONE 0 0162 [ 4] mov 0x8(%r13),%rax
+-CLONE 0 0166 [ 4] lea 0x8(%r13),%rdx
+-CLONE 0 016a [ 3] cmp %rbx,%rax
+-CLONE 0 016d [ 6] je <+0x321>
+-CLONE 0 0173 [ 7] cmpb $0x0,<rip>(%rip) # <__libc_single_threaded@GLIBC_2.32>
+-CLONE 0 017a [ 2] jne <+0x120>
+-CLONE 0 017c [ 5] mov $0xffffffff,%eax
+-CLONE 0 0181 [ 4] lock xadd %eax,(%rdx)
+-CLONE 0 0185 [ 3] cmp $0x1,%eax
+-CLONE 0 0188 [ 2] jne <+0x130>
+-CLONE 0 018a [ 3] mov %r13,%rdi
+-CLONE 0 018d [ 5] call <std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release_last_use_cold()>
+-CLONE 0 0192 [ 2] jmp <+0x130>
+-CLONE 0 0194 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 019f [ 1] nop
+-CLONE 0 01a0 [ 4] mov 0x30(%rbp),%rdi
+-CLONE 0 01a4 [ 3] test %rdi,%rdi
+-CLONE 0 01a7 [ 2] je <+0x1ae>
+-CLONE 0 01a9 [ 5] call <std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release()>
+-CLONE 0 01ae [ 4] mov 0x0(%rbp),%rdi
+-CLONE 0 01b2 [ 4] lea 0x10(%rbp),%rax
+-CLONE 0 01b6 [ 3] cmp %rax,%rdi
+-CLONE 0 01b9 [ 2] je <+0x1c8>
+-CLONE 0 01bb [ 4] mov 0x10(%rbp),%rax
+-CLONE 0 01bf [ 4] lea 0x1(%rax),%rsi
+-CLONE 0 01c3 [ 5] call <_ZdlPvm@plt>
+-CLONE 0 01c8 [ 4] add $0x38,%rbp
+-CLONE 0 01cc [ 5] cmp %rbp,0x8(%rsp)
+-CLONE 0 01d1 [ 2] jne <+0x1a0>
+-CLONE 0 01d3 [ 5] mov 0x20(%rsp),%rax
+-CLONE 0 01d8 [ 4] mov 0x50(%rax),%rdi
+-CLONE 0 01dc [ 3] test %rdi,%rdi
+-CLONE 0 01df [ 2] je <+0x239>
+-CLONE 0 01e1 [ 5] mov 0x20(%rsp),%rax
+-CLONE 0 01e6 [ 7] mov 0x98(%rax),%rcx
+-CLONE 0 01ed [ 4] mov 0x78(%rax),%rbx
+-CLONE 0 01f1 [ 4] lea 0x8(%rcx),%rbp
+-CLONE 0 01f5 [ 4] mov %rcx,(%rsp)
+-CLONE 0 01f9 [ 3] cmp %rbp,%rbx
+-CLONE 0 01fc [ 2] jae <+0x21f>
+-CLONE 0 01fe [ 2] xchg %ax,%ax
+-CLONE 0 0200 [ 3] mov (%rbx),%rdi
+-CLONE 0 0203 [ 5] mov $0x1f8,%esi
+-CLONE 0 0208 [ 4] add $0x8,%rbx
+-CLONE 0 020c [ 5] call <_ZdlPvm@plt>
+-CLONE 0 0211 [ 3] cmp %rbp,%rbx
+-CLONE 0 0214 [ 2] jb <+0x200>
+-CLONE 0 0216 [ 5] mov 0x20(%rsp),%rax
+-CLONE 0 021b [ 4] mov 0x50(%rax),%rdi
+-CLONE 0 021f [ 5] mov 0x20(%rsp),%rax
+-CLONE 0 0224 [ 4] mov 0x58(%rax),%rax
+-CLONE 0 0228 [ 8] lea 0x0(,%rax,8),%rsi
+-CLONE 0 0230 [ 4] mov %rax,(%rsp)
+-CLONE 0 0234 [ 5] call <_ZdlPvm@plt>
+-CLONE 0 0239 [ 5] mov 0x20(%rsp),%rbx
+-CLONE 0 023e [ 3] mov %rbx,%rdi
+-CLONE 0 0241 [ 5] call <std::deque<tomo::NotifyOut, std::allocator<tomo::NotifyOut> >::~deque()>
+-CLONE 0 0246 [ 4] add $0x38,%rsp
+-CLONE 0 024a [ 3] mov %rbx,%rdi
+-CLONE 0 024d [ 5] mov $0xa0,%esi
+-CLONE 0 0252 [ 1] pop %rbx
+-CLONE 0 0253 [ 1] pop %rbp
+-CLONE 0 0254 [ 2] pop %r12
+-CLONE 0 0256 [ 2] pop %r13
+-CLONE 0 0258 [ 2] pop %r14
+-CLONE 0 025a [ 2] pop %r15
+-CLONE 0 025c [ 5] jmp <_ZdlPvm@plt>
+-CLONE 0 0261 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 026c [ 4] nopl 0x0(%rax)
+-CLONE 0 0270 [ 3] mov (%rdi),%rdx
+-CLONE 0 0273 [ 4] mov %rdi,(%rsp)
+-CLONE 0 0277 [ 8] movq $0x0,0x8(%rdi)
+-CLONE 0 027f [ 3] call *0x10(%rdx)
+-CLONE 0 0282 [ 4] mov (%rsp),%rdi
+-CLONE 0 0286 [ 3] mov (%rdi),%rdx
+-CLONE 0 0289 [ 3] call *0x18(%rdx)
+-CLONE 0 028c [ 5] jmp <+0x7e>
+-CLONE 0 0291 [10] movabs $0x100000001,%rbp
+-CLONE 0 029b [ 5] cmp %r12,0x8(%rsp)
+-CLONE 0 02a0 [ 2] jne <+0x2e9>
+-CLONE 0 02a2 [ 5] jmp <+0x1d3>
+-CLONE 0 02a7 [ 9] nopw 0x0(%rax,%rax,1)
+-CLONE 0 02b0 [ 3] mov 0x8(%rbx),%eax
+-CLONE 0 02b3 [ 3] lea -0x1(%rax),%edx
+-CLONE 0 02b6 [ 3] mov %edx,0x8(%rbx)
+-CLONE 0 02b9 [ 3] cmp $0x1,%eax
+-CLONE 0 02bc [ 2] je <+0x317>
+-CLONE 0 02be [ 4] mov (%r12),%rdi
+-CLONE 0 02c2 [ 5] lea 0x10(%r12),%rax
+-CLONE 0 02c7 [ 3] cmp %rax,%rdi
+-CLONE 0 02ca [ 2] je <+0x2da>
+-CLONE 0 02cc [ 5] mov 0x10(%r12),%rax
+-CLONE 0 02d1 [ 4] lea 0x1(%rax),%rsi
+-CLONE 0 02d5 [ 5] call <_ZdlPvm@plt>
+-CLONE 0 02da [ 4] add $0x38,%r12
+-CLONE 0 02de [ 5] cmp %r12,0x8(%rsp)
+-CLONE 0 02e3 [ 6] je <+0x1d3>
+-CLONE 0 02e9 [ 5] mov 0x30(%r12),%rbx
+-CLONE 0 02ee [ 3] test %rbx,%rbx
+-CLONE 0 02f1 [ 2] je <+0x2be>
+-CLONE 0 02f3 [ 4] mov 0x8(%rbx),%rax
+-CLONE 0 02f7 [ 4] lea 0x8(%rbx),%rdx
+-CLONE 0 02fb [ 3] cmp %rbp,%rax
+-CLONE 0 02fe [ 2] je <+0x342>
+-CLONE 0 0300 [ 7] cmpb $0x0,<rip>(%rip) # <__libc_single_threaded@GLIBC_2.32>
+-CLONE 0 0307 [ 2] jne <+0x2b0>
+-CLONE 0 0309 [ 5] mov $0xffffffff,%eax
+-CLONE 0 030e [ 4] lock xadd %eax,(%rdx)
+-CLONE 0 0312 [ 3] cmp $0x1,%eax
+-CLONE 0 0315 [ 2] jne <+0x2be>
+-CLONE 0 0317 [ 3] mov %rbx,%rdi
+-CLONE 0 031a [ 5] call <std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release_last_use_cold()>
+-CLONE 0 031f [ 2] jmp <+0x2be>
+-CLONE 0 0321 [ 4] mov 0x0(%r13),%rax
+-CLONE 0 0325 [ 3] mov %r13,%rdi
+-CLONE 0 0328 [ 8] movq $0x0,0x8(%r13)
+-CLONE 0 0330 [ 3] call *0x10(%rax)
+-CLONE 0 0333 [ 4] mov 0x0(%r13),%rax
+-CLONE 0 0337 [ 3] mov %r13,%rdi
+-CLONE 0 033a [ 3] call *0x18(%rax)
+-CLONE 0 033d [ 5] jmp <+0x130>
+-CLONE 0 0342 [ 3] mov (%rbx),%rax
+-CLONE 0 0345 [ 3] mov %rbx,%rdi
+-CLONE 0 0348 [ 8] movq $0x0,0x8(%rbx)
+-CLONE 0 0350 [ 3] call *0x10(%rax)
+-CLONE 0 0353 [ 3] mov (%rbx),%rax
+-CLONE 0 0356 [ 3] mov %rbx,%rdi
+-CLONE 0 0359 [ 3] call *0x18(%rax)
+-CLONE 0 035c [ 5] jmp <+0x2be>
++CLONE 0 0153 [ 2] je <+0x1b1>
++CLONE 0 0155 [ 4] mov 0x30(%rbp),%r13
++CLONE 0 0159 [ 3] test %r13,%r13
++CLONE 0 015c [ 2] je <+0x130>
++CLONE 0 015e [ 4] mov 0x8(%r13),%rax
++CLONE 0 0162 [ 4] lea 0x8(%r13),%rdx
++CLONE 0 0166 [ 3] cmp %rbx,%rax
++CLONE 0 0169 [ 6] je <+0x300>
++CLONE 0 016f [ 7] cmpb $0x0,<rip>(%rip) # <__libc_single_threaded@GLIBC_2.32>
++CLONE 0 0176 [ 2] jne <+0x120>
++CLONE 0 0178 [ 5] mov $0xffffffff,%eax
++CLONE 0 017d [ 4] lock xadd %eax,(%rdx)
++CLONE 0 0181 [ 3] cmp $0x1,%eax
++CLONE 0 0184 [ 2] jne <+0x130>
++CLONE 0 0186 [ 3] mov %r13,%rdi
++CLONE 0 0189 [ 5] call <std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release_last_use_cold()>
++CLONE 0 018e [ 2] jmp <+0x130>
++CLONE 0 0190 [ 3] mov (%rdi),%rdx
++CLONE 0 0193 [ 4] mov %rdi,(%rsp)
++CLONE 0 0197 [ 8] movq $0x0,0x8(%rdi)
++CLONE 0 019f [ 3] call *0x10(%rdx)
++CLONE 0 01a2 [ 4] mov (%rsp),%rdi
++CLONE 0 01a6 [ 3] mov (%rdi),%rdx
++CLONE 0 01a9 [ 3] call *0x18(%rdx)
++CLONE 0 01ac [ 5] jmp <+0x7e>
++CLONE 0 01b1 [10] movabs $0x100000001,%rbp
++CLONE 0 01bb [ 5] cmp %r12,0x8(%rsp)
++CLONE 0 01c0 [ 2] jne <+0x205>
++CLONE 0 01c2 [ 5] jmp <+0x250>
++CLONE 0 01c7 [ 9] nopw 0x0(%rax,%rax,1)
++CLONE 0 01d0 [ 3] mov 0x8(%rbx),%eax
++CLONE 0 01d3 [ 3] lea -0x1(%rax),%edx
++CLONE 0 01d6 [ 3] mov %edx,0x8(%rbx)
++CLONE 0 01d9 [ 3] cmp $0x1,%eax
++CLONE 0 01dc [ 2] je <+0x237>
++CLONE 0 01de [ 4] mov (%r12),%rdi
++CLONE 0 01e2 [ 5] lea 0x10(%r12),%rax
++CLONE 0 01e7 [ 3] cmp %rax,%rdi
++CLONE 0 01ea [ 2] je <+0x1fa>
++CLONE 0 01ec [ 5] mov 0x10(%r12),%rax
++CLONE 0 01f1 [ 4] lea 0x1(%rax),%rsi
++CLONE 0 01f5 [ 5] call <_ZdlPvm@plt>
++CLONE 0 01fa [ 4] add $0x38,%r12
++CLONE 0 01fe [ 5] cmp %r12,0x8(%rsp)
++CLONE 0 0203 [ 2] je <+0x250>
++CLONE 0 0205 [ 5] mov 0x30(%r12),%rbx
++CLONE 0 020a [ 3] test %rbx,%rbx
++CLONE 0 020d [ 2] je <+0x1de>
++CLONE 0 020f [ 4] mov 0x8(%rbx),%rax
++CLONE 0 0213 [ 4] lea 0x8(%rbx),%rdx
++CLONE 0 0217 [ 3] cmp %rbp,%rax
++CLONE 0 021a [ 6] je <+0x2e1>
++CLONE 0 0220 [ 7] cmpb $0x0,<rip>(%rip) # <__libc_single_threaded@GLIBC_2.32>
++CLONE 0 0227 [ 2] jne <+0x1d0>
++CLONE 0 0229 [ 5] mov $0xffffffff,%eax
++CLONE 0 022e [ 4] lock xadd %eax,(%rdx)
++CLONE 0 0232 [ 3] cmp $0x1,%eax
++CLONE 0 0235 [ 2] jne <+0x1de>
++CLONE 0 0237 [ 3] mov %rbx,%rdi
++CLONE 0 023a [ 5] call <std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release_last_use_cold()>
++CLONE 0 023f [ 2] jmp <+0x1de>
++CLONE 0 0241 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 024c [ 4] nopl 0x0(%rax)
++CLONE 0 0250 [ 5] mov 0x20(%rsp),%rax
++CLONE 0 0255 [ 4] mov 0x50(%rax),%rdi
++CLONE 0 0259 [ 3] test %rdi,%rdi
++CLONE 0 025c [ 2] je <+0x2b9>
++CLONE 0 025e [ 5] mov 0x20(%rsp),%rax
++CLONE 0 0263 [ 7] mov 0x98(%rax),%rcx
++CLONE 0 026a [ 4] mov 0x78(%rax),%rbx
++CLONE 0 026e [ 4] lea 0x8(%rcx),%rbp
++CLONE 0 0272 [ 4] mov %rcx,(%rsp)
++CLONE 0 0276 [ 3] cmp %rbp,%rbx
++CLONE 0 0279 [ 2] jae <+0x29f>
++CLONE 0 027b [ 5] nopl 0x0(%rax,%rax,1)
++CLONE 0 0280 [ 3] mov (%rbx),%rdi
++CLONE 0 0283 [ 5] mov $0x1f8,%esi
++CLONE 0 0288 [ 4] add $0x8,%rbx
++CLONE 0 028c [ 5] call <_ZdlPvm@plt>
++CLONE 0 0291 [ 3] cmp %rbp,%rbx
++CLONE 0 0294 [ 2] jb <+0x280>
++CLONE 0 0296 [ 5] mov 0x20(%rsp),%rax
++CLONE 0 029b [ 4] mov 0x50(%rax),%rdi
++CLONE 0 029f [ 5] mov 0x20(%rsp),%rax
++CLONE 0 02a4 [ 4] mov 0x58(%rax),%rax
++CLONE 0 02a8 [ 8] lea 0x0(,%rax,8),%rsi
++CLONE 0 02b0 [ 4] mov %rax,(%rsp)
++CLONE 0 02b4 [ 5] call <_ZdlPvm@plt>
++CLONE 0 02b9 [ 5] mov 0x20(%rsp),%rbx
++CLONE 0 02be [ 3] mov %rbx,%rdi
++CLONE 0 02c1 [ 5] call <std::deque<tomo::NotifyOut, std::allocator<tomo::NotifyOut> >::~deque()>
++CLONE 0 02c6 [ 4] add $0x38,%rsp
++CLONE 0 02ca [ 3] mov %rbx,%rdi
++CLONE 0 02cd [ 5] mov $0xa0,%esi
++CLONE 0 02d2 [ 1] pop %rbx
++CLONE 0 02d3 [ 1] pop %rbp
++CLONE 0 02d4 [ 2] pop %r12
++CLONE 0 02d6 [ 2] pop %r13
++CLONE 0 02d8 [ 2] pop %r14
++CLONE 0 02da [ 2] pop %r15
++CLONE 0 02dc [ 5] jmp <_ZdlPvm@plt>
++CLONE 0 02e1 [ 3] mov (%rbx),%rax
++CLONE 0 02e4 [ 3] mov %rbx,%rdi
++CLONE 0 02e7 [ 8] movq $0x0,0x8(%rbx)
++CLONE 0 02ef [ 3] call *0x10(%rax)
++CLONE 0 02f2 [ 3] mov (%rbx),%rax
++CLONE 0 02f5 [ 3] mov %rbx,%rdi
++CLONE 0 02f8 [ 3] call *0x18(%rax)
++CLONE 0 02fb [ 5] jmp <+0x1de>
++CLONE 0 0300 [ 4] mov 0x0(%r13),%rax
++CLONE 0 0304 [ 3] mov %r13,%rdi
++CLONE 0 0307 [ 8] movq $0x0,0x8(%r13)
++CLONE 0 030f [ 3] call *0x10(%rax)
++CLONE 0 0312 [ 4] mov 0x0(%r13),%rax
++CLONE 0 0316 [ 3] mov %r13,%rdi
++CLONE 0 0319 [ 3] call *0x18(%rax)
++CLONE 0 031c [ 5] jmp <+0x130>
++CLONE 0 0321 [10] movabs $0x100000001,%r12
++CLONE 0 032b [ 5] cmp %rbp,0x8(%rsp)
++CLONE 0 0330 [ 2] jne <+0x377>
++CLONE 0 0332 [ 5] jmp <+0x250>
++CLONE 0 0337 [ 9] nopw 0x0(%rax,%rax,1)
++CLONE 0 0340 [ 3] mov 0x8(%rbx),%eax
++CLONE 0 0343 [ 3] lea -0x1(%rax),%edx
++CLONE 0 0346 [ 3] mov %edx,0x8(%rbx)
++CLONE 0 0349 [ 3] cmp $0x1,%eax
++CLONE 0 034c [ 2] je <+0x3a4>
++CLONE 0 034e [ 4] mov 0x0(%rbp),%rdi
++CLONE 0 0352 [ 4] lea 0x10(%rbp),%rax
++CLONE 0 0356 [ 3] cmp %rax,%rdi
++CLONE 0 0359 [ 2] je <+0x368>
++CLONE 0 035b [ 4] mov 0x10(%rbp),%rax
++CLONE 0 035f [ 4] lea 0x1(%rax),%rsi
++CLONE 0 0363 [ 5] call <_ZdlPvm@plt>
++CLONE 0 0368 [ 4] add $0x38,%rbp
++CLONE 0 036c [ 5] cmp %rbp,0x8(%rsp)
++CLONE 0 0371 [ 6] je <+0x250>
++CLONE 0 0377 [ 4] mov 0x30(%rbp),%rbx
++CLONE 0 037b [ 3] test %rbx,%rbx
++CLONE 0 037e [ 2] je <+0x34e>
++CLONE 0 0380 [ 4] mov 0x8(%rbx),%rax
++CLONE 0 0384 [ 4] lea 0x8(%rbx),%rdx
++CLONE 0 0388 [ 3] cmp %r12,%rax
++CLONE 0 038b [ 2] je <+0x3ae>
++CLONE 0 038d [ 7] cmpb $0x0,<rip>(%rip) # <__libc_single_threaded@GLIBC_2.32>
++CLONE 0 0394 [ 2] jne <+0x340>
++CLONE 0 0396 [ 5] mov $0xffffffff,%eax
++CLONE 0 039b [ 4] lock xadd %eax,(%rdx)
++CLONE 0 039f [ 3] cmp $0x1,%eax
++CLONE 0 03a2 [ 2] jne <+0x34e>
++CLONE 0 03a4 [ 3] mov %rbx,%rdi
++CLONE 0 03a7 [ 5] call <std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release_last_use_cold()>
++CLONE 0 03ac [ 2] jmp <+0x34e>
++CLONE 0 03ae [ 3] mov (%rbx),%rax
++CLONE 0 03b1 [ 3] mov %rbx,%rdi
++CLONE 0 03b4 [ 8] movq $0x0,0x8(%rbx)
++CLONE 0 03bc [ 3] call *0x10(%rax)
++CLONE 0 03bf [ 3] mov (%rbx),%rax
++CLONE 0 03c2 [ 3] mov %rbx,%rdi
++CLONE 0 03c5 [ 3] call *0x18(%rax)
++CLONE 0 03c8 [ 2] jmp <+0x34e>

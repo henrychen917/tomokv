@@ -1,0 +1,56 @@
+[
+  [
+    {
+      "name": "repair-rechecks",
+      "exit": 1
+    },
+    {
+      "name": "supplemental-once",
+      "exit": 0
+    },
+    {
+      "name": "final-persistence-2s",
+      "exit": 0
+    },
+    {
+      "name": "final-persistence-1s",
+      "exit": 0
+    }
+  ],
+  [
+    {
+      "name": "final-differ-uring",
+      "exit": 0
+    },
+    {
+      "name": "final-engine-uring",
+      "exit": 0
+    },
+    {
+      "name": "final-mode-uring-2s",
+      "exit": 0
+    },
+    {
+      "name": "final-mode-uring-1s",
+      "exit": 0
+    }
+  ],
+  [
+    {
+      "name": "final-differ-epoll",
+      "exit": 0
+    },
+    {
+      "name": "final-engine-epoll",
+      "exit": 0
+    },
+    {
+      "name": "final-mode-epoll-2s",
+      "exit": 0
+    },
+    {
+      "name": "final-mode-epoll-1s",
+      "exit": 0
+    }
+  ]
+]

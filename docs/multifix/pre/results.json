@@ -1,0 +1,2269 @@
+{
+  "binary_sha256": "75d75adb8907cd6c97f010dfd6337fe7f58806c17143b025795808ca06aefdc3",
+  "redis_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "cases": {
+    "MULTI-OOM-QUEUE": {
+      "results": {
+        "2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-multifix/build/multifix/tomokv-pre",
+            "--port",
+            "20500",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "docs/multifix/pre/MULTI-OOM-QUEUE/2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "1"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "SET",
+                "x",
+                "1"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "EXEC"
+              ],
+              "reply": [
+                {
+                  "error": "OOM command not allowed when used memory > 'maxmemory'."
+                }
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "PING"
+              ],
+              "reply": {
+                "simple": "PONG"
+              }
+            }
+          ]
+        },
+        "1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-multifix/build/multifix/tomokv-pre",
+            "--port",
+            "20500",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "docs/multifix/pre/MULTI-OOM-QUEUE/1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "1"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "SET",
+                "x",
+                "1"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "EXEC"
+              ],
+              "reply": [
+                {
+                  "error": "OOM command not allowed when used memory > 'maxmemory'."
+                }
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "PING"
+              ],
+              "reply": {
+                "simple": "PONG"
+              }
+            }
+          ]
+        },
+        "redis": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/redis74/src/redis-server",
+            "--port",
+            "20500",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "docs/multifix/pre/MULTI-OOM-QUEUE/redis",
+            "--enable-debug-command",
+            "yes"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "1"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "SET",
+                "x",
+                "1"
+              ],
+              "reply": {
+                "error": "OOM command not allowed when used memory > 'maxmemory'."
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "EXEC"
+              ],
+              "reply": {
+                "error": "EXECABORT Transaction discarded because of previous errors."
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "PING"
+              ],
+              "reply": {
+                "simple": "PONG"
+              }
+            }
+          ]
+        }
+      },
+      "verdict": {
+        "2s": "DIFFERENT",
+        "1s": "DIFFERENT"
+      }
+    },
+    "MULTI-OOM-EXEC": {
+      "results": {
+        "2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-multifix/build/multifix/tomokv-pre",
+            "--port",
+            "20500",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "docs/multifix/pre/MULTI-OOM-EXEC/2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "b",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "SET",
+                "y",
+                "1"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "GET",
+                "y"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "1"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "EXEC"
+              ],
+              "reply": [
+                {
+                  "error": "OOM command not allowed when used memory > 'maxmemory'."
+                },
+                null
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            }
+          ]
+        },
+        "1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-multifix/build/multifix/tomokv-pre",
+            "--port",
+            "20500",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "docs/multifix/pre/MULTI-OOM-EXEC/1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "b",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "SET",
+                "y",
+                "1"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "GET",
+                "y"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "1"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "EXEC"
+              ],
+              "reply": [
+                {
+                  "error": "OOM command not allowed when used memory > 'maxmemory'."
+                },
+                null
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            }
+          ]
+        },
+        "redis": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/redis74/src/redis-server",
+            "--port",
+            "20500",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "docs/multifix/pre/MULTI-OOM-EXEC/redis",
+            "--enable-debug-command",
+            "yes"
+          ],
+          "transcript": [
+            {
+              "c": "b",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "SET",
+                "y",
+                "1"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "GET",
+                "y"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "1"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "EXEC"
+              ],
+              "reply": {
+                "error": "EXECABORT Transaction discarded because of: OOM command not allowed when used memory > 'maxmemory'."
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            }
+          ]
+        }
+      },
+      "verdict": {
+        "2s": "DIFFERENT",
+        "1s": "DIFFERENT"
+      }
+    },
+    "RESET-IN-MULTI": {
+      "results": {
+        "2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-multifix/build/multifix/tomokv-pre",
+            "--port",
+            "20500",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "docs/multifix/pre/RESET-IN-MULTI/2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "key-a",
+                "a"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "RESET"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "EXEC"
+              ],
+              "reply": [
+                {
+                  "simple": "OK"
+                },
+                {
+                  "simple": "RESET"
+                }
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "EXISTS",
+                "key-a"
+              ],
+              "reply": 1
+            }
+          ]
+        },
+        "1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-multifix/build/multifix/tomokv-pre",
+            "--port",
+            "20500",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "docs/multifix/pre/RESET-IN-MULTI/1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "key-a",
+                "a"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "RESET"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "EXEC"
+              ],
+              "reply": [
+                {
+                  "simple": "OK"
+                },
+                {
+                  "simple": "RESET"
+                }
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "EXISTS",
+                "key-a"
+              ],
+              "reply": 1
+            }
+          ]
+        },
+        "redis": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/redis74/src/redis-server",
+            "--port",
+            "20500",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "docs/multifix/pre/RESET-IN-MULTI/redis",
+            "--enable-debug-command",
+            "yes"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "key-a",
+                "a"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "RESET"
+              ],
+              "reply": {
+                "simple": "RESET"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "EXEC"
+              ],
+              "reply": {
+                "error": "ERR EXEC without MULTI"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "EXISTS",
+                "key-a"
+              ],
+              "reply": 0
+            }
+          ]
+        }
+      },
+      "verdict": {
+        "2s": "DIFFERENT",
+        "1s": "DIFFERENT"
+      }
+    },
+    "PAUSE-IN-MULTI": {
+      "results": {
+        "2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-multifix/build/multifix/tomokv-pre",
+            "--port",
+            "20500",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "docs/multifix/pre/PAUSE-IN-MULTI/2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "k",
+                "v"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CLIENT",
+                "PAUSE",
+                "300",
+                "WRITE"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "EXEC"
+              ],
+              "reply": [
+                {
+                  "simple": "OK"
+                },
+                {
+                  "error": "ERR unknown subcommand 'PAUSE'. Try CLIENT HELP."
+                }
+              ]
+            },
+            {
+              "c": "b",
+              "send": [
+                "SET",
+                "k2",
+                "v"
+              ],
+              "read": 0
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 0.15,
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "sleep": 0.4
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": "TIMEOUT"
+            }
+          ]
+        },
+        "1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-multifix/build/multifix/tomokv-pre",
+            "--port",
+            "20500",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "docs/multifix/pre/PAUSE-IN-MULTI/1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "k",
+                "v"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CLIENT",
+                "PAUSE",
+                "300",
+                "WRITE"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "EXEC"
+              ],
+              "reply": [
+                {
+                  "simple": "OK"
+                },
+                {
+                  "error": "ERR unknown subcommand 'PAUSE'. Try CLIENT HELP."
+                }
+              ]
+            },
+            {
+              "c": "b",
+              "send": [
+                "SET",
+                "k2",
+                "v"
+              ],
+              "read": 0
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 0.15,
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "sleep": 0.4
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": "TIMEOUT"
+            }
+          ]
+        },
+        "redis": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/redis74/src/redis-server",
+            "--port",
+            "20500",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "docs/multifix/pre/PAUSE-IN-MULTI/redis",
+            "--enable-debug-command",
+            "yes"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "k",
+                "v"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CLIENT",
+                "PAUSE",
+                "300",
+                "WRITE"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "EXEC"
+              ],
+              "reply": [
+                {
+                  "simple": "OK"
+                },
+                {
+                  "simple": "OK"
+                }
+              ]
+            },
+            {
+              "c": "b",
+              "send": [
+                "SET",
+                "k2",
+                "v"
+              ],
+              "read": 0
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 0.15,
+              "reply": "TIMEOUT"
+            },
+            {
+              "sleep": 0.4
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": {
+                "simple": "OK"
+              }
+            }
+          ]
+        }
+      },
+      "verdict": {
+        "2s": "DIFFERENT",
+        "1s": "DIFFERENT"
+      }
+    },
+    "PAUSE-EXEC-NOT-HELD": {
+      "results": {
+        "2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-multifix/build/multifix/tomokv-pre",
+            "--port",
+            "20500",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "docs/multifix/pre/PAUSE-EXEC-NOT-HELD/2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "b",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "SET",
+                "k",
+                "v"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CLIENT",
+                "PAUSE",
+                "100000",
+                "WRITE"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "EXEC"
+              ],
+              "read": 0
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 0.7,
+              "reply": [
+                {
+                  "simple": "OK"
+                }
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "GET",
+                "k"
+              ],
+              "reply": "v"
+            },
+            {
+              "c": "a",
+              "send": [
+                "CLIENT",
+                "UNPAUSE"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": "TIMEOUT"
+            }
+          ]
+        },
+        "1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-multifix/build/multifix/tomokv-pre",
+            "--port",
+            "20500",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "docs/multifix/pre/PAUSE-EXEC-NOT-HELD/1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "b",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "SET",
+                "k",
+                "v"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CLIENT",
+                "PAUSE",
+                "100000",
+                "WRITE"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "EXEC"
+              ],
+              "read": 0
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 0.7,
+              "reply": [
+                {
+                  "simple": "OK"
+                }
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "GET",
+                "k"
+              ],
+              "reply": "v"
+            },
+            {
+              "c": "a",
+              "send": [
+                "CLIENT",
+                "UNPAUSE"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": "TIMEOUT"
+            }
+          ]
+        },
+        "redis": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/redis74/src/redis-server",
+            "--port",
+            "20500",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "docs/multifix/pre/PAUSE-EXEC-NOT-HELD/redis",
+            "--enable-debug-command",
+            "yes"
+          ],
+          "transcript": [
+            {
+              "c": "b",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "SET",
+                "k",
+                "v"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CLIENT",
+                "PAUSE",
+                "100000",
+                "WRITE"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "EXEC"
+              ],
+              "read": 0
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 0.7,
+              "reply": "TIMEOUT"
+            },
+            {
+              "c": "a",
+              "send": [
+                "GET",
+                "k"
+              ],
+              "reply": null
+            },
+            {
+              "c": "a",
+              "send": [
+                "CLIENT",
+                "UNPAUSE"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": [
+                {
+                  "simple": "OK"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "verdict": {
+        "2s": "DIFFERENT",
+        "1s": "DIFFERENT"
+      }
+    },
+    "SLOWLOG-EXEC-BODY-NOT-LOGGED": {
+      "results": {
+        "2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-multifix/build/multifix/tomokv-pre",
+            "--port",
+            "20500",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "docs/multifix/pre/SLOWLOG-EXEC-BODY-NOT-LOGGED/2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "slowlog-log-slower-than",
+                "100000"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "SLOWLOG",
+                "RESET"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "DEBUG",
+                "SLEEP",
+                "0.2"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "EXEC"
+              ],
+              "reply": [
+                {
+                  "simple": "OK"
+                }
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "SLOWLOG",
+                "LEN"
+              ],
+              "reply": 0
+            },
+            {
+              "c": "a",
+              "send": [
+                "SLOWLOG",
+                "GET"
+              ],
+              "compare": false,
+              "reply": []
+            }
+          ]
+        },
+        "1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-multifix/build/multifix/tomokv-pre",
+            "--port",
+            "20500",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "docs/multifix/pre/SLOWLOG-EXEC-BODY-NOT-LOGGED/1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "slowlog-log-slower-than",
+                "100000"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "SLOWLOG",
+                "RESET"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "DEBUG",
+                "SLEEP",
+                "0.2"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "EXEC"
+              ],
+              "reply": [
+                {
+                  "simple": "OK"
+                }
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "SLOWLOG",
+                "LEN"
+              ],
+              "reply": 0
+            },
+            {
+              "c": "a",
+              "send": [
+                "SLOWLOG",
+                "GET"
+              ],
+              "compare": false,
+              "reply": []
+            }
+          ]
+        },
+        "redis": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/redis74/src/redis-server",
+            "--port",
+            "20500",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "docs/multifix/pre/SLOWLOG-EXEC-BODY-NOT-LOGGED/redis",
+            "--enable-debug-command",
+            "yes"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "slowlog-log-slower-than",
+                "100000"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "SLOWLOG",
+                "RESET"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "DEBUG",
+                "SLEEP",
+                "0.2"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "EXEC"
+              ],
+              "reply": [
+                {
+                  "simple": "OK"
+                }
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "SLOWLOG",
+                "LEN"
+              ],
+              "reply": 1
+            },
+            {
+              "c": "a",
+              "send": [
+                "SLOWLOG",
+                "GET"
+              ],
+              "compare": false,
+              "reply": [
+                [
+                  0,
+                  1793089517,
+                  200067,
+                  [
+                    "DEBUG",
+                    "SLEEP",
+                    "0.2"
+                  ],
+                  "127.0.0.1:47602",
+                  ""
+                ]
+              ]
+            }
+          ]
+        }
+      },
+      "verdict": {
+        "2s": "DIFFERENT",
+        "1s": "DIFFERENT"
+      }
+    },
+    "MULTI-POLICY-REFUSAL": {
+      "results": {
+        "2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-multifix/build/multifix/tomokv-pre",
+            "--port",
+            "20500",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "docs/multifix/pre/MULTI-POLICY-REFUSAL/2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "k",
+                "v"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "FLUSHALL"
+              ],
+              "reply": {
+                "error": "ERR Command not allowed inside a transaction"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "EXEC"
+              ],
+              "reply": {
+                "error": "EXECABORT Transaction discarded because of previous errors."
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "DBSIZE"
+              ],
+              "reply": 1
+            },
+            {
+              "c": "b",
+              "send": [
+                "HELLO",
+                "3"
+              ],
+              "compare": false,
+              "reply": {
+                "map": [
+                  [
+                    "server",
+                    "redis"
+                  ],
+                  [
+                    "version",
+                    "7.4.10"
+                  ],
+                  [
+                    "proto",
+                    3
+                  ],
+                  [
+                    "id",
+                    3
+                  ],
+                  [
+                    "mode",
+                    "standalone"
+                  ],
+                  [
+                    "role",
+                    "master"
+                  ],
+                  [
+                    "modules",
+                    []
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "SUBSCRIBE",
+                "foo",
+                "bar"
+              ],
+              "reply": {
+                "push": [
+                  "subscribe",
+                  "foo",
+                  1
+                ]
+              }
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": {
+                "push": [
+                  "subscribe",
+                  "bar",
+                  2
+                ]
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "UNSUBSCRIBE",
+                "bar"
+              ],
+              "reply": {
+                "error": "ERR Command not allowed inside a transaction"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "EXEC"
+              ],
+              "reply": {
+                "error": "EXECABORT Transaction discarded because of previous errors."
+              }
+            }
+          ]
+        },
+        "1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-multifix/build/multifix/tomokv-pre",
+            "--port",
+            "20500",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "docs/multifix/pre/MULTI-POLICY-REFUSAL/1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "k",
+                "v"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "FLUSHALL"
+              ],
+              "reply": {
+                "error": "ERR Command not allowed inside a transaction"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "EXEC"
+              ],
+              "reply": {
+                "error": "EXECABORT Transaction discarded because of previous errors."
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "DBSIZE"
+              ],
+              "reply": 1
+            },
+            {
+              "c": "b",
+              "send": [
+                "HELLO",
+                "3"
+              ],
+              "compare": false,
+              "reply": {
+                "map": [
+                  [
+                    "server",
+                    "redis"
+                  ],
+                  [
+                    "version",
+                    "7.4.10"
+                  ],
+                  [
+                    "proto",
+                    3
+                  ],
+                  [
+                    "id",
+                    3
+                  ],
+                  [
+                    "mode",
+                    "standalone"
+                  ],
+                  [
+                    "role",
+                    "master"
+                  ],
+                  [
+                    "modules",
+                    []
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "SUBSCRIBE",
+                "foo",
+                "bar"
+              ],
+              "reply": {
+                "push": [
+                  "subscribe",
+                  "foo",
+                  1
+                ]
+              }
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": {
+                "push": [
+                  "subscribe",
+                  "bar",
+                  2
+                ]
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "UNSUBSCRIBE",
+                "bar"
+              ],
+              "reply": {
+                "error": "ERR Command not allowed inside a transaction"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "EXEC"
+              ],
+              "reply": {
+                "error": "EXECABORT Transaction discarded because of previous errors."
+              }
+            }
+          ]
+        },
+        "redis": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/redis74/src/redis-server",
+            "--port",
+            "20500",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "docs/multifix/pre/MULTI-POLICY-REFUSAL/redis",
+            "--enable-debug-command",
+            "yes"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "k",
+                "v"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "FLUSHALL"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "EXEC"
+              ],
+              "reply": [
+                {
+                  "simple": "OK"
+                }
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "DBSIZE"
+              ],
+              "reply": 0
+            },
+            {
+              "c": "b",
+              "send": [
+                "HELLO",
+                "3"
+              ],
+              "compare": false,
+              "reply": {
+                "map": [
+                  [
+                    "server",
+                    "redis"
+                  ],
+                  [
+                    "version",
+                    "7.4.10"
+                  ],
+                  [
+                    "proto",
+                    3
+                  ],
+                  [
+                    "id",
+                    5
+                  ],
+                  [
+                    "mode",
+                    "standalone"
+                  ],
+                  [
+                    "role",
+                    "master"
+                  ],
+                  [
+                    "modules",
+                    []
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "SUBSCRIBE",
+                "foo",
+                "bar"
+              ],
+              "reply": {
+                "push": [
+                  "subscribe",
+                  "foo",
+                  1
+                ]
+              }
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": {
+                "push": [
+                  "subscribe",
+                  "bar",
+                  2
+                ]
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "UNSUBSCRIBE",
+                "bar"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "EXEC"
+              ],
+              "reply": [
+                {
+                  "push": [
+                    "unsubscribe",
+                    "bar",
+                    1
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "verdict": {
+        "2s": "DIFFERENT",
+        "1s": "DIFFERENT"
+      }
+    }
+  }
+}

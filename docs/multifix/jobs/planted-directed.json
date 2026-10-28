@@ -1,0 +1,43 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "40-47",
+    "--load-cores",
+    "32,33,34,35,36,37,38,39",
+    "--load-smt",
+    "",
+    "--ports",
+    "20540-20549",
+    "--candidate-binary",
+    "/home/user/Projects/cx-multifix/build/multifix/tomokv-regression"
+  ],
+  "cwd": "/home/user/Projects/cx-multifix",
+  "env": {
+    "LANG": "en_US.UTF-8",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_ONLY_JOBS": "multifix-1s-uring multifix-1s-epoll multifix-2s-uring multifix-2s-epoll",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_ZC_NET_IO": "uring",
+    "GATE_SHUTDOWN_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TEST_PORT": "20598",
+    "GATE_LEDGER": "/home/user/Projects/cx-multifix/docs/multifix/jobs/planted-directed.tsv"
+  },
+  "binary_sha256": "1e5222abadeadf68bcd878b084c11c9d5be094aaf6fb9aa8220898dbf7c71009",
+  "source_commit": "01fabda27b09b528c995fa2339e98154e9f975ae",
+  "gate_sha256": "81e88029b86c013f6aac852fe752c543ac7a2795142c6433da2cad27edf77ae7",
+  "started": 1793091414.673469,
+  "exit": 1,
+  "seconds": 517.629896402359,
+  "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.UVwk6Q",
+  "summary": [
+    "GATE(PARTIAL): 1 ok, 24 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/planted-directed.tsv.partial"
+  ],
+  "binary_unchanged": true
+}

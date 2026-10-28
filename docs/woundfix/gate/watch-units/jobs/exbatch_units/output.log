@@ -1,0 +1,6 @@
+  row budget: 900s; median=19s; correctness-plan-fallback; exbatch publication unit + negative controls
+  exbatch publication unit + negative controls         ok
+  row budget: 900s; median=-s; correctness-plan-fallback; exbatch watch unit + negative controls
+  exbatch watch unit + negative controls               ok
+  row budget: 900s; median=18.87s; correctness-plan-fallback; exbatch metadata unit + negative controls
+  exbatch metadata unit + negative controls            ok

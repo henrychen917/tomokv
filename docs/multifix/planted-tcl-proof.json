@@ -1,0 +1,140 @@
+{
+  "binary_sha256": "1e5222abadeadf68bcd878b084c11c9d5be094aaf6fb9aa8220898dbf7c71009",
+  "failures": [
+    {
+      "mode": "1s",
+      "unit": "unit/other",
+      "name": "RESET clears and discards MULTI state",
+      "status": "err",
+      "data": "RESET clears and discards MULTI state in tests/unit/other.tcl\nExpected 'OK RESET' to match '*EXEC without MULTI*' (context: type eval line 7 cmd {assert_match {*EXEC without MULTI*} $err} proc ::test) "
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/type/set",
+      "name": "SMOVE only notify dstset when the addition is successful",
+      "status": "err",
+      "data": "SMOVE only notify dstset when the addition is successful in tests/unit/type/set.tcl\nExpected '1' to be equal to '2' (context: type eval line 19 cmd {assert_equal $res 2} proc ::test)"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/slowlog",
+      "name": "SLOWLOG - EXEC is not logged, just executed commands",
+      "status": "err",
+      "data": "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl\nExpected '0' to be equal to '1' (context: type eval line 8 cmd {assert_equal [r slowlog len] 1} proc ::test)"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/pause",
+      "name": "Test both active and passive expires are skipped during client pause",
+      "status": "err",
+      "data": "Test both active and passive expires are skipped during client pause in tests/unit/pause.tcl\nn subcommand 'PAUSE'. Try CLIENT HELP.\nERR unknown subcommand 'PAUSE'. Try CLIENT HELP.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r exec\"\n    (\"uplevel\" body line 7)\n    invoked from within\n\"uplevel 1 $code\""
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/pause",
+      "name": "Test that client pause starts at the end of a transaction",
+      "status": "err",
+      "data": "Test that client pause starts at the end of a transaction in tests/unit/pause.tcl\nn subcommand 'PAUSE'. Try CLIENT HELP.\nERR unknown subcommand 'PAUSE'. Try CLIENT HELP.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r exec\"\n    (\"uplevel\" body line 6)\n    invoked from within\n\"uplevel 1 $code\""
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/pause",
+      "name": "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write",
+      "status": "err",
+      "data": "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write in tests/unit/pause.tcl\nn subcommand 'pause'. Try CLIENT HELP.\nERR unknown subcommand 'pause'. Try CLIENT HELP.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r exec\"\n    (\"uplevel\" body line 7)\n    invoked from within\n\"uplevel 1 $code\""
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/pause",
+      "name": "Test write multi-execs are blocked by pause RO",
+      "status": "err",
+      "data": "Test write multi-execs are blocked by pause RO in tests/unit/pause.tcl\nTimeout waiting for blocked clients"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/pause",
+      "name": "Test write scripts in multi-exec are blocked by pause RO",
+      "status": "err",
+      "data": "Test write scripts in multi-exec are blocked by pause RO in tests/unit/pause.tcl\nTimeout waiting for blocked clients"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/other",
+      "name": "RESET clears and discards MULTI state",
+      "status": "err",
+      "data": "RESET clears and discards MULTI state in tests/unit/other.tcl\nExpected 'OK RESET' to match '*EXEC without MULTI*' (context: type eval line 7 cmd {assert_match {*EXEC without MULTI*} $err} proc ::test) "
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/type/set",
+      "name": "SMOVE only notify dstset when the addition is successful",
+      "status": "err",
+      "data": "SMOVE only notify dstset when the addition is successful in tests/unit/type/set.tcl\nExpected '1' to be equal to '2' (context: type eval line 19 cmd {assert_equal $res 2} proc ::test)"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/slowlog",
+      "name": "SLOWLOG - EXEC is not logged, just executed commands",
+      "status": "err",
+      "data": "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl\nExpected '0' to be equal to '1' (context: type eval line 8 cmd {assert_equal [r slowlog len] 1} proc ::test)"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/pause",
+      "name": "Test both active and passive expires are skipped during client pause",
+      "status": "err",
+      "data": "Test both active and passive expires are skipped during client pause in tests/unit/pause.tcl\nn subcommand 'PAUSE'. Try CLIENT HELP.\nERR unknown subcommand 'PAUSE'. Try CLIENT HELP.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r exec\"\n    (\"uplevel\" body line 7)\n    invoked from within\n\"uplevel 1 $code\""
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/pause",
+      "name": "Test that client pause starts at the end of a transaction",
+      "status": "err",
+      "data": "Test that client pause starts at the end of a transaction in tests/unit/pause.tcl\nn subcommand 'PAUSE'. Try CLIENT HELP.\nERR unknown subcommand 'PAUSE'. Try CLIENT HELP.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r exec\"\n    (\"uplevel\" body line 6)\n    invoked from within\n\"uplevel 1 $code\""
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/pause",
+      "name": "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write",
+      "status": "err",
+      "data": "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write in tests/unit/pause.tcl\nn subcommand 'pause'. Try CLIENT HELP.\nERR unknown subcommand 'pause'. Try CLIENT HELP.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r exec\"\n    (\"uplevel\" body line 7)\n    invoked from within\n\"uplevel 1 $code\""
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/pause",
+      "name": "Test write multi-execs are blocked by pause RO",
+      "status": "err",
+      "data": "Test write multi-execs are blocked by pause RO in tests/unit/pause.tcl\nTimeout waiting for blocked clients"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/pause",
+      "name": "Test write scripts in multi-exec are blocked by pause RO",
+      "status": "err",
+      "data": "Test write scripts in multi-exec are blocked by pause RO in tests/unit/pause.tcl\nTimeout waiting for blocked clients"
+    }
+  ],
+  "watch_arming": {
+    "1s": [
+      {
+        "attempt": 1,
+        "shards": [
+          7,
+          7
+        ],
+        "armed": true
+      }
+    ],
+    "2s": [
+      {
+        "attempt": 1,
+        "shards": [
+          10,
+          10
+        ],
+        "armed": true
+      }
+    ]
+  },
+  "gate_receipt": "docs/multifix/jobs/planted-tcl.json"
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "path": "gate-build.txt",
+    "bytes": 36,
+    "sha256": "68c5f548009ee20966e380682cc0b78f39bea9c8895af0403577a7204fef2e99"
+  },
+  {
+    "path": "output.log",
+    "bytes": 211,
+    "sha256": "c62d612287e23dbc56cd185dacfa158f6918aa448ad7f7eb5ed39d511da20680"
+  }
+]

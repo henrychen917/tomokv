@@ -1,0 +1,11 @@
+{
+  "total": 211,
+  "functions": {
+    "tomo::protofix_parse_scope(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, tomo::Op*, unsigned int)": 211
+  },
+  "bodies": {
+    "0x2d80 tomo::protofix_parse_scope(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, tomo::Op*, unsigned int)": 211
+  },
+  "excluded": {},
+  "clock_calls": 0
+}

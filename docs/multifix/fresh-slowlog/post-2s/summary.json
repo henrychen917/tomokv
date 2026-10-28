@@ -1,0 +1,577 @@
+{
+  "mode": "2s",
+  "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+  "redis_version": "#define REDIS_VERSION \"7.4.10\"\n#define REDIS_VERSION_NUM 0x0007040a\n",
+  "inventory": {
+    "integration/aof-multi-part": "669eda827641c2467cae22c73a175b86f2aab0e5b3066ad86d5b6e1fa0d3d4c6",
+    "integration/aof-race": "67a1e1e6f98851f5c8ffba330a7c74d7a26747ea15964c87d52c6b39615b77f2",
+    "integration/aof": "fd1db0ff80e53817cbf045e10d992b725dcb08d099b782884cd03342a7f63740",
+    "integration/block-repl": "8456b44f9fce1746721a7acd41d8dff94e9407e33a5e6af4e6a43b8e66c5dd6c",
+    "integration/convert-ziplist-hash-on-load": "46f4f88175ab186a8db197c873b862a359ec5dfbafe75854862227c7680a707d",
+    "integration/convert-ziplist-zset-on-load": "dc4cf6f28395b0d18e05d086903d554507afefc4887d472fa8970ea78d5b270e",
+    "integration/convert-zipmap-hash-on-load": "324257d77dcf594b59895d5cd006faefd746154b77d12208e8850bc3751c5989",
+    "integration/corrupt-dump-fuzzer": "0c0794d617e4e7409b91b95046e9ec28cda71268823b18df749424f8758229e0",
+    "integration/corrupt-dump": "d714c9b20a69366aa6dc9c45a3d1e9282b77154350e51145809d19699f607ace",
+    "integration/dismiss-mem": "144ef9ffbb72feb7998d06194111395e9473fff47474ce8343339dd7fcc99529",
+    "integration/failover": "4a6fb7a8738e45cc399e2d60c80fd237b8f1428b019ef99060a80cb35703248c",
+    "integration/logging": "9d6ae0ed01174444d5fa56d702c830fc38ef779b92c858521a0a7757d6468cf5",
+    "integration/psync2-master-restart": "184819d4cfbf546d15867d0173a6ef52945403c1ec21573b3c27236e19fbe256",
+    "integration/psync2-pingoff": "3c98de73fd12bb27e36c8fff0f73d38e4bff5a3fa93d07020f0e9c6a396bb8bb",
+    "integration/psync2-reg": "a2e36a1c2d2c8056db53e02d422bcb8d006665483b2b335afa4c956c52ef89e5",
+    "integration/psync2": "36c69772758b98157a362de7074e2ec7b4687bcad240b4f5335f475bd56a2ebb",
+    "integration/rdb": "467a09e523fa2dff5424a0f337a55c7b58c83780c2c31eda0d19012560fb5d10",
+    "integration/redis-benchmark": "2b8f7a0f51329ce07e78d0f2fd808e0b589d79a239a50f1c007518c3357035da",
+    "integration/redis-cli": "2f0bd535f64bd7b89df756e9a512f7687ff2fa1c41c3f312e65600c9b19aa17d",
+    "integration/replication-2": "0968fc41e109f55e7e55ee7b1b0f805d64e14f3ae9ba1667eaa4ae00ec40fd60",
+    "integration/replication-3": "885d3d9409965bb88115eb326f0cca907b12ca247fb75cdf6ed90d833fdbd742",
+    "integration/replication-4": "2849d82357efeb860e9e4a62e62f0795a5becb74440449b101ce7b7f55085665",
+    "integration/replication-buffer": "fc5dcd630f8a5fad8a6b3fe70971121d76183ea7bab013b09a2bbdd6c5b0536b",
+    "integration/replication-psync": "33b7c4ef2aa207c5940fce4ad3a25144ca6d2aca886adecb7390942b2b983b6c",
+    "integration/replication": "775b8e55488fdee5c8ab50d8b1ba9ea60ee99b10a178955104434c70139a431d",
+    "integration/shutdown": "bfff6f963917a6d65bb6890beec7f8cca7278194a0a86015fac853c275232802",
+    "unit/acl-v2": "51b2b75a6fd3c15c5789cf87ca9cf7aff8506146b9132ca8e5bd83e368112473",
+    "unit/acl": "3df70e0f84ad19789bb6c13cd49a029e2542d0a02bb33f1032860897352c081f",
+    "unit/aofrw": "1a8385f4f85373c66d320ab76b14d429ccde5250fe4a9bd6507f3700e148d4fe",
+    "unit/auth": "8f21e5cb56e2560b77e9912a4f3f268fbac1d49382a3348c14b5d0eb4d4372cd",
+    "unit/bitfield": "df6ea6a1c4d958df994bc57d67ea08bee2c87f23a7201ff048724ce64c6da031",
+    "unit/bitops": "b56448f28413d8dc43c2c376735502b00113e6c802a8390a757144ed4b48ae74",
+    "unit/client-eviction": "8486b0d8d380382ad58be9fd31719e0d37da72a6e3394975092eb1b9a068913d",
+    "unit/cluster/announced-endpoints": "399b4769fa9e414119d2bdef670585fc0dd681239af8954117d8b1404307f8f8",
+    "unit/cluster/cli": "cb1c8be16c4f0f8d4b5d03a1080ba2f129e45694db19df33a56a4584b545dcc9",
+    "unit/cluster/cluster-response-tls": "ffab67fe3d5b7289ca6925a473ebf82d030afd302be8608770d046fdac691a61",
+    "unit/cluster/failure-marking": "42387db660a2282ff9e9316c021af715b76f53b695134d71ddab2df73bce6697",
+    "unit/cluster/hostnames": "f0bca5f7ce5a5ebc19228ed3055a628191f5e31efd46f4ab717369b9ce53de58",
+    "unit/cluster/human-announced-nodename": "f453a0102157d72bd1fd01fb064ec12078fcc448771c719b662969cf83a30900",
+    "unit/cluster/links": "3e60d5bbc45c40d9a47134ef558e8ea500af93b6a0a0c043188912288f651707",
+    "unit/cluster/misc": "36328f910571c7dadc13d96f35ba40df1d366edd43980e2852b534cbfc077a09",
+    "unit/cluster/multi-slot-operations": "5f9d2c45e97276d7ee996d9d7b469ea2ddb0deee6d76eb530b70c4e42c0c47fd",
+    "unit/cluster/scripting": "40e1440a6cfb64a529514060dbf5a2544592ab021c59bad28daba3909ed6a61a",
+    "unit/cluster/sharded-pubsub": "d4717f03c7e1b2b8b28fe64797e60db813c8019cd4681b7e0956f5f00b2e0843",
+    "unit/cluster/slot-ownership": "dd2df4b3134b9b6586ab7736298c3332770caf646fb840d03103d53a96dc1a33",
+    "unit/dump": "555408b130b878fcf705cb295a79fa2b5542ffdc48eb8eabc3de2e3af673fc13",
+    "unit/expire": "6014514d933562501738b0b8b9e03283be884f615689fe15929d629e89c294bc",
+    "unit/functions": "e8244a3b409f6bcd3b7a183301d263d23eb0880ae6d46b4c08b7951ca9203ba2",
+    "unit/geo": "914404066a7aac969349031cd2333dc4d4b4013b5f34686c47cd91eb1215e942",
+    "unit/hyperloglog": "c9ebf02056848c8c9420a02070198cce08e46a71ac9c3a6e7fa7c786701f7b91",
+    "unit/info-command": "e39b27f165651e984dd4a8cd2cc42028a3c86504ef0b17224cb92ccb983e7e33",
+    "unit/info": "285a66f15e1ab5f0bc2238c3e0f36bcee0c8531746975f1d18b36260e8da143b",
+    "unit/introspection-2": "4a4c764022347e9dd3767645a518f9eb13f0f59486bd2855ef5ecea71b6744b7",
+    "unit/introspection": "92fa93cdb4bcb77698c6f516bbed9c7e34cf02d757baa8e40ccf5f1f45dd2e7c",
+    "unit/keyspace": "8192ff3d7a7e7f9e331a7ead1ab973f223810ff732858e4efce139d906691a73",
+    "unit/latency-monitor": "9a037cb9359858b12570c8e8400ddb6fc80a8ab28d0246de20081f80823be9dc",
+    "unit/lazyfree": "eba91cd10e83918dcea0101e4d20a6cd3a12ffdbce15f4c5a6992f0c09bcea89",
+    "unit/limits": "d6d30aa6ecd1796f561fc86552c44608d7a131f72f14c435ede454d551bd2ebd",
+    "unit/maxmemory": "f6692b11f86b682e05c5527fc0b4c94b87f632563345b7b1980f95481f4fc653",
+    "unit/memefficiency": "015fcdd06cfc3e397d0fcf06867977f788f8d8f0e42eec79718b192eed369a6e",
+    "unit/moduleapi/aclcheck": "9c99a98806d13db073a8af4be24ca8862c319927770b4173b5dfdd66fcaa2522",
+    "unit/moduleapi/async_rm_call": "4aa780bc9f302afec8fa004cf4aa5f8e4169cd042402eec7ccd86d8016fcc9b0",
+    "unit/moduleapi/auth": "e1ee2420565c8fefdbddbbce37955df647c7a14d749d8dd67112c755160f3092",
+    "unit/moduleapi/basics": "6439773083ad2efbf72e7cdbb21f3c814c0d486c8d724429f7fa20d6466fab3c",
+    "unit/moduleapi/blockedclient": "ac79abefd82725547072ed753e8e24c1707c2bb576b228c49886f260aff3a669",
+    "unit/moduleapi/blockonbackground": "57d0b6757fd51a9ed6fc03370f13e8b30acec4888bdb109459ad0ec58fa47071",
+    "unit/moduleapi/blockonkeys": "60a3d59c6bd3690d78f03c1247538558bbd167b4c54b92c807c35db540c28d75",
+    "unit/moduleapi/cluster": "2bfcf1c00fcb57b35d50bd9032a5117a60ef150706708f0c2023e115103faaac",
+    "unit/moduleapi/cmdintrospection": "7aa8b2839f5a9bba914d69b6504b446834a372bfb7fa5641e0c061d0391936a9",
+    "unit/moduleapi/commandfilter": "231423893014bef548cd843cca19af1976b65030fa76379d704e76666a716984",
+    "unit/moduleapi/crash": "c54d7d6ee823d8338f8dbab22adf5ea178a353e452a72575a6c0c905bb61a648",
+    "unit/moduleapi/datatype": "75e8eefffeaa0eefe637752158d02cfd44090aa40e8aa41cc9909b02804d5e72",
+    "unit/moduleapi/datatype2": "a424dd07d67825fdc90cdfd2ed518a38b87cdc562b1153ee465c5146caa777eb",
+    "unit/moduleapi/defrag": "d17f551dbd83e43ca7c20ca457d062bb1aa78cd1fffc3419325bf94bd95ee470",
+    "unit/moduleapi/eventloop": "dfa876899b476f96161247c3c915bf682d1e77584f1ee04b25d5755918074115",
+    "unit/moduleapi/fork": "d34214f78d6ee8cb321ad29df98a536575c7b09a6104296aa869c73d06aa6253",
+    "unit/moduleapi/getchannels": "ede71bbb44a4a48d605a66d1ea7419b6adbe7bf588e5af603956030db2028de9",
+    "unit/moduleapi/getkeys": "8b9272fdd578e4fe7e0b4a7e906bb478b98c75551c0c63c82915b371fa9a6493",
+    "unit/moduleapi/hash": "c49839e887be774c6b86810f8f77438efd925ba1c9c21e1605ff4ea34d2055b6",
+    "unit/moduleapi/hooks": "06d47535e73918640ba78c58840133921836bc31dfea2a46e0877ebfa47d5beb",
+    "unit/moduleapi/infotest": "b7ed6b087e5bd051936230505f8dd885e1fd1fbaa1db135c2c47ab303afdc854",
+    "unit/moduleapi/infra": "9468043f7cb7850c75df4f546d2e3d756800138ca166d8ba8caddcc2b6e02cf4",
+    "unit/moduleapi/keyspace_events": "bc884d9b71ec891718077a46fdbdbb0cca708efb73d56e5dbb29e0ab375761f7",
+    "unit/moduleapi/keyspecs": "1d44c1c6f7f46a58183c54ef2c3e50707a5cfdb1c68e1395b59b680a957aaee9",
+    "unit/moduleapi/list": "28ff79b945354eae3a2e3a6f8364f8319a48c14c22637963cbb04929724348f3",
+    "unit/moduleapi/mallocsize": "a79673b42947505711d793a0063279831bd6cbc45f15c2a59104b350172fde2c",
+    "unit/moduleapi/misc": "cc2635ca52ac0b15014c609e287413cbc970795e1f777c1d4636c044f5ea97e7",
+    "unit/moduleapi/moduleauth": "b53dc547b81011a22e0fdb13cb491d3bcd5a8aeee001c25b3b549bf7fe183cf1",
+    "unit/moduleapi/moduleconfigs": "67ee7875b2c823be794b55e60f09fc6b01b5b4e0bcd8d10f0cf7e7300612b3b2",
+    "unit/moduleapi/postnotifications": "f30c8f8202ceb4ebec1a23fd01137707d64b1ca68a816cb3c80e3000d54ba456",
+    "unit/moduleapi/propagate": "c89b6897f2fdbe5b472eeab254cfe5bf9f06e994071af6395552686f126b1bc4",
+    "unit/moduleapi/publish": "39a2579859ad4ba542a2c0e92c33243db8327feedb8125f745af3da6a0899270",
+    "unit/moduleapi/rdbloadsave": "4ca4a0ef108b8943a624bc2ee89a4f3bde64f7002f8b98bdb0926532afe1e766",
+    "unit/moduleapi/reply": "bf122dd255fcdab9b0418489d86eee897af9094d1a625bd273995d70252a369f",
+    "unit/moduleapi/scan": "08b348d96fcd64a4c5d7c30ec44b14c43c50a339138df829173d41e7b4c4d367",
+    "unit/moduleapi/stream": "e742a28316d93af0bd420f4f01c2f87d24f0e7a51adb9c5532ec157199c3deab",
+    "unit/moduleapi/subcommands": "ee420445dfb07e5597230705fa0b310d1890906513e32435084aff9c5d04b3b6",
+    "unit/moduleapi/test_lazyfree": "372cf0a9f8c4ddb9309f1ccf0f2fe30f065a4c6bd5a50eee7f0268b6f15ab4be",
+    "unit/moduleapi/testrdb": "e7bd1baa2016686758ddb5e0974d1d101a86a8373901e10f7106c99dd47b93d2",
+    "unit/moduleapi/timer": "19605895387e47b9ff5330d9145e064e4991956f0548a0098a6750f38227348c",
+    "unit/moduleapi/usercall": "8a2466fe51a9609cd01f5f5cb4834bb4501d2adfe8cc22225c490721ea9ab799",
+    "unit/moduleapi/zset": "70c8a689ed38d22379ad1dff4580630dfdff9615be93a792ef59c0372180c22a",
+    "unit/multi": "f994cb2f460e1478036f9b151db9e80d06af57d58e4173bb411580be35d3ce2b",
+    "unit/networking": "6e2151caaa15ed6a3a2613161c2c0cd6ca99d957ceb6268ba58cd1f3f83ed897",
+    "unit/obuf-limits": "0534fd346a0b2e8f5a267f637d9f89df042562a1b2b09464fb55f4e429e9d000",
+    "unit/oom-score-adj": "8f8eb39b6ad82b05c680b3201e71612187e0784693f95fddd6cb2a6d96fa1c05",
+    "unit/other": "d268422d7e1b41c88ac0429681db2ad453dcaef6aacd1d708d3d1ea966d2662a",
+    "unit/pause": "ab08200bf658762cbe77f8a910ff7f25d224d5581200a328a2cca72fc798bc95",
+    "unit/printver": "5ac5139d52011f72535c3149a8c3d0b3e36306797e7e69480a5229b7cd02a9fe",
+    "unit/protocol": "bc82b5dfec3df4342b9bdabf3725524ea2d0842f484f31475402bee23bd5cea6",
+    "unit/pubsub": "9d1d72ed2de74741ec115ab85024b0f9b2c5641cd67da1f491a6fb3ca83e5c32",
+    "unit/pubsubshard": "3dcd6bf6811905c0c36a149fa651a375a3418b031104483ae28ef34ced9700bf",
+    "unit/querybuf": "95d9423ad12ae4bc03b84b4b0557a2ee77c9d765a65c765ccd65a4d8f64218e1",
+    "unit/quit": "5e8f85861ac0fab649074e7b964d1d2142ff73c33ada4639b82286401499e43a",
+    "unit/replybufsize": "b5a869413933948e3653227e2e24bcda16f9b33ca3866e43b7bd508831fcf892",
+    "unit/scan": "b9ec63e79d4cf50715df70bef6fdeb56c1d90d5eb0bbc69419c6b3ef45deeb3c",
+    "unit/scripting": "badfa79dd4e0fe07fcc6335b8e2b5d553d812813cfd2ca89a9e0601ef7ac2852",
+    "unit/shutdown": "b2acf289c2f950cf8f68f2131532512c625d963ad4815357f0a2e8b4a79eae27",
+    "unit/slowlog": "065eb61bfd9ac4f2168c9900f8f5774a18b492f0d60c3a8228c8d7085f3747fd",
+    "unit/sort": "1f420e031d3364ef31689af23c05c34dfee1589d677337f96640c913c7b5ec05",
+    "unit/tls": "25895698ee389c5719f340493b0df0d94774f00ba8b6fe35733c4fee689e20fb",
+    "unit/tracking": "c22716470efe75b0e2d9ea9bf8a30a1227167210c47299ef98aff188ab6553de",
+    "unit/type/hash-field-expire": "c728e2ae8a4da116556401ba5e274635ea2877968e61c9f15416f3c2c049192b",
+    "unit/type/hash": "71ed7171f208d0fcd74b9937882f787c258d66bf509c79b86ba273c75f72db82",
+    "unit/type/incr": "1ad750b56804317bf722ff2e6f902d7b29a5bb1dc3002109bd5f5c3c79a96505",
+    "unit/type/list-2": "eaf1a48a09785b2a876cd3d79941f239ef2ecd1ea661550831fe37ba52746a9e",
+    "unit/type/list-3": "e5237bceebcd7947340370e594db9e0138c0b21d1d240a0f885ddd557574f29c",
+    "unit/type/list": "d6561e1a61fcf7648b3a36b714c016a053394c85b461b3e2681a8da67c26bcc1",
+    "unit/type/set": "651ecbfded23588aa44a99aa05ad3fc244af678858376b41152be3fe5b7792a3",
+    "unit/type/stream-cgroups": "3c701f4315918a9038d63542733806e611603189d4024ce403f501361d710d86",
+    "unit/type/stream": "61f3b2f0971b47e148508d1b63672b78fb1b5ac61066c2756f7014d9a4bfdf67",
+    "unit/type/string": "c93d0fe15783ef8a2d621066b7a0b386bb6a995dfdc536a40653bf095fa26b6d",
+    "unit/type/zset": "2a409e7625fd8244a1de5007db26158a5a231640afd3d9b758b83deee50e443d",
+    "unit/violations": "9dd152bbc556065d7631d104c0c42c984c21700f1745846e4dcdc5eb24be5a8e",
+    "unit/wait": "13a6c3161bacddad2230db6a457e417e3e7de986eb92502a977dfe88bcc854eb"
+  },
+  "rows": [
+    {
+      "file": "unit/slowlog",
+      "mode": "2s",
+      "passed": 7,
+      "failed": 0,
+      "skipped": 29,
+      "teardown_exceptions": 2,
+      "complete": true,
+      "exit_code": 0,
+      "error": null,
+      "seconds": 1.040582043118775,
+      "server_argv": [
+        "taskset",
+        "-c",
+        "40-47",
+        "/home/user/Projects/cx-multifix/build/multifix/tomokv-post",
+        "--port",
+        "20540",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-multifix/docs/multifix/fresh-slowlog/post-2s/unit/slowlog/data",
+        "--enable-debug-command",
+        "yes",
+        "--thread-mode",
+        "2s",
+        "--shards",
+        "16",
+        "--databases",
+        "16",
+        "--ratio",
+        "6:2"
+      ],
+      "suite_argv": [
+        "taskset",
+        "-c",
+        "40-47",
+        "./runtest",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "20540",
+        "--singledb",
+        "--clients",
+        "1",
+        "--baseport",
+        "20542",
+        "--portcount",
+        "1",
+        "--single",
+        "unit/slowlog",
+        "--durable",
+        "--timeout",
+        "60",
+        "--dont-clean",
+        "--dont-pre-clean",
+        "--skipfile",
+        "/home/user/Projects/cx-multifix/docs/multifix/fresh-slowlog/post-2s/unit/slowlog/skip.txt"
+      ],
+      "server_exit": 0,
+      "smove_layout_attempts": [],
+      "events": [
+        {
+          "status": "ready",
+          "file": "",
+          "test": "",
+          "data": "3508023",
+          "milliseconds": "0"
+        },
+        {
+          "status": "testing",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "SLOWLOG - check that it starts with an empty log in tests/unit/slowlog.tcl",
+          "data": "SLOWLOG - check that it starts with an empty log",
+          "milliseconds": "0"
+        },
+        {
+          "status": "ok",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "SLOWLOG - check that it starts with an empty log in tests/unit/slowlog.tcl",
+          "data": "SLOWLOG - check that it starts with an empty log",
+          "milliseconds": "0"
+        },
+        {
+          "status": "testing",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "SLOWLOG - only logs commands taking more time than specified in tests/unit/slowlog.tcl",
+          "data": "SLOWLOG - only logs commands taking more time than specified",
+          "milliseconds": "0"
+        },
+        {
+          "status": "ok",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "SLOWLOG - only logs commands taking more time than specified in tests/unit/slowlog.tcl",
+          "data": "SLOWLOG - only logs commands taking more time than specified",
+          "milliseconds": "200"
+        },
+        {
+          "status": "testing",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "SLOWLOG - zero max length is correctly handled in tests/unit/slowlog.tcl",
+          "data": "SLOWLOG - zero max length is correctly handled",
+          "milliseconds": "0"
+        },
+        {
+          "status": "ok",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "SLOWLOG - zero max length is correctly handled in tests/unit/slowlog.tcl",
+          "data": "SLOWLOG - zero max length is correctly handled",
+          "milliseconds": "2"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - max entries is correctly handled",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - GET optional argument to limit output len works",
+          "milliseconds": "0"
+        },
+        {
+          "status": "testing",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "SLOWLOG - RESET subcommand works in tests/unit/slowlog.tcl",
+          "data": "SLOWLOG - RESET subcommand works",
+          "milliseconds": "0"
+        },
+        {
+          "status": "ok",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "SLOWLOG - RESET subcommand works in tests/unit/slowlog.tcl",
+          "data": "SLOWLOG - RESET subcommand works",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - logged entry sanity check",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - Certain commands are omitted that contain sensitive information",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - Some commands can redact sensitive fields",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - Rewritten commands are logged as their original command",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - commands with too many arguments are trimmed",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - too long arguments are trimmed",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - EXEC is not logged, just executed commands",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - can clean older entries",
+          "milliseconds": "0"
+        },
+        {
+          "status": "testing",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "SLOWLOG - can be disabled in tests/unit/slowlog.tcl",
+          "data": "SLOWLOG - can be disabled",
+          "milliseconds": "0"
+        },
+        {
+          "status": "ok",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "SLOWLOG - can be disabled in tests/unit/slowlog.tcl",
+          "data": "SLOWLOG - can be disabled",
+          "milliseconds": "401"
+        },
+        {
+          "status": "testing",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "SLOWLOG - count must be >= -1 in tests/unit/slowlog.tcl",
+          "data": "SLOWLOG - count must be >= -1",
+          "milliseconds": "0"
+        },
+        {
+          "status": "ok",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "SLOWLOG - count must be >= -1 in tests/unit/slowlog.tcl",
+          "data": "SLOWLOG - count must be >= -1",
+          "milliseconds": "1"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - get all slow logs",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - blocking command is reported only after unblocked",
+          "milliseconds": "0"
+        },
+        {
+          "status": "done",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "unit/slowlog",
+          "milliseconds": "0"
+        },
+        {
+          "status": "exception",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+          "milliseconds": "0"
+        },
+        {
+          "status": "ready",
+          "file": "",
+          "test": "",
+          "data": "3510946",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - check that it starts with an empty log",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - only logs commands taking more time than specified",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - zero max length is correctly handled",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - max entries is correctly handled",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - GET optional argument to limit output len works",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - RESET subcommand works",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - logged entry sanity check",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - Certain commands are omitted that contain sensitive information",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - Some commands can redact sensitive fields",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - Rewritten commands are logged as their original command",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - commands with too many arguments are trimmed",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - too long arguments are trimmed",
+          "milliseconds": "0"
+        },
+        {
+          "status": "testing",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl",
+          "data": "SLOWLOG - EXEC is not logged, just executed commands",
+          "milliseconds": "0"
+        },
+        {
+          "status": "ok",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl",
+          "data": "SLOWLOG - EXEC is not logged, just executed commands",
+          "milliseconds": "201"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - can clean older entries",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - can be disabled",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - count must be >= -1",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - get all slow logs",
+          "milliseconds": "0"
+        },
+        {
+          "status": "skip",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "SLOWLOG - blocking command is reported only after unblocked",
+          "milliseconds": "0"
+        },
+        {
+          "status": "done",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "unit/slowlog",
+          "milliseconds": "0"
+        },
+        {
+          "status": "exception",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "",
+          "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+          "milliseconds": "0"
+        }
+      ],
+      "fresh_runs": [
+        {
+          "test": "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl",
+          "result": "/home/user/Projects/cx-multifix/docs/multifix/fresh-slowlog/post-2s/unit/slowlog/fresh/0/unit/slowlog/result.json",
+          "error": null,
+          "exit_code": 0
+        }
+      ],
+      "skip_tests": [
+        "SLOWLOG - Certain commands are omitted that contain sensitive information",
+        "SLOWLOG - GET optional argument to limit output len works",
+        "SLOWLOG - Rewritten commands are logged as their original command",
+        "SLOWLOG - Some commands can redact sensitive fields",
+        "SLOWLOG - blocking command is reported only after unblocked",
+        "SLOWLOG - can clean older entries",
+        "SLOWLOG - commands with too many arguments are trimmed",
+        "SLOWLOG - get all slow logs",
+        "SLOWLOG - logged entry sanity check",
+        "SLOWLOG - max entries is correctly handled",
+        "SLOWLOG - too long arguments are trimmed"
+      ],
+      "setup_errors": []
+    }
+  ]
+}

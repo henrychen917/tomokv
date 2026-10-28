@@ -1,0 +1,46 @@
+[
+  {
+    "name": "remaining-split-gate",
+    "jobs": "slotless debug-0 debug-1 feature-split-1 atomic_batteries",
+    "fused": "0",
+    "argv": [
+      "bash",
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "16-23",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "24-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "44820-44849"
+    ],
+    "exit": 1,
+    "seconds": 337.67086368612945
+  },
+  {
+    "name": "remaining-fused-gate",
+    "jobs": "debug-0 debug-1 atomic_batteries asan_batteries",
+    "fused": "1",
+    "argv": [
+      "bash",
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "16-23",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "24-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "44820-44849"
+    ],
+    "exit": 0,
+    "seconds": 260.1359983757138
+  }
+]

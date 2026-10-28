@@ -1,0 +1,47 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "72-79",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "64,65,66,67,68,69,70,71,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95",
+    "--load-smt",
+    "",
+    "--ports",
+    "20040-20049",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave9/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave9",
+  "env": {
+    "LANG": "en_US.UTF-8",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "debug-0 debug-1 script_bounds notify asan_batteries atomic_batteries release_batteries",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_ZC_NET_IO": "uring",
+    "GATE_SHUTDOWN_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TXN_FUSED": "1",
+    "GATE_TEST_PORT": "20098",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave9/docs/wave9/jobs/final-mode-uring-1s.tsv",
+    "GATE_ASAN_BINARY": "/home/user/Projects/cx-wave9/build/tomokv-wave9-ASAN"
+  },
+  "binary_sha256": "2d1b626ac7ba7769d00bd5c0a16693fb928a9c2b3d0a488d41b3f7c8df51fb40",
+  "source_commit": "58852a0f1b91df6b6e8a6f8193da657818f40c45",
+  "source_diff_sha256": "0ae0a99c2cb0f4ef5491d50a0107d35bb540ee0cae1ba0986abb08df1ede6421",
+  "gate_sha256": "ebe133520f698f591a0e5b3893e2d64c866ad562efdd345879b55a3e9f01de03",
+  "started": 1793157300.3398378,
+  "exit": 0,
+  "seconds": 323.6311147212982,
+  "artifacts": "/home/user/Projects/cx-wave9/build/gate-run.IRYwKh",
+  "summary": [
+    "GATE(PARTIAL): 59 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave9/docs/wave9/jobs/final-mode-uring-1s.tsv.partial"
+  ],
+  "binary_unchanged": true
+}

@@ -1,0 +1,86 @@
+tomo::(anonymous namespace)::stream_snapshot_begin(tomo::KvObj const&, tomo::SnapshotSaveCursor&, unsigned char&) [clone .cold]
+--- streamfix
+
++++ post
+
+@@ -1,42 +1,42 @@
+
+ CLONE 0 0000 [ 4] lea -0x50(%rbp),%rdi
+ CLONE 0 0004 [ 3] vzeroupper
+ CLONE 0 0007 [ 5] call <std::vector<tomo::Slice, std::allocator<tomo::Slice> >::~vector()>
+-CLONE 0 000c [ 3] mov %r13,%rdi
++CLONE 0 000c [ 3] mov %r12,%rdi
+ CLONE 0 000f [ 5] call <std::vector<tomo::Slice, std::allocator<tomo::Slice> >::~vector()>
+-CLONE 0 0014 [ 3] mov %r15,%rdi
+-CLONE 0 0017 [ 5] call <std::vector<tomo::Slice, std::allocator<tomo::Slice> >::~vector()>
+-CLONE 0 001c [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 0020 [ 9] sub %fs:0x28,%rax
+-CLONE 0 0029 [ 2] jne <+0x9b>
+-CLONE 0 002b [ 3] mov %rbx,%rdi
+-CLONE 0 002e [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 0033 [ 4] lea -0x50(%rbp),%rdi
+-CLONE 0 0037 [ 3] vzeroupper
+-CLONE 0 003a [ 5] call <std::vector<tomo::Slice, std::allocator<tomo::Slice> >::~vector()>
+-CLONE 0 003f [ 3] mov %r13,%rdi
+-CLONE 0 0042 [ 5] call <std::vector<tomo::Slice, std::allocator<tomo::Slice> >::~vector()>
+-CLONE 0 0047 [ 3] mov %r14,%rdi
+-CLONE 0 004a [ 5] call <std::vector<tomo::Slice, std::allocator<tomo::Slice> >::~vector()>
+-CLONE 0 004f [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 0053 [ 9] sub %fs:0x28,%rax
+-CLONE 0 005c [ 2] jne <+0x96>
+-CLONE 0 005e [ 3] mov %rbx,%rdi
+-CLONE 0 0061 [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 0066 [ 3] dec %rax
+-CLONE 0 0069 [ 2] jne <+0xa0>
++CLONE 0 0014 [ 7] mov -0x180(%rbp),%rdi
++CLONE 0 001b [ 5] call <std::vector<tomo::Slice, std::allocator<tomo::Slice> >::~vector()>
++CLONE 0 0020 [ 4] mov -0x38(%rbp),%rax
++CLONE 0 0024 [ 9] sub %fs:0x28,%rax
++CLONE 0 002d [ 2] jne <+0xa2>
++CLONE 0 002f [ 3] mov %rbx,%rdi
++CLONE 0 0032 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0037 [ 3] dec %rax
++CLONE 0 003a [ 2] jne <+0x9a>
++CLONE 0 003c [ 3] vzeroupper
++CLONE 0 003f [ 5] call <__cxa_begin_catch@plt>
++CLONE 0 0044 [ 5] call <__cxa_end_catch@plt>
++CLONE 0 0049 [ 7] mov -0xe0(%rbp),%rdi
++CLONE 0 0050 [ 7] mov -0xd0(%rbp),%rsi
++CLONE 0 0057 [ 3] sub %rdi,%rsi
++CLONE 0 005a [ 3] test %rdi,%rdi
++CLONE 0 005d [ 2] je <+0xac>
++CLONE 0 005f [ 3] xor %r12d,%r12d
++CLONE 0 0062 [ 5] jmp <tomo::(anonymous namespace)::stream_snapshot_begin(tomo::KvObj const&, tomo::SnapshotSaveCursor&, unsigned char&)+0xabc>
++CLONE 0 0067 [ 4] lea -0x50(%rbp),%rdi
+ CLONE 0 006b [ 3] vzeroupper
+-CLONE 0 006e [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 0073 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 0078 [ 7] mov -0xe0(%rbp),%rdi
+-CLONE 0 007f [ 7] mov -0xd0(%rbp),%rsi
+-CLONE 0 0086 [ 3] sub %rdi,%rsi
+-CLONE 0 0089 [ 3] test %rdi,%rdi
+-CLONE 0 008c [ 2] je <+0xa8>
+-CLONE 0 008e [ 3] xor %r12d,%r12d
+-CLONE 0 0091 [ 5] jmp <tomo::(anonymous namespace)::stream_snapshot_begin(tomo::KvObj const&, tomo::SnapshotSaveCursor&, unsigned char&)+0x96c>
+-CLONE 0 0096 [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 009b [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 00a0 [ 3] mov %rdi,%rbx
+-CLONE 0 00a3 [ 3] vzeroupper
+-CLONE 0 00a6 [ 2] jmp <+0x47>
+-CLONE 0 00a8 [ 5] jmp <tomo::(anonymous namespace)::stream_snapshot_begin(tomo::KvObj const&, tomo::SnapshotSaveCursor&, unsigned char&)+0xade>
++CLONE 0 006e [ 5] call <std::vector<tomo::Slice, std::allocator<tomo::Slice> >::~vector()>
++CLONE 0 0073 [ 3] mov %r12,%rdi
++CLONE 0 0076 [ 5] call <std::vector<tomo::Slice, std::allocator<tomo::Slice> >::~vector()>
++CLONE 0 007b [ 3] mov %r14,%rdi
++CLONE 0 007e [ 5] call <std::vector<tomo::Slice, std::allocator<tomo::Slice> >::~vector()>
++CLONE 0 0083 [ 4] mov -0x38(%rbp),%rax
++CLONE 0 0087 [ 9] sub %fs:0x28,%rax
++CLONE 0 0090 [ 2] jne <+0xa7>
++CLONE 0 0092 [ 3] mov %rbx,%rdi
++CLONE 0 0095 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 009a [ 3] mov %rdi,%rbx
++CLONE 0 009d [ 3] vzeroupper
++CLONE 0 00a0 [ 2] jmp <+0x7b>
++CLONE 0 00a2 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 00a7 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 00ac [ 5] jmp <tomo::(anonymous namespace)::stream_snapshot_begin(tomo::KvObj const&, tomo::SnapshotSaveCursor&, unsigned char&)+0xc36>

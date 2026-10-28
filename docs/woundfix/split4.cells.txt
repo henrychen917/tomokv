@@ -1,0 +1,4 @@
+h17 | 2s | rl=0 | ov=0 | ro=0 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+h18 | 2s | rl=0 | ov=0 | ro=0 | SET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+h49 | 2s | rl=0 | ov=0 | ro=0 | GET | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0
+h50 | 2s | rl=0 | ov=0 | ro=0 | SET | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0

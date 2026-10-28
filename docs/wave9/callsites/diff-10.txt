@@ -1,0 +1,17 @@
+bool tomo::multi_dispatch_attempt<false, tomo::multi_owner_pass_entry_impl<false>(tomo::IoLoop&)::{lambda()#1}>(tomo::Server&, tomo::ThreadCtx&, tomo::ScatterArenaPool&, tomo::Client&, tomo::Op&, tomo::MultiExecState*, unsigned long, bool*, unsigned int*, unsigned int&, tomo::multi_owner_pass_entry_impl<false>(tomo::IoLoop&)::{lambda()#1}&&)
+--- multifix
+
++++ post
+
+@@ -47,8 +47,8 @@
+
+ CLONE 0 00e1 [ 2] jmp <+0xfe>
+ CLONE 0 00e3 [11] data16 cs nopw 0x0(%rax,%rax,1)
+ CLONE 0 00ee [ 2] xchg %ax,%ax
+-CLONE 0 00f0 [ 7] mov 0x250(%rbx),%rax
+-CLONE 0 00f7 [ 7] mov 0x248(%rbx),%rsi
++CLONE 0 00f0 [ 7] mov 0x248(%rbx),%rsi
++CLONE 0 00f7 [ 7] mov 0x250(%rbx),%rax
+ CLONE 0 00fe [ 3] sub %rsi,%rax
+ CLONE 0 0101 [ 4] sar $0x2,%rax
+ CLONE 0 0105 [ 3] cmp %rax,%rdx

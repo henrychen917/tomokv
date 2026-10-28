@@ -1,0 +1,1242 @@
+[
+  {
+    "rep": 0,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20389",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            10,
+            6
+          ],
+          [
+            10,
+            6
+          ],
+          [
+            9,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            12,
+            6
+          ],
+          [
+            12,
+            6
+          ],
+          [
+            9,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ]
+  },
+  {
+    "rep": 1,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20389",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            6,
+            6
+          ],
+          [
+            6,
+            6
+          ],
+          [
+            3,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            9,
+            7
+          ],
+          [
+            9,
+            7
+          ],
+          [
+            12,
+            6
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ]
+  },
+  {
+    "rep": 2,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20389",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            4,
+            6
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            11,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            14,
+            6
+          ],
+          [
+            14,
+            6
+          ],
+          [
+            3,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ]
+  },
+  {
+    "rep": 3,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20389",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            9,
+            7
+          ],
+          [
+            9,
+            7
+          ],
+          [
+            8,
+            6
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            3,
+            7
+          ],
+          [
+            3,
+            7
+          ],
+          [
+            14,
+            6
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ]
+  },
+  {
+    "rep": 4,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20389",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            10,
+            6
+          ],
+          [
+            10,
+            6
+          ],
+          [
+            5,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            10,
+            6
+          ],
+          [
+            10,
+            6
+          ],
+          [
+            3,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ]
+  },
+  {
+    "rep": 5,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20389",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            6,
+            6
+          ],
+          [
+            6,
+            6
+          ],
+          [
+            3,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            9,
+            7
+          ],
+          [
+            9,
+            7
+          ],
+          [
+            0,
+            6
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ]
+  },
+  {
+    "rep": 6,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20389",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            6,
+            6
+          ],
+          [
+            6,
+            6
+          ],
+          [
+            3,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            12,
+            6
+          ],
+          [
+            12,
+            6
+          ],
+          [
+            9,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ]
+  },
+  {
+    "rep": 7,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20389",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            10,
+            6
+          ],
+          [
+            10,
+            6
+          ],
+          [
+            7,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            2,
+            6
+          ],
+          [
+            2,
+            6
+          ],
+          [
+            15,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ]
+  },
+  {
+    "rep": 8,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20389",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            6,
+            6
+          ],
+          [
+            6,
+            6
+          ],
+          [
+            7,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            11,
+            7
+          ],
+          [
+            11,
+            7
+          ],
+          [
+            6,
+            6
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ]
+  },
+  {
+    "rep": 9,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20389",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            10,
+            6
+          ],
+          [
+            10,
+            6
+          ],
+          [
+            7,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            15,
+            7
+          ],
+          [
+            15,
+            7
+          ],
+          [
+            2,
+            6
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ]
+  },
+  {
+    "rep": 10,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20389",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            7,
+            7
+          ],
+          [
+            7,
+            7
+          ],
+          [
+            12,
+            6
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            0,
+            6
+          ],
+          [
+            0,
+            6
+          ],
+          [
+            13,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ]
+  },
+  {
+    "rep": 11,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20389",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            13,
+            7
+          ],
+          [
+            13,
+            7
+          ],
+          [
+            12,
+            6
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            5,
+            7
+          ],
+          [
+            5,
+            7
+          ],
+          [
+            2,
+            6
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ]
+  },
+  {
+    "rep": 12,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20389",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            14,
+            6
+          ],
+          [
+            14,
+            6
+          ],
+          [
+            13,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            0,
+            6
+          ],
+          [
+            0,
+            6
+          ],
+          [
+            13,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ]
+  },
+  {
+    "rep": 13,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20389",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            13,
+            7
+          ],
+          [
+            13,
+            7
+          ],
+          [
+            14,
+            6
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            5,
+            7
+          ],
+          [
+            5,
+            7
+          ],
+          [
+            14,
+            6
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ]
+  },
+  {
+    "rep": 14,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20389",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            4,
+            6
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            9,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            12,
+            6
+          ],
+          [
+            12,
+            6
+          ],
+          [
+            13,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ]
+  },
+  {
+    "rep": 15,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20389",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            10,
+            6
+          ],
+          [
+            10,
+            6
+          ],
+          [
+            1,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            13,
+            7
+          ],
+          [
+            13,
+            7
+          ],
+          [
+            2,
+            6
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ]
+  },
+  {
+    "rep": 16,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20389",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            3,
+            7
+          ],
+          [
+            3,
+            7
+          ],
+          [
+            14,
+            6
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            12,
+            6
+          ],
+          [
+            12,
+            6
+          ],
+          [
+            5,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ]
+  },
+  {
+    "rep": 17,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20389",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            12,
+            6
+          ],
+          [
+            12,
+            6
+          ],
+          [
+            5,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            2,
+            6
+          ],
+          [
+            2,
+            6
+          ],
+          [
+            5,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ]
+  },
+  {
+    "rep": 18,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20389",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            6,
+            6
+          ],
+          [
+            6,
+            6
+          ],
+          [
+            7,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            4,
+            6
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            9,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ]
+  },
+  {
+    "rep": 19,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20389",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            3,
+            7
+          ],
+          [
+            3,
+            7
+          ],
+          [
+            0,
+            6
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            9,
+            7
+          ],
+          [
+            9,
+            7
+          ],
+          [
+            8,
+            6
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ]
+  }
+]

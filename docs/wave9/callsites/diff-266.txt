@@ -1,0 +1,122 @@
+tomo_db0::multi_execute_task(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*, tomo_db0::MultiRetryPromoter const*) [clone .cold]
+--- headline
+
++++ post
+
+@@ -1,57 +1,58 @@
+
+-CLONE 0 0000 [ 5] call <abort@plt>
+-CLONE 0 0005 [ 3] mov %r13,%rdi
+-CLONE 0 0008 [ 3] vzeroupper
+-CLONE 0 000b [ 5] call <std::unique_ptr<tomo_db0::DatabaseMap::Map, std::default_delete<tomo_db0::DatabaseMap::Map> >::~unique_ptr()>
+-CLONE 0 0010 [ 8] cmpq $0x0,-0x1d0(%rbp)
+-CLONE 0 0018 [ 2] je <+0x2a>
+-CLONE 0 001a [ 7] mov -0x1e8(%rbp),%rax
+-CLONE 0 0021 [ 9] mov %rax,%fs:0xfffffffffffffe08
+-CLONE 0 002a [ 8] cmpq $0x0,-0x1c8(%rbp)
+-CLONE 0 0032 [ 2] je <+0x46>
+-CLONE 0 0034 [ 7] mov -0x1e0(%rbp),%rax
+-CLONE 0 003b [ 4] mov %rax,0x10(%r15)
+-CLONE 0 003f [ 7] mov %rax,0x1c0(%r15)
+-CLONE 0 0046 [ 7] lea -0x150(%rbp),%rdi
+-CLONE 0 004d [ 5] call <tomo_db0::NotifyExecutionScope::~NotifyExecutionScope()>
+-CLONE 0 0052 [ 9] movb $0x0,%fs:0xfffffffffffffe10
+-CLONE 0 005b [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 005f [ 9] sub %fs:0x28,%rax
+-CLONE 0 0068 [ 2] jne <+0x72>
+-CLONE 0 006a [ 3] mov %rbx,%rdi
+-CLONE 0 006d [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 0072 [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 0077 [ 5] call <tomo_db0::Server::debug_stall_us(unsigned int)>
+-CLONE 0 007c [ 5] jmp <tomo_db0::multi_execute_task(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*, tomo_db0::MultiRetryPromoter const*)+0x1c1c>
+-CLONE 0 0081 [ 3] mov %r13,%rdi
+-CLONE 0 0084 [ 5] call <tomo_db0::WatchMutationScope::~WatchMutationScope()>
+-CLONE 0 0089 [ 3] test %r14,%r14
+-CLONE 0 008c [ 2] je <+0xa6>
+-CLONE 0 008e [ 7] mov -0x180(%rbp),%rax
+-CLONE 0 0095 [ 9] mov %rax,%fs:0xfffffffffffffe08
+-CLONE 0 009e [ 3] vzeroupper
+-CLONE 0 00a1 [ 5] jmp <+0x10>
+-CLONE 0 00a6 [ 3] vzeroupper
+-CLONE 0 00a9 [ 5] jmp <+0x10>
+-CLONE 0 00ae [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 00b2 [ 9] sub %fs:0x28,%rax
+-CLONE 0 00bb [ 2] jne <+0xfc>
+-CLONE 0 00bd [ 7] mov -0x208(%rbp),%rax
+-CLONE 0 00c4 [ 4] mov %rax,0x0(%r13)
+-CLONE 0 00c8 [ 7] mov -0x218(%rbp),%r9
+-CLONE 0 00cf [ 6] mov -0x1bc(%rbp),%ecx
+-CLONE 0 00d5 [ 7] mov -0x1b0(%rbp),%rsi
+-CLONE 0 00dc [ 7] mov -0x1b8(%rbp),%rdi
+-CLONE 0 00e3 [ 4] lea -0x28(%rbp),%rsp
+-CLONE 0 00e7 [ 1] pop %rbx
+-CLONE 0 00e8 [ 2] pop %r12
+-CLONE 0 00ea [ 2] pop %r13
+-CLONE 0 00ec [ 2] pop %r14
+-CLONE 0 00ee [ 2] pop %r15
+-CLONE 0 00f0 [ 1] pop %rbp
+-CLONE 0 00f1 [ 4] lea -0x10(%r13),%rsp
+-CLONE 0 00f5 [ 2] pop %r13
+-CLONE 0 00f7 [ 5] jmp <tomo_db0::multi_execute_task_tracked(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*, tomo_db0::MultiRetryPromoter const*)>
+-CLONE 0 00fc [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 0101 [ 3] mov %r13,%rdi
+-CLONE 0 0104 [ 5] call <tomo_db0::WatchMutationScope::~WatchMutationScope()>
+-CLONE 0 0109 [ 5] jmp <+0x89>
++CLONE 0 0000 [ 4] mov -0x38(%rbp),%rax
++CLONE 0 0004 [ 9] sub %fs:0x28,%rax
++CLONE 0 000d [ 6] jne <+0xef>
++CLONE 0 0013 [ 7] mov -0x208(%rbp),%rax
++CLONE 0 001a [ 3] mov %rax,(%r10)
++CLONE 0 001d [ 7] mov -0x218(%rbp),%r9
++CLONE 0 0024 [ 6] mov -0x1a4(%rbp),%ecx
++CLONE 0 002a [ 7] mov -0x1b8(%rbp),%rsi
++CLONE 0 0031 [ 7] mov -0x1c0(%rbp),%rdi
++CLONE 0 0038 [ 4] lea -0x28(%rbp),%rsp
++CLONE 0 003c [ 1] pop %rbx
++CLONE 0 003d [ 2] pop %r12
++CLONE 0 003f [ 2] pop %r13
++CLONE 0 0041 [ 2] pop %r14
++CLONE 0 0043 [ 2] pop %r15
++CLONE 0 0045 [ 1] pop %rbp
++CLONE 0 0046 [ 4] lea -0x10(%r13),%rsp
++CLONE 0 004a [ 2] pop %r13
++CLONE 0 004c [ 5] jmp <tomo_db0::multi_execute_task_tracked(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*, tomo_db0::MultiRetryPromoter const*)>
++CLONE 0 0051 [ 7] mov -0x1e8(%rbp),%rdi
++CLONE 0 0058 [ 3] vzeroupper
++CLONE 0 005b [ 5] call <std::unique_ptr<tomo_db0::DatabaseMap::Map, std::default_delete<tomo_db0::DatabaseMap::Map> >::~unique_ptr()>
++CLONE 0 0060 [ 8] cmpq $0x0,-0x1d8(%rbp)
++CLONE 0 0068 [ 2] je <+0x7a>
++CLONE 0 006a [ 7] mov -0x1f0(%rbp),%rax
++CLONE 0 0071 [ 9] mov %rax,%fs:0xfffffffffffffe08
++CLONE 0 007a [ 8] cmpq $0x0,-0x1d0(%rbp)
++CLONE 0 0082 [ 2] jne <+0xd6>
++CLONE 0 0084 [ 7] lea -0x150(%rbp),%rdi
++CLONE 0 008b [ 5] call <tomo_db0::NotifyExecutionScope::~NotifyExecutionScope()>
++CLONE 0 0090 [ 9] movb $0x0,%fs:0xfffffffffffffe10
++CLONE 0 0099 [ 4] mov -0x38(%rbp),%rax
++CLONE 0 009d [ 9] sub %fs:0x28,%rax
++CLONE 0 00a6 [ 2] jne <+0xea>
++CLONE 0 00a8 [ 3] mov %rbx,%rdi
++CLONE 0 00ab [ 5] call <_Unwind_Resume@plt>
++CLONE 0 00b0 [ 7] mov -0x1e8(%rbp),%rdi
++CLONE 0 00b7 [ 5] call <tomo_db0::WatchMutationScope::~WatchMutationScope()>
++CLONE 0 00bc [ 3] test %r14,%r14
++CLONE 0 00bf [ 2] je <+0xf4>
++CLONE 0 00c1 [ 7] mov -0x180(%rbp),%rax
++CLONE 0 00c8 [ 9] mov %rax,%fs:0xfffffffffffffe08
++CLONE 0 00d1 [ 3] vzeroupper
++CLONE 0 00d4 [ 2] jmp <+0x60>
++CLONE 0 00d6 [ 7] mov -0x1e0(%rbp),%rax
++CLONE 0 00dd [ 4] mov %rax,0x10(%r13)
++CLONE 0 00e1 [ 7] mov %rax,0x1c0(%r13)
++CLONE 0 00e8 [ 2] jmp <+0x84>
++CLONE 0 00ea [ 5] call <__stack_chk_fail@plt>
++CLONE 0 00ef [ 5] call <__stack_chk_fail@plt>
++CLONE 0 00f4 [ 3] vzeroupper
++CLONE 0 00f7 [ 5] jmp <+0x60>
++CLONE 0 00fc [ 7] mov -0x1e8(%rbp),%rdi
++CLONE 0 0103 [ 5] call <tomo_db0::WatchMutationScope::~WatchMutationScope()>
++CLONE 0 0108 [ 2] jmp <+0xbc>
++CLONE 0 010a [ 5] call <abort@plt>
++CLONE 0 010f [ 5] call <tomo_db0::Server::debug_stall_us(unsigned int)>
++CLONE 0 0114 [ 5] jmp <tomo_db0::multi_execute_task(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*, tomo_db0::MultiRetryPromoter const*)+0x1e2b>

@@ -1,0 +1,22 @@
+{
+  "headline": {
+    "quick": 807,
+    "full": 824
+  },
+  "integration": {
+    "quick": 881,
+    "full": 898
+  },
+  "delta": {
+    "quick": 74,
+    "full": 74
+  },
+  "quick_exit_line": 6078,
+  "protected_assignments": [
+    "EXPECT_QUICK=807",
+    "EXPECT_FULL=824                 # ABBA reports only; self-test remains counted."
+  ],
+  "label_fixture_count": 898,
+  "label_multiset_exact": true,
+  "protected_count_check": "Expected FAIL in real worktree: 807/824 remain maintainer-owned; count-adjusted throwaway passes."
+}

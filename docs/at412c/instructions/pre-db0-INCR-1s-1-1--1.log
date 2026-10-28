@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-at412c/build/at412/commands/pre-db0-INCR-1s-1-1--1.log
+SHA-256: 4295502548f92a9a4d71544ac4b7c1cdf0b467679640c218b9323b84c361ce23
+Exit: 0
+PASS bounded production command scope
+(this=0x7ffff6183208, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2349
+2349	    }
+0x00005555558ad048	2349	    }
+0x00005555558ad051	2349	    }
+0x00005555558ad057	2349	    }
+0x00005555558ad05b	2349	    }
+0x00005555558ad05c	2349	    }
+0x00005555558ad05e	2349	    }
+0x00005555558ad060	2349	    }
+0x00005555558ad062	2349	    }
+0x00005555558ad064	2349	    }
+0x00005555558ad065	2349	    }
+0x0000555555d5fc12 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-at412c/tests/txnorder_command_scope.cc:112
+112	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-at412c/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 1674618) exited normally]
+COUNT 1324

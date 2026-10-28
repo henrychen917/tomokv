@@ -1,0 +1,15 @@
+_GLOBAL__sub_I__ZN4tomo16debug_sleep_execERNS_6ServerERNS_5ShardERSt6atomicIxEj
+--- headline
+
++++ post
+
+@@ -30,7 +30,7 @@
+
+ CLONE 0 00b6 [ 7] lea <rip>(%rip),%rax # <tomo::cmd_acl(tomo::Shard&, tomo::Op&)>
+ CLONE 0 00bd [10] movl $0x8,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0x40>
+ CLONE 0 00c7 [ 7] movb $0x0,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0x44>
+-CLONE 0 00ce [ 7] cmp <rip>(%rip),%rax # <_GLOBAL_OFFSET_TABLE_+0xa50>
++CLONE 0 00ce [ 7] cmp <rip>(%rip),%rax # <_GLOBAL_OFFSET_TABLE_+0xa60>
+ CLONE 0 00d5 [11] movq $0x0,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0x50>
+ CLONE 0 00e0 [ 7] mov %rdi,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0x8>
+ CLONE 0 00e7 [ 7] mov %rcx,<rip>(%rip) # <tomo::(anonymous namespace)::kTable+0x38>

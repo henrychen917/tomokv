@@ -1,0 +1,528 @@
+[
+  {
+    "target": "all",
+    "argv": [
+      "make",
+      "-q",
+      "all"
+    ],
+    "exit": 0,
+    "seconds": 0.04187281336635351,
+    "output": ""
+  },
+  {
+    "target": "build/expire-notify-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/expire-notify-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.0254089729860425,
+    "output": ""
+  },
+  {
+    "target": "build/ktls-lifetime-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/ktls-lifetime-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.03138835169374943,
+    "output": ""
+  },
+  {
+    "target": "build/moverfix-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/moverfix-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.02391838561743498,
+    "output": ""
+  },
+  {
+    "target": "build/moverfix-db0-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/moverfix-db0-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.029233680106699467,
+    "output": ""
+  },
+  {
+    "target": "build/publishfix-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/publishfix-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.022367030382156372,
+    "output": ""
+  },
+  {
+    "target": "build/at15-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/at15-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.02646954543888569,
+    "output": ""
+  },
+  {
+    "target": "build/at15-db0-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/at15-db0-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.028554776683449745,
+    "output": ""
+  },
+  {
+    "target": "build/execabort-watch-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/execabort-watch-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.024098954163491726,
+    "output": ""
+  },
+  {
+    "target": "build/execabort-watch-db0-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/execabort-watch-db0-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.029141041450202465,
+    "output": ""
+  },
+  {
+    "target": "build/core-concurrency-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/core-concurrency-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.021996501833200455,
+    "output": ""
+  },
+  {
+    "target": "build/atomic-survivors-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/atomic-survivors-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.023730107583105564,
+    "output": ""
+  },
+  {
+    "target": "build/txnorder-wake-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/txnorder-wake-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.016304641030728817,
+    "output": ""
+  },
+  {
+    "target": "build/txnorder-episodes",
+    "argv": [
+      "make",
+      "-q",
+      "build/txnorder-episodes"
+    ],
+    "exit": 0,
+    "seconds": 0.024570819921791553,
+    "output": ""
+  },
+  {
+    "target": "build/txnorder-episodes-debug",
+    "argv": [
+      "make",
+      "-q",
+      "build/txnorder-episodes-debug"
+    ],
+    "exit": 0,
+    "seconds": 0.02577236946672201,
+    "output": ""
+  },
+  {
+    "target": "build/txnorder-watch-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/txnorder-watch-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.024402841925621033,
+    "output": ""
+  },
+  {
+    "target": "build/txnorder-watch-db0-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/txnorder-watch-db0-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.028676914982497692,
+    "output": ""
+  },
+  {
+    "target": "build/netcmd-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/netcmd-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.023564479313790798,
+    "output": ""
+  },
+  {
+    "target": "build/encodingfix-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/encodingfix-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.024023763835430145,
+    "output": ""
+  },
+  {
+    "target": "build/netcap-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/netcap-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.024263902567327023,
+    "output": ""
+  },
+  {
+    "target": "build/waits-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/waits-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.014823594130575657,
+    "output": ""
+  },
+  {
+    "target": "build/rehash-waits-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/rehash-waits-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.02313385345041752,
+    "output": ""
+  },
+  {
+    "target": "build/multidb-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/multidb-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.03202568553388119,
+    "output": ""
+  },
+  {
+    "target": "build/multidb-boundary-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/multidb-boundary-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.023112102411687374,
+    "output": ""
+  },
+  {
+    "target": "build/storesize-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/storesize-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.02807283028960228,
+    "output": ""
+  },
+  {
+    "target": "build/respresume-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/respresume-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.01441044732928276,
+    "output": ""
+  },
+  {
+    "target": "build/respresume-migration",
+    "argv": [
+      "make",
+      "-q",
+      "build/respresume-migration"
+    ],
+    "exit": 0,
+    "seconds": 0.023309950716793537,
+    "output": ""
+  },
+  {
+    "target": "build/gaterows5-units",
+    "argv": [
+      "make",
+      "-q",
+      "build/gaterows5-units"
+    ],
+    "exit": 0,
+    "seconds": 0.028243538923561573,
+    "output": ""
+  },
+  {
+    "target": "build/exbatch-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/exbatch-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.024267503060400486,
+    "output": ""
+  },
+  {
+    "target": "build/exbatch-db0-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/exbatch-db0-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.028774743899703026,
+    "output": ""
+  },
+  {
+    "target": "build/wb-rule-units",
+    "argv": [
+      "make",
+      "-q",
+      "build/wb-rule-units"
+    ],
+    "exit": 0,
+    "seconds": 0.029178442433476448,
+    "output": ""
+  },
+  {
+    "target": "build/wbland-units",
+    "argv": [
+      "make",
+      "-q",
+      "build/wbland-units"
+    ],
+    "exit": 0,
+    "seconds": 0.030736057087779045,
+    "output": ""
+  },
+  {
+    "target": "build/rltopo-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/rltopo-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.021178409457206726,
+    "output": ""
+  },
+  {
+    "target": "build/lbplanner-units",
+    "argv": [
+      "make",
+      "-q",
+      "build/lbplanner-units"
+    ],
+    "exit": 0,
+    "seconds": 0.025909719988703728,
+    "output": ""
+  },
+  {
+    "target": "build/shutdown-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/shutdown-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.02391313575208187,
+    "output": ""
+  },
+  {
+    "target": "build/persistfix-units",
+    "argv": [
+      "make",
+      "-q",
+      "build/persistfix-units"
+    ],
+    "exit": 0,
+    "seconds": 0.024257793091237545,
+    "output": ""
+  },
+  {
+    "target": "build/ktls-keyupdate",
+    "argv": [
+      "make",
+      "-q",
+      "build/ktls-keyupdate"
+    ],
+    "exit": 0,
+    "seconds": 0.01398658100515604,
+    "output": ""
+  },
+  {
+    "target": "build/ktls-keyupdate-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/ktls-keyupdate-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.013928190805017948,
+    "output": ""
+  },
+  {
+    "target": "build/flushfix-units",
+    "argv": [
+      "make",
+      "-q",
+      "build/flushfix-units"
+    ],
+    "exit": 0,
+    "seconds": 0.029397579841315746,
+    "output": ""
+  },
+  {
+    "target": "build/splitlocal-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/splitlocal-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.01462746411561966,
+    "output": ""
+  },
+  {
+    "target": "build/reorder-engagement-unit",
+    "argv": [
+      "make",
+      "-q",
+      "build/reorder-engagement-unit"
+    ],
+    "exit": 0,
+    "seconds": 0.024399862624704838,
+    "output": ""
+  },
+  {
+    "target": "build/reorder-engagement-unit-db0",
+    "argv": [
+      "make",
+      "-q",
+      "build/reorder-engagement-unit-db0"
+    ],
+    "exit": 0,
+    "seconds": 0.029206320643424988,
+    "output": ""
+  },
+  {
+    "target": "build/racefix-climon",
+    "argv": [
+      "make",
+      "-q",
+      "build/racefix-climon"
+    ],
+    "exit": 0,
+    "seconds": 0.018021347001194954,
+    "output": ""
+  },
+  {
+    "target": "build/aoforder-scheduled",
+    "argv": [
+      "make",
+      "-q",
+      "build/aoforder-scheduled"
+    ],
+    "exit": 0,
+    "seconds": 0.029099701903760433,
+    "output": ""
+  },
+  {
+    "target": "mdbqsbr-live-arms/park/all",
+    "argv": [
+      "make",
+      "BUILD_ROOT=build/mdbqsbr2-park",
+      "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK",
+      "-q",
+      "all"
+    ],
+    "exit": 0,
+    "output": "",
+    "seconds": 0.02931648027151823
+  },
+  {
+    "target": "mdbqsbr-live-arms/no-wake/all",
+    "argv": [
+      "make",
+      "BUILD_ROOT=build/mdbqsbr2-no-wake",
+      "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE",
+      "-q",
+      "all"
+    ],
+    "exit": 0,
+    "output": "",
+    "seconds": 0.029408848844468594
+  },
+  {
+    "target": "blockfix-cost + paired digest",
+    "argv": [
+      "make",
+      "-f",
+      "Makefile",
+      "-f",
+      "tools/blockfix_cost.mk",
+      "-q",
+      "build/blockfix-cost",
+      "build/tomokv.blockfix-cost.sha256"
+    ],
+    "exit": 0,
+    "output": "",
+    "seconds": 0.029971265234053135
+  }
+]

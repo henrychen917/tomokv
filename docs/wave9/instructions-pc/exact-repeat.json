@@ -1,0 +1,578 @@
+[
+  {
+    "case": "pre-normal-EXEC-single-1s-1-0--1",
+    "exact_repeat": true,
+    "pc_total": 13977,
+    "total": 13977
+  },
+  {
+    "case": "pre-normal-EXEC-single-1s-1-1--1",
+    "exact_repeat": true,
+    "pc_total": 13977,
+    "total": 13977
+  },
+  {
+    "case": "pre-normal-EXEC-single-1s-2-0--1",
+    "exact_repeat": true,
+    "pc_total": 21068,
+    "total": 21068
+  },
+  {
+    "case": "pre-normal-EXEC-single-1s-2-1--1",
+    "exact_repeat": true,
+    "pc_total": 21068,
+    "total": 21068
+  },
+  {
+    "case": "pre-normal-EXEC-single-1s-4-0--1",
+    "exact_repeat": true,
+    "pc_total": 36295,
+    "total": 36295
+  },
+  {
+    "case": "pre-normal-EXEC-single-1s-4-1--1",
+    "exact_repeat": true,
+    "pc_total": 36295,
+    "total": 36295
+  },
+  {
+    "case": "pre-normal-EXEC-single-2s-1-0--1",
+    "exact_repeat": true,
+    "pc_total": 13977,
+    "total": 13977
+  },
+  {
+    "case": "pre-normal-EXEC-single-2s-1-1--1",
+    "exact_repeat": true,
+    "pc_total": 13977,
+    "total": 13977
+  },
+  {
+    "case": "pre-normal-EXEC-single-2s-2-0--1",
+    "exact_repeat": true,
+    "pc_total": 21068,
+    "total": 21068
+  },
+  {
+    "case": "pre-normal-EXEC-single-2s-2-1--1",
+    "exact_repeat": true,
+    "pc_total": 21068,
+    "total": 21068
+  },
+  {
+    "case": "pre-normal-EXEC-single-2s-4-0--1",
+    "exact_repeat": true,
+    "pc_total": 36295,
+    "total": 36295
+  },
+  {
+    "case": "pre-normal-EXEC-single-2s-4-1--1",
+    "exact_repeat": true,
+    "pc_total": 36295,
+    "total": 36295
+  },
+  {
+    "case": "pre-normal-EXEC-cross-1s-1-0--1",
+    "exact_repeat": true,
+    "pc_total": 13977,
+    "total": 13977
+  },
+  {
+    "case": "pre-normal-EXEC-cross-1s-1-1--1",
+    "exact_repeat": true,
+    "pc_total": 13977,
+    "total": 13977
+  },
+  {
+    "case": "pre-normal-EXEC-cross-1s-2-0--1",
+    "exact_repeat": true,
+    "pc_total": 23460,
+    "total": 23460
+  },
+  {
+    "case": "pre-normal-EXEC-cross-1s-2-1--1",
+    "exact_repeat": true,
+    "pc_total": 23460,
+    "total": 23460
+  },
+  {
+    "case": "pre-normal-EXEC-cross-1s-4-0--1",
+    "exact_repeat": true,
+    "pc_total": 42307,
+    "total": 42307
+  },
+  {
+    "case": "pre-normal-EXEC-cross-1s-4-1--1",
+    "exact_repeat": true,
+    "pc_total": 42307,
+    "total": 42307
+  },
+  {
+    "case": "pre-normal-EXEC-cross-2s-1-0--1",
+    "exact_repeat": true,
+    "pc_total": 13977,
+    "total": 13977
+  },
+  {
+    "case": "pre-normal-EXEC-cross-2s-1-1--1",
+    "exact_repeat": true,
+    "pc_total": 13977,
+    "total": 13977
+  },
+  {
+    "case": "pre-normal-EXEC-cross-2s-2-0--1",
+    "exact_repeat": true,
+    "pc_total": 23460,
+    "total": 23460
+  },
+  {
+    "case": "pre-normal-EXEC-cross-2s-2-1--1",
+    "exact_repeat": true,
+    "pc_total": 23460,
+    "total": 23460
+  },
+  {
+    "case": "pre-normal-EXEC-cross-2s-4-0--1",
+    "exact_repeat": true,
+    "pc_total": 42271,
+    "total": 42271
+  },
+  {
+    "case": "pre-normal-EXEC-cross-2s-4-1--1",
+    "exact_repeat": true,
+    "pc_total": 42271,
+    "total": 42271
+  },
+  {
+    "case": "pre-db0-EXEC-single-1s-1-0--1",
+    "exact_repeat": true,
+    "pc_total": 12749,
+    "total": 12749
+  },
+  {
+    "case": "pre-db0-EXEC-single-1s-1-1--1",
+    "exact_repeat": true,
+    "pc_total": 12749,
+    "total": 12749
+  },
+  {
+    "case": "pre-db0-EXEC-single-1s-2-0--1",
+    "exact_repeat": true,
+    "pc_total": 19364,
+    "total": 19364
+  },
+  {
+    "case": "pre-db0-EXEC-single-1s-2-1--1",
+    "exact_repeat": true,
+    "pc_total": 19364,
+    "total": 19364
+  },
+  {
+    "case": "pre-db0-EXEC-single-1s-4-0--1",
+    "exact_repeat": true,
+    "pc_total": 33531,
+    "total": 33531
+  },
+  {
+    "case": "pre-db0-EXEC-single-1s-4-1--1",
+    "exact_repeat": true,
+    "pc_total": 33531,
+    "total": 33531
+  },
+  {
+    "case": "pre-db0-EXEC-single-2s-1-0--1",
+    "exact_repeat": true,
+    "pc_total": 12749,
+    "total": 12749
+  },
+  {
+    "case": "pre-db0-EXEC-single-2s-1-1--1",
+    "exact_repeat": true,
+    "pc_total": 12749,
+    "total": 12749
+  },
+  {
+    "case": "pre-db0-EXEC-single-2s-2-0--1",
+    "exact_repeat": true,
+    "pc_total": 19364,
+    "total": 19364
+  },
+  {
+    "case": "pre-db0-EXEC-single-2s-2-1--1",
+    "exact_repeat": true,
+    "pc_total": 19364,
+    "total": 19364
+  },
+  {
+    "case": "pre-db0-EXEC-single-2s-4-0--1",
+    "exact_repeat": true,
+    "pc_total": 33531,
+    "total": 33531
+  },
+  {
+    "case": "pre-db0-EXEC-single-2s-4-1--1",
+    "exact_repeat": true,
+    "pc_total": 33531,
+    "total": 33531
+  },
+  {
+    "case": "pre-db0-EXEC-cross-1s-1-0--1",
+    "exact_repeat": true,
+    "pc_total": 12749,
+    "total": 12749
+  },
+  {
+    "case": "pre-db0-EXEC-cross-1s-1-1--1",
+    "exact_repeat": true,
+    "pc_total": 12749,
+    "total": 12749
+  },
+  {
+    "case": "pre-db0-EXEC-cross-1s-2-0--1",
+    "exact_repeat": true,
+    "pc_total": 21705,
+    "total": 21705
+  },
+  {
+    "case": "pre-db0-EXEC-cross-1s-2-1--1",
+    "exact_repeat": true,
+    "pc_total": 21705,
+    "total": 21705
+  },
+  {
+    "case": "pre-db0-EXEC-cross-1s-4-0--1",
+    "exact_repeat": true,
+    "pc_total": 39472,
+    "total": 39472
+  },
+  {
+    "case": "pre-db0-EXEC-cross-1s-4-1--1",
+    "exact_repeat": true,
+    "pc_total": 39472,
+    "total": 39472
+  },
+  {
+    "case": "pre-db0-EXEC-cross-2s-1-0--1",
+    "exact_repeat": true,
+    "pc_total": 12749,
+    "total": 12749
+  },
+  {
+    "case": "pre-db0-EXEC-cross-2s-1-1--1",
+    "exact_repeat": true,
+    "pc_total": 12749,
+    "total": 12749
+  },
+  {
+    "case": "pre-db0-EXEC-cross-2s-2-0--1",
+    "exact_repeat": true,
+    "pc_total": 21705,
+    "total": 21705
+  },
+  {
+    "case": "pre-db0-EXEC-cross-2s-2-1--1",
+    "exact_repeat": true,
+    "pc_total": 21705,
+    "total": 21705
+  },
+  {
+    "case": "pre-db0-EXEC-cross-2s-4-0--1",
+    "exact_repeat": true,
+    "pc_total": 39436,
+    "total": 39436
+  },
+  {
+    "case": "pre-db0-EXEC-cross-2s-4-1--1",
+    "exact_repeat": true,
+    "pc_total": 39436,
+    "total": 39436
+  },
+  {
+    "case": "post-normal-EXEC-single-1s-1-0--1",
+    "exact_repeat": true,
+    "pc_total": 14060,
+    "total": 14060
+  },
+  {
+    "case": "post-normal-EXEC-single-1s-1-1--1",
+    "exact_repeat": true,
+    "pc_total": 14060,
+    "total": 14060
+  },
+  {
+    "case": "post-normal-EXEC-single-1s-2-0--1",
+    "exact_repeat": true,
+    "pc_total": 19112,
+    "total": 19112
+  },
+  {
+    "case": "post-normal-EXEC-single-1s-2-1--1",
+    "exact_repeat": true,
+    "pc_total": 19112,
+    "total": 19112
+  },
+  {
+    "case": "post-normal-EXEC-single-1s-4-0--1",
+    "exact_repeat": true,
+    "pc_total": 29187,
+    "total": 29187
+  },
+  {
+    "case": "post-normal-EXEC-single-1s-4-1--1",
+    "exact_repeat": true,
+    "pc_total": 29187,
+    "total": 29187
+  },
+  {
+    "case": "post-normal-EXEC-single-2s-1-0--1",
+    "exact_repeat": true,
+    "pc_total": 14060,
+    "total": 14060
+  },
+  {
+    "case": "post-normal-EXEC-single-2s-1-1--1",
+    "exact_repeat": true,
+    "pc_total": 14060,
+    "total": 14060
+  },
+  {
+    "case": "post-normal-EXEC-single-2s-2-0--1",
+    "exact_repeat": true,
+    "pc_total": 19112,
+    "total": 19112
+  },
+  {
+    "case": "post-normal-EXEC-single-2s-2-1--1",
+    "exact_repeat": true,
+    "pc_total": 19112,
+    "total": 19112
+  },
+  {
+    "case": "post-normal-EXEC-single-2s-4-0--1",
+    "exact_repeat": true,
+    "pc_total": 29187,
+    "total": 29187
+  },
+  {
+    "case": "post-normal-EXEC-single-2s-4-1--1",
+    "exact_repeat": true,
+    "pc_total": 29187,
+    "total": 29187
+  },
+  {
+    "case": "post-normal-EXEC-cross-1s-1-0--1",
+    "exact_repeat": true,
+    "pc_total": 14060,
+    "total": 14060
+  },
+  {
+    "case": "post-normal-EXEC-cross-1s-1-1--1",
+    "exact_repeat": true,
+    "pc_total": 14060,
+    "total": 14060
+  },
+  {
+    "case": "post-normal-EXEC-cross-1s-2-0--1",
+    "exact_repeat": true,
+    "pc_total": 23626,
+    "total": 23626
+  },
+  {
+    "case": "post-normal-EXEC-cross-1s-2-1--1",
+    "exact_repeat": true,
+    "pc_total": 23626,
+    "total": 23626
+  },
+  {
+    "case": "post-normal-EXEC-cross-1s-4-0--1",
+    "exact_repeat": true,
+    "pc_total": 42637,
+    "total": 42637
+  },
+  {
+    "case": "post-normal-EXEC-cross-1s-4-1--1",
+    "exact_repeat": true,
+    "pc_total": 42637,
+    "total": 42637
+  },
+  {
+    "case": "post-normal-EXEC-cross-2s-1-0--1",
+    "exact_repeat": true,
+    "pc_total": 14060,
+    "total": 14060
+  },
+  {
+    "case": "post-normal-EXEC-cross-2s-1-1--1",
+    "exact_repeat": true,
+    "pc_total": 14060,
+    "total": 14060
+  },
+  {
+    "case": "post-normal-EXEC-cross-2s-2-0--1",
+    "exact_repeat": true,
+    "pc_total": 23626,
+    "total": 23626
+  },
+  {
+    "case": "post-normal-EXEC-cross-2s-2-1--1",
+    "exact_repeat": true,
+    "pc_total": 23626,
+    "total": 23626
+  },
+  {
+    "case": "post-normal-EXEC-cross-2s-4-0--1",
+    "exact_repeat": true,
+    "pc_total": 42589,
+    "total": 42589
+  },
+  {
+    "case": "post-normal-EXEC-cross-2s-4-1--1",
+    "exact_repeat": true,
+    "pc_total": 42589,
+    "total": 42589
+  },
+  {
+    "case": "post-db0-EXEC-single-1s-1-0--1",
+    "exact_repeat": true,
+    "pc_total": 12839,
+    "total": 12839
+  },
+  {
+    "case": "post-db0-EXEC-single-1s-1-1--1",
+    "exact_repeat": true,
+    "pc_total": 12839,
+    "total": 12839
+  },
+  {
+    "case": "post-db0-EXEC-single-1s-2-0--1",
+    "exact_repeat": true,
+    "pc_total": 17571,
+    "total": 17571
+  },
+  {
+    "case": "post-db0-EXEC-single-1s-2-1--1",
+    "exact_repeat": true,
+    "pc_total": 17571,
+    "total": 17571
+  },
+  {
+    "case": "post-db0-EXEC-single-1s-4-0--1",
+    "exact_repeat": true,
+    "pc_total": 26988,
+    "total": 26988
+  },
+  {
+    "case": "post-db0-EXEC-single-1s-4-1--1",
+    "exact_repeat": true,
+    "pc_total": 26988,
+    "total": 26988
+  },
+  {
+    "case": "post-db0-EXEC-single-2s-1-0--1",
+    "exact_repeat": true,
+    "pc_total": 12839,
+    "total": 12839
+  },
+  {
+    "case": "post-db0-EXEC-single-2s-1-1--1",
+    "exact_repeat": true,
+    "pc_total": 12839,
+    "total": 12839
+  },
+  {
+    "case": "post-db0-EXEC-single-2s-2-0--1",
+    "exact_repeat": true,
+    "pc_total": 17571,
+    "total": 17571
+  },
+  {
+    "case": "post-db0-EXEC-single-2s-2-1--1",
+    "exact_repeat": true,
+    "pc_total": 17571,
+    "total": 17571
+  },
+  {
+    "case": "post-db0-EXEC-single-2s-4-0--1",
+    "exact_repeat": true,
+    "pc_total": 26988,
+    "total": 26988
+  },
+  {
+    "case": "post-db0-EXEC-single-2s-4-1--1",
+    "exact_repeat": true,
+    "pc_total": 26988,
+    "total": 26988
+  },
+  {
+    "case": "post-db0-EXEC-cross-1s-1-0--1",
+    "exact_repeat": true,
+    "pc_total": 12839,
+    "total": 12839
+  },
+  {
+    "case": "post-db0-EXEC-cross-1s-1-1--1",
+    "exact_repeat": true,
+    "pc_total": 12839,
+    "total": 12839
+  },
+  {
+    "case": "post-db0-EXEC-cross-1s-2-0--1",
+    "exact_repeat": true,
+    "pc_total": 21876,
+    "total": 21876
+  },
+  {
+    "case": "post-db0-EXEC-cross-1s-2-1--1",
+    "exact_repeat": true,
+    "pc_total": 21876,
+    "total": 21876
+  },
+  {
+    "case": "post-db0-EXEC-cross-1s-4-0--1",
+    "exact_repeat": true,
+    "pc_total": 39805,
+    "total": 39805
+  },
+  {
+    "case": "post-db0-EXEC-cross-1s-4-1--1",
+    "exact_repeat": true,
+    "pc_total": 39805,
+    "total": 39805
+  },
+  {
+    "case": "post-db0-EXEC-cross-2s-1-0--1",
+    "exact_repeat": true,
+    "pc_total": 12839,
+    "total": 12839
+  },
+  {
+    "case": "post-db0-EXEC-cross-2s-1-1--1",
+    "exact_repeat": true,
+    "pc_total": 12839,
+    "total": 12839
+  },
+  {
+    "case": "post-db0-EXEC-cross-2s-2-0--1",
+    "exact_repeat": true,
+    "pc_total": 21876,
+    "total": 21876
+  },
+  {
+    "case": "post-db0-EXEC-cross-2s-2-1--1",
+    "exact_repeat": true,
+    "pc_total": 21876,
+    "total": 21876
+  },
+  {
+    "case": "post-db0-EXEC-cross-2s-4-0--1",
+    "exact_repeat": true,
+    "pc_total": 39757,
+    "total": 39757
+  },
+  {
+    "case": "post-db0-EXEC-cross-2s-4-1--1",
+    "exact_repeat": true,
+    "pc_total": 39757,
+    "total": 39757
+  }
+]

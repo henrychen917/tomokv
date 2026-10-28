@@ -1,0 +1,34 @@
+tomo_db0::(anonymous namespace)::BlockingRegistry::add(tomo_db0::Shard&, tomo_db0::BlockingState&, unsigned int) [clone .cold]
+--- headline
+
++++ post
+
+@@ -1,6 +1,6 @@
+
+ CLONE 0 0000 [ 3] vzeroupper
+ CLONE 0 0003 [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 0008 [ 4] mov %r13,0x28(%r15)
++CLONE 0 0008 [ 4] mov %r13,0x28(%r14)
+ CLONE 0 000c [ 8] mov 0x98(%rsp),%rax
+ CLONE 0 0014 [ 9] sub %fs:0x28,%rax
+ CLONE 0 001d [ 6] jne <+0xf5>
+@@ -36,7 +36,7 @@
+
+ CLONE 0 009b [ 5] mov $0x10,%esi
+ CLONE 0 00a0 [ 3] vzeroupper
+ CLONE 0 00a3 [ 5] call <_ZdlPvm@plt>
+-CLONE 0 00a8 [ 3] mov %r14,%rdi
++CLONE 0 00a8 [ 3] mov %r15,%rdi
+ CLONE 0 00ab [ 3] dec %r12
+ CLONE 0 00ae [ 2] je <+0xd2>
+ CLONE 0 00b0 [ 8] mov 0x98(%rsp),%rax
+@@ -50,7 +50,7 @@
+
+ CLONE 0 00db [ 4] cmp %rax,0x68(%rbx)
+ CLONE 0 00df [ 6] jne <+0x5f>
+ CLONE 0 00e5 [ 3] mov %rbx,%rsi
+-CLONE 0 00e8 [ 3] mov %r15,%rdi
++CLONE 0 00e8 [ 3] mov %r14,%rdi
+ CLONE 0 00eb [ 5] call <std::_Hashtable<tomo_db0::(anonymous namespace)::BlockingQueueKey, std::pair<tomo_db0::(anonymous namespace)::BlockingQueueKey const, tomo_db0::(anonymous namespace)::BlockingQueue>, std::allocator<std::pair<tomo_db0::(anonymous namespace)::BlockingQueueKey const, tomo_db0::(anonymous namespace)::BlockingQueue> >, std::__detail::_Select1st, tomo_db0::(anonymous namespace)::BlockingQueueEqual, tomo_db0::(anonymous namespace)::BlockingQueueHash, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true> >::erase(std::__detail::_Node_const_iterator<std::pair<tomo_db0::(anonymous namespace)::BlockingQueueKey const, tomo_db0::(anonymous namespace)::BlockingQueue>, false, true>)>
+ CLONE 0 00f0 [ 5] jmp <+0x5f>
+ CLONE 0 00f5 [ 5] call <__stack_chk_fail@plt>

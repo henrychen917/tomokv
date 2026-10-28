@@ -1,0 +1,111 @@
+tomo::(anonymous namespace)::blocking_probe_key(tomo::Shard&, tomo::BlockingState&, tomo::BlockingKey&)
+--- headline
+
++++ post
+
+@@ -20,7 +20,7 @@
+
+ CLONE 0 0044 [ 7] lea 0x538(%rbp),%r8
+ CLONE 0 004b [ 5] call <tomo::FlatStore::find_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*)>
+ CLONE 0 0050 [ 3] mov %rax,%r12
+-CLONE 0 0053 [ 5] movzbl 0x40(%r13),%eax
++CLONE 0 0053 [ 5] movzbl 0x58(%r13),%eax
+ CLONE 0 0058 [ 3] lea -0x8(%rax),%edx
+ CLONE 0 005b [ 3] cmp $0x1,%dl
+ CLONE 0 005e [ 6] jbe <+0x110>
+@@ -83,42 +83,42 @@
+
+ CLONE 0 0129 [ 6] je <+0x1f0>
+ CLONE 0 012f [ 5] vmovd 0x10(%rbx),%xmm2
+ CLONE 0 0134 [ 3] movzbl (%rbx),%edx
+-CLONE 0 0137 [ 8] cmpb $0x0,0x98(%r13)
+-CLONE 0 013f [ 4] mov 0x58(%r13),%r8
+-CLONE 0 0143 [ 4] mov 0x60(%r13),%r9d
++CLONE 0 0137 [ 8] cmpb $0x0,0xb0(%r13)
++CLONE 0 013f [ 4] mov 0x70(%r13),%r8
++CLONE 0 0143 [ 4] mov 0x78(%r13),%r9d
+ CLONE 0 0147 [ 4] mov 0x28(%rbx),%rdi
+ CLONE 0 014b [ 4] mov 0x8(%rbx),%rsi
+ CLONE 0 014f [ 6] vpinsrd $0x1,%edx,%xmm2,%xmm0
+ CLONE 0 0155 [ 6] jne <+0x2c0>
+-CLONE 0 015b [ 7] mov 0x80(%r13),%edx
+-CLONE 0 0162 [ 4] mov 0x78(%r13),%rcx
+-CLONE 0 0166 [ 2] xor %ebx,%ebx
+-CLONE 0 0168 [10] movabs $0xffffffff00000000,%r10
+-CLONE 0 0172 [ 3] mov %rbx,%rax
+-CLONE 0 0175 [ 3] and %r10,%rax
+-CLONE 0 0178 [ 3] or %rdx,%rax
+-CLONE 0 017b [ 5] vmovq %xmm0,%rdx
+-CLONE 0 0180 [ 2] mov %eax,%ebx
+-CLONE 0 0182 [ 1] push %rbx
+-CLONE 0 0183 [ 1] push %rcx
+-CLONE 0 0184 [ 3] mov %rdi,%rcx
+-CLONE 0 0187 [ 3] mov %rbp,%rdi
+-CLONE 0 018a [ 5] call <tomo::stream_group_prepare_waiter(tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, tomo::Slice)>
+-CLONE 0 018f [ 1] pop %rdx
+-CLONE 0 0190 [ 1] pop %rcx
+-CLONE 0 0191 [ 2] cmp $0x5,%al
+-CLONE 0 0193 [ 6] je <+0x2e8>
+-CLONE 0 0199 [ 2] cmp $0x2,%al
+-CLONE 0 019b [ 6] je <+0x2e4>
+-CLONE 0 01a1 [ 3] lea -0x3(%rax),%edx
+-CLONE 0 01a4 [ 3] cmp $0x1,%dl
+-CLONE 0 01a7 [ 6] jbe <+0x3c0>
+-CLONE 0 01ad [ 8] movb $0x1,0x98(%r13)
+-CLONE 0 01b5 [ 2] cmp $0x1,%al
+-CLONE 0 01b7 [ 6] je <+0x290>
+-CLONE 0 01bd [ 2] test %al,%al
+-CLONE 0 01bf [ 6] jne <+0x2ab>
+-CLONE 0 01c5 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 015b [ 7] mov 0x98(%r13),%edx
++CLONE 0 0162 [ 7] mov 0x90(%r13),%rcx
++CLONE 0 0169 [ 2] xor %ebx,%ebx
++CLONE 0 016b [10] movabs $0xffffffff00000000,%r10
++CLONE 0 0175 [ 3] mov %rbx,%rax
++CLONE 0 0178 [ 3] and %r10,%rax
++CLONE 0 017b [ 3] or %rdx,%rax
++CLONE 0 017e [ 5] vmovq %xmm0,%rdx
++CLONE 0 0183 [ 2] mov %eax,%ebx
++CLONE 0 0185 [ 1] push %rbx
++CLONE 0 0186 [ 1] push %rcx
++CLONE 0 0187 [ 3] mov %rdi,%rcx
++CLONE 0 018a [ 3] mov %rbp,%rdi
++CLONE 0 018d [ 5] call <tomo::stream_group_prepare_waiter(tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, tomo::Slice)>
++CLONE 0 0192 [ 1] pop %rdx
++CLONE 0 0193 [ 1] pop %rcx
++CLONE 0 0194 [ 2] cmp $0x5,%al
++CLONE 0 0196 [ 6] je <+0x2e8>
++CLONE 0 019c [ 2] cmp $0x2,%al
++CLONE 0 019e [ 6] je <+0x2e4>
++CLONE 0 01a4 [ 3] lea -0x3(%rax),%edx
++CLONE 0 01a7 [ 3] cmp $0x1,%dl
++CLONE 0 01aa [ 6] jbe <+0x3c0>
++CLONE 0 01b0 [ 8] movb $0x1,0xb0(%r13)
++CLONE 0 01b8 [ 2] cmp $0x1,%al
++CLONE 0 01ba [ 6] je <+0x290>
++CLONE 0 01c0 [ 2] test %al,%al
++CLONE 0 01c2 [ 6] jne <+0x2ab>
++CLONE 0 01c8 [ 8] nopl 0x0(%rax,%rax,1)
+ CLONE 0 01d0 [ 2] xor %eax,%eax
+ CLONE 0 01d2 [ 5] jmp <+0xfe>
+ CLONE 0 01d7 [ 9] nopw 0x0(%rax,%rax,1)
+@@ -156,7 +156,7 @@
+
+ CLONE 0 0254 [ 2] push %r15
+ CLONE 0 0256 [ 1] push %rdi
+ CLONE 0 0257 [ 3] xor %r9d,%r9d
+-CLONE 0 025a [ 4] push 0x48(%r13)
++CLONE 0 025a [ 4] push 0x60(%r13)
+ CLONE 0 025e [ 3] mov %r14,%r8
+ CLONE 0 0261 [ 3] mov %rbp,%rdi
+ CLONE 0 0264 [ 6] vpinsrd $0x1,%edx,%xmm4,%xmm3
+@@ -233,7 +233,7 @@
+
+ CLONE 0 0377 [ 9] nopw 0x0(%rax,%rax,1)
+ CLONE 0 0380 [ 3] mov %r14,%rsi
+ CLONE 0 0383 [ 3] mov %r12,%rdi
+-CLONE 0 0386 [ 5] call <tomo::stream_object_last_id(tomo::KvObj const*, tomo::StreamID&)>
++CLONE 0 0386 [ 5] call <tomo::stream_resolve_xread_id(tomo::KvObj const*, tomo::StreamID&)>
+ CLONE 0 038b [ 2] test %al,%al
+ CLONE 0 038d [ 6] je <+0xf9>
+ CLONE 0 0393 [ 4] movb $0x1,0x59(%rbx)

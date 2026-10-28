@@ -1,0 +1,87 @@
+{
+  "gate_run": "build/gate-run.BRGNQ3",
+  "logs": [
+    {
+      "path": "build/gate-run.BRGNQ3/jobs/production_units/build.log",
+      "sha256": "edbcdd51303cbd58a9125b38060486f33b7b292408a3a85af3cab56fa2fa56ce",
+      "bytes": 11135
+    },
+    {
+      "path": "build/gate-run.BRGNQ3/jobs/production_units/mdbqsbr-live-build.log",
+      "sha256": "23147f4241c489d9db99afe732e5fb2ae71809bc23eec213346fd9c3d2901686",
+      "bytes": 765
+    },
+    {
+      "path": "build/gate-run.BRGNQ3/jobs/production_units/blockfix-cost-build.log",
+      "sha256": "e348d7bc5801035320a7e648b68bd8589176a508fa53efa36a73e1fc425be24b",
+      "bytes": 206
+    },
+    {
+      "path": "build/gate-run.BRGNQ3/jobs/release/gate-build.txt",
+      "sha256": "68c5f548009ee20966e380682cc0b78f39bea9c8895af0403577a7204fef2e99",
+      "bytes": 36
+    }
+  ],
+  "ready": [
+    "aoforder-scheduled",
+    "at15-db0-unit",
+    "at15-unit",
+    "atomic-survivors-unit",
+    "blockfix-cost",
+    "core-concurrency-unit",
+    "encodingfix-unit",
+    "exbatch-db0-unit",
+    "exbatch-unit",
+    "execabort-watch-db0-unit",
+    "execabort-watch-unit",
+    "expire-notify-unit",
+    "flushfix-units",
+    "ktls-keyupdate",
+    "ktls-keyupdate-unit",
+    "ktls-lifetime-unit",
+    "lbplanner-units",
+    "mdbqsbr-live-arms",
+    "moverfix-db0-unit",
+    "moverfix-unit",
+    "multidb-boundary-unit",
+    "multidb-unit",
+    "netcap-unit",
+    "netcmd-unit",
+    "persistfix-units",
+    "publishfix-unit",
+    "racefix-climon",
+    "rehash-waits-unit",
+    "reorder-engagement-unit",
+    "reorder-engagement-unit-db0",
+    "respresume-migration",
+    "respresume-unit",
+    "rltopo-unit",
+    "shutdown-unit",
+    "splitlocal-unit",
+    "storesize-unit",
+    "txnorder-episodes",
+    "txnorder-episodes-debug",
+    "txnorder-index-db0-unit",
+    "txnorder-index-unit",
+    "txnorder-retry-unit",
+    "txnorder-wake-unit",
+    "txnorder-watch-db0-unit",
+    "txnorder-watch-unit",
+    "txnorder-wound-db0-unit",
+    "txnorder-wound-unit",
+    "waits-unit",
+    "wb-rule-units",
+    "wbland-units"
+  ],
+  "source_commit": "f90cfa1f3",
+  "binary_sha256": "e50e343c32bca46cfd5d2856225c97b9d313968209262f00f97b847d840d8ec6",
+  "final_freshness_gate_run": "build/gate-run.uwmtPJ",
+  "exbatch_final_fixture_sha256": "a86b50b203e884698b0374c3abc28854893d132718d1a0458f25b4601955d4c1",
+  "asan_prebuild": {
+    "command": "PARBUILD_JOBS=16 taskset -c 40-45 tests/parbuild.sh <gate ASAN arguments>",
+    "cpus": "40-45",
+    "jobs": 16,
+    "binary": "build/gate-cache/tomokv-asan",
+    "sha256": "537b78c013d418388504365ef2c13db17de385b8cfb33207a8cadf778a3edf07"
+  }
+}

@@ -1,0 +1,97 @@
+[
+  {
+    "path": "gate-atomfix-0.txt",
+    "bytes": 860,
+    "sha256": "09903fe180d3a9ac4d234a06d5019c54414ffdbd6bc16229a198bdb877af23f6"
+  },
+  {
+    "path": "gate-atomic-plain-0.txt",
+    "bytes": 1937,
+    "sha256": "a7a79cb4b73efefc439771e3648917cbd6372c6497256d7823a4f439a0a1c3af"
+  },
+  {
+    "path": "gate-execatomic-0.txt",
+    "bytes": 1804,
+    "sha256": "c3c37d80542bf5d65b21793bc90b7ecb6c0475f25afab5aca7a7a1651d28fd05"
+  },
+  {
+    "path": "gate-execfix-0.txt",
+    "bytes": 4952,
+    "sha256": "82cb2307b48c609adb0cc53e03b7a735be2e027f89ef7e8592c212cf0fe87880"
+  },
+  {
+    "path": "gate-execiso-0.txt",
+    "bytes": 2774,
+    "sha256": "592aa161e01909b6333b299da70fa6dd6cae13171ff9ddd9dd7419b6f192ab25"
+  },
+  {
+    "path": "gate-lbsignals-0.txt",
+    "bytes": 58,
+    "sha256": "ea609031fe7139b84f7cf812e19847303319d9bb3b22326597956e170808bba3"
+  },
+  {
+    "path": "gate-multirace-0.txt",
+    "bytes": 1480,
+    "sha256": "7bcab0ca848ba131ec293d25a8c0a0f30d71fb82f140d95b82134903aea1431e"
+  },
+  {
+    "path": "gate-multires-0.txt",
+    "bytes": 757,
+    "sha256": "3e2c8578aa328c60a8637a085d730cbe738ab06a8a1d7adb0e3f4a0070f89fb4"
+  },
+  {
+    "path": "gate-scriptatomic-0.txt",
+    "bytes": 2430,
+    "sha256": "180f565c291cda8a73811e41f6fee530bd73a2dac97492313dd21ef7c5e9831a"
+  },
+  {
+    "path": "gate-session_monotonic-0.txt",
+    "bytes": 912,
+    "sha256": "a392dc609c19501d1e0596958f4e1fffe765ba341345f7607863baa53368f9ad"
+  },
+  {
+    "path": "gate-slowlog-0.txt",
+    "bytes": 138,
+    "sha256": "01e5b6ac184c0b1e872eab812b9c31ea3a8fe85abc03c7bf8babe359e5d677df"
+  },
+  {
+    "path": "gate-srv-main.BDTp7f",
+    "bytes": 6742,
+    "sha256": "93f60d404fbf8bb7cb6c9d7c1c4afe65aec93b5e5713c2220319005a2a549d0a"
+  },
+  {
+    "path": "gate-srv-main.dN8jib",
+    "bytes": 7118,
+    "sha256": "6aa8dbcf77cdc017e4304983ef3dd2878517f5afdffe254e2434f344961aa2ee"
+  },
+  {
+    "path": "gate-txn_nx-0.txt",
+    "bytes": 342,
+    "sha256": "de1670be18587485c451ded4958cc23b29801e85be8f362da78ff1b7d52e29b5"
+  },
+  {
+    "path": "gate-txniso-0.txt",
+    "bytes": 1287,
+    "sha256": "adc9078bac9790f94245eaf4e58f8dde83323965697d96411f007bc7c4bbca08"
+  },
+  {
+    "path": "gate-xacct-0.txt",
+    "bytes": 886,
+    "sha256": "f2715e2b2ba03d0aa0df6f7a61610c0c8bd991fd3edcb32230ad5adbfd87f266"
+  },
+  {
+    "path": "gate-xmove-0.txt",
+    "bytes": 1540,
+    "sha256": "2a967dfc8b31c463425f3601bebf7df32e7bf0849898e2180a1d9069815be086"
+  },
+  {
+    "path": "gate-xscript-0.txt",
+    "bytes": 3855,
+    "sha256": "65a6d1370a7ec3ce19690ffc7c5cd3455dc7753b77b589fe435f65508b7d164e"
+  },
+  {
+    "path": "output.log",
+    "bytes": 2365,
+    "sha256": "02fdac8597cb59af8eef2bca6694b6e9cdc3048667770b3b478c806cc145794e"
+  }
+]

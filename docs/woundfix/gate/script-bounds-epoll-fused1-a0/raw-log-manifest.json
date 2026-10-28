@@ -1,0 +1,27 @@
+[
+  {
+    "path": "/home/user/Projects/cx-woundfix/build/gate-run.e33Leq/jobs/script_bounds/output.log",
+    "sha256": "6d0b3cde48d313c08ba510a70daba74e92cfc0648bfcd723dc220163cb6dc208",
+    "bytes": 283
+  },
+  {
+    "path": "/home/user/Projects/cx-woundfix/build/gate-run.e33Leq/jobs/script_bounds/gate-xscript-limit.txt",
+    "sha256": "11a80a2d1c40774617a2be96bedb2f6220f1d253c6615aa21e3f0bca4e7eacfa",
+    "bytes": 386
+  },
+  {
+    "path": "/home/user/Projects/cx-woundfix/build/gate-run.e33Leq/jobs/script_bounds/gate-xscript-window.txt",
+    "sha256": "a5f652b03b9d1d4ab7d54b0a1285ffc74942d66d51c841df3d9f2126fe42e498",
+    "bytes": 520
+  },
+  {
+    "path": "/home/user/Projects/cx-woundfix/build/gate-run.e33Leq/jobs/release/output.log",
+    "sha256": "c62d612287e23dbc56cd185dacfa158f6918aa448ad7f7eb5ed39d511da20680",
+    "bytes": 211
+  },
+  {
+    "path": "/home/user/Projects/cx-woundfix/build/gate-run.e33Leq/jobs/release/gate-build.txt",
+    "sha256": "68c5f548009ee20966e380682cc0b78f39bea9c8895af0403577a7204fef2e99",
+    "bytes": 36
+  }
+]

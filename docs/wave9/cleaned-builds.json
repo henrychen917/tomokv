@@ -1,0 +1,79 @@
+[
+  {
+    "path": "build/lottery/objects",
+    "files": 120,
+    "bytes": 881305561,
+    "tree_manifest_sha256": "1a751e69ca29c093df5d06fa3873fdb5494421cadbd4366d9169790cebef0e58"
+  },
+  {
+    "path": "build/lottery/asan",
+    "files": 120,
+    "bytes": 2010799489,
+    "tree_manifest_sha256": "368c89759f24d4846b8028d89a8b0fddf45cd6c3e2cff76b1e214dc22c2aab1a"
+  },
+  {
+    "path": "build/lottery/source",
+    "files": 252,
+    "bytes": 5830510,
+    "tree_manifest_sha256": "5c4a7a89a73313ee5db77765a5dddd5838984e5a98ef56e12ccb53d96401f0c4"
+  },
+  {
+    "path": "build/wave9/publishfix/objects",
+    "files": 120,
+    "bytes": 856259841,
+    "tree_manifest_sha256": "b82e56e0606744da49a736a5142cd3ecaf07dc78a1b2823bd417d393f2a0f18a"
+  },
+  {
+    "path": "build/wave9/publishfix/source",
+    "files": 250,
+    "bytes": 5785785,
+    "tree_manifest_sha256": "a06a54cf5e5c110bd92d99a8955938f5c0a044d627593bbb14715d890aa834ad"
+  },
+  {
+    "path": "build/wave9/pad-a/objects",
+    "files": 120,
+    "bytes": 849466705,
+    "tree_manifest_sha256": "e76abb9d21e17a671157e238657a9b96d1716f53662b1e88c67bc306bfebcad6"
+  },
+  {
+    "path": "build/wave9/pad-a/source",
+    "files": 248,
+    "bytes": 5712352,
+    "tree_manifest_sha256": "12bb376755cb09d3be17fb293ecc5965f1ae6ab09bdbd0e90f193e1980add25c"
+  },
+  {
+    "path": "build/wave9/window-check",
+    "files": 190,
+    "bytes": 5197229,
+    "tree_manifest_sha256": "d34e86ab70e2e74eaa21dc88e350829fabfcf3b895606c2a5ac56c0e2ff16a81"
+  },
+  {
+    "path": "build/wave9/commands/pre-normal/probe-debug",
+    "bytes": 221360120,
+    "sha256": "656ea9aec743b588eed904066efbc97f99f272cd1edb2632d533e3b1714a1c54"
+  },
+  {
+    "path": "build/wave9/commands/pre-normal/probe.o.debug",
+    "bytes": 10887048,
+    "sha256": "91b31bb39359b5130817a9fe155347f46995a5445d409cb9e593d353bee25e53"
+  },
+  {
+    "path": "build/wave9/pre-source",
+    "files": 572,
+    "bytes": 856849651,
+    "tree_manifest_sha256": "600a70528bc7a136e53e83fb48ffaa4d92f401bbe717510ea260e46997347817",
+    "manifest": "docs/wave9/cleaned-pre-manifest.json.gz",
+    "kept_binary": "build/tomokv-wave9-PRE",
+    "rebuild": "taskset -c 64-95 python3 docs/wave9/prepare_pre.py"
+  },
+  {
+    "path": "build/wave9/selftest-source",
+    "files": 103104,
+    "bytes": 1729606521,
+    "tree_manifest_sha256": "c07bd3c7107156eb66e40030fc41d3afdb6b36af6395fa07ea1652fbe08fb310",
+    "manifest": "docs/wave9/cleaned-selftest-manifest.json.gz",
+    "scheduler_failure_archive": "docs/wave9/scheduler-failures.tar.gz",
+    "scheduler_failure_archive_sha256": "8e75aec76b7585b17fe15b925b0fed5c9b35d3179379869c2a008757dbafc0c2",
+    "functional_source_proof": "docs/wave9/selftest-source-proof.json"
+  }
+]

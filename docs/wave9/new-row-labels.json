@@ -1,0 +1,284 @@
+[
+  {
+    "lane": "woundfix",
+    "count": 4,
+    "rows": [
+      {
+        "job": "txnorder_wound",
+        "labels": [
+          "txnorder wound group",
+          "txnorder wound exec",
+          "txnorder wound oom",
+          "txnorder wound d2"
+        ]
+      }
+    ]
+  },
+  {
+    "lane": "gaterows5",
+    "count": 11,
+    "rows": [
+      {
+        "job": "witness_contracts",
+        "labels": [
+          "witness falsification contracts (testmap + placement)"
+        ]
+      },
+      {
+        "job": "reorder_bounds",
+        "labels": [
+          "R7 linear scan and lazy construction bounds (both databases)"
+        ]
+      },
+      {
+        "job": "rob_portable",
+        "labels": [
+          "ROB portable completion without BMI"
+        ]
+      },
+      {
+        "job": "slotless",
+        "labels": [
+          "slotless remote completions (1s, epoll)",
+          "slotless remote completions (1s, uring)",
+          "slotless remote completions (2s, epoll)",
+          "slotless remote completions (2s, uring)"
+        ]
+      },
+      {
+        "job": "wb_mixed",
+        "labels": [
+          "writeback mixed replies and live knob bounds (1s, epoll)",
+          "writeback mixed replies and live knob bounds (1s, uring)",
+          "writeback mixed replies and live knob bounds (2s, epoll)",
+          "writeback mixed replies and live knob bounds (2s, uring)"
+        ]
+      }
+    ]
+  },
+  {
+    "lane": "protofix",
+    "count": 4,
+    "rows": [
+      {
+        "job": "inline_quoted",
+        "labels": [
+          "inline quoted argument decoding (1s, epoll)",
+          "inline quoted argument decoding (1s, uring)",
+          "inline quoted argument decoding (2s, epoll)",
+          "inline quoted argument decoding (2s, uring)"
+        ]
+      }
+    ]
+  },
+  {
+    "lane": "crlffix",
+    "count": 1,
+    "rows": [
+      {
+        "job": "crlffix",
+        "labels": [
+          "CRLF line replies match Redis and preserve synchronization"
+        ]
+      }
+    ]
+  },
+  {
+    "lane": "multifix",
+    "count": 24,
+    "rows": [
+      {
+        "job": "multifix-1s-uring",
+        "labels": [
+          "multifix RESET-IN-MULTI (1s uring)",
+          "multifix WATCH-SPURIOUS-INVALIDATION (1s uring)",
+          "multifix EXEC-REPEATED-KEY-LINEAR (1s uring)",
+          "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)",
+          "multifix PAUSE-IN-MULTI (1s uring)",
+          "multifix PAUSE-EXEC-NOT-HELD (1s uring)"
+        ]
+      },
+      {
+        "job": "multifix-1s-epoll",
+        "labels": [
+          "multifix RESET-IN-MULTI (1s epoll)",
+          "multifix WATCH-SPURIOUS-INVALIDATION (1s epoll)",
+          "multifix EXEC-REPEATED-KEY-LINEAR (1s epoll)",
+          "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)",
+          "multifix PAUSE-IN-MULTI (1s epoll)",
+          "multifix PAUSE-EXEC-NOT-HELD (1s epoll)"
+        ]
+      },
+      {
+        "job": "multifix-2s-uring",
+        "labels": [
+          "multifix RESET-IN-MULTI (2s uring)",
+          "multifix WATCH-SPURIOUS-INVALIDATION (2s uring)",
+          "multifix EXEC-REPEATED-KEY-LINEAR (2s uring)",
+          "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)",
+          "multifix PAUSE-IN-MULTI (2s uring)",
+          "multifix PAUSE-EXEC-NOT-HELD (2s uring)"
+        ]
+      },
+      {
+        "job": "multifix-2s-epoll",
+        "labels": [
+          "multifix RESET-IN-MULTI (2s epoll)",
+          "multifix WATCH-SPURIOUS-INVALIDATION (2s epoll)",
+          "multifix EXEC-REPEATED-KEY-LINEAR (2s epoll)",
+          "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)",
+          "multifix PAUSE-IN-MULTI (2s epoll)",
+          "multifix PAUSE-EXEC-NOT-HELD (2s epoll)"
+        ]
+      }
+    ]
+  },
+  {
+    "lane": "streamfix",
+    "count": 6,
+    "rows": [
+      {
+        "job": "streamfix",
+        "labels": [
+          "streamfix STREAM-TRIM-APPROX-LIMIT vs Redis 7.4",
+          "streamfix XREAD-PLUS-LAST vs Redis 7.4",
+          "streamfix XRANGE-EXCLUSIVE-SENTINEL vs Redis 7.4",
+          "streamfix STREAM-GROUP-ID-DASH vs Redis 7.4",
+          "streamfix XAUTOCLAIM-COUNT-RANGE vs Redis 7.4",
+          "streamfix MPOP-ARG-ERROR-TEXT vs Redis 7.4"
+        ]
+      }
+    ]
+  },
+  {
+    "lane": "blockfix2",
+    "count": 6,
+    "rows": [
+      {
+        "job": "blockfix2",
+        "labels": [
+          "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE",
+          "blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS",
+          "blockfix2 MULTI-XREADGROUP-BLOCK-HANG",
+          "blockfix2 INFO-TOTAL-BLOCKING-KEYS",
+          "blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED",
+          "blockfix2 BLOCK-SERVE-REFUSED-DROP"
+        ]
+      }
+    ]
+  },
+  {
+    "lane": "at412c",
+    "count": 18,
+    "rows": [
+      {
+        "job": "at412-T1",
+        "labels": [
+          "at412 T1"
+        ]
+      },
+      {
+        "job": "at412-T2",
+        "labels": [
+          "at412 T2"
+        ]
+      },
+      {
+        "job": "at412-T3",
+        "labels": [
+          "at412 T3"
+        ]
+      },
+      {
+        "job": "at412-T4",
+        "labels": [
+          "at412 T4"
+        ]
+      },
+      {
+        "job": "at412-T5",
+        "labels": [
+          "at412 T5"
+        ]
+      },
+      {
+        "job": "at412-T6",
+        "labels": [
+          "at412 T6"
+        ]
+      },
+      {
+        "job": "at412-T7",
+        "labels": [
+          "at412 T7"
+        ]
+      },
+      {
+        "job": "at412-T8",
+        "labels": [
+          "at412 T8"
+        ]
+      },
+      {
+        "job": "at412-T9",
+        "labels": [
+          "at412 T9"
+        ]
+      },
+      {
+        "job": "at412-T10",
+        "labels": [
+          "at412 T10"
+        ]
+      },
+      {
+        "job": "at412-T11a",
+        "labels": [
+          "at412 T11a"
+        ]
+      },
+      {
+        "job": "at412-T11b",
+        "labels": [
+          "at412 T11b"
+        ]
+      },
+      {
+        "job": "at412-T12",
+        "labels": [
+          "at412 T12"
+        ]
+      },
+      {
+        "job": "at412-T13",
+        "labels": [
+          "at412 T13"
+        ]
+      },
+      {
+        "job": "at412-T14",
+        "labels": [
+          "at412 T14"
+        ]
+      },
+      {
+        "job": "at412-T15",
+        "labels": [
+          "at412 T15"
+        ]
+      },
+      {
+        "job": "at412-T16",
+        "labels": [
+          "at412 T16"
+        ]
+      },
+      {
+        "job": "at412-owner",
+        "labels": [
+          "at412 owner"
+        ]
+      }
+    ]
+  }
+]

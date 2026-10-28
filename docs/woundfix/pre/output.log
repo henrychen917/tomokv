@@ -1,0 +1,6 @@
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder wound group
+  txnorder wound group                                 FAIL (see /home/user/Projects/cx-woundfix/build/gate-run.KZiP2p/jobs/txnorder_wound/group-*)
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder wound exec
+  txnorder wound exec                                  FAIL (see /home/user/Projects/cx-woundfix/build/gate-run.KZiP2p/jobs/txnorder_wound/exec-*)
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder wound oom
+  txnorder wound oom                                   FAIL (see /home/user/Projects/cx-woundfix/build/gate-run.KZiP2p/jobs/txnorder_wound/oom-*)

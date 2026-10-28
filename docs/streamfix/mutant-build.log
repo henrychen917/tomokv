@@ -1,0 +1,75 @@
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=147838 -DTOMO_JEMALLOC -I. -c src/main.cc -o /home/user/Projects/cx-streamfix/build/streamfix/mutant-objects/src/main.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/net/tls.cc -o /home/user/Projects/cx-streamfix/build/streamfix/mutant-objects/src/net/tls.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/commands.cc -o /home/user/Projects/cx-streamfix/build/streamfix/mutant-objects/src/cmd/commands.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/glob.cc -o /home/user/Projects/cx-streamfix/build/streamfix/mutant-objects/src/cmd/glob.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=148537 -DTOMO_JEMALLOC -I. -c src/cmd/xshard.cc -o /home/user/Projects/cx-streamfix/build/streamfix/mutant-objects/src/cmd/xshard.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=35758 -DTOMO_JEMALLOC -I. -c src/cmd/acl.cc -o /home/user/Projects/cx-streamfix/build/streamfix/mutant-objects/src/cmd/acl.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/hll.cc -o /home/user/Projects/cx-streamfix/build/streamfix/mutant-objects/src/cmd/hll.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=32703 -DTOMO_JEMALLOC -I. -c src/cmd/t_server.cc -o /home/user/Projects/cx-streamfix/build/streamfix/mutant-objects/src/cmd/t_server.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param large-unit-insns=10600 -DTOMO_JEMALLOC -I. -c src/cmd/t_string.cc -o /home/user/Projects/cx-streamfix/build/streamfix/mutant-objects/src/cmd/t_string.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_string_notify.cc -o /home/user/Projects/cx-streamfix/build/streamfix/mutant-objects/src/cmd/t_string_notify.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_hash.cc -o /home/user/Projects/cx-streamfix/build/streamfix/mutant-objects/src/cmd/t_hash.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_hash_ttl.cc -o /home/user/Projects/cx-streamfix/build/streamfix/mutant-objects/src/cmd/t_hash_ttl.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=25608 -DTOMO_JEMALLOC -I. -c src/cmd/t_list.cc -o /home/user/Projects/cx-streamfix/build/streamfix/mutant-objects/src/cmd/t_list.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=26451 -DTOMO_JEMALLOC -I. -c src/cmd/t_set.cc -o /home/user/Projects/cx-streamfix/build/streamfix/mutant-objects/src/cmd/t_set.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=33447 -DTOMO_JEMALLOC -I. -c src/cmd/t_zset.cc -o /home/user/Projects/cx-streamfix/build/streamfix/mutant-objects/src/cmd/t_zset.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_zset_ops.cc -o /home/user/Projects/cx-streamfix/build/streamfix/mutant-objects/src/cmd/t_zset_ops.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=14410 -DTOMO_JEMALLOC -I. -c src/cmd/geo.cc -o /home/user/Projects/cx-streamfix/build/streamfix/mutant-objects/src/cmd/geo.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_stream.cc -o /home/user/Projects/cx-streamfix/build/streamfix/mutant-objects/src/cmd/t_stream.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_stream_groups.cc -o /home/user/Projects/cx-streamfix/build/streamfix/mutant-objects/src/cmd/t_stream_groups.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/scripting.cc -o /home/user/Projects/cx-streamfix/build/streamfix/mutant-objects/src/cmd/scripting.o
+src/cmd/t_stream.cc: In function ‘bool tomo::{anonymous}::delete_one(tomo::KvObj*, const tomo::StreamID&)’:
+src/cmd/t_stream.cc:1451:51: error: invalid conversion from ‘const tomo::Compact*’ to ‘tomo::Compact*’ [-fpermissive]
+ 1451 |                     if (!scan_compact(CompactView(&tail.log), tail.base_id,
+      |                                                   ^~~~~~~~~
+      |                                                   |
+      |                                                   const tomo::Compact*
+In file included from src/cmd/../core/../store/kv_block_cache.h:31,
+                 from src/cmd/../core/../store/flatstore.h:80,
+                 from src/cmd/../core/shard.h:37,
+                 from src/cmd/t_stream.cc:10:
+src/cmd/../core/../store/kvobj.h:401:35: note:   initializing argument 1 of ‘tomo::CompactView::CompactView(tomo::Compact*)’
+  401 |     explicit CompactView(Compact* external) : external_(external) {}
+      |                          ~~~~~~~~~^~~~~~~~
+make: *** [Makefile:403: /home/user/Projects/cx-streamfix/build/streamfix/mutant-objects/src/cmd/t_stream.o] Error 1
+make: *** Waiting for unfinished jobs....
+In file included from src/cmd/xshard.cc:57:
+src/cmd/scatter_engine.inc:447:8: warning: ‘tomo::TxnGroupAttempt’ has a field ‘std::unique_ptr<tomo::{anonymous}::ShardGroup []> tomo::TxnGroupAttempt::placement_groups’ whose type has internal linkage [-Wsubobject-linkage]
+  447 | struct TxnGroupAttempt {
+      |        ^~~~~~~~~~~~~~~
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::Kind tomo::ScatterState::kind’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+  465 | struct ScatterState : SnapshotCut {
+      |        ^~~~~~~~~~~~
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::FinalReply tomo::ScatterState::final_reply’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::WorkError tomo::ScatterState::final_error’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ScriptPhase tomo::ScatterState::script_phase’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::PopReplyShape tomo::ScatterState::pop_reply_shape’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ImageRangeOptions tomo::ScatterState::range_options’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ImageRangeSpec tomo::ScatterState::range_spec’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::SortOptions tomo::ScatterState::sort_options’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ZAggregate tomo::ScatterState::zset_aggregate’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ShardGroup* tomo::ScatterState::groups’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::KeyRef* tomo::ScatterState::keys’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ValueSlot* tomo::ScatterState::values’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ObjectImage* tomo::ScatterState::images’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ObjectImage* tomo::ScatterState::apply’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ResultHeap* tomo::ScatterState::result’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::SortDerefState* tomo::ScatterState::sort_deref’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+In file included from src/cmd/xshard.cc:63:
+src/cmd/multi.inc: In function ‘void tomo::{anonymous}::txn_add_claim(std::vector<tomo::TxnClaim>&, tomo::Slice, tomo::TxnClaimMode, bool)’:
+src/cmd/multi.inc:768:21: warning: missing initializer for member ‘tomo::TxnClaim::waiter’ [-Wmissing-field-initializers]
+  768 |     claims.push_back({std::move(owned), whole ? 0 : FlatStore::hash_key(key), mode});
+      |     ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/cmd/multi.inc: In function ‘void tomo::{anonymous}::txn_cap_claims(std::vector<tomo::TxnClaim>&)’:
+src/cmd/multi.inc:777:21: warning: missing initializer for member ‘tomo::TxnClaim::waiter’ [-Wmissing-field-initializers]
+  777 |     claims.push_back({{}, 0, mode});
+      |     ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+In file included from src/cmd/xshard.cc:67:
+src/cmd/notify.inc: At global scope:
+src/cmd/notify.inc:255:8: warning: ‘tomo::NotifyBatch’ has a field ‘std::shared_ptr<tomo::{anonymous}::NotifyExpiryCompletion> tomo::NotifyBatch::expiry_completion’ whose type has internal linkage [-Wsubobject-linkage]
+  255 | struct NotifyBatch {
+      |        ^~~~~~~~~~~
+src/cmd/notify.inc: In function ‘void tomo::notify_elapsed_set(Shard&, Op&, Slice)’:
+src/cmd/notify.inc:583:78: warning: narrowing conversion of ‘key.tomo::Slice::ns’ from ‘uint32_t’ {aka ‘unsigned int’} to ‘uint8_t’ {aka ‘unsigned char’} [-Wnarrowing]
+  583 |         pending.push_back(NotifyPendingExpiry{std::string(key.p, key.n), key.ns, std::move(ready)});
+      |                                                                          ~~~~^~

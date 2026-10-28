@@ -2358,6 +2358,9 @@ public:
     uint64_t climon_pause_end_ms() const {
         return climon_pause_end_ms_.load(std::memory_order_relaxed);
     }
+    const std::atomic<uint64_t>* climon_pause_clock() const {
+        return &climon_pause_end_ms_;
+    }
     uint8_t climon_pause_mode() const {
         return climon_pause_mode_.load(std::memory_order_relaxed);
     }
@@ -2778,6 +2781,23 @@ public:
         script_stage_owner_tasks_.fetch_add(1, std::memory_order_relaxed);
         script_staged_bytes_total_.fetch_add(bytes, std::memory_order_relaxed);
     }
+    // Owner-local queue observation, armed only by SCRIPT-ESCALATE-FORCE.
+    // This is a simultaneous waiter count, not a count of placement polls.
+    void note_script_waiters(uint32_t count) {
+        auto old = script_waiters_peak_.load(std::memory_order_relaxed);
+        while (old < count && !script_waiters_peak_.compare_exchange_weak(
+                   old, count, std::memory_order_relaxed)) {}
+    }
+    uint64_t script_waiters_peak() const { return script_waiters_peak_.load(); }
+    void set_debug_script_stage_watch(uint64_t client) {
+        debug_script_stage_watch_.store(client);
+        debug_script_stage_watch_tasks_.store(0);
+    }
+    void note_debug_script_stage_watch(uint64_t client) {
+        if (debug_script_stage_watch_.load(std::memory_order_relaxed) == client)
+            debug_script_stage_watch_tasks_.fetch_add(1, std::memory_order_relaxed);
+    }
+    uint64_t debug_script_stage_watch_tasks() const { return debug_script_stage_watch_tasks_.load(); }
     void note_script_run() { script_run_attempts_.fetch_add(1, std::memory_order_relaxed); }
     void note_script_validate_owner() {
         script_validate_owner_tasks_.fetch_add(1, std::memory_order_relaxed);
@@ -2813,6 +2833,16 @@ public:
     void note_script_window_refusal() {
         script_crossshard_window_refusals_.fetch_add(1, std::memory_order_relaxed);
     }
+    void note_script_window_wait() { script_crossshard_window_waits_.fetch_add(1, std::memory_order_relaxed); }
+    uint64_t script_crossshard_window_waits() const { return script_crossshard_window_waits_.load(); }
+    void note_script_escalation() { script_escalations_.fetch_add(1, std::memory_order_relaxed); }
+    void note_script_escalated_commit() { script_escalated_commits_.fetch_add(1, std::memory_order_relaxed); }
+    uint64_t script_escalations() const { return script_escalations_.load(); }
+    uint64_t script_escalated_commits() const { return script_escalated_commits_.load(); }
+    void set_debug_script_apply_defer(uint32_t us) { debug_script_apply_defer_.store(us); }
+    uint32_t debug_script_apply_defer() const { return debug_script_apply_defer_.load(); }
+    void set_debug_script_escalate_force(bool force) { debug_script_escalate_force_.store(force); }
+    bool debug_script_escalate_force() const { return debug_script_escalate_force_.load(); }
     void note_script_abort_oom() {
         script_group_aborts_oom_.fetch_add(1, std::memory_order_relaxed);
     }
@@ -3787,6 +3817,16 @@ private:
     // Cold cron policy at the tail: all prior owner/publication offsets stay fixed.
     ClientHz client_hz_;
     DebugSleepCoordinator<kMaxThreads, Ring::kWaitTimeoutMs> debug_sleep_;
+
+    // AT4.12 cold state at the true tail preserves all established offsets.
+    std::atomic<uint64_t> script_crossshard_window_waits_{0};
+    std::atomic<uint64_t> script_escalations_{0};
+    std::atomic<uint64_t> script_escalated_commits_{0};
+    std::atomic<uint64_t> script_waiters_peak_{0};
+    std::atomic<uint32_t> debug_script_apply_defer_{0};
+    std::atomic<bool> debug_script_escalate_force_{false};
+    std::atomic<uint64_t> debug_script_stage_watch_{0};
+    std::atomic<uint64_t> debug_script_stage_watch_tasks_{0};
 
 };
 

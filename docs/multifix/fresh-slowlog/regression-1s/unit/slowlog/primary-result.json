@@ -1,0 +1,255 @@
+{
+  "file": "unit/slowlog",
+  "mode": "1s",
+  "passed": 6,
+  "failed": 0,
+  "skipped": 12,
+  "teardown_exceptions": 1,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "seconds": 0.7218222254887223,
+  "server_argv": [
+    "taskset",
+    "-c",
+    "40-47",
+    "/home/user/Projects/cx-multifix/build/multifix/tomokv-regression",
+    "--port",
+    "20540",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-multifix/docs/multifix/fresh-slowlog/regression-1s/unit/slowlog/data",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16",
+    "--databases",
+    "16"
+  ],
+  "suite_argv": [
+    "taskset",
+    "-c",
+    "40-47",
+    "./runtest",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "20540",
+    "--singledb",
+    "--clients",
+    "1",
+    "--baseport",
+    "20542",
+    "--portcount",
+    "1",
+    "--single",
+    "unit/slowlog",
+    "--durable",
+    "--timeout",
+    "60",
+    "--dont-clean",
+    "--dont-pre-clean",
+    "--skipfile",
+    "/home/user/Projects/cx-multifix/docs/multifix/fresh-slowlog/regression-1s/unit/slowlog/skip.txt"
+  ],
+  "server_exit": 0,
+  "smove_layout_attempts": [],
+  "events": [
+    {
+      "status": "ready",
+      "file": "",
+      "test": "",
+      "data": "3513590",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "SLOWLOG - check that it starts with an empty log in tests/unit/slowlog.tcl",
+      "data": "SLOWLOG - check that it starts with an empty log",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "SLOWLOG - check that it starts with an empty log in tests/unit/slowlog.tcl",
+      "data": "SLOWLOG - check that it starts with an empty log",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "SLOWLOG - only logs commands taking more time than specified in tests/unit/slowlog.tcl",
+      "data": "SLOWLOG - only logs commands taking more time than specified",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "SLOWLOG - only logs commands taking more time than specified in tests/unit/slowlog.tcl",
+      "data": "SLOWLOG - only logs commands taking more time than specified",
+      "milliseconds": "201"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "SLOWLOG - zero max length is correctly handled in tests/unit/slowlog.tcl",
+      "data": "SLOWLOG - zero max length is correctly handled",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "SLOWLOG - zero max length is correctly handled in tests/unit/slowlog.tcl",
+      "data": "SLOWLOG - zero max length is correctly handled",
+      "milliseconds": "3"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "",
+      "data": "SLOWLOG - max entries is correctly handled",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "",
+      "data": "SLOWLOG - GET optional argument to limit output len works",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "SLOWLOG - RESET subcommand works in tests/unit/slowlog.tcl",
+      "data": "SLOWLOG - RESET subcommand works",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "SLOWLOG - RESET subcommand works in tests/unit/slowlog.tcl",
+      "data": "SLOWLOG - RESET subcommand works",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "",
+      "data": "SLOWLOG - logged entry sanity check",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "",
+      "data": "SLOWLOG - Certain commands are omitted that contain sensitive information",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "",
+      "data": "SLOWLOG - Some commands can redact sensitive fields",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "",
+      "data": "SLOWLOG - Rewritten commands are logged as their original command",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "",
+      "data": "SLOWLOG - commands with too many arguments are trimmed",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "",
+      "data": "SLOWLOG - too long arguments are trimmed",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "",
+      "data": "SLOWLOG - EXEC is not logged, just executed commands",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "",
+      "data": "SLOWLOG - can clean older entries",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "SLOWLOG - can be disabled in tests/unit/slowlog.tcl",
+      "data": "SLOWLOG - can be disabled",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "SLOWLOG - can be disabled in tests/unit/slowlog.tcl",
+      "data": "SLOWLOG - can be disabled",
+      "milliseconds": "401"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "SLOWLOG - count must be >= -1 in tests/unit/slowlog.tcl",
+      "data": "SLOWLOG - count must be >= -1",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "SLOWLOG - count must be >= -1 in tests/unit/slowlog.tcl",
+      "data": "SLOWLOG - count must be >= -1",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "",
+      "data": "SLOWLOG - get all slow logs",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "",
+      "data": "SLOWLOG - blocking command is reported only after unblocked",
+      "milliseconds": "0"
+    },
+    {
+      "status": "done",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "",
+      "data": "unit/slowlog",
+      "milliseconds": "0"
+    },
+    {
+      "status": "exception",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "",
+      "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+      "milliseconds": "0"
+    }
+  ]
+}

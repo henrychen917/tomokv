@@ -1,0 +1,15 @@
+tomo::blocking_execute_iofused(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Shard&, tomo::Op&) [clone .cold]
+--- headline
+
++++ post
+
+@@ -1,7 +1,7 @@
+
+ CLONE 0 0000 [ 2] xor %eax,%eax
+ CLONE 0 0002 [ 8] vmovdqu8 %ymm0,0x80(%rsp)
+ CLONE 0 000a [ 8] mov %rax,0xa0(%rsp)
+-CLONE 0 0012 [ 8] mov 0x18,%rax
++CLONE 0 0012 [ 8] mov 0x30,%rax
+ CLONE 0 001a [ 2] ud2
+ CLONE 0 001c [ 3] mov %r15,%rdi
+ CLONE 0 001f [ 3] vzeroupper

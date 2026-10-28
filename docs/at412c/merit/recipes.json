@@ -1,0 +1,21 @@
+{
+  "generic14": {
+    "source": "docs/execfair/cells/generic14.txt",
+    "frozen": "docs/at412c/merit/generic14.txt",
+    "sha256": "ac3719760fcd07f05a090bcba536162c4d713cdbef3f24e52d886e8d83880311"
+  },
+  "exec": {
+    "source": "/home/user/Projects/calib/exec-merit.py",
+    "sha256": "efe613ea1c13aadb6048bd5ebdf808fae90b900e2c11b4c8d6af1cef3e4dc1d2",
+    "cells": [
+      "x2s_a0_unc",
+      "x2s_a0_hot",
+      "x2s_a1_unc",
+      "x2s_a1_hot",
+      "x1s_a0_unc",
+      "x1s_a0_hot",
+      "x1s_a1_unc",
+      "x1s_a1_hot"
+    ]
+  }
+}

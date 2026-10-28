@@ -27,13 +27,15 @@ The whole core is run twice, once with `atomic 0` and once with `atomic 1`, and 
 required to agree observation for observation -- the mode may not change what a script leaves
 behind.
 
-The cross-shard section needs `--enable-debug-command yes` (DEBUG SHARD to prove the group really
+The cross-shard section needs `--enable-debug-command yes` (DEBUG SHARDS to prove the group really
 spans owners, ATOMIC-COMMIT-DELAY / ATOMIC-READ-DELAY to widen the window). Without it that
-section is skipped and says so; the core arms still run.
+section is skipped outside the gate; strict gate invocations fail. The core arms still run.
 """
 
 import socket
 import sys
+
+from _lib import strict_mode
 
 HOST, PORT = sys.argv[1], int(sys.argv[2])
 TAG = "sa"
@@ -321,15 +323,37 @@ def shard_of(conn, key):
     return reply
 
 
+def owners_of(conn, keys):
+    reply = conn.cmd("DEBUG", "SHARDS", *keys)
+    if isinstance(reply, RespError):
+        raise reply
+    if (not isinstance(reply, list) or len(reply) != len(keys) or
+            any(not isinstance(row, list) or len(row) != 2 or
+                any(type(value) is not int for value in row) for row in reply)):
+        raise AssertionError(f"malformed DEBUG SHARDS placement: {reply!r}")
+    return [row[1] for row in reply]
+
+
 def find_pair(conn, want_same):
-    """A key pair whose owners are proven by DEBUG SHARD, not assumed from the names."""
+    """Use actual owner IDs, including distinct shards on the same executor."""
     anchor = f"{TAG}:pair:anchor"
-    home = shard_of(conn, anchor)
-    for index in range(4096):
-        candidate = f"{TAG}:pair:{index}"
-        if (shard_of(conn, candidate) == home) == want_same and candidate != anchor:
-            return anchor, candidate
-    raise AssertionError("no key pair with the wanted owner relation in 4096 tries")
+    for first in range(0, 4096, 128):
+        candidates = [f"{TAG}:pair:{index}" for index in range(first, first + 128)]
+        owners = owners_of(conn, [anchor, *candidates])
+        for candidate, owner in zip(candidates, owners[1:]):
+            if (owner == owners[0]) == want_same:
+                pair = (anchor, candidate)
+                current = owners_of(conn, pair)
+                if (current[0] == current[1]) == want_same:
+                    return pair
+    raise AssertionError("no stable key pair with the wanted owner relation in 4096 tries")
+
+
+def unavailable(reason):
+    if strict_mode():
+        vacuous("cross-owner geometry unavailable under TOMO_GATE_STRICT", str(reason))
+    else:
+        print(f"  SKIP cross-owner section: DEBUG unavailable ({reason})", flush=True)
 
 
 def arm(conn, name, value):
@@ -377,11 +401,14 @@ def run_crossshard(conn, mode):
     try:
         g1, g2 = find_pair(conn, want_same=False)
     except RespError as err:
-        print(f"  SKIP cross-shard section {m}: DEBUG unavailable ({err.args[0]})", flush=True)
+        unavailable(err)
         return None
-    same_owner = shard_of(conn, g1) == shard_of(conn, g2)
+    owners = owners_of(conn, (g1, g2))
+    same_owner = owners[0] == owners[1]
     note(f"cross-shard pair really spans owners {m}", not same_owner,
-         f"{shard_of(conn, g1)} vs {shard_of(conn, g2)}")
+         f"owner IDs {owners}")
+    if same_owner:
+        return None
     arm(conn, "ATOMIC-COMMIT-DELAY", 60)
     arm(conn, "ATOMIC-READ-DELAY", 60)
     try:
@@ -403,12 +430,13 @@ def run_crossshard(conn, mode):
 
 conn = Conn()
 try:
-    boot_mode = 1 if stats(conn).get("atomic_groups") is not None else 1
+    boot_mode = conn.cmd("CONFIG", "GET", "atomic")[1]
     keys = {"single": f"{TAG}:one"}
     try:
         keys["same_owner"] = find_pair(conn, want_same=True)
         debug_ok = True
-    except RespError:
+    except RespError as exc:
+        unavailable(exc)
         # Cross-owner scripts are accepted now, so acceptance no longer reveals placement. The
         # debug-armed gate below owns the same-owner and proven-cross geometry checks; an ordinary
         # boot can still cover the two-declared-key effect semantics with a fixed distinct pair.
@@ -443,7 +471,7 @@ try:
 
 finally:
     try:
-        conn.cmd("CONFIG", "SET", "atomic", "1")
+        conn.cmd("CONFIG", "SET", "atomic", boot_mode)
         conn.cmd("DEL", keys["single"], *keys["same_owner"])
         conn.cmd("DEL", f"{TAG}:pair:anchor")
     except Exception:

@@ -1,0 +1,15 @@
+tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)
+--- headline
+
++++ post
+
+@@ -75,7 +75,7 @@
+
+ CLONE 0 0111 [ 2] jne <+0xd0>
+ CLONE 0 0113 [ 3] mov (%rdx),%rsi
+ CLONE 0 0116 [ 4] movslq (%r12),%rax
+-CLONE 0 011a [ 7] mov 0x2e8(%rsi),%rsi
++CLONE 0 011a [ 7] mov 0x2f0(%rsi),%rsi
+ CLONE 0 0121 [ 4] testb $0x8,(%rsi,%rax,1)
+ CLONE 0 0125 [ 2] je <+0xe0>
+ CLONE 0 0127 [ 9] nopw 0x0(%rax,%rax,1)

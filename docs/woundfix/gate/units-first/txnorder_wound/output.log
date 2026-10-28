@@ -1,0 +1,16 @@
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder wound group
+unit txnorder-wound-unit did not build; see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/production_units/build.log
+unit txnorder-wound-db0-unit did not build; see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/production_units/build.log
+  txnorder wound group                                 FAIL (see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/txnorder_wound/group-*)
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder wound exec
+unit txnorder-wound-unit did not build; see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/production_units/build.log
+unit txnorder-wound-db0-unit did not build; see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/production_units/build.log
+  txnorder wound exec                                  FAIL (see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/txnorder_wound/exec-*)
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder wound oom
+unit txnorder-wound-unit did not build; see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/production_units/build.log
+unit txnorder-wound-db0-unit did not build; see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/production_units/build.log
+  txnorder wound oom                                   FAIL (see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/txnorder_wound/oom-*)
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder wound d2
+unit txnorder-wound-unit did not build; see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/production_units/build.log
+unit txnorder-wound-db0-unit did not build; see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/production_units/build.log
+  txnorder wound d2                                    FAIL (see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/txnorder_wound/d2-*)

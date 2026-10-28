@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-at412c/build/at412/commands/post-db0-EVAL-ADMIT-1s-1-1--1.log
+SHA-256: 2329f355088329f5ac571b2b54c3d13c89c0143f8cbc35ad0939ccbf96648873
+Exit: 0
+23	 static void need(bool v){if(!v)std::abort();}
+0x0000555555d6521a	23	 static void need(bool v){if(!v)std::abort();}
+0x0000555555d65220 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-at412c/tests/txnorder_command_scope.cc:74
+74	    if(activation&&command=="EVAL-ADMIT")scope_end();
+0x0000555555d65227	74	    if(activation&&command=="EVAL-ADMIT")scope_end();
+0x0000555555d6522a	74	    if(activation&&command=="EVAL-ADMIT")scope_end();
+0x0000555555d6522c	74	    if(activation&&command=="EVAL-ADMIT")scope_end();
+0x0000555555d65233	74	    if(activation&&command=="EVAL-ADMIT")scope_end();
+0x0000555555d6523a	74	    if(activation&&command=="EVAL-ADMIT")scope_end();
+0x0000555555d6523d	74	    if(activation&&command=="EVAL-ADMIT")scope_end();
+0x000055TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+5555d65242	74	    if(activation&&command=="EVAL-ADMIT")scope_end();
+0x0000555555d65244	74	    if(activation&&command=="EVAL-ADMIT")scope_end();
+0x0000555555d65d5e	74	    if(activation&&command=="EVAL-ADMIT")scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-at412c/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 1853585) exited normally]
+COUNT 7684

@@ -1,0 +1,367 @@
+[
+  {
+    "path": "errors-oracle-1s-epoll/write-error-everysec-0/argv.json",
+    "bytes": 489,
+    "sha256": "399a4b24bd43c931298c362a459aa859872165276df5a0ff411c1b0349caa837"
+  },
+  {
+    "path": "errors-oracle-1s-epoll/write-error-everysec-0/server.log",
+    "bytes": 1484,
+    "sha256": "c59bbfc4286276265d108791641319b78c184dd4b140fb1ad9a8ad67f28224c3"
+  },
+  {
+    "path": "errors-oracle-1s-epoll/write-error-everysec-1/argv.json",
+    "bytes": 489,
+    "sha256": "9ccb6f8af00b910bf32a85a013a2165b81ead5dbf322306ef1e934a9dc086a35"
+  },
+  {
+    "path": "errors-oracle-1s-epoll/write-error-everysec-1/server.log",
+    "bytes": 1484,
+    "sha256": "c06f98097d23cdaf100370d6cccaab939bf228163b782ca681139a18d001cec0"
+  },
+  {
+    "path": "errors-oracle-1s-epoll/write-error-no-0/argv.json",
+    "bytes": 477,
+    "sha256": "4544aa8badaab6c94c3ab2f80cc3ca2e6b0eb3ca0a97b87f867cd07e7e724d0a"
+  },
+  {
+    "path": "errors-oracle-1s-epoll/write-error-no-0/server.log",
+    "bytes": 1484,
+    "sha256": "942b97cf5dcb212d74d6207463ccb60946507b3202e2ad32d34064b55bf92183"
+  },
+  {
+    "path": "errors-oracle-1s-epoll/write-error-no-1/argv.json",
+    "bytes": 477,
+    "sha256": "262e5daceb480273960465ec6109869ebb6e75d7dbf6bac864564237f6e9a1f4"
+  },
+  {
+    "path": "errors-oracle-1s-epoll/write-error-no-1/server.log",
+    "bytes": 1484,
+    "sha256": "b14f3af3f538c1ce53e99f564aa601fad6adeb3b3602f188fb4008c608bbd51c"
+  },
+  {
+    "path": "errors-oracle-1s-epoll.log",
+    "bytes": 29589,
+    "sha256": "bf5872028e7c16aa875e83125eb1fa126485dfb690ca55883a6ddbd67bc69112"
+  },
+  {
+    "path": "errors-oracle-1s-uring/write-error-everysec-0/argv.json",
+    "bytes": 489,
+    "sha256": "6bb8023479e6ac571332743b723840649e90131827ac8ce4cc74b822540f3616"
+  },
+  {
+    "path": "errors-oracle-1s-uring/write-error-everysec-0/server.log",
+    "bytes": 1484,
+    "sha256": "434e5f4a43377f98d42c9e25bb1a781a52c322c4e70b6fec001398557917f178"
+  },
+  {
+    "path": "errors-oracle-1s-uring/write-error-everysec-1/argv.json",
+    "bytes": 489,
+    "sha256": "da79a1b2b59b6fd4c81f39006194c517fd1bd5b9de6685f678b91837eb86f311"
+  },
+  {
+    "path": "errors-oracle-1s-uring/write-error-everysec-1/server.log",
+    "bytes": 1484,
+    "sha256": "df61840d0c8f5c96650e955e0451ccee09fada4bedf223812597ab0247e81528"
+  },
+  {
+    "path": "errors-oracle-1s-uring/write-error-no-0/argv.json",
+    "bytes": 477,
+    "sha256": "1fa04ebf2f29acac57a5a4e0b95fead1ca6d9fa1d01860b5329d98ec12deb06c"
+  },
+  {
+    "path": "errors-oracle-1s-uring/write-error-no-0/server.log",
+    "bytes": 1484,
+    "sha256": "84654f09c2e4c0f0baa3e60a07a743c2b28ff5e2412b4fec1e6e09363a1c7971"
+  },
+  {
+    "path": "errors-oracle-1s-uring/write-error-no-1/argv.json",
+    "bytes": 477,
+    "sha256": "131fa672c389ea7956f1a9ec1c8c60db24ca5208e1a3f119dd11fa440d6f478f"
+  },
+  {
+    "path": "errors-oracle-1s-uring/write-error-no-1/server.log",
+    "bytes": 1484,
+    "sha256": "e9dfa0333c45e02e15750b18525ebf5ad02a20e698994f07bc0746edd1faeebc"
+  },
+  {
+    "path": "errors-oracle-1s-uring.log",
+    "bytes": 29589,
+    "sha256": "b9772f5394fabe47324ae76001429332d7df65439ed4886e179cbed13ea44819"
+  },
+  {
+    "path": "errors-oracle-2s-epoll/write-error-everysec-0/argv.json",
+    "bytes": 489,
+    "sha256": "1eec178caa5dfc96bc7d771dd04e9c21385df50437de6c54388538fb92420472"
+  },
+  {
+    "path": "errors-oracle-2s-epoll/write-error-everysec-0/server.log",
+    "bytes": 1484,
+    "sha256": "aca3b5fbe09ebf8a22c7335ab90ba3770827fa532f64d3463e20b1500e56eb01"
+  },
+  {
+    "path": "errors-oracle-2s-epoll/write-error-everysec-1/argv.json",
+    "bytes": 489,
+    "sha256": "2ce864748a16e579c85609373c336768a796c05bef9eb3def897cc2004d32101"
+  },
+  {
+    "path": "errors-oracle-2s-epoll/write-error-everysec-1/server.log",
+    "bytes": 1484,
+    "sha256": "2c94800687d68b81ef329f4d34d270b0cef8c8aa200620db312a393c661b9533"
+  },
+  {
+    "path": "errors-oracle-2s-epoll/write-error-no-0/argv.json",
+    "bytes": 477,
+    "sha256": "fc08b21a2fa26dbc60c29ce25c9f2d2ccaa8d22db6dd32f446051d145718d210"
+  },
+  {
+    "path": "errors-oracle-2s-epoll/write-error-no-0/server.log",
+    "bytes": 1484,
+    "sha256": "713d8082cd80e35a02b5a5715200728c70ad6b8c1e7804374fe321337e063895"
+  },
+  {
+    "path": "errors-oracle-2s-epoll/write-error-no-1/argv.json",
+    "bytes": 477,
+    "sha256": "88d40b8403bdd6901658ca99114f567c48b9174f0cfd596bbe900aadd0f63227"
+  },
+  {
+    "path": "errors-oracle-2s-epoll/write-error-no-1/server.log",
+    "bytes": 1484,
+    "sha256": "4d640df132e69de1dd2a665a909ced3f837993601e8de9536b1000cb4d10099e"
+  },
+  {
+    "path": "errors-oracle-2s-epoll.log",
+    "bytes": 29589,
+    "sha256": "c6796ff7d1ba4a1f9a772eba5197e857f8aee676c4f1615cfbe39c7f7071a204"
+  },
+  {
+    "path": "errors-oracle-2s-uring/write-error-everysec-0/argv.json",
+    "bytes": 489,
+    "sha256": "9eff2f30f2c9ad208e90a8192e98547ab6553acb33438eb9dffe43922f217c7e"
+  },
+  {
+    "path": "errors-oracle-2s-uring/write-error-everysec-0/server.log",
+    "bytes": 1484,
+    "sha256": "7929291fcfe9e021707eec2b64d1e9b62f528e2ea05410f9f70c88ff9e3fb712"
+  },
+  {
+    "path": "errors-oracle-2s-uring/write-error-everysec-1/argv.json",
+    "bytes": 489,
+    "sha256": "c197f36420ab3ac7250a1bd01e6d72d91ed3641195b90c5fcba7e4bf9a3c7c27"
+  },
+  {
+    "path": "errors-oracle-2s-uring/write-error-everysec-1/server.log",
+    "bytes": 1484,
+    "sha256": "453c604056ca418d5fd98cb9560c301755356e933361db5c18303050b3706ff9"
+  },
+  {
+    "path": "errors-oracle-2s-uring/write-error-no-0/argv.json",
+    "bytes": 477,
+    "sha256": "c70675ee127f7bd324eaa0bcfc661ba2a667d231c1ad2c154808367261ffa8f9"
+  },
+  {
+    "path": "errors-oracle-2s-uring/write-error-no-0/server.log",
+    "bytes": 1484,
+    "sha256": "e3b98649740f55462109b9779799d027b111e2892b99f6a5eeba141e07ebcfdb"
+  },
+  {
+    "path": "errors-oracle-2s-uring/write-error-no-1/argv.json",
+    "bytes": 477,
+    "sha256": "e05aed2742239f6be9e70d183f7cf4b596cc6c369a67ad0b431f8e44f31b5ecb"
+  },
+  {
+    "path": "errors-oracle-2s-uring/write-error-no-1/server.log",
+    "bytes": 1484,
+    "sha256": "0b0316a37d07edfe8bdd60ee16ef92177e5b3fd68545f6eb65a3cdabc1ce43cd"
+  },
+  {
+    "path": "errors-oracle-2s-uring.log",
+    "bytes": 29589,
+    "sha256": "5b7a2177ce8177c8fc7f87a683b393f402ca926ce3c6bc62c5fb951435a78b40"
+  },
+  {
+    "path": "errors-target-1s-epoll/write-error-everysec-0/argv.json",
+    "bytes": 666,
+    "sha256": "6e9bc2b4effdc2edbd99e54212d664a82849333b9f5b790203a423e10eda2abb"
+  },
+  {
+    "path": "errors-target-1s-epoll/write-error-everysec-0/server.log",
+    "bytes": 7691,
+    "sha256": "efc607fcf0899e24f783dae47399de7f7688bbda2d0a379d95a3be62d73931dd"
+  },
+  {
+    "path": "errors-target-1s-epoll/write-error-everysec-1/argv.json",
+    "bytes": 666,
+    "sha256": "59ed3b98bbd63711f3aa6f54e8bf1386e8b5baccfae7e1db8cede5773fc0a2cd"
+  },
+  {
+    "path": "errors-target-1s-epoll/write-error-everysec-1/server.log",
+    "bytes": 7668,
+    "sha256": "c77c932c132ba4b9e57204001a348bf310346a717cee0a525ec1b1e8f35cd8e0"
+  },
+  {
+    "path": "errors-target-1s-epoll/write-error-no-0/argv.json",
+    "bytes": 654,
+    "sha256": "9ca3330c4a591fb973abcf5d978f84dca0cc5839493b9331eb5f7f7785af6ee8"
+  },
+  {
+    "path": "errors-target-1s-epoll/write-error-no-0/server.log",
+    "bytes": 7662,
+    "sha256": "a50a049f14e753648c0b343b71b930e61c655a1483c32e1b19a6d91c5edef95a"
+  },
+  {
+    "path": "errors-target-1s-epoll/write-error-no-1/argv.json",
+    "bytes": 654,
+    "sha256": "ffa7253a2ac6cb283cb89ed6ed1a4351e2531b70ee6d77d6f25c16fc058cdf9b"
+  },
+  {
+    "path": "errors-target-1s-epoll/write-error-no-1/server.log",
+    "bytes": 7665,
+    "sha256": "bdc4babccb537bbeca7af0834cf70bb3b316436e93c4694070dcdc006eac7bc2"
+  },
+  {
+    "path": "errors-target-1s-epoll.log",
+    "bytes": 30222,
+    "sha256": "891c62d52f9026ccd87c9ebf5cd3700f8bfa582e1e2bcbd873ea23607abfd321"
+  },
+  {
+    "path": "errors-target-1s-uring/write-error-everysec-0/argv.json",
+    "bytes": 666,
+    "sha256": "12bf9943384bfefcc120ae2f9c11b212138067bf8a9dc5940e2025b7ec749fe2"
+  },
+  {
+    "path": "errors-target-1s-uring/write-error-everysec-0/server.log",
+    "bytes": 7540,
+    "sha256": "8b6fd36809c019db55282ff2b558ef8f9924b28e9f2a3a95c407dee9cf067415"
+  },
+  {
+    "path": "errors-target-1s-uring/write-error-everysec-1/argv.json",
+    "bytes": 666,
+    "sha256": "67aeaa86e9ee7fad6ffa0a7babf025dee960c31dcc0d8dbec0200d96d8172bae"
+  },
+  {
+    "path": "errors-target-1s-uring/write-error-everysec-1/server.log",
+    "bytes": 7546,
+    "sha256": "98cb3c2846dc7fba01c1916daba381cf61568b694350043d2e625f5c8cb18b9c"
+  },
+  {
+    "path": "errors-target-1s-uring/write-error-no-0/argv.json",
+    "bytes": 654,
+    "sha256": "46df7fb4a5b966de0fcb2608c3c8adbcf7fec929b7302504c4d2897020ad084f"
+  },
+  {
+    "path": "errors-target-1s-uring/write-error-no-0/server.log",
+    "bytes": 7543,
+    "sha256": "44d5683db758dd9f22be6c8079bae5a8ced11a0065e20db5482cd12e3c3d9962"
+  },
+  {
+    "path": "errors-target-1s-uring/write-error-no-1/argv.json",
+    "bytes": 654,
+    "sha256": "bb967743036fedb2a46e962af35b82bceeac564e75bc6742598d7e75b958e2d3"
+  },
+  {
+    "path": "errors-target-1s-uring/write-error-no-1/server.log",
+    "bytes": 7546,
+    "sha256": "318fc070639074686316b78598a70270ee30495f4b34e9c51b845dfa1805da33"
+  },
+  {
+    "path": "errors-target-1s-uring.log",
+    "bytes": 30222,
+    "sha256": "a6f5b90c9faedd51ac6ebc566acb32b47cddb54c169c474132e42c21a412554f"
+  },
+  {
+    "path": "errors-target-2s-epoll/write-error-everysec-0/argv.json",
+    "bytes": 684,
+    "sha256": "77e38b29df83757040a66b6e97be9e623c31fd91ce0d6c6ee6fcf6d61fe1040a"
+  },
+  {
+    "path": "errors-target-2s-epoll/write-error-everysec-0/server.log",
+    "bytes": 6786,
+    "sha256": "ed842a2da6b419ec859197299f4c72a73c2c077f43315ab449d44ae02b1db040"
+  },
+  {
+    "path": "errors-target-2s-epoll/write-error-everysec-1/argv.json",
+    "bytes": 684,
+    "sha256": "1daa40e55a49a9b8198329703b18469ab6b547f4bb3ce765f657d925e58ef15c"
+  },
+  {
+    "path": "errors-target-2s-epoll/write-error-everysec-1/server.log",
+    "bytes": 6791,
+    "sha256": "311e343a466dbc7844565270848fac0864253fd9fa82c9a9b0cfa6a303ef4320"
+  },
+  {
+    "path": "errors-target-2s-epoll/write-error-no-0/argv.json",
+    "bytes": 672,
+    "sha256": "5167ad1487556f33e2d84368ec847d8fa912b0acca5681c040ac5e2794d6e6c4"
+  },
+  {
+    "path": "errors-target-2s-epoll/write-error-no-0/server.log",
+    "bytes": 6765,
+    "sha256": "de11ae3b427c5029e95b0bdcd6738a5b13c2cf83aed5825c7e2e0e9dd8540f1a"
+  },
+  {
+    "path": "errors-target-2s-epoll/write-error-no-1/argv.json",
+    "bytes": 672,
+    "sha256": "a6317e70ac98f0ae5c7e5e7abb1bafaa931d2c7aaa1eac928acbe5f5e0c2f84f"
+  },
+  {
+    "path": "errors-target-2s-epoll/write-error-no-1/server.log",
+    "bytes": 6766,
+    "sha256": "5b88f2f48e08d6a492406bafdea0719d353f015ba834d1ec513b6d9172b87cee"
+  },
+  {
+    "path": "errors-target-2s-epoll.log",
+    "bytes": 30294,
+    "sha256": "d1b84ddd8d7ff20b2573a1805f986b4de617991b6b23f7ffa830924df1e623f7"
+  },
+  {
+    "path": "errors-target-2s-uring/write-error-everysec-0/argv.json",
+    "bytes": 684,
+    "sha256": "40b2d05a5fb4c4653b5fe671a37c3a3e8c49d6a6e4a6e74de6303411a0b019d4"
+  },
+  {
+    "path": "errors-target-2s-uring/write-error-everysec-0/server.log",
+    "bytes": 6641,
+    "sha256": "ace5d8e58fa6407401e20fd28d38ded5c2e09f82366a203511c9bea8a47faa6e"
+  },
+  {
+    "path": "errors-target-2s-uring/write-error-everysec-1/argv.json",
+    "bytes": 684,
+    "sha256": "691f14cd72e92462425211b240e7dff8692613453c514f83db2729f50257eee0"
+  },
+  {
+    "path": "errors-target-2s-uring/write-error-everysec-1/server.log",
+    "bytes": 6636,
+    "sha256": "bbf257cbb7000776d07845d579b2f52258f07998960289ee823336a8e552ed32"
+  },
+  {
+    "path": "errors-target-2s-uring/write-error-no-0/argv.json",
+    "bytes": 672,
+    "sha256": "915e965f2bb375470b758b3758519c737a9f50e56e75807964196a95871abbdd"
+  },
+  {
+    "path": "errors-target-2s-uring/write-error-no-0/server.log",
+    "bytes": 6643,
+    "sha256": "a11c185f320dbd81b036f16c032a822994cb55bd1a1a70c8717e97ff458a8e38"
+  },
+  {
+    "path": "errors-target-2s-uring/write-error-no-1/argv.json",
+    "bytes": 672,
+    "sha256": "72179290fc1ed42d875194649d3dd544357061fa4947524239e9913dbd2fd066"
+  },
+  {
+    "path": "errors-target-2s-uring/write-error-no-1/server.log",
+    "bytes": 6637,
+    "sha256": "ef71811384d38206288c62421153f200db8f87bb0a54b00d7d84be124677c223"
+  },
+  {
+    "path": "errors-target-2s-uring.log",
+    "bytes": 30294,
+    "sha256": "e828f06c999536bec01aecb6c1a36a8e2d3b513122333ff9868074fb40751084"
+  },
+  {
+    "path": "output.log",
+    "bytes": 185,
+    "sha256": "60b05bcfd5b6bd93a61d1efb9687a5c5a8f2cdb182a16582d84e763b22d89358"
+  }
+]

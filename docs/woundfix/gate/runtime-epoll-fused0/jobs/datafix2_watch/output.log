@@ -1,0 +1,2 @@
+  row budget: 900s; median=112.04s; correctness-plan-fallback; datafix2 CD4.9 write WATCH table vs Redis 7.4
+  datafix2 CD4.9 write WATCH table vs Redis 7.4        ok

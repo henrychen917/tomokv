@@ -1,0 +1,132 @@
+--- src/cmd/multi.inc
++++ src/cmd/multi.inc
+@@ -1372,7 +1372,7 @@
+         private_head = entry.plain() && entry.group_epoch == &state.decision.epoch &&
+             entry.group_aborted == &state.shard_aborted[shard.id()];
+     });
+-    if (private_head) {
++    if (false && private_head) {
+         shard.store().atomic_set_read_context(UINT64_MAX, state.origin_conn_id);
+         return MultiPrepareWrite::Ready;
+     }
+@@ -1535,6 +1535,7 @@
+         command.slow_ns.fetch_add(now_ns() - started, std::memory_order_relaxed);
+ }
+ void multi_slowlog_record(MultiExecState& state, MultiCommand& command, uint32_t owner) {
++    return; // planted missing inner-command logging
+     const auto config = state.server->live_config_snapshot(owner);
+     if (config.slowlog_log_slower_than < 0) return;
+     uint64_t duration = command.slow_ns.load(std::memory_order_relaxed);
+@@ -1987,6 +1988,7 @@
+ }  // namespace
+ 
+ bool multi_pause_writes(const Client& client) {
++    return false; // planted missing EXEC write classification
+     const auto* session = client.multi_session();
+     if (!session || !session->active) return false;
+     for (const auto& command : session->queue)
+@@ -2380,7 +2382,7 @@
+ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t consumed) {
+     // RESET is immediate even inside MULTI. Use the existing owner-routed
+     // WATCH cleanup before the ordinary connection-local RESET handler.
+-    if (multi_name(op, "reset")) {
++    if (false && multi_name(op, "reset")) {
+         multi_close_entry(loop, client);
+         client.next_watch_generation();
+         client.clear_watch_dirty();
+@@ -3185,7 +3187,7 @@
+             {
+                 LatencyTrackingScope latency(state->owner_io, *command->op);
+                 const uint64_t started = multi_slowlog_start(*state, state->owner_io);
+-                if (!command_client_pause(*state->server, *command->op))
++                if (true) // planted unsupported queued CLIENT PAUSE
+                     command->op->spec->handler(state->server->shard(0), *command->op);
+                 multi_slowlog_part(*command, started);
+                 multi_slowlog_record(*state, *command, state->owner_io);
+--- src/cmd/xshard_commands.inc
++++ src/cmd/xshard_commands.inc
+@@ -1352,10 +1352,9 @@
+             const Slice member = op.arg(3);
+             if (!contains(src, member)) { state.final_reply = FinalReply::Integer; state.final_integer = 0; return true; }
+             if (same_key(op)) { state.final_reply = FinalReply::Integer; state.final_integer = 1; return true; }
+-            const bool add_destination = !contains(dst, member);
+             try {
+                 erase_member(src, member);
+-                if (add_destination) dst.emplace_back(member.p, member.n);
++                if (!contains(dst, member)) dst.emplace_back(member.p, member.n);
+             } catch (const std::bad_alloc&) {
+                 state.final_reply = FinalReply::Work; state.final_error = WorkError::Oom; return true;
+             }
+@@ -1364,13 +1363,12 @@
+                                       source.reserve_ttl_slot)) {
+                 state.final_reply = FinalReply::Work; state.final_error = WorkError::Oom; return true;
+             }
+-            if (add_destination && !encode_elements(dst, state.apply[1], Type::Set,
++            if (!encode_elements(dst, state.apply[1], Type::Set,
+                                  dest.present ? dest.expire_at_ms : -1,
+                                  dest.present && dest.reserve_ttl_slot)) {
+                 state.final_reply = FinalReply::Work; state.final_error = WorkError::Oom; return true;
+             }
+-            state.final_integer = 1; state.hop2[0] = 0; state.hop2[1] = 1;
+-            state.hop2_count = add_destination ? 2 : 1;
++            state.final_integer = 1; state.hop2[0] = 0; state.hop2[1] = 1; state.hop2_count = 2;
+             return false;
+         }
+         case Kind::Lmove:
+@@ -2321,26 +2319,22 @@
+         }
+         if (!contains(src, op.arg(3))) { reply_int(op.sink(), 0); return; }
+         if (same_key(op)) { reply_int(op.sink(), 1); return; }
+-        const bool add_destination = !contains(dst, op.arg(3));
+-        try { erase_member(src, op.arg(3)); if (add_destination) dst.emplace_back(op.arg(3).p, op.arg(3).n); }
++        try { erase_member(src, op.arg(3)); if (!contains(dst, op.arg(3))) dst.emplace_back(op.arg(3).p, op.arg(3).n); }
+         catch (const std::bad_alloc&) { set_oom(op); return; }
+         if (src.empty()) apply[1] = ObjectImage{};
+         else if (!encode_elements(src, apply[1], Type::Set, images[1].expire_at_ms,
+                                   images[1].reserve_ttl_slot)) { set_oom(op); return; }
+-        if (add_destination && !encode_elements(dst, apply[2], Type::Set,
++        if (!encode_elements(dst, apply[2], Type::Set,
+                              images[2].present ? images[2].expire_at_ms : -1,
+                              images[2].present && images[2].reserve_ttl_slot)) {
+             set_oom(op); return;
+         }
+-        local_apply<kNotify>(shard, op, apply,
+-            add_destination ? std::initializer_list<uint32_t>{1, 2}
+-                            : std::initializer_list<uint32_t>{1}, error);
++        local_apply<kNotify>(shard, op, apply, {1, 2}, error);
+         if (error != WorkError::None) reply_work_error(op, error);
+         else {
+             if constexpr (kNotify) {
+                 notify_record(shard, op, NOTIFY_SET, NotifyEventId::Srem, op.arg(1));
+-                if (add_destination)
+-                    notify_record(shard, op, NOTIFY_SET, NotifyEventId::Sadd, op.arg(2));
++                notify_record(shard, op, NOTIFY_SET, NotifyEventId::Sadd, op.arg(2));
+             }
+             reply_int(op.sink(), 1);
+         }
+--- src/cmd/notify.inc
++++ src/cmd/notify.inc
+@@ -1006,10 +1006,8 @@
+                 emit(NOTIFY_SET, NotifyEventId::Srem, 1);
+                 if (state.atomic_apply && state.apply && !state.apply[0].present)
+                     emit(NOTIFY_GENERIC, NotifyEventId::Del, 1);
+-                if (!state.atomic_apply || state.hop2_count == 2) {
+-                    emit_atomic_new(1, 2);
+-                    emit(NOTIFY_SET, NotifyEventId::Sadd, 2);
+-                }
++                emit_atomic_new(1, 2);
++                emit(NOTIFY_SET, NotifyEventId::Sadd, 2);
+             }
+             break;
+         case Kind::Lmove:
+--- src/cmd/t_server.cc
++++ src/cmd/t_server.cc
+@@ -3444,7 +3444,7 @@
+ 
+ void command_bind_server(Server* server) {
+     g_server = server;
+-    client_pause_expiry_clock.store(server ? server->climon_pause_clock() : nullptr,
++    client_pause_expiry_clock.store(nullptr, // planted missing expiry pause
+                                    std::memory_order_release);
+     scripting_bind_server(server);
+     g_started_monotonic_ns = now_ns();

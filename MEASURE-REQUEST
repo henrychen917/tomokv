@@ -1,5 +1,5 @@
-# wave8b
+# wave9
 
-See [MEASURE-REQUEST-wave8b.md](MEASURE-REQUEST-wave8b.md), section `## wave8b`.
-PRE/POST/PAD-A hashes, exact cells, limits and the landing decision are recorded there.
-No performance measurements have been run in this lane.
+See [MEASURE-REQUEST-wave9.md](MEASURE-REQUEST-wave9.md), section `## wave9 integration`.
+The at412c storm recipe is preserved in `docs/at412c/MEASURE-REQUEST`.
+No performance measurements run in this lane.

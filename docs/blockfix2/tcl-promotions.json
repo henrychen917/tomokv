@@ -1,0 +1,92 @@
+[
+  [
+    "unit/multi",
+    "Blocking commands ignores the timeout",
+    "MULTI-XREADGROUP-BLOCK-HANG"
+  ],
+  [
+    "unit/slowlog",
+    "SLOWLOG - Rewritten commands are logged as their original command",
+    "SLOWLOG-BLOCKED-NOT-LOGGED"
+  ],
+  [
+    "unit/slowlog",
+    "SLOWLOG - blocking command is reported only after unblocked",
+    "SLOWLOG-BLOCKED-NOT-LOGGED"
+  ],
+  [
+    "unit/type/list",
+    "BLMPOP_LEFT when new key is moved into place",
+    "BLOCK-WAKE-RENAME-SORTSTORE"
+  ],
+  [
+    "unit/type/list",
+    "BLMPOP_LEFT when result key is created by SORT..STORE",
+    "BLOCK-WAKE-RENAME-SORTSTORE"
+  ],
+  [
+    "unit/type/list",
+    "BLPOP when new key is moved into place",
+    "BLOCK-WAKE-RENAME-SORTSTORE"
+  ],
+  [
+    "unit/type/list",
+    "BLPOP when result key is created by SORT..STORE",
+    "BLOCK-WAKE-RENAME-SORTSTORE"
+  ],
+  [
+    "unit/type/list",
+    "BRPOPLPUSH with multiple blocked clients",
+    "BLOCK-MOVE-WRONGTYPE-STRANDS"
+  ],
+  [
+    "unit/type/stream-cgroups",
+    "Blocking XREADGROUP for stream key that has clients blocked on list",
+    "INFO-TOTAL-BLOCKING-KEYS"
+  ],
+  [
+    "unit/type/stream-cgroups",
+    "Blocking XREADGROUP for stream key that has clients blocked on stream - avoid endless loop",
+    "INFO-TOTAL-BLOCKING-KEYS; cascade of unit/type/stream-cgroups: Blocking XREADGROUP for stream key that has clients blocked on list"
+  ],
+  [
+    "unit/type/stream-cgroups",
+    "Blocking XREADGROUP for stream key that has clients blocked on stream - reprocessing command",
+    "INFO-TOTAL-BLOCKING-KEYS; cascade of unit/type/stream-cgroups: Blocking XREADGROUP for stream key that has clients blocked on list"
+  ],
+  [
+    "unit/type/stream-cgroups",
+    "Blocking XREADGROUP: flushed DB",
+    "BLOCK-STREAM-REMOVED-NO-UNBLOCK"
+  ],
+  [
+    "unit/type/stream-cgroups",
+    "Blocking XREADGROUP: key deleted",
+    "BLOCK-STREAM-REMOVED-NO-UNBLOCK"
+  ],
+  [
+    "unit/type/stream-cgroups",
+    "Blocking XREADGROUP: key type changed with SET",
+    "BLOCK-STREAM-REMOVED-NO-UNBLOCK"
+  ],
+  [
+    "unit/type/stream-cgroups",
+    "Blocking XREADGROUP: key type changed with transaction",
+    "BLOCK-STREAM-REMOVED-NO-UNBLOCK"
+  ],
+  [
+    "unit/type/stream-cgroups",
+    "RENAME can unblock XREADGROUP with -NOGROUP",
+    "BLOCK-WAKE-RENAME-SORTSTORE"
+  ],
+  [
+    "unit/type/stream-cgroups",
+    "RENAME can unblock XREADGROUP with data",
+    "BLOCK-WAKE-RENAME-SORTSTORE"
+  ],
+  [
+    "unit/type/stream-cgroups",
+    "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP",
+    "BLOCK-STREAM-REMOVED-NO-UNBLOCK"
+  ]
+]

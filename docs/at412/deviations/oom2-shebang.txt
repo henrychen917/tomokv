@@ -1,0 +1,18 @@
+== /home/user/Projects/cx-at412/build/at412/pre/tomokv
+DEL under maxmemory with a parked script holding intents: ERR out of memory
+script: OOM command not allowed when used memory > 'maxmemory'.
+after: [b'before', b'1']
+EVAL_RO 2key shebang ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'
+EVAL 2key shebang ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'
+EVAL 1key shebang ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'
+EVAL_RO 2key plain [b'1', b'1']
+DEL under maxmemory 1
+== /home/user/Projects/cx-at412/build/tomokv
+DEL under maxmemory with a parked script holding intents: ERR out of memory
+script: OOM command not allowed when used memory > 'maxmemory'.
+after: [b'before', b'1']
+EVAL_RO 2key shebang ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'
+EVAL 2key shebang ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'
+EVAL 1key shebang ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'
+EVAL_RO 2key plain [b'1', b'1']
+DEL under maxmemory 1

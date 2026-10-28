@@ -1,0 +1,9 @@
+STREAM-TRIM-APPROX-LIMIT {'uring-2s': 'SAME', 'uring-1s': 'SAME', 'epoll-2s': 'SAME', 'epoll-1s': 'SAME'}
+XREAD-PLUS-LAST {'uring-2s': 'SAME', 'uring-1s': 'SAME', 'epoll-2s': 'SAME', 'epoll-1s': 'SAME'}
+XRANGE-EXCLUSIVE-SENTINEL {'uring-2s': 'SAME', 'uring-1s': 'SAME', 'epoll-2s': 'SAME', 'epoll-1s': 'SAME'}
+STREAM-GROUP-ID-DASH {'uring-2s': 'SAME', 'uring-1s': 'SAME', 'epoll-2s': 'SAME', 'epoll-1s': 'SAME'}
+XAUTOCLAIM-COUNT-RANGE {'uring-2s': 'SAME', 'uring-1s': 'SAME', 'epoll-2s': 'SAME', 'epoll-1s': 'SAME'}
+DUMP-STREAM-REFUSED {'uring-2s': 'DIFFERENT', 'uring-1s': 'DIFFERENT', 'epoll-2s': 'DIFFERENT', 'epoll-1s': 'DIFFERENT'}
+RESTORE-IDLETIME-FREQ-IGNORED {'uring-2s': 'DIFFERENT', 'uring-1s': 'DIFFERENT', 'epoll-2s': 'DIFFERENT', 'epoll-1s': 'DIFFERENT'}
+OBJECT-IDLETIME-ZERO {'uring-2s': 'DIFFERENT', 'uring-1s': 'DIFFERENT', 'epoll-2s': 'DIFFERENT', 'epoll-1s': 'DIFFERENT'}
+MPOP-ARG-ERROR-TEXT {'uring-2s': 'SAME', 'uring-1s': 'SAME', 'epoll-2s': 'SAME', 'epoll-1s': 'SAME'}

@@ -1,0 +1,8 @@
+1s 0 uring 4 PASS lines, last: AT4.12 owner turns PASS
+1s 0 epoll 4 PASS lines, last: AT4.12 owner turns PASS
+1s 1 uring 4 PASS lines, last: AT4.12 owner turns PASS
+1s 1 epoll 4 PASS lines, last: AT4.12 owner turns PASS
+2s 0 uring 4 PASS lines, last: AT4.12 owner turns PASS
+2s 0 epoll 4 PASS lines, last: AT4.12 owner turns PASS
+2s 1 uring 4 PASS lines, last: AT4.12 owner turns PASS
+2s 1 epoll 4 PASS lines, last: AT4.12 owner turns PASS

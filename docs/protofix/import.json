@@ -1,0 +1,18 @@
+{
+  "source_commit": "033e94d79326f50c61cce54ee1c7ec63da69f9a3",
+  "import_commit": "2403bab77",
+  "test_byte_identical": true,
+  "sha256": "bbd94d8a7aa11af614fb7296ba04369e365fcd3e1ee3a799913bddd2cf520473",
+  "row_collection_line": 5554,
+  "quick_exit_start_line": 5785,
+  "DQ": 4,
+  "DF": 4,
+  "expected_after_wave8_and_protofix": {
+    "quick": 810,
+    "full": 827
+  },
+  "protected_constants_unchanged": {
+    "quick": 798,
+    "full": 815
+  }
+}

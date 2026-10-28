@@ -1,0 +1,80 @@
+{
+  "kind": "mutant",
+  "changes": [
+    {
+      "file": "/home/user/Projects/cx-streamfix/build/streamfix/mutant-source/src/cmd/t_stream.cc",
+      "before": "latest = input.n == 1 && (input.p[0] == '$' || input.p[0] == '+');",
+      "after": "latest = input.n == 1 && input.p[0] == '$';"
+    },
+    {
+      "file": "/home/user/Projects/cx-streamfix/build/streamfix/mutant-source/src/cmd/t_stream.cc",
+      "before": "parse_id_numeric(input, id, start ? 0 : UINT64_MAX, !exclusive)",
+      "after": "parse_id_numeric(input, id, start ? 0 : UINT64_MAX, true)"
+    },
+    {
+      "file": "/home/user/Projects/cx-streamfix/build/streamfix/mutant-source/src/cmd/t_stream.cc",
+      "before": "if (trim.limit && node_live > trim.limit) return {};",
+      "after": "if (false && trim.limit && node_live > trim.limit) return {};"
+    },
+    {
+      "file": "/home/user/Projects/cx-streamfix/build/streamfix/mutant-source/src/cmd/t_stream.cc",
+      "before": "    if (trim.approximate) return {};",
+      "after": "    if (false && trim.approximate) return {};"
+    },
+    {
+      "file": "/home/user/Projects/cx-streamfix/build/streamfix/mutant-source/src/cmd/t_stream_groups.cc",
+      "before": "else if (!parse_id(op.arg(4), id, 0, true))",
+      "after": "else if (!parse_id(op.arg(4), id))"
+    },
+    {
+      "file": "/home/user/Projects/cx-streamfix/build/streamfix/mutant-source/src/cmd/t_stream_groups.cc",
+      "before": "if (!parse_id(op.arg(5), start, 0, true))",
+      "after": "if (!parse_id(op.arg(5), start))"
+    },
+    {
+      "file": "/home/user/Projects/cx-streamfix/build/streamfix/mutant-source/src/cmd/t_stream_groups.cc",
+      "before": "static_cast<uint64_t>(parsed) > uint64_t{INT64_MAX} / sizeof(StreamID)",
+      "after": "(false && static_cast<uint64_t>(parsed) > uint64_t{INT64_MAX} / sizeof(StreamID))"
+    },
+    {
+      "file": "/home/user/Projects/cx-streamfix/build/streamfix/mutant-source/src/cmd/xshard_commands.inc",
+      "before": "if (!parse_i64(op.arg(++i), parsed_count) || parsed_count < 1) {\n            reply_err(op.sink(), \"ERR count should be greater than 0\");",
+      "after": "if (!parse_i64(op.arg(++i), parsed_count) || parsed_count < 1) {\n            reply_err(op.sink(), \"ERR value is not an integer or out of range\");"
+    },
+    {
+      "file": "/home/user/Projects/cx-streamfix/build/streamfix/mutant-source/src/cmd/blocking.inc",
+      "before": "if (!parse_i64(input, parsed) || parsed < 1) {\n        reply_err(op.sink(), \"ERR count should be greater than 0\");",
+      "after": "if (!parse_i64(input, parsed) || parsed < 1) {\n        reply_err(op.sink(), \"ERR value is not an integer or out of range\");"
+    },
+    {
+      "file": "/home/user/Projects/cx-streamfix/build/streamfix/mutant-source/src/cmd/blocking.inc",
+      "before": "if (!parse_i64(op.arg(2), parsed_keys) || parsed_keys < 1) {\n                reply_err(op.sink(), \"ERR numkeys should be greater than 0\");",
+      "after": "if (!parse_i64(op.arg(2), parsed_keys) || parsed_keys < 1) {\n                reply_err(op.sink(), \"ERR value is not an integer or out of range\");"
+    }
+  ],
+  "command": [
+    "make",
+    "-j16",
+    "BUILD_ROOT=/home/user/Projects/cx-streamfix/build/streamfix/mutant-objects",
+    "all"
+  ],
+  "affinity": [
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111
+  ],
+  "exit": 2
+}

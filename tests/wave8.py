@@ -97,10 +97,9 @@ def run(port):
             pair = [left[0], right[0]]
             script_pairs = list(zip(left[1:3], right[1:3]))
             script_pairs[1] = tuple(reversed(script_pairs[1]))
-            # Explicit cross-shard script key conflicts may return TRYAGAIN.
-            # Distinct script claims on the same owners isolate successful-command
-            # accounting while six EXEC clients contend on their hot pair. Eight
-            # total commands fit the snapshot admission window without BUSY.
+            # Distinct script claims isolate successful-command accounting while
+            # six EXEC clients contend. AT4.12 admission queues even under load;
+            # no BUSY or TRYAGAIN refusal is permitted in any reply.
             for keys in [pair, *script_pairs]:
                 assert admin.cmd('MSET', keys[0], 0, keys[1], 0) == b'OK'
             assert admin.cmd('CONFIG', 'RESETSTAT') == b'OK'
@@ -149,6 +148,7 @@ redis.sha1hex(cmsgpack.unpack(cmsgpack.pack('wave8')))})"""
         else:
             raise AssertionError('EXEC fast-poll window never opened on three fresh states')
         retry_windows(admin, port, pair, script)
+        assert counters(admin)['script_crossshard_window_refusals'] == 0
         assert admin.cmd('CONFIG', 'SET', 'latency-tracking', 'no') == b'OK'
         value = admin.cmd('GET', pair[0])
         frozen = histogram(admin, 'get')

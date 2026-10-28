@@ -1,0 +1,2 @@
+atomic=1
+{"transactional": false, "geometry": [[11, 7], [11, 7], [0, 6]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}

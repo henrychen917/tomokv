@@ -1,0 +1,366 @@
+tomo::AofManager::reply_write_error(tomo::Op&, bool) const
+--- headline
+
++++ post
+
+@@ -13,13 +13,13 @@
+
+ CLONE 0 002b [ 2] xor %eax,%eax
+ CLONE 0 002d [ 3] mov 0x44(%rdi),%edi
+ CLONE 0 0030 [ 5] mov $0x5,%eax
+-CLONE 0 0035 [ 5] lea 0x20(%rsp),%r13
++CLONE 0 0035 [ 5] lea 0x20(%rsp),%r15
+ CLONE 0 003a [ 2] test %edi,%edi
+ CLONE 0 003c [ 3] cmove %eax,%edi
+ CLONE 0 003f [ 5] call <strerror@plt>
+ CLONE 0 0044 [ 2] test %bl,%bl
+ CLONE 0 0046 [ 7] lea <rip>(%rip),%rdx # <literal-string-4558454341424f5254205472616e73616374696f6e206469736361726465642062656361757365206f663a2000>
+-CLONE 0 004d [ 7] lea <rip>(%rip),%r9 # <_IO_stdin_used+0x788>
++CLONE 0 004d [ 7] lea <rip>(%rip),%r9 # <_IO_stdin_used+0x782>
+ CLONE 0 0054 [ 4] cmovne %rdx,%r9
+ CLONE 0 0058 [ 4] sub $0x8,%rsp
+ CLONE 0 005c [ 5] mov $0x200,%ecx
+@@ -27,7 +27,7 @@
+
+ CLONE 0 0066 [ 1] push %rax
+ CLONE 0 0067 [ 7] lea <rip>(%rip),%r8 # <literal-string-25734d4953434f4e46204572726f72732077726974696e6720746f2074686520414f462066696c653a20257300>
+ CLONE 0 006e [ 5] mov $0x200,%esi
+-CLONE 0 0073 [ 3] mov %r13,%rdi
++CLONE 0 0073 [ 3] mov %r15,%rdi
+ CLONE 0 0076 [ 2] xor %eax,%eax
+ CLONE 0 0078 [ 5] call <__snprintf_chk@plt>
+ CLONE 0 007d [ 7] mov 0x98(%rbp),%rax
+@@ -37,165 +37,177 @@
+
+ CLONE 0 0092 [ 1] pop %rdx
+ CLONE 0 0093 [ 1] pop %rcx
+ CLONE 0 0094 [ 3] test %rax,%rax
+-CLONE 0 0097 [ 6] je <+0x1e0>
++CLONE 0 0097 [ 6] je <+0x160>
+ CLONE 0 009d [ 3] test %r12,%r12
+-CLONE 0 00a0 [ 6] jne <+0x1e0>
++CLONE 0 00a0 [ 6] jne <+0x160>
+ CLONE 0 00a6 [ 6] mov 0xa4(%rbp),%edx
+ CLONE 0 00ac [ 6] mov 0xa0(%rbp),%esi
+ CLONE 0 00b2 [ 4] lea 0x1(%rdx),%rcx
+ CLONE 0 00b6 [ 3] cmp %rcx,%rsi
+-CLONE 0 00b9 [ 6] jae <+0x320>
++CLONE 0 00b9 [ 6] jae <+0x1d0>
+ CLONE 0 00bf [ 4] mov 0x30(%rbp),%rbx
+ CLONE 0 00c3 [ 3] test %rbx,%rbx
+-CLONE 0 00c6 [ 6] je <+0x356>
+-CLONE 0 00cc [ 4] mov 0x20(%rbp),%r14
+-CLONE 0 00d0 [ 5] movb $0x2d,(%r14,%r12,1)
+-CLONE 0 00d5 [ 4] incq 0x28(%rbp)
+-CLONE 0 00d9 [ 3] mov %r13,%rdi
+-CLONE 0 00dc [ 2] xor %ebp,%ebp
+-CLONE 0 00de [ 5] lea 0x10(%rsp),%r15
+-CLONE 0 00e3 [ 5] call <strlen@plt>
+-CLONE 0 00e8 [ 2] xor %esi,%esi
+-CLONE 0 00ea [ 3] mov %rax,%r14
+-CLONE 0 00ed [ 3] test %rax,%rax
+-CLONE 0 00f0 [ 2] jne <+0x10d>
+-CLONE 0 00f2 [ 5] jmp <+0x1a3>
+-CLONE 0 00f7 [ 9] nopw 0x0(%rax,%rax,1)
+-CLONE 0 0100 [ 2] cmp $0xa,%al
+-CLONE 0 0102 [ 2] je <+0x11d>
+-CLONE 0 0104 [ 3] cmp %rbp,%r14
+-CLONE 0 0107 [ 6] je <+0x19a>
+-CLONE 0 010d [ 6] movzbl 0x0(%r13,%rbp,1),%eax
+-CLONE 0 0113 [ 3] mov %rbp,%rdx
+-CLONE 0 0116 [ 3] inc %rbp
+-CLONE 0 0119 [ 2] cmp $0xd,%al
+-CLONE 0 011b [ 2] jne <+0x100>
+-CLONE 0 011d [ 3] sub %rsi,%rdx
+-CLONE 0 0120 [ 3] mov %r15,%rdi
+-CLONE 0 0123 [ 3] add %r13,%rsi
+-CLONE 0 0126 [ 5] call <tomo::Op::Sink::append(char const*, unsigned long)>
+-CLONE 0 012b [ 5] mov 0x10(%rsp),%r12
+-CLONE 0 0130 [ 8] mov 0x98(%r12),%rax
+-CLONE 0 0138 [ 5] mov 0x28(%r12),%rdx
+-CLONE 0 013d [ 3] test %rax,%rax
+-CLONE 0 0140 [ 6] je <+0x250>
+-CLONE 0 0146 [ 3] test %rdx,%rdx
+-CLONE 0 0149 [ 6] jne <+0x250>
+-CLONE 0 014f [ 8] mov 0xa4(%r12),%ecx
+-CLONE 0 0157 [ 8] mov 0xa0(%r12),%edi
+-CLONE 0 015f [ 4] lea 0x1(%rcx),%rsi
+-CLONE 0 0163 [ 3] cmp %rsi,%rdi
+-CLONE 0 0166 [ 6] jae <+0x2e0>
+-CLONE 0 016c [ 5] mov 0x30(%r12),%rbx
+-CLONE 0 0171 [ 5] movb $0x0,0x18(%rsp)
+-CLONE 0 0176 [ 3] test %rbx,%rbx
+-CLONE 0 0179 [ 6] je <+0x340>
+-CLONE 0 017f [ 5] mov 0x20(%r12),%r8
+-CLONE 0 0184 [ 5] movb $0x20,(%r8,%rdx,1)
+-CLONE 0 0189 [ 5] incq 0x28(%r12)
+-CLONE 0 018e [ 3] mov %rbp,%rsi
+-CLONE 0 0191 [ 3] cmp %rbp,%r14
+-CLONE 0 0194 [ 6] jne <+0x10d>
+-CLONE 0 019a [ 3] cmp %r14,%rsi
+-CLONE 0 019d [ 6] jb <+0x300>
+-CLONE 0 01a3 [ 5] mov $0x2,%edx
+-CLONE 0 01a8 [ 7] lea <rip>(%rip),%rsi # <literal-string-0d0a00>
+-CLONE 0 01af [ 3] mov %r15,%rdi
+-CLONE 0 01b2 [ 5] call <tomo::Op::Sink::append(char const*, unsigned long)>
+-CLONE 0 01b7 [ 8] mov 0x228(%rsp),%rax
+-CLONE 0 01bf [ 9] sub %fs:0x28,%rax
+-CLONE 0 01c8 [ 6] jne <+0x360>
+-CLONE 0 01ce [ 7] add $0x238,%rsp
+-CLONE 0 01d5 [ 1] pop %rbx
+-CLONE 0 01d6 [ 1] pop %rbp
+-CLONE 0 01d7 [ 2] pop %r12
+-CLONE 0 01d9 [ 2] pop %r13
+-CLONE 0 01db [ 2] pop %r14
+-CLONE 0 01dd [ 2] pop %r15
+-CLONE 0 01df [ 1] ret
+-CLONE 0 01e0 [ 4] mov 0x30(%rbp),%rbx
+-CLONE 0 01e4 [ 5] lea 0x1(%r12),%rax
+-CLONE 0 01e9 [ 3] cmp %rax,%rbx
+-CLONE 0 01ec [ 6] jae <+0xcc>
+-CLONE 0 01f2 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 01fd [ 3] nopl (%rax)
+-CLONE 0 0200 [ 3] add %rbx,%rbx
+-CLONE 0 0203 [ 3] cmp %rax,%rbx
+-CLONE 0 0206 [ 2] jb <+0x200>
+-CLONE 0 0208 [ 3] mov %rbx,%rdi
+-CLONE 0 020b [ 5] call <malloc@plt>
+-CLONE 0 0210 [ 4] mov 0x20(%rbp),%r15
+-CLONE 0 0214 [ 3] mov %rbx,%rcx
+-CLONE 0 0217 [ 3] mov %r12,%rdx
+-CLONE 0 021a [ 3] mov %rax,%rdi
+-CLONE 0 021d [ 3] mov %rax,%r14
+-CLONE 0 0220 [ 3] mov %r15,%rsi
+-CLONE 0 0223 [ 5] call <__memcpy_chk@plt>
+-CLONE 0 0228 [ 4] lea 0x38(%rbp),%rax
+-CLONE 0 022c [ 3] cmp %rax,%r15
+-CLONE 0 022f [ 2] je <+0x23d>
+-CLONE 0 0231 [ 3] mov %r15,%rdi
+-CLONE 0 0234 [ 5] call <free@plt>
+-CLONE 0 0239 [ 4] mov 0x28(%rbp),%r12
+-CLONE 0 023d [ 4] mov %r14,0x20(%rbp)
+-CLONE 0 0241 [ 4] mov %rbx,0x30(%rbp)
+-CLONE 0 0245 [ 5] jmp <+0xd0>
+-CLONE 0 024a [ 6] nopw 0x0(%rax,%rax,1)
+-CLONE 0 0250 [ 5] mov 0x30(%r12),%rbx
+-CLONE 0 0255 [ 4] lea 0x1(%rdx),%rax
+-CLONE 0 0259 [ 5] movb $0x0,0x18(%rsp)
+-CLONE 0 025e [ 3] cmp %rax,%rbx
+-CLONE 0 0261 [ 6] jae <+0x17f>
+-CLONE 0 0267 [ 9] nopw 0x0(%rax,%rax,1)
+-CLONE 0 0270 [ 3] add %rbx,%rbx
+-CLONE 0 0273 [ 3] cmp %rax,%rbx
+-CLONE 0 0276 [ 2] jb <+0x270>
+-CLONE 0 0278 [ 3] mov %rbx,%rdi
+-CLONE 0 027b [ 5] mov %rdx,0x8(%rsp)
+-CLONE 0 0280 [ 5] call <malloc@plt>
+-CLONE 0 0285 [ 5] mov 0x20(%r12),%rsi
+-CLONE 0 028a [ 5] mov 0x8(%rsp),%rdx
+-CLONE 0 028f [ 3] mov %rbx,%rcx
+-CLONE 0 0292 [ 3] mov %rax,%rdi
+-CLONE 0 0295 [ 5] mov %rsi,0x8(%rsp)
+-CLONE 0 029a [ 5] call <__memcpy_chk@plt>
+-CLONE 0 029f [ 5] mov 0x8(%rsp),%rsi
+-CLONE 0 02a4 [ 3] mov %rax,%r8
+-CLONE 0 02a7 [ 5] lea 0x38(%r12),%rax
+-CLONE 0 02ac [ 3] cmp %rax,%rsi
+-CLONE 0 02af [ 2] je <+0x2c3>
+-CLONE 0 02b1 [ 3] mov %rsi,%rdi
+-CLONE 0 02b4 [ 5] mov %r8,0x8(%rsp)
+-CLONE 0 02b9 [ 5] call <free@plt>
+-CLONE 0 02be [ 5] mov 0x8(%rsp),%r8
+-CLONE 0 02c3 [ 5] mov 0x28(%r12),%rdx
+-CLONE 0 02c8 [ 5] mov %r8,0x20(%r12)
+-CLONE 0 02cd [ 5] mov %rbx,0x30(%r12)
+-CLONE 0 02d2 [ 5] jmp <+0x184>
+-CLONE 0 02d7 [ 9] nopw 0x0(%rax,%rax,1)
+-CLONE 0 02e0 [ 4] movb $0x20,(%rax,%rcx,1)
+-CLONE 0 02e4 [ 5] movb $0x1,0x18(%rsp)
+-CLONE 0 02e9 [ 8] incl 0xa4(%r12)
+-CLONE 0 02f1 [ 5] jmp <+0x18e>
+-CLONE 0 02f6 [10] cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 0300 [ 3] mov %r14,%rdx
+-CLONE 0 0303 [ 3] mov %r15,%rdi
+-CLONE 0 0306 [ 3] sub %rsi,%rdx
+-CLONE 0 0309 [ 3] add %r13,%rsi
+-CLONE 0 030c [ 5] call <tomo::Op::Sink::append(char const*, unsigned long)>
+-CLONE 0 0311 [ 5] jmp <+0x1a3>
+-CLONE 0 0316 [10] cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 0320 [ 4] movb $0x2d,(%rax,%rdx,1)
+-CLONE 0 0324 [ 5] movb $0x1,0x18(%rsp)
+-CLONE 0 0329 [ 6] incl 0xa4(%rbp)
+-CLONE 0 032f [ 5] jmp <+0xd9>
+-CLONE 0 0334 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 033f [ 1] nop
+-CLONE 0 0340 [ 5] mov $0x1,%eax
+-CLONE 0 0345 [ 3] add %rbx,%rbx
+-CLONE 0 0348 [ 3] cmp %rax,%rbx
+-CLONE 0 034b [ 6] jb <+0x270>
+-CLONE 0 0351 [ 5] jmp <+0x278>
+-CLONE 0 0356 [ 5] mov $0x1,%eax
+-CLONE 0 035b [ 5] jmp <+0x200>
+-CLONE 0 0360 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 00c6 [ 6] je <+0x35a>
++CLONE 0 00cc [ 4] mov 0x20(%rbp),%r13
++CLONE 0 00d0 [ 6] movb $0x2d,0x0(%r13,%r12,1)
++CLONE 0 00d6 [ 4] incq 0x28(%rbp)
++CLONE 0 00da [ 3] mov %r15,%rdi
++CLONE 0 00dd [ 5] call <strlen@plt>
++CLONE 0 00e2 [ 3] mov %rax,%r13
++CLONE 0 00e5 [ 2] jmp <+0x10a>
++CLONE 0 00e7 [ 9] nopw 0x0(%rax,%rax,1)
++CLONE 0 00f0 [ 4] lea -0x1(%r13),%rax
++CLONE 0 00f4 [ 5] movzbl (%r15,%rax,1),%edx
++CLONE 0 00f9 [ 3] cmp $0xd,%dl
++CLONE 0 00fc [ 2] je <+0x107>
++CLONE 0 00fe [ 3] cmp $0xa,%dl
++CLONE 0 0101 [ 6] jne <+0x1f0>
++CLONE 0 0107 [ 3] mov %rax,%r13
++CLONE 0 010a [ 3] test %r13,%r13
++CLONE 0 010d [ 2] jne <+0xf0>
++CLONE 0 010f [ 5] lea 0x10(%rsp),%r14
++CLONE 0 0114 [ 5] mov $0x2,%edx
++CLONE 0 0119 [ 7] lea <rip>(%rip),%rsi # <literal-string-0d0a00>
++CLONE 0 0120 [ 3] mov %r14,%rdi
++CLONE 0 0123 [ 5] call <tomo::Op::Sink::append(char const*, unsigned long)>
++CLONE 0 0128 [ 8] mov 0x228(%rsp),%rax
++CLONE 0 0130 [ 9] sub %fs:0x28,%rax
++CLONE 0 0139 [ 6] jne <+0x364>
++CLONE 0 013f [ 7] add $0x238,%rsp
++CLONE 0 0146 [ 1] pop %rbx
++CLONE 0 0147 [ 1] pop %rbp
++CLONE 0 0148 [ 2] pop %r12
++CLONE 0 014a [ 2] pop %r13
++CLONE 0 014c [ 2] pop %r14
++CLONE 0 014e [ 2] pop %r15
++CLONE 0 0150 [ 1] ret
++CLONE 0 0151 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 015c [ 4] nopl 0x0(%rax)
++CLONE 0 0160 [ 4] mov 0x30(%rbp),%rbx
++CLONE 0 0164 [ 5] lea 0x1(%r12),%rax
++CLONE 0 0169 [ 3] cmp %rax,%rbx
++CLONE 0 016c [ 6] jae <+0xcc>
++CLONE 0 0172 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 017d [ 3] nopl (%rax)
++CLONE 0 0180 [ 3] add %rbx,%rbx
++CLONE 0 0183 [ 3] cmp %rax,%rbx
++CLONE 0 0186 [ 2] jb <+0x180>
++CLONE 0 0188 [ 3] mov %rbx,%rdi
++CLONE 0 018b [ 5] call <malloc@plt>
++CLONE 0 0190 [ 4] mov 0x20(%rbp),%r14
++CLONE 0 0194 [ 3] mov %rbx,%rcx
++CLONE 0 0197 [ 3] mov %r12,%rdx
++CLONE 0 019a [ 3] mov %rax,%rdi
++CLONE 0 019d [ 3] mov %rax,%r13
++CLONE 0 01a0 [ 3] mov %r14,%rsi
++CLONE 0 01a3 [ 5] call <__memcpy_chk@plt>
++CLONE 0 01a8 [ 4] lea 0x38(%rbp),%rax
++CLONE 0 01ac [ 3] cmp %rax,%r14
++CLONE 0 01af [ 2] je <+0x1bd>
++CLONE 0 01b1 [ 3] mov %r14,%rdi
++CLONE 0 01b4 [ 5] call <free@plt>
++CLONE 0 01b9 [ 4] mov 0x28(%rbp),%r12
++CLONE 0 01bd [ 4] mov %r13,0x20(%rbp)
++CLONE 0 01c1 [ 4] mov %rbx,0x30(%rbp)
++CLONE 0 01c5 [ 5] jmp <+0xd0>
++CLONE 0 01ca [ 6] nopw 0x0(%rax,%rax,1)
++CLONE 0 01d0 [ 4] movb $0x2d,(%rax,%rdx,1)
++CLONE 0 01d4 [ 5] movb $0x1,0x18(%rsp)
++CLONE 0 01d9 [ 6] incl 0xa4(%rbp)
++CLONE 0 01df [ 5] jmp <+0xda>
++CLONE 0 01e4 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 01ef [ 1] nop
++CLONE 0 01f0 [ 2] xor %esi,%esi
++CLONE 0 01f2 [ 3] xor %r12d,%r12d
++CLONE 0 01f5 [ 5] lea 0x10(%rsp),%r14
++CLONE 0 01fa [ 2] jmp <+0x209>
++CLONE 0 01fc [ 4] nopl 0x0(%rax)
++CLONE 0 0200 [ 2] cmp $0xd,%al
++CLONE 0 0202 [ 2] je <+0x218>
++CLONE 0 0204 [ 3] cmp %r12,%r13
++CLONE 0 0207 [ 2] je <+0x280>
++CLONE 0 0209 [ 5] movzbl (%r15,%r12,1),%eax
++CLONE 0 020e [ 3] mov %r12,%rdx
++CLONE 0 0211 [ 3] inc %r12
++CLONE 0 0214 [ 2] cmp $0xa,%al
++CLONE 0 0216 [ 2] jne <+0x200>
++CLONE 0 0218 [ 3] sub %rsi,%rdx
++CLONE 0 021b [ 3] mov %r14,%rdi
++CLONE 0 021e [ 3] add %r15,%rsi
++CLONE 0 0221 [ 5] call <tomo::Op::Sink::append(char const*, unsigned long)>
++CLONE 0 0226 [ 5] mov 0x10(%rsp),%rbp
++CLONE 0 022b [ 7] mov 0x98(%rbp),%rax
++CLONE 0 0232 [ 4] mov 0x28(%rbp),%rdx
++CLONE 0 0236 [ 3] test %rax,%rax
++CLONE 0 0239 [ 2] je <+0x2a0>
++CLONE 0 023b [ 3] test %rdx,%rdx
++CLONE 0 023e [ 2] jne <+0x2a0>
++CLONE 0 0240 [ 6] mov 0xa4(%rbp),%ecx
++CLONE 0 0246 [ 6] mov 0xa0(%rbp),%edi
++CLONE 0 024c [ 4] lea 0x1(%rcx),%rsi
++CLONE 0 0250 [ 3] cmp %rsi,%rdi
++CLONE 0 0253 [ 6] jae <+0x330>
++CLONE 0 0259 [ 4] mov 0x30(%rbp),%rbx
++CLONE 0 025d [ 5] movb $0x0,0x18(%rsp)
++CLONE 0 0262 [ 3] test %rbx,%rbx
++CLONE 0 0265 [ 6] je <+0x350>
++CLONE 0 026b [ 4] mov 0x20(%rbp),%r8
++CLONE 0 026f [ 5] movb $0x20,(%r8,%rdx,1)
++CLONE 0 0274 [ 4] incq 0x28(%rbp)
++CLONE 0 0278 [ 3] mov %r12,%rsi
++CLONE 0 027b [ 3] cmp %r12,%r13
++CLONE 0 027e [ 2] jne <+0x209>
++CLONE 0 0280 [ 3] cmp %r13,%rsi
++CLONE 0 0283 [ 6] jae <+0x114>
++CLONE 0 0289 [ 3] mov %r13,%rdx
++CLONE 0 028c [ 3] mov %r14,%rdi
++CLONE 0 028f [ 3] sub %rsi,%rdx
++CLONE 0 0292 [ 3] add %r15,%rsi
++CLONE 0 0295 [ 5] call <tomo::Op::Sink::append(char const*, unsigned long)>
++CLONE 0 029a [ 5] jmp <+0x114>
++CLONE 0 029f [ 1] nop
++CLONE 0 02a0 [ 4] mov 0x30(%rbp),%rbx
++CLONE 0 02a4 [ 4] lea 0x1(%rdx),%rax
++CLONE 0 02a8 [ 5] movb $0x0,0x18(%rsp)
++CLONE 0 02ad [ 3] cmp %rax,%rbx
++CLONE 0 02b0 [ 2] jae <+0x26b>
++CLONE 0 02b2 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 02bd [ 3] nopl (%rax)
++CLONE 0 02c0 [ 3] add %rbx,%rbx
++CLONE 0 02c3 [ 3] cmp %rax,%rbx
++CLONE 0 02c6 [ 2] jb <+0x2c0>
++CLONE 0 02c8 [ 3] mov %rbx,%rdi
++CLONE 0 02cb [ 5] mov %rdx,0x8(%rsp)
++CLONE 0 02d0 [ 5] call <malloc@plt>
++CLONE 0 02d5 [ 4] mov 0x20(%rbp),%rsi
++CLONE 0 02d9 [ 5] mov 0x8(%rsp),%rdx
++CLONE 0 02de [ 3] mov %rbx,%rcx
++CLONE 0 02e1 [ 3] mov %rax,%rdi
++CLONE 0 02e4 [ 5] mov %rsi,0x8(%rsp)
++CLONE 0 02e9 [ 5] call <__memcpy_chk@plt>
++CLONE 0 02ee [ 5] mov 0x8(%rsp),%rsi
++CLONE 0 02f3 [ 3] mov %rax,%r8
++CLONE 0 02f6 [ 4] lea 0x38(%rbp),%rax
++CLONE 0 02fa [ 3] cmp %rax,%rsi
++CLONE 0 02fd [ 2] je <+0x311>
++CLONE 0 02ff [ 3] mov %rsi,%rdi
++CLONE 0 0302 [ 5] mov %r8,0x8(%rsp)
++CLONE 0 0307 [ 5] call <free@plt>
++CLONE 0 030c [ 5] mov 0x8(%rsp),%r8
++CLONE 0 0311 [ 4] mov 0x28(%rbp),%rdx
++CLONE 0 0315 [ 4] mov %r8,0x20(%rbp)
++CLONE 0 0319 [ 4] mov %rbx,0x30(%rbp)
++CLONE 0 031d [ 5] jmp <+0x26f>
++CLONE 0 0322 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 032d [ 3] nopl (%rax)
++CLONE 0 0330 [ 4] movb $0x20,(%rax,%rcx,1)
++CLONE 0 0334 [ 5] movb $0x1,0x18(%rsp)
++CLONE 0 0339 [ 6] incl 0xa4(%rbp)
++CLONE 0 033f [ 5] jmp <+0x278>
++CLONE 0 0344 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 034f [ 1] nop
++CLONE 0 0350 [ 5] mov $0x1,%eax
++CLONE 0 0355 [ 5] jmp <+0x2c0>
++CLONE 0 035a [ 5] mov $0x1,%eax
++CLONE 0 035f [ 5] jmp <+0x180>
++CLONE 0 0364 [ 5] call <__stack_chk_fail@plt>

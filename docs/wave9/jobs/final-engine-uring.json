@@ -1,0 +1,47 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "72-79",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "64,65,66,67,68,69,70,71,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95",
+    "--load-smt",
+    "",
+    "--ports",
+    "20040-20049",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave9/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave9",
+  "env": {
+    "LANG": "en_US.UTF-8",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 fused-0 fused-1 txn_group_fused txn_group_split txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 replyoff wb_policy multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 respcompat",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_ZC_NET_IO": "uring",
+    "GATE_SHUTDOWN_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TEST_PORT": "20098",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave9/docs/wave9/jobs/final-engine-uring.tsv",
+    "GATE_ASAN_BINARY": "/home/user/Projects/cx-wave9/build/tomokv-wave9-ASAN"
+  },
+  "binary_sha256": "2d1b626ac7ba7769d00bd5c0a16693fb928a9c2b3d0a488d41b3f7c8df51fb40",
+  "source_commit": "fea0b399ccb8a0969849a07e4ac5df0dec1f7192",
+  "source_diff_sha256": "d7eeb22f5b5f372457b719343001e3c8cdb6279aa5ffac2a85577095afaca32b",
+  "gate_sha256": "ebe133520f698f591a0e5b3893e2d64c866ad562efdd345879b55a3e9f01de03",
+  "started": 1793155576.883006,
+  "exit": 0,
+  "seconds": 1390.2357683181763,
+  "artifacts": "/home/user/Projects/cx-wave9/build/gate-run.QtbzKt",
+  "summary": [
+    "GATE(PARTIAL): 191 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave9/docs/wave9/jobs/final-engine-uring.tsv.partial"
+  ],
+  "binary_unchanged": true
+}

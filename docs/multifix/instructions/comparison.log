@@ -1,0 +1,89 @@
+{
+  "scope": "Linked production exec_batch_prefetched through named tomo/tomo_db0 routines; excludes fixture, network parse, read-local lane and out-of-scope library callees.",
+  "modes": [
+    "1s",
+    "2s"
+  ],
+  "batch_sizes": [
+    1,
+    32
+  ],
+  "read_local": 0,
+  "atomic": "1, plus 0 for MSET",
+  "slowlog_threshold": "-1/10000 for single-key commands; -1 for MGET/MSET",
+  "cases": 72,
+  "all_zero_added_instructions": true,
+  "all_clock_calls_unchanged": true,
+  "summary": [
+    {
+      "command": "GET",
+      "namespace": "normal",
+      "cases": 8,
+      "min_delta": -96,
+      "max_delta": -3
+    },
+    {
+      "command": "GET",
+      "namespace": "db0",
+      "cases": 8,
+      "min_delta": 0,
+      "max_delta": 0
+    },
+    {
+      "command": "SET",
+      "namespace": "normal",
+      "cases": 8,
+      "min_delta": -448,
+      "max_delta": -14
+    },
+    {
+      "command": "SET",
+      "namespace": "db0",
+      "cases": 8,
+      "min_delta": -384,
+      "max_delta": -12
+    },
+    {
+      "command": "INCR",
+      "namespace": "normal",
+      "cases": 8,
+      "min_delta": -96,
+      "max_delta": -3
+    },
+    {
+      "command": "INCR",
+      "namespace": "db0",
+      "cases": 8,
+      "min_delta": 0,
+      "max_delta": 0
+    },
+    {
+      "command": "MGET",
+      "namespace": "normal",
+      "cases": 4,
+      "min_delta": -768,
+      "max_delta": -24
+    },
+    {
+      "command": "MGET",
+      "namespace": "db0",
+      "cases": 4,
+      "min_delta": -256,
+      "max_delta": -8
+    },
+    {
+      "command": "MSET",
+      "namespace": "normal",
+      "cases": 8,
+      "min_delta": -3584,
+      "max_delta": -16
+    },
+    {
+      "command": "MSET",
+      "namespace": "db0",
+      "cases": 8,
+      "min_delta": -3328,
+      "max_delta": -8
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-at412/build/at412/commands/post-db0-SET-2s-1-1--1.log
+SHA-256: 847b3725b2db407dae68ddc9fe6f8133b3914a19d638899001c898aded226e20
+Exit: 0
+0x000055555562da48	2346	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
+0x000055555562d913 in tomo_db0::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff6193b48, batch=batch@entry=0x7ffffffda400, n=n@entry=1) at src/core/ex_loop.h:2349
+2349	    }
+0x000055555562d918	2349	    }
+0x000055555562d921	2349	    }
+0x000055555562d927	2349	    }
+0x000055555562d92b	2349	    }
+0x000055555562d92c	2349	    }
+0x000055555562d92e	2349	    }
+0x000055555562d930	2349	    }
+0x000055555562d932	2349	    }
+0x000055555562d934	2349	    }
+0x000055555562d935	2349	    }
+0x0000555555d67172 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-at412/tests/txnorder_command_scope.cc:112
+112	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-at412/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 34205) exited normally]
+COUNT 1204

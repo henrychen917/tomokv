@@ -1,0 +1,152 @@
+PARTIAL	0	GATE_ONLY_JOBS=compat2 clientfix atomfix5_watch atomfix5_accounting moverfix txn_group_fused txn_group_split txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 txnorder2 txnorder_wake txnorder_index script_bounds scriptfix lualibs serverfix_slowlog notify notifycompat notify_order atomic_units core_units climonfix racefix_climon fused-0 fused-1 release_batteries; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	186.350000	Redis 7.4.10 Tcl passing subset (2s)
+ok	188.620000	Redis 7.4.10 Tcl passing subset (1s)
+ok	2.000000	atomfix5 WATCH key count (both modes, both engines, atomic 0/1)
+ok	14.000000	atomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1)
+ok	0.370000	core concurrency watch
+ok	0.330000	core concurrency lifetime
+ok	0.110000	core concurrency drain
+ok	7.120000	core concurrency route
+ok	0.110000	core concurrency snapshot
+ok	0.180000	core concurrency config
+ok	0.170000	core concurrency notify
+ok	0.810000	read-local topology demotion (1s)
+ok	0.570000	read-local topology demotion (2s)
+ok	0.040000	shutdown policy + signal handoff serverless
+ok	0.340000	shutdown persistence (1s, command)
+ok	0.130000	shutdown persistence (1s, sigterm)
+ok	0.130000	shutdown persistence (1s, sigint)
+ok	0.340000	shutdown persistence (2s, command)
+ok	0.130000	shutdown persistence (2s, sigterm)
+ok	0.140000	shutdown persistence (2s, sigint)
+ok	1.810000	clientfix tracking-cap (1s)
+ok	6.850000	clientfix tracking-pipeline (1s)
+ok	13.620000	clientfix reply-skip (1s)
+ok	0.300000	clientfix pattern-cleanup (1s)
+ok	1.130000	clientfix pause-deadline (1s)
+ok	0.110000	clientfix geo-count (1s)
+ok	0.120000	clientfix geo-store (1s)
+ok	1.770000	clientfix tracking-cap (2s)
+ok	6.870000	clientfix tracking-pipeline (2s)
+ok	11.640000	clientfix reply-skip (2s)
+ok	0.300000	clientfix pattern-cleanup (2s)
+ok	1.130000	clientfix pause-deadline (2s)
+ok	0.110000	clientfix geo-count (2s)
+ok	0.110000	clientfix geo-store (2s)
+ok	1.770000	Climon armed refresh + stale-store suppression control
+ok	0.010000	atomic commit publication catches up at quiescence
+ok	2.330000	flushfix flush witnesses
+ok	0.060000	flushfix headers witnesses
+ok	3.620000	multidb serverless owners
+ok	0.380000	multidb global namespace boundary
+ok	12.580000	storesize published monitoring
+ok	0.230000	MULTI admin command replies
+ok	0.100000	EXECABORT releases WATCH reservation
+ok	0.000000	atomic survivors unit build
+ok	0.010000	atomic survivor: admission
+ok	0.000000	atomic survivor: closure
+ok	0.010000	atomic survivor: script_keys
+ok	0.010000	atomic survivor: rename_overlay
+ok	0.010000	atomic survivor: write_latest
+ok	0.000000	atomic survivor: script_apply
+ok	0.010000	atomic survivor: post_apply_probe
+ok	0.010000	atomic survivor: lua_conversion
+ok	0.010000	atomic survivor: watch_parent
+ok	0.010000	atomic survivor: watch_cycle
+ok	0.010000	atomic survivor: mset_arity
+ok	0.000000	atomic survivor: watch_oom
+ok	0.000000	atomic survivor: lua_lines
+ok	0.000000	atomic survivor: library_limit
+ok	0.010000	atomic survivor: stage_flag
+ok	0.000000	atomic survivor: instruction_limit
+ok	0.010000	armed resize retirement: atomic-growth
+ok	0.010000	armed resize retirement: flush-prepared
+ok	6.680000	torture battery
+ok	1.000000	RYOW battery
+ok	0.120000	ACL category runtime table
+ok	0.110000	ACL LOAD/SAVE no-file errors
+ok	1.040000	idle loop ceiling (LBSIGNALS, 1s)
+ok	0.050000	shutdown invariants (nothing stuck)
+ok	0.020000	direct-reply fired (direct=N)
+ok	0.040000	dispatched==executed (N)
+FAIL	2.520000	moverfix conservation (1s, uring, databases 1, atomic 0)
+FAIL	2.500000	moverfix conservation (1s, uring, databases 16, atomic 0)
+FAIL	2.480000	moverfix conservation (1s, epoll, databases 1, atomic 0)
+FAIL	2.500000	moverfix conservation (1s, epoll, databases 16, atomic 0)
+FAIL	2.510000	moverfix conservation (2s, uring, databases 1, atomic 0)
+FAIL	2.510000	moverfix conservation (2s, uring, databases 16, atomic 0)
+FAIL	2.510000	moverfix conservation (2s, epoll, databases 1, atomic 0)
+FAIL	2.500000	moverfix conservation (2s, epoll, databases 16, atomic 0)
+ok	1.900000	compat2 autharity
+ok	6.790000	compat2 expire_notify
+ok	1.950000	compat2 ktls_lifetime
+ok	0.100000	xscript limit control
+ok	0.540000	xscript window control
+ok	0.160000	scriptfix sandbox (1s)
+ok	0.130000	scriptfix functions (1s)
+ok	0.700000	scriptfix replies (1s)
+ok	0.940000	scriptfix dump (1s)
+ok	0.120000	scriptfix sandbox (2s)
+ok	0.130000	scriptfix functions (2s)
+ok	0.720000	scriptfix replies (2s)
+ok	0.940000	scriptfix dump (2s)
+ok	38.650000	lualibs CC4.7 vs Redis 7.4
+ok	13.840000	serverfix SV4.14 disabled slowlog allocation
+ok	2.090000	MULTI feature battery
+ok	1.540000	blocking feature battery
+ok	0.940000	pubsub feature battery
+ok	0.080000	Lua feature battery
+ok	46.460000	keyspace notification battery (atomic 0/1)
+ok	0.020000	feature battery shutdown invariants
+ok	23.840000	notification compatibility setbit vs Redis 7.4
+ok	43.200000	notification compatibility setpast vs Redis 7.4
+ok	51.500000	notification compatibility emptystore vs Redis 7.4
+ok	43.950000	notification compatibility writemiss vs Redis 7.4
+ok	44.920000	notification compatibility objectmiss vs Redis 7.4
+ok	145.210000	notification compatibility expiredstore vs Redis 7.4
+ok	57.180000	notification compatibility flush vs Redis 7.4
+ok	66.180000	keyspace lazy-expiry order vs Redis 7.4
+ok	0.260000	fused boot line (atomic 0)
+ok	1.200000	fused s6 battery (atomic 0)
+ok	2.070000	fused multi_exec battery (atomic 0)
+ok	0.740000	fused edgeproto battery (atomic 0)
+ok	0.090000	fused atomfix battery (atomic 0)
+ok	2.280000	fused spinprobe battery (atomic 0)
+ok	1.160000	fused shutdown report (atomic 0)
+ok	1.580000	fused txn_nx battery (atomic 0)
+ok	8.540000	fused txniso battery (atomic 0)
+ok	0.260000	fused boot line (atomic 1)
+ok	1.170000	fused s6 battery (atomic 1)
+ok	2.080000	fused multi_exec battery (atomic 1)
+ok	0.710000	fused edgeproto battery (atomic 1)
+ok	0.050000	fused atomfix battery (atomic 1)
+ok	2.230000	fused spinprobe battery (atomic 1)
+ok	1.160000	fused shutdown report (atomic 1)
+ok	3.550000	fused txn_nx battery (atomic 1)
+ok	8.940000	fused txniso battery (atomic 1)
+ok	12.990000	fused txngroup battery (atomic 1)
+ok	12.740000	txngroup battery (atomic 1)
+ok	104.840000	txnorder index oracle
+ok	2.720000	txnorder index complexity
+ok	0.440000	txnorder2 writer episode R1
+ok	0.030000	txnorder2 writer episode R2
+ok	0.020000	txnorder2 writer episode R3
+ok	0.020000	txnorder2 writer episode R4
+ok	0.030000	txnorder2 writer episode R5
+ok	0.020000	txnorder2 writer episode R6
+ok	0.020000	txnorder2 writer episode R7
+ok	0.100000	txnorder2 writer episode R8
+ok	0.020000	txnorder2 writer episode R9
+ok	0.020000	txnorder2 writer episode R10
+ok	0.020000	txnorder2 writer episode R11
+ok	4.900000	txnorder2 writer episode R12
+ok	0.040000	txnorder2 direct RENAME owner join
+ok	22.710000	txnorder2 WATCH serve
+ok	30.380000	txnorder2 WATCH flush
+ok	27.080000	txnorder2 WATCH readonly
+ok	0.010000	txnorder2 busy owner inbox wake
+ok	48.420000	txnorder battery (fused, atomic 0)
+ok	48.260000	txnorder battery (fused, atomic 1)
+ok	47.980000	txnorder battery (split, atomic 0)
+ok	47.940000	txnorder battery (split, atomic 1)

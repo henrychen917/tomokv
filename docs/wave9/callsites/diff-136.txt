@@ -1,0 +1,43 @@
+tomo::command_validate_script_route(tomo::Op&, unsigned int&, unsigned int&) [clone .cold]
+--- headline
+
++++ post
+
+@@ -1,17 +1,19 @@
+
+-CLONE 0 0000 [ 3] mov %r14,%rdi
+-CLONE 0 0003 [ 3] vzeroupper
+-CLONE 0 0006 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 000b [ 5] mov 0x8(%rsp),%rdi
+-CLONE 0 0010 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0015 [ 3] mov %r15,%rdi
+-CLONE 0 0018 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 001d [ 8] mov 0xb8(%rsp),%rax
+-CLONE 0 0025 [ 9] sub %fs:0x28,%rax
+-CLONE 0 002e [ 2] jne <+0x45>
+-CLONE 0 0030 [ 3] mov %rbx,%rdi
+-CLONE 0 0033 [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 0038 [ 3] mov %r12,%rdi
+-CLONE 0 003b [ 3] vzeroupper
+-CLONE 0 003e [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0043 [ 2] jmp <+0xb>
+-CLONE 0 0045 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 0000 [ 8] lea 0x90(%rsp),%rdi
++CLONE 0 0008 [ 3] vzeroupper
++CLONE 0 000b [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0010 [ 3] mov %r15,%rdi
++CLONE 0 0013 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0018 [ 5] mov 0x8(%rsp),%rdi
++CLONE 0 001d [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0022 [ 5] mov 0x18(%rsp),%rdi
++CLONE 0 0027 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 002c [ 8] mov 0xb8(%rsp),%rax
++CLONE 0 0034 [ 9] sub %fs:0x28,%rax
++CLONE 0 003d [ 2] jne <+0x55>
++CLONE 0 003f [ 3] mov %rbx,%rdi
++CLONE 0 0042 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0047 [ 4] mov (%rsp),%rdi
++CLONE 0 004b [ 3] vzeroupper
++CLONE 0 004e [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0053 [ 2] jmp <+0x18>
++CLONE 0 0055 [ 5] call <__stack_chk_fail@plt>

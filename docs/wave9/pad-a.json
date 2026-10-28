@@ -1,0 +1,683 @@
+{
+  "kind": "A: behaviour twin",
+  "behavior": "a214652ec with inert candidate layout fields",
+  "matched": "StreamNode, BlockingState, MultiCommand, MultiExecState and Server sizes/old-member offsets; POST .text origin and total size",
+  "limitation": "Individual function offsets and data sections retain headline placement. New FIFO members occupy already-existing MultiRetryLane tail padding; new ScatterState flags occupy existing bit padding.",
+  "changes": [
+    {
+      "file": "src/store/typeval.h",
+      "before": "    uint32_t physical_entries = 0;\n};\n\nstruct StreamNodeIndex",
+      "after": "    uint32_t physical_entries = 0;\n    uint32_t pad_deleted_entries;\n    uint64_t pad_wire_bytes;\n};\n\nstruct StreamNodeIndex"
+    },
+    {
+      "file": "src/cmd/blocking.inc",
+      "before": "    std::atomic<bool> counted{false};",
+      "after": "    std::atomic<bool> counted{false};\n    BlockingState* pad_count_previous;\n    BlockingState* pad_count_next;\n    bool pad_count_linked;"
+    },
+    {
+      "file": "src/cmd/multi.inc",
+      "before": "    std::atomic<bool> finished{false};",
+      "after": "    std::atomic<bool> finished{false};\n    uint64_t pad_slow_ns;\n    uint64_t pad_slow_sleep_started;\n    int64_t pad_slow_threshold;\n    bool pad_io_effect_done;"
+    },
+    {
+      "file": "src/cmd/multi.inc",
+      "before": "    int64_t now_cut_ms = 0;",
+      "after": "    int64_t now_cut_ms = 0;\n    uint64_t pad_now_cut_mono_ms;"
+    },
+    {
+      "file": "src/core/server.h",
+      "before": "    DebugSleepCoordinator<kMaxThreads, Ring::kWaitTimeoutMs> debug_sleep_;",
+      "after": "    DebugSleepCoordinator<kMaxThreads, Ring::kWaitTimeoutMs> debug_sleep_;\n    uint64_t pad_script_waits, pad_escalations, pad_commits, pad_waiter_peak;\n    uint32_t pad_apply_defer;\n    bool pad_force;\n    uint64_t pad_stage_watch, pad_stage_watch_tasks;"
+    }
+  ],
+  "command": [
+    "make",
+    "-j32",
+    "BUILD_ROOT=/home/user/Projects/cx-wave9/build/wave9/pad-a/objects",
+    "all"
+  ],
+  "link": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/main.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/net/tls.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/commands.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/glob.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/xshard.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/acl.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/hll.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_server.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_string.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_string_notify.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_hash.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_hash_ttl.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_list.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_set.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_zset.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_zset_ops.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/geo.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_stream.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_stream_groups.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/scripting.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/functions.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/serialize.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/snapshot/snapshot.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/persist/aof.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/climon.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/tracking.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/server_tail.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/slowlog.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/lcs.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/info_stats.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/lbsignals.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/core/flipctl.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/core/genthread.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/core/rl2s.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/core/lbstall.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/core/lbplanner.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/l4prebuild.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/cmdgap.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/pfdebug.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/cmdmeta.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_sort.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/multidb.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/storesize.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/multi_admin.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/core/reorder.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/geo_store.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/persist/aof_frame_debug.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/aclkeys.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/blocking_debug.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/objectpread.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/hexpread.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/autharity.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/core/fliplisten.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/core/shutdown.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/latency_tracking.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/core/version.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/main.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/net/tls.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/commands.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/glob.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/xshard.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/acl.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/hll.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_server.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_string.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_string_notify.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_hash.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_hash_ttl.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_list.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_set.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_zset.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_zset_ops.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/geo.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_stream.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_stream_groups.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/scripting.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/functions.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/serialize.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/snapshot/snapshot.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/persist/aof.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/climon.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/tracking.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/server_tail.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/slowlog.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/lcs.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/info_stats.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/lbsignals.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/core/flipctl.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/core/genthread.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/core/rl2s.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/core/lbstall.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/core/lbplanner.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/l4prebuild.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/cmdgap.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/pfdebug.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/cmdmeta.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_sort.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/multidb.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/storesize.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/multi_admin.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/core/reorder.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/geo_store.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/persist/aof_frame_debug.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/aclkeys.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/blocking_debug.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/objectpread.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/hexpread.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/autharity.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/core/fliplisten.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/core/shutdown.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/latency_tracking.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/third_party/lua/helpers/lua_cjson.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/third_party/lua/helpers/lua_cmsgpack.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/third_party/lua/helpers/lua_bit.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/third_party/lua/helpers/lua_struct.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/third_party/lua/helpers/strbuf.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/third_party/lua/helpers/fpconv.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/core/version.o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/padding.o",
+    "-o",
+    "/home/user/Projects/cx-wave9/build/wave9/pad-a/tomokv",
+    "-Wl,--wrap=main",
+    "-ljemalloc",
+    "-luring",
+    "-pthread",
+    "-lssl",
+    "-lcrypto",
+    "-lm",
+    "-Wl,--section-start=.text=0x20970"
+  ],
+  "padding_bytes": 94112,
+  "pre_layout_text": {
+    "address": 129328,
+    "size": 8456919
+  },
+  "post_text": {
+    "address": 133488,
+    "size": 8551031
+  },
+  "pad_text": {
+    "address": 133488,
+    "size": 8551031
+  },
+  "inputs": [
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/main.o",
+      "sha256": "3a44a7bdfcf93cceec82d9753fc94d8e4ca8390a039cfab0a79b42a867f96adc"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/net/tls.o",
+      "sha256": "821cf2a62aa83b8407ed211dc909b5c018d6bfc9a1c9cbcbe529149543b7804f"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/commands.o",
+      "sha256": "2935a851fbcd5b43d2b153f5d2f0f4f36fede58c5b4a56f0c5dc8dbc5e707bc7"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/glob.o",
+      "sha256": "b53cf7a22516e48501208e14ed5f600e17dfd63038b304f8535e548580e9d6dd"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/xshard.o",
+      "sha256": "59267c7bd3d39c093f0e966e59d185e8ac1ddde57c8bee34c54bfc5034d016f9"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/acl.o",
+      "sha256": "502bc184211eb317e58ee84879bfe34e2fb7dc79f76d82e374d66a6eefca0ec4"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/hll.o",
+      "sha256": "8a8d3b34d217c829aca1adbf6ceac8c58b3b2fa5e815514f26dc5b9c46471b52"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_server.o",
+      "sha256": "41ebe0de92133c21855735b91a00acd5e73a1518c4ab5e509780f63ded0d8f3b"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_string.o",
+      "sha256": "6d94b03b8361c394faad28d972f700ae86c03a685c2aa51ff85ff01b35e8375d"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_string_notify.o",
+      "sha256": "941ff2fe693b68ca180bd4123a178b8afd56da8a77705d896ad47be9b7b224d4"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_hash.o",
+      "sha256": "21c3cbda9703f3e102b54354a93247e4329650f8347b4a35fcfd76104cc57598"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_hash_ttl.o",
+      "sha256": "b56c4030e8de9803c85a5e126b5c9a1a458ab1f594ccb320f004dfb2dbe4bcdf"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_list.o",
+      "sha256": "f0607ae7ec54804c852732bf78b2347639ab096d470b100c6e040d5d9d2e0ca7"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_set.o",
+      "sha256": "0bcb642f1ca5cef0514dfd7e895dcdf0958c71037f2ef4744ac81f49c0428430"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_zset.o",
+      "sha256": "d5e930d30ca7d369a4bb476124a852765f69ea0b5ffddd638298e9de311a4187"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_zset_ops.o",
+      "sha256": "1988e62943bb2590a3c956039a9f00544434549e39ef331edad66c6525dcb656"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/geo.o",
+      "sha256": "ece6138de3042d80ba81f005b94cfb8ed5425824175d789e7f4585300fc0af98"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_stream.o",
+      "sha256": "1393367c4cbe29bc4cbe7f81085b1796531cb7bb5120110cc9cf4fd8a1b97f24"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_stream_groups.o",
+      "sha256": "0d3b769c7638a976261a5567a1dcadedd2cbefa973192a0037519ea986978327"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/scripting.o",
+      "sha256": "c021ec61fce1748f4461973327aa8553cffd576d5a60f820eb37be40ab761c6f"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/functions.o",
+      "sha256": "9a1af4402ac55c7823e69cdf7650a56a77b21c3ff01fdfbf58d8469b6ae3c894"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/serialize.o",
+      "sha256": "2e7a8c56f8002c98daedc6c96622db4b226ba7db19e338ef175f4a8068959f28"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/snapshot/snapshot.o",
+      "sha256": "13232aa20523cc78ff38a310e99cdd8dd983a19ca99663b0e29e38fb978f4d7f"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/persist/aof.o",
+      "sha256": "a5274e99302751a0cddd28d99c7c94f679f012ed4c034fa79f9200b5e54b14a7"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/climon.o",
+      "sha256": "b8007a76c707b24b710e023f3d527174d20760742bbfbf6544782a181e2a0c33"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/tracking.o",
+      "sha256": "fda881956c6b66d02ecabe2f51b305a569264c4c349a7c3e417c604d5a832cec"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/server_tail.o",
+      "sha256": "f8dbcb097a637951879586f9fc6433e66b722f39209ce42ec154253fad9b23f3"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/slowlog.o",
+      "sha256": "52c2de682286ed85b63ceab20a95cb9d9aba3919258dbc7ff9aef1fff1da0bde"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/lcs.o",
+      "sha256": "f6bf511a8e235aa11f7668dc77ff4d5379b36709dfb0fc7f7e02f7de44a1cd8f"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/info_stats.o",
+      "sha256": "78df3c56ea70bc09463841c4203f01a5990365cc54ec8f5b1ef4964778897140"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/lbsignals.o",
+      "sha256": "1f282771532f0588914bbc3f403dcdf926be9442b44f4e7b8a64905a5051cf86"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/core/flipctl.o",
+      "sha256": "f6948cec350dbb94456c8cf85c7fa2b995442b60f58c2d42e669eb755ff35307"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/core/genthread.o",
+      "sha256": "8fbea417c597e5a9180916d2c5ebff658893a947084b5fbf42e07573413634af"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/core/rl2s.o",
+      "sha256": "3052f0446798036f7b72fbb39cfc6333703d0cd534def66dcd0446e4ace2ea58"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/core/lbstall.o",
+      "sha256": "6554c4bf2228f52b107ccc7cd6460669f40c59d40bd382c3131d9038fada104d"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/core/lbplanner.o",
+      "sha256": "e6b43d6955885c993b9eee1a59b9407dd83d37961fabbcf4e9996c7687ec79f6"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/l4prebuild.o",
+      "sha256": "a4ba1e5959071396ac56e7746e48e7086e7ceb99e0d490d7ccea0c5a860ffd07"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/cmdgap.o",
+      "sha256": "60f415d3842f0692bc01473ad660597c3d33026a0462f41f1d85e6afe941f66b"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/pfdebug.o",
+      "sha256": "30a999019129a3bc166b190a18fa65dc61f922dac62cf2aa189b048d4abd8956"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/cmdmeta.o",
+      "sha256": "d9a34cc44bb233186bbb81c7a4d6a6a77ec5af817472cb9cc570d16619b0910c"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/t_sort.o",
+      "sha256": "a32fe7fe8c30829789b42f9bd5a902ecaa9d42c718114165b1749104f1cbdcdb"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/multidb.o",
+      "sha256": "e0d972deecbe7586de1aabb7912ac38b571496316f711965693daa6e5b9b6a73"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/storesize.o",
+      "sha256": "d139b73d2b54b691fef83a23754dc499316206913882d5cf61e4bdfcebbb01c4"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/multi_admin.o",
+      "sha256": "82f81572caecc257a42eb59885ad36b6543af68d05a249427c829de5dc485df1"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/core/reorder.o",
+      "sha256": "0403b112e402a05c2965743716833991228987842a750507e7be2436f4324482"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/geo_store.o",
+      "sha256": "faf07d5b1f4cfaf59fdd123a3a4ca1f5a0f0920962823b00b23fde3a6377e4cb"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/persist/aof_frame_debug.o",
+      "sha256": "b3e734ad691ef50dd865451da5a2465eda8a677524d0e57fb5962d4fbf7bfaec"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/aclkeys.o",
+      "sha256": "3e4747f2ddbe452217024321643a6d3b2adb995c80074e61a10dd1b05f9b8598"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/blocking_debug.o",
+      "sha256": "a7fbc870287e36ff02cc77475aa62e3c20e46bc8a47021c3026862f8a6f9f42b"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/objectpread.o",
+      "sha256": "d405eb00294d0c61e4c38da9c7bc3c02b3452941fbe2fc5212b4a1831c1dcfaf"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/hexpread.o",
+      "sha256": "081d084f8aaa3156dfbc84d0a7f7f2a3a46d04b6a848aca535222be6a14ccc69"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/autharity.o",
+      "sha256": "89d01baa977aba12baf54b47ae24a28cb66b6611d63091e073994f0af0f578da"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/core/fliplisten.o",
+      "sha256": "187b9fea9e948fd856faa3f7ff934e50678c4c08dd0ccb53390ec09bc8e272cd"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/core/shutdown.o",
+      "sha256": "0d63e46ba756bbce8aacc352ceea2868c9b9d85b30e040afd0c6e7b9a973aed1"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/cmd/latency_tracking.o",
+      "sha256": "beb60ae2a2d09defee6acca39e7c0c30a8d05214c686ba5e48fd193d32c49778"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/db0/src/core/version.o",
+      "sha256": "955a57a7dbddc680e1faad036e2876e839a6982c8e4480eda9361a60c878fa48"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/main.o",
+      "sha256": "707e02ee843a13886423119fff37183c23d68c850917d244d07ae6d6db406fef"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/net/tls.o",
+      "sha256": "b4fef304baecd13158a17898d7d854dbcb3702f2b4bf67dcaee94711fb364c56"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/commands.o",
+      "sha256": "02e09b0ee8cc7800a1b389a95fa19095d593acb7a5a3248d55d4d6e019deae57"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/glob.o",
+      "sha256": "be11306f0f406d3d81436331ea84eaf6714403aee0d0e6f7158575ede4a497d4"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/xshard.o",
+      "sha256": "12bfda81472b94b916290b786319add927bd10e2819b535c14a05116ec29087a"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/acl.o",
+      "sha256": "42fc3e01fad74633bc5e13ed1b8857cf6219e83db0ce9d5b2b3898e16c62a8e1"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/hll.o",
+      "sha256": "86ce3481e51edfee0418c0d842ff52edce1abe78fc9fe82f296d0b1876cf3be7"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_server.o",
+      "sha256": "a416a6468f730ca039b458379a7cdeb15b614ef3d914c9747f563d6208415f4d"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_string.o",
+      "sha256": "98f2e70f7972c2ce6c7800383d1e48fe0f5964d612a52ef88f0a8158fbf0bd40"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_string_notify.o",
+      "sha256": "638c3566812b00ce1c32c5aff06e39200ecd077aeac4bf74353e9ee80440fa24"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_hash.o",
+      "sha256": "c7e03c11f54b676e5c436a7b7d98fc59000b3b4ebfb049b48fb8dd964d71797b"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_hash_ttl.o",
+      "sha256": "3f63179223e5888c437420579ef6379ab79bc976e39f721785df6e0fc3d39e09"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_list.o",
+      "sha256": "0430e0e5bbbda918a53b944c66ff74c54e955b417380bfc01431247c0e2226fe"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_set.o",
+      "sha256": "7a9b67f45252e94f13f9504ce48d95d0a10b179228a8e9f1d447afc36d36b077"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_zset.o",
+      "sha256": "82e1ec6f597c40df840036883368197fea0e8ae8101459da4e223c7c9e8c9e21"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_zset_ops.o",
+      "sha256": "8206a2a5bb304c78048dab93fcc2b406aba80307bff89a8c6e693f9ee4e8b248"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/geo.o",
+      "sha256": "5722d60bed8829159ff7e44dd0d64f90afbc5a0602652faad86f15854676a465"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_stream.o",
+      "sha256": "be4dc0d7e9012c619b770ccd000ad315364c9766b1602dae7876a50996b9efdd"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_stream_groups.o",
+      "sha256": "ad1a25a544686ca883c0e9ff24e6bcb7c57a7b9d5bc137a3f145a43fe721f57c"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/scripting.o",
+      "sha256": "4961301563e30b3fe651c8eae6ff24513a20c1bb8198d196d409dd28a97e8acd"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/functions.o",
+      "sha256": "d3b7debe0023ae3515286ee5d7737f8707cd1fbac2aa234c96cdaeff2eb3847e"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/serialize.o",
+      "sha256": "6c895bc11827ca7836a49208fa696e66c34774334c799b6c3df414ad3c7d3cfc"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/snapshot/snapshot.o",
+      "sha256": "166cddedb135f102bc76a4a919897accc58e1740a9611232f46e256ac966c5ce"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/persist/aof.o",
+      "sha256": "5780f43a162146d29a609950f21b07a283231f3d8f1c8436205a70675b313968"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/climon.o",
+      "sha256": "04d04cf506227b737cdab79daf1075a8f10bcd2d60bd03bac97796ee4a4a6fcc"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/tracking.o",
+      "sha256": "c3466c05890d45304f339b9578378e69383adfbd929d0a3544dcaa33f76793b7"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/server_tail.o",
+      "sha256": "a643ba4356b1bae9e2ddc57be0d795f74bd4c8a162fb8189488e7b63c4648cc0"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/slowlog.o",
+      "sha256": "3d2424857504e1161419ef64bd63588edec20485ee1a6c433679bee2f0d85e7e"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/lcs.o",
+      "sha256": "77922c7ff524def2ef04d150107640ff046a3ae93589301c4d2a694449f3ad63"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/info_stats.o",
+      "sha256": "139009c6b61952450165d3846df43d50db86311647978c56f4c2f202d7d2e6ca"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/lbsignals.o",
+      "sha256": "af1634a502a694edf3f49bd283a915243a8cf6b0cae02e351fd68c6aecaf4f14"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/core/flipctl.o",
+      "sha256": "bab1e5cca5f17e6012d4f9a541e1087f50106540a7cb07997b5b4ebe1817b05b"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/core/genthread.o",
+      "sha256": "5f93f536097f1f4c21896b430a289b8fd21780ce7a855904efcef29b3567be35"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/core/rl2s.o",
+      "sha256": "dc458b80c7ad20f402eeb7283523b1fb609ef152dcb329e69528b6c645435fda"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/core/lbstall.o",
+      "sha256": "1a0e2bfcc77112fe3b81bcb7f09fa53d870689767f03933cf6db34f2cd40750d"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/core/lbplanner.o",
+      "sha256": "aef56ffca469f18b66cd527fe6499286a6dcae7ad7f5752f92db45a8b773be61"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/l4prebuild.o",
+      "sha256": "59a4c8bbb7d92612a9475bb5041e75e93bb151fc66a4a342f554651d759ade43"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/cmdgap.o",
+      "sha256": "3c1ddeebe53a1f099380c6d75d1deec51c29d70f80821667fb63b7a929b7b65e"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/pfdebug.o",
+      "sha256": "d5577608523494d0eabbae961aed741e114c3c213efcf0f790734e4b11dd33d3"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/cmdmeta.o",
+      "sha256": "a18ec307d62c835ff5d48a5ea3b754b725a580a202464ba250dc538aa6e873ef"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/t_sort.o",
+      "sha256": "0454951bc9c9e667254582030f66aef1a6e85ee2f950189343641388aa2f8af3"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/multidb.o",
+      "sha256": "c6f0442c0033d98687b0c725d30bd3e43733c5fad5b4411c710281d980b688af"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/storesize.o",
+      "sha256": "a586afd359d89bcbe37fe4aa65c44a6debfb86573bdac49131336dcd780eb663"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/multi_admin.o",
+      "sha256": "9e952e41b291540909bc20ef8b884bd5e9c0fc310f92835c3582cb3c19cd9f7f"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/core/reorder.o",
+      "sha256": "af7b11dec7f2bdcc389d8435ab1aa8c5415b94eabb0e1b26e655475d48709f8b"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/geo_store.o",
+      "sha256": "056990e5f996742768e89c25f48fe009d761a3faf902759902b80bd40d63f144"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/persist/aof_frame_debug.o",
+      "sha256": "e5d5f417f15f2d8fc6a1169ca66b976b58156f7be2821ab8374eb7768b78bbfa"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/aclkeys.o",
+      "sha256": "978f3f6276750ad28c3281287a5d06e46ae4424bcd516fab46e4516305a7ed72"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/blocking_debug.o",
+      "sha256": "120fc36d4c1fb1a725ffec8a7d9d9fbc0c0a7dfd1b7c9c4ebf2d2dab6027ea76"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/objectpread.o",
+      "sha256": "f1700f910d7268d688f728612bd2a56565beceeb9fca909146e9e8710aaf1cfd"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/hexpread.o",
+      "sha256": "18c7a3ae058d411882dc597aa562d1c2bae7d37b5242ed36ce22594ba836d738"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/autharity.o",
+      "sha256": "463ee81cd8699c23a32a9320e821061ebd93ff71a32779e0ce20eb1974f592d0"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/core/fliplisten.o",
+      "sha256": "13f985920b232bd135cb5c3ee2ab6e21140abfd04f502c9217b8acab20d9596a"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/core/shutdown.o",
+      "sha256": "ed392795c39941c32e35fe98bda4aabc98a284c82848f9de01b45857dda5c2c5"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/cmd/latency_tracking.o",
+      "sha256": "ce6148e3caa3eaab268fc01334adb00c08c5d6c01acf5d1ff70d4e6794e291a2"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/third_party/lua/helpers/lua_cjson.o",
+      "sha256": "157252e7d3139de916c6f66000dc841b2cf8106a97a44a64446c1930bc919b20"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/third_party/lua/helpers/lua_cmsgpack.o",
+      "sha256": "8151cd0be39bfd7fa70e9a52f1791608941713b7ecc9326866696c951dd7f6ae"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/third_party/lua/helpers/lua_bit.o",
+      "sha256": "738f2f49e141e57f453996533a73b38ce75d634ee6a26f0712edf094eb0518f8"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/third_party/lua/helpers/lua_struct.o",
+      "sha256": "9f3338eabb292a428452c9891556b48dd624d1087fc88b78259f99c6b7ddd60f"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/third_party/lua/helpers/strbuf.o",
+      "sha256": "641eb302255538ed44c81f74f3d39a68a0adf3e5e101c25aba3baec46311fd1c"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/third_party/lua/helpers/fpconv.o",
+      "sha256": "a07b5aac7f7e7725658eecb8aa6f159f338bdfde3f8dc3b87bf550ccbb03e3bd"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/objects/src/core/version.o",
+      "sha256": "719910189c207c6bd121990758699da1e65cc6a5117e126249f213e936d17f19"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/padding.o",
+      "sha256": "6f6b2ba4332436955347bb76bf1c04a0ec16e74a5efac5c37c8e4bcc9aaddf89"
+    }
+  ],
+  "arms": {
+    "PRE": {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pre-source/build/tomokv",
+      "sha256": "26113ccef516179fd5dc06fda24fd12beff86579e1d7ba56819d2958f2bd4aff"
+    },
+    "POST": {
+      "path": "/home/user/Projects/cx-wave9/build/tomokv",
+      "sha256": "2d1b626ac7ba7769d00bd5c0a16693fb928a9c2b3d0a488d41b3f7c8df51fb40"
+    },
+    "PAD-A": {
+      "path": "/home/user/Projects/cx-wave9/build/wave9/pad-a/tomokv",
+      "sha256": "6a6a581bb0b4f6478ac13e30d12a468b2317f282426f26f2b33d43d55b20601e"
+    }
+  }
+}

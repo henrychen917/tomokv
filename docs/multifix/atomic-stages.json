@@ -1,0 +1,72 @@
+[
+  {
+    "name": "final-atomic-1s-uring",
+    "exit": 0,
+    "argv": [
+      "python3",
+      "docs/multifix/run_jobs.py",
+      "final-atomic-1s-uring",
+      "atomic_batteries",
+      "--single-slot",
+      "--binary",
+      "build/multifix/tomokv-post",
+      "--port",
+      "20500",
+      "--engine",
+      "uring",
+      "--fused"
+    ]
+  },
+  {
+    "name": "final-atomic-2s-uring",
+    "exit": 0,
+    "argv": [
+      "python3",
+      "docs/multifix/run_jobs.py",
+      "final-atomic-2s-uring",
+      "atomic_batteries",
+      "--single-slot",
+      "--binary",
+      "build/multifix/tomokv-post",
+      "--port",
+      "20500",
+      "--engine",
+      "uring"
+    ]
+  },
+  {
+    "name": "final-atomic-1s-epoll",
+    "exit": 0,
+    "argv": [
+      "python3",
+      "docs/multifix/run_jobs.py",
+      "final-atomic-1s-epoll",
+      "atomic_batteries",
+      "--single-slot",
+      "--binary",
+      "build/multifix/tomokv-post",
+      "--port",
+      "20500",
+      "--engine",
+      "epoll",
+      "--fused"
+    ]
+  },
+  {
+    "name": "final-atomic-2s-epoll",
+    "exit": 0,
+    "argv": [
+      "python3",
+      "docs/multifix/run_jobs.py",
+      "final-atomic-2s-epoll",
+      "atomic_batteries",
+      "--single-slot",
+      "--binary",
+      "build/multifix/tomokv-post",
+      "--port",
+      "20500",
+      "--engine",
+      "epoll"
+    ]
+  }
+]

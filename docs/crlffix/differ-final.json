@@ -1,0 +1,104 @@
+{
+  "epoll": {
+    "run": "build/gate-run.S5xFVv",
+    "seeds": [
+      7,
+      19,
+      20,
+      23,
+      21
+    ],
+    "equivalence_seeds": [
+      21
+    ],
+    "passed": 941,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "differ-armed-0",
+        "passed": 231,
+        "failed": 0,
+        "witnesses": 1040727,
+        "comparison_legs": 230
+      },
+      {
+        "job": "differ-armed-1",
+        "passed": 235,
+        "failed": 0,
+        "witnesses": 1058172,
+        "comparison_legs": 234
+      },
+      {
+        "job": "differ-equivalence",
+        "passed": 1,
+        "failed": 0,
+        "cells": 16
+      },
+      {
+        "job": "differ-split-0",
+        "passed": 235,
+        "failed": 0,
+        "witnesses": 1063735,
+        "comparison_legs": 235
+      },
+      {
+        "job": "differ-split-1",
+        "passed": 239,
+        "failed": 0,
+        "witnesses": 1081387,
+        "comparison_legs": 239
+      }
+    ]
+  },
+  "uring": {
+    "run": "build/gate-run.8WGcCK",
+    "seeds": [
+      7,
+      19,
+      20,
+      23,
+      22
+    ],
+    "equivalence_seeds": [
+      22
+    ],
+    "passed": 941,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "differ-armed-0",
+        "passed": 231,
+        "failed": 0,
+        "witnesses": 1040623,
+        "comparison_legs": 230
+      },
+      {
+        "job": "differ-armed-1",
+        "passed": 235,
+        "failed": 0,
+        "witnesses": 1058122,
+        "comparison_legs": 234
+      },
+      {
+        "job": "differ-equivalence",
+        "passed": 1,
+        "failed": 0,
+        "cells": 16
+      },
+      {
+        "job": "differ-split-0",
+        "passed": 235,
+        "failed": 0,
+        "witnesses": 1063675,
+        "comparison_legs": 235
+      },
+      {
+        "job": "differ-split-1",
+        "passed": 239,
+        "failed": 0,
+        "witnesses": 1081096,
+        "comparison_legs": 239
+      }
+    ]
+  }
+}

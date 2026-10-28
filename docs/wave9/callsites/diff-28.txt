@@ -1,0 +1,15 @@
+luaopen_string
+--- headline
+
++++ post
+
+@@ -35,7 +35,7 @@
+
+ CLONE 0 0092 [ 6] jae <+0x130>
+ CLONE 0 0098 [ 3] mov %rbx,%rdi
+ CLONE 0 009b [ 2] xor %edx,%edx
+-CLONE 0 009d [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x788>
++CLONE 0 009d [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x782>
+ CLONE 0 00a4 [ 5] call <luaS_newlstr>
+ CLONE 0 00a9 [ 7] movl $0x4,0x8(%rbp)
+ CLONE 0 00b0 [ 3] mov %rbx,%rdi

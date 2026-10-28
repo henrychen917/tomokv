@@ -1,0 +1,17 @@
+[
+  {
+    "path": "battery.log",
+    "bytes": 5044,
+    "sha256": "6502bfa0f56bd856cddb141fb0b87bb926733860084a24c6ca5106a36ca292ef"
+  },
+  {
+    "path": "gate-srv-main.UdnpC5",
+    "bytes": 11085,
+    "sha256": "dc141765fc7053a36b9deaa8e00c0471817c798e6f983bc8c2d13e8d940768fa"
+  },
+  {
+    "path": "output.log",
+    "bytes": 186,
+    "sha256": "2aefd17e481192ad0c41df3b9b3a20cb4f357e45669c2832e330179bb83ef51d"
+  }
+]

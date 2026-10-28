@@ -1,0 +1,41 @@
+2304230:C 27 Oct 2026 18:57:40.392 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+2304230:C 27 Oct 2026 18:57:40.392 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+2304230:C 27 Oct 2026 18:57:40.392 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=2304230, just started
+2304230:C 27 Oct 2026 18:57:40.392 * Configuration loaded
+2304230:M 27 Oct 2026 18:57:40.392 * monotonic clock: POSIX clock_gettime
+2304230:M 27 Oct 2026 18:57:40.393 * Running mode=standalone, port=20201.
+2304230:M 27 Oct 2026 18:57:40.393 * Server initialized
+2304230:M 27 Oct 2026 18:57:40.393 * Ready to accept connections tcp
+2304230:M 27 Oct 2026 18:57:40.411 * Background saving started by pid 2304247
+2304247:C 27 Oct 2026 18:57:40.412 * DB saved on disk
+2304247:C 27 Oct 2026 18:57:40.412 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
+2304230:M 27 Oct 2026 18:57:40.495 * Background saving terminated with success
+2304230:M 27 Oct 2026 18:57:40.496 * DB saved on disk
+2304230:M 27 Oct 2026 18:57:40.496 * Loading RDB produced by version 7.4.10
+2304230:M 27 Oct 2026 18:57:40.496 * RDB age 0 seconds
+2304230:M 27 Oct 2026 18:57:40.496 * RDB memory usage when created 1.13 Mb
+2304230:M 27 Oct 2026 18:57:40.496 * Done loading RDB, keys loaded: 2, keys expired: 0.
+2304230:M 27 Oct 2026 18:57:40.496 * DB reloaded by DEBUG RELOAD
+2304230:M 27 Oct 2026 18:57:40.497 * Background saving started by pid 2304251
+2304251:C 27 Oct 2026 18:57:40.497 * DB saved on disk
+2304251:C 27 Oct 2026 18:57:40.497 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
+2304230:M 27 Oct 2026 18:57:40.595 * Background saving terminated with success
+2304230:M 27 Oct 2026 18:57:40.596 * DB saved on disk
+2304230:M 27 Oct 2026 18:57:40.596 * Loading RDB produced by version 7.4.10
+2304230:M 27 Oct 2026 18:57:40.596 * RDB age 0 seconds
+2304230:M 27 Oct 2026 18:57:40.596 * RDB memory usage when created 1.14 Mb
+2304230:M 27 Oct 2026 18:57:40.596 * Done loading RDB, keys loaded: 2, keys expired: 0.
+2304230:M 27 Oct 2026 18:57:40.596 * DB reloaded by DEBUG RELOAD
+2304230:M 27 Oct 2026 18:57:40.597 * Background saving started by pid 2304252
+2304252:C 27 Oct 2026 18:57:40.598 * DB saved on disk
+2304252:C 27 Oct 2026 18:57:40.598 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
+2304230:M 27 Oct 2026 18:57:40.696 * Background saving terminated with success
+2304230:M 27 Oct 2026 18:57:40.696 * DB saved on disk
+2304230:M 27 Oct 2026 18:57:40.696 * Loading RDB produced by version 7.4.10
+2304230:M 27 Oct 2026 18:57:40.696 * RDB age 0 seconds
+2304230:M 27 Oct 2026 18:57:40.697 * RDB memory usage when created 1.14 Mb
+2304230:M 27 Oct 2026 18:57:40.697 * Done loading RDB, keys loaded: 2, keys expired: 0.
+2304230:M 27 Oct 2026 18:57:40.697 * DB reloaded by DEBUG RELOAD
+2304230:signal-handler (1793098660) Received SIGTERM scheduling shutdown...
+2304230:M 27 Oct 2026 18:57:40.797 * User requested shutdown...
+2304230:M 27 Oct 2026 18:57:40.797 # Redis is now ready to exit, bye bye...

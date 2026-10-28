@@ -1,0 +1,15 @@
+GATE(full): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-multifix/build/gate-run.77APFB
+PARTIAL jobs (including prerequisites): release atomic_batteries
+PARTIAL jobs (including prerequisites): release atomic_batteries
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=28.795s; correctness-plan-fallback; atomic torn/window battery
+  atomic torn/window battery                           ok
+  row budget: 900s; median=4.06s; correctness-plan-fallback; atomic RYOW/mixed-write battery
+  atomic RYOW/mixed-write battery                      ok
+  row budget: 900s; median=4.24s; correctness-plan-fallback; atomic owner-local hazard battery
+  atomic owner-local hazard battery                    ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 5 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-atomic-1s-epoll.tsv.partial

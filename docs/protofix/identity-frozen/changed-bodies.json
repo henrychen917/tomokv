@@ -1,0 +1,952 @@
+[
+  {
+    "object": "db0/src/core/fliplisten.o",
+    "symbol": "_ZN8tomo_db017RespInlineDecoder3hexEh",
+    "name": "tomo_db0::RespInlineDecoder::hex(unsigned char)",
+    "pre_size": 0,
+    "post_size": 72,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/fliplisten.o",
+    "symbol": "_ZN8tomo_db017RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj",
+    "name": "tomo_db0::RespInlineDecoder::split(char const*, char const*, tomo_db0::Slice*, char*, unsigned int&)",
+    "pre_size": 0,
+    "post_size": 589,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db017RespInlineDecoder3hexEh', -4)",
+      "('_ZN8tomo_db017RespInlineDecoder3hexEh', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/fliplisten.o",
+    "symbol": "_ZN8tomo_db017RespInlineDecoder6decodeEPKcS2_RNS_2OpEPS2_",
+    "name": "tomo_db0::RespInlineDecoder::decode(char const*, char const*, tomo_db0::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 246,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db017RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj', -4)",
+      "('_ZN8tomo_db017RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj', -4)",
+      "('malloc', -4)",
+      "('free', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/fliplisten.o",
+    "symbol": "_ZN8tomo_db017resp_inline_plainEPKcS1_",
+    "name": "tomo_db0::resp_inline_plain(char const*, char const*)",
+    "pre_size": 0,
+    "post_size": 34,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/fliplisten.o",
+    "symbol": "_ZN8tomo_db017resp_parse_inlineEPKcjRjRNS_2OpEPS1_S2_",
+    "name": "tomo_db0::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned int&)",
+    "pre_size": 382,
+    "post_size": 483,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN8tomo_db024resp_inline_quotes_validEPKcS1_', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN8tomo_db017resp_inline_plainEPKcS1_', -4)",
+      "('_ZN8tomo_db017RespInlineDecoder6decodeEPKcS2_RNS_2OpEPS2_', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/fliplisten.o",
+    "symbol": "_ZN8tomo_db024resp_inline_quotes_validEPKcS1_",
+    "name": "tomo_db0::resp_inline_quotes_valid(char const*, char const*)",
+    "pre_size": 141,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('isspace', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db017RespInlineDecoder3hexEh",
+    "name": "tomo_db0::RespInlineDecoder::hex(unsigned char)",
+    "pre_size": 0,
+    "post_size": 72,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db017RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj",
+    "name": "tomo_db0::RespInlineDecoder::split(char const*, char const*, tomo_db0::Slice*, char*, unsigned int&)",
+    "pre_size": 0,
+    "post_size": 589,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db017RespInlineDecoder3hexEh', -4)",
+      "('_ZN8tomo_db017RespInlineDecoder3hexEh', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db017RespInlineDecoder6decodeEPKcS2_RNS_2OpEPS2_",
+    "name": "tomo_db0::RespInlineDecoder::decode(char const*, char const*, tomo_db0::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 246,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db017RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj', -4)",
+      "('_ZN8tomo_db017RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj', -4)",
+      "('malloc', -4)",
+      "('free', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db017resp_inline_plainEPKcS1_",
+    "name": "tomo_db0::resp_inline_plain(char const*, char const*)",
+    "pre_size": 0,
+    "post_size": 34,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db017resp_parse_inlineEPKcjRjRNS_2OpEPS1_S2_",
+    "name": "tomo_db0::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned int&)",
+    "pre_size": 382,
+    "post_size": 483,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN8tomo_db024resp_inline_quotes_validEPKcS1_', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN8tomo_db017resp_inline_plainEPKcS1_', -4)",
+      "('_ZN8tomo_db017RespInlineDecoder6decodeEPKcS2_RNS_2OpEPS2_', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db020kvobj_external_bytesEPKNS_5KvObjE",
+    "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+    "pre_size": 1111,
+    "post_size": 1162,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db024resp_inline_quotes_validEPKcS1_",
+    "name": "tomo_db0::resp_inline_quotes_valid(char const*, char const*)",
+    "pre_size": 141,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('isspace', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db06IoLoop24pubsub_notification_sendERKSt10shared_ptrINS_23PubSubNotificationChainEE",
+    "name": "tomo_db0::IoLoop::pubsub_notification_send(std::shared_ptr<tomo_db0::PubSubNotificationChain> const&)",
+    "pre_size": 1173,
+    "post_size": 1157,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db017RespInlineDecoder3hexEh",
+    "name": "tomo_db0::RespInlineDecoder::hex(unsigned char)",
+    "pre_size": 0,
+    "post_size": 72,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db017RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj",
+    "name": "tomo_db0::RespInlineDecoder::split(char const*, char const*, tomo_db0::Slice*, char*, unsigned int&)",
+    "pre_size": 0,
+    "post_size": 589,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db017RespInlineDecoder3hexEh', -4)",
+      "('_ZN8tomo_db017RespInlineDecoder3hexEh', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db017RespInlineDecoder6decodeEPKcS2_RNS_2OpEPS2_",
+    "name": "tomo_db0::RespInlineDecoder::decode(char const*, char const*, tomo_db0::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 246,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db017RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj', -4)",
+      "('_ZN8tomo_db017RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj', -4)",
+      "('malloc', -4)",
+      "('free', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db017resp_inline_plainEPKcS1_",
+    "name": "tomo_db0::resp_inline_plain(char const*, char const*)",
+    "pre_size": 0,
+    "post_size": 34,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db017resp_parse_inlineEPKcjRjRNS_2OpEPS1_S2_",
+    "name": "tomo_db0::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned int&)",
+    "pre_size": 382,
+    "post_size": 483,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN8tomo_db024resp_inline_quotes_validEPKcS1_', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN8tomo_db017resp_inline_plainEPKcS1_', -4)",
+      "('_ZN8tomo_db017RespInlineDecoder6decodeEPKcS2_RNS_2OpEPS2_', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db024resp_inline_quotes_validEPKcS1_",
+    "name": "tomo_db0::resp_inline_quotes_valid(char const*, char const*)",
+    "pre_size": 141,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('isspace', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db04Ring6msg_toERS0_m",
+    "name": "tomo_db0::Ring::msg_to(tomo_db0::Ring&, unsigned long)",
+    "pre_size": 841,
+    "post_size": 880,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZNSt5mutex4lockEv', -4)"
+    ],
+    "code_targets_added": [
+      "('pthread_mutex_lock', -4)",
+      "('_ZSt20__throw_system_errori', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db09FlatStore34atomic_prepare_capacity_read_localEj",
+    "name": "tomo_db0::FlatStore::atomic_prepare_capacity_read_local(unsigned int)",
+    "pre_size": 1185,
+    "post_size": 1185,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db017RespInlineDecoder3hexEh",
+    "name": "tomo_db0::RespInlineDecoder::hex(unsigned char)",
+    "pre_size": 0,
+    "post_size": 72,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db017RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj",
+    "name": "tomo_db0::RespInlineDecoder::split(char const*, char const*, tomo_db0::Slice*, char*, unsigned int&)",
+    "pre_size": 0,
+    "post_size": 589,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db017RespInlineDecoder3hexEh', -4)",
+      "('_ZN8tomo_db017RespInlineDecoder3hexEh', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db017RespInlineDecoder6decodeEPKcS2_RNS_2OpEPS2_",
+    "name": "tomo_db0::RespInlineDecoder::decode(char const*, char const*, tomo_db0::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 246,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db017RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj', -4)",
+      "('_ZN8tomo_db017RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj', -4)",
+      "('malloc', -4)",
+      "('free', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db017resp_inline_plainEPKcS1_",
+    "name": "tomo_db0::resp_inline_plain(char const*, char const*)",
+    "pre_size": 0,
+    "post_size": 34,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db017resp_parse_inlineEPKcjRjRNS_2OpEPS1_S2_",
+    "name": "tomo_db0::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned int&)",
+    "pre_size": 382,
+    "post_size": 483,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN8tomo_db024resp_inline_quotes_validEPKcS1_', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN8tomo_db017resp_inline_plainEPKcS1_', -4)",
+      "('_ZN8tomo_db017RespInlineDecoder6decodeEPKcS2_RNS_2OpEPS2_', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db024resp_inline_quotes_validEPKcS1_",
+    "name": "tomo_db0::resp_inline_quotes_valid(char const*, char const*)",
+    "pre_size": 141,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('isspace', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db017RespInlineDecoder3hexEh",
+    "name": "tomo_db0::RespInlineDecoder::hex(unsigned char)",
+    "pre_size": 0,
+    "post_size": 72,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db017RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj",
+    "name": "tomo_db0::RespInlineDecoder::split(char const*, char const*, tomo_db0::Slice*, char*, unsigned int&)",
+    "pre_size": 0,
+    "post_size": 589,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db017RespInlineDecoder3hexEh', -4)",
+      "('_ZN8tomo_db017RespInlineDecoder3hexEh', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db017RespInlineDecoder6decodeEPKcS2_RNS_2OpEPS2_",
+    "name": "tomo_db0::RespInlineDecoder::decode(char const*, char const*, tomo_db0::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 246,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db017RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj', -4)",
+      "('_ZN8tomo_db017RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj', -4)",
+      "('malloc', -4)",
+      "('free', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db017resp_inline_plainEPKcS1_",
+    "name": "tomo_db0::resp_inline_plain(char const*, char const*)",
+    "pre_size": 0,
+    "post_size": 34,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db017resp_parse_inlineEPKcjRjRNS_2OpEPS1_S2_",
+    "name": "tomo_db0::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned int&)",
+    "pre_size": 382,
+    "post_size": 483,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN8tomo_db024resp_inline_quotes_validEPKcS1_', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN8tomo_db017resp_inline_plainEPKcS1_', -4)",
+      "('_ZN8tomo_db017RespInlineDecoder6decodeEPKcS2_RNS_2OpEPS2_', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db024resp_inline_quotes_validEPKcS1_",
+    "name": "tomo_db0::resp_inline_quotes_valid(char const*, char const*)",
+    "pre_size": 141,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('isspace', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/fliplisten.o",
+    "symbol": "_ZN4tomo17RespInlineDecoder3hexEh",
+    "name": "tomo::RespInlineDecoder::hex(unsigned char)",
+    "pre_size": 0,
+    "post_size": 72,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/fliplisten.o",
+    "symbol": "_ZN4tomo17RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj",
+    "name": "tomo::RespInlineDecoder::split(char const*, char const*, tomo::Slice*, char*, unsigned int&)",
+    "pre_size": 0,
+    "post_size": 594,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo17RespInlineDecoder3hexEh', -4)",
+      "('_ZN4tomo17RespInlineDecoder3hexEh', -4)"
+    ]
+  },
+  {
+    "object": "src/core/fliplisten.o",
+    "symbol": "_ZN4tomo17RespInlineDecoder6decodeEPKcS2_RNS_2OpEPS2_",
+    "name": "tomo::RespInlineDecoder::decode(char const*, char const*, tomo::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 246,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo17RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj', -4)",
+      "('_ZN4tomo17RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj', -4)",
+      "('malloc', -4)",
+      "('free', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/core/fliplisten.o",
+    "symbol": "_ZN4tomo17resp_inline_plainEPKcS1_",
+    "name": "tomo::resp_inline_plain(char const*, char const*)",
+    "pre_size": 0,
+    "post_size": 34,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/fliplisten.o",
+    "symbol": "_ZN4tomo17resp_parse_inlineEPKcjRjRNS_2OpEPS1_S2_",
+    "name": "tomo::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned int&)",
+    "pre_size": 382,
+    "post_size": 483,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN4tomo24resp_inline_quotes_validEPKcS1_', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN4tomo17resp_inline_plainEPKcS1_', -4)",
+      "('_ZN4tomo17RespInlineDecoder6decodeEPKcS2_RNS_2OpEPS2_', -4)"
+    ]
+  },
+  {
+    "object": "src/core/fliplisten.o",
+    "symbol": "_ZN4tomo24resp_inline_quotes_validEPKcS1_",
+    "name": "tomo::resp_inline_quotes_valid(char const*, char const*)",
+    "pre_size": 141,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('isspace', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo17RespInlineDecoder3hexEh",
+    "name": "tomo::RespInlineDecoder::hex(unsigned char)",
+    "pre_size": 0,
+    "post_size": 72,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo17RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj",
+    "name": "tomo::RespInlineDecoder::split(char const*, char const*, tomo::Slice*, char*, unsigned int&)",
+    "pre_size": 0,
+    "post_size": 594,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo17RespInlineDecoder3hexEh', -4)",
+      "('_ZN4tomo17RespInlineDecoder3hexEh', -4)"
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo17RespInlineDecoder6decodeEPKcS2_RNS_2OpEPS2_",
+    "name": "tomo::RespInlineDecoder::decode(char const*, char const*, tomo::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 246,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo17RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj', -4)",
+      "('_ZN4tomo17RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj', -4)",
+      "('malloc', -4)",
+      "('free', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo17resp_inline_plainEPKcS1_",
+    "name": "tomo::resp_inline_plain(char const*, char const*)",
+    "pre_size": 0,
+    "post_size": 34,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo17resp_parse_inlineEPKcjRjRNS_2OpEPS1_S2_",
+    "name": "tomo::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned int&)",
+    "pre_size": 382,
+    "post_size": 483,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN4tomo24resp_inline_quotes_validEPKcS1_', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN4tomo17resp_inline_plainEPKcS1_', -4)",
+      "('_ZN4tomo17RespInlineDecoder6decodeEPKcS2_RNS_2OpEPS2_', -4)"
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo24resp_inline_quotes_validEPKcS1_",
+    "name": "tomo::resp_inline_quotes_valid(char const*, char const*)",
+    "pre_size": 141,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('isspace', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo6IoLoop17pubsub_append_ackERNS_2Op4SinkEbbbPKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEmb.isra.0",
+    "name": "tomo::IoLoop::pubsub_append_ack(tomo::Op::Sink&, bool, bool, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const*, unsigned long, bool) [clone .isra.0]",
+    "pre_size": 972,
+    "post_size": 1068,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN4tomo10u64_to_decEPcm', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo9reply_errINS_2Op4SinkEEEvOT_PKc",
+    "name": "void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)",
+    "pre_size": 774,
+    "post_size": 813,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZNSt6thread11_State_implINS_8_InvokerISt5tupleIJZN4tomo16run_fused_serverERNS3_6ServerEPKNS3_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS3_13AofReplayPlanESt14default_deleteISB_EESaISE_EES8_PNS3_10TlsContextERNS3_16LateUnixListenerERNS3_23ShutdownReportFinalLineEEUlvE0_EEEEE6_M_runEv",
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
+    "pre_size": 4293,
+    "post_size": 4293,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo17RespInlineDecoder3hexEh",
+    "name": "tomo::RespInlineDecoder::hex(unsigned char)",
+    "pre_size": 0,
+    "post_size": 72,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo17RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj",
+    "name": "tomo::RespInlineDecoder::split(char const*, char const*, tomo::Slice*, char*, unsigned int&)",
+    "pre_size": 0,
+    "post_size": 594,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo17RespInlineDecoder3hexEh', -4)",
+      "('_ZN4tomo17RespInlineDecoder3hexEh', -4)"
+    ]
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo17RespInlineDecoder6decodeEPKcS2_RNS_2OpEPS2_",
+    "name": "tomo::RespInlineDecoder::decode(char const*, char const*, tomo::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 246,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo17RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj', -4)",
+      "('_ZN4tomo17RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj', -4)",
+      "('malloc', -4)",
+      "('free', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo17resp_inline_plainEPKcS1_",
+    "name": "tomo::resp_inline_plain(char const*, char const*)",
+    "pre_size": 0,
+    "post_size": 34,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo17resp_parse_inlineEPKcjRjRNS_2OpEPS1_S2_",
+    "name": "tomo::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned int&)",
+    "pre_size": 382,
+    "post_size": 483,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN4tomo24resp_inline_quotes_validEPKcS1_', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN4tomo17resp_inline_plainEPKcS1_', -4)",
+      "('_ZN4tomo17RespInlineDecoder6decodeEPKcS2_RNS_2OpEPS2_', -4)"
+    ]
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo20kvobj_external_bytesEPKNS_5KvObjE",
+    "name": "tomo::kvobj_external_bytes(tomo::KvObj const*)",
+    "pre_size": 1447,
+    "post_size": 1482,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo24resp_inline_quotes_validEPKcS1_",
+    "name": "tomo::resp_inline_quotes_valid(char const*, char const*)",
+    "pre_size": 141,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('isspace', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo17RespInlineDecoder3hexEh",
+    "name": "tomo::RespInlineDecoder::hex(unsigned char)",
+    "pre_size": 0,
+    "post_size": 72,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo17RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj",
+    "name": "tomo::RespInlineDecoder::split(char const*, char const*, tomo::Slice*, char*, unsigned int&)",
+    "pre_size": 0,
+    "post_size": 594,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo17RespInlineDecoder3hexEh', -4)",
+      "('_ZN4tomo17RespInlineDecoder3hexEh', -4)"
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo17RespInlineDecoder6decodeEPKcS2_RNS_2OpEPS2_",
+    "name": "tomo::RespInlineDecoder::decode(char const*, char const*, tomo::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 246,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo17RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj', -4)",
+      "('_ZN4tomo17RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj', -4)",
+      "('malloc', -4)",
+      "('free', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo17resp_inline_plainEPKcS1_",
+    "name": "tomo::resp_inline_plain(char const*, char const*)",
+    "pre_size": 0,
+    "post_size": 34,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo17resp_parse_inlineEPKcjRjRNS_2OpEPS1_S2_",
+    "name": "tomo::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned int&)",
+    "pre_size": 382,
+    "post_size": 483,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN4tomo24resp_inline_quotes_validEPKcS1_', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN4tomo17resp_inline_plainEPKcS1_', -4)",
+      "('_ZN4tomo17RespInlineDecoder6decodeEPKcS2_RNS_2OpEPS2_', -4)"
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo24resp_inline_quotes_validEPKcS1_",
+    "name": "tomo::resp_inline_quotes_valid(char const*, char const*)",
+    "pre_size": 141,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('isspace', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo6IoLoop17flip_control_passILb1EEEjv",
+    "name": "unsigned int tomo::IoLoop::flip_control_pass<true>()",
+    "pre_size": 4951,
+    "post_size": 4967,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZNK4tomo6Server10flip_ackedEjNS_9FlipStageE', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo17RespInlineDecoder3hexEh",
+    "name": "tomo::RespInlineDecoder::hex(unsigned char)",
+    "pre_size": 0,
+    "post_size": 72,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo17RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj",
+    "name": "tomo::RespInlineDecoder::split(char const*, char const*, tomo::Slice*, char*, unsigned int&)",
+    "pre_size": 0,
+    "post_size": 594,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo17RespInlineDecoder3hexEh', -4)",
+      "('_ZN4tomo17RespInlineDecoder3hexEh', -4)"
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo17RespInlineDecoder6decodeEPKcS2_RNS_2OpEPS2_",
+    "name": "tomo::RespInlineDecoder::decode(char const*, char const*, tomo::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 246,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo17RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj', -4)",
+      "('_ZN4tomo17RespInlineDecoder5splitEPKcS2_PNS_5SliceEPcRj', -4)",
+      "('malloc', -4)",
+      "('free', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo17resp_inline_plainEPKcS1_",
+    "name": "tomo::resp_inline_plain(char const*, char const*)",
+    "pre_size": 0,
+    "post_size": 34,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo17resp_parse_inlineEPKcjRjRNS_2OpEPS1_S2_",
+    "name": "tomo::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned int&)",
+    "pre_size": 382,
+    "post_size": 483,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN4tomo24resp_inline_quotes_validEPKcS1_', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN4tomo17resp_inline_plainEPKcS1_', -4)",
+      "('_ZN4tomo17RespInlineDecoder6decodeEPKcS2_RNS_2OpEPS2_', -4)"
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo24resp_inline_quotes_validEPKcS1_",
+    "name": "tomo::resp_inline_quotes_valid(char const*, char const*)",
+    "pre_size": 141,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('isspace', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZNSt6thread11_State_implINS_8_InvokerISt5tupleIJZ19tomokv_multidb_mainiPPcEUlvE0_EEEEE6_M_runEv",
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::{lambda()#2}> > >::_M_run()",
+    "pre_size": 3318,
+    "post_size": 3318,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZNSt6thread11_State_implINS_8_InvokerISt5tupleIJZ19tomokv_multidb_mainiPPcEUlvE2_EEEEE6_M_runEv",
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::{lambda()#4}> > >::_M_run()",
+    "pre_size": 2525,
+    "post_size": 2525,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  }
+]
