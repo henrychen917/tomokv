@@ -96,27 +96,26 @@ def removed(c, clients):
               "recreated group has no inherited consumer")
         equal(c.cmd("XREADGROUP", "GROUP", "g", "new", "STREAMS", "boundary", ">"),
               [[b"boundary", [[b"1-0", [b"f", b"v"]]]]], "new consumer owns new entry")
-    # RESTORE recreates a group without running XGROUP CREATE on the target.
+    # RENAME recreates a group without running XGROUP CREATE on the target.
     # It must preserve the same deletion boundary, including atomic cleanup.
-    c.cmd("XGROUP", "CREATE", "template", "g", "$", "MKSTREAM")
-    payload = c.cmd("DUMP", "template")
     for delete in (("DEL", "boundary"), ("DEL", "boundary", "other-owner")) * 8:
         c.cmd("DEL", "boundary", "other-owner")
         c.cmd("XGROUP", "CREATE", "boundary", "g", "$", "MKSTREAM")
         w = waiter(c, clients, "XREADGROUP", "GROUP", "g", "c", "BLOCK", 0,
                    "STREAMS", "boundary", ">")
+        c.cmd("XGROUP", "CREATE", "replacement", "g", "$", "MKSTREAM")
         c.raw(b"".join(encode(*command) for command in (
-            delete, ("RESTORE", "boundary", 0, payload),
+            delete, ("RENAME", "replacement", "boundary"),
             ("XADD", "boundary", "1-0", "f", "v"))))
-        equal([c.read(), c.read(), c.read()], [1, b"OK", b"1-0"], "RESTORE pipeline replies")
+        equal([c.read(), c.read(), c.read()], [1, b"OK", b"1-0"], "RENAME pipeline replies")
         got = w.read()
         assert isinstance(got, RespError) and str(got).startswith("NOGROUP"), (
-            "deleted group's waiter must not consume recreated stream", delete, "RESTORE", got)
+            "deleted group's waiter must not consume recreated stream", delete, "RENAME", got)
         parked(c, 0); out.append(got)
         equal(c.cmd("XPENDING", "boundary", "g"), [0, None, None, None],
-              "restored group has no inherited delivery")
+              "renamed group has no inherited delivery")
         equal(c.cmd("XINFO", "CONSUMERS", "boundary", "g"), [],
-              "restored group has no inherited consumer")
+              "renamed group has no inherited consumer")
     # EXEC's command boundary is the whole transaction: recreation inside it
     # retains the waiter and delivers the replacement group's committed data.
     c.cmd("DEL", "boundary")

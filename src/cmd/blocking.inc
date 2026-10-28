@@ -1397,7 +1397,7 @@ void blocking_plain_mutation_published(Shard& shard, Op& op) {
     if (!std::strcmp(name, "LPUSH") || !std::strcmp(name, "RPUSH") ||
         !std::strcmp(name, "LPUSHX") || !std::strcmp(name, "RPUSHX") ||
         !std::strcmp(name, "ZADD") || !std::strcmp(name, "ZINCRBY") ||
-        !std::strcmp(name, "XADD") || !std::strcmp(name, "SET") || !std::strcmp(name, "RESTORE") ||
+        !std::strcmp(name, "XADD") || !std::strcmp(name, "SET") ||
         !std::strcmp(name, "DEL") || !std::strcmp(name, "UNLINK"))
         blocking_publish_key(shard, op.hash, op.key().p, op.key().n, op.key().ns);
     else if (!std::strcmp(name, "LMOVE") || !std::strcmp(name, "RPOPLPUSH") ||
