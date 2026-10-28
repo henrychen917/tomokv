@@ -262,6 +262,24 @@
         }
     }
     uint32_t atomic_live_records() const { return atomic_pending_ ? atomic_pending_->live : 0; }
+    // Owner-only newest-match lookup for EXEC's private-layer reuse. Older
+    // versions cannot change this answer. In particular a hot key with N old
+    // versions must not pay N visits just to reject the preceding transaction.
+    bool atomic_reuses_transaction(uint64_t hash, Slice key,
+                                   const std::atomic<uint64_t>* epoch,
+                                   const std::atomic<bool>* aborted) const {
+        if (!atomic_pending_) return false;
+        const uint64_t bit = atomic_membership_bit(hash);
+        for (auto* entry = atomic_pending_->tail; entry; entry = entry->prev) {
+            TOMO_EXEC1S_VISIT();
+            if (!(entry->membership & bit)) continue;
+            for (uint32_t i = 0; i < entry->count; ++i)
+                if (atomic_entry_hash(*entry, i) == hash && atomic_entry_key(*entry, i).key_eq(key))
+                    return entry->plain() && entry->group_epoch == epoch &&
+                           entry->group_aborted == aborted;
+        }
+        return false;
+    }
     // A conservative blind-group count: includes script/TO-B/EXEC children.
     // Those extra positives cost a scan, never remove a required one.
     bool atomic_may_have_blind_records() const {

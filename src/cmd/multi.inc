@@ -1483,11 +1483,8 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
     // Preserve its one committed predecessor instead of cloning the growing
     // value on every command. A child-scatter/foreign version above it requires
     // a fresh parent layer: that child has its own runtime-error decision.
-    bool private_head = false;
-    shard.store().atomic_visit_unit_records(hash, key, false, [&](AtomicEntry& entry) {
-        private_head = entry.plain() && entry.group_epoch == &state.decision.epoch &&
-            entry.group_aborted == &state.shard_aborted[state.slot(shard.id())];
-    });
+    const bool private_head = shard.store().atomic_reuses_transaction(
+        hash, key, &state.decision.epoch, &state.shard_aborted[state.slot(shard.id())]);
     if (private_head) {
         shard.store().atomic_set_read_context(UINT64_MAX, state.origin_conn_id);
         return MultiPrepareWrite::Ready;

@@ -15,6 +15,11 @@ from pathlib import Path
 import shlex
 import subprocess
 
+CPU_SPEC = os.environ.get("EXEC1S_CPUS", "48-63")
+CPU_SET = set()
+for part in CPU_SPEC.split(","):
+    bounds = list(map(int, part.split("-")))
+    CPU_SET.update(range(bounds[0], bounds[-1] + 1))
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "build/exec1s-evidence/instructions"
 BUILD = ROOT / "build/exec1s-scopes"
@@ -52,7 +57,7 @@ def archive_probe(arm, ns):
 
 
 def build(arm, ns):
-    assert os.sched_getaffinity(0) <= set(range(48, 64)), "build under taskset -c 48-63"
+    assert os.sched_getaffinity(0) <= CPU_SET, "build outside assigned CPUs"
     source, objects = ARMS[arm]
     if not (objects / "tomokv").exists():
         cmd = ["make", "-C", str(source), "-j16", "all"]
@@ -198,7 +203,7 @@ end
 """
     script_file = BUILD / (label + ".gdb")
     script_file.write_text(script)
-    cmd = ["taskset", "-c", "48-63", "gdb", "-nx", "-batch", "-x", str(script_file), str(binary)]
+    cmd = ["taskset", "-c", CPU_SPEC, "gdb", "-nx", "-batch", "-x", str(script_file), str(binary)]
     full_log = BUILD / (label + ".log")
     with full_log.open("w") as log:
         result = subprocess.run(cmd, stdout=log, stderr=subprocess.STDOUT, timeout=1200)

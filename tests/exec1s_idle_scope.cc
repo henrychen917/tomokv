@@ -27,7 +27,7 @@ struct CoreConcurrencyTest {
         need(server.init(cfg));command_bind_server(&server);
         for(unsigned tid=0;tid<8;++tid)need(server.thread(tid).init_task_inbox_local_fused());
         auto& self=server.thread(0);FusedExLoop owner;IoLoop io;
-        need(owner.init(&server,&self,true));need(io.init(&server,&self,"127.0.0.1",20499,-1,nullptr,true));
+        need(owner.init(&server,&self,true));need(io.init(&server,&self,"127.0.0.1",20099,-1,nullptr,true));
         owner.activate_fused();io.bind_fused_executor(&owner);self.set_ring(&io.ring_);self.set_wb_engine(&io.wb_);
         need(io.listen_fd_==-1 && self.clients().empty());
         scope_iterations=&self.sig().iterations;scope_stop=&self.stop_flag();
