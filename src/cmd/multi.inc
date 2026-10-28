@@ -2359,6 +2359,10 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
         bool prepared = true;
         if (!session->queue_error) prepared = prepare_commands(server, *state, session->queue);
         else try {
+            // Queue-time errors skip prepare_commands, but watched EXECABORT
+            // still runs the owner WATCH phase before releasing reservations.
+            if (!state->watched.empty())
+                state->database_map = std::make_unique<DatabaseMap::Map>(server.databases().capture());
             for (const auto& watched : state->watched) add_state_shard(*state, watched.shard);
             allocate_participant_state(*state, state->shards.size());
         } catch (const std::bad_alloc&) { prepared = false; }
