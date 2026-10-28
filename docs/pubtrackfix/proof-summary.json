@@ -1305,10 +1305,102 @@
           }
         }
       }
+    },
+    "plant-reply-off": {
+      "gate_summary": [
+        "GATE(PARTIAL): 1 ok, 2 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-pubtrackfix/build/gate-run.z9A8sp/ledger.partial"
+      ],
+      "jobs": {
+        "redis_tcl": {
+          "done": "0\t0\t2\n"
+        },
+        "release": {
+          "done": "0\t1\t0\n"
+        }
+      },
+      "tcl": {
+        "1s": {
+          "sha256": "c6642ec96ece147e7b1c9623eefcba5ec93cfb571c951e71e490566434907e0d",
+          "files": 35,
+          "file_runs": 36,
+          "passed_assertions": 1698,
+          "promoted_passed": 26,
+          "promoted_missing": [
+            [
+              "unit/pubsub",
+              "Keyspace notifications: evicted events"
+            ],
+            [
+              "unit/pubsub",
+              "Keyspace notifications: stream events test"
+            ],
+            [
+              "unit/pubsub",
+              "Keyspace notifications: we receive keyevent notifications"
+            ],
+            [
+              "unit/pubsub",
+              "Keyspace notifications: we receive keyspace notifications"
+            ],
+            [
+              "unit/pubsub",
+              "PubSub messages with CLIENT REPLY OFF"
+            ]
+          ],
+          "root_witness": {
+            "file": "unit/pubsub",
+            "test": "PubSub messages with CLIENT REPLY OFF",
+            "started": true,
+            "passed": false,
+            "file_complete": false,
+            "file_error": "passing subset failed, incomplete, or assertion inventory changed",
+            "failure_events": [],
+            "detected": true
+          }
+        },
+        "2s": {
+          "sha256": "c6642ec96ece147e7b1c9623eefcba5ec93cfb571c951e71e490566434907e0d",
+          "files": 35,
+          "file_runs": 36,
+          "passed_assertions": 1700,
+          "promoted_passed": 26,
+          "promoted_missing": [
+            [
+              "unit/pubsub",
+              "Keyspace notifications: evicted events"
+            ],
+            [
+              "unit/pubsub",
+              "Keyspace notifications: stream events test"
+            ],
+            [
+              "unit/pubsub",
+              "Keyspace notifications: we receive keyevent notifications"
+            ],
+            [
+              "unit/pubsub",
+              "Keyspace notifications: we receive keyspace notifications"
+            ],
+            [
+              "unit/pubsub",
+              "PubSub messages with CLIENT REPLY OFF"
+            ]
+          ],
+          "root_witness": {
+            "file": "unit/pubsub",
+            "test": "PubSub messages with CLIENT REPLY OFF",
+            "started": true,
+            "passed": false,
+            "file_complete": false,
+            "file_error": "passing subset failed, incomplete, or assertion inventory changed",
+            "failure_events": [],
+            "detected": true
+          }
+        }
+      }
     }
   },
   "missing_runs": [
-    "plant-reply-off",
     "plant-consumer",
     "plant-eviction"
   ]
