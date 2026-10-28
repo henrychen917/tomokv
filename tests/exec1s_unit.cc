@@ -232,7 +232,9 @@ void reuse_check(Server& server) {
             { Exec1sVisitScope scope(0);
               actual = store.atomic_reuses_transaction(hash, key, &parent.decision.epoch, &aborted); }
             require(actual == expected, "newest ownership controls reuse");
-            require(counter.record_visits - before <= maximum, "reuse ignores older versions");
+            // The constructed prefix has exactly this length. Requiring the
+            // positive count also rejects a missing/disabled visit witness.
+            require(counter.record_visits - before == maximum, "reuse visits the exact newest prefix");
             bool oracle = false;
             store.atomic_visit_unit_records(hash, key, false, [&](AtomicEntry& e) {
                 oracle = e.plain() && e.group_epoch == &parent.decision.epoch && e.group_aborted == &aborted;
