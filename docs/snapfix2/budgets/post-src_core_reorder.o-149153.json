@@ -1,0 +1,48 @@
+{
+  "functions": 841,
+  "equal": 838,
+  "changed": [
+    "tomo::kvobj_external_bytes(tomo::KvObj const*)",
+    "tomo::IoLoop::pubsub_deliver_one(tomo::PubSubDelivery const&)",
+    "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()"
+  ],
+  "symbols": [
+    "_ZN4tomo20kvobj_external_bytesEPKNS_5KvObjE",
+    "_ZN4tomo6IoLoop18pubsub_deliver_oneERKNS_14PubSubDeliveryE",
+    "_ZN4tomo7ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv"
+  ],
+  "padding": [],
+  "hot": [],
+  "added": [],
+  "removed": [],
+  "arm": "post",
+  "unit": "src/core/reorder.o",
+  "budget": 149153,
+  "initial": 122021,
+  "command": [
+    "taskset",
+    "-c",
+    "0-15",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=149153",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/core/reorder.cc",
+    "-o",
+    "/home/user/Projects/cx-snapfix2/build/snapfix2/budgets/post-src_core_reorder.o-149153.o",
+    "-g0",
+    "-fdump-ipa-inline=/home/user/Projects/cx-snapfix2/build/snapfix2/budgets/post-src_core_reorder.o-149153.inline"
+  ],
+  "sha256": "1e28af29fcbee03fe2e67a1369abcf4f299869d39e7446c633afea08060e07dd"
+}
