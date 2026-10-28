@@ -97,6 +97,7 @@
         const uint64_t bit = atomic_membership_bit(hash);
         uint64_t ticket = 0;
         for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
+            TOMO_EXEC1S_VISIT();
             if (!(entry->membership & bit)) continue;
             for (uint32_t i = 0; i < entry->count; i++) {
                 if (atomic_entry_hash(*entry, i) != hash || !atomic_entry_key(*entry, i).key_eq(key))
@@ -260,11 +261,18 @@
                 bytes_equal(intent->key_data(), key.p, key.n))) visit(*intent);
         }
     }
+    uint32_t atomic_live_records() const { return atomic_pending_ ? atomic_pending_->live : 0; }
+    // A conservative blind-group count: includes script/TO-B/EXEC children.
+    // Those extra positives cost a scan, never remove a required one.
+    bool atomic_may_have_blind_records() const {
+        return atomic_pending_ && (atomic_pending_->group_records || atomic_pending_->live >= 256);
+    }
     template <typename Visit>
     void atomic_visit_unit_records(uint64_t hash, Slice key, bool wildcard, Visit&& visit) {
         if (!atomic_pending_) return;
         const uint64_t bit = atomic_membership_bit(hash);
         for (auto* entry = atomic_pending_->head; entry; entry = entry->next) {
+            TOMO_EXEC1S_VISIT();
             if (wildcard) { visit(*entry); continue; }
             if (!(entry->membership & bit)) continue;
             for (uint32_t i = 0; i < entry->count; ++i)
@@ -518,7 +526,7 @@
         auto* entry = static_cast<AtomicEntry*>(opaque);
         if (!entry || !entry->count || entry->linked) std::abort();
         atomic_link_entry(*entry);
-        atomic_pending_->group_installing = false;
+        atomic_pending_->finish_group_install();
     }
 
 
@@ -1184,6 +1192,7 @@ private:
     }
 
     void atomic_unlink_conn(AtomicEntry& entry) {
+        if (entry.group) --atomic_pending_->group_records;
         const uint32_t bucket = static_cast<uint32_t>(mix64(entry.origin_conn_id)) & 63;
         if (entry.conn_prev) entry.conn_prev->conn_next = entry.conn_next;
         else {

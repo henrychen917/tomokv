@@ -103,6 +103,7 @@ public:
         client_lb_signal_armed_ = srv_->client_lb_signals_enabled();
         lb_controller_armed_ = srv_->lb_controller_enabled();
         if (!ring_.init(4096)) return false;
+        ring_.bind_entry_counters(self_->id(), false);
         if (!srv_->databases().watch_wake(self_->id(), ring_)) return false;
         if (epoll_ && !init_epoll()) return false;
         wb_.bind(&ring_, this, [](void* ctx, int32_t shard, const char* ptr) {
@@ -523,6 +524,8 @@ private:
         static_assert(!SplitLocal || Fused);
         LoopSignals& sig = self_->sig();
         IoTenure tenure(sig);
+        Ring::RegisteredFd registered_io(Fused && !SplitLocal ? &ring_ : nullptr);
+        Ring::RegisteredFd registered_ex(Fused && !SplitLocal && fused_executor_ ? &fused_executor_->ring() : nullptr);
         wb_rule::IdleWindow wb_idle;
         Server::DebugSleepWorker sleep_worker(srv_->debug_sleep_coordinator(), self_->id());
         if constexpr (Fused) {
@@ -629,6 +632,10 @@ private:
                 did += drain_client_transfers<kEp>();
                 did += scatter_pool_.refresh_snapshot_floor(*srv_, self_->id());
                 if constexpr (HasUnix) did += flush_handoffs();
+                if constexpr (Fused && !SplitLocal) {
+                    if (fused_executor_->fused_owner_ready())
+                        did += fused_executor_->fused_owner_turn();
+                }
                 did += multi_owner_pass_entry(*this);
                 if (aof_writer_bound())
                     did += srv_->aof().writer_pass(*self_, ring_);
@@ -654,6 +661,10 @@ private:
                     if (__builtin_expect(!routing_forward_.empty(), false))
                         client_routing_cleanup_pass();
                     did += flush_ready<HasTls, kEp>();
+                }
+                if constexpr (Fused && !SplitLocal) {
+                    if (fused_executor_->fused_owner_ready())
+                        did += fused_executor_->fused_owner_turn();
                 }
                 did += flip_control_pass<kEp>();
                 if (__builtin_expect(client_lb_signal_armed &&

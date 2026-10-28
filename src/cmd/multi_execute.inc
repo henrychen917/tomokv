@@ -19,7 +19,7 @@
     // WATCH phase below -- redis validates watches inside EXEC's own call, under EXEC's snapshot.
     // Without this, two identical reads in one EXEC could disagree about the same key.
     PinnedNowMs now_cut(shard, state.now_cut_ms);
-    uint8_t& noted = state.execution_noted[static_cast<uint32_t>(shard.id())];
+    uint8_t& noted = state.execution_noted[state.slot(static_cast<uint32_t>(shard.id()))];
     if (!(noted & 1u)) {
         shard.note_execution(owner_domain);
         noted |= 1u;
@@ -41,7 +41,7 @@
         const bool arriving = state.kind == MultiStateKind::Execute && !state.read_only &&
             state.shards.size() != 1 &&
             state.watch_arrived.load(std::memory_order_acquire) != state.shards.size();
-        return state.watch_shard_done[sid] || arriving || (state.execution_noted[sid] & 16u)
+        return state.watch_shard_done[state.slot(sid)] || arriving || (state.execution_noted[state.slot(sid)] & 16u)
             ? MultiTaskResult::RetrySoon : MultiTaskResult::Retry;
     };
     MultiWatchMapScope transaction_map(state.database_watch.empty() ? nullptr : &state.database_map);
@@ -70,8 +70,8 @@
         return retry();
 
     const uint32_t shard_id = static_cast<uint32_t>(shard.id());
-    std::vector<uint32_t>& command_list = state.shard_commands[shard_id];
-    uint32_t& cursor = state.shard_cursors[shard_id];
+    std::vector<uint32_t>& command_list = state.shard_commands[state.slot(shard_id)];
+    uint32_t& cursor = state.shard_cursors[state.slot(shard_id)];
     if (state.kind != MultiStateKind::Execute ||
         state.final_reply == MultiFinalReply::ExecAbort ||
         state.watch_failed.load(std::memory_order_acquire)) {
@@ -229,9 +229,10 @@
         done = static_cast<uint8_t>(stage + 1);
         latency_child.finish();
         finish_command(state, command, stage, owner_thread_id);
+        multi_ring_participants(state);
     }
 
-    uint8_t& joined = state.execution_joined[shard_id];
+    uint8_t& joined = state.execution_joined[state.slot(shard_id)];
     if (!joined) {
         joined = 1;
         // Each shard emits its AOF fragment exactly once, under the same join guard that
@@ -305,6 +306,7 @@
                 state.doomed = state.decision.epoch.load(std::memory_order_acquire) ==
                                kAtomicCancelledEpoch;
                 state.finalized.store(true, std::memory_order_release);
+                multi_ring_participants(state);
                 // Every owner has joined and the one commit decision is made: nothing this
                 // transaction writes can land on a shard after this point, so it can no longer
                 // straddle a snapshot cut. Closed here, on an OWNER, not at reply retirement.

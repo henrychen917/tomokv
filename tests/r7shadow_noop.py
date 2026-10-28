@@ -41,7 +41,8 @@ def off_roles(binary):
             if target in callers and target != source: callers[target].add(source)
 
     def armed(name):
-        return '::r7_' in name or '_reordered(' in name
+        return ('::r7_' in name or '_reordered(' in name or
+                '::fused_owner_turn<true>()' in name)
 
     def prove_local(at, visited):
         name = functions[at][0]
@@ -199,12 +200,32 @@ def wave8_inventory(binary):
     return Counter({'tomo': 164, 'tomo_db0': 162})
 
 
+def exec1s_inventory(binary):
+    """Keep wave8's inventory, explicitly account for fused sweep outlining.
+
+    X1 emits one full fused sweep instead of two hot/cold clone pairs in each
+    runtime. X3 adds one ordinary owner-turn body per runtime; its R7-specific
+    instantiation is proved armed-only by off_roles(). No other body may vanish.
+    """
+    path = Path(__file__).resolve().parents[1] / 'docs/wave8/reorder-inventory.json'
+    expected = json.loads(path.read_text())
+    for ns in ('tomo', 'tomo_db0'):
+        stem = ns + '::ExLoopT<true>::fused_baseline_sweep()'
+        for suffix in (' [clone .part.0]', ' [clone .part.0] [clone .cold]'):
+            assert expected.pop(stem + suffix) == 2
+        expected[stem] = 1
+        expected['unsigned int ' + ns + '::ExLoopT<true>::fused_owner_turn<false>()'] = 1
+    actual = {name: len(bodies) for name, bodies in binary.groups.items() if audit.category(name)}
+    assert actual == expected, 'exec1s named inventory differs'
+    return Counter({'tomo': 162, 'tomo_db0': 160})
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('pre')
     parser.add_argument('post')
     parser.add_argument('output')
-    parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal', 'overlapaxe', 'wave5', 'execfair', 'wave6', 'latencyfix', 'wave8'), default='r7',
+    parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal', 'overlapaxe', 'wave5', 'execfair', 'wave6', 'latencyfix', 'wave8', 'exec1s'), default='r7',
                         help='wbrule/splitlocal retain historical inventories; overlapaxe requires the surviving bodies')
     args = parser.parse_args()
     out = Path(args.output)
@@ -284,6 +305,8 @@ if __name__ == '__main__':
         for binary in (pre, post): expected = latencyfix_inventory(binary)
     if args.inventory == 'wave8':
         for binary in (pre, post): expected = wave8_inventory(binary)
+    if args.inventory == 'exec1s':
+        for binary in (pre, post): expected = exec1s_inventory(binary)
     counts = Counter('tomo_db0' if 'tomo_db0::' in row['name'] else 'tomo' for row in rows)
     assert counts == expected, f'off-path inventory changed: {counts}, expected {expected}'
     def inventory(binary):

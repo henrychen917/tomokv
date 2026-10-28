@@ -60,6 +60,7 @@
 // kilo-slot runs. Measured at ~6,600 probes per lookup. slot_start() mixes again before taking the
 // index; that alone was worth 2.5-2.7x.
 #pragma once
+#include "../core/exec1s.h"
 #include <algorithm>
 #include <atomic>
 #include "../base/tomo_assert.h"

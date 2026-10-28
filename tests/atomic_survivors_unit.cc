@@ -18,6 +18,9 @@ __attribute__((noinline)) void* operator new(std::size_t size) {
         allocation_failed = true;
         throw std::bad_alloc();
     }
+#ifdef TOMO_EXEC1S_ALLOCATIONS
+    exec1s_allocated += size;
+#endif
     if (void* p = std::malloc(size ? size : 1)) return p;
     throw std::bad_alloc();
 }
@@ -56,6 +59,19 @@ using namespace tomo;
 namespace {
 void require(bool yes, const char* why) {
     if (!yes) { std::fprintf(stderr, "FAIL: %s\n", why); std::exit(1); }
+}
+// Synthetic phase fixtures install claims before real IO participant discovery.
+// Keep their explicit shard IDs; production EXECs use compact participant slots.
+MultiExecState* fixture_allocate_state(Server& server, Client& client, uint32_t owner,
+                                      MultiStateKind kind) {
+    auto* state = allocate_state(server, client, owner, kind);
+    if (state && kind == MultiStateKind::Execute) {
+        state->shard_slots.clear();
+        state->claims.resize(server.nshards());
+        state->shard_commands.resize(server.nshards());
+        allocate_participant_state(*state, server.nshards());
+    }
+    return state;
 }
 Slice slice(const std::string& s) { return Slice(s.data(), s.size()); }
 struct Request {
@@ -319,7 +335,7 @@ void txn_intents(Server& server) {
     require(!server.script_intents_active() && !store.atomic_has_records(), "final accounting");
     {
         Client client{-1}; client.set_id(887);
-        auto* state = allocate_state(server, client, 0, MultiStateKind::Execute);
+        auto* state = fixture_allocate_state(server, client, 0, MultiStateKind::Execute);
         require(state != nullptr, "shutdown attempt allocated");
         state->shards.push_back(0);
         state->exec_op_id = 0;
@@ -405,7 +421,7 @@ void txn_group(Server& server) {
                 "source claim and lazy anchor retain the attempt");
         require(!txn_group_release(state), "live owner pins prevent sidecar release");
         Client older_client{-1}; older_client.set_id(898);
-        auto* older = allocate_state(server, older_client, 0, MultiStateKind::Execute);
+        auto* older = fixture_allocate_state(server, older_client, 0, MultiStateKind::Execute);
         older->decision.age_ns = state.group_attempt()->age_ns - 1;
         txn_add_claim(older->claims[0], slice(a), TxnClaimMode::Write);
         Shard::WatchReservation claim{older, &older->decision.epoch, &older->decision.aborted,
@@ -475,7 +491,7 @@ void txn_help(Server& server) {
         const auto a = key_on(server, 0, "txn-watch-arrive-a");
         const auto b = key_on(server, 1, "txn-watch-arrive-b");
         Client client{-1}; client.set_id(890);
-        auto* state = allocate_state(server, client, 0, MultiStateKind::Execute);
+        auto* state = fixture_allocate_state(server, client, 0, MultiStateKind::Execute);
         require(state != nullptr, "WATCH arrival attempt allocated");
         state->shards = {0, 1};
         state->database_map = server.databases().capture();
@@ -521,7 +537,7 @@ void txn_help(Server& server) {
         AtomicSurvivorsTest::publish_stale_sample(server, first);
         require(server.atomic_snapshot() == first, "completed commit left a conservative watermark");
         Client client{-1}; client.set_id(889);
-        auto* state = allocate_state(server, client, 0, MultiStateKind::Execute);
+        auto* state = fixture_allocate_state(server, client, 0, MultiStateKind::Execute);
         require(state != nullptr, "Rule P attempt allocated");
         state->read_only = false;
         require(multi_touch_key(*state, shard, FlatStore::hash_key(slice(key)), slice(key), false),
@@ -539,7 +555,7 @@ void txn_help(Server& server) {
         const auto key = key_on(server, 0, "txn-cancel-handler");
         require(local(server, {"LPUSH", key, "seed"}) == ":1\r\n", "collection predecessor");
         Client client{-1}; client.set_id(888);
-        auto* state = allocate_state(server, client, 0, MultiStateKind::Execute);
+        auto* state = fixture_allocate_state(server, client, 0, MultiStateKind::Execute);
         require(state != nullptr, "collection attempt allocated");
         Request request({"LPUSH", key, "ghost"});
         std::vector<MultiQueuedCommand> queue(1);
