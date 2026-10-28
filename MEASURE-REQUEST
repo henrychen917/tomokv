@@ -1,5 +1,3 @@
-# wave8b
-
-See [MEASURE-REQUEST-wave8b.md](MEASURE-REQUEST-wave8b.md), section `## wave8b`.
-PRE/POST/PAD-A hashes, exact cells, limits and the landing decision are recorded there.
-No performance measurements have been run in this lane.
+rlfix4: see MEASURE-REQUEST-rlfix4.md, section "## rlfix4".
+Use the exact PRE, POST, POST-layout and PAD-A (type A) hashes recorded there.
+Performance measurements are pending maintainer execution. No throughput claim.

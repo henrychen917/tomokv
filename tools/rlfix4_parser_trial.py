@@ -1,12 +1,21 @@
 #!/usr/bin/env python3
 """Compile isolated parser alternatives against frozen surrounding POST objects."""
-import argparse, concurrent.futures, hashlib, json, os, shlex, shutil, subprocess
+import argparse, concurrent.futures, hashlib, json, os, shlex, shutil, subprocess, tarfile
 from pathlib import Path
 from rlfix4_scope import ROOT, OUT, BUILD, trace, save
 p=argparse.ArgumentParser();p.add_argument('name');p.add_argument('--original-aof',action='store_true');p.add_argument('--inline-room',action='store_true');p.add_argument('--normal-cmd-name',action='store_true');p.add_argument('--release-storage',action='store_true');p.add_argument('--flatten-dtor',action='store_true');p.add_argument('--metadata-aof',action='store_true');p.add_argument('--fused-metadata-aof',action='store_true');a=p.parse_args()
 os.sched_setaffinity(0,set(range(32,48)))
 src=ROOT/'build/rlfix4'/a.name;src.mkdir(exist_ok=True)
-shutil.copytree(ROOT/'src',src/'src',dirs_exist_ok=True);shutil.copy2(ROOT/'Makefile',src/'Makefile')
+# These are the rejected-candidate experiments, not variants of whatever HEAD
+# happens to be when somebody replays them. The surrounding unchanged objects
+# and fixture come from the recorded POST link recipe; replace all eight parser
+# translation units from this explicit pre-registry-guard source revision.
+source_revision='df5c790d2'
+archive=src/'source.tar'
+with archive.open('wb') as f:
+ subprocess.run(['git','archive',source_revision,'src','Makefile'],cwd=ROOT,stdout=f,check=True)
+with tarfile.open(archive) as f:f.extractall(src,filter='data')
+archive.unlink()
 if not (src/'third_party').exists():(src/'third_party').symlink_to(ROOT/'third_party')
 for path in [src/'src/core/io_loop.h',src/'src/core/reorder.cc']:
  s=path.read_text()
@@ -30,11 +39,11 @@ if a.inline_room:
 units=[x+'/'+y for x in ('src','db0/src') for y in ('main.o','core/genthread.o','core/reorder.o','core/rl2s.o')]
 def compile_one(rel):
  target=ROOT/'build'/rel;dest=src/'build'/rel;dest.parent.mkdir(parents=True,exist_ok=True)
- recipe=subprocess.check_output(['make','-n','-B',str(target.relative_to(ROOT))],cwd=ROOT,text=True)
+ recipe=subprocess.check_output(['make','-n','-B',str(target.relative_to(ROOT))],cwd=src,text=True)
  cmd=next(shlex.split(l) for l in recipe.splitlines() if ' -c ' in l and l.endswith(' -o '+str(target.relative_to(ROOT))))
  cmd[-1]=str(dest)
  with dest.with_suffix('.log').open('w') as f:subprocess.run(cmd,cwd=src,stdout=f,stderr=subprocess.STDOUT,check=True)
- return dict(unit=rel,command=cmd,sha256=hashlib.sha256(dest.read_bytes()).hexdigest())
+ return dict(source_revision=source_revision,unit=rel,command=cmd,sha256=hashlib.sha256(dest.read_bytes()).hexdigest())
 with concurrent.futures.ThreadPoolExecutor(6) as pool:receipts=list(pool.map(compile_one,units))
 save(OUT/(a.name+'-units.json'),receipts)
 for admission in (False,True):

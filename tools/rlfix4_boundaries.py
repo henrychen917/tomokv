@@ -19,7 +19,7 @@ def build_one(case):
  demangled=subprocess.check_output(['c++filt'],input='\n'.join(s['name'] for s in symbols),text=True).splitlines()
  rows=[]
  for s,name in zip(symbols,demangled):
-  if not any(k in name for k in ('parse_and_dispatch<false, 32u, false>','drain_local_reads_bounded_impl<false>','prepare_local_read(','hash_key(','siphash12','cmd_name()','local_read_lane_has_room','notify_sender(','flip_dispatch_paused','query_buffer_exceeded','touch_worker','multi_session_watch_size','reply_bulk<','read_local_state_acquire','refine_current_write_hash','Op::Sink::reserve','u64_to_dec')):continue
+  if not any(k in name for k in ('parse_and_dispatch<false, 32u, false>','drain_local_reads_bounded_impl<false>','prepare_local_read(','hash_key(','siphash12','cmd_name()','local_read_lane_has_room','notify_sender(','flip_dispatch_paused','query_buffer_exceeded','touch_worker','multi_session_watch_size','reply_bulk<','read_local_state_acquire','refine_current_write_hash','Op::Sink::reserve','u64_to_dec','resp_parse_t<','r7_ReadLocalDemotionPlan::Storage')):continue
   canonical=elf.canonical(s)
   rows.append(dict(name=name,size=s['size'],digest=hashlib.sha256(repr(canonical).encode()).hexdigest(),canary_loads=elf.body(s).count(bytes.fromhex('64 48 8b 04 25 28 00 00 00')),references=[r for r in canonical[1]]))
  result=dict(commit=source.name,unit=rel,command=command,sha256=hashlib.sha256(target.read_bytes()).hexdigest(),bodies=rows)
