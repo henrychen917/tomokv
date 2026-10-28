@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Frozen attribution arms, built serially; never starts a workload."""
-import argparse, difflib, json, os, re, shutil, subprocess
+import argparse, difflib, json, os, shutil, subprocess
 from pathlib import Path
 import exec1sd as d
 
@@ -36,52 +36,16 @@ def main():
     assert os.sched_getaffinity(0)<=set(range(64,96))
     p=argparse.ArgumentParser();p.add_argument('arm',choices=['X12','X3','X5','PRE','REUSE']);a=p.parse_args()
     arm=a.arm
-    if arm=='X12':
-        source=d.OUT/'X12-source';ref=(source/'SOURCE-COMMIT').read_text().strip()
-        # Keep the pre-X5 state only until the isolated X3 arm has been prepared.
-        for name in ('multi.inc','multi_execute.inc'):
-            shutil.copy2(source/'src/cmd'/name,d.OUT/('X12-'+name))
-        finish(arm,source,ref,'EXEC,IDLE')
-    elif arm=='X3':
-        source,ref=d.snapshot('d602c8c36',arm)
-        for name in ('multi.inc','multi_execute.inc'):
-            shutil.copy2(d.OUT/('X12-'+name),source/'src/cmd'/name)
-        (source/'src/cmd/txn_key_queue.inc').write_bytes(subprocess.check_output(
-            ['git','show','393d6ceb1:src/cmd/txn_key_queue.inc'],cwd=d.ROOT))
-        old=d.ROOT/'src/cmd/multi.inc'
-        text=old.read_text();start=text.index('void multi_ring_participants(');end=text.index('\nvoid multi_enqueue_node',start)
-        path=source/'src/cmd/multi.inc'
-        replace(path,'void multi_enqueue_node',text[start:end]+'\nvoid multi_enqueue_node')
-        for anchor in ('            state.watch_arrived.fetch_add(1, std::memory_order_acq_rel);',
-                       '        state.watch_phase_done.store(true, std::memory_order_release);'):
-            replace(path,anchor,anchor+'\n        multi_ring_participants(state);')
-        path=source/'src/cmd/multi_execute.inc'
-        for anchor in ('        finish_command(state, command, stage, owner_thread_id);',
-                       '                state.finalized.store(true, std::memory_order_release);'):
-            replace(path,anchor,anchor+'\n        multi_ring_participants(state);')
-        finish(arm,source,ref,'EXEC,IDLE')
-        for path in d.OUT.glob('X12-multi*'):path.unlink()
-    elif arm=='X5':
-        source,ref=d.snapshot('d602c8c36',arm)
-        for name in ('src/core/io_loop.h','src/core/reorder.cc','src/core/ex_loop.h',
-                     'src/cmd/multi.inc','src/cmd/multi_execute.inc'):
-            (source/name).write_bytes(subprocess.check_output(['git','show',ref+':'+name],cwd=d.ROOT))
-        for name in ('src/core/io_loop.h','src/core/reorder.cc'):
-            path=source/name;text=path.read_text()
-            text,n=re.subn(r'(?m)^[ ]+if constexpr \(Fused && !SplitLocal\) \{\n'
-                r'[ ]+if \(fused_executor_->fused_owner_ready\(\)\)\n'
-                r'[ ]+did \+= fused_executor_->fused_owner_turn(?:<true>)?\(\);\n'
-                r'[ ]+\}\n','',text)
-            assert n==2,(name,n);path.write_text(text)
-        replace(source/'src/core/ex_loop.h','        ring_fused_owner();\n','',2)
-        for name in ('multi.inc','multi_execute.inc'):
-            path=source/'src/cmd'/name;text=path.read_text()
-            text,n=re.subn(r'^\s+multi_ring_participants\(state\);\n','\n',text,flags=re.M)
-            assert n==2,(name,n)
-            if name=='multi.inc':
-                start=text.index('void multi_ring_participants(');end=text.index('void multi_enqueue_node',start)
-                text=text[:start]+text[end:]
-            path.write_text(text)
+    if arm in ('X12','X3','X5'):
+        # The committed source receipt makes every isolated arm reconstructible
+        # after all intermediate source trees and objects have been retired.
+        receipt=json.loads((d.DOCS/(arm+'-source.json')).read_text())
+        source,ref=d.snapshot(receipt['base'],arm)
+        patch=d.DOCS/(arm+'.patch')
+        assert d.sha(patch)==receipt['patch_sha256']
+        subprocess.run(['patch','--batch','--forward','-p1','-i',str(patch)],
+                       cwd=source,check=True,stdout=subprocess.DEVNULL)
+        assert all(d.sha(source/name)==digest for name,digest in receipt['files'].items())
         finish(arm,source,ref,'EXEC,IDLE')
     elif arm=='PRE':
         source,ref=d.snapshot('393d6ceb1',arm)

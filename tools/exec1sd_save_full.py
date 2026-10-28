@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 """Replay the original complete split-0 seed plan, observing SAVE's actual result."""
-import argparse, json, os, signal, subprocess, threading, time
+import argparse, fcntl, json, os, signal, subprocess, threading, time
 from pathlib import Path
 import exec1sd as d
 
 def main():
     assert os.sched_getaffinity(0)<=set(range(64,96))
-    p=argparse.ArgumentParser();p.add_argument('arm');a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('arm');p.add_argument('--native',action='store_true');p.add_argument('--label',default='');a=p.parse_args()
+    port_lock=(d.OUT/'save-native-ports.lock').open('w')
+    fcntl.flock(port_lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
     arm=next(r for r in json.loads((d.DOCS/'arms.json').read_text()) if r['arm']==a.arm)
-    out=d.OUT/('save-full-traceable-'+a.arm);out.mkdir(exist_ok=False)
+    assert d.sha(arm['binary'])==arm['sha256']
+    label=('save-full-native-' if a.native else 'save-full-traceable-')+a.arm+a.label
+    out=d.OUT/label;out.mkdir(exist_ok=False)
     observer=out/'observe.gdb'
     observer.write_text('''set pagination off
 set confirm off
@@ -44,6 +48,15 @@ thread apply all bt
         GATE_DIFFER_NET_IO='epoll',GATE_DIFFER_GEOMETRY='split',GATE_DIFFER_PART='split-0',
         GATE_DIFFER_PLAN=str(d.DOCS/'epoll-seed22-plan.json'),GATE_LOAD_CORES='80-95',
         GATE_DIFFER_ORACLE_CORES='72-79')
+    if a.native:
+        cmd=['taskset','-c',d.CPUS,'tests/differ_gate.sh',arm['binary'],'20000','20001','64-71','6:2']
+        with (out/'run.log').open('w') as stream:
+            result=subprocess.run(cmd,env=env,stdout=stream,stderr=subprocess.STDOUT)
+        d.save(d.DOCS/(label+'.json'),dict(arm=arm,command=cmd,returncode=result.returncode,
+            plan_sha256=d.sha(d.DOCS/'epoll-seed22-plan.json'),log=str(out/'run.log'),
+            log_sha256=d.sha(out/'run.log'),observer=False))
+        print(a.arm,'native full split-0 plan exit',result.returncode,flush=True)
+        return
     # A sibling debugger needs process-local Yama consent. This exec shim keeps
     # the gate's owned PID and its listener checks intact; no system setting is
     # changed and the frozen server bytes are unmodified.
@@ -77,7 +90,7 @@ thread apply all bt
                 except subprocess.TimeoutExpired:process.terminate();process.wait()
     logfile=out/'observer.log';log=logfile.read_text()
     rows=[json.loads(line[len('SAVE_RESULT '):]) for line in log.splitlines() if line.startswith('SAVE_RESULT ')]
-    d.save(d.DOCS/('save-full-traceable-'+a.arm+'.json'),dict(arm=arm,command=cmd,returncode=result.returncode,
+    d.save(d.DOCS/(label+'.json'),dict(arm=arm,command=cmd,returncode=result.returncode,
         plan_sha256=d.sha(d.DOCS/'epoll-seed22-plan.json'),observer_sha256=d.sha(observer),
         target_log=str(logfile),target_log_sha256=d.sha(logfile),results=rows,
         observer_errors=[line for line in log.splitlines() if line.startswith('SAVE_OBSERVER_ERROR ')]))

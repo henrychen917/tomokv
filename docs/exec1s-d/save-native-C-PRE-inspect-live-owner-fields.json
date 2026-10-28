@@ -1,0 +1,69 @@
+{
+  "arm": {
+    "arm": "C-PRE",
+    "source_commit": "83e0b809d0fdeb4bf43647bd0cada7a4f14f241d",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/C-PRE",
+    "sha256": "47c4cc498a212922433220c57efca3b7e249e3c23889623a0c7de0e0feeb043b",
+    "bytes": 218187712
+  },
+  "commands": [
+    [
+      "taskset",
+      "-c",
+      "72-79",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "20001",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-C-PRE-inspect-live-owner-fields/oracle",
+      "--enable-debug-command",
+      "yes",
+      "--appendonly",
+      "no"
+    ],
+    [
+      "taskset",
+      "-c",
+      "64-71",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/C-PRE",
+      "--port",
+      "20000",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-C-PRE-inspect-live-owner-fields/target",
+      "--enable-debug-command",
+      "yes",
+      "--shards",
+      "16",
+      "--ratio",
+      "6:2",
+      "--net-io",
+      "epoll",
+      "--databases",
+      "16",
+      "--atomic",
+      "0"
+    ]
+  ],
+  "seed": 22,
+  "suite": "psfix",
+  "mode": "2s",
+  "atomic": 0,
+  "engine": "epoll",
+  "results": [
+    {
+      "repeat": 0,
+      "returncode": 1,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-C-PRE-inspect-live-owner-fields/0.log",
+      "sha256": "a363448eb384e9e4e4189fbf79773a850cda54ed946321025f7d63ecc0805573"
+    }
+  ],
+  "invalid_attempt": "An earlier observer still owned the shared SAVE ports; this connection-reset attempt is not correctness evidence. Native/full drivers now hold the same exclusive port lock."
+}

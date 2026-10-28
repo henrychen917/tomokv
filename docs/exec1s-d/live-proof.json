@@ -1,0 +1,1222 @@
+{
+  "production_sha256": "22d10835d2b4ab630f5214d857802a0c72bce83e9f4e06eecf8422d9024b1128",
+  "runs": [
+    {
+      "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/core-attempt-2.json",
+      "receipt_sha256": "4c9ea3a6203752bda5d059c1442269f6b9c07ba609ede7d3a430b9fd1bd945e7",
+      "log_sha256": "305ec3d00a31575dd552dd1c4e893593cd2710f5fcdaca21c0e27928aae64b86",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "64-71",
+        "--load-cores",
+        "72-95",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "20010-20097",
+        "--candidate-binary",
+        "/home/user/Projects/cx-exec1s-d/build/tomokv"
+      ],
+      "returncode": 1,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/core-attempt-2.log",
+      "selected_jobs": "exec1s txnorder_wound at412-owner txnorder_index multifix-1s-uring multifix-1s-epoll multifix-2s-uring multifix-2s-epoll",
+      "started_utc": "2026-10-28T15:13:07.585878+00:00",
+      "ended_utc": "2026-10-28T15:31:10.395304+00:00",
+      "candidate_sha256": "893bf7e6d8adcdf924a5181dd0e94e4ba0e7401de7c6c17cc75b666ca51d8c3c",
+      "candidate_unchanged": true,
+      "proof_environment": {
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_TEST_PORT": "20098"
+      },
+      "artifacts": "/home/user/Projects/cx-exec1s-d/build/gate-run.xCI84Z",
+      "success": false,
+      "jobs": [
+        {
+          "name": "at412-owner",
+          "completed": true,
+          "rows": [
+            [
+              "FAIL",
+              "8.930000",
+              "at412 owner"
+            ]
+          ],
+          "ledger_sha256": "83136abc2972ef4e31f52322a00654a2b0ee911a7b7ad32b730b90e7aaed2e88",
+          "passed": 0,
+          "failed": 1,
+          "done": "0\t0\t1"
+        },
+        {
+          "name": "exec1s",
+          "completed": true,
+          "rows": [
+            [
+              "FAIL",
+              "19.160000",
+              "exec1s refinements (1s, atomic 0)"
+            ],
+            [
+              "FAIL",
+              "3.030000",
+              "exec1s refinements (1s, atomic 1)"
+            ],
+            [
+              "FAIL",
+              "3.020000",
+              "exec1s refinements (2s, atomic 0)"
+            ],
+            [
+              "FAIL",
+              "3.010000",
+              "exec1s refinements (2s, atomic 1)"
+            ]
+          ],
+          "ledger_sha256": "e0e5d2da7342744f3170a4f7ac3a52fcf7cbfdae67a4cf1f13b7fb8886e06b85",
+          "passed": 0,
+          "failed": 4,
+          "done": "0\t0\t4"
+        },
+        {
+          "name": "multifix-1s-epoll",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "11.000000",
+              "multifix RESET-IN-MULTI (1s epoll)"
+            ],
+            [
+              "ok",
+              "10.870000",
+              "multifix WATCH-SPURIOUS-INVALIDATION (1s epoll)"
+            ],
+            [
+              "ok",
+              "11.640000",
+              "multifix EXEC-REPEATED-KEY-LINEAR (1s epoll)"
+            ],
+            [
+              "ok",
+              "14.850000",
+              "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)"
+            ],
+            [
+              "ok",
+              "28.280000",
+              "multifix PAUSE-IN-MULTI (1s epoll)"
+            ],
+            [
+              "ok",
+              "11.720000",
+              "multifix PAUSE-EXEC-NOT-HELD (1s epoll)"
+            ]
+          ],
+          "ledger_sha256": "07a961b20b3b2efe2c2aef04b7a65354ed637e1dede5f78e1a04c3e894a2ea49",
+          "passed": 6,
+          "failed": 0,
+          "done": "0\t6\t0"
+        },
+        {
+          "name": "multifix-1s-uring",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "11.010000",
+              "multifix RESET-IN-MULTI (1s uring)"
+            ],
+            [
+              "ok",
+              "10.820000",
+              "multifix WATCH-SPURIOUS-INVALIDATION (1s uring)"
+            ],
+            [
+              "ok",
+              "11.550000",
+              "multifix EXEC-REPEATED-KEY-LINEAR (1s uring)"
+            ],
+            [
+              "ok",
+              "14.900000",
+              "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)"
+            ],
+            [
+              "ok",
+              "28.540000",
+              "multifix PAUSE-IN-MULTI (1s uring)"
+            ],
+            [
+              "ok",
+              "12.240000",
+              "multifix PAUSE-EXEC-NOT-HELD (1s uring)"
+            ]
+          ],
+          "ledger_sha256": "667e7807014fcea225bb034eefda2e82c6298078b1bb2ae89731f92bdd828172",
+          "passed": 6,
+          "failed": 0,
+          "done": "0\t6\t0"
+        },
+        {
+          "name": "multifix-2s-epoll",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "11.180000",
+              "multifix RESET-IN-MULTI (2s epoll)"
+            ],
+            [
+              "ok",
+              "11.180000",
+              "multifix WATCH-SPURIOUS-INVALIDATION (2s epoll)"
+            ],
+            [
+              "ok",
+              "11.590000",
+              "multifix EXEC-REPEATED-KEY-LINEAR (2s epoll)"
+            ],
+            [
+              "ok",
+              "15.050000",
+              "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)"
+            ],
+            [
+              "ok",
+              "28.140000",
+              "multifix PAUSE-IN-MULTI (2s epoll)"
+            ],
+            [
+              "ok",
+              "11.240000",
+              "multifix PAUSE-EXEC-NOT-HELD (2s epoll)"
+            ]
+          ],
+          "ledger_sha256": "68770c1a5e36bb0829649a7f37a19bdad5473206775b41d4fe0f17a341604257",
+          "passed": 6,
+          "failed": 0,
+          "done": "0\t6\t0"
+        },
+        {
+          "name": "multifix-2s-uring",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "11.360000",
+              "multifix RESET-IN-MULTI (2s uring)"
+            ],
+            [
+              "ok",
+              "12.550000",
+              "multifix WATCH-SPURIOUS-INVALIDATION (2s uring)"
+            ],
+            [
+              "ok",
+              "12.100000",
+              "multifix EXEC-REPEATED-KEY-LINEAR (2s uring)"
+            ],
+            [
+              "ok",
+              "15.330000",
+              "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)"
+            ],
+            [
+              "ok",
+              "28.800000",
+              "multifix PAUSE-IN-MULTI (2s uring)"
+            ],
+            [
+              "ok",
+              "12.210000",
+              "multifix PAUSE-EXEC-NOT-HELD (2s uring)"
+            ]
+          ],
+          "ledger_sha256": "4123a776dae5a5e7f68ec8db6cfaed9a9f04a25622d592a88d51bb5c9a2cc859",
+          "passed": 6,
+          "failed": 0,
+          "done": "0\t6\t0"
+        },
+        {
+          "name": "production_units",
+          "completed": true,
+          "rows": [],
+          "ledger_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "passed": 0,
+          "failed": 0,
+          "done": "0\t0\t0"
+        },
+        {
+          "name": "release",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.000000",
+              "release build (+footprint locks)"
+            ]
+          ],
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "txnorder_index",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "103.440000",
+              "txnorder index oracle"
+            ],
+            [
+              "ok",
+              "2.600000",
+              "txnorder index complexity"
+            ]
+          ],
+          "ledger_sha256": "f2d35b4128aab0003dd474dd2e09ef3f1a7385d37f182d5ed168a0e515981fe8",
+          "passed": 2,
+          "failed": 0,
+          "done": "0\t2\t0"
+        },
+        {
+          "name": "txnorder_wound",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.650000",
+              "txnorder wound group"
+            ],
+            [
+              "ok",
+              "0.030000",
+              "txnorder wound exec"
+            ],
+            [
+              "ok",
+              "0.050000",
+              "txnorder wound oom"
+            ],
+            [
+              "FAIL",
+              "8.920000",
+              "txnorder wound d2"
+            ]
+          ],
+          "ledger_sha256": "749ec75efe6fd002ea9c7170ffd807a28b38ba0bd2253e6dbae2fec8b1b8473b",
+          "passed": 3,
+          "failed": 1,
+          "done": "0\t3\t1"
+        }
+      ],
+      "plan_sha256": "628ef2111bc5e5feaee2ec309b6cc682cd5f0059561ca46edc5acaf3ee6a6788",
+      "bound_to_final_post": false
+    },
+    {
+      "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/core-attempt-3.json",
+      "receipt_sha256": "790789f571195585ae2bea27a864e1a5f3ceb554b0a539d072a4bf8d7fa9c72d",
+      "log_sha256": "5711b407df35471772bf95c46cd2a90a0a779eb4689b78577f846042a51a702c",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "64-87",
+        "--load-cores",
+        "88-95",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "20010-20097",
+        "--candidate-binary",
+        "/home/user/Projects/cx-exec1s-d/build/tomokv"
+      ],
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/core-attempt-3.log",
+      "selected_jobs": "exec1s txnorder_wound at412-owner txnorder_index multifix-1s-uring multifix-1s-epoll multifix-2s-uring multifix-2s-epoll",
+      "started_utc": "2026-10-28T15:57:10.229562+00:00",
+      "ended_utc": "2026-10-28T16:00:32.602441+00:00",
+      "candidate_sha256": "893bf7e6d8adcdf924a5181dd0e94e4ba0e7401de7c6c17cc75b666ca51d8c3c",
+      "candidate_unchanged": true,
+      "proof_environment": {
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_TEST_PORT": "20098"
+      },
+      "artifacts": "/home/user/Projects/cx-exec1s-d/build/gate-run.LA3VQ6",
+      "success": true,
+      "jobs": [
+        {
+          "name": "at412-owner",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.600000",
+              "at412 owner"
+            ]
+          ],
+          "ledger_sha256": "c01d4bf13cfdb129e4a8710e3f99a31e5cdca83e4ce872602b21f11007cf84cf",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "exec1s",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "18.970000",
+              "exec1s refinements (1s, atomic 0)"
+            ],
+            [
+              "ok",
+              "3.000000",
+              "exec1s refinements (1s, atomic 1)"
+            ],
+            [
+              "ok",
+              "17.740000",
+              "exec1s refinements (2s, atomic 0)"
+            ],
+            [
+              "ok",
+              "3.010000",
+              "exec1s refinements (2s, atomic 1)"
+            ]
+          ],
+          "ledger_sha256": "87ff6178f87b45379493f1965e59a116169ce130603c4b944b56285083ca5f87",
+          "passed": 4,
+          "failed": 0,
+          "done": "0\t4\t0"
+        },
+        {
+          "name": "multifix-1s-epoll",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "11.140000",
+              "multifix RESET-IN-MULTI (1s epoll)"
+            ],
+            [
+              "ok",
+              "11.160000",
+              "multifix WATCH-SPURIOUS-INVALIDATION (1s epoll)"
+            ],
+            [
+              "ok",
+              "11.570000",
+              "multifix EXEC-REPEATED-KEY-LINEAR (1s epoll)"
+            ],
+            [
+              "ok",
+              "15.320000",
+              "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)"
+            ],
+            [
+              "ok",
+              "28.600000",
+              "multifix PAUSE-IN-MULTI (1s epoll)"
+            ],
+            [
+              "ok",
+              "12.010000",
+              "multifix PAUSE-EXEC-NOT-HELD (1s epoll)"
+            ]
+          ],
+          "ledger_sha256": "6446f11fc846ad6cad7c60c1fd74e4df87ca72fdac589e2ae300215f10a0d57e",
+          "passed": 6,
+          "failed": 0,
+          "done": "0\t6\t0"
+        },
+        {
+          "name": "multifix-1s-uring",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "11.100000",
+              "multifix RESET-IN-MULTI (1s uring)"
+            ],
+            [
+              "ok",
+              "11.130000",
+              "multifix WATCH-SPURIOUS-INVALIDATION (1s uring)"
+            ],
+            [
+              "ok",
+              "11.550000",
+              "multifix EXEC-REPEATED-KEY-LINEAR (1s uring)"
+            ],
+            [
+              "ok",
+              "15.290000",
+              "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)"
+            ],
+            [
+              "ok",
+              "28.760000",
+              "multifix PAUSE-IN-MULTI (1s uring)"
+            ],
+            [
+              "ok",
+              "12.030000",
+              "multifix PAUSE-EXEC-NOT-HELD (1s uring)"
+            ]
+          ],
+          "ledger_sha256": "bcc42de3245e1c9eca498c19824db5227e78a185bd88c0601837e93c856d0f02",
+          "passed": 6,
+          "failed": 0,
+          "done": "0\t6\t0"
+        },
+        {
+          "name": "multifix-2s-epoll",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "11.110000",
+              "multifix RESET-IN-MULTI (2s epoll)"
+            ],
+            [
+              "ok",
+              "11.130000",
+              "multifix WATCH-SPURIOUS-INVALIDATION (2s epoll)"
+            ],
+            [
+              "ok",
+              "11.560000",
+              "multifix EXEC-REPEATED-KEY-LINEAR (2s epoll)"
+            ],
+            [
+              "ok",
+              "15.290000",
+              "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)"
+            ],
+            [
+              "ok",
+              "28.840000",
+              "multifix PAUSE-IN-MULTI (2s epoll)"
+            ],
+            [
+              "ok",
+              "12.900000",
+              "multifix PAUSE-EXEC-NOT-HELD (2s epoll)"
+            ]
+          ],
+          "ledger_sha256": "697424c3b212beaa76281c2dfadf7392eeaa7dd257347c708fc9ca4efdfe6993",
+          "passed": 6,
+          "failed": 0,
+          "done": "0\t6\t0"
+        },
+        {
+          "name": "multifix-2s-uring",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "11.130000",
+              "multifix RESET-IN-MULTI (2s uring)"
+            ],
+            [
+              "ok",
+              "11.160000",
+              "multifix WATCH-SPURIOUS-INVALIDATION (2s uring)"
+            ],
+            [
+              "ok",
+              "11.570000",
+              "multifix EXEC-REPEATED-KEY-LINEAR (2s uring)"
+            ],
+            [
+              "ok",
+              "15.320000",
+              "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)"
+            ],
+            [
+              "ok",
+              "28.720000",
+              "multifix PAUSE-IN-MULTI (2s uring)"
+            ],
+            [
+              "ok",
+              "12.020000",
+              "multifix PAUSE-EXEC-NOT-HELD (2s uring)"
+            ]
+          ],
+          "ledger_sha256": "495722e3b0a01493ef783e6e4854d31823bc79e104effe6754a90f9242d78624",
+          "passed": 6,
+          "failed": 0,
+          "done": "0\t6\t0"
+        },
+        {
+          "name": "production_units",
+          "completed": true,
+          "rows": [],
+          "ledger_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "passed": 0,
+          "failed": 0,
+          "done": "0\t0\t0"
+        },
+        {
+          "name": "release",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.000000",
+              "release build (+footprint locks)"
+            ]
+          ],
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "txnorder_index",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "103.090000",
+              "txnorder index oracle"
+            ],
+            [
+              "ok",
+              "2.640000",
+              "txnorder index complexity"
+            ]
+          ],
+          "ledger_sha256": "b1fc1199842c4a76720d71a3188f362abb64c3c5c21ba293b89ae96ae786ba87",
+          "passed": 2,
+          "failed": 0,
+          "done": "0\t2\t0"
+        },
+        {
+          "name": "txnorder_wound",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.050000",
+              "txnorder wound group"
+            ],
+            [
+              "ok",
+              "0.030000",
+              "txnorder wound exec"
+            ],
+            [
+              "ok",
+              "0.030000",
+              "txnorder wound oom"
+            ],
+            [
+              "ok",
+              "0.090000",
+              "txnorder wound d2"
+            ]
+          ],
+          "ledger_sha256": "4a80b803686d692aeaeec97ada8363c39e24a58e1a510d80f080042460e79b4f",
+          "passed": 4,
+          "failed": 0,
+          "done": "0\t4\t0"
+        }
+      ],
+      "plan_sha256": "a049484f3562ecbb4d63fa53e82bd2facdfff118c22df63a9103fbe031e256d2",
+      "bound_to_final_post": false
+    },
+    {
+      "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/core.json",
+      "receipt_sha256": "9716c3955cfd9f2fbedbbe650b2f1e824fd9e6bd0dbaa6cbf4cd33d786f98101",
+      "log_sha256": "37236942f434681582fe1aef5efca9e70fbbebcdb0448f22f540ab46483117f8",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "64-71",
+        "--load-cores",
+        "72-95",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "20010-20097",
+        "--candidate-binary",
+        "/home/user/Projects/cx-exec1s-d/build/tomokv"
+      ],
+      "returncode": 2,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/core.log",
+      "selected_jobs": "exec1s multifix txnorder_wound at412-owner txnorder_index",
+      "started_utc": "2026-10-28T15:05:28.257431+00:00",
+      "ended_utc": "2026-10-28T15:05:28.744250+00:00",
+      "candidate_sha256": "893bf7e6d8adcdf924a5181dd0e94e4ba0e7401de7c6c17cc75b666ca51d8c3c",
+      "candidate_unchanged": true,
+      "proof_environment": {
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_TEST_PORT": "20098"
+      },
+      "artifacts": "/home/user/Projects/cx-exec1s-d/build/gate-run.zvOAml",
+      "success": false,
+      "jobs": [],
+      "plan_sha256": "628ef2111bc5e5feaee2ec309b6cc682cd5f0059561ca46edc5acaf3ee6a6788",
+      "bound_to_final_post": false
+    },
+    {
+      "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/families-attempt-2.json",
+      "receipt_sha256": "08abbe95c0211b368f95e9827a46f83cd7874916601d2d8e0bcc92355d82bcfc",
+      "log_sha256": "8473c7437116060872992981d0c603395858e0668a7f546720ad6f81811ead3a",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "64-87",
+        "--load-cores",
+        "88-95",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "20010-20097",
+        "--candidate-binary",
+        "/home/user/Projects/cx-exec1s-d/build/tomokv"
+      ],
+      "returncode": 130,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/families-attempt-2.log",
+      "selected_jobs": "exec1s txnorder_index txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 execfair debug-0 debug-1 fused-0 fused-1 txn_group_fused txn_group_split atomfix5_watch atomfix5_accounting atomic_units atomic_batteries feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 script_bounds scriptfix lualibs sort auth authfix dump_restore blockfix_registry blockfix_structure blockfix_mkstream wait_units notify notifycompat notify_order notify_aof tracking_redirect trackfix_order trackfix_accounting flip fliplisten flipctl flip_unit flipfix_units moverfix lbplanner_units lb-stationary-1s lb-stationary-2s core_units splitlocal_units rlfix3_zc rlfix3_info rlcache rldbg ring_unit filter_unit hexpread climonfix clientfix racefix_counters racefix_climon storage_units perfex_units perfex_live ntnew4_live ntfix_input perfio_stream netio-1s netio-2s wb_rule_units wbland_units wb_policy iofix-deferred iofix-hz iofix-sleep iofix-signal aof-uring aof-epoll snapshot-uring snapshot-epoll aof_frame aoforder datafix2_watch datafix2_notouch bplus acl_recheck aclfix readonly serverfix_waitaof respcompat tls release_batteries compat2 compat3 exbatch_units exbatch_live reorder_sync reorder_engagement reorder_identity asan_batteries replyoff zc bugs5 netcmd_units persistfix_units multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 feature-cell-1s-0-0-0-0 feature-cell-1s-0-0-0-1 feature-cell-1s-0-0-1-0 feature-cell-1s-0-0-1-1 feature-cell-1s-0-1-0-0 feature-cell-1s-0-1-0-1 feature-cell-1s-0-1-1-0 feature-cell-1s-0-1-1-1 feature-cell-1s-1-0-0-0 feature-cell-1s-1-0-0-1 feature-cell-1s-1-0-1-0 feature-cell-1s-1-0-1-1 feature-cell-1s-1-1-0-0 feature-cell-1s-1-1-0-1 feature-cell-1s-1-1-1-0 feature-cell-1s-1-1-1-1 feature-cell-2s-0-0-0-0 feature-cell-2s-0-0-0-1 feature-cell-2s-0-0-1-0 feature-cell-2s-0-0-1-1 feature-cell-2s-0-1-0-0 feature-cell-2s-0-1-0-1 feature-cell-2s-0-1-1-0 feature-cell-2s-0-1-1-1 feature-cell-2s-1-0-0-0 feature-cell-2s-1-0-0-1 feature-cell-2s-1-0-1-0 feature-cell-2s-1-0-1-1 feature-cell-2s-1-1-0-0 feature-cell-2s-1-1-0-1 feature-cell-2s-1-1-1-0 feature-cell-2s-1-1-1-1 feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto respresume-fragment-1s-uring respresume-fragment-1s-epoll respresume-fragment-2s-uring respresume-fragment-2s-epoll respresume-cpu-1s-uring respresume-cpu-1s-epoll respresume-cpu-2s-uring respresume-cpu-2s-epoll respresume-neighbour-1s-uring respresume-neighbour-1s-epoll respresume-neighbour-2s-uring respresume-neighbour-2s-epoll evict-lruclock-split-0 evict-lruclock-split-1 evict-lruclock-armed-0 evict-lruclock-armed-1 evict-lfu-split-0 evict-lfu-split-1 evict-lfu-armed-0 evict-lfu-armed-1 txnorder_wound blockfix2 streamfix crlffix persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors at412-T1 at412-T2 at412-T3 at412-T4 at412-T5 at412-T6 at412-T7 at412-T8 at412-T9 at412-T10 at412-T11a at412-T11b at412-T12 at412-T13 at412-T14 at412-T15 at412-T16 at412-owner multifix-1s-uring multifix-1s-epoll multifix-2s-uring multifix-2s-epoll",
+      "started_utc": "2026-10-28T16:03:05.229482+00:00",
+      "ended_utc": "2026-10-28T16:10:42.957548+00:00",
+      "candidate_sha256": "45a350085a474627366f941a82064decd19aae52333456e11de8b773c5006745",
+      "candidate_unchanged": true,
+      "proof_environment": {
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_TEST_PORT": "20098"
+      },
+      "artifacts": "/home/user/Projects/cx-exec1s-d/build/gate-run.Y00Xa5",
+      "success": false,
+      "jobs": [
+        {
+          "name": "asan",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "118.300000",
+              "ASAN build"
+            ]
+          ],
+          "ledger_sha256": "66928862722d486eef6ea5d2edd9b030777567b95ed97756b79764840cad3f4c",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "bugs5",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "44.920000",
+              "bugs5 scancompact (both modes, both engines, atomic 0/1)"
+            ],
+            [
+              "ok",
+              "33.840000",
+              "bugs5 slowlog_identity (both modes, both engines, atomic 0/1)"
+            ],
+            [
+              "ok",
+              "27.370000",
+              "bugs5 read_local_lfu (both modes, both engines, atomic 0/1)"
+            ]
+          ],
+          "ledger_sha256": "9c17f991af9857cf00f84a2ca4e99adad812e4fba9e8dc4ff90822dbaa75ead5",
+          "passed": 3,
+          "failed": 0,
+          "done": "0\t3\t0"
+        },
+        {
+          "name": "core_tsan_build",
+          "completed": true,
+          "rows": [],
+          "ledger_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "passed": 0,
+          "failed": 0,
+          "done": "0\t0\t0"
+        },
+        {
+          "name": "evict-lruclock-split-0",
+          "completed": true,
+          "rows": [
+            [
+              "FAIL",
+              "57.840000",
+              "eviction lruclock battery (split, atomic 0)"
+            ]
+          ],
+          "ledger_sha256": "ccc2ff1169769ebc1d6f5566896f04e8dce90cdd18d60d0cd2bfbaa7e3048672",
+          "passed": 0,
+          "failed": 1,
+          "done": "130\t0\t1"
+        },
+        {
+          "name": "filter_unit",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.310000",
+              "B+ counting-fingerprint filter unit"
+            ]
+          ],
+          "ledger_sha256": "a4580b34bbc7ac702ae85369538fc5fc4433c155f625d66830b50ae2b1c768f2",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "multifix-1s-epoll",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "11.120000",
+              "multifix RESET-IN-MULTI (1s epoll)"
+            ],
+            [
+              "ok",
+              "11.720000",
+              "multifix WATCH-SPURIOUS-INVALIDATION (1s epoll)"
+            ],
+            [
+              "ok",
+              "12.810000",
+              "multifix EXEC-REPEATED-KEY-LINEAR (1s epoll)"
+            ],
+            [
+              "ok",
+              "15.770000",
+              "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)"
+            ],
+            [
+              "ok",
+              "28.840000",
+              "multifix PAUSE-IN-MULTI (1s epoll)"
+            ],
+            [
+              "ok",
+              "12.020000",
+              "multifix PAUSE-EXEC-NOT-HELD (1s epoll)"
+            ]
+          ],
+          "ledger_sha256": "8972be67b7d15ed22448542abeab4d17e0e2b1963d0e1c557a0aa597df57c043",
+          "passed": 6,
+          "failed": 0,
+          "done": "0\t6\t0"
+        },
+        {
+          "name": "multifix-1s-uring",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "11.200000",
+              "multifix RESET-IN-MULTI (1s uring)"
+            ],
+            [
+              "ok",
+              "11.190000",
+              "multifix WATCH-SPURIOUS-INVALIDATION (1s uring)"
+            ],
+            [
+              "ok",
+              "11.550000",
+              "multifix EXEC-REPEATED-KEY-LINEAR (1s uring)"
+            ],
+            [
+              "ok",
+              "15.330000",
+              "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)"
+            ],
+            [
+              "ok",
+              "29.770000",
+              "multifix PAUSE-IN-MULTI (1s uring)"
+            ],
+            [
+              "ok",
+              "12.480000",
+              "multifix PAUSE-EXEC-NOT-HELD (1s uring)"
+            ]
+          ],
+          "ledger_sha256": "63426732a9612f5cd20d46b557e4d36962775da83f3641475290d6152846f885",
+          "passed": 6,
+          "failed": 0,
+          "done": "0\t6\t0"
+        },
+        {
+          "name": "multifix-2s-epoll",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "11.330000",
+              "multifix RESET-IN-MULTI (2s epoll)"
+            ],
+            [
+              "ok",
+              "11.220000",
+              "multifix WATCH-SPURIOUS-INVALIDATION (2s epoll)"
+            ],
+            [
+              "ok",
+              "11.560000",
+              "multifix EXEC-REPEATED-KEY-LINEAR (2s epoll)"
+            ],
+            [
+              "ok",
+              "15.340000",
+              "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)"
+            ],
+            [
+              "ok",
+              "28.820000",
+              "multifix PAUSE-IN-MULTI (2s epoll)"
+            ],
+            [
+              "ok",
+              "12.140000",
+              "multifix PAUSE-EXEC-NOT-HELD (2s epoll)"
+            ]
+          ],
+          "ledger_sha256": "9add8bf02aba138df5a8f23806fb0df9f1ea5b66f1e4224d49b7f2a7f8b222a5",
+          "passed": 6,
+          "failed": 0,
+          "done": "0\t6\t0"
+        },
+        {
+          "name": "multifix-2s-uring",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "11.190000",
+              "multifix RESET-IN-MULTI (2s uring)"
+            ],
+            [
+              "ok",
+              "11.830000",
+              "multifix WATCH-SPURIOUS-INVALIDATION (2s uring)"
+            ],
+            [
+              "ok",
+              "12.860000",
+              "multifix EXEC-REPEATED-KEY-LINEAR (2s uring)"
+            ],
+            [
+              "ok",
+              "15.790000",
+              "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)"
+            ],
+            [
+              "ok",
+              "28.830000",
+              "multifix PAUSE-IN-MULTI (2s uring)"
+            ],
+            [
+              "ok",
+              "12.020000",
+              "multifix PAUSE-EXEC-NOT-HELD (2s uring)"
+            ]
+          ],
+          "ledger_sha256": "de5ae9f629ee012b2abc977e3b6b709be1d6267ad1b4ea36bbfc5dd438451708",
+          "passed": 6,
+          "failed": 0,
+          "done": "0\t6\t0"
+        },
+        {
+          "name": "production_units",
+          "completed": true,
+          "rows": [
+            [
+              "FAIL",
+              "230.690000",
+              "build dependency: make build/aoforder-scheduled,build/at15-db0-unit,build/at15-unit,build/at412-owner,build/atomic-survivors-unit,build/core-concurrency-unit,build/encodingfix-unit,build/exbatch-db0-unit,build/exbatch-unit,build/exec1s-unit,build/exec1s-word-tsan,build/execabort-watch-db0-unit,build/execabort-watch-unit,build/expire-notify-unit,build/flushfix-units,build/gaterows5-units,build/ktls-keyupdate,build/ktls-keyupdate-unit,build/ktls-lifetime-unit,build/lbplanner-units,build/moverfix-db0-unit,build/moverfix-unit,build/multidb-boundary-unit,build/multidb-unit,build/netcap-unit,build/netcmd-unit,build/persistfix-units,build/publishfix-unit,build/racefix-climon,build/rehash-waits-unit,build/reorder-engagement-unit,build/reorder-engagement-unit-db0,build/respresume-migration,build/respresume-unit,build/rltopo-unit,build/shutdown-unit,build/splitlocal-unit,build/storesize-unit,build/txnorder-episodes,build/txnorder-episodes-debug,build/txnorder-index-db0-unit,build/txnorder-index-unit,build/txnorder-retry-unit,build/txnorder-wake-unit,build/txnorder-watch-db0-unit,build/txnorder-watch-unit,build/txnorder-wound-db0-unit,build/txnorder-wound-unit,build/waits-unit,build/wb-rule-units,build/wbland-units"
+            ],
+            [
+              "FAIL",
+              "0",
+              "correctness family production_units"
+            ]
+          ],
+          "ledger_sha256": "6fcebb822c8b4b26349c331f8d9810a82b1f740b90cc547916e85a5e25fd0541",
+          "passed": 0,
+          "failed": 2,
+          "done": "1\t0\t2"
+        },
+        {
+          "name": "racefix_tsan_build",
+          "completed": true,
+          "rows": [],
+          "ledger_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "passed": 0,
+          "failed": 0,
+          "done": "0\t0\t0"
+        },
+        {
+          "name": "redis_tcl",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "189.100000",
+              "Redis 7.4.10 Tcl passing subset (2s)"
+            ],
+            [
+              "FAIL",
+              "4.650000",
+              "Redis 7.4.10 Tcl passing subset (1s)"
+            ]
+          ],
+          "ledger_sha256": "f9400b7358b2713bb6cdeb5e0a7df76dadea490515d388d42122caf8e11ddc7f",
+          "passed": 1,
+          "failed": 1,
+          "done": "130\t1\t1"
+        },
+        {
+          "name": "release",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.010000",
+              "release build (+footprint locks)"
+            ]
+          ],
+          "ledger_sha256": "309c13c2922aae5ea759e31f5aee12f47b67cb6b06c5e43555af42a805f491c5",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "ring_unit",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "1.180000",
+              "read-local write ring + arming transient unit"
+            ],
+            [
+              "ok",
+              "0.030000",
+              "climon 128-owner delivery mask"
+            ],
+            [
+              "ok",
+              "0.100000",
+              "read-local MGET fence symmetry unit"
+            ]
+          ],
+          "ledger_sha256": "804dfd122fae94f15a21a6b0252efb4070dffbaf061aa98b301991c653660a61",
+          "passed": 3,
+          "failed": 0,
+          "done": "0\t3\t0"
+        },
+        {
+          "name": "rldbg",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "78.550000",
+              "read-local ownership-invariant build"
+            ]
+          ],
+          "ledger_sha256": "198149311fec7cb1a34fe6661b58f8a0b26847bbd5d63f4f0b2b0bc08aff75af",
+          "passed": 1,
+          "failed": 0,
+          "done": "0\t1\t0"
+        },
+        {
+          "name": "storage_units",
+          "completed": true,
+          "rows": [
+            [
+              "ok",
+              "0.010000",
+              "storage unlinked regression"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "storage randomkey regression"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "storage rehash regression"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "storage rollback regression"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "storage snapshot-eviction regression"
+            ],
+            [
+              "ok",
+              "0.070000",
+              "storage flags regression"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "storage aof-eviction regression"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "storage intents regression"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "storage imported-hash regression"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "storage field-index-failure regression"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "storage hash-bytes regression"
+            ],
+            [
+              "ok",
+              "0.010000",
+              "storage deadline-allocation-failure regression"
+            ],
+            [
+              "ok",
+              "0.000000",
+              "storage flush-prepared-capacity regression"
+            ]
+          ],
+          "ledger_sha256": "4154915e8cb021c1152cd45143366dc5281c0f08bf888947acb34f3a9fb62bfb",
+          "passed": 13,
+          "failed": 0,
+          "done": "0\t13\t0"
+        },
+        {
+          "name": "waits_tsan_build",
+          "completed": true,
+          "rows": [],
+          "ledger_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "passed": 0,
+          "failed": 0,
+          "done": "0\t0\t0"
+        }
+      ],
+      "plan_sha256": "a049484f3562ecbb4d63fa53e82bd2facdfff118c22df63a9103fbe031e256d2",
+      "bound_to_final_post": false
+    },
+    {
+      "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/gates-test-attempt-2.json",
+      "receipt_sha256": "5e54924e60ad20e88871468e8537287cfb0f09bf0de4ad62b9149e3bb6738afb",
+      "log_sha256": "45403c8e87331ed722a2701dde27a20fcb27a1906c933d2d8d5e6b4c25c11141",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "python3",
+        "tests/gates_test.py"
+      ],
+      "returncode": 1,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/gates-test-attempt-2.log",
+      "selected_jobs": null,
+      "started_utc": "2026-10-28T16:01:05.332255+00:00",
+      "ended_utc": "2026-10-28T16:03:49.308256+00:00",
+      "candidate_sha256": null,
+      "candidate_unchanged": true,
+      "proof_environment": {
+        "GATE_TEST_PORT": "20098"
+      },
+      "success": false,
+      "jobs": [],
+      "bound_to_final_post": false
+    },
+    {
+      "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/gates-test.json",
+      "receipt_sha256": "9316bec7bd00d4effa582e9c7b368d1015daafa4748f5bcc7dc0c31f65ca9569",
+      "log_sha256": "6a406c4066665cac5befa357bb7673fd915ea67f91191885eba2b6fbc2b6fe05",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "python3",
+        "tests/gates_test.py"
+      ],
+      "returncode": 1,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/proof/gates-test.log",
+      "selected_jobs": null,
+      "started_utc": "2026-10-28T15:33:02.662330+00:00",
+      "ended_utc": "2026-10-28T15:35:51.923873+00:00",
+      "candidate_sha256": null,
+      "candidate_unchanged": true,
+      "proof_environment": {
+        "GATE_TEST_PORT": "20098"
+      },
+      "success": false,
+      "jobs": [],
+      "bound_to_final_post": false
+    }
+  ],
+  "final_jobs": {},
+  "not_run": [
+    {
+      "job": "full gate iteration / performance merit",
+      "reason": "Maintainer-only; all invoked gates use GATE_ONLY_JOBS."
+    },
+    {
+      "job": "flip_saturated and atomic_floor",
+      "reason": "Invoke memtier, which is outside lane runtime authorization."
+    },
+    {
+      "job": "atomic_ryow rate assertion",
+      "reason": "Existing GATE_PROOF_NO_RATES=1 partial interface; finite correctness schedules retained."
+    }
+  ]
+}

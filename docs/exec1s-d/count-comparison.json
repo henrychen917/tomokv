@@ -1,0 +1,4186 @@
+{
+  "scope": "All named linked production instructions, including executed NOPs; fixture glue and external library callees excluded. Exact replies mandatory.",
+  "production_sha256": "22d10835d2b4ab630f5214d857802a0c72bce83e9f4e06eecf8422d9024b1128",
+  "ordinary": [
+    {
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 818,
+      "post": 818,
+      "delta": 0
+    },
+    {
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 32,
+      "atomic": 1,
+      "pre": 18705,
+      "post": 18705,
+      "delta": 0
+    },
+    {
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 1051,
+      "post": 1051,
+      "delta": 0
+    },
+    {
+      "namespace": "db0",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 32,
+      "atomic": 1,
+      "pre": 18163,
+      "post": 18163,
+      "delta": 0
+    },
+    {
+      "namespace": "db0",
+      "command": "INCR",
+      "mode": "1s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 1308,
+      "post": 1308,
+      "delta": 0
+    },
+    {
+      "namespace": "db0",
+      "command": "INCR",
+      "mode": "1s",
+      "batch": 32,
+      "atomic": 1,
+      "pre": 34914,
+      "post": 34914,
+      "delta": 0
+    },
+    {
+      "namespace": "db0",
+      "command": "INCR",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 1541,
+      "post": 1541,
+      "delta": 0
+    },
+    {
+      "namespace": "db0",
+      "command": "INCR",
+      "mode": "2s",
+      "batch": 32,
+      "atomic": 1,
+      "pre": 34372,
+      "post": 34372,
+      "delta": 0
+    },
+    {
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 10334,
+      "post": 10334,
+      "delta": 0
+    },
+    {
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 32,
+      "atomic": 1,
+      "pre": 329510,
+      "post": 329510,
+      "delta": 0
+    },
+    {
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 10334,
+      "post": 10334,
+      "delta": 0
+    },
+    {
+      "namespace": "db0",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 32,
+      "atomic": 1,
+      "pre": 329510,
+      "post": 329510,
+      "delta": 0
+    },
+    {
+      "namespace": "db0",
+      "command": "MSET",
+      "mode": "1s",
+      "batch": 1,
+      "atomic": 0,
+      "pre": 11017,
+      "post": 11017,
+      "delta": 0
+    },
+    {
+      "namespace": "db0",
+      "command": "MSET",
+      "mode": "1s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 16428,
+      "post": 16420,
+      "delta": -8
+    },
+    {
+      "namespace": "db0",
+      "command": "MSET",
+      "mode": "1s",
+      "batch": 32,
+      "atomic": 0,
+      "pre": 352389,
+      "post": 352389,
+      "delta": 0
+    },
+    {
+      "namespace": "db0",
+      "command": "MSET",
+      "mode": "1s",
+      "batch": 32,
+      "atomic": 1,
+      "pre": 952094,
+      "post": 952086,
+      "delta": -8
+    },
+    {
+      "namespace": "db0",
+      "command": "MSET",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 0,
+      "pre": 10835,
+      "post": 10835,
+      "delta": 0
+    },
+    {
+      "namespace": "db0",
+      "command": "MSET",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 16096,
+      "post": 16088,
+      "delta": -8
+    },
+    {
+      "namespace": "db0",
+      "command": "MSET",
+      "mode": "2s",
+      "batch": 32,
+      "atomic": 0,
+      "pre": 346565,
+      "post": 346565,
+      "delta": 0
+    },
+    {
+      "namespace": "db0",
+      "command": "MSET",
+      "mode": "2s",
+      "batch": 32,
+      "atomic": 1,
+      "pre": 941470,
+      "post": 941462,
+      "delta": -8
+    },
+    {
+      "namespace": "db0",
+      "command": "SET",
+      "mode": "1s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 926,
+      "post": 926,
+      "delta": 0
+    },
+    {
+      "namespace": "db0",
+      "command": "SET",
+      "mode": "1s",
+      "batch": 32,
+      "atomic": 1,
+      "pre": 22161,
+      "post": 22161,
+      "delta": 0
+    },
+    {
+      "namespace": "db0",
+      "command": "SET",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 1159,
+      "post": 1159,
+      "delta": 0
+    },
+    {
+      "namespace": "db0",
+      "command": "SET",
+      "mode": "2s",
+      "batch": 32,
+      "atomic": 1,
+      "pre": 21619,
+      "post": 21619,
+      "delta": 0
+    },
+    {
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 936,
+      "post": 936,
+      "delta": 0
+    },
+    {
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "1s",
+      "batch": 32,
+      "atomic": 1,
+      "pre": 18482,
+      "post": 18482,
+      "delta": 0
+    },
+    {
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 1556,
+      "post": 1556,
+      "delta": 0
+    },
+    {
+      "namespace": "normal",
+      "command": "GET",
+      "mode": "2s",
+      "batch": 32,
+      "atomic": 1,
+      "pre": 18327,
+      "post": 18327,
+      "delta": 0
+    },
+    {
+      "namespace": "normal",
+      "command": "INCR",
+      "mode": "1s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 1522,
+      "post": 1511,
+      "delta": -11
+    },
+    {
+      "namespace": "normal",
+      "command": "INCR",
+      "mode": "1s",
+      "batch": 32,
+      "atomic": 1,
+      "pre": 37763,
+      "post": 37411,
+      "delta": -352
+    },
+    {
+      "namespace": "normal",
+      "command": "INCR",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 2142,
+      "post": 2131,
+      "delta": -11
+    },
+    {
+      "namespace": "normal",
+      "command": "INCR",
+      "mode": "2s",
+      "batch": 32,
+      "atomic": 1,
+      "pre": 37608,
+      "post": 37256,
+      "delta": -352
+    },
+    {
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 10190,
+      "post": 10190,
+      "delta": 0
+    },
+    {
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "1s",
+      "batch": 32,
+      "atomic": 1,
+      "pre": 324902,
+      "post": 324902,
+      "delta": 0
+    },
+    {
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 10190,
+      "post": 10190,
+      "delta": 0
+    },
+    {
+      "namespace": "normal",
+      "command": "MGET",
+      "mode": "2s",
+      "batch": 32,
+      "atomic": 1,
+      "pre": 324902,
+      "post": 324902,
+      "delta": 0
+    },
+    {
+      "namespace": "normal",
+      "command": "MSET",
+      "mode": "1s",
+      "batch": 1,
+      "atomic": 0,
+      "pre": 10780,
+      "post": 10780,
+      "delta": 0
+    },
+    {
+      "namespace": "normal",
+      "command": "MSET",
+      "mode": "1s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 16991,
+      "post": 16967,
+      "delta": -24
+    },
+    {
+      "namespace": "normal",
+      "command": "MSET",
+      "mode": "1s",
+      "batch": 32,
+      "atomic": 0,
+      "pre": 344805,
+      "post": 344805,
+      "delta": 0
+    },
+    {
+      "namespace": "normal",
+      "command": "MSET",
+      "mode": "1s",
+      "batch": 32,
+      "atomic": 1,
+      "pre": 961926,
+      "post": 961158,
+      "delta": -768
+    },
+    {
+      "namespace": "normal",
+      "command": "MSET",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 0,
+      "pre": 10598,
+      "post": 10598,
+      "delta": 0
+    },
+    {
+      "namespace": "normal",
+      "command": "MSET",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 16659,
+      "post": 16635,
+      "delta": -24
+    },
+    {
+      "namespace": "normal",
+      "command": "MSET",
+      "mode": "2s",
+      "batch": 32,
+      "atomic": 0,
+      "pre": 338981,
+      "post": 338981,
+      "delta": 0
+    },
+    {
+      "namespace": "normal",
+      "command": "MSET",
+      "mode": "2s",
+      "batch": 32,
+      "atomic": 1,
+      "pre": 951302,
+      "post": 950534,
+      "delta": -768
+    },
+    {
+      "namespace": "normal",
+      "command": "SET",
+      "mode": "1s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 1060,
+      "post": 1060,
+      "delta": 0
+    },
+    {
+      "namespace": "normal",
+      "command": "SET",
+      "mode": "1s",
+      "batch": 32,
+      "atomic": 1,
+      "pre": 22450,
+      "post": 22450,
+      "delta": 0
+    },
+    {
+      "namespace": "normal",
+      "command": "SET",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 1680,
+      "post": 1680,
+      "delta": 0
+    },
+    {
+      "namespace": "normal",
+      "command": "SET",
+      "mode": "2s",
+      "batch": 32,
+      "atomic": 1,
+      "pre": 22295,
+      "post": 22295,
+      "delta": 0
+    }
+  ],
+  "read_local": [
+    {
+      "namespace": "db0",
+      "command": "READLOCAL-GET",
+      "mode": "1s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 2340,
+      "post": 2340,
+      "delta": 0
+    },
+    {
+      "namespace": "db0",
+      "command": "READLOCAL-GET",
+      "mode": "1s",
+      "batch": 32,
+      "atomic": 1,
+      "pre": 45949,
+      "post": 45949,
+      "delta": 0
+    },
+    {
+      "namespace": "normal",
+      "command": "READLOCAL-GET",
+      "mode": "1s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 2428,
+      "post": 2428,
+      "delta": 0
+    },
+    {
+      "namespace": "normal",
+      "command": "READLOCAL-GET",
+      "mode": "1s",
+      "batch": 32,
+      "atomic": 1,
+      "pre": 49231,
+      "post": 49231,
+      "delta": 0
+    }
+  ],
+  "idle": [
+    {
+      "namespace": "db0",
+      "command": "IDLE",
+      "mode": "1s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 3643,
+      "post": 3650,
+      "delta": 7
+    },
+    {
+      "namespace": "normal",
+      "command": "IDLE",
+      "mode": "1s",
+      "batch": 1,
+      "atomic": 1,
+      "pre": 3679,
+      "post": 3686,
+      "delta": 7
+    }
+  ],
+  "allocation": [
+    {
+      "namespace": "normal",
+      "pre": 13514,
+      "post": 3348,
+      "ratio": 0.24774308124907504,
+      "split": 3269,
+      "geometry_ratio": 1.0241664117467115,
+      "passed": true
+    },
+    {
+      "namespace": "db0",
+      "pre": 13514,
+      "post": 3348,
+      "ratio": 0.24774308124907504,
+      "split": 3269,
+      "geometry_ratio": 1.0241664117467115,
+      "passed": true
+    }
+  ],
+  "attribution": {
+    "X3": [
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12725,
+        "post": 12786,
+        "delta": 61
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12725,
+        "post": 12786,
+        "delta": 61
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 21596,
+        "post": 21772,
+        "delta": 176
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 21596,
+        "post": 21772,
+        "delta": 176
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 39231,
+        "post": 39715,
+        "delta": 484
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 39231,
+        "post": 39715,
+        "delta": 484
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12725,
+        "post": 12741,
+        "delta": 16
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12725,
+        "post": 12741,
+        "delta": 16
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 21596,
+        "post": 21622,
+        "delta": 26
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 21596,
+        "post": 21622,
+        "delta": 26
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 39183,
+        "post": 39217,
+        "delta": 34
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 39183,
+        "post": 39217,
+        "delta": 34
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-0",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 14965,
+        "post": 15047,
+        "delta": 82
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-0",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 14965,
+        "post": 15047,
+        "delta": 82
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-0",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 14965,
+        "post": 14987,
+        "delta": 22
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-0",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 14965,
+        "post": 14987,
+        "delta": 22
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-16",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 25860,
+        "post": 25942,
+        "delta": 82
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-16",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 25860,
+        "post": 25942,
+        "delta": 82
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-16",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 25860,
+        "post": 25882,
+        "delta": 22
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-16",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 25860,
+        "post": 25882,
+        "delta": 22
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-64",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 58212,
+        "post": 58294,
+        "delta": 82
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-64",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 58212,
+        "post": 58294,
+        "delta": 82
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-64",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 58212,
+        "post": 58234,
+        "delta": 22
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-64",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 58212,
+        "post": 58234,
+        "delta": 22
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12725,
+        "post": 12786,
+        "delta": 61
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12725,
+        "post": 12786,
+        "delta": 61
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 17366,
+        "post": 17448,
+        "delta": 82
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 17366,
+        "post": 17448,
+        "delta": 82
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 26601,
+        "post": 26725,
+        "delta": 124
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 26601,
+        "post": 26725,
+        "delta": 124
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12725,
+        "post": 12741,
+        "delta": 16
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12725,
+        "post": 12741,
+        "delta": 16
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 17366,
+        "post": 17388,
+        "delta": 22
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 17366,
+        "post": 17388,
+        "delta": 22
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 26601,
+        "post": 26635,
+        "delta": 34
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 26601,
+        "post": 26635,
+        "delta": 34
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 13951,
+        "post": 14014,
+        "delta": 63
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 13951,
+        "post": 14014,
+        "delta": 63
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 23354,
+        "post": 23540,
+        "delta": 186
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 23354,
+        "post": 23540,
+        "delta": 186
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 42077,
+        "post": 42587,
+        "delta": 510
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 42077,
+        "post": 42587,
+        "delta": 510
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 13951,
+        "post": 13969,
+        "delta": 18
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 13951,
+        "post": 13969,
+        "delta": 18
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 23354,
+        "post": 23390,
+        "delta": 36
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 23354,
+        "post": 23390,
+        "delta": 36
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 42029,
+        "post": 42089,
+        "delta": 60
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 42029,
+        "post": 42089,
+        "delta": 60
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-0",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 16488,
+        "post": 16572,
+        "delta": 84
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-0",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 16488,
+        "post": 16572,
+        "delta": 84
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-0",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 16488,
+        "post": 16512,
+        "delta": 24
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-0",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 16488,
+        "post": 16512,
+        "delta": 24
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-16",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 28224,
+        "post": 28308,
+        "delta": 84
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-16",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 28224,
+        "post": 28308,
+        "delta": 84
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-16",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 28224,
+        "post": 28248,
+        "delta": 24
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-16",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 28224,
+        "post": 28248,
+        "delta": 24
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-64",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 63120,
+        "post": 63204,
+        "delta": 84
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-64",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 63120,
+        "post": 63204,
+        "delta": 84
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-64",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 63120,
+        "post": 63144,
+        "delta": 24
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-64",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 63120,
+        "post": 63144,
+        "delta": 24
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 13951,
+        "post": 14014,
+        "delta": 63
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 13951,
+        "post": 14014,
+        "delta": 63
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 18918,
+        "post": 19002,
+        "delta": 84
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 18918,
+        "post": 19002,
+        "delta": 84
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 28823,
+        "post": 28949,
+        "delta": 126
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 28823,
+        "post": 28949,
+        "delta": 126
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 13951,
+        "post": 13969,
+        "delta": 18
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 13951,
+        "post": 13969,
+        "delta": 18
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 18918,
+        "post": 18942,
+        "delta": 24
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 18918,
+        "post": 18942,
+        "delta": 24
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 28823,
+        "post": 28859,
+        "delta": 36
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 28823,
+        "post": 28859,
+        "delta": 36
+      }
+    ],
+    "X5": [
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12725,
+        "post": 11005,
+        "delta": -1720
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12725,
+        "post": 11005,
+        "delta": -1720
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 21596,
+        "post": 19659,
+        "delta": -1937
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 21596,
+        "post": 19659,
+        "delta": -1937
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 39231,
+        "post": 36729,
+        "delta": -2502
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 39231,
+        "post": 36729,
+        "delta": -2502
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12725,
+        "post": 11005,
+        "delta": -1720
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12725,
+        "post": 11005,
+        "delta": -1720
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 21596,
+        "post": 19659,
+        "delta": -1937
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 21596,
+        "post": 19659,
+        "delta": -1937
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 39183,
+        "post": 36681,
+        "delta": -2502
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 39183,
+        "post": 36681,
+        "delta": -2502
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-0",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 14965,
+        "post": 13072,
+        "delta": -1893
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-0",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 14965,
+        "post": 13072,
+        "delta": -1893
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-0",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 14965,
+        "post": 13072,
+        "delta": -1893
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-0",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 14965,
+        "post": 13072,
+        "delta": -1893
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-16",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 25860,
+        "post": 23967,
+        "delta": -1893
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-16",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 25860,
+        "post": 23967,
+        "delta": -1893
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-16",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 25860,
+        "post": 23967,
+        "delta": -1893
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-16",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 25860,
+        "post": 23967,
+        "delta": -1893
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-64",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 58212,
+        "post": 56319,
+        "delta": -1893
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-64",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 58212,
+        "post": 56319,
+        "delta": -1893
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-64",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 58212,
+        "post": 56319,
+        "delta": -1893
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-64",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 58212,
+        "post": 56319,
+        "delta": -1893
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12725,
+        "post": 11005,
+        "delta": -1720
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12725,
+        "post": 11005,
+        "delta": -1720
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 17366,
+        "post": 15074,
+        "delta": -2292
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 17366,
+        "post": 15074,
+        "delta": -2292
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 26601,
+        "post": 23165,
+        "delta": -3436
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 26601,
+        "post": 23165,
+        "delta": -3436
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12725,
+        "post": 11005,
+        "delta": -1720
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12725,
+        "post": 11005,
+        "delta": -1720
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 17366,
+        "post": 15074,
+        "delta": -2292
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 17366,
+        "post": 15074,
+        "delta": -2292
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 26601,
+        "post": 23165,
+        "delta": -3436
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 26601,
+        "post": 23165,
+        "delta": -3436
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 13951,
+        "post": 12185,
+        "delta": -1766
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 13951,
+        "post": 12185,
+        "delta": -1766
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 23354,
+        "post": 21333,
+        "delta": -2021
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 23354,
+        "post": 21333,
+        "delta": -2021
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 42077,
+        "post": 39408,
+        "delta": -2669
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 42077,
+        "post": 39408,
+        "delta": -2669
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 13951,
+        "post": 12185,
+        "delta": -1766
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 13951,
+        "post": 12185,
+        "delta": -1766
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 23354,
+        "post": 21333,
+        "delta": -2021
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 23354,
+        "post": 21333,
+        "delta": -2021
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 42029,
+        "post": 39360,
+        "delta": -2669
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 42029,
+        "post": 39360,
+        "delta": -2669
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-0",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 16488,
+        "post": 14513,
+        "delta": -1975
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-0",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 16488,
+        "post": 14513,
+        "delta": -1975
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-0",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 16488,
+        "post": 14513,
+        "delta": -1975
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-0",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 16488,
+        "post": 14513,
+        "delta": -1975
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-16",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 28224,
+        "post": 26664,
+        "delta": -1560
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-16",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 28224,
+        "post": 26664,
+        "delta": -1560
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-16",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 28224,
+        "post": 26664,
+        "delta": -1560
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-16",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 28224,
+        "post": 26664,
+        "delta": -1560
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-64",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 63120,
+        "post": 62808,
+        "delta": -312
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-64",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 63120,
+        "post": 62808,
+        "delta": -312
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-64",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 63120,
+        "post": 62808,
+        "delta": -312
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-64",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 63120,
+        "post": 62808,
+        "delta": -312
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 13951,
+        "post": 12185,
+        "delta": -1766
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 13951,
+        "post": 12185,
+        "delta": -1766
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 18918,
+        "post": 16544,
+        "delta": -2374
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 18918,
+        "post": 16544,
+        "delta": -2374
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 28823,
+        "post": 25226,
+        "delta": -3597
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 28823,
+        "post": 25226,
+        "delta": -3597
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 13951,
+        "post": 12185,
+        "delta": -1766
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 13951,
+        "post": 12185,
+        "delta": -1766
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 18918,
+        "post": 16544,
+        "delta": -2374
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 18918,
+        "post": 16544,
+        "delta": -2374
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 28823,
+        "post": 25226,
+        "delta": -3597
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 28823,
+        "post": 25226,
+        "delta": -3597
+      }
+    ],
+    "X5-with-X3": [
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12786,
+        "post": 11068,
+        "delta": -1718
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12786,
+        "post": 11068,
+        "delta": -1718
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 21772,
+        "post": 19845,
+        "delta": -1927
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 21772,
+        "post": 19845,
+        "delta": -1927
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 39715,
+        "post": 37239,
+        "delta": -2476
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 39715,
+        "post": 37239,
+        "delta": -2476
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12741,
+        "post": 11023,
+        "delta": -1718
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12741,
+        "post": 11023,
+        "delta": -1718
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 21622,
+        "post": 19695,
+        "delta": -1927
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 21622,
+        "post": 19695,
+        "delta": -1927
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 39217,
+        "post": 36741,
+        "delta": -2476
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 39217,
+        "post": 36741,
+        "delta": -2476
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-0",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 15047,
+        "post": 13156,
+        "delta": -1891
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-0",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 15047,
+        "post": 13156,
+        "delta": -1891
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-0",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 14987,
+        "post": 13096,
+        "delta": -1891
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-0",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 14987,
+        "post": 13096,
+        "delta": -1891
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-16",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 25942,
+        "post": 24051,
+        "delta": -1891
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-16",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 25942,
+        "post": 24051,
+        "delta": -1891
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-16",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 25882,
+        "post": 23991,
+        "delta": -1891
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-16",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 25882,
+        "post": 23991,
+        "delta": -1891
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-64",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 58294,
+        "post": 56403,
+        "delta": -1891
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-64",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 58294,
+        "post": 56403,
+        "delta": -1891
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-64",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 58234,
+        "post": 56343,
+        "delta": -1891
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-64",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 58234,
+        "post": 56343,
+        "delta": -1891
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12786,
+        "post": 11068,
+        "delta": -1718
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12786,
+        "post": 11068,
+        "delta": -1718
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 17448,
+        "post": 15158,
+        "delta": -2290
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 17448,
+        "post": 15158,
+        "delta": -2290
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 26725,
+        "post": 23291,
+        "delta": -3434
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 26725,
+        "post": 23291,
+        "delta": -3434
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12741,
+        "post": 11023,
+        "delta": -1718
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12741,
+        "post": 11023,
+        "delta": -1718
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 17388,
+        "post": 15098,
+        "delta": -2290
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 17388,
+        "post": 15098,
+        "delta": -2290
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 26635,
+        "post": 23201,
+        "delta": -3434
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 26635,
+        "post": 23201,
+        "delta": -3434
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 14014,
+        "post": 12248,
+        "delta": -1766
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 14014,
+        "post": 12248,
+        "delta": -1766
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 23540,
+        "post": 21519,
+        "delta": -2021
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 23540,
+        "post": 21519,
+        "delta": -2021
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 42587,
+        "post": 39918,
+        "delta": -2669
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 42587,
+        "post": 39918,
+        "delta": -2669
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 13969,
+        "post": 12203,
+        "delta": -1766
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 13969,
+        "post": 12203,
+        "delta": -1766
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 23390,
+        "post": 21369,
+        "delta": -2021
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 23390,
+        "post": 21369,
+        "delta": -2021
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 42089,
+        "post": 39420,
+        "delta": -2669
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 42089,
+        "post": 39420,
+        "delta": -2669
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-0",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 16572,
+        "post": 14597,
+        "delta": -1975
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-0",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 16572,
+        "post": 14597,
+        "delta": -1975
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-0",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 16512,
+        "post": 14537,
+        "delta": -1975
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-0",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 16512,
+        "post": 14537,
+        "delta": -1975
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-16",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 28308,
+        "post": 26748,
+        "delta": -1560
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-16",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 28308,
+        "post": 26748,
+        "delta": -1560
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-16",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 28248,
+        "post": 26688,
+        "delta": -1560
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-16",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 28248,
+        "post": 26688,
+        "delta": -1560
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-64",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 63204,
+        "post": 62892,
+        "delta": -312
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-64",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 63204,
+        "post": 62892,
+        "delta": -312
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-64",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 63144,
+        "post": 62832,
+        "delta": -312
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-64",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 63144,
+        "post": 62832,
+        "delta": -312
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 14014,
+        "post": 12248,
+        "delta": -1766
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 14014,
+        "post": 12248,
+        "delta": -1766
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 19002,
+        "post": 16628,
+        "delta": -2374
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 19002,
+        "post": 16628,
+        "delta": -2374
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 28949,
+        "post": 25352,
+        "delta": -3597
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 28949,
+        "post": 25352,
+        "delta": -3597
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 13969,
+        "post": 12203,
+        "delta": -1766
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 13969,
+        "post": 12203,
+        "delta": -1766
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 18942,
+        "post": 16568,
+        "delta": -2374
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 18942,
+        "post": 16568,
+        "delta": -2374
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 28859,
+        "post": 25262,
+        "delta": -3597
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 28859,
+        "post": 25262,
+        "delta": -3597
+      }
+    ],
+    "reuse-only": [
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12839,
+        "post": 12834,
+        "delta": -5
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12839,
+        "post": 12834,
+        "delta": -5
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 21876,
+        "post": 21866,
+        "delta": -10
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 21876,
+        "post": 21866,
+        "delta": -10
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 39805,
+        "post": 39785,
+        "delta": -20
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 39805,
+        "post": 39785,
+        "delta": -20
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12839,
+        "post": 12834,
+        "delta": -5
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12839,
+        "post": 12834,
+        "delta": -5
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 21876,
+        "post": 21866,
+        "delta": -10
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 21876,
+        "post": 21866,
+        "delta": -10
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 39757,
+        "post": 39737,
+        "delta": -20
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 39757,
+        "post": 39737,
+        "delta": -20
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-0",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 15174,
+        "post": 15155,
+        "delta": -19
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-0",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 15174,
+        "post": 15155,
+        "delta": -19
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-0",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 15174,
+        "post": 15155,
+        "delta": -19
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-0",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 15174,
+        "post": 15155,
+        "delta": -19
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-16",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 26780,
+        "post": 24542,
+        "delta": -2238
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-16",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 26780,
+        "post": 24542,
+        "delta": -2238
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-16",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 26780,
+        "post": 24542,
+        "delta": -2238
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-16",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 26780,
+        "post": 24542,
+        "delta": -2238
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-64",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 61244,
+        "post": 52190,
+        "delta": -9054
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-64",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 61244,
+        "post": 52190,
+        "delta": -9054
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-64",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 61244,
+        "post": 52190,
+        "delta": -9054
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-64",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 61244,
+        "post": 52190,
+        "delta": -9054
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12839,
+        "post": 12834,
+        "delta": -5
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12839,
+        "post": 12834,
+        "delta": -5
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 17571,
+        "post": 17552,
+        "delta": -19
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 17571,
+        "post": 17552,
+        "delta": -19
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 26988,
+        "post": 26941,
+        "delta": -47
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 26988,
+        "post": 26941,
+        "delta": -47
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12839,
+        "post": 12834,
+        "delta": -5
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12839,
+        "post": 12834,
+        "delta": -5
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 17571,
+        "post": 17552,
+        "delta": -19
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 17571,
+        "post": 17552,
+        "delta": -19
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 26988,
+        "post": 26941,
+        "delta": -47
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 26988,
+        "post": 26941,
+        "delta": -47
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 14060,
+        "post": 14076,
+        "delta": 16
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 14060,
+        "post": 14076,
+        "delta": 16
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 23626,
+        "post": 23658,
+        "delta": 32
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 23626,
+        "post": 23658,
+        "delta": 32
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 42637,
+        "post": 42701,
+        "delta": 64
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 42637,
+        "post": 42701,
+        "delta": 64
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 14060,
+        "post": 14076,
+        "delta": 16
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 14060,
+        "post": 14076,
+        "delta": 16
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 23626,
+        "post": 23658,
+        "delta": 32
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 23626,
+        "post": 23658,
+        "delta": 32
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 42589,
+        "post": 42653,
+        "delta": 64
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 42589,
+        "post": 42653,
+        "delta": 64
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-0",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 16686,
+        "post": 16702,
+        "delta": 16
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-0",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 16686,
+        "post": 16702,
+        "delta": 16
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-0",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 16686,
+        "post": 16702,
+        "delta": 16
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-0",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 16686,
+        "post": 16702,
+        "delta": 16
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-16",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 29212,
+        "post": 26924,
+        "delta": -2288
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-16",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 29212,
+        "post": 26924,
+        "delta": -2288
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-16",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 29212,
+        "post": 26924,
+        "delta": -2288
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-16",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 29212,
+        "post": 26924,
+        "delta": -2288
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-64",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 66460,
+        "post": 57068,
+        "delta": -9392
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-64",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 66460,
+        "post": 57068,
+        "delta": -9392
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-64",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 66460,
+        "post": 57068,
+        "delta": -9392
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-64",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 66460,
+        "post": 57068,
+        "delta": -9392
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 14060,
+        "post": 14076,
+        "delta": 16
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 14060,
+        "post": 14076,
+        "delta": 16
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 19112,
+        "post": 19128,
+        "delta": 16
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 19112,
+        "post": 19128,
+        "delta": 16
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 29187,
+        "post": 29203,
+        "delta": 16
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 29187,
+        "post": 29203,
+        "delta": 16
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 14060,
+        "post": 14076,
+        "delta": 16
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 14060,
+        "post": 14076,
+        "delta": 16
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 19112,
+        "post": 19128,
+        "delta": 16
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 19112,
+        "post": 19128,
+        "delta": 16
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 29187,
+        "post": 29203,
+        "delta": 16
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 29187,
+        "post": 29203,
+        "delta": 16
+      }
+    ],
+    "final": [
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12839,
+        "post": 10900,
+        "delta": -1939
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12839,
+        "post": 10900,
+        "delta": -1939
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 21876,
+        "post": 19682,
+        "delta": -2194
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 21876,
+        "post": 19682,
+        "delta": -2194
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 39805,
+        "post": 37086,
+        "delta": -2719
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 39805,
+        "post": 37086,
+        "delta": -2719
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12839,
+        "post": 10855,
+        "delta": -1984
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12839,
+        "post": 10855,
+        "delta": -1984
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 21876,
+        "post": 19532,
+        "delta": -2344
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 21876,
+        "post": 19532,
+        "delta": -2344
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 39757,
+        "post": 36588,
+        "delta": -3169
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 39757,
+        "post": 36588,
+        "delta": -3169
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-0",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 15174,
+        "post": 13037,
+        "delta": -2137
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-0",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 15174,
+        "post": 13037,
+        "delta": -2137
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-0",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 15174,
+        "post": 12977,
+        "delta": -2197
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-0",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 15174,
+        "post": 12977,
+        "delta": -2197
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-16",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 26780,
+        "post": 21724,
+        "delta": -5056
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-16",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 26780,
+        "post": 21724,
+        "delta": -5056
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-16",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 26780,
+        "post": 21664,
+        "delta": -5116
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-16",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 26780,
+        "post": 21664,
+        "delta": -5116
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-64",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 61244,
+        "post": 47260,
+        "delta": -13984
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-64",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 61244,
+        "post": 47260,
+        "delta": -13984
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-64",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 61244,
+        "post": 47200,
+        "delta": -14044
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-depth-64",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 61244,
+        "post": 47200,
+        "delta": -14044
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12839,
+        "post": 10900,
+        "delta": -1939
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12839,
+        "post": 10900,
+        "delta": -1939
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 17571,
+        "post": 14987,
+        "delta": -2584
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 17571,
+        "post": 14987,
+        "delta": -2584
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 26988,
+        "post": 23114,
+        "delta": -3874
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 26988,
+        "post": 23114,
+        "delta": -3874
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12839,
+        "post": 10855,
+        "delta": -1984
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12839,
+        "post": 10855,
+        "delta": -1984
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 17571,
+        "post": 14927,
+        "delta": -2644
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 17571,
+        "post": 14927,
+        "delta": -2644
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 26988,
+        "post": 23024,
+        "delta": -3964
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 26988,
+        "post": 23024,
+        "delta": -3964
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 14060,
+        "post": 12112,
+        "delta": -1948
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 14060,
+        "post": 12112,
+        "delta": -1948
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 23626,
+        "post": 21406,
+        "delta": -2220
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 23626,
+        "post": 21406,
+        "delta": -2220
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 42637,
+        "post": 39847,
+        "delta": -2790
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 42637,
+        "post": 39847,
+        "delta": -2790
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 14060,
+        "post": 12067,
+        "delta": -1993
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 14060,
+        "post": 12067,
+        "delta": -1993
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 23626,
+        "post": 21256,
+        "delta": -2370
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 23626,
+        "post": 21256,
+        "delta": -2370
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 42589,
+        "post": 39349,
+        "delta": -3240
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 42589,
+        "post": 39349,
+        "delta": -3240
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-0",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 16686,
+        "post": 14512,
+        "delta": -2174
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-0",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 16686,
+        "post": 14512,
+        "delta": -2174
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-0",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 16686,
+        "post": 14452,
+        "delta": -2234
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-0",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 16686,
+        "post": 14452,
+        "delta": -2234
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-16",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 29212,
+        "post": 24361,
+        "delta": -4851
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-16",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 29212,
+        "post": 24361,
+        "delta": -4851
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-16",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 29212,
+        "post": 24301,
+        "delta": -4911
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-16",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 29212,
+        "post": 24301,
+        "delta": -4911
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-64",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 66460,
+        "post": 53401,
+        "delta": -13059
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-64",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 66460,
+        "post": 53401,
+        "delta": -13059
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-64",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 66460,
+        "post": 53341,
+        "delta": -13119
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-depth-64",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 66460,
+        "post": 53341,
+        "delta": -13119
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 14060,
+        "post": 12112,
+        "delta": -1948
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 14060,
+        "post": 12112,
+        "delta": -1948
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 19112,
+        "post": 16491,
+        "delta": -2621
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 19112,
+        "post": 16491,
+        "delta": -2621
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 29187,
+        "post": 25209,
+        "delta": -3978
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 29187,
+        "post": 25209,
+        "delta": -3978
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 14060,
+        "post": 12067,
+        "delta": -1993
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 14060,
+        "post": 12067,
+        "delta": -1993
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 19112,
+        "post": 16431,
+        "delta": -2681
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 19112,
+        "post": 16431,
+        "delta": -2681
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 29187,
+        "post": 25119,
+        "delta": -4068
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 29187,
+        "post": 25119,
+        "delta": -4068
+      }
+    ]
+  },
+  "ordinary_pass": true,
+  "read_local_pass": true,
+  "idle_pass": false,
+  "allocation_pass": true
+}

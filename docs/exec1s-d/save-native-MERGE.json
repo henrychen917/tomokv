@@ -1,0 +1,104 @@
+{
+  "arm": {
+    "arm": "MERGE",
+    "source_commit": "d602c8c3641436b992ed4ddf1410ad2d0f557e54",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/MERGE",
+    "sha256": "462c49e4806e9c208162f0ac9ef688077f3dc909edc7592cc7a88be747292f1c",
+    "bytes": 220032464
+  },
+  "commands": [
+    [
+      "taskset",
+      "-c",
+      "72-79",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "20001",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-MERGE/oracle",
+      "--enable-debug-command",
+      "yes",
+      "--appendonly",
+      "no"
+    ],
+    [
+      "taskset",
+      "-c",
+      "64-71",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/MERGE",
+      "--port",
+      "20000",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-MERGE/target",
+      "--enable-debug-command",
+      "yes",
+      "--shards",
+      "16",
+      "--ratio",
+      "6:2",
+      "--net-io",
+      "epoll",
+      "--databases",
+      "16",
+      "--atomic",
+      "0"
+    ]
+  ],
+  "seed": 22,
+  "suite": "psfix",
+  "mode": "2s",
+  "atomic": 0,
+  "engine": "epoll",
+  "results": [
+    {
+      "repeat": 0,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-MERGE/0.log",
+      "sha256": "565f6a4dd734c10c64cacbf68727dfcc52fb967ddb618a2ddcc800dfd06ac61e"
+    },
+    {
+      "repeat": 1,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-MERGE/1.log",
+      "sha256": "715ae959e86e4c0557f19259c1ad9924c9a49809d8970a5dfd63f4fc0f1714f8"
+    },
+    {
+      "repeat": 2,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-MERGE/2.log",
+      "sha256": "c8c28f6a63a41d4e470318a4a6df9b1cb6eaa9aaa6e1a86e494ebe8c185f8ede"
+    },
+    {
+      "repeat": 3,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-MERGE/3.log",
+      "sha256": "a479cdb2bf22fbc3a8e270925d2a09da32c564ba8f20ebb080a7b60e6815b074"
+    },
+    {
+      "repeat": 4,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-MERGE/4.log",
+      "sha256": "615884c83e4f9659e3e667564d907aab96db7b6c9c4e2d2243c2a79cac7c4d93"
+    },
+    {
+      "repeat": 5,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-MERGE/5.log",
+      "sha256": "c7bda872f0714c0949250aaeae765f7ab05f911407a91f1e8e5c208585c9e641"
+    },
+    {
+      "repeat": 6,
+      "returncode": 1,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-MERGE/6.log",
+      "sha256": "f0eb4a3056b94ed316a0690a9eb4eb27bd3440233f2632a323e8890bc723d793"
+    }
+  ]
+}
