@@ -36,6 +36,7 @@ def freshness():
 
 def main():
     assert os.sched_getaffinity(0)<=set(range(48,64))
+    os.environ['GATE_TEST_PORT']='20498'
     candidate=ROOT/'build/exec1s-POST'
     outcomes=[]
     # Keep one eight-core server slot, with its own eight load CPUs. No builds

@@ -151,6 +151,7 @@ def main():
             passed=gate(arm+'-differ-'+engine,ROOT/'build'/('exec1s-'+arm),
                         jobs,engine) and passed
     if a.self_test:
-        passed=run('gates-test',['taskset','-c','48-63','python3','tests/gates_test.py']) and passed
+        passed=run('gates-test',['taskset','-c','48-63','python3','tests/gates_test.py'],
+                   dict(os.environ,GATE_TEST_PORT='20498')) and passed
     raise SystemExit(0 if passed else 1)
 if __name__=='__main__':main()
