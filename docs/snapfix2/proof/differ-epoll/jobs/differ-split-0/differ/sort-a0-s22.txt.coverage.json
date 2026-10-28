@@ -1,0 +1,71 @@
+{
+  "schema": 1,
+  "commands": {
+    "COMMAND": 131,
+    "DEL": 406,
+    "EXEC": 1,
+    "EXISTS": 1,
+    "FLUSHALL": 1,
+    "HSET": 137,
+    "LRANGE": 542,
+    "MSET": 10,
+    "MULTI": 1,
+    "RPUSH": 39,
+    "SADD": 25,
+    "SET": 731,
+    "SORT": 1623,
+    "SORT_RO": 420,
+    "TYPE": 534,
+    "ZADD": 30
+  },
+  "kinds": {
+    "COMMAND": [
+      "reply"
+    ],
+    "DEL": [
+      "reply"
+    ],
+    "EXEC": [
+      "reply"
+    ],
+    "EXISTS": [
+      "reply"
+    ],
+    "FLUSHALL": [
+      "reply"
+    ],
+    "HSET": [
+      "reply"
+    ],
+    "LRANGE": [
+      "reply"
+    ],
+    "MSET": [
+      "reply"
+    ],
+    "MULTI": [
+      "reply"
+    ],
+    "RPUSH": [
+      "reply"
+    ],
+    "SADD": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "SORT": [
+      "reply"
+    ],
+    "SORT_RO": [
+      "reply"
+    ],
+    "TYPE": [
+      "reply"
+    ],
+    "ZADD": [
+      "reply"
+    ]
+  }
+}

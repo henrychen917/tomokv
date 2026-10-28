@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "commands": {
+    "DEL": 272,
+    "EXISTS": 248,
+    "GET": 221,
+    "SADD": 1313,
+    "SCARD": 236,
+    "SET": 1,
+    "SISMEMBER": 245,
+    "SMEMBERS": 257,
+    "SMISMEMBER": 236,
+    "SPOP": 4,
+    "SRANDMEMBER": 4,
+    "SREM": 232,
+    "TYPE": 255
+  },
+  "kinds": {
+    "DEL": [
+      "reply"
+    ],
+    "EXISTS": [
+      "reply"
+    ],
+    "GET": [
+      "reply"
+    ],
+    "SADD": [
+      "reply"
+    ],
+    "SCARD": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "SISMEMBER": [
+      "reply"
+    ],
+    "SMEMBERS": [
+      "reply"
+    ],
+    "SMISMEMBER": [
+      "reply"
+    ],
+    "SPOP": [
+      "reply"
+    ],
+    "SRANDMEMBER": [
+      "reply"
+    ],
+    "SREM": [
+      "reply"
+    ],
+    "TYPE": [
+      "reply"
+    ]
+  }
+}

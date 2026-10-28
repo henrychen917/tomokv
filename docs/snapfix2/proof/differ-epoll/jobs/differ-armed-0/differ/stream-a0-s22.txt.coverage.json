@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "commands": {
+    "EXISTS": 2,
+    "SET": 1,
+    "XADD": 1369,
+    "XDEL": 353,
+    "XLEN": 359,
+    "XRANGE": 314,
+    "XREAD": 634,
+    "XREVRANGE": 364,
+    "XTRIM": 635
+  },
+  "kinds": {
+    "EXISTS": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "XADD": [
+      "reply"
+    ],
+    "XDEL": [
+      "reply"
+    ],
+    "XLEN": [
+      "reply"
+    ],
+    "XRANGE": [
+      "reply"
+    ],
+    "XREAD": [
+      "reply"
+    ],
+    "XREVRANGE": [
+      "reply"
+    ],
+    "XTRIM": [
+      "reply"
+    ]
+  }
+}

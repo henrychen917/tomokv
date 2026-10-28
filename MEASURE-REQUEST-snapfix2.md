@@ -52,8 +52,20 @@ atomic 0/1 and Redis 7.4. It is collected immediately after `snapfix_bgsave_exec
 at `tests/gate.sh:5743`, before the quick-tier exit at line 5819:
 **DQ=+1, DF=+1 relative to BASE**. EXPECT constants are
 unchanged. Including snapfix's inherited +3/+3, the maintainer's 807/824 becomes
-811/828. PRE fails the RSS bound on all eight TomoKV legs; Redis passes.
-Receipt: `docs/snapfix2/proof/rows-pre/record.json`.
+811/828. Final receipts are `docs/snapfix2/proof/tables-{pre,base,post}-final/`.
+Every leg proves exactly 12 completed saves. PRE and BASE fail specifically at
+the RSS-growth assertion on all eight TomoKV legs; POST and all three Redis
+controls pass. The complete curves are retained before the assertion.
+
+| Arm | 1s peak RSS across four legs (MiB) | 2s peak RSS across four legs (MiB) | TomoKV verdict |
+|---|---:|---:|---|
+| PRE a214652ec | 914.11–916.47 | 856.48–858.48 | 8 expected RSS failures |
+| BASE 5572e84cc | 916.10–916.91 | 856.47–858.48 | 8 expected RSS failures |
+| POST | 18.87–20.87 | 15.38–17.39 | 8 passes |
+
+`docs/snapfix2/rss-summary.json` contains the exact per-leg byte counts, including
+the large-data and PAD controls. These are stability observations, not throughput
+or quiet-box latency comparisons.
 
 The prepared-capacity addition remains inside the existing storage regression;
 there is no second new row. Removing the capacity floor from POST makes it fail
@@ -206,10 +218,13 @@ and the new RSS row:
 | epoll | 53 | 329 | 0 |
 
 Their ledgers and all per-job outcomes are in `proof/proof-{uring,epoll}/record.json`.
-The idle RSS
-row passed all eight TomoKV legs plus Redis: 1s stayed at 18.79–18.87 MiB and 2s
-at 15.30–15.38 MiB over 12 saves. Both storm rows passed all nine legs.
-The million-key, 16-save/reload matrix passed all nine legs. All **12 long
+Both storm rows passed all nine legs. The final million-key matrix proves
+**16 completed saves per leg**, passes the RSS bound on all nine legs and reloads
+the final snapshot with exactly 1,000,000 keys and the latest updated values.
+Peak RSS is at most 162.93 MiB in 1s and 141.84 MiB in 2s; after save 16 it is
+149.76–151.99 MiB and 126.54–126.75 MiB respectively. This includes the expected
+initial destination-table allocation and does not compound across saves.
+See `rss/large-final/results.json`. All **12 long
 EXEC + writer storms** (6/30/60 seconds × both modes/engines, atomic 1) pass both
 the existing correctness/reload checks and an explicit RSS bound. Their sampled
 peak RSS ranges from 25.40 to 39.88 MiB; each 60-second leg completes 91–597 saves.
@@ -221,11 +236,12 @@ writer `SNAP-STORM-1` diagnostic has **0 failures in 20 attempts** (five 30-seco
 attempts per mode/engine). As in snapfix's diagnostic, `--pre-control` permits
 the existing BUSY refusals and records their counts; successful scripts, writes
 and saves must still advance. This is a stall/correctness result, not a rate
-claim. The standard io_uring differential run passed **941 driver checks,
-0 failures**: split atomic 0/1, armed fused atomic 0/1, and mode equivalence.
-It used permanent seeds 7, 19, 20, 23 and rotating seed 21; the complete suite,
-repeat and seed plan is retained in `proof/differ-uring/differ-plan.json`.
-The epoll differential suite and supplementary mode/battery passes remain in progress. Initial
+claim. The standard differential runs passed **941 driver checks, 0 failures
+on each engine**: split atomic 0/1, armed fused atomic 0/1, and mode equivalence.
+Both used permanent seeds 7, 19, 20, 23; the rotating seeds were 21 for uring and
+22 for epoll. Complete suite, repeat and seed plans are retained in
+`proof/differ-{uring,epoll}/differ-plan.json`.
+The supplementary mode/battery passes remain in progress. Initial
 `tests/gates_test.py` hit three fixture timeout failures while compilation and
 instruction tracing overlapped; it will be repeated in isolation, with the
 original log retained. No assertion or timeout is weakened.
@@ -242,6 +258,9 @@ POST-layout image. `POST-layout` and `PAD-A` have identical sections, symbols an
 function addresses; only the five-byte entry branch differs. They are larger
 than the release binary, so compare those twins separately. The generator and
 all object/input digests are recorded in `docs/snapfix2/pad-a.json`.
+The 12-save functional control passed on POST-layout in all four mode/engine
+legs (atomic 1); PAD-A failed the RSS-growth assertion in all four, with exactly
+12 completed saves each (`pad/{post-layout,pad-a}/results.json`).
 
 
 | Arm | Path | SHA-256 |

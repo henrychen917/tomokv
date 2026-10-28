@@ -1,0 +1,117 @@
+{
+  "run": "/home/user/Projects/cx-snapfix2/build/gate-run.jjqCly",
+  "command": "env GATE_ONLY_JOBS=snapfix2_tables REDIS74_ROOT=/home/user/Projects/redis GATE_NET_IO=uring GATE_DIFFER_NET_IO=uring GATE_PROOF_NO_RATES=1 taskset -c 0-15 tests/gate.sh iteration --server-cores 0-7 --load-cores 8-15 --server-smt '' --load-smt '' --ports 20100-20199 --candidate-binary build/snapfix2/pre/tomokv",
+  "binary": "/home/user/Projects/cx-snapfix2/build/snapfix2/pre/tomokv",
+  "binary_sha256": "da219bf6c15d7f7649e6f6f2758ed7407f8ba6e4456ef48ea2a416ba01de710c",
+  "files": {
+    "ledger.partial": "738e273bc7e59fa844d5f3d3a0d9309a24bd8a1f0fb1ddd7c0519693fe2f4328",
+    "ledger.partial.timings": "09b3ddae7d254cb690a9316aeaba330f582c18b926c4ef55d87c65cdc6bc772a",
+    "plan.sh": "558360bdf2a95dc518afaeb8407d3d87e1121303472d7d1e4b5acd7915e6b9fb",
+    "phases.tsv": "a3433e65ffa79f7a5da007e99071b2bc167b233045e3f7a895fa7d78a89e48c5",
+    "families.tsv": "bc2dcf412fd928b39a0c3dec63b7c127cf4365eee4025929698e42ddda3392dc",
+    "row-timeouts.json": "cb25b3d910729162d9ac3a52c57d6fd802c7fe05e4ab5669ad7e9797a60a019c",
+    "gate-output.log": "fc21f2a4f548c33c678150aa9388ce959a59d156d482836f3e30e65baa47803f",
+    "jobs/release/family.tsv": "498a0ccae50cd6c1faaaa6579571aaccef0315ee82ecfb6e2865ccdf48b1adba",
+    "jobs/release/output.log": "4226cb783b1ee986a149d7a84489865f589e42bd6b2d3333c1985b5261eaa2f9",
+    "jobs/snapfix2_tables/family.tsv": "716fda28dfdefeabccfee4bd807d307f3eac76739425e2f10584dbb0b1e22e07",
+    "jobs/snapfix2_tables/output.log": "201e3cebc0386b55e53dc2bf24065f0aa50672e12c201621e3bef1798d93ceef",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-epoll-0/loop.argv.json": "7f84f91e8c97671457b0e4854582fbf2f68648bf6bcbe6165ef30f93e64e2736",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-epoll-0/loop.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-epoll-0/loop.log": "8b159f76288be423ef1c85b8fb49c5e81f83ce38f565207cdced1a210076ebeb",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-epoll-0/rss.json": "bc91370e64be0b6ef426d9add3ff6de96afbf9e1ece645c9861d36e0d67b9060",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-epoll-1/loop.argv.json": "36caf7f85c6e439aeec43be6087aa3df01eb77b8fdf28c3cc57ef86f91efbc9f",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-epoll-1/loop.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-epoll-1/loop.log": "fa80823a396789e096790e1f4bdddba0d90180971381d6771e5de027ebe6b548",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-epoll-1/rss.json": "d10e2c5cace219be85b7ad26216e1a9d0da1aac20d8272cf42f56d3ad06381cf",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-uring-0/loop.argv.json": "5174719e67b494fd3973b93350390dd1d0e49189bd66548559ee92216d2c5787",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-uring-0/loop.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-uring-0/loop.log": "a83d3159a64fe0e7e3e2aba2f06345ba649108b767777d0ff5fb43f0cc2b2b62",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-uring-0/rss.json": "303be3b77e611600a669fa67ef8274e8117fabdf74bcd72dee1b516c2823e486",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-uring-1/loop.argv.json": "d81ad0163c87225b96df27d0aa1c59d6fa50d0563c3a24d06ec843d099322012",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-uring-1/loop.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-uring-1/loop.log": "704a3b32bdb7c97cba8eab460d79a941c61cc4e96024691b16a463e3665fbffd",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-uring-1/rss.json": "0ddf67bbbb81bca853be08ad38cb63afe14d816ef4f8ba22aa1fe344d5b42dfc",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-epoll-0/loop.argv.json": "ea6784c09bffe8480cc7a2e248387bf0df4b399c1ad3f213ded644c31d800aa9",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-epoll-0/loop.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-epoll-0/loop.log": "05ca93a335cbe98da4ca4bd4d997086fa2c4e64fd36a7e4a121e4dbd7c074541",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-epoll-0/rss.json": "93619a2254e585d4201b46a1f4252c40b98e5819feb10050d96613c57cae3be9",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-epoll-1/loop.argv.json": "9f38e566fa5c03ddef7d83fee0ba86cb9c84df2c8a2b19b42a5665217fa770f8",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-epoll-1/loop.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-epoll-1/loop.log": "796235734983a17c7d1bd7d11637acd70b7d1ca6c06b45c007fd4b6a58393844",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-epoll-1/rss.json": "8bdf01322ce327592ae44e57840f6471ba5f09d0fe212b0ff74fc73847973da3",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-uring-0/loop.argv.json": "abe691889c55fdac3a4dca84086adbeb332c4506efcac7567c3d25a91b95b75b",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-uring-0/loop.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-uring-0/loop.log": "f993cb4a7e6030928a08a731c47c1f166e90744bc254a22c812404634aedb876",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-uring-0/rss.json": "9a852584cac87b18c782516c74a4c18b27195e0d5795c04e5b218a417ec79fb9",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-uring-1/loop.argv.json": "a10672c636916a516924b283e8becf30553fbdd9071dc4d166f7eacb9b5e1349",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-uring-1/loop.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-uring-1/loop.log": "c8dad3c5aef8c924d34aa1c83712512e2eaecc7a1c57c574f3991523504aaf50",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-uring-1/rss.json": "af03d51858e5b97e2e415a3fc9087b23f41dfbf196087bbd8a2b02e528ec7dcd",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/redis-redis-0/loop.argv.json": "c5734c55be145172ffd936548450d181429cb1f36bf06cf230ccf16faaade22e",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/redis-redis-0/loop.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/redis-redis-0/loop.log": "f32cf4ee32ad24c62a83ec7b1345fce16a68699554e34e6d5410dea61a3bd1da",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/redis-redis-0/rss.json": "681bad12efd2d9f48bfccc135380f77c88fc85c5fd16da734f74e7adfdbc00f8",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/results.json": "c14f71254c8b11fdaff2b2b3f650db9e5561e07d1bf18859e25399f94a2612e8",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop.log": "0f21d9ddd097196d179ef981b44004a80945857d455e27150cb57eb160bdc70a"
+  },
+  "referenced": {
+    "jobs/release/row-timeout-200212.200212.486809388.1.cancel": {
+      "bytes": 60,
+      "sha256": "0ddc15cebf83671b96c5c78ac3b87197cd154f7a31f33a8542be705a16ce0484"
+    },
+    "jobs/snapfix2_tables/row-timeout-200247.200247.486809423.1.cancel": {
+      "bytes": 60,
+      "sha256": "b9de1031adf477285c25027fd1c461e927383be09545624380ded7af230cfa03"
+    },
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-epoll-0/dump.tomo": {
+      "bytes": 676,
+      "sha256": "b2b587ff7d8c694ddd14a2faa5b3ffbb72e2340970ae791a398adeb26d0ce230"
+    },
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-epoll-1/dump.tomo": {
+      "bytes": 676,
+      "sha256": "da78de2ee4fa9475527207ccdac591c3b6ff89e13389a8dffde1ae4c7ee17e42"
+    },
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-uring-0/dump.tomo": {
+      "bytes": 676,
+      "sha256": "55ca4aba7e1eb70e8931e038c7f5ad205e4820a6d4fe5963ef559a41635a3a39"
+    },
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-uring-1/dump.tomo": {
+      "bytes": 676,
+      "sha256": "a88f94ceea5c5d030fa1777206027b1c10ee25b4acf991964994258d2040bce1"
+    },
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-epoll-0/dump.tomo": {
+      "bytes": 676,
+      "sha256": "d7aef5594ecfc70a82f7939d87846644bf217c5d761bdbde79ea2cf5ec58467b"
+    },
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-epoll-1/dump.tomo": {
+      "bytes": 676,
+      "sha256": "ba352bc4fb8c0311263fccb60fdd614b260259056ae4539f4f36a7457601af81"
+    },
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-uring-0/dump.tomo": {
+      "bytes": 676,
+      "sha256": "d850d1ccad99d0a463451bed2207ffe357f26eaf243c646cd1e7680815b1fff4"
+    },
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-uring-1/dump.tomo": {
+      "bytes": 676,
+      "sha256": "ba4f546d4cd147425a11f38b2ed3eb9fa3e8d49faf7517e7195980297a646faf"
+    },
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/redis-redis-0/dump.rdb": {
+      "bytes": 110,
+      "sha256": "42953800720d87d8dadfc23bd4e9e77a59406de2666ea5a8a38f3f2e89b29748"
+    }
+  },
+  "jobs": {
+    "release": {
+      "ledger": "ok\t0.010000\trelease build (+footprint locks)\n",
+      "done": "0\t1\t0\n",
+      "timings": "ok\t0.010000\trelease build (+footprint locks)\n"
+    },
+    "snapfix2_tables": {
+      "ledger": "FAIL\t5.650000\tsnapfix2 repeated BGSAVE bounds RSS (both modes, both engines, atomic 0/1)\n",
+      "done": "0\t0\t1\n",
+      "timings": "FAIL\t5.650000\tsnapfix2 repeated BGSAVE bounds RSS (both modes, both engines, atomic 0/1)\n"
+    }
+  },
+  "compressed_large_text": {},
+  "removed_run_artifacts": true
+}
