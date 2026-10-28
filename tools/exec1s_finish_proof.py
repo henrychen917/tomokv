@@ -62,6 +62,8 @@ def main():
     assert os.sched_getaffinity(0)<=set(range(48,64))
     os.environ['GATE_TEST_PORT']='20498'
     candidate=ROOT/'build/exec1s-POST'
+    subprocess.run(['make','-f','Makefile','-f','tools/blockfix_cost.mk','-j16',
+                    'build/blockfix-cost','build/tomokv.blockfix-cost.sha256'],cwd=ROOT,check=True)
     bind_cost_candidate(candidate)
     outcomes=[]
     # Keep one eight-core server slot, with its own eight load CPUs. No builds
