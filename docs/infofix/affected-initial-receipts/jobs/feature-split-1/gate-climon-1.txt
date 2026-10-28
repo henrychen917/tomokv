@@ -1,3 +1,0 @@
-atomic boundary entry=1
-climon: ok
-atomic boundary restored=1

@@ -1,0 +1,54 @@
+[
+  {
+    "archive": "docs/infofix/evidence/affected-initial-receipts.tar.gz",
+    "sha256": "dadd20194aaaedbf2bbf4ea1c84e17ee31f2a3ba3eb7f6ba456729a4679dd0e2",
+    "files": 1177,
+    "uncompressed_bytes": 15389285,
+    "source": "docs/infofix/affected-initial-receipts"
+  },
+  {
+    "archive": "docs/infofix/evidence/directed-receipts.tar.gz",
+    "sha256": "5d4d41efdb1522fcc210b4fa283f3cd13670915d82f4e5fe97852311e5cf6cd8",
+    "files": 162,
+    "uncompressed_bytes": 14278066,
+    "source": "docs/infofix/directed-receipts"
+  },
+  {
+    "archive": "docs/infofix/evidence/tcl-receipts.tar.gz",
+    "sha256": "41af6f4077af1db8fbad6704f3248490781eb4869dcfe884ff2f5b180e5ac9f7",
+    "files": 12,
+    "uncompressed_bytes": 7299799,
+    "source": "docs/infofix/tcl-receipts"
+  },
+  {
+    "archive": "docs/infofix/evidence/exbatch-receipts.tar.gz",
+    "sha256": "b9a461bfd88db674d655f6adeab3753564ef5c51da6280d60ff5b2d3b0d47ffb",
+    "files": 70,
+    "uncompressed_bytes": 277934,
+    "source": "docs/infofix/exbatch-receipts"
+  },
+  {
+    "archive": "docs/infofix/evidence/gate-run.dC1HbO.tar.gz",
+    "sha256": "1e22cf5e5080656ec9ea6737ed219432391ffd2157dc1740b66dd265d15c9fd5",
+    "files": 1188,
+    "uncompressed_bytes": 20571773,
+    "source": "build/gate-run.dC1HbO",
+    "note": "Superseded run: retained text/JSON evidence; removed recovery datasets."
+  },
+  {
+    "archive": "docs/infofix/evidence/gate-run.UpsGR0.tar.gz",
+    "sha256": "c16dfa03632a59e16a66a6280bc159f29a89996435cf44e01508b2bf73d0ed52",
+    "files": 2109,
+    "uncompressed_bytes": 2939300,
+    "source": "build/gate-run.UpsGR0",
+    "note": "Superseded run: retained text/JSON evidence; removed recovery datasets."
+  },
+  {
+    "archive": "docs/infofix/evidence/gate-run.nQFM2G.tar.gz",
+    "sha256": "4fef2b8c0b49e3f07dbd6ba8b85b4850bc30344825b2167450681719bcb52eab",
+    "files": 1114,
+    "uncompressed_bytes": 1026361,
+    "source": "build/gate-run.nQFM2G",
+    "note": "Superseded run: retained text/JSON evidence; removed recovery datasets."
+  }
+]

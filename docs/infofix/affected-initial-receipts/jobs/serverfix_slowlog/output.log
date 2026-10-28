@@ -1,2 +1,0 @@
-  row budget: 900s; median=-s; no-history-conservative-default; serverfix SV4.14 disabled slowlog allocation
-  serverfix SV4.14 disabled slowlog allocation         ok

@@ -1,3 +1,0 @@
-atomic boundary entry=0
-bitfield: PASS (195 checks; all widths, overflow, RO, #, accounting/admission fired)
-atomic boundary restored=0

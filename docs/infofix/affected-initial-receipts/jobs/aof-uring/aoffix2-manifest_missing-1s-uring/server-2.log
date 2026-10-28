@@ -1,2 +1,0 @@
-AOF load plan failed: AOF manifest missing with unreferenced segments; files preserved
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)

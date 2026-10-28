@@ -1,4 +1,0 @@
-TICKET BRACKET baseline=0 cut=125 closing=250 groups=125 owners=6,7
-PREIMAGE-FIRED PASS (delta=37)
-SNAPSHOT-TICKET-ORACLE PASS
-TYPED TICKET VERIFY PASS (keys=2000 cut=125 pre<=cut<post)

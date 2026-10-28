@@ -1,1 +1,0 @@
-AOF REWRITE TRIGGER MATRIX PASS: atomic=0/1 live-config info auto backoff restart

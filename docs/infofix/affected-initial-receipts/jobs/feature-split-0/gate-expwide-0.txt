@@ -1,4 +1,0 @@
-atomic boundary entry=0
-  note S2/S3 window: 131 rounds x BITCOUNT(32MB) on each of 8 owners, 1.15ms a round
-expwide: 101 checks, 0 failures -> PASS
-atomic boundary restored=0

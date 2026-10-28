@@ -1,8 +1,0 @@
-threshold matrix
-threshold 0 and the executor arm
-slowlog-max-len
-argv truncation
-grammar
-LATENCY
-
-slowlog: 60 checks, 0 failures -> PASS

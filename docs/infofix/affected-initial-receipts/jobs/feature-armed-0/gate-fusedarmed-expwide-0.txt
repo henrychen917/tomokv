@@ -1,5 +1,0 @@
-atomic boundary entry=0
-  note S1 MGET served on the read-local lane, widened 0.400s
-  note S2/S3 window: 172 rounds x BITCOUNT(32MB) on each of 8 owners, 0.87ms a round
-expwide: 102 checks, 0 failures -> PASS
-atomic boundary restored=0

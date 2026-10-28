@@ -1,7 +1,7 @@
 ## infofix
 
 Branch `cx-infofix`, PRE `393d6ceb129d8c99dffd70959d6a19267c525fe0`.
-Production implementation is through `27a6821a8`; subsequent commits contain
+Production implementation is through `dbb355c55`; subsequent commits contain
 batteries and evidence. No push. This is a partial compatibility result, not a
 claim that all eight roots or the full Tcl job are green.
 
@@ -17,6 +17,8 @@ claim that all eight roots or the full Tcl job are green.
 | INFO-ERRORSTATS | STOPPED: architecture boundary | Exact accounting needs an accepted-attempt error journal. A generic error formatter hook counts discarded/replayed script attempts and cannot distinguish rejected from failed calls correctly. The exploratory hook was removed. |
 | INFO-CMDSTAT-FIELDS | STOPPED: deliberate restriction | The root report and renderer explicitly omit unmeasured timing and unimplemented failed_calls. Always-on exact usec requires timing successful commands, conflicting with the zero-added-instructions requirement. |
 | DEBUG-RELOAD-OPTIONS | STOPPED: architecture boundary | The assigned Tcl assertions persist/merge function libraries. Native snapshot plans contain keys/database mapping, with no function-library persistence. An option parser alone would not implement those semantics. |
+
+The source boundaries are recorded in `docs/infofix/stopped-roots.md`.
 
 Owner decisions: whether to extend accepted-attempt error accounting, permit
 always-on command timing, persist function libraries, and expose/implement the
@@ -58,16 +60,18 @@ The new rows run through `GATE_ONLY_JOBS` in `tests/gate.sh`:
   uring/epoll × databases 1/16. PRE fails all four rows; frozen POST passes all four.
 - `infofix_latency` checks both executor modes, tracking off/on, and batch 1/32.
   It requires one histogram lock per tracked GET batch, one exact sample per
-  command, alternating 1 us/16 ms durations through the real executor, separate histogram bins,
-  exactly two clocks per tracked command, and zero clocks/histogram allocation off.
+  command, alternating 1 us/16 ms durations through the real executor, separate
+  histogram bins, exactly two clocks per tracked command, and zero timing clocks
+  or histogram allocation off. Allocated buckets without samples stay invisible.
   PRE and a POST mutant with `get_batch=false` both fail the batch witness; a
-  shared-duration mutant must fail the same row at its per-command distribution check.
+  shared-duration mutant fails the same row at its per-command distribution check.
+  A fourth mutant exposing empty buckets fails the public histogram-reply check.
 - A cold-root regression arm links POST with PRE t_server/cmdmeta/slowlog/xshard
   objects in both namespaces. Its four directed rows fail, and the promoted Tcl
   cases fail in both modes. This arm is only a negative control.
 
 Receipts: `docs/infofix/{pre-directed-final,post-directed-final,regression,
-latency-regression}.log`, `directed-receipts/`, and `tcl-receipts/`.
+latency-regression}.log`, the `evidence/` archives indexed by SHA-256 in `evidence/index.json`.
 POST's new rows plus release and metadata validation: **7 pass, 0 fail**.
 PRE: **1 pass, 5 intended failures**. Cold-root regression: **1 pass, 6 intended
 failures** (four directed rows and two Tcl mode rows). Latency regression:
@@ -98,15 +102,26 @@ throughput verdict. Initial positive scatter deltas are retained in
 
 ### Build and gate proof
 
+Every gate invocation is a selected correctness job run. These are partial proof
+records, not a full-gate or performance receipt.
+
 Final affected jobs, standard differential matrices, final Tcl and gate-harness
-self-test receipts are still being collected. No earlier failure is discarded.
+self-test receipts are still being collected. `make all` and every production-unit
+prerequisite rebuilt through the gate; all **56** target-specific `make -q` checks
+pass in `production-freshness-final.json`. No earlier failure is discarded.
 The initial affected run was 311 pass / 16 fail: eight stale INFO DEFAULT section
 expectations, four stale LOADAOF error strings, and four downstream snapshot
 checks after those interrupted recovery batteries. The expected replies were
-updated to Redis's grammar; no assertion was removed.
+updated to Redis's grammar; no assertion was removed. A subsequent run exposed
+the native INFO fixture's fake PID; it now uses its real PID for the main-thread
+CPU read and retains every protected-memory assertion. The old differential
+DOCS assertion required replies to differ; it now requires a populated reply
+identical to Redis. The superseded uring matrix failed only that assertion and
+its non-vacuity counter; the superseded epoll run was interrupted for replacement.
+Their original logs and receipts are retained.
 
 Five public rows are collected at gate.sh lines 5981–5982, above the quick exit at
-line 6113. **DQ=+5, DF=+5**. EXPECT_QUICK/EXPECT_FULL were not edited; the maintainer
+line 6114. **DQ=+5, DF=+5**. EXPECT_QUICK/EXPECT_FULL were not edited; the maintainer
 should change **881→886** and **898→903**. Extending existing Tcl/metadata jobs
 adds no public row.
 
@@ -115,15 +130,15 @@ adds no public row.
 | Arm | Binary | SHA-256 |
 |---|---|---|
 | PRE | `build/infofix/pre/tomokv` | `5285c0225adbdb8e1204548b010d68238c3358e242d5fab932f4c28a5369dd76` |
-| POST | `build/infofix/post/tomokv` | `63d57541078450bb987820d425577d502c25120406e57f94febcb00869eb0455` |
-| PAD-A | `build/infofix/pad-a/tomokv` | `61a8fac6150b41eed17d710cc525126653d1aedbaf7c14915d92c9daf7e0364a` |
+| POST | `build/infofix/post-final/tomokv` | `28faa60c3196fc531aa99b0a4d54947a46ae6533fcbd013ea9da852b9522da35` |
+| PAD-A | `build/infofix/pad-a-final/tomokv` | `a4fd1c1d1ca188812f38493625b48d41069c267bb01871f8d8955d25056b00ac` |
 
 PAD is **kind A: behaviour twin**: unmodified PRE production objects plus
 unreachable padding, matching POST's .text start and total size, with additive
 .rodata padding. Individual function/data placement is not identical to POST;
 this is a text-size/layout control with that explicit limitation, not an exact
-symbol-placement twin. `docs/infofix/arms.json` records section sizes, commands,
-and regression-arm digest. `tools/infofix_arms.py` recreates the links.
+symbol-placement twin. `docs/infofix/arms-final.json` records section sizes, commands,
+and regression-arm digest. `python3 tools/infofix_arms.py --tag final` recreates the links.
 Superseded arm sources and step traces were deleted after their hashes/counts
 were recorded in `retired-artifacts.json`. PRE objects and frozen binaries remain.
 

@@ -1,7 +1,0 @@
-Traceback (most recent call last):
-  File "/home/user/Projects/cx-infofix/tests/rlfix3_info.py", line 97, in <module>
-    main()
-  File "/home/user/Projects/cx-infofix/tests/rlfix3_info.py", line 65, in main
-    assert got == selected, (resp, names, got, selected)
-           ^^^^^^^^^^^^^^^
-AssertionError: (2, (), {'persistence', 'writeback', 'server', 'replication', 'stats', 'cpu', 'memory', 'cluster', 'clients', 'keyspace', 'flipctl'}, {'persistence', 'writeback', 'server', 'replication', 'stats', 'memory', 'cluster', 'clients', 'keyspace', 'flipctl'})
