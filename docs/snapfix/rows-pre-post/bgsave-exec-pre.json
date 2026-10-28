@@ -1,0 +1,58 @@
+[
+  {
+    "case": "bgsave-exec",
+    "leg": "1s-uring-0",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 561, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 513, in case_bgsave_exec\n    assert not errors, (errors, result)\n           ^^^^^^^^^^\nAssertionError: ([\"STALL > 5s: exec-2: TimeoutError('timed out')\", \"STALL > 5s: exec-1: TimeoutError('timed out')\", \"STALL > 5s: writer-1: TimeoutError('timed out')\", \"STALL > 5s: exec-4: TimeoutError('timed out')\", \"STALL > 5s: exec-0: TimeoutError('timed out')\", \"STALL > 5s: exec-3: TimeoutError('timed out')\", \"STALL > 5s: exec-5: TimeoutError('timed out')\"], {'probe_max': 0.0, 'saves': 1, 'writes': 22528, 'execs': 16, 'aborted': 6, 'lanes': {'owner': 3, 'writer_io': 0, 'probe_io': 2}})\n",
+    "seconds": 5.173
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "1s-uring-1",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 561, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 513, in case_bgsave_exec\n    assert not errors, (errors, result)\n           ^^^^^^^^^^\nAssertionError: ([\"STALL > 5s: exec-0: TimeoutError('timed out')\", \"STALL > 5s: exec-1: TimeoutError('timed out')\", \"STALL > 5s: exec-5: TimeoutError('timed out')\", \"STALL > 5s: exec-2: TimeoutError('timed out')\", \"STALL > 5s: exec-3: TimeoutError('timed out')\", \"STALL > 5s: exec-4: TimeoutError('timed out')\"], {'probe_max': 0.001, 'saves': 1, 'writes': 22080, 'execs': 20, 'aborted': 8, 'lanes': {'owner': 6, 'writer_io': 0, 'probe_io': 2}})\n",
+    "seconds": 5.208
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "1s-epoll-0",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 561, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 513, in case_bgsave_exec\n    assert not errors, (errors, result)\n           ^^^^^^^^^^\nAssertionError: ([\"STALL > 5s: writer-1: TimeoutError('timed out')\", \"STALL > 5s: exec-0: TimeoutError('timed out')\", \"STALL > 5s: writer-2: TimeoutError('timed out')\", \"STALL > 5s: exec-4: TimeoutError('timed out')\", \"STALL > 5s: exec-5: TimeoutError('timed out')\", \"STALL > 5s: exec-3: TimeoutError('timed out')\", \"STALL > 5s: exec-2: TimeoutError('timed out')\", \"STALL > 5s: exec-1: TimeoutError('timed out')\"], {'probe_max': 4.934, 'saves': 1, 'writes': 20288, 'execs': 6, 'aborted': 3, 'lanes': {'owner': 4, 'writer_io': 0, 'probe_io': 7}})\n",
+    "seconds": 5.151
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "1s-epoll-1",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 561, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 513, in case_bgsave_exec\n    assert not errors, (errors, result)\n           ^^^^^^^^^^\nAssertionError: ([\"STALL > 5s: exec-3: TimeoutError('timed out')\", \"STALL > 5s: exec-5: TimeoutError('timed out')\", \"STALL > 5s: exec-4: TimeoutError('timed out')\", \"STALL > 5s: exec-0: TimeoutError('timed out')\", \"STALL > 5s: exec-1: TimeoutError('timed out')\"], {'probe_max': 4.751, 'saves': 2, 'writes': 95360, 'execs': 1134, 'aborted': 442, 'lanes': {'owner': 1, 'writer_io': 0, 'probe_io': 5}})\n",
+    "seconds": 5.345
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "2s-uring-0",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 561, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 513, in case_bgsave_exec\n    assert not errors, (errors, result)\n           ^^^^^^^^^^\nAssertionError: ([\"STALL > 5s: writer-0: TimeoutError('timed out')\", \"STALL > 5s: exec-0: TimeoutError('timed out')\", \"STALL > 5s: exec-2: TimeoutError('timed out')\", \"STALL > 5s: exec-4: TimeoutError('timed out')\", \"STALL > 5s: exec-5: TimeoutError('timed out')\", \"STALL > 5s: exec-3: TimeoutError('timed out')\", \"STALL > 5s: prober: TimeoutError('timed out')\", \"STALL > 5s: exec-1: TimeoutError('timed out')\"], {'probe_max': 0.0, 'saves': 1, 'writes': 22528, 'execs': 14, 'aborted': 7, 'lanes': {'owner': 7, 'writer_io': 0, 'probe_io': 2}})\n",
+    "seconds": 5.142
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "2s-uring-1",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 561, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 513, in case_bgsave_exec\n    assert not errors, (errors, result)\n           ^^^^^^^^^^\nAssertionError: ([\"STALL > 5s: exec-5: TimeoutError('timed out')\", \"STALL > 5s: writer-1: TimeoutError('timed out')\", \"STALL > 5s: exec-0: TimeoutError('timed out')\", \"STALL > 5s: exec-4: TimeoutError('timed out')\", \"STALL > 5s: exec-2: TimeoutError('timed out')\", \"STALL > 5s: exec-1: TimeoutError('timed out')\", \"STALL > 5s: prober: TimeoutError('timed out')\", \"STALL > 5s: exec-3: TimeoutError('timed out')\"], {'probe_max': 0.001, 'saves': 1, 'writes': 22464, 'execs': 28, 'aborted': 14, 'lanes': {'owner': 6, 'writer_io': 0, 'probe_io': 1}})\n",
+    "seconds": 5.131
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "2s-epoll-0",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 561, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 513, in case_bgsave_exec\n    assert not errors, (errors, result)\n           ^^^^^^^^^^\nAssertionError: ([\"STALL > 5s: exec-1: TimeoutError('timed out')\", \"STALL > 5s: writer-3: TimeoutError('timed out')\", \"STALL > 5s: writer-1: TimeoutError('timed out')\", \"STALL > 5s: exec-2: TimeoutError('timed out')\", \"STALL > 5s: exec-4: TimeoutError('timed out')\", \"STALL > 5s: exec-0: TimeoutError('timed out')\", \"STALL > 5s: exec-3: TimeoutError('timed out')\", \"STALL > 5s: exec-5: TimeoutError('timed out')\", \"STALL > 5s: prober: TimeoutError('timed out')\"], {'probe_max': 0.0, 'saves': 1, 'writes': 23168, 'execs': 19, 'aborted': 8, 'lanes': {'owner': 6, 'writer_io': 0, 'probe_io': 5}})\n",
+    "seconds": 5.128
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "2s-epoll-1",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 561, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 513, in case_bgsave_exec\n    assert not errors, (errors, result)\n           ^^^^^^^^^^\nAssertionError: ([\"STALL > 5s: exec-5: TimeoutError('timed out')\", \"STALL > 5s: exec-0: TimeoutError('timed out')\", \"STALL > 5s: exec-2: TimeoutError('timed out')\", \"STALL > 5s: exec-1: TimeoutError('timed out')\", \"STALL > 5s: writer-3: TimeoutError('timed out')\", \"STALL > 5s: writer-2: TimeoutError('timed out')\", \"STALL > 5s: exec-4: TimeoutError('timed out')\", \"STALL > 5s: exec-3: TimeoutError('timed out')\", \"STALL > 5s: prober: TimeoutError('timed out')\"], {'probe_max': 0.001, 'saves': 2, 'writes': 95616, 'execs': 861, 'aborted': 420, 'lanes': {'owner': 7, 'writer_io': 0, 'probe_io': 1}})\n",
+    "seconds": 5.224
+  }
+]

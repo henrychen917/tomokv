@@ -1,0 +1,200 @@
+[
+  {
+    "case": "bgsave-script",
+    "leg": "redis-redis-0",
+    "value": {
+      "bgsave_seconds": 0.0,
+      "storm": {
+        "activations": 302791,
+        "refused": 0,
+        "writes": [
+          70159,
+          69391
+        ],
+        "saves": 60
+      },
+      "snapshot": [
+        298530,
+        298530
+      ]
+    },
+    "pass": true,
+    "seconds": 6.414
+  },
+  {
+    "case": "bgsave-script",
+    "leg": "1s-uring-0",
+    "value": {
+      "bgsave_seconds": 0.395,
+      "storm": {
+        "activations": 13432,
+        "refused": 14147,
+        "writes": [
+          31819,
+          227315
+        ],
+        "saves": 10
+      },
+      "snapshot": [
+        9587,
+        9587
+      ]
+    },
+    "pass": true,
+    "seconds": 6.589
+  },
+  {
+    "case": "bgsave-script",
+    "leg": "1s-uring-1",
+    "value": {
+      "bgsave_seconds": 0.395,
+      "storm": {
+        "activations": 16312,
+        "refused": 16462,
+        "writes": [
+          25461,
+          374980
+        ],
+        "saves": 10
+      },
+      "snapshot": [
+        12523,
+        12523
+      ]
+    },
+    "pass": true,
+    "seconds": 6.562
+  },
+  {
+    "case": "bgsave-script",
+    "leg": "1s-epoll-0",
+    "value": {
+      "bgsave_seconds": 0.395,
+      "storm": {
+        "activations": 15710,
+        "refused": 17117,
+        "writes": [
+          32908,
+          363358
+        ],
+        "saves": 10
+      },
+      "snapshot": [
+        12240,
+        12240
+      ]
+    },
+    "pass": true,
+    "seconds": 6.545
+  },
+  {
+    "case": "bgsave-script",
+    "leg": "1s-epoll-1",
+    "value": {
+      "bgsave_seconds": 0.395,
+      "storm": {
+        "activations": 15644,
+        "refused": 15767,
+        "writes": [
+          31484,
+          407860
+        ],
+        "saves": 10
+      },
+      "snapshot": [
+        11991,
+        11991
+      ]
+    },
+    "pass": true,
+    "seconds": 6.545
+  },
+  {
+    "case": "bgsave-script",
+    "leg": "2s-uring-0",
+    "value": {
+      "bgsave_seconds": 0.395,
+      "storm": {
+        "activations": 21839,
+        "refused": 14055,
+        "writes": [
+          23503,
+          451362
+        ],
+        "saves": 9
+      },
+      "snapshot": [
+        20109,
+        20109
+      ]
+    },
+    "pass": true,
+    "seconds": 6.575
+  },
+  {
+    "case": "bgsave-script",
+    "leg": "2s-uring-1",
+    "value": {
+      "bgsave_seconds": 0.395,
+      "storm": {
+        "activations": 27083,
+        "refused": 11300,
+        "writes": [
+          22901,
+          435620
+        ],
+        "saves": 9
+      },
+      "snapshot": [
+        23954,
+        23954
+      ]
+    },
+    "pass": true,
+    "seconds": 6.563
+  },
+  {
+    "case": "bgsave-script",
+    "leg": "2s-epoll-0",
+    "value": {
+      "bgsave_seconds": 0.395,
+      "storm": {
+        "activations": 25533,
+        "refused": 16143,
+        "writes": [
+          30962,
+          450125
+        ],
+        "saves": 9
+      },
+      "snapshot": [
+        23566,
+        23566
+      ]
+    },
+    "pass": true,
+    "seconds": 6.548
+  },
+  {
+    "case": "bgsave-script",
+    "leg": "2s-epoll-1",
+    "value": {
+      "bgsave_seconds": 0.395,
+      "storm": {
+        "activations": 25424,
+        "refused": 10818,
+        "writes": [
+          25619,
+          430451
+        ],
+        "saves": 9
+      },
+      "snapshot": [
+        21510,
+        21510
+      ]
+    },
+    "pass": true,
+    "seconds": 6.55
+  }
+]
