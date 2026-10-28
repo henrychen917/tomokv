@@ -13,9 +13,14 @@ def sha(path):
         return hashlib.file_digest(stream, 'sha256').hexdigest()
 
 
-def ledger_rows(path):
+def ledger_rows(path, partial_selection=None):
     rows = []
-    for line in path.read_text().splitlines():
+    lines = path.read_text().splitlines()
+    if partial_selection is not None:
+        marker = f'PARTIAL\t0\tGATE_ONLY_JOBS={partial_selection}; NOT A RECEIPT'
+        assert lines and lines[0] == marker, (path, lines[:1])
+        lines = lines[1:]
+    for line in lines:
         status, seconds, label = line.split('\t', 2)
         assert status in ('ok', 'FAIL'), (path, status)
         rows.append(dict(status=status, seconds=float(seconds), label=label))
@@ -48,6 +53,19 @@ def main():
                                         passed=passed, failed=failed, rows=rows,
                                         ledger=str(ledger), ledger_sha256=sha(ledger),
                                         output_sha256=sha(folder / 'output.log')))
+                legs = folder / 'differ/legs.tsv'
+                if legs.exists():
+                    entries = [line.split('\t') for line in legs.read_text().splitlines()]
+                    assert all(len(entry) == 6 for entry in entries)
+                    failed_legs = []
+                    for suite, atomic, seed, repeat, code, filename in entries:
+                        if int(code):
+                            failed_log = legs.parent / filename
+                            failed_legs.append(dict(suite=suite, atomic=int(atomic), seed=int(seed),
+                                repeat=int(repeat), returncode=int(code), log=str(failed_log),
+                                log_sha256=sha(failed_log)))
+                    run['jobs'][-1]['differ_legs'] = dict(path=str(legs), sha256=sha(legs),
+                        count=len(entries), failed=failed_legs)
                 completion = folder / 'differ/complete.json'
                 if completion.exists():
                     run['jobs'][-1]['differ_completion'] = dict(
@@ -64,9 +82,10 @@ def main():
             run['selected_jobs'] = sorted(selected)
             run['expanded_selected_jobs'] = sorted(expanded)
             run['dependency_jobs'] = sorted(observed - expanded)
-            public_ledger = Path(receipt['receipt']).with_suffix('.ledger')
+            public_ledger = Path(receipt['receipt']).with_suffix('.ledger.partial')
             run['published_ledger'] = dict(path=str(public_ledger), sha256=sha(public_ledger),
-                                            rows=ledger_rows(public_ledger))
+                partial_marker=public_ledger.read_text().splitlines()[0],
+                rows=ledger_rows(public_ledger, receipt['selected_jobs']))
             run['passed_rows'] = sum(job['passed'] for job in run['jobs'])
             run['failed_rows'] = sum(job['failed'] for job in run['jobs'])
             run['all_jobs_passed'] = all(job['returncode'] == 0 and job['failed'] == 0
@@ -80,6 +99,7 @@ def main():
                   all_invocations_passed=all(receipt['success'] for receipt in proof['receipts']),
                   required_coverage_passed=proof.get('required_coverage_passed', proof['passed']),
                   resolved_failures=proof.get('resolved_failures', []),
+                  unresolved_failures=proof.get('unresolved_failures', []),
                   not_run=proof['not_run'])
     (DOCS / 'live-job-results.json').write_text(json.dumps(record, indent=2) + '\n')
     print(len(runs), 'completed invocations;',
