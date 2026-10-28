@@ -18,7 +18,7 @@ Six assigned roots have complete fixes; CONNECTED-CLIENTS-LAG is stopped for the
 | CLIENT-LIST-CMD-NAME | DIFFERENT / DIFFERENT | MATCH / MATCH | Capture full child metadata in the existing cold container/local dispatch branch. Check INFO, LIST, SETNAME, CONFIG GET, ordinary PING fallback and ROB wrap. |
 | CONNECTED-CLIENTS-LAG | DIFFERENT / DIFFERENT | DIFFERENT / DIFFERENT | STOPPED. The visible count also serves as FLIP’s frozen ownership ledger. Early decrement breaks its conservation guard while a close is pinned. Preserve the original count and named Tcl exclusion until the owner chooses separate visible and ownership accounting. |
 
-CONNECTED-CLIENTS-LAG’s early-accounting prototype was withdrawn after the existing `flipfix-plan-race` witness failed: `the plan saw a held close, not a half-removed one`. A close after the IO’s drain acknowledgement remains in the frozen owner vector, while early decrement removes it from `live_clients()`, so `flip_build_client_plan` rejects the valid set. The detached-close guard can also lose its independent count mismatch. [The deterministic witness and rationale](docs/climonfix4/connected-deferred/reason.json) are retained. The final diff leaves connection ownership/reclamation accounting intact; the prototype and its temporary fixture adaptations are not landed.
+CONNECTED-CLIENTS-LAG’s early-accounting prototype was withdrawn after the existing `flipfix-plan-race` witness failed: `the plan saw a held close, not a half-removed one`. A close after the IO’s drain acknowledgement remains in the frozen owner vector, while early decrement removes it from `live_clients()`, so `flip_build_client_plan` rejects the valid set. The detached-close guard can also lose its independent count mismatch. [The deterministic witness and rationale](docs/climonfix4/connected-deferred/reason.json) are retained. The final diff leaves connection ownership/reclamation accounting intact; the prototype and its temporary fixture adaptations are absent from the final diff.
 
 The exact original cases are replayed without modifying `docs/harness5/redis-tcl-repros.json`. PRE transcripts are in [pre-repro/results.json](docs/climonfix4/pre-repro/results.json); final and PAD receipts are under `docs/climonfix4/final-repro/` and `docs/climonfix4/pad-repro/`. The PAUSE-BLOCKED-COUNT exception above is explicit: its original counter-only reproduction cannot honestly be called red on this baseline.
 
@@ -44,7 +44,20 @@ The four collection sites expand at `tests/gate.sh:5835`, before the quick exit 
 
 ### Validation
 
-Final POST has been rebuilt after withdrawing CONNECTED-CLIENTS-LAG. All 92 serverless instruction comparisons are zero-delta, all 14 paired Tcl controls satisfy their positive/negative contracts, and final POST/PAD-A original reproductions match the documented root dispositions. Earlier campaigns, including the passing io_uring differential and the 15-assertion Tcl run, are superseded evidence and are not final validation of this reduced scope. Final directed rows pass 28/28 (224 configurations), and the matching PRE run fails all 28 rows. `python3 tests/gates_test.py` passes 73 tests; `python3 tests/redis_tcl_test.py` passes nine. The production-unit audit passes all 58 checks across 53 named targets, including `make all` and `make -q` freshness. The complete Tcl job passes both modes, 1,704 assertions per mode: all 14 promoted assertions were reached and passed, with no named failures ([audit](docs/climonfix4/full-tcl-promotions.json)). The remaining affected-job and differential campaign receipts are pending.
+Final POST is source `c369ccc41`, after withdrawing CONNECTED-CLIENTS-LAG. Earlier prototype campaigns are retained as superseded evidence, not counted as final proof.
+
+| Check | Final result | Evidence |
+|---|---|---|
+| Affected gate jobs and prerequisites | **310 passed, 0 failed** | [Campaign receipt](docs/climonfix4/jobs/final14-affected-jobs.json) |
+| New directed rows | 28/28 POST; all 28 fail on PRE; 224 configurations per arm | [PRE negative receipt](docs/climonfix4/jobs/final14-directed-pre-negative.json); POST included above |
+| Full Tcl manifest, 1s and 2s | 1,704 assertions per mode; all 14 promotions reached and passed; no named failures | [Promotion audit](docs/climonfix4/full-tcl-promotions.json) |
+| Standard differential, io_uring | All four mode/atomic legs and mode equivalence pass; six public rows including release | [Campaign receipt](docs/climonfix4/jobs/final14-differ-uring.json) |
+| Standard differential, epoll | Running; both split legs have passed | Final receipt pending |
+| Production builds and freshness | 53 named targets, all 58 audit checks pass, including `make all` and `make -q` | [Build audit](docs/climonfix4/production-units.json) |
+| Harness self-tests | `gates_test.py`: 73 pass; `redis_tcl_test.py`: nine pass | [Self-test receipts](docs/climonfix4/self-tests.json) |
+| Hot-command instruction scopes | All 92 PRE/POST pairs: delta 0, equal per-function counts | [Counts](docs/climonfix4/instruction-counts.md) |
+
+The first concurrent harness self-test attempt hit eight scheduler-fixture timeouts. The unchanged suite passed after restricting its existing internal fixture parallelism with CPUs 16–19; no assertion or deadline changed ([retry receipt](docs/climonfix4/self-test-retry.json)).
 
 Required affected job selection:
 
@@ -58,7 +71,7 @@ cmd_metadata release_batteries fused-0 fused-1
 feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 flip
 ```
 
-The prerequisite `production_units` built all 53 named targets. The [independent audit](docs/climonfix4/production-units.json) passed `make all`, all readiness markers, every `make -q` dependency graph, and the blockfix binary binding. Differential runs select `differ-split` and `differ-armed`, which include mode equivalence, with the standard seed allocator and no suite/seed overrides, separately for uring and epoll. Redis source/Tcl root is `/home/user/Projects/redis`; the differential oracle is `/home/user/Projects/redis74/src/redis-server` (Redis 7.4.10).
+The prerequisite `production_units` built all 53 named targets. The [independent audit](docs/climonfix4/production-units.json) passed `make all`, all readiness markers, every `make -q` dependency graph, and the blockfix binary binding. Differential runs select `differ-split` and `differ-armed`, which include mode equivalence, with the standard seed allocator and no suite/seed overrides, separately for uring and epoll. Redis source/Tcl root is `/home/user/Projects/redis`; the differential oracle is `/home/user/Projects/redis74/src/redis-server` (Redis 7.4.10). The source-tree oracle path used by neighboring gate jobs has the identical binary hash ([identity](docs/climonfix4/oracle-identity.json)).
 
 An unchanged upstream PUBSUB assertion, `PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments`, failed intermittently during an earlier complete Tcl run. The [bounded full-file recheck](docs/climonfix4/pubsub-recheck-results.json) reproduced that same named failure on PRE as well as the early-accounting prototype. The preceding test closes two subscribers without waiting for cross-owner disconnect processing. The assertion remained enabled and passed in both final Tcl jobs. Its earlier failure receipts remain available rather than being discarded.
 
@@ -66,7 +79,7 @@ An unchanged upstream PUBSUB assertion, `PUBLISH/SUBSCRIBE after UNSUBSCRIBE wit
 
 [instruction-counts.md](docs/climonfix4/instruction-counts.md) contains PRE/POST owner/scatter counts for GET/SET/INCR/MGET/MSET, both namespaces and modes, batches 1/32, atomic 1 plus MSET atomic 0, and read-local GET. Dispatch-only counts additionally exercise the production fused and split parsers for all five commands and both namespaces at batches 1/32. They complement the owner/scatter fixture's reply and data assertions.
 
-These are finite serverless fixtures linked to production objects. Counts include executed instructions, including NOPs, in the selected production namespace; fixture glue and external libraries are excluded equally and clock_gettime is frozen. This is an instruction-scope result, not cycles/op, IPC, throughput or latency evidence. Raw step logs are removed after hashes and counts are recorded.
+These are finite serverless fixtures linked to production objects, with PAUSE and MONITOR disarmed. Armed-path behavior is covered by the correctness jobs and the requested cold-path merit cells. Counts include executed instructions, including NOPs, in the selected production namespace; fixture glue and external libraries are excluded equally and clock_gettime is frozen. This is an instruction-scope result, not cycles/op, IPC, throughput or latency evidence. Raw step logs are removed after hashes and counts are recorded.
 
 ### Arms
 
@@ -88,9 +101,9 @@ Also request these affected cold-path comparisons in both thread modes, with eac
 
 | Cell | Setup / workload | Record |
 |---|---|---|
-| Script flags | EVAL, cached EVALSHA and FCALL, plain and `no-writes`; standalone and inside EXEC; PAUSE off | Matched offered-load rate, cycles/op, instructions/op, IPC and reply latency |
-| Monitor script delivery | One draining monitor; EVAL/FCALL with one and eight nested commands; standalone and two-script EXEC | Client-command rate, monitor records delivered, cycles/op, IPC and delivery latency; require correct record count/order |
-| Client introspection | CLIENT INFO and CLIENT LIST ID/all, at 1/64/512 connections | Matched-load rate, cycles/op and latency |
+| Script flags | p1/p32; EVAL, cached EVALSHA and FCALL, plain and `no-writes`; standalone and inside EXEC; PAUSE off | Matched offered-load rate, cycles/op, instructions/op, IPC and reply latency |
+| Monitor script delivery | p1/p32; one draining monitor; EVAL/FCALL with one and eight nested commands on declared keys; standalone and two-script EXEC | Client-command rate, monitor records delivered, cycles/op, IPC and delivery latency; require correct record count/order |
+| Client introspection | p1/p32; CLIENT INFO and CLIENT LIST ID/all, at 1/64/512 connections | Matched-load rate, cycles/op and latency |
 | Close cleanup | Connect/PING/close and CLIENT KILL churn, including a postponed client | New blocked-count cleanup, unchanged connection ownership counts, and cycles per completed close |
 | Pause classification/release | Bounded PAUSE WRITE episodes with SET, PFCOUNT, PUBLISH, readonly EVAL/FCALL and mixed EXEC | Held-client count, exact release order/results, release latency and cycles per episode |
 | Reset | CLIENT SETINFO; RESET; CLIENT INFO, and MONITOR; RESET; PING | Exact replies/identity/echo behavior; cycles per complete sequence |

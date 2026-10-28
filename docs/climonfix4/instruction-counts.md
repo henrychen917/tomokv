@@ -1,6 +1,6 @@
 # Command-scope instruction counts
 
-Final POST: `ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01` (source `c369ccc41`). PRE: `393d6ceb1`. All 92 pairs have zero added instructions and equal per-function counts. These finite serverless probes are instruction evidence only; they measure neither rate nor cycles/IPC. Scope and fixture details are in the lane report.
+Final POST: `ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01` (source `c369ccc41`). PRE: `393d6ceb1`. All 92 pairs have zero added instructions and equal per-function counts. PAUSE and MONITOR are disarmed in these probes. These finite serverless probes are instruction evidence only; they measure neither rate nor cycles/IPC. Scope and fixture details are in the lane report.
 
 | Scope | Namespace | Command | Mode | Batch | Atomic | PRE | POST | Delta |
 |---|---|---|---|---:|---:|---:|---:|---:|
