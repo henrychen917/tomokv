@@ -1,0 +1,114 @@
+{
+  "final-differ-uring": {
+    "binary_sha256": "c671ede82505dda0c62da963e5230ba8aea8cd0edd08d1c5accf8948ed95ccf1",
+    "exit": 0,
+    "jobs": [
+      {
+        "job": "differ-armed-0",
+        "matrix": [
+          "DIFFER matrix: atomic={0} seeds={7 19 20 23 21} legs=235 logs=/home/user/Projects/cx-streamfix/build/gate-run.qZAR7R/jobs/differ-armed-0/differ"
+        ],
+        "suite_summary": [
+          "DIFFER GATE: pass=231 fail=0 runtime=8m50s"
+        ],
+        "failed_suites": []
+      },
+      {
+        "job": "differ-armed-1",
+        "matrix": [
+          "DIFFER matrix: atomic={1} seeds={7 19 20 23 21} legs=235 logs=/home/user/Projects/cx-streamfix/build/gate-run.qZAR7R/jobs/differ-armed-1/differ"
+        ],
+        "suite_summary": [
+          "DIFFER GATE: pass=235 fail=0 runtime=8m49s"
+        ],
+        "failed_suites": []
+      },
+      {
+        "job": "differ-equivalence",
+        "matrix": [
+          "DIFFER matrix: atomic={} seeds={7 19 20 23 21} legs=0 logs=/home/user/Projects/cx-streamfix/build/gate-run.qZAR7R/jobs/differ-equivalence/differ"
+        ],
+        "suite_summary": [
+          "DIFFER GATE: pass=1 fail=0 runtime=0m21s"
+        ],
+        "failed_suites": []
+      },
+      {
+        "job": "differ-split-0",
+        "matrix": [
+          "DIFFER matrix: atomic={0} seeds={7 19 20 23 21} legs=235 logs=/home/user/Projects/cx-streamfix/build/gate-run.qZAR7R/jobs/differ-split-0/differ"
+        ],
+        "suite_summary": [
+          "DIFFER GATE: pass=235 fail=0 runtime=9m20s"
+        ],
+        "failed_suites": []
+      },
+      {
+        "job": "differ-split-1",
+        "matrix": [
+          "DIFFER matrix: atomic={1} seeds={7 19 20 23 21} legs=235 logs=/home/user/Projects/cx-streamfix/build/gate-run.qZAR7R/jobs/differ-split-1/differ"
+        ],
+        "suite_summary": [
+          "DIFFER GATE: pass=239 fail=0 runtime=9m18s"
+        ],
+        "failed_suites": []
+      }
+    ]
+  },
+  "final-differ-epoll": {
+    "binary_sha256": "c671ede82505dda0c62da963e5230ba8aea8cd0edd08d1c5accf8948ed95ccf1",
+    "exit": 0,
+    "jobs": [
+      {
+        "job": "differ-armed-0",
+        "matrix": [
+          "DIFFER matrix: atomic={0} seeds={7 19 20 23 22} legs=235 logs=/home/user/Projects/cx-streamfix/build/gate-run.5LwlE0/jobs/differ-armed-0/differ"
+        ],
+        "suite_summary": [
+          "DIFFER GATE: pass=231 fail=0 runtime=8m45s"
+        ],
+        "failed_suites": []
+      },
+      {
+        "job": "differ-armed-1",
+        "matrix": [
+          "DIFFER matrix: atomic={1} seeds={7 19 20 23 22} legs=235 logs=/home/user/Projects/cx-streamfix/build/gate-run.5LwlE0/jobs/differ-armed-1/differ"
+        ],
+        "suite_summary": [
+          "DIFFER GATE: pass=235 fail=0 runtime=8m45s"
+        ],
+        "failed_suites": []
+      },
+      {
+        "job": "differ-equivalence",
+        "matrix": [
+          "DIFFER matrix: atomic={} seeds={7 19 20 23 22} legs=0 logs=/home/user/Projects/cx-streamfix/build/gate-run.5LwlE0/jobs/differ-equivalence/differ"
+        ],
+        "suite_summary": [
+          "DIFFER GATE: pass=1 fail=0 runtime=0m21s"
+        ],
+        "failed_suites": []
+      },
+      {
+        "job": "differ-split-0",
+        "matrix": [
+          "DIFFER matrix: atomic={0} seeds={7 19 20 23 22} legs=235 logs=/home/user/Projects/cx-streamfix/build/gate-run.5LwlE0/jobs/differ-split-0/differ"
+        ],
+        "suite_summary": [
+          "DIFFER GATE: pass=235 fail=0 runtime=9m25s"
+        ],
+        "failed_suites": []
+      },
+      {
+        "job": "differ-split-1",
+        "matrix": [
+          "DIFFER matrix: atomic={1} seeds={7 19 20 23 22} legs=235 logs=/home/user/Projects/cx-streamfix/build/gate-run.5LwlE0/jobs/differ-split-1/differ"
+        ],
+        "suite_summary": [
+          "DIFFER GATE: pass=239 fail=0 runtime=9m39s"
+        ],
+        "failed_suites": []
+      }
+    ]
+  }
+}

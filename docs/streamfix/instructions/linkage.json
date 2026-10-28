@@ -1,0 +1,2518 @@
+{
+  "pre-normal": {
+    "probe_sha256": "6fc0a87cf2f5966cf0f9ece5f3cc794858f4b40ed24ddebb2207558f6a6cf591",
+    "production_sha256": "41921f7270da1f141e0f6a85316cac965258dfad28fbeb3516d9d08607522647",
+    "production_link": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/main.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/net/tls.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/commands.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/glob.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/xshard.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/acl.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/hll.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_server.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_string.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_string_notify.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_hash.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_hash_ttl.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_list.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_set.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_zset.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_zset_ops.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/geo.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_stream.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_stream_groups.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/scripting.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/functions.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/serialize.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/snapshot/snapshot.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/persist/aof.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/climon.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/tracking.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/server_tail.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/slowlog.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/lcs.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/info_stats.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/lbsignals.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/flipctl.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/genthread.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/rl2s.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/lbstall.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/lbplanner.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/l4prebuild.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/cmdgap.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/pfdebug.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/cmdmeta.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_sort.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/multidb.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/storesize.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/multi_admin.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/reorder.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/geo_store.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/persist/aof_frame_debug.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/aclkeys.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/blocking_debug.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/objectpread.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/hexpread.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/autharity.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/fliplisten.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/shutdown.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/latency_tracking.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/version.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/main.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/net/tls.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/commands.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/glob.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/xshard.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/acl.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/hll.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_server.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_string.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_string_notify.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_hash.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_hash_ttl.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_list.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_set.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_zset.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_zset_ops.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/geo.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_stream.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_stream_groups.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/scripting.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/functions.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/serialize.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/snapshot/snapshot.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/persist/aof.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/climon.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/tracking.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/server_tail.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/slowlog.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/lcs.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/info_stats.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/lbsignals.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/flipctl.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/genthread.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/rl2s.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/lbstall.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/lbplanner.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/l4prebuild.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/cmdgap.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/pfdebug.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/cmdmeta.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_sort.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/multidb.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/storesize.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/multi_admin.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/reorder.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/geo_store.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/persist/aof_frame_debug.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/aclkeys.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/blocking_debug.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/objectpread.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/hexpread.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/autharity.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/fliplisten.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/shutdown.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/latency_tracking.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/lua_cjson.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/lua_cmsgpack.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/lua_bit.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/lua_struct.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/strbuf.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/fpconv.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/version.o",
+      "-o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+      "-Wl,--wrap=main",
+      "-ljemalloc",
+      "-luring",
+      "-pthread",
+      "-lssl",
+      "-lcrypto",
+      "-lm"
+    ],
+    "fixture_last": true,
+    "original_main": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/main.o",
+    "rename_only": [
+      "objcopy",
+      "--redefine-sym",
+      "main=execfair_original_main",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/main.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/commands/pre-normal/original-main.o"
+    ],
+    "objects": [
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/commands/pre-normal/original-main.o",
+        "sha256": "a7b7c83106977cdc0d4893a2ef061793c8ee6ddef18ac677a445fee318faf6e6"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/net/tls.o",
+        "sha256": "7b506eb87d20d5ca5178068c6e08b7732181d4b30ec9d10329b3590352a1b1a8"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/commands.o",
+        "sha256": "1d11f46d0ecb4b225afcb33c3948ccd9911e6f25a74feb2f0399b4f6eceb4005"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/glob.o",
+        "sha256": "a5d53db3a904167275d49f062c35ffc7e02d5547229e94e0b32d2303f4e3d24b"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/xshard.o",
+        "sha256": "fdf345cff44684d3357ce784eb94c2b25c9779fd41815fbfa3b15e2585c0aa64"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/acl.o",
+        "sha256": "3d5e762fc1133905eba05efa6b092759b750f3a83600efe25b2522a8c4ab8538"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/hll.o",
+        "sha256": "8c2ae38fd54de351dbea7ea7abc3416180b135c4345f85e138a8101f57a27bb3"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_server.o",
+        "sha256": "4293b0d08d0e997b9f984822160de6e123d894a0fbb50a441e8b92a50cbf1b5c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_string.o",
+        "sha256": "c94178e38b0c36106c41fb7e5d8bc304645ed8e9a672deae6486313ec50bbb8b"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_string_notify.o",
+        "sha256": "f564ed7cc285885ebe6f72381cb183e2b4ea761fbec0a11e1a7add908988fb1c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_hash.o",
+        "sha256": "e0dd4f175dd8af79cd36f943289d6f6f692a5b2d43c57421587dea74dd339905"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_hash_ttl.o",
+        "sha256": "1b8307a4d6368b007c3ee6f9ac128b79265bc0d88014b32bbc8f542b412c9ad8"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_list.o",
+        "sha256": "b8fba885ca816eb963d8ae54fc8fc746d4f922cf63a0d5d048eab67104e0befc"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_set.o",
+        "sha256": "bb2fde4b9bb779adf66485bcc308508a37b6da67694e1a51f9dbbf4938991619"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_zset.o",
+        "sha256": "8fd6a4edca76606f7b0837ea3ebd4df2ac78c56999379f171dceae5c8819c738"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_zset_ops.o",
+        "sha256": "d11c9a07db5e13688e705619ea940c373e899827ce4621411f55dccec994e97c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/geo.o",
+        "sha256": "00fe256ae4964c3f133431b31989912dcb4598ac018fc4b9eb54dfd86fcae37a"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_stream.o",
+        "sha256": "ce2ee919cde7954582fbf9be23df619cb0c443b9efd5f198f12f30d7a19e1fd4"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_stream_groups.o",
+        "sha256": "3e4be0fa6a8dc71bbd4aea813f74afdda1432f456ae907495a0cf4ab918c6b67"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/scripting.o",
+        "sha256": "be4bef89d7a95041c66246e72a837c604bb02a137229bb76f94d031ba10ddd7d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/functions.o",
+        "sha256": "96063735af7185b8b0bed71f69f65c139c490d0d48b6cc499f04b8de7429f4f5"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/serialize.o",
+        "sha256": "83b57a9d99f26e4992c0f66c3454296e90cf81e34ef569f6eae990fee581b76e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/snapshot/snapshot.o",
+        "sha256": "16cfd79dbfd2aa1a5ee14989e65bbcdfc9405f3bbfcdf56013f2b926fa53a2a2"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/persist/aof.o",
+        "sha256": "50e83ff5b70dfcd300bbff2978d629881c73da2d0cafce3b5a2af41314cf55c4"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/climon.o",
+        "sha256": "80816569280771518c69ee22f4180984fd3ad61a7139ce8be3f8de804e485564"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/tracking.o",
+        "sha256": "96b6ff1e3250ecc2f229600a5ffd2bca9ec20007e52ef0aabda49fa46058d563"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/server_tail.o",
+        "sha256": "8377f44256005e3e49e3538e89f2514fdd9597bf8a1c7157cbfdccbec60f5b9e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/slowlog.o",
+        "sha256": "a2140c273b9532e97d074d4eb549ad8de1e92847ce60c2848b3c622898142d86"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/lcs.o",
+        "sha256": "1b4690eba9cb4049e087cea55f3c3ea9fc8b9fbc2fe3672941768a6539f7759b"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/info_stats.o",
+        "sha256": "ead2afcd003d869f87d746d3420af827e9a57be31ec6368a1de51c098b4bb35c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/lbsignals.o",
+        "sha256": "59e2a77d59c2eb59acbf86326def162c7d698db502e99e0fe3d9b1c137f7a4bb"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/flipctl.o",
+        "sha256": "9839b031bc5b9cc5c035024eb0eb577175996fb78019250f2acfbe7bedd3c530"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/genthread.o",
+        "sha256": "468db4269db885911e27f8142418fa0da0dfe01181cfc8a1f1d5454628d43236"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/rl2s.o",
+        "sha256": "377a2dddf8b183748206914e22c37b8a75cd8b36c5eda90de984bccae8420d6e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/lbstall.o",
+        "sha256": "11cbbe43c2c85a1d0003e52e2912f4619f2d5e44935482fc571bdb01e9041f8e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/lbplanner.o",
+        "sha256": "4ab348e15cb5c45641d9ed58fa387de1a5854c384dc463bdb6b3c12ec3c7c2a9"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/l4prebuild.o",
+        "sha256": "09a425ab7025ae27944de9fd3d4855fb51c78845dd0fc1e8f43c58e5cd7d70f1"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/cmdgap.o",
+        "sha256": "83d655c90f9e534727a33b81a843d9026f0c3fcf206e7f0b18c5038fe5c4aef3"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/pfdebug.o",
+        "sha256": "d0d1258054f5bcfc7db0046d2976411df295cb46bc3513ee90daa8167e4f7638"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/cmdmeta.o",
+        "sha256": "76d0643150e9ece6bb962d367959add9ea8dd2d4bfa6d175f5629629b25f082a"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_sort.o",
+        "sha256": "d29d51e75ceb9f2ed3fca314cfcd61ab86df496b51d6bf8b04ee8d5fd1b6c981"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/multidb.o",
+        "sha256": "707dd49f5d39f489722c48e3fed4bcc00eb5900f6ff52a7e09e4bf28a01895f9"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/storesize.o",
+        "sha256": "2908be4079fbb35b6743a0b760c09316b42c05f3d2050d25fbb39707a3ee3af9"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/multi_admin.o",
+        "sha256": "d582afabdb53dd575b78729416def0e40c2a68a45c06830c9ebdaf3f1eec6f1d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/reorder.o",
+        "sha256": "5ca63bd37cd5a5a52b2148a564d51d6a7ed739560226a17b275c6211e887de04"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/geo_store.o",
+        "sha256": "dd35af787b93d0268d634c1d16f9b35b6a4b8aa3cab4fb095cdc0d686ac6b444"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/persist/aof_frame_debug.o",
+        "sha256": "76b1bba566f335762f3e11c83343f057cdc9c85329fdc1cb04ba9ef140880255"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/aclkeys.o",
+        "sha256": "19ecdf3939b51dfcb899797626f079d8ee267190b98c49da61eea041ac8d10f0"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/blocking_debug.o",
+        "sha256": "f85418342b1e567c2b3d89d1acc9ae7cde41ece106bbb6604a282045250d4e6e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/objectpread.o",
+        "sha256": "7e0c1aa8f599cccc2d35fc3fa4f33b8dba0ecaacd4d81edd53c5e89408f4ba3c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/hexpread.o",
+        "sha256": "b7903eab686da678037c715d88326c6ef47a3549c5f2a00580ab7212151115ef"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/autharity.o",
+        "sha256": "a921579b48b53bd384e3d58f04e1f514152fa7f9dacd4546dcc2cf9a7f913d9e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/fliplisten.o",
+        "sha256": "7a22e258a514317520db6c3922eb4b21e3a5d58cc74fda8d2676ac73da566346"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/shutdown.o",
+        "sha256": "14a8a707f383df7413486f4e98b588e6c950a5679f0263e36274964ae9ef0ce7"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/latency_tracking.o",
+        "sha256": "0f975bf262a4289c3405fd0d9e3ca3334d9d2b1ef5961096236feae4f7dd1d6e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/version.o",
+        "sha256": "878c62c655ac54d6e844701b42ea5c8c82f87633de9c8a06aef9244b5f6f2e3d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/main.o",
+        "sha256": "0a12a2b0752371c3cd6f8477c02e5699159bc976cf1d4290946d23070c54d067"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/net/tls.o",
+        "sha256": "2eda124b52e995b925538f5cdb4a02e9553f201f9d1b3cb4134ba7614b11e735"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/commands.o",
+        "sha256": "3a69333c7d54f2403017151c3f9156cfa25845ebb56d03ab6959e93520a0520e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/glob.o",
+        "sha256": "13f05cd26f2b2acf08df650accd8f9d8dcc961db411a371a41a80e8408716584"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/xshard.o",
+        "sha256": "610ab2f21dd752e0c288920a69410d5a5ef561dacc8e47735fc1ccc7eb459711"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/acl.o",
+        "sha256": "4e624cc6d4675ab5350ceb278abf84080b7000b24063e410dd78adbec37c5ba5"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/hll.o",
+        "sha256": "a19ab9a10163540007eb0b45f848de9cb65a247b382cfb430f3d5a10d7ea5978"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_server.o",
+        "sha256": "6e807d30d7a196b00cfce30324c9beaea3e20adebee10400d5596e878c4fa948"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_string.o",
+        "sha256": "19411c8c4f914a8dc9b690b56fc6524fbe94b19303ee496e2088ff2fc3079ec7"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_string_notify.o",
+        "sha256": "47de465049a07988b03362a10014eed1910af791158386ddeed89ef0c632498d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_hash.o",
+        "sha256": "6afda9b9140b7e88bb3c0af463b3cef142b6e025ec1944e69ee1f8b7c75496ef"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_hash_ttl.o",
+        "sha256": "10a0caa3c9bd065f1e9a7624def2b506521e4dc5e7d04c3b122266e7fdc65346"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_list.o",
+        "sha256": "6e173381555409dd35f579bf9a515512de64057aea27d9197c9c98e1dd7303d0"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_set.o",
+        "sha256": "aa1c1dd8c09e002488b7e99cb682406cebb9f65dd38276a1fb79760f49fae9e8"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_zset.o",
+        "sha256": "16300e9e70b65fe9c307de6e767e69251334e373e9dec466f1ffc657a87854d8"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_zset_ops.o",
+        "sha256": "3951e6652b6a98e88bc325bad398ad776c90f39040efd739cadabefa3748781a"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/geo.o",
+        "sha256": "ca32f7d19eda3b19e977d00cec623c498e11d87c12a13d211e02f6348139b148"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_stream.o",
+        "sha256": "b5410a3f611a73637ac4a7b1bd6f306e8df6e02fd75eb26e15604736541ce7d6"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_stream_groups.o",
+        "sha256": "a88f5f42c3d0b5dfee0ab1f8deea6077fad4153292eec5bb7a040593a72b99e5"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/scripting.o",
+        "sha256": "8ef3f952a45098c6ff3738588860cd89d86bd822e09c4f282126910c9205e2c4"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/functions.o",
+        "sha256": "0596751cfee33801e8864e391dd18007ffae17cb23ce6c6442596e92487dfbcf"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/serialize.o",
+        "sha256": "2bc8e1783024cc37c6e72ac568888c0df3bacc9136ceb5ee1c0c8e2bbf486a7c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/snapshot/snapshot.o",
+        "sha256": "ef210db3296128b2e390d81eca5cb602bab102d253f26e49dc962d5377ffcf72"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/persist/aof.o",
+        "sha256": "297fcc2365efdab6a720efa1a8c690acb93de108976f81b3541cf2b3db5f696a"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/climon.o",
+        "sha256": "36386b7bd81bee6035f53fb62757b0be8644a927b0c62592a78efca2984d5cc9"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/tracking.o",
+        "sha256": "bdd8931934225f591eaa1f2f0fc09e45ef9999fd3879d0d2a2cfbd2f795d1ab0"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/server_tail.o",
+        "sha256": "58302c8d6248b6d6a362ebe1fbd2166551687b2b5a047296fa9fffc512edf936"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/slowlog.o",
+        "sha256": "671c5bd88dc32fe6d33a3957206cd51cfabe7d27d222917ea2dd9220568562cd"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/lcs.o",
+        "sha256": "5dbf0305095a0db5cde581af5ccd576f509ea9ccf97194db863318c8ad570c0f"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/info_stats.o",
+        "sha256": "153f622291f099ea23e7332b1b70808516866134710834eed798fb471c917c41"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/lbsignals.o",
+        "sha256": "6ff87aac59db768611cb2d733f78811fff3f240f0b2a74bf5dc668cd15b005de"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/flipctl.o",
+        "sha256": "0c4504b37f5ba01e1b414d628e5f3a154f99be5915877ed92d4e95750f8ce534"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/genthread.o",
+        "sha256": "a866ddce21e003dfd1cbc252f2c8fccf2d5813424d64e78897e8ee7b4b5ed197"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/rl2s.o",
+        "sha256": "b8e705c5718fadaf9a6912daf210fbda2416d9ab047784d7c09c2deb500d04cd"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/lbstall.o",
+        "sha256": "b9ce747bcf129d24d5315c1136e2d4f263e163da665a097a0c10cf93a4a833a2"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/lbplanner.o",
+        "sha256": "095bac77e7309288fff09a7603b5d76dd1e4d1d2c8a1952af025993a8d5d1f1d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/l4prebuild.o",
+        "sha256": "67afd6a2d6ecb1b93f67b8595164cc2ac4ed01df38111d802fd0f51a619e90bb"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/cmdgap.o",
+        "sha256": "1ca52606d051ca4e1f2e16ba723a489fea6e9e8ecff8d27313630a254e37db2c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/pfdebug.o",
+        "sha256": "03872be56836349097bd4e26caeb871a4eae5d939766b375d1727994e15bf711"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/cmdmeta.o",
+        "sha256": "1bacfca17d3bc1406f932cc44cd4b12706ea8e1eec9a0a61626fe77e2d50b724"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_sort.o",
+        "sha256": "7901cad92d3a8fd75dcada8fdea7afd71711c116c1a946b3d8c856972d3df1dd"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/multidb.o",
+        "sha256": "1996374e71a3deeab54666a74ebe3c1f5de642c50c42857d6c0a0fe268b23e0a"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/storesize.o",
+        "sha256": "eac72a96a8ac005468a334eeeb355115c299724f733f4101849682ebad79be0c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/multi_admin.o",
+        "sha256": "d6d71bb2032d5774959b324189f20c51cb3cf70e4597da6f6aa7f5ba2519a621"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/reorder.o",
+        "sha256": "6f0d654cc9aa763442b4fa3ad6a2d714e24ee3f8a5fd96b16934aea5b0bae385"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/geo_store.o",
+        "sha256": "735f726dc1ff68b7291e5db57b9b42edbb2c142d6100e6a638d1a926bed853fa"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/persist/aof_frame_debug.o",
+        "sha256": "7913d8c6d47394b61af102b2ade6f86d0ed5cd605b94dd715ac91aa89dd59978"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/aclkeys.o",
+        "sha256": "08cb26e504bfa640b2130874496b47ac97685130baab9e6769232f5e7b5e4c7e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/blocking_debug.o",
+        "sha256": "add75314dba423cc4c1a14c2fb02688eb653940a44f0b134c13c83d79d41cbc0"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/objectpread.o",
+        "sha256": "bcbc6e16d12e4744178c826d6221607cc803f5ac9b5b08e24a5366d461295d72"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/hexpread.o",
+        "sha256": "81a7af4ea8e8b2f72d3f331d41e189efaa4617ebc2753ae6a4c4e843295988bc"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/autharity.o",
+        "sha256": "c81262f3d4e6bcef2665dafa5a1ce3eac8eedc27199141158430781c3ff173fd"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/fliplisten.o",
+        "sha256": "6cdbc9186cebb561347a3f19d86408ef22c65b616bff4623f2c9ab84ad253218"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/shutdown.o",
+        "sha256": "35cfb0a4cd608a948c45ade6cf54e19f45d67dc348f0d2b378e99194ffba52a3"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/latency_tracking.o",
+        "sha256": "c84dcbb0053b4a2ba55afa8ae99c284d143c35d7d473a86076b4c178d4c32b76"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/lua_cjson.o",
+        "sha256": "49bb14d54933e99117641133550a326300172489aaa91949c7c69ba0734c6fd1"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/lua_cmsgpack.o",
+        "sha256": "5fc5c34724404d82fc14eb7fce033fceff2376587b3cc47c7373bbf82a7409cb"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/lua_bit.o",
+        "sha256": "5ab67176f5e8451b1737b14734577e93e0a0cfdc302dea032c6761cfc495e2da"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/lua_struct.o",
+        "sha256": "58a0fef44dbaf6051708a840f17e647d047b3e1e7e4bb73e39cd0a34f1e63770"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/strbuf.o",
+        "sha256": "2ba9a67d91bdc56f62d04f22444df056ff677816a9a7a9c29d230dccbfef9933"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/fpconv.o",
+        "sha256": "9775ee1823c262c6344f4fc9ae96fa5d0c2e22c7dd5e32a114d13fc5eed8ac63"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/version.o",
+        "sha256": "b9e47dcd311c4cfb141a5576c203e3076b7f396a31091cada4b5ac87b0cb7c8b"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/commands/pre-normal/probe.o",
+        "sha256": "0d06c62178e0a76c5ddf70c0765b2652b9d76fb01a840c3358fa5f8be4c9ff43"
+      }
+    ],
+    "scope": "GDB scope_begin/scope_end in tests/txnorder_command_scope.cc; named production namespace bodies including inlines, excluding CoreConcurrencyTest fixture bodies and external callees. External-call counts retained separately. clock_gettime answers are deterministic in both arms."
+  },
+  "pre-db0": {
+    "probe_sha256": "8c696ddedd3133e6792658596030bc22b478d63b5b042cbabc2184bfb6180b56",
+    "production_sha256": "41921f7270da1f141e0f6a85316cac965258dfad28fbeb3516d9d08607522647",
+    "production_link": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/main.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/net/tls.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/commands.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/glob.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/xshard.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/acl.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/hll.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_server.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_string.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_string_notify.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_hash.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_hash_ttl.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_list.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_set.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_zset.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_zset_ops.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/geo.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_stream.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_stream_groups.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/scripting.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/functions.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/serialize.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/snapshot/snapshot.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/persist/aof.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/climon.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/tracking.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/server_tail.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/slowlog.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/lcs.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/info_stats.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/lbsignals.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/flipctl.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/genthread.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/rl2s.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/lbstall.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/lbplanner.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/l4prebuild.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/cmdgap.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/pfdebug.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/cmdmeta.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_sort.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/multidb.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/storesize.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/multi_admin.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/reorder.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/geo_store.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/persist/aof_frame_debug.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/aclkeys.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/blocking_debug.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/objectpread.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/hexpread.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/autharity.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/fliplisten.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/shutdown.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/latency_tracking.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/version.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/main.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/net/tls.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/commands.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/glob.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/xshard.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/acl.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/hll.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_server.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_string.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_string_notify.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_hash.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_hash_ttl.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_list.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_set.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_zset.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_zset_ops.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/geo.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_stream.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_stream_groups.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/scripting.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/functions.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/serialize.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/snapshot/snapshot.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/persist/aof.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/climon.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/tracking.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/server_tail.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/slowlog.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/lcs.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/info_stats.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/lbsignals.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/flipctl.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/genthread.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/rl2s.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/lbstall.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/lbplanner.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/l4prebuild.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/cmdgap.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/pfdebug.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/cmdmeta.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_sort.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/multidb.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/storesize.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/multi_admin.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/reorder.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/geo_store.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/persist/aof_frame_debug.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/aclkeys.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/blocking_debug.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/objectpread.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/hexpread.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/autharity.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/fliplisten.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/shutdown.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/latency_tracking.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/lua_cjson.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/lua_cmsgpack.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/lua_bit.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/lua_struct.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/strbuf.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/fpconv.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/version.o",
+      "-o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+      "-Wl,--wrap=main",
+      "-ljemalloc",
+      "-luring",
+      "-pthread",
+      "-lssl",
+      "-lcrypto",
+      "-lm"
+    ],
+    "fixture_last": true,
+    "original_main": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/main.o",
+    "rename_only": [
+      "objcopy",
+      "--redefine-sym",
+      "main=execfair_original_main",
+      "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/main.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/commands/pre-db0/original-main.o"
+    ],
+    "objects": [
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/commands/pre-db0/original-main.o",
+        "sha256": "a7b7c83106977cdc0d4893a2ef061793c8ee6ddef18ac677a445fee318faf6e6"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/net/tls.o",
+        "sha256": "7b506eb87d20d5ca5178068c6e08b7732181d4b30ec9d10329b3590352a1b1a8"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/commands.o",
+        "sha256": "1d11f46d0ecb4b225afcb33c3948ccd9911e6f25a74feb2f0399b4f6eceb4005"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/glob.o",
+        "sha256": "a5d53db3a904167275d49f062c35ffc7e02d5547229e94e0b32d2303f4e3d24b"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/xshard.o",
+        "sha256": "fdf345cff44684d3357ce784eb94c2b25c9779fd41815fbfa3b15e2585c0aa64"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/acl.o",
+        "sha256": "3d5e762fc1133905eba05efa6b092759b750f3a83600efe25b2522a8c4ab8538"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/hll.o",
+        "sha256": "8c2ae38fd54de351dbea7ea7abc3416180b135c4345f85e138a8101f57a27bb3"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_server.o",
+        "sha256": "4293b0d08d0e997b9f984822160de6e123d894a0fbb50a441e8b92a50cbf1b5c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_string.o",
+        "sha256": "c94178e38b0c36106c41fb7e5d8bc304645ed8e9a672deae6486313ec50bbb8b"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_string_notify.o",
+        "sha256": "f564ed7cc285885ebe6f72381cb183e2b4ea761fbec0a11e1a7add908988fb1c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_hash.o",
+        "sha256": "e0dd4f175dd8af79cd36f943289d6f6f692a5b2d43c57421587dea74dd339905"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_hash_ttl.o",
+        "sha256": "1b8307a4d6368b007c3ee6f9ac128b79265bc0d88014b32bbc8f542b412c9ad8"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_list.o",
+        "sha256": "b8fba885ca816eb963d8ae54fc8fc746d4f922cf63a0d5d048eab67104e0befc"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_set.o",
+        "sha256": "bb2fde4b9bb779adf66485bcc308508a37b6da67694e1a51f9dbbf4938991619"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_zset.o",
+        "sha256": "8fd6a4edca76606f7b0837ea3ebd4df2ac78c56999379f171dceae5c8819c738"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_zset_ops.o",
+        "sha256": "d11c9a07db5e13688e705619ea940c373e899827ce4621411f55dccec994e97c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/geo.o",
+        "sha256": "00fe256ae4964c3f133431b31989912dcb4598ac018fc4b9eb54dfd86fcae37a"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_stream.o",
+        "sha256": "ce2ee919cde7954582fbf9be23df619cb0c443b9efd5f198f12f30d7a19e1fd4"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_stream_groups.o",
+        "sha256": "3e4be0fa6a8dc71bbd4aea813f74afdda1432f456ae907495a0cf4ab918c6b67"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/scripting.o",
+        "sha256": "be4bef89d7a95041c66246e72a837c604bb02a137229bb76f94d031ba10ddd7d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/functions.o",
+        "sha256": "96063735af7185b8b0bed71f69f65c139c490d0d48b6cc499f04b8de7429f4f5"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/serialize.o",
+        "sha256": "83b57a9d99f26e4992c0f66c3454296e90cf81e34ef569f6eae990fee581b76e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/snapshot/snapshot.o",
+        "sha256": "16cfd79dbfd2aa1a5ee14989e65bbcdfc9405f3bbfcdf56013f2b926fa53a2a2"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/persist/aof.o",
+        "sha256": "50e83ff5b70dfcd300bbff2978d629881c73da2d0cafce3b5a2af41314cf55c4"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/climon.o",
+        "sha256": "80816569280771518c69ee22f4180984fd3ad61a7139ce8be3f8de804e485564"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/tracking.o",
+        "sha256": "96b6ff1e3250ecc2f229600a5ffd2bca9ec20007e52ef0aabda49fa46058d563"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/server_tail.o",
+        "sha256": "8377f44256005e3e49e3538e89f2514fdd9597bf8a1c7157cbfdccbec60f5b9e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/slowlog.o",
+        "sha256": "a2140c273b9532e97d074d4eb549ad8de1e92847ce60c2848b3c622898142d86"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/lcs.o",
+        "sha256": "1b4690eba9cb4049e087cea55f3c3ea9fc8b9fbc2fe3672941768a6539f7759b"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/info_stats.o",
+        "sha256": "ead2afcd003d869f87d746d3420af827e9a57be31ec6368a1de51c098b4bb35c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/lbsignals.o",
+        "sha256": "59e2a77d59c2eb59acbf86326def162c7d698db502e99e0fe3d9b1c137f7a4bb"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/flipctl.o",
+        "sha256": "9839b031bc5b9cc5c035024eb0eb577175996fb78019250f2acfbe7bedd3c530"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/genthread.o",
+        "sha256": "468db4269db885911e27f8142418fa0da0dfe01181cfc8a1f1d5454628d43236"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/rl2s.o",
+        "sha256": "377a2dddf8b183748206914e22c37b8a75cd8b36c5eda90de984bccae8420d6e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/lbstall.o",
+        "sha256": "11cbbe43c2c85a1d0003e52e2912f4619f2d5e44935482fc571bdb01e9041f8e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/lbplanner.o",
+        "sha256": "4ab348e15cb5c45641d9ed58fa387de1a5854c384dc463bdb6b3c12ec3c7c2a9"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/l4prebuild.o",
+        "sha256": "09a425ab7025ae27944de9fd3d4855fb51c78845dd0fc1e8f43c58e5cd7d70f1"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/cmdgap.o",
+        "sha256": "83d655c90f9e534727a33b81a843d9026f0c3fcf206e7f0b18c5038fe5c4aef3"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/pfdebug.o",
+        "sha256": "d0d1258054f5bcfc7db0046d2976411df295cb46bc3513ee90daa8167e4f7638"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/cmdmeta.o",
+        "sha256": "76d0643150e9ece6bb962d367959add9ea8dd2d4bfa6d175f5629629b25f082a"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/t_sort.o",
+        "sha256": "d29d51e75ceb9f2ed3fca314cfcd61ab86df496b51d6bf8b04ee8d5fd1b6c981"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/multidb.o",
+        "sha256": "707dd49f5d39f489722c48e3fed4bcc00eb5900f6ff52a7e09e4bf28a01895f9"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/storesize.o",
+        "sha256": "2908be4079fbb35b6743a0b760c09316b42c05f3d2050d25fbb39707a3ee3af9"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/multi_admin.o",
+        "sha256": "d582afabdb53dd575b78729416def0e40c2a68a45c06830c9ebdaf3f1eec6f1d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/reorder.o",
+        "sha256": "5ca63bd37cd5a5a52b2148a564d51d6a7ed739560226a17b275c6211e887de04"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/geo_store.o",
+        "sha256": "dd35af787b93d0268d634c1d16f9b35b6a4b8aa3cab4fb095cdc0d686ac6b444"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/persist/aof_frame_debug.o",
+        "sha256": "76b1bba566f335762f3e11c83343f057cdc9c85329fdc1cb04ba9ef140880255"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/aclkeys.o",
+        "sha256": "19ecdf3939b51dfcb899797626f079d8ee267190b98c49da61eea041ac8d10f0"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/blocking_debug.o",
+        "sha256": "f85418342b1e567c2b3d89d1acc9ae7cde41ece106bbb6604a282045250d4e6e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/objectpread.o",
+        "sha256": "7e0c1aa8f599cccc2d35fc3fa4f33b8dba0ecaacd4d81edd53c5e89408f4ba3c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/hexpread.o",
+        "sha256": "b7903eab686da678037c715d88326c6ef47a3549c5f2a00580ab7212151115ef"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/autharity.o",
+        "sha256": "a921579b48b53bd384e3d58f04e1f514152fa7f9dacd4546dcc2cf9a7f913d9e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/fliplisten.o",
+        "sha256": "7a22e258a514317520db6c3922eb4b21e3a5d58cc74fda8d2676ac73da566346"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/shutdown.o",
+        "sha256": "14a8a707f383df7413486f4e98b588e6c950a5679f0263e36274964ae9ef0ce7"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/cmd/latency_tracking.o",
+        "sha256": "0f975bf262a4289c3405fd0d9e3ca3334d9d2b1ef5961096236feae4f7dd1d6e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/db0/src/core/version.o",
+        "sha256": "878c62c655ac54d6e844701b42ea5c8c82f87633de9c8a06aef9244b5f6f2e3d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/main.o",
+        "sha256": "0a12a2b0752371c3cd6f8477c02e5699159bc976cf1d4290946d23070c54d067"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/net/tls.o",
+        "sha256": "2eda124b52e995b925538f5cdb4a02e9553f201f9d1b3cb4134ba7614b11e735"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/commands.o",
+        "sha256": "3a69333c7d54f2403017151c3f9156cfa25845ebb56d03ab6959e93520a0520e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/glob.o",
+        "sha256": "13f05cd26f2b2acf08df650accd8f9d8dcc961db411a371a41a80e8408716584"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/xshard.o",
+        "sha256": "610ab2f21dd752e0c288920a69410d5a5ef561dacc8e47735fc1ccc7eb459711"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/acl.o",
+        "sha256": "4e624cc6d4675ab5350ceb278abf84080b7000b24063e410dd78adbec37c5ba5"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/hll.o",
+        "sha256": "a19ab9a10163540007eb0b45f848de9cb65a247b382cfb430f3d5a10d7ea5978"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_server.o",
+        "sha256": "6e807d30d7a196b00cfce30324c9beaea3e20adebee10400d5596e878c4fa948"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_string.o",
+        "sha256": "19411c8c4f914a8dc9b690b56fc6524fbe94b19303ee496e2088ff2fc3079ec7"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_string_notify.o",
+        "sha256": "47de465049a07988b03362a10014eed1910af791158386ddeed89ef0c632498d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_hash.o",
+        "sha256": "6afda9b9140b7e88bb3c0af463b3cef142b6e025ec1944e69ee1f8b7c75496ef"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_hash_ttl.o",
+        "sha256": "10a0caa3c9bd065f1e9a7624def2b506521e4dc5e7d04c3b122266e7fdc65346"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_list.o",
+        "sha256": "6e173381555409dd35f579bf9a515512de64057aea27d9197c9c98e1dd7303d0"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_set.o",
+        "sha256": "aa1c1dd8c09e002488b7e99cb682406cebb9f65dd38276a1fb79760f49fae9e8"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_zset.o",
+        "sha256": "16300e9e70b65fe9c307de6e767e69251334e373e9dec466f1ffc657a87854d8"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_zset_ops.o",
+        "sha256": "3951e6652b6a98e88bc325bad398ad776c90f39040efd739cadabefa3748781a"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/geo.o",
+        "sha256": "ca32f7d19eda3b19e977d00cec623c498e11d87c12a13d211e02f6348139b148"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_stream.o",
+        "sha256": "b5410a3f611a73637ac4a7b1bd6f306e8df6e02fd75eb26e15604736541ce7d6"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_stream_groups.o",
+        "sha256": "a88f5f42c3d0b5dfee0ab1f8deea6077fad4153292eec5bb7a040593a72b99e5"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/scripting.o",
+        "sha256": "8ef3f952a45098c6ff3738588860cd89d86bd822e09c4f282126910c9205e2c4"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/functions.o",
+        "sha256": "0596751cfee33801e8864e391dd18007ffae17cb23ce6c6442596e92487dfbcf"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/serialize.o",
+        "sha256": "2bc8e1783024cc37c6e72ac568888c0df3bacc9136ceb5ee1c0c8e2bbf486a7c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/snapshot/snapshot.o",
+        "sha256": "ef210db3296128b2e390d81eca5cb602bab102d253f26e49dc962d5377ffcf72"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/persist/aof.o",
+        "sha256": "297fcc2365efdab6a720efa1a8c690acb93de108976f81b3541cf2b3db5f696a"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/climon.o",
+        "sha256": "36386b7bd81bee6035f53fb62757b0be8644a927b0c62592a78efca2984d5cc9"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/tracking.o",
+        "sha256": "bdd8931934225f591eaa1f2f0fc09e45ef9999fd3879d0d2a2cfbd2f795d1ab0"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/server_tail.o",
+        "sha256": "58302c8d6248b6d6a362ebe1fbd2166551687b2b5a047296fa9fffc512edf936"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/slowlog.o",
+        "sha256": "671c5bd88dc32fe6d33a3957206cd51cfabe7d27d222917ea2dd9220568562cd"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/lcs.o",
+        "sha256": "5dbf0305095a0db5cde581af5ccd576f509ea9ccf97194db863318c8ad570c0f"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/info_stats.o",
+        "sha256": "153f622291f099ea23e7332b1b70808516866134710834eed798fb471c917c41"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/lbsignals.o",
+        "sha256": "6ff87aac59db768611cb2d733f78811fff3f240f0b2a74bf5dc668cd15b005de"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/flipctl.o",
+        "sha256": "0c4504b37f5ba01e1b414d628e5f3a154f99be5915877ed92d4e95750f8ce534"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/genthread.o",
+        "sha256": "a866ddce21e003dfd1cbc252f2c8fccf2d5813424d64e78897e8ee7b4b5ed197"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/rl2s.o",
+        "sha256": "b8e705c5718fadaf9a6912daf210fbda2416d9ab047784d7c09c2deb500d04cd"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/lbstall.o",
+        "sha256": "b9ce747bcf129d24d5315c1136e2d4f263e163da665a097a0c10cf93a4a833a2"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/lbplanner.o",
+        "sha256": "095bac77e7309288fff09a7603b5d76dd1e4d1d2c8a1952af025993a8d5d1f1d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/l4prebuild.o",
+        "sha256": "67afd6a2d6ecb1b93f67b8595164cc2ac4ed01df38111d802fd0f51a619e90bb"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/cmdgap.o",
+        "sha256": "1ca52606d051ca4e1f2e16ba723a489fea6e9e8ecff8d27313630a254e37db2c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/pfdebug.o",
+        "sha256": "03872be56836349097bd4e26caeb871a4eae5d939766b375d1727994e15bf711"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/cmdmeta.o",
+        "sha256": "1bacfca17d3bc1406f932cc44cd4b12706ea8e1eec9a0a61626fe77e2d50b724"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/t_sort.o",
+        "sha256": "7901cad92d3a8fd75dcada8fdea7afd71711c116c1a946b3d8c856972d3df1dd"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/multidb.o",
+        "sha256": "1996374e71a3deeab54666a74ebe3c1f5de642c50c42857d6c0a0fe268b23e0a"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/storesize.o",
+        "sha256": "eac72a96a8ac005468a334eeeb355115c299724f733f4101849682ebad79be0c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/multi_admin.o",
+        "sha256": "d6d71bb2032d5774959b324189f20c51cb3cf70e4597da6f6aa7f5ba2519a621"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/reorder.o",
+        "sha256": "6f0d654cc9aa763442b4fa3ad6a2d714e24ee3f8a5fd96b16934aea5b0bae385"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/geo_store.o",
+        "sha256": "735f726dc1ff68b7291e5db57b9b42edbb2c142d6100e6a638d1a926bed853fa"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/persist/aof_frame_debug.o",
+        "sha256": "7913d8c6d47394b61af102b2ade6f86d0ed5cd605b94dd715ac91aa89dd59978"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/aclkeys.o",
+        "sha256": "08cb26e504bfa640b2130874496b47ac97685130baab9e6769232f5e7b5e4c7e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/blocking_debug.o",
+        "sha256": "add75314dba423cc4c1a14c2fb02688eb653940a44f0b134c13c83d79d41cbc0"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/objectpread.o",
+        "sha256": "bcbc6e16d12e4744178c826d6221607cc803f5ac9b5b08e24a5366d461295d72"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/hexpread.o",
+        "sha256": "81a7af4ea8e8b2f72d3f331d41e189efaa4617ebc2753ae6a4c4e843295988bc"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/autharity.o",
+        "sha256": "c81262f3d4e6bcef2665dafa5a1ce3eac8eedc27199141158430781c3ff173fd"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/fliplisten.o",
+        "sha256": "6cdbc9186cebb561347a3f19d86408ef22c65b616bff4623f2c9ab84ad253218"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/shutdown.o",
+        "sha256": "35cfb0a4cd608a948c45ade6cf54e19f45d67dc348f0d2b378e99194ffba52a3"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/cmd/latency_tracking.o",
+        "sha256": "c84dcbb0053b4a2ba55afa8ae99c284d143c35d7d473a86076b4c178d4c32b76"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/lua_cjson.o",
+        "sha256": "49bb14d54933e99117641133550a326300172489aaa91949c7c69ba0734c6fd1"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/lua_cmsgpack.o",
+        "sha256": "5fc5c34724404d82fc14eb7fce033fceff2376587b3cc47c7373bbf82a7409cb"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/lua_bit.o",
+        "sha256": "5ab67176f5e8451b1737b14734577e93e0a0cfdc302dea032c6761cfc495e2da"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/lua_struct.o",
+        "sha256": "58a0fef44dbaf6051708a840f17e647d047b3e1e7e4bb73e39cd0a34f1e63770"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/strbuf.o",
+        "sha256": "2ba9a67d91bdc56f62d04f22444df056ff677816a9a7a9c29d230dccbfef9933"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/third_party/lua/helpers/fpconv.o",
+        "sha256": "9775ee1823c262c6344f4fc9ae96fa5d0c2e22c7dd5e32a114d13fc5eed8ac63"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/pre/src/core/version.o",
+        "sha256": "b9e47dcd311c4cfb141a5576c203e3076b7f396a31091cada4b5ac87b0cb7c8b"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/commands/pre-db0/probe.o",
+        "sha256": "123bce1c059904b9c31f2e103548beb9491fc0ce2e0e070aa12781302ada77fd"
+      }
+    ],
+    "scope": "GDB scope_begin/scope_end in tests/txnorder_command_scope.cc; named production namespace bodies including inlines, excluding CoreConcurrencyTest fixture bodies and external callees. External-call counts retained separately. clock_gettime answers are deterministic in both arms."
+  },
+  "post-normal": {
+    "probe_sha256": "6f24522e83603b47d8994730f0516635787aa6aac6db88173885e6888e601865",
+    "production_sha256": "c671ede82505dda0c62da963e5230ba8aea8cd0edd08d1c5accf8948ed95ccf1",
+    "production_link": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "/home/user/Projects/cx-streamfix/build/db0/src/main.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/net/tls.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/commands.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/glob.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/xshard.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/acl.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/hll.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_server.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_string.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_string_notify.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_hash.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_hash_ttl.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_list.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_set.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_zset.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_zset_ops.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/geo.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_stream.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_stream_groups.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/scripting.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/functions.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/serialize.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/snapshot/snapshot.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/persist/aof.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/climon.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/tracking.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/server_tail.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/slowlog.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/lcs.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/info_stats.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/lbsignals.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/core/flipctl.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/core/genthread.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/core/rl2s.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/core/lbstall.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/core/lbplanner.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/l4prebuild.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/cmdgap.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/pfdebug.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/cmdmeta.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_sort.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/multidb.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/storesize.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/multi_admin.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/core/reorder.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/geo_store.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/persist/aof_frame_debug.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/aclkeys.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/blocking_debug.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/objectpread.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/hexpread.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/autharity.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/core/fliplisten.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/core/shutdown.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/latency_tracking.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/core/version.o",
+      "/home/user/Projects/cx-streamfix/build/src/main.o",
+      "/home/user/Projects/cx-streamfix/build/src/net/tls.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/commands.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/glob.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/xshard.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/acl.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/hll.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_server.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_string.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_string_notify.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_hash.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_hash_ttl.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_list.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_set.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_zset.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_zset_ops.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/geo.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_stream.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_stream_groups.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/scripting.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/functions.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/serialize.o",
+      "/home/user/Projects/cx-streamfix/build/src/snapshot/snapshot.o",
+      "/home/user/Projects/cx-streamfix/build/src/persist/aof.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/climon.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/tracking.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/server_tail.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/slowlog.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/lcs.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/info_stats.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/lbsignals.o",
+      "/home/user/Projects/cx-streamfix/build/src/core/flipctl.o",
+      "/home/user/Projects/cx-streamfix/build/src/core/genthread.o",
+      "/home/user/Projects/cx-streamfix/build/src/core/rl2s.o",
+      "/home/user/Projects/cx-streamfix/build/src/core/lbstall.o",
+      "/home/user/Projects/cx-streamfix/build/src/core/lbplanner.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/l4prebuild.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/cmdgap.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/pfdebug.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/cmdmeta.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_sort.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/multidb.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/storesize.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/multi_admin.o",
+      "/home/user/Projects/cx-streamfix/build/src/core/reorder.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/geo_store.o",
+      "/home/user/Projects/cx-streamfix/build/src/persist/aof_frame_debug.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/aclkeys.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/blocking_debug.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/objectpread.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/hexpread.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/autharity.o",
+      "/home/user/Projects/cx-streamfix/build/src/core/fliplisten.o",
+      "/home/user/Projects/cx-streamfix/build/src/core/shutdown.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/latency_tracking.o",
+      "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/lua_cjson.o",
+      "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/lua_cmsgpack.o",
+      "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/lua_bit.o",
+      "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/lua_struct.o",
+      "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/strbuf.o",
+      "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/fpconv.o",
+      "/home/user/Projects/cx-streamfix/build/src/core/version.o",
+      "-o",
+      "/home/user/Projects/cx-streamfix/build/tomokv",
+      "-Wl,--wrap=main",
+      "-ljemalloc",
+      "-luring",
+      "-pthread",
+      "-lssl",
+      "-lcrypto",
+      "-lm"
+    ],
+    "fixture_last": true,
+    "original_main": "/home/user/Projects/cx-streamfix/build/db0/src/main.o",
+    "rename_only": [
+      "objcopy",
+      "--redefine-sym",
+      "main=execfair_original_main",
+      "/home/user/Projects/cx-streamfix/build/db0/src/main.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/commands/post-normal/original-main.o"
+    ],
+    "objects": [
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/commands/post-normal/original-main.o",
+        "sha256": "1c7b24a5bac2d569f6d76d6df080451c0e3dd95b1ece25d478f73f7ad0d74561"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/net/tls.o",
+        "sha256": "7b506eb87d20d5ca5178068c6e08b7732181d4b30ec9d10329b3590352a1b1a8"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/commands.o",
+        "sha256": "1d11f46d0ecb4b225afcb33c3948ccd9911e6f25a74feb2f0399b4f6eceb4005"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/glob.o",
+        "sha256": "a5d53db3a904167275d49f062c35ffc7e02d5547229e94e0b32d2303f4e3d24b"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/xshard.o",
+        "sha256": "63965720fecc2d424f4c7449061272d4f2c608bac482c3ae293ef9341c9594bc"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/acl.o",
+        "sha256": "62bbf096e3caafe581bc57a3efc862ceabdd63af8e56e2e0ccd392558dd4d7d3"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/hll.o",
+        "sha256": "8c2ae38fd54de351dbea7ea7abc3416180b135c4345f85e138a8101f57a27bb3"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_server.o",
+        "sha256": "dc7e25f857580beff0c98dc3398be34c4da518f3b7b4c8889376cc545c6bec4d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_string.o",
+        "sha256": "ddb8c12fc2d4d911bb71898e22ce10c754f04b1422f2e3ab86e6714236031972"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_string_notify.o",
+        "sha256": "5fcabd986620a37505e45fc3e5ef8901a659fade219725cbe46e24031a9b4dd3"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_hash.o",
+        "sha256": "7d1cdb71c082941797b6bc145d7dedb45a75f7a80ef5196a7829c022ab89ce7b"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_hash_ttl.o",
+        "sha256": "a6f63f7388509cb5e437f22c9a1c49cecfa12c9b7659188117ebdb005e8a895f"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_list.o",
+        "sha256": "50e5f1495b174e469e2803b7567a83dfbc10d84d6dca5ff0ec13019bc98dda9d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_set.o",
+        "sha256": "840e544f5c4bcf293a2c58647a202fcf4e012452dc377fd0e2a61cfa98e434cc"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_zset.o",
+        "sha256": "7221ed26262a00c0ceeeb31f53fb8389b1a7d0d045ffbf718358bcca06145dcb"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_zset_ops.o",
+        "sha256": "d11c9a07db5e13688e705619ea940c373e899827ce4621411f55dccec994e97c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/geo.o",
+        "sha256": "3884f29f6000d6ba5b20ff73d2d1774c06b5e16920bce8046170972ab5a6345c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_stream.o",
+        "sha256": "d4fa67c404bf9a1a8a914ec8555df0f29dfca7bb4a4eb4943221f787f334645f"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_stream_groups.o",
+        "sha256": "541dc771521fe559f7e37eff17abaf8ac39bd4c35d43f961b30752c4fadd1ae5"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/scripting.o",
+        "sha256": "48583b10c88dfc7b8dc9566c38fdf88cb2d3046cd843d117f6bad9fa36f88c65"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/functions.o",
+        "sha256": "fdbe2e268cb4137cb435e125fa2129dd8c606b9b615cad6f41bfec4d4bcea3ea"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/serialize.o",
+        "sha256": "c52114dc885ddaf03efa1853d0e99b740c8fe2c052abd86818b54cc943a2ca82"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/snapshot/snapshot.o",
+        "sha256": "6199d05445127b57e3be7a3c8fc3fcba5c2f6ae0051e0fff3f51119c070fcf8f"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/persist/aof.o",
+        "sha256": "47852dc329390b66121475bea13e2e74c9c6015214d86882da8ad2b5f5328744"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/climon.o",
+        "sha256": "8a38cced870a611d839987f57117ced7b7fd42a0fdf7c13f3a6907fbc817479f"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/tracking.o",
+        "sha256": "0d84eb9e2eb2a1bca1151f88dec5542f723bdd46e314e30d537f544620a2a9e6"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/server_tail.o",
+        "sha256": "1b805d480e73f53ef8113496955d0c65ab93386bee89e8be4ca748585a2632e9"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/slowlog.o",
+        "sha256": "b5f0227343093eec83c48205bd92044b03015dce57adb25bf7c0ecb7891549ce"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/lcs.o",
+        "sha256": "1b4690eba9cb4049e087cea55f3c3ea9fc8b9fbc2fe3672941768a6539f7759b"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/info_stats.o",
+        "sha256": "ead2afcd003d869f87d746d3420af827e9a57be31ec6368a1de51c098b4bb35c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/lbsignals.o",
+        "sha256": "59e2a77d59c2eb59acbf86326def162c7d698db502e99e0fe3d9b1c137f7a4bb"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/core/flipctl.o",
+        "sha256": "9839b031bc5b9cc5c035024eb0eb577175996fb78019250f2acfbe7bedd3c530"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/core/genthread.o",
+        "sha256": "9f6c7daa2fc9ed69123e74027c0882e1994858af5ff31483f1b1e8a455d3353b"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/core/rl2s.o",
+        "sha256": "ebe16023dbe289095f66e051839eb6e15ed738c05104a8e7718eaa68fbb671d9"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/core/lbstall.o",
+        "sha256": "11cbbe43c2c85a1d0003e52e2912f4619f2d5e44935482fc571bdb01e9041f8e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/core/lbplanner.o",
+        "sha256": "4ab348e15cb5c45641d9ed58fa387de1a5854c384dc463bdb6b3c12ec3c7c2a9"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/l4prebuild.o",
+        "sha256": "0039c6ed83d01caf94c972f1048f1c439cac8648944c63ce656c6b95d88eb349"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/cmdgap.o",
+        "sha256": "83d655c90f9e534727a33b81a843d9026f0c3fcf206e7f0b18c5038fe5c4aef3"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/pfdebug.o",
+        "sha256": "2fad2fbeff9c8261a27e64eeb3cfff2267dd1f034d4ba1709d43e518f92b7562"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/cmdmeta.o",
+        "sha256": "76d0643150e9ece6bb962d367959add9ea8dd2d4bfa6d175f5629629b25f082a"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_sort.o",
+        "sha256": "d29d51e75ceb9f2ed3fca314cfcd61ab86df496b51d6bf8b04ee8d5fd1b6c981"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/multidb.o",
+        "sha256": "dc5489faae6b945da3d9f24b9c29721d9fdc73abb49244db112bbc25a9f675f2"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/storesize.o",
+        "sha256": "2908be4079fbb35b6743a0b760c09316b42c05f3d2050d25fbb39707a3ee3af9"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/multi_admin.o",
+        "sha256": "d582afabdb53dd575b78729416def0e40c2a68a45c06830c9ebdaf3f1eec6f1d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/core/reorder.o",
+        "sha256": "8db0464c20c82f50303ddc48d83b01d006ca5cf28005413f2bc5de404db9d078"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/geo_store.o",
+        "sha256": "dd35af787b93d0268d634c1d16f9b35b6a4b8aa3cab4fb095cdc0d686ac6b444"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/persist/aof_frame_debug.o",
+        "sha256": "76b1bba566f335762f3e11c83343f057cdc9c85329fdc1cb04ba9ef140880255"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/aclkeys.o",
+        "sha256": "19ecdf3939b51dfcb899797626f079d8ee267190b98c49da61eea041ac8d10f0"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/blocking_debug.o",
+        "sha256": "f85418342b1e567c2b3d89d1acc9ae7cde41ece106bbb6604a282045250d4e6e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/objectpread.o",
+        "sha256": "f7eb6371008fc34750d9b771eb1a6b8482fb9ab1e64514355568a5b69bcabdf2"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/hexpread.o",
+        "sha256": "b7903eab686da678037c715d88326c6ef47a3549c5f2a00580ab7212151115ef"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/autharity.o",
+        "sha256": "a921579b48b53bd384e3d58f04e1f514152fa7f9dacd4546dcc2cf9a7f913d9e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/core/fliplisten.o",
+        "sha256": "cd732336f1c3950017a95a341c7a91517de1df4b7c96fee4e420f529a84d2686"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/core/shutdown.o",
+        "sha256": "6b6a0024d5650836373b5c025c4f179b9ba611f3cbd2110d03f7b7dca5e1039d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/latency_tracking.o",
+        "sha256": "97365317024b2d68f4c5ee8337765d77b7167260264a0b2f38a3c77c088cd2c1"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/core/version.o",
+        "sha256": "878c62c655ac54d6e844701b42ea5c8c82f87633de9c8a06aef9244b5f6f2e3d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/main.o",
+        "sha256": "01f2464db021c243119058387029e081ac0ba94bf1c173446cb7801e6f79ef35"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/net/tls.o",
+        "sha256": "c526a5e475d6f0ed8d4b24c3c1ac935cc1dc054dfe0d848451633d62ce5d14ab"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/commands.o",
+        "sha256": "3a69333c7d54f2403017151c3f9156cfa25845ebb56d03ab6959e93520a0520e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/glob.o",
+        "sha256": "13f05cd26f2b2acf08df650accd8f9d8dcc961db411a371a41a80e8408716584"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/xshard.o",
+        "sha256": "7f11fe7b7ca9a79242625692c3124bcff634bcaa7be94b9d75104354a676f40a"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/acl.o",
+        "sha256": "8b7cb35a2ccaeb8d8aa57744a9bf06cead5cccec2bb36eb24956d93db2e03010"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/hll.o",
+        "sha256": "a19ab9a10163540007eb0b45f848de9cb65a247b382cfb430f3d5a10d7ea5978"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_server.o",
+        "sha256": "c0b74973719d36a43e2552e9b9aa5159ac378e6250c1bb5e68c398eb2d2b99fc"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_string.o",
+        "sha256": "7265e7fd520eab521d7272371469a3b4aa5d11c0d4446a30d1587b7a24e52fbe"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_string_notify.o",
+        "sha256": "fd353943fd1ee00610b612bdb4ebd31c5fdfacf2c4a00cbacccd0d89d3e9f6c0"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_hash.o",
+        "sha256": "1d5777006d9799ecb3347ccf0f965888e3763ba99c4757da349293d265713dce"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_hash_ttl.o",
+        "sha256": "91f034aca1b48d818165f3e00c32d758af7485da748a82be8e0a189c1198c8ae"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_list.o",
+        "sha256": "408b5eb7e36dfe091c622f569e818b4968ef05453d2a5b9da2600e9be1656550"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_set.o",
+        "sha256": "98b0e499da56da93448cd7c5c0108791e7aeda7b061ff24b09134bb0b0dd060b"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_zset.o",
+        "sha256": "849c0948c16d613b44f9f926f4e1aa3216e936ed347ecb1d6ff391a485da2f48"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_zset_ops.o",
+        "sha256": "3951e6652b6a98e88bc325bad398ad776c90f39040efd739cadabefa3748781a"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/geo.o",
+        "sha256": "9880503c8179ad0869acd5a07e5ae57b6cc3abf62e4ba03058ebfa84003d135c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_stream.o",
+        "sha256": "ebd33450fe75cf2546d521d287007c8d0095c7ea226c2cb3b443f1bec1e74a14"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_stream_groups.o",
+        "sha256": "b0d2de5cc2b03eb92ffb1d442d988f58276f48062e707acdf96333cc09396aa2"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/scripting.o",
+        "sha256": "8b815b2df43ca213cda677be817172829b84e18e03fad2d678c6b36b60aeee95"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/functions.o",
+        "sha256": "ff677f9b968dd527287a8228334034977b414143a7d55f7c9ef094632e883512"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/serialize.o",
+        "sha256": "89b454dc90383b26f4ccc11638418966ff5f73da5794687115a0a13dd887828a"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/snapshot/snapshot.o",
+        "sha256": "c330b8a737e05d29d4bf32619ae16a3b75771d615cbeca5c42333ba6f246f8df"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/persist/aof.o",
+        "sha256": "0bfbc54632edb43e7f6037ec86cef85f468798de6e303623751fcab1599a2337"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/climon.o",
+        "sha256": "ea8e342e82004ce121e80bbb6a36a9ac187895a7281e775c9348cb0bfb5979c8"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/tracking.o",
+        "sha256": "dd0207629a404de79e4cc0170fd0c90f209f7ed14f49f3366a5d225d14b55022"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/server_tail.o",
+        "sha256": "653bfc24639bb013712afa5baa9c3deeb1ce3d9f20509f9e19eded34c44bdd0d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/slowlog.o",
+        "sha256": "53a452bd11c19ad776797bc1a635b44bd4232099c06a498dda030d143eb3923d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/lcs.o",
+        "sha256": "5dbf0305095a0db5cde581af5ccd576f509ea9ccf97194db863318c8ad570c0f"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/info_stats.o",
+        "sha256": "153f622291f099ea23e7332b1b70808516866134710834eed798fb471c917c41"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/lbsignals.o",
+        "sha256": "6ff87aac59db768611cb2d733f78811fff3f240f0b2a74bf5dc668cd15b005de"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/core/flipctl.o",
+        "sha256": "0c4504b37f5ba01e1b414d628e5f3a154f99be5915877ed92d4e95750f8ce534"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/core/genthread.o",
+        "sha256": "19b9913687cea3ba54cbfb43c77056776b4bef92e8a772d5f58e8c41e2eacc53"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/core/rl2s.o",
+        "sha256": "6faa6fc2bfdd90995bdb2f0a873bf38ea1bb3f0005911f58b9987c70ee1a23c4"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/core/lbstall.o",
+        "sha256": "b9ce747bcf129d24d5315c1136e2d4f263e163da665a097a0c10cf93a4a833a2"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/core/lbplanner.o",
+        "sha256": "095bac77e7309288fff09a7603b5d76dd1e4d1d2c8a1952af025993a8d5d1f1d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/l4prebuild.o",
+        "sha256": "d0d999b709288a21bf35a9bd70827165ddded9bd27d9a8f0f622691c3e2d814e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/cmdgap.o",
+        "sha256": "1ca52606d051ca4e1f2e16ba723a489fea6e9e8ecff8d27313630a254e37db2c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/pfdebug.o",
+        "sha256": "19f7112e38cb2a501f71cc28e12b5c85a0866ee078b5ea0375acd298f260dfc6"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/cmdmeta.o",
+        "sha256": "1bacfca17d3bc1406f932cc44cd4b12706ea8e1eec9a0a61626fe77e2d50b724"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_sort.o",
+        "sha256": "7901cad92d3a8fd75dcada8fdea7afd71711c116c1a946b3d8c856972d3df1dd"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/multidb.o",
+        "sha256": "29f8e0e62105c5dc9a4a707bf611122f05bb3ab42a52daa5808ac356e2d955b4"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/storesize.o",
+        "sha256": "eac72a96a8ac005468a334eeeb355115c299724f733f4101849682ebad79be0c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/multi_admin.o",
+        "sha256": "d6d71bb2032d5774959b324189f20c51cb3cf70e4597da6f6aa7f5ba2519a621"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/core/reorder.o",
+        "sha256": "6af378bc0be4ae448fdb17b27fca22ac6500b6f85922c7b5aeaf330328ae0b6c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/geo_store.o",
+        "sha256": "735f726dc1ff68b7291e5db57b9b42edbb2c142d6100e6a638d1a926bed853fa"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/persist/aof_frame_debug.o",
+        "sha256": "7913d8c6d47394b61af102b2ade6f86d0ed5cd605b94dd715ac91aa89dd59978"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/aclkeys.o",
+        "sha256": "08cb26e504bfa640b2130874496b47ac97685130baab9e6769232f5e7b5e4c7e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/blocking_debug.o",
+        "sha256": "add75314dba423cc4c1a14c2fb02688eb653940a44f0b134c13c83d79d41cbc0"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/objectpread.o",
+        "sha256": "c108fe78b89513180949195a76864ab2c2374afe26a41cec6b4dce3865c5a09b"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/hexpread.o",
+        "sha256": "81a7af4ea8e8b2f72d3f331d41e189efaa4617ebc2753ae6a4c4e843295988bc"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/autharity.o",
+        "sha256": "c81262f3d4e6bcef2665dafa5a1ce3eac8eedc27199141158430781c3ff173fd"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/core/fliplisten.o",
+        "sha256": "395150445efe43fda77693eb726a6ad89ecf6dc43b601eb8e14772a70ce8844c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/core/shutdown.o",
+        "sha256": "34f2e0b1f3964c4728671b410951774a33199d22d2449681a9c0b3d73651c279"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/latency_tracking.o",
+        "sha256": "8dfad92c04e9d4fce0489b561e8362a23075dcdd454a74881b2229c82eb04c22"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/lua_cjson.o",
+        "sha256": "49bb14d54933e99117641133550a326300172489aaa91949c7c69ba0734c6fd1"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/lua_cmsgpack.o",
+        "sha256": "5fc5c34724404d82fc14eb7fce033fceff2376587b3cc47c7373bbf82a7409cb"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/lua_bit.o",
+        "sha256": "5ab67176f5e8451b1737b14734577e93e0a0cfdc302dea032c6761cfc495e2da"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/lua_struct.o",
+        "sha256": "58a0fef44dbaf6051708a840f17e647d047b3e1e7e4bb73e39cd0a34f1e63770"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/strbuf.o",
+        "sha256": "2ba9a67d91bdc56f62d04f22444df056ff677816a9a7a9c29d230dccbfef9933"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/fpconv.o",
+        "sha256": "9775ee1823c262c6344f4fc9ae96fa5d0c2e22c7dd5e32a114d13fc5eed8ac63"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/core/version.o",
+        "sha256": "b9e47dcd311c4cfb141a5576c203e3076b7f396a31091cada4b5ac87b0cb7c8b"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/commands/post-normal/probe.o",
+        "sha256": "b7a9af025079ad1bfa09e23b3158c355fe451211aee87406d30a7a6b4fa69efc"
+      }
+    ],
+    "scope": "GDB scope_begin/scope_end in tests/txnorder_command_scope.cc; named production namespace bodies including inlines, excluding CoreConcurrencyTest fixture bodies and external callees. External-call counts retained separately. clock_gettime answers are deterministic in both arms."
+  },
+  "post-db0": {
+    "probe_sha256": "23b610b2cfd99b401dd6081b354dce3532c56aaa3bf31e0261a772b533e717ba",
+    "production_sha256": "c671ede82505dda0c62da963e5230ba8aea8cd0edd08d1c5accf8948ed95ccf1",
+    "production_link": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "/home/user/Projects/cx-streamfix/build/db0/src/main.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/net/tls.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/commands.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/glob.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/xshard.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/acl.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/hll.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_server.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_string.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_string_notify.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_hash.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_hash_ttl.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_list.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_set.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_zset.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_zset_ops.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/geo.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_stream.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_stream_groups.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/scripting.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/functions.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/serialize.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/snapshot/snapshot.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/persist/aof.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/climon.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/tracking.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/server_tail.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/slowlog.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/lcs.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/info_stats.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/lbsignals.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/core/flipctl.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/core/genthread.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/core/rl2s.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/core/lbstall.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/core/lbplanner.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/l4prebuild.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/cmdgap.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/pfdebug.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/cmdmeta.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_sort.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/multidb.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/storesize.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/multi_admin.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/core/reorder.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/geo_store.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/persist/aof_frame_debug.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/aclkeys.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/blocking_debug.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/objectpread.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/hexpread.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/autharity.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/core/fliplisten.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/core/shutdown.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/cmd/latency_tracking.o",
+      "/home/user/Projects/cx-streamfix/build/db0/src/core/version.o",
+      "/home/user/Projects/cx-streamfix/build/src/main.o",
+      "/home/user/Projects/cx-streamfix/build/src/net/tls.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/commands.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/glob.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/xshard.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/acl.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/hll.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_server.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_string.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_string_notify.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_hash.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_hash_ttl.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_list.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_set.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_zset.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_zset_ops.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/geo.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_stream.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_stream_groups.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/scripting.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/functions.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/serialize.o",
+      "/home/user/Projects/cx-streamfix/build/src/snapshot/snapshot.o",
+      "/home/user/Projects/cx-streamfix/build/src/persist/aof.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/climon.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/tracking.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/server_tail.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/slowlog.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/lcs.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/info_stats.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/lbsignals.o",
+      "/home/user/Projects/cx-streamfix/build/src/core/flipctl.o",
+      "/home/user/Projects/cx-streamfix/build/src/core/genthread.o",
+      "/home/user/Projects/cx-streamfix/build/src/core/rl2s.o",
+      "/home/user/Projects/cx-streamfix/build/src/core/lbstall.o",
+      "/home/user/Projects/cx-streamfix/build/src/core/lbplanner.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/l4prebuild.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/cmdgap.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/pfdebug.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/cmdmeta.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/t_sort.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/multidb.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/storesize.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/multi_admin.o",
+      "/home/user/Projects/cx-streamfix/build/src/core/reorder.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/geo_store.o",
+      "/home/user/Projects/cx-streamfix/build/src/persist/aof_frame_debug.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/aclkeys.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/blocking_debug.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/objectpread.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/hexpread.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/autharity.o",
+      "/home/user/Projects/cx-streamfix/build/src/core/fliplisten.o",
+      "/home/user/Projects/cx-streamfix/build/src/core/shutdown.o",
+      "/home/user/Projects/cx-streamfix/build/src/cmd/latency_tracking.o",
+      "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/lua_cjson.o",
+      "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/lua_cmsgpack.o",
+      "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/lua_bit.o",
+      "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/lua_struct.o",
+      "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/strbuf.o",
+      "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/fpconv.o",
+      "/home/user/Projects/cx-streamfix/build/src/core/version.o",
+      "-o",
+      "/home/user/Projects/cx-streamfix/build/tomokv",
+      "-Wl,--wrap=main",
+      "-ljemalloc",
+      "-luring",
+      "-pthread",
+      "-lssl",
+      "-lcrypto",
+      "-lm"
+    ],
+    "fixture_last": true,
+    "original_main": "/home/user/Projects/cx-streamfix/build/db0/src/main.o",
+    "rename_only": [
+      "objcopy",
+      "--redefine-sym",
+      "main=execfair_original_main",
+      "/home/user/Projects/cx-streamfix/build/db0/src/main.o",
+      "/home/user/Projects/cx-streamfix/build/streamfix/commands/post-db0/original-main.o"
+    ],
+    "objects": [
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/commands/post-db0/original-main.o",
+        "sha256": "1c7b24a5bac2d569f6d76d6df080451c0e3dd95b1ece25d478f73f7ad0d74561"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/net/tls.o",
+        "sha256": "7b506eb87d20d5ca5178068c6e08b7732181d4b30ec9d10329b3590352a1b1a8"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/commands.o",
+        "sha256": "1d11f46d0ecb4b225afcb33c3948ccd9911e6f25a74feb2f0399b4f6eceb4005"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/glob.o",
+        "sha256": "a5d53db3a904167275d49f062c35ffc7e02d5547229e94e0b32d2303f4e3d24b"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/xshard.o",
+        "sha256": "63965720fecc2d424f4c7449061272d4f2c608bac482c3ae293ef9341c9594bc"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/acl.o",
+        "sha256": "62bbf096e3caafe581bc57a3efc862ceabdd63af8e56e2e0ccd392558dd4d7d3"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/hll.o",
+        "sha256": "8c2ae38fd54de351dbea7ea7abc3416180b135c4345f85e138a8101f57a27bb3"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_server.o",
+        "sha256": "dc7e25f857580beff0c98dc3398be34c4da518f3b7b4c8889376cc545c6bec4d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_string.o",
+        "sha256": "ddb8c12fc2d4d911bb71898e22ce10c754f04b1422f2e3ab86e6714236031972"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_string_notify.o",
+        "sha256": "5fcabd986620a37505e45fc3e5ef8901a659fade219725cbe46e24031a9b4dd3"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_hash.o",
+        "sha256": "7d1cdb71c082941797b6bc145d7dedb45a75f7a80ef5196a7829c022ab89ce7b"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_hash_ttl.o",
+        "sha256": "a6f63f7388509cb5e437f22c9a1c49cecfa12c9b7659188117ebdb005e8a895f"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_list.o",
+        "sha256": "50e5f1495b174e469e2803b7567a83dfbc10d84d6dca5ff0ec13019bc98dda9d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_set.o",
+        "sha256": "840e544f5c4bcf293a2c58647a202fcf4e012452dc377fd0e2a61cfa98e434cc"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_zset.o",
+        "sha256": "7221ed26262a00c0ceeeb31f53fb8389b1a7d0d045ffbf718358bcca06145dcb"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_zset_ops.o",
+        "sha256": "d11c9a07db5e13688e705619ea940c373e899827ce4621411f55dccec994e97c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/geo.o",
+        "sha256": "3884f29f6000d6ba5b20ff73d2d1774c06b5e16920bce8046170972ab5a6345c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_stream.o",
+        "sha256": "d4fa67c404bf9a1a8a914ec8555df0f29dfca7bb4a4eb4943221f787f334645f"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_stream_groups.o",
+        "sha256": "541dc771521fe559f7e37eff17abaf8ac39bd4c35d43f961b30752c4fadd1ae5"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/scripting.o",
+        "sha256": "48583b10c88dfc7b8dc9566c38fdf88cb2d3046cd843d117f6bad9fa36f88c65"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/functions.o",
+        "sha256": "fdbe2e268cb4137cb435e125fa2129dd8c606b9b615cad6f41bfec4d4bcea3ea"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/serialize.o",
+        "sha256": "c52114dc885ddaf03efa1853d0e99b740c8fe2c052abd86818b54cc943a2ca82"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/snapshot/snapshot.o",
+        "sha256": "6199d05445127b57e3be7a3c8fc3fcba5c2f6ae0051e0fff3f51119c070fcf8f"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/persist/aof.o",
+        "sha256": "47852dc329390b66121475bea13e2e74c9c6015214d86882da8ad2b5f5328744"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/climon.o",
+        "sha256": "8a38cced870a611d839987f57117ced7b7fd42a0fdf7c13f3a6907fbc817479f"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/tracking.o",
+        "sha256": "0d84eb9e2eb2a1bca1151f88dec5542f723bdd46e314e30d537f544620a2a9e6"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/server_tail.o",
+        "sha256": "1b805d480e73f53ef8113496955d0c65ab93386bee89e8be4ca748585a2632e9"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/slowlog.o",
+        "sha256": "b5f0227343093eec83c48205bd92044b03015dce57adb25bf7c0ecb7891549ce"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/lcs.o",
+        "sha256": "1b4690eba9cb4049e087cea55f3c3ea9fc8b9fbc2fe3672941768a6539f7759b"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/info_stats.o",
+        "sha256": "ead2afcd003d869f87d746d3420af827e9a57be31ec6368a1de51c098b4bb35c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/lbsignals.o",
+        "sha256": "59e2a77d59c2eb59acbf86326def162c7d698db502e99e0fe3d9b1c137f7a4bb"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/core/flipctl.o",
+        "sha256": "9839b031bc5b9cc5c035024eb0eb577175996fb78019250f2acfbe7bedd3c530"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/core/genthread.o",
+        "sha256": "9f6c7daa2fc9ed69123e74027c0882e1994858af5ff31483f1b1e8a455d3353b"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/core/rl2s.o",
+        "sha256": "ebe16023dbe289095f66e051839eb6e15ed738c05104a8e7718eaa68fbb671d9"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/core/lbstall.o",
+        "sha256": "11cbbe43c2c85a1d0003e52e2912f4619f2d5e44935482fc571bdb01e9041f8e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/core/lbplanner.o",
+        "sha256": "4ab348e15cb5c45641d9ed58fa387de1a5854c384dc463bdb6b3c12ec3c7c2a9"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/l4prebuild.o",
+        "sha256": "0039c6ed83d01caf94c972f1048f1c439cac8648944c63ce656c6b95d88eb349"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/cmdgap.o",
+        "sha256": "83d655c90f9e534727a33b81a843d9026f0c3fcf206e7f0b18c5038fe5c4aef3"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/pfdebug.o",
+        "sha256": "2fad2fbeff9c8261a27e64eeb3cfff2267dd1f034d4ba1709d43e518f92b7562"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/cmdmeta.o",
+        "sha256": "76d0643150e9ece6bb962d367959add9ea8dd2d4bfa6d175f5629629b25f082a"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/t_sort.o",
+        "sha256": "d29d51e75ceb9f2ed3fca314cfcd61ab86df496b51d6bf8b04ee8d5fd1b6c981"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/multidb.o",
+        "sha256": "dc5489faae6b945da3d9f24b9c29721d9fdc73abb49244db112bbc25a9f675f2"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/storesize.o",
+        "sha256": "2908be4079fbb35b6743a0b760c09316b42c05f3d2050d25fbb39707a3ee3af9"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/multi_admin.o",
+        "sha256": "d582afabdb53dd575b78729416def0e40c2a68a45c06830c9ebdaf3f1eec6f1d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/core/reorder.o",
+        "sha256": "8db0464c20c82f50303ddc48d83b01d006ca5cf28005413f2bc5de404db9d078"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/geo_store.o",
+        "sha256": "dd35af787b93d0268d634c1d16f9b35b6a4b8aa3cab4fb095cdc0d686ac6b444"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/persist/aof_frame_debug.o",
+        "sha256": "76b1bba566f335762f3e11c83343f057cdc9c85329fdc1cb04ba9ef140880255"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/aclkeys.o",
+        "sha256": "19ecdf3939b51dfcb899797626f079d8ee267190b98c49da61eea041ac8d10f0"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/blocking_debug.o",
+        "sha256": "f85418342b1e567c2b3d89d1acc9ae7cde41ece106bbb6604a282045250d4e6e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/objectpread.o",
+        "sha256": "f7eb6371008fc34750d9b771eb1a6b8482fb9ab1e64514355568a5b69bcabdf2"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/hexpread.o",
+        "sha256": "b7903eab686da678037c715d88326c6ef47a3549c5f2a00580ab7212151115ef"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/autharity.o",
+        "sha256": "a921579b48b53bd384e3d58f04e1f514152fa7f9dacd4546dcc2cf9a7f913d9e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/core/fliplisten.o",
+        "sha256": "cd732336f1c3950017a95a341c7a91517de1df4b7c96fee4e420f529a84d2686"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/core/shutdown.o",
+        "sha256": "6b6a0024d5650836373b5c025c4f179b9ba611f3cbd2110d03f7b7dca5e1039d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/cmd/latency_tracking.o",
+        "sha256": "97365317024b2d68f4c5ee8337765d77b7167260264a0b2f38a3c77c088cd2c1"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/db0/src/core/version.o",
+        "sha256": "878c62c655ac54d6e844701b42ea5c8c82f87633de9c8a06aef9244b5f6f2e3d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/main.o",
+        "sha256": "01f2464db021c243119058387029e081ac0ba94bf1c173446cb7801e6f79ef35"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/net/tls.o",
+        "sha256": "c526a5e475d6f0ed8d4b24c3c1ac935cc1dc054dfe0d848451633d62ce5d14ab"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/commands.o",
+        "sha256": "3a69333c7d54f2403017151c3f9156cfa25845ebb56d03ab6959e93520a0520e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/glob.o",
+        "sha256": "13f05cd26f2b2acf08df650accd8f9d8dcc961db411a371a41a80e8408716584"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/xshard.o",
+        "sha256": "7f11fe7b7ca9a79242625692c3124bcff634bcaa7be94b9d75104354a676f40a"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/acl.o",
+        "sha256": "8b7cb35a2ccaeb8d8aa57744a9bf06cead5cccec2bb36eb24956d93db2e03010"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/hll.o",
+        "sha256": "a19ab9a10163540007eb0b45f848de9cb65a247b382cfb430f3d5a10d7ea5978"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_server.o",
+        "sha256": "c0b74973719d36a43e2552e9b9aa5159ac378e6250c1bb5e68c398eb2d2b99fc"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_string.o",
+        "sha256": "7265e7fd520eab521d7272371469a3b4aa5d11c0d4446a30d1587b7a24e52fbe"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_string_notify.o",
+        "sha256": "fd353943fd1ee00610b612bdb4ebd31c5fdfacf2c4a00cbacccd0d89d3e9f6c0"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_hash.o",
+        "sha256": "1d5777006d9799ecb3347ccf0f965888e3763ba99c4757da349293d265713dce"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_hash_ttl.o",
+        "sha256": "91f034aca1b48d818165f3e00c32d758af7485da748a82be8e0a189c1198c8ae"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_list.o",
+        "sha256": "408b5eb7e36dfe091c622f569e818b4968ef05453d2a5b9da2600e9be1656550"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_set.o",
+        "sha256": "98b0e499da56da93448cd7c5c0108791e7aeda7b061ff24b09134bb0b0dd060b"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_zset.o",
+        "sha256": "849c0948c16d613b44f9f926f4e1aa3216e936ed347ecb1d6ff391a485da2f48"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_zset_ops.o",
+        "sha256": "3951e6652b6a98e88bc325bad398ad776c90f39040efd739cadabefa3748781a"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/geo.o",
+        "sha256": "9880503c8179ad0869acd5a07e5ae57b6cc3abf62e4ba03058ebfa84003d135c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_stream.o",
+        "sha256": "ebd33450fe75cf2546d521d287007c8d0095c7ea226c2cb3b443f1bec1e74a14"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_stream_groups.o",
+        "sha256": "b0d2de5cc2b03eb92ffb1d442d988f58276f48062e707acdf96333cc09396aa2"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/scripting.o",
+        "sha256": "8b815b2df43ca213cda677be817172829b84e18e03fad2d678c6b36b60aeee95"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/functions.o",
+        "sha256": "ff677f9b968dd527287a8228334034977b414143a7d55f7c9ef094632e883512"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/serialize.o",
+        "sha256": "89b454dc90383b26f4ccc11638418966ff5f73da5794687115a0a13dd887828a"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/snapshot/snapshot.o",
+        "sha256": "c330b8a737e05d29d4bf32619ae16a3b75771d615cbeca5c42333ba6f246f8df"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/persist/aof.o",
+        "sha256": "0bfbc54632edb43e7f6037ec86cef85f468798de6e303623751fcab1599a2337"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/climon.o",
+        "sha256": "ea8e342e82004ce121e80bbb6a36a9ac187895a7281e775c9348cb0bfb5979c8"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/tracking.o",
+        "sha256": "dd0207629a404de79e4cc0170fd0c90f209f7ed14f49f3366a5d225d14b55022"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/server_tail.o",
+        "sha256": "653bfc24639bb013712afa5baa9c3deeb1ce3d9f20509f9e19eded34c44bdd0d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/slowlog.o",
+        "sha256": "53a452bd11c19ad776797bc1a635b44bd4232099c06a498dda030d143eb3923d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/lcs.o",
+        "sha256": "5dbf0305095a0db5cde581af5ccd576f509ea9ccf97194db863318c8ad570c0f"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/info_stats.o",
+        "sha256": "153f622291f099ea23e7332b1b70808516866134710834eed798fb471c917c41"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/lbsignals.o",
+        "sha256": "6ff87aac59db768611cb2d733f78811fff3f240f0b2a74bf5dc668cd15b005de"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/core/flipctl.o",
+        "sha256": "0c4504b37f5ba01e1b414d628e5f3a154f99be5915877ed92d4e95750f8ce534"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/core/genthread.o",
+        "sha256": "19b9913687cea3ba54cbfb43c77056776b4bef92e8a772d5f58e8c41e2eacc53"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/core/rl2s.o",
+        "sha256": "6faa6fc2bfdd90995bdb2f0a873bf38ea1bb3f0005911f58b9987c70ee1a23c4"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/core/lbstall.o",
+        "sha256": "b9ce747bcf129d24d5315c1136e2d4f263e163da665a097a0c10cf93a4a833a2"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/core/lbplanner.o",
+        "sha256": "095bac77e7309288fff09a7603b5d76dd1e4d1d2c8a1952af025993a8d5d1f1d"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/l4prebuild.o",
+        "sha256": "d0d999b709288a21bf35a9bd70827165ddded9bd27d9a8f0f622691c3e2d814e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/cmdgap.o",
+        "sha256": "1ca52606d051ca4e1f2e16ba723a489fea6e9e8ecff8d27313630a254e37db2c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/pfdebug.o",
+        "sha256": "19f7112e38cb2a501f71cc28e12b5c85a0866ee078b5ea0375acd298f260dfc6"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/cmdmeta.o",
+        "sha256": "1bacfca17d3bc1406f932cc44cd4b12706ea8e1eec9a0a61626fe77e2d50b724"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/t_sort.o",
+        "sha256": "7901cad92d3a8fd75dcada8fdea7afd71711c116c1a946b3d8c856972d3df1dd"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/multidb.o",
+        "sha256": "29f8e0e62105c5dc9a4a707bf611122f05bb3ab42a52daa5808ac356e2d955b4"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/storesize.o",
+        "sha256": "eac72a96a8ac005468a334eeeb355115c299724f733f4101849682ebad79be0c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/multi_admin.o",
+        "sha256": "d6d71bb2032d5774959b324189f20c51cb3cf70e4597da6f6aa7f5ba2519a621"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/core/reorder.o",
+        "sha256": "6af378bc0be4ae448fdb17b27fca22ac6500b6f85922c7b5aeaf330328ae0b6c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/geo_store.o",
+        "sha256": "735f726dc1ff68b7291e5db57b9b42edbb2c142d6100e6a638d1a926bed853fa"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/persist/aof_frame_debug.o",
+        "sha256": "7913d8c6d47394b61af102b2ade6f86d0ed5cd605b94dd715ac91aa89dd59978"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/aclkeys.o",
+        "sha256": "08cb26e504bfa640b2130874496b47ac97685130baab9e6769232f5e7b5e4c7e"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/blocking_debug.o",
+        "sha256": "add75314dba423cc4c1a14c2fb02688eb653940a44f0b134c13c83d79d41cbc0"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/objectpread.o",
+        "sha256": "c108fe78b89513180949195a76864ab2c2374afe26a41cec6b4dce3865c5a09b"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/hexpread.o",
+        "sha256": "81a7af4ea8e8b2f72d3f331d41e189efaa4617ebc2753ae6a4c4e843295988bc"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/autharity.o",
+        "sha256": "c81262f3d4e6bcef2665dafa5a1ce3eac8eedc27199141158430781c3ff173fd"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/core/fliplisten.o",
+        "sha256": "395150445efe43fda77693eb726a6ad89ecf6dc43b601eb8e14772a70ce8844c"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/core/shutdown.o",
+        "sha256": "34f2e0b1f3964c4728671b410951774a33199d22d2449681a9c0b3d73651c279"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/cmd/latency_tracking.o",
+        "sha256": "8dfad92c04e9d4fce0489b561e8362a23075dcdd454a74881b2229c82eb04c22"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/lua_cjson.o",
+        "sha256": "49bb14d54933e99117641133550a326300172489aaa91949c7c69ba0734c6fd1"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/lua_cmsgpack.o",
+        "sha256": "5fc5c34724404d82fc14eb7fce033fceff2376587b3cc47c7373bbf82a7409cb"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/lua_bit.o",
+        "sha256": "5ab67176f5e8451b1737b14734577e93e0a0cfdc302dea032c6761cfc495e2da"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/lua_struct.o",
+        "sha256": "58a0fef44dbaf6051708a840f17e647d047b3e1e7e4bb73e39cd0a34f1e63770"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/strbuf.o",
+        "sha256": "2ba9a67d91bdc56f62d04f22444df056ff677816a9a7a9c29d230dccbfef9933"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/third_party/lua/helpers/fpconv.o",
+        "sha256": "9775ee1823c262c6344f4fc9ae96fa5d0c2e22c7dd5e32a114d13fc5eed8ac63"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/src/core/version.o",
+        "sha256": "b9e47dcd311c4cfb141a5576c203e3076b7f396a31091cada4b5ac87b0cb7c8b"
+      },
+      {
+        "path": "/home/user/Projects/cx-streamfix/build/streamfix/commands/post-db0/probe.o",
+        "sha256": "1a7bb57cccf07829680d476180da96f200a5c68a1b48213ff3f42200c21ba8d9"
+      }
+    ],
+    "scope": "GDB scope_begin/scope_end in tests/txnorder_command_scope.cc; named production namespace bodies including inlines, excluding CoreConcurrencyTest fixture bodies and external callees. External-call counts retained separately. clock_gettime answers are deterministic in both arms."
+  }
+}

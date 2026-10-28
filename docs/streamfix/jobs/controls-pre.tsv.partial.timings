@@ -1,0 +1,7 @@
+ok	0.000000	release build (+footprint locks)
+FAIL	228.730000	streamfix STREAM-TRIM-APPROX-LIMIT vs Redis 7.4
+FAIL	50.120000	streamfix XREAD-PLUS-LAST vs Redis 7.4
+FAIL	40.890000	streamfix XRANGE-EXCLUSIVE-SENTINEL vs Redis 7.4
+FAIL	36.590000	streamfix STREAM-GROUP-ID-DASH vs Redis 7.4
+FAIL	37.260000	streamfix XAUTOCLAIM-COUNT-RANGE vs Redis 7.4
+FAIL	37.650000	streamfix MPOP-ARG-ERROR-TEXT vs Redis 7.4

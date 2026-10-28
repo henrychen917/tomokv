@@ -61,6 +61,8 @@ bool stream_parse_xreadgroup(Op& op, StreamXreadGroupArgs& parsed);
 bool stream_xread_has_block_option(const Op& op);
 bool stream_parse_xread_id(Slice input, StreamID& id, bool& latest);
 bool stream_object_last_id(const KvObj* object, StreamID& id);
+// Resolve the $/+-only cursor produced by stream_parse_xread_id on its owner.
+bool stream_resolve_xread_id(const KvObj* object, StreamID& cursor);
 bool stream_object_has_live_after(const KvObj* object, const StreamID& cursor);
 bool stream_object_header(KvObj* object, StreamHeader& header);
 bool stream_object_update_header(KvObj* object, const StreamHeader& header);

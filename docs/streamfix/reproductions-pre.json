@@ -1,0 +1,4077 @@
+{
+  "binary_sha256": "41921f7270da1f141e0f6a85316cac965258dfad28fbeb3516d9d08607522647",
+  "redis_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "cases": {
+    "STREAM-TRIM-APPROX-LIMIT": {
+      "results": {
+        "redis": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/redis74/src/redis-server",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/STREAM-TRIM-APPROX-LIMIT/redis",
+            "--enable-debug-command",
+            "yes"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "stream-node-max-entries",
+                "2"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "s",
+                "1-0",
+                "f",
+                "v"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "s",
+                "2-0",
+                "f",
+                "v"
+              ],
+              "reply": "2-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "s",
+                "3-0",
+                "f",
+                "v"
+              ],
+              "reply": "3-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XTRIM",
+                "s",
+                "MAXLEN",
+                "~",
+                "0",
+                "LIMIT",
+                "1"
+              ],
+              "reply": 0
+            },
+            {
+              "c": "a",
+              "send": [
+                "XLEN",
+                "s"
+              ],
+              "reply": 3
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "1-0",
+                "f",
+                "v"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "2-0",
+                "f",
+                "v"
+              ],
+              "reply": "2-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "3-0",
+                "f",
+                "v"
+              ],
+              "reply": "3-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "4-0",
+                "f",
+                "v"
+              ],
+              "reply": "4-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "5-0",
+                "f",
+                "v"
+              ],
+              "reply": "5-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XTRIM",
+                "t",
+                "MAXLEN",
+                "~",
+                "2"
+              ],
+              "reply": 2
+            },
+            {
+              "c": "a",
+              "send": [
+                "XLEN",
+                "t"
+              ],
+              "reply": 3
+            }
+          ]
+        },
+        "uring-2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/STREAM-TRIM-APPROX-LIMIT/uring-2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "stream-node-max-entries",
+                "2"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "s",
+                "1-0",
+                "f",
+                "v"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "s",
+                "2-0",
+                "f",
+                "v"
+              ],
+              "reply": "2-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "s",
+                "3-0",
+                "f",
+                "v"
+              ],
+              "reply": "3-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XTRIM",
+                "s",
+                "MAXLEN",
+                "~",
+                "0",
+                "LIMIT",
+                "1"
+              ],
+              "reply": 3
+            },
+            {
+              "c": "a",
+              "send": [
+                "XLEN",
+                "s"
+              ],
+              "reply": 0
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "1-0",
+                "f",
+                "v"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "2-0",
+                "f",
+                "v"
+              ],
+              "reply": "2-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "3-0",
+                "f",
+                "v"
+              ],
+              "reply": "3-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "4-0",
+                "f",
+                "v"
+              ],
+              "reply": "4-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "5-0",
+                "f",
+                "v"
+              ],
+              "reply": "5-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XTRIM",
+                "t",
+                "MAXLEN",
+                "~",
+                "2"
+              ],
+              "reply": 3
+            },
+            {
+              "c": "a",
+              "send": [
+                "XLEN",
+                "t"
+              ],
+              "reply": 2
+            }
+          ]
+        },
+        "uring-1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/STREAM-TRIM-APPROX-LIMIT/uring-1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "stream-node-max-entries",
+                "2"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "s",
+                "1-0",
+                "f",
+                "v"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "s",
+                "2-0",
+                "f",
+                "v"
+              ],
+              "reply": "2-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "s",
+                "3-0",
+                "f",
+                "v"
+              ],
+              "reply": "3-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XTRIM",
+                "s",
+                "MAXLEN",
+                "~",
+                "0",
+                "LIMIT",
+                "1"
+              ],
+              "reply": 3
+            },
+            {
+              "c": "a",
+              "send": [
+                "XLEN",
+                "s"
+              ],
+              "reply": 0
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "1-0",
+                "f",
+                "v"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "2-0",
+                "f",
+                "v"
+              ],
+              "reply": "2-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "3-0",
+                "f",
+                "v"
+              ],
+              "reply": "3-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "4-0",
+                "f",
+                "v"
+              ],
+              "reply": "4-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "5-0",
+                "f",
+                "v"
+              ],
+              "reply": "5-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XTRIM",
+                "t",
+                "MAXLEN",
+                "~",
+                "2"
+              ],
+              "reply": 3
+            },
+            {
+              "c": "a",
+              "send": [
+                "XLEN",
+                "t"
+              ],
+              "reply": 2
+            }
+          ]
+        },
+        "epoll-2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/STREAM-TRIM-APPROX-LIMIT/epoll-2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "stream-node-max-entries",
+                "2"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "s",
+                "1-0",
+                "f",
+                "v"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "s",
+                "2-0",
+                "f",
+                "v"
+              ],
+              "reply": "2-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "s",
+                "3-0",
+                "f",
+                "v"
+              ],
+              "reply": "3-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XTRIM",
+                "s",
+                "MAXLEN",
+                "~",
+                "0",
+                "LIMIT",
+                "1"
+              ],
+              "reply": 3
+            },
+            {
+              "c": "a",
+              "send": [
+                "XLEN",
+                "s"
+              ],
+              "reply": 0
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "1-0",
+                "f",
+                "v"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "2-0",
+                "f",
+                "v"
+              ],
+              "reply": "2-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "3-0",
+                "f",
+                "v"
+              ],
+              "reply": "3-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "4-0",
+                "f",
+                "v"
+              ],
+              "reply": "4-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "5-0",
+                "f",
+                "v"
+              ],
+              "reply": "5-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XTRIM",
+                "t",
+                "MAXLEN",
+                "~",
+                "2"
+              ],
+              "reply": 3
+            },
+            {
+              "c": "a",
+              "send": [
+                "XLEN",
+                "t"
+              ],
+              "reply": 2
+            }
+          ]
+        },
+        "epoll-1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/STREAM-TRIM-APPROX-LIMIT/epoll-1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "stream-node-max-entries",
+                "2"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "s",
+                "1-0",
+                "f",
+                "v"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "s",
+                "2-0",
+                "f",
+                "v"
+              ],
+              "reply": "2-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "s",
+                "3-0",
+                "f",
+                "v"
+              ],
+              "reply": "3-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XTRIM",
+                "s",
+                "MAXLEN",
+                "~",
+                "0",
+                "LIMIT",
+                "1"
+              ],
+              "reply": 3
+            },
+            {
+              "c": "a",
+              "send": [
+                "XLEN",
+                "s"
+              ],
+              "reply": 0
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "1-0",
+                "f",
+                "v"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "2-0",
+                "f",
+                "v"
+              ],
+              "reply": "2-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "3-0",
+                "f",
+                "v"
+              ],
+              "reply": "3-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "4-0",
+                "f",
+                "v"
+              ],
+              "reply": "4-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "t",
+                "5-0",
+                "f",
+                "v"
+              ],
+              "reply": "5-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XTRIM",
+                "t",
+                "MAXLEN",
+                "~",
+                "2"
+              ],
+              "reply": 3
+            },
+            {
+              "c": "a",
+              "send": [
+                "XLEN",
+                "t"
+              ],
+              "reply": 2
+            }
+          ]
+        }
+      },
+      "verdict": {
+        "uring-2s": "DIFFERENT",
+        "uring-1s": "DIFFERENT",
+        "epoll-2s": "DIFFERENT",
+        "epoll-1s": "DIFFERENT"
+      }
+    },
+    "XREAD-PLUS-LAST": {
+      "results": {
+        "redis": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/redis74/src/redis-server",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/XREAD-PLUS-LAST/redis",
+            "--enable-debug-command",
+            "yes"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "lestream",
+                "1-0",
+                "k1",
+                "v1"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "lestream",
+                "2-0",
+                "k2",
+                "v2"
+              ],
+              "reply": "2-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XREAD",
+                "STREAMS",
+                "lestream",
+                "+"
+              ],
+              "reply": [
+                [
+                  "lestream",
+                  [
+                    [
+                      "2-0",
+                      [
+                        "k2",
+                        "v2"
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            }
+          ]
+        },
+        "uring-2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/XREAD-PLUS-LAST/uring-2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "lestream",
+                "1-0",
+                "k1",
+                "v1"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "lestream",
+                "2-0",
+                "k2",
+                "v2"
+              ],
+              "reply": "2-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XREAD",
+                "STREAMS",
+                "lestream",
+                "+"
+              ],
+              "reply": {
+                "error": "ERR Invalid stream ID specified as stream command argument"
+              }
+            }
+          ]
+        },
+        "uring-1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/XREAD-PLUS-LAST/uring-1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "lestream",
+                "1-0",
+                "k1",
+                "v1"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "lestream",
+                "2-0",
+                "k2",
+                "v2"
+              ],
+              "reply": "2-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XREAD",
+                "STREAMS",
+                "lestream",
+                "+"
+              ],
+              "reply": {
+                "error": "ERR Invalid stream ID specified as stream command argument"
+              }
+            }
+          ]
+        },
+        "epoll-2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/XREAD-PLUS-LAST/epoll-2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "lestream",
+                "1-0",
+                "k1",
+                "v1"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "lestream",
+                "2-0",
+                "k2",
+                "v2"
+              ],
+              "reply": "2-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XREAD",
+                "STREAMS",
+                "lestream",
+                "+"
+              ],
+              "reply": {
+                "error": "ERR Invalid stream ID specified as stream command argument"
+              }
+            }
+          ]
+        },
+        "epoll-1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/XREAD-PLUS-LAST/epoll-1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "lestream",
+                "1-0",
+                "k1",
+                "v1"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "lestream",
+                "2-0",
+                "k2",
+                "v2"
+              ],
+              "reply": "2-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XREAD",
+                "STREAMS",
+                "lestream",
+                "+"
+              ],
+              "reply": {
+                "error": "ERR Invalid stream ID specified as stream command argument"
+              }
+            }
+          ]
+        }
+      },
+      "verdict": {
+        "uring-2s": "DIFFERENT",
+        "uring-1s": "DIFFERENT",
+        "epoll-2s": "DIFFERENT",
+        "epoll-1s": "DIFFERENT"
+      }
+    },
+    "XRANGE-EXCLUSIVE-SENTINEL": {
+      "results": {
+        "redis": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/redis74/src/redis-server",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/XRANGE-EXCLUSIVE-SENTINEL/redis",
+            "--enable-debug-command",
+            "yes"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "vip",
+                "1-0",
+                "foo",
+                "bar"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XRANGE",
+                "vip",
+                "(-",
+                "+"
+              ],
+              "reply": {
+                "error": "ERR Invalid stream ID specified as stream command argument"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XRANGE",
+                "vip",
+                "-",
+                "(+"
+              ],
+              "reply": {
+                "error": "ERR Invalid stream ID specified as stream command argument"
+              }
+            }
+          ]
+        },
+        "uring-2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/XRANGE-EXCLUSIVE-SENTINEL/uring-2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "vip",
+                "1-0",
+                "foo",
+                "bar"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XRANGE",
+                "vip",
+                "(-",
+                "+"
+              ],
+              "reply": [
+                [
+                  "1-0",
+                  [
+                    "foo",
+                    "bar"
+                  ]
+                ]
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "XRANGE",
+                "vip",
+                "-",
+                "(+"
+              ],
+              "reply": [
+                [
+                  "1-0",
+                  [
+                    "foo",
+                    "bar"
+                  ]
+                ]
+              ]
+            }
+          ]
+        },
+        "uring-1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/XRANGE-EXCLUSIVE-SENTINEL/uring-1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "vip",
+                "1-0",
+                "foo",
+                "bar"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XRANGE",
+                "vip",
+                "(-",
+                "+"
+              ],
+              "reply": [
+                [
+                  "1-0",
+                  [
+                    "foo",
+                    "bar"
+                  ]
+                ]
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "XRANGE",
+                "vip",
+                "-",
+                "(+"
+              ],
+              "reply": [
+                [
+                  "1-0",
+                  [
+                    "foo",
+                    "bar"
+                  ]
+                ]
+              ]
+            }
+          ]
+        },
+        "epoll-2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/XRANGE-EXCLUSIVE-SENTINEL/epoll-2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "vip",
+                "1-0",
+                "foo",
+                "bar"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XRANGE",
+                "vip",
+                "(-",
+                "+"
+              ],
+              "reply": [
+                [
+                  "1-0",
+                  [
+                    "foo",
+                    "bar"
+                  ]
+                ]
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "XRANGE",
+                "vip",
+                "-",
+                "(+"
+              ],
+              "reply": [
+                [
+                  "1-0",
+                  [
+                    "foo",
+                    "bar"
+                  ]
+                ]
+              ]
+            }
+          ]
+        },
+        "epoll-1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/XRANGE-EXCLUSIVE-SENTINEL/epoll-1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "vip",
+                "1-0",
+                "foo",
+                "bar"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XRANGE",
+                "vip",
+                "(-",
+                "+"
+              ],
+              "reply": [
+                [
+                  "1-0",
+                  [
+                    "foo",
+                    "bar"
+                  ]
+                ]
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "XRANGE",
+                "vip",
+                "-",
+                "(+"
+              ],
+              "reply": [
+                [
+                  "1-0",
+                  [
+                    "foo",
+                    "bar"
+                  ]
+                ]
+              ]
+            }
+          ]
+        }
+      },
+      "verdict": {
+        "uring-2s": "DIFFERENT",
+        "uring-1s": "DIFFERENT",
+        "epoll-2s": "DIFFERENT",
+        "epoll-1s": "DIFFERENT"
+      }
+    },
+    "STREAM-GROUP-ID-DASH": {
+      "results": {
+        "redis": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/redis74/src/redis-server",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/STREAM-GROUP-ID-DASH/redis",
+            "--enable-debug-command",
+            "yes"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "events",
+                "1-0",
+                "f1",
+                "v1"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "events",
+                "2-0",
+                "f1",
+                "v1"
+              ],
+              "reply": "2-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XGROUP",
+                "CREATE",
+                "events",
+                "g1",
+                "$"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XGROUP",
+                "SETID",
+                "events",
+                "g1",
+                "-"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XREADGROUP",
+                "GROUP",
+                "g1",
+                "c1",
+                "STREAMS",
+                "events",
+                ">"
+              ],
+              "reply": [
+                [
+                  "events",
+                  [
+                    [
+                      "1-0",
+                      [
+                        "f1",
+                        "v1"
+                      ]
+                    ],
+                    [
+                      "2-0",
+                      [
+                        "f1",
+                        "v1"
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "XAUTOCLAIM",
+                "events",
+                "g1",
+                "c2",
+                "0",
+                "-",
+                "COUNT",
+                "1"
+              ],
+              "reply": [
+                "2-0",
+                [
+                  [
+                    "1-0",
+                    [
+                      "f1",
+                      "v1"
+                    ]
+                  ]
+                ],
+                []
+              ]
+            }
+          ]
+        },
+        "uring-2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/STREAM-GROUP-ID-DASH/uring-2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "events",
+                "1-0",
+                "f1",
+                "v1"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "events",
+                "2-0",
+                "f1",
+                "v1"
+              ],
+              "reply": "2-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XGROUP",
+                "CREATE",
+                "events",
+                "g1",
+                "$"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XGROUP",
+                "SETID",
+                "events",
+                "g1",
+                "-"
+              ],
+              "reply": {
+                "error": "ERR Invalid stream ID specified as stream command argument"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XREADGROUP",
+                "GROUP",
+                "g1",
+                "c1",
+                "STREAMS",
+                "events",
+                ">"
+              ],
+              "reply": null
+            },
+            {
+              "c": "a",
+              "send": [
+                "XAUTOCLAIM",
+                "events",
+                "g1",
+                "c2",
+                "0",
+                "-",
+                "COUNT",
+                "1"
+              ],
+              "reply": {
+                "error": "ERR Invalid stream ID specified as stream command argument"
+              }
+            }
+          ]
+        },
+        "uring-1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/STREAM-GROUP-ID-DASH/uring-1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "events",
+                "1-0",
+                "f1",
+                "v1"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "events",
+                "2-0",
+                "f1",
+                "v1"
+              ],
+              "reply": "2-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XGROUP",
+                "CREATE",
+                "events",
+                "g1",
+                "$"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XGROUP",
+                "SETID",
+                "events",
+                "g1",
+                "-"
+              ],
+              "reply": {
+                "error": "ERR Invalid stream ID specified as stream command argument"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XREADGROUP",
+                "GROUP",
+                "g1",
+                "c1",
+                "STREAMS",
+                "events",
+                ">"
+              ],
+              "reply": null
+            },
+            {
+              "c": "a",
+              "send": [
+                "XAUTOCLAIM",
+                "events",
+                "g1",
+                "c2",
+                "0",
+                "-",
+                "COUNT",
+                "1"
+              ],
+              "reply": {
+                "error": "ERR Invalid stream ID specified as stream command argument"
+              }
+            }
+          ]
+        },
+        "epoll-2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/STREAM-GROUP-ID-DASH/epoll-2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "events",
+                "1-0",
+                "f1",
+                "v1"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "events",
+                "2-0",
+                "f1",
+                "v1"
+              ],
+              "reply": "2-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XGROUP",
+                "CREATE",
+                "events",
+                "g1",
+                "$"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XGROUP",
+                "SETID",
+                "events",
+                "g1",
+                "-"
+              ],
+              "reply": {
+                "error": "ERR Invalid stream ID specified as stream command argument"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XREADGROUP",
+                "GROUP",
+                "g1",
+                "c1",
+                "STREAMS",
+                "events",
+                ">"
+              ],
+              "reply": null
+            },
+            {
+              "c": "a",
+              "send": [
+                "XAUTOCLAIM",
+                "events",
+                "g1",
+                "c2",
+                "0",
+                "-",
+                "COUNT",
+                "1"
+              ],
+              "reply": {
+                "error": "ERR Invalid stream ID specified as stream command argument"
+              }
+            }
+          ]
+        },
+        "epoll-1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/STREAM-GROUP-ID-DASH/epoll-1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "events",
+                "1-0",
+                "f1",
+                "v1"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "events",
+                "2-0",
+                "f1",
+                "v1"
+              ],
+              "reply": "2-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XGROUP",
+                "CREATE",
+                "events",
+                "g1",
+                "$"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XGROUP",
+                "SETID",
+                "events",
+                "g1",
+                "-"
+              ],
+              "reply": {
+                "error": "ERR Invalid stream ID specified as stream command argument"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XREADGROUP",
+                "GROUP",
+                "g1",
+                "c1",
+                "STREAMS",
+                "events",
+                ">"
+              ],
+              "reply": null
+            },
+            {
+              "c": "a",
+              "send": [
+                "XAUTOCLAIM",
+                "events",
+                "g1",
+                "c2",
+                "0",
+                "-",
+                "COUNT",
+                "1"
+              ],
+              "reply": {
+                "error": "ERR Invalid stream ID specified as stream command argument"
+              }
+            }
+          ]
+        }
+      },
+      "verdict": {
+        "uring-2s": "DIFFERENT",
+        "uring-1s": "DIFFERENT",
+        "epoll-2s": "DIFFERENT",
+        "epoll-1s": "DIFFERENT"
+      }
+    },
+    "XAUTOCLAIM-COUNT-RANGE": {
+      "results": {
+        "redis": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/redis74/src/redis-server",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/XAUTOCLAIM-COUNT-RANGE/redis",
+            "--enable-debug-command",
+            "yes"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "x",
+                "1-0",
+                "f",
+                "v"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XGROUP",
+                "CREATE",
+                "x",
+                "grp",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XAUTOCLAIM",
+                "x",
+                "grp",
+                "Bob",
+                "0",
+                "3-0",
+                "COUNT",
+                "8070450532247928833"
+              ],
+              "reply": {
+                "error": "ERR COUNT must be > 0"
+              }
+            }
+          ]
+        },
+        "uring-2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/XAUTOCLAIM-COUNT-RANGE/uring-2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "x",
+                "1-0",
+                "f",
+                "v"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XGROUP",
+                "CREATE",
+                "x",
+                "grp",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XAUTOCLAIM",
+                "x",
+                "grp",
+                "Bob",
+                "0",
+                "3-0",
+                "COUNT",
+                "8070450532247928833"
+              ],
+              "reply": [
+                "0-0",
+                [],
+                []
+              ]
+            }
+          ]
+        },
+        "uring-1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/XAUTOCLAIM-COUNT-RANGE/uring-1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "x",
+                "1-0",
+                "f",
+                "v"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XGROUP",
+                "CREATE",
+                "x",
+                "grp",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XAUTOCLAIM",
+                "x",
+                "grp",
+                "Bob",
+                "0",
+                "3-0",
+                "COUNT",
+                "8070450532247928833"
+              ],
+              "reply": [
+                "0-0",
+                [],
+                []
+              ]
+            }
+          ]
+        },
+        "epoll-2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/XAUTOCLAIM-COUNT-RANGE/epoll-2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "x",
+                "1-0",
+                "f",
+                "v"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XGROUP",
+                "CREATE",
+                "x",
+                "grp",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XAUTOCLAIM",
+                "x",
+                "grp",
+                "Bob",
+                "0",
+                "3-0",
+                "COUNT",
+                "8070450532247928833"
+              ],
+              "reply": [
+                "0-0",
+                [],
+                []
+              ]
+            }
+          ]
+        },
+        "epoll-1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/XAUTOCLAIM-COUNT-RANGE/epoll-1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "x",
+                "1-0",
+                "f",
+                "v"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XGROUP",
+                "CREATE",
+                "x",
+                "grp",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XAUTOCLAIM",
+                "x",
+                "grp",
+                "Bob",
+                "0",
+                "3-0",
+                "COUNT",
+                "8070450532247928833"
+              ],
+              "reply": [
+                "0-0",
+                [],
+                []
+              ]
+            }
+          ]
+        }
+      },
+      "verdict": {
+        "uring-2s": "DIFFERENT",
+        "uring-1s": "DIFFERENT",
+        "epoll-2s": "DIFFERENT",
+        "epoll-1s": "DIFFERENT"
+      }
+    },
+    "DUMP-STREAM-REFUSED": {
+      "results": {
+        "redis": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/redis74/src/redis-server",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/DUMP-STREAM-REFUSED/redis",
+            "--enable-debug-command",
+            "yes"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "mystream",
+                "1-0",
+                "f",
+                "v"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "DUMP",
+                "mystream"
+              ],
+              "reply": {
+                "hex": "150110000000000000000100000000000000001d1d0000000a0001010001010181660200010201000100018176020401ff0101000100000001000c00e7626b5f211a4b8f"
+              }
+            }
+          ]
+        },
+        "uring-2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/DUMP-STREAM-REFUSED/uring-2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "mystream",
+                "1-0",
+                "f",
+                "v"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "DUMP",
+                "mystream"
+              ],
+              "reply": {
+                "error": "ERR object could not be serialized"
+              }
+            }
+          ]
+        },
+        "uring-1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/DUMP-STREAM-REFUSED/uring-1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "mystream",
+                "1-0",
+                "f",
+                "v"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "DUMP",
+                "mystream"
+              ],
+              "reply": {
+                "error": "ERR object could not be serialized"
+              }
+            }
+          ]
+        },
+        "epoll-2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/DUMP-STREAM-REFUSED/epoll-2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "mystream",
+                "1-0",
+                "f",
+                "v"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "DUMP",
+                "mystream"
+              ],
+              "reply": {
+                "error": "ERR object could not be serialized"
+              }
+            }
+          ]
+        },
+        "epoll-1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/DUMP-STREAM-REFUSED/epoll-1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "mystream",
+                "1-0",
+                "f",
+                "v"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "DUMP",
+                "mystream"
+              ],
+              "reply": {
+                "error": "ERR object could not be serialized"
+              }
+            }
+          ]
+        }
+      },
+      "verdict": {
+        "uring-2s": "DIFFERENT",
+        "uring-1s": "DIFFERENT",
+        "epoll-2s": "DIFFERENT",
+        "epoll-1s": "DIFFERENT"
+      }
+    },
+    "RESTORE-IDLETIME-FREQ-IGNORED": {
+      "results": {
+        "redis": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/redis74/src/redis-server",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/RESTORE-IDLETIME-FREQ-IGNORED/redis",
+            "--enable-debug-command",
+            "yes"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory-policy",
+                "allkeys-lru"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "RESTORE",
+                "k1",
+                "0",
+                "\u0000\u0003v26\f\u0000P\u001cp#\u0003p#^",
+                "IDLETIME",
+                "1000"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "OBJECT",
+                "IDLETIME",
+                "k1"
+              ],
+              "reply": 1000
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory-policy",
+                "allkeys-lfu"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "RESTORE",
+                "k2",
+                "0",
+                "\u0000\u0003v26\f\u0000P\u001cp#\u0003p#^",
+                "FREQ",
+                "100"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "OBJECT",
+                "FREQ",
+                "k2"
+              ],
+              "reply": 100
+            },
+            {
+              "c": "a",
+              "send": [
+                "GET",
+                "k2"
+              ],
+              "reply": "v26"
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory-policy",
+                "noeviction"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            }
+          ]
+        },
+        "uring-2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/RESTORE-IDLETIME-FREQ-IGNORED/uring-2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory-policy",
+                "allkeys-lru"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "RESTORE",
+                "k1",
+                "0",
+                "\u0000\u0003v26\f\u0000P\u001cp#\u0003p#^",
+                "IDLETIME",
+                "1000"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "OBJECT",
+                "IDLETIME",
+                "k1"
+              ],
+              "reply": 0
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory-policy",
+                "allkeys-lfu"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "RESTORE",
+                "k2",
+                "0",
+                "\u0000\u0003v26\f\u0000P\u001cp#\u0003p#^",
+                "FREQ",
+                "100"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "OBJECT",
+                "FREQ",
+                "k2"
+              ],
+              "reply": 0
+            },
+            {
+              "c": "a",
+              "send": [
+                "GET",
+                "k2"
+              ],
+              "reply": "v26"
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory-policy",
+                "noeviction"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            }
+          ]
+        },
+        "uring-1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/RESTORE-IDLETIME-FREQ-IGNORED/uring-1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory-policy",
+                "allkeys-lru"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "RESTORE",
+                "k1",
+                "0",
+                "\u0000\u0003v26\f\u0000P\u001cp#\u0003p#^",
+                "IDLETIME",
+                "1000"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "OBJECT",
+                "IDLETIME",
+                "k1"
+              ],
+              "reply": 0
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory-policy",
+                "allkeys-lfu"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "RESTORE",
+                "k2",
+                "0",
+                "\u0000\u0003v26\f\u0000P\u001cp#\u0003p#^",
+                "FREQ",
+                "100"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "OBJECT",
+                "FREQ",
+                "k2"
+              ],
+              "reply": 0
+            },
+            {
+              "c": "a",
+              "send": [
+                "GET",
+                "k2"
+              ],
+              "reply": "v26"
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory-policy",
+                "noeviction"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            }
+          ]
+        },
+        "epoll-2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/RESTORE-IDLETIME-FREQ-IGNORED/epoll-2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory-policy",
+                "allkeys-lru"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "RESTORE",
+                "k1",
+                "0",
+                "\u0000\u0003v26\f\u0000P\u001cp#\u0003p#^",
+                "IDLETIME",
+                "1000"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "OBJECT",
+                "IDLETIME",
+                "k1"
+              ],
+              "reply": 0
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory-policy",
+                "allkeys-lfu"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "RESTORE",
+                "k2",
+                "0",
+                "\u0000\u0003v26\f\u0000P\u001cp#\u0003p#^",
+                "FREQ",
+                "100"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "OBJECT",
+                "FREQ",
+                "k2"
+              ],
+              "reply": 0
+            },
+            {
+              "c": "a",
+              "send": [
+                "GET",
+                "k2"
+              ],
+              "reply": "v26"
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory-policy",
+                "noeviction"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            }
+          ]
+        },
+        "epoll-1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/RESTORE-IDLETIME-FREQ-IGNORED/epoll-1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory-policy",
+                "allkeys-lru"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "RESTORE",
+                "k1",
+                "0",
+                "\u0000\u0003v26\f\u0000P\u001cp#\u0003p#^",
+                "IDLETIME",
+                "1000"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "OBJECT",
+                "IDLETIME",
+                "k1"
+              ],
+              "reply": 0
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory-policy",
+                "allkeys-lfu"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "RESTORE",
+                "k2",
+                "0",
+                "\u0000\u0003v26\f\u0000P\u001cp#\u0003p#^",
+                "FREQ",
+                "100"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "OBJECT",
+                "FREQ",
+                "k2"
+              ],
+              "reply": 0
+            },
+            {
+              "c": "a",
+              "send": [
+                "GET",
+                "k2"
+              ],
+              "reply": "v26"
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory-policy",
+                "noeviction"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            }
+          ]
+        }
+      },
+      "verdict": {
+        "uring-2s": "DIFFERENT",
+        "uring-1s": "DIFFERENT",
+        "epoll-2s": "DIFFERENT",
+        "epoll-1s": "DIFFERENT"
+      }
+    },
+    "OBJECT-IDLETIME-ZERO": {
+      "results": {
+        "redis": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/redis74/src/redis-server",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/OBJECT-IDLETIME-ZERO/redis",
+            "--enable-debug-command",
+            "yes"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "foo",
+                "bar"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "sleep": 2.5
+            },
+            {
+              "c": "a",
+              "send": [
+                "OBJECT",
+                "IDLETIME",
+                "foo"
+              ],
+              "reply": 3
+            }
+          ]
+        },
+        "uring-2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/OBJECT-IDLETIME-ZERO/uring-2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "foo",
+                "bar"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "sleep": 2.5
+            },
+            {
+              "c": "a",
+              "send": [
+                "OBJECT",
+                "IDLETIME",
+                "foo"
+              ],
+              "reply": 0
+            }
+          ]
+        },
+        "uring-1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/OBJECT-IDLETIME-ZERO/uring-1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "foo",
+                "bar"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "sleep": 2.5
+            },
+            {
+              "c": "a",
+              "send": [
+                "OBJECT",
+                "IDLETIME",
+                "foo"
+              ],
+              "reply": 0
+            }
+          ]
+        },
+        "epoll-2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/OBJECT-IDLETIME-ZERO/epoll-2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "foo",
+                "bar"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "sleep": 2.5
+            },
+            {
+              "c": "a",
+              "send": [
+                "OBJECT",
+                "IDLETIME",
+                "foo"
+              ],
+              "reply": 0
+            }
+          ]
+        },
+        "epoll-1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/OBJECT-IDLETIME-ZERO/epoll-1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "foo",
+                "bar"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "sleep": 2.5
+            },
+            {
+              "c": "a",
+              "send": [
+                "OBJECT",
+                "IDLETIME",
+                "foo"
+              ],
+              "reply": 0
+            }
+          ]
+        }
+      },
+      "verdict": {
+        "uring-2s": "DIFFERENT",
+        "uring-1s": "DIFFERENT",
+        "epoll-2s": "DIFFERENT",
+        "epoll-1s": "DIFFERENT"
+      }
+    },
+    "MPOP-ARG-ERROR-TEXT": {
+      "results": {
+        "redis": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/redis74/src/redis-server",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/MPOP-ARG-ERROR-TEXT/redis",
+            "--enable-debug-command",
+            "yes"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "LMPOP",
+                "1",
+                "mylist{t}",
+                "RIGHT",
+                "COUNT",
+                "a"
+              ],
+              "reply": {
+                "error": "ERR count should be greater than 0"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "ZMPOP",
+                "1",
+                "myzset{t}",
+                "MIN",
+                "COUNT",
+                "a"
+              ],
+              "reply": {
+                "error": "ERR count should be greater than 0"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "BZMPOP",
+                "0",
+                "a",
+                "myzset{t}",
+                "MIN"
+              ],
+              "reply": {
+                "error": "ERR numkeys should be greater than 0"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "BLMPOP",
+                "0",
+                "a",
+                "mylist{t}",
+                "LEFT"
+              ],
+              "reply": {
+                "error": "ERR numkeys should be greater than 0"
+              }
+            }
+          ]
+        },
+        "uring-2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/MPOP-ARG-ERROR-TEXT/uring-2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "LMPOP",
+                "1",
+                "mylist{t}",
+                "RIGHT",
+                "COUNT",
+                "a"
+              ],
+              "reply": {
+                "error": "ERR value is not an integer or out of range"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "ZMPOP",
+                "1",
+                "myzset{t}",
+                "MIN",
+                "COUNT",
+                "a"
+              ],
+              "reply": {
+                "error": "ERR value is not an integer or out of range"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "BZMPOP",
+                "0",
+                "a",
+                "myzset{t}",
+                "MIN"
+              ],
+              "reply": {
+                "error": "ERR value is not an integer or out of range"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "BLMPOP",
+                "0",
+                "a",
+                "mylist{t}",
+                "LEFT"
+              ],
+              "reply": {
+                "error": "ERR value is not an integer or out of range"
+              }
+            }
+          ]
+        },
+        "uring-1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/MPOP-ARG-ERROR-TEXT/uring-1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "LMPOP",
+                "1",
+                "mylist{t}",
+                "RIGHT",
+                "COUNT",
+                "a"
+              ],
+              "reply": {
+                "error": "ERR value is not an integer or out of range"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "ZMPOP",
+                "1",
+                "myzset{t}",
+                "MIN",
+                "COUNT",
+                "a"
+              ],
+              "reply": {
+                "error": "ERR value is not an integer or out of range"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "BZMPOP",
+                "0",
+                "a",
+                "myzset{t}",
+                "MIN"
+              ],
+              "reply": {
+                "error": "ERR value is not an integer or out of range"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "BLMPOP",
+                "0",
+                "a",
+                "mylist{t}",
+                "LEFT"
+              ],
+              "reply": {
+                "error": "ERR value is not an integer or out of range"
+              }
+            }
+          ]
+        },
+        "epoll-2s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/MPOP-ARG-ERROR-TEXT/epoll-2s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "LMPOP",
+                "1",
+                "mylist{t}",
+                "RIGHT",
+                "COUNT",
+                "a"
+              ],
+              "reply": {
+                "error": "ERR value is not an integer or out of range"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "ZMPOP",
+                "1",
+                "myzset{t}",
+                "MIN",
+                "COUNT",
+                "a"
+              ],
+              "reply": {
+                "error": "ERR value is not an integer or out of range"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "BZMPOP",
+                "0",
+                "a",
+                "myzset{t}",
+                "MIN"
+              ],
+              "reply": {
+                "error": "ERR value is not an integer or out of range"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "BLMPOP",
+                "0",
+                "a",
+                "mylist{t}",
+                "LEFT"
+              ],
+              "reply": {
+                "error": "ERR value is not an integer or out of range"
+              }
+            }
+          ]
+        },
+        "epoll-1s": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "96-103",
+            "/home/user/Projects/cx-streamfix/build/streamfix/pre/tomokv",
+            "--port",
+            "20600",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-streamfix/build/streamfix/repro/reproductions-pre/MPOP-ARG-ERROR-TEXT/epoll-1s",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "LMPOP",
+                "1",
+                "mylist{t}",
+                "RIGHT",
+                "COUNT",
+                "a"
+              ],
+              "reply": {
+                "error": "ERR value is not an integer or out of range"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "ZMPOP",
+                "1",
+                "myzset{t}",
+                "MIN",
+                "COUNT",
+                "a"
+              ],
+              "reply": {
+                "error": "ERR value is not an integer or out of range"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "BZMPOP",
+                "0",
+                "a",
+                "myzset{t}",
+                "MIN"
+              ],
+              "reply": {
+                "error": "ERR value is not an integer or out of range"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "BLMPOP",
+                "0",
+                "a",
+                "mylist{t}",
+                "LEFT"
+              ],
+              "reply": {
+                "error": "ERR value is not an integer or out of range"
+              }
+            }
+          ]
+        }
+      },
+      "verdict": {
+        "uring-2s": "DIFFERENT",
+        "uring-1s": "DIFFERENT",
+        "epoll-2s": "DIFFERENT",
+        "epoll-1s": "DIFFERENT"
+      }
+    }
+  }
+}

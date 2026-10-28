@@ -194,11 +194,7 @@ bool blocking_reply_timeout_error(Op& op, TimeoutStatus status) {
 
 bool blocking_parse_positive_count(Op& op, Slice input, uint64_t& count) {
     int64_t parsed = 0;
-    if (!parse_i64(input, parsed)) {
-        reply_err(op.sink(), "ERR value is not an integer or out of range");
-        return false;
-    }
-    if (parsed < 1) {
+    if (!parse_i64(input, parsed) || parsed < 1) {
         reply_err(op.sink(), "ERR count should be greater than 0");
         return false;
     }
@@ -260,11 +256,7 @@ bool blocking_validate(Op& op, BlockingState& state, uint32_t& first_key,
         case BlockingKind::Blmpop:
         case BlockingKind::Bzmpop: {
             int64_t parsed_keys = 0;
-            if (!parse_i64(op.arg(2), parsed_keys)) {
-                reply_err(op.sink(), "ERR value is not an integer or out of range");
-                return false;
-            }
-            if (parsed_keys < 1) {
+            if (!parse_i64(op.arg(2), parsed_keys) || parsed_keys < 1) {
                 reply_err(op.sink(), "ERR numkeys should be greater than 0");
                 return false;
             }
@@ -492,7 +484,7 @@ BlockingProbe blocking_probe_key(Shard& shard, BlockingState& state,
     if (static_cast<Type>(object->type) != wanted) return BlockingProbe::WrongType;
     if (state.kind == BlockingKind::Xread) {
         if (key.cursor_latest && !key.cursor_resolved) {
-            if (!stream_object_last_id(object, key.cursor)) return BlockingProbe::WrongType;
+            if (!stream_resolve_xread_id(object, key.cursor)) return BlockingProbe::WrongType;
             key.cursor_resolved = true;
         }
         if (!stream_object_has_live_after(object, key.cursor)) return BlockingProbe::Empty;

@@ -1,0 +1,128 @@
+[
+  {
+    "root": "MPOP-ARG-ERROR-TEXT",
+    "unit": "unit/type/list",
+    "name": "LMPOP with illegal argument",
+    "previous_skip": "failed on TomoKV 2s in the survey"
+  },
+  {
+    "root": "STREAM-TRIM-APPROX-LIMIT",
+    "unit": "unit/type/stream",
+    "name": "XADD with LIMIT consecutive calls",
+    "previous_skip": "failed on TomoKV 2s in the survey"
+  },
+  {
+    "root": "STREAM-TRIM-APPROX-LIMIT",
+    "unit": "unit/type/stream",
+    "name": "XADD with LIMIT delete entries no more than limit",
+    "previous_skip": "failed on TomoKV 2s in the survey"
+  },
+  {
+    "root": "STREAM-TRIM-APPROX-LIMIT",
+    "unit": "unit/type/stream",
+    "name": "XADD with MAXLEN option and the '~' argument",
+    "previous_skip": "failed on TomoKV 2s in the survey"
+  },
+  {
+    "root": "XRANGE-EXCLUSIVE-SENTINEL",
+    "unit": "unit/type/stream",
+    "name": "XRANGE exclusive ranges",
+    "previous_skip": "failed on TomoKV 2s in the survey"
+  },
+  {
+    "root": "XREAD-PLUS-LAST",
+    "unit": "unit/type/stream",
+    "name": "XREAD last element blocking from empty stream",
+    "previous_skip": "failed on TomoKV 2s in the survey"
+  },
+  {
+    "root": "XREAD-PLUS-LAST",
+    "unit": "unit/type/stream",
+    "name": "XREAD last element blocking from non-empty stream",
+    "previous_skip": "failed on TomoKV 2s in the survey"
+  },
+  {
+    "root": "XREAD-PLUS-LAST",
+    "unit": "unit/type/stream",
+    "name": "XREAD last element from empty stream",
+    "previous_skip": "failed on TomoKV 2s in the survey"
+  },
+  {
+    "root": "XREAD-PLUS-LAST",
+    "unit": "unit/type/stream",
+    "name": "XREAD last element from multiple streams",
+    "previous_skip": "failed on TomoKV 2s in the survey"
+  },
+  {
+    "root": "XREAD-PLUS-LAST",
+    "unit": "unit/type/stream",
+    "name": "XREAD last element from non-empty stream",
+    "previous_skip": "failed on TomoKV 2s in the survey"
+  },
+  {
+    "root": "XREAD-PLUS-LAST",
+    "unit": "unit/type/stream",
+    "name": "XREAD last element with count > 1",
+    "previous_skip": "failed on TomoKV 2s in the survey"
+  },
+  {
+    "root": "XREAD-PLUS-LAST",
+    "unit": "unit/type/stream",
+    "name": "XREAD: read last element after XDEL (issue #13628)",
+    "previous_skip": "failed on TomoKV 2s in the survey"
+  },
+  {
+    "root": "STREAM-TRIM-APPROX-LIMIT",
+    "unit": "unit/type/stream",
+    "name": "XTRIM with LIMIT delete entries no more than limit",
+    "previous_skip": "failed on TomoKV 2s in the survey"
+  },
+  {
+    "root": "STREAM-TRIM-APPROX-LIMIT",
+    "unit": "unit/type/stream",
+    "name": "XTRIM with MAXLEN option basic test",
+    "previous_skip": "failed on TomoKV 2s in the survey"
+  },
+  {
+    "root": "STREAM-TRIM-APPROX-LIMIT",
+    "unit": "unit/type/stream",
+    "name": "XTRIM with ~ is limited",
+    "previous_skip": "failed on TomoKV 2s in the survey"
+  },
+  {
+    "root": "STREAM-GROUP-ID-DASH",
+    "unit": "unit/type/stream-cgroups",
+    "name": "PEL NACK reassignment after XGROUP SETID event",
+    "previous_skip": "failed on TomoKV 2s in the survey"
+  },
+  {
+    "root": "STREAM-GROUP-ID-DASH",
+    "unit": "unit/type/stream-cgroups",
+    "name": "XAUTOCLAIM as an iterator",
+    "previous_skip": "failed on TomoKV 2s in the survey"
+  },
+  {
+    "root": "STREAM-GROUP-ID-DASH",
+    "unit": "unit/type/stream-cgroups",
+    "name": "XAUTOCLAIM can claim PEL items from another consumer",
+    "previous_skip": "failed on TomoKV 2s in the survey"
+  },
+  {
+    "root": "XAUTOCLAIM-COUNT-RANGE",
+    "unit": "unit/type/stream-cgroups",
+    "name": "XAUTOCLAIM with out of range count",
+    "previous_skip": "failed on TomoKV 2s in the survey"
+  },
+  {
+    "root": "MPOP-ARG-ERROR-TEXT",
+    "unit": "unit/type/zset",
+    "name": "BZMPOP with illegal argument",
+    "previous_skip": "failed on TomoKV 2s in the survey"
+  },
+  {
+    "root": "MPOP-ARG-ERROR-TEXT",
+    "unit": "unit/type/zset",
+    "name": "ZMPOP with illegal argument",
+    "previous_skip": "failed on TomoKV 2s in the survey"
+  }
+]

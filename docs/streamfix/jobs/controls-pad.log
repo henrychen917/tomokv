@@ -1,0 +1,19 @@
+GATE(full): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-streamfix/build/gate-run.JJHp4w
+PARTIAL jobs (including prerequisites): release streamfix
+PARTIAL jobs (including prerequisites): release streamfix
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=70.825s; correctness-plan-fallback; streamfix STREAM-TRIM-APPROX-LIMIT vs Redis 7.4
+  streamfix STREAM-TRIM-APPROX-LIMIT vs Redis 7.4      FAIL (see /home/user/Projects/cx-streamfix/build/gate-run.JJHp4w/jobs/streamfix/trim-*.log)
+  row budget: 900s; median=40.46s; correctness-plan-fallback; streamfix XREAD-PLUS-LAST vs Redis 7.4
+  streamfix XREAD-PLUS-LAST vs Redis 7.4               FAIL (see /home/user/Projects/cx-streamfix/build/gate-run.JJHp4w/jobs/streamfix/xread-*.log)
+  row budget: 900s; median=33.75s; correctness-plan-fallback; streamfix XRANGE-EXCLUSIVE-SENTINEL vs Redis 7.4
+  streamfix XRANGE-EXCLUSIVE-SENTINEL vs Redis 7.4     FAIL (see /home/user/Projects/cx-streamfix/build/gate-run.JJHp4w/jobs/streamfix/ranges-*.log)
+  row budget: 900s; median=33.68s; correctness-plan-fallback; streamfix STREAM-GROUP-ID-DASH vs Redis 7.4
+  streamfix STREAM-GROUP-ID-DASH vs Redis 7.4          FAIL (see /home/user/Projects/cx-streamfix/build/gate-run.JJHp4w/jobs/streamfix/groupdash-*.log)
+  row budget: 900s; median=34.765s; correctness-plan-fallback; streamfix XAUTOCLAIM-COUNT-RANGE vs Redis 7.4
+  streamfix XAUTOCLAIM-COUNT-RANGE vs Redis 7.4        FAIL (see /home/user/Projects/cx-streamfix/build/gate-run.JJHp4w/jobs/streamfix/claimcount-*.log)
+  row budget: 900s; median=34.46s; correctness-plan-fallback; streamfix MPOP-ARG-ERROR-TEXT vs Redis 7.4
+  streamfix MPOP-ARG-ERROR-TEXT vs Redis 7.4           FAIL (see /home/user/Projects/cx-streamfix/build/gate-run.JJHp4w/jobs/streamfix/mpop-*.log)
+GATE(PARTIAL): 1 ok, 6 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-streamfix/docs/streamfix/jobs/controls-pad.tsv.partial

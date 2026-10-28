@@ -1,0 +1,70 @@
+{
+  "proof_file_hashes": {
+    "src/cmd/t_stream.cc": "e05602e82ae4cd3aae87c042d6d6527abaa2930c3d2ca4bebf83cd70c02d1f3e",
+    "src/cmd/t_stream_groups.cc": "3ca9d2a80a9009adf0d4bf12bf6ab0e88e4b262c2089c7b530d361dba64cdc8d",
+    "src/cmd/t_stream.h": "5d2c9afb962eede27d8282f3e1440fd81140f3de5e532450519d8cdafd06ea6c",
+    "src/cmd/blocking.inc": "b2a370f6c3e936ed288a44e0ab4333fa434b580a229424082e0a1aaeaf1980ea",
+    "src/cmd/xshard_commands.inc": "c41141bf0ac71294499c52ec2c153d3ccaf1f556060e78b9d2639d89a4ad252b",
+    "src/store/typeval.h": "9ffc9ab83e58c86b8d133b4af1a1f9ef4b25c75207771c8f8ab277d4d6e5b410",
+    "tests/gate.sh": "76c4414f065feaf605b30007418e8e699fad080dd32b14bfd38858aee5ec6bb2",
+    "tests/compat3_streamfix.py": "5506e400152173b6421b7cfc62c1d282a972b58b0cfd8496fafd6a5205256b08",
+    "tests/stream.py": "229e6f18ac43221708ed6fe286fcf92aa40307b3bdae009ab7c4695191038624",
+    "tests/netcmd.py": "9c9d932b007a6257cacee78a8213f43163c1b6c7ccf70da2a460a1fd72db8569",
+    "tests/redis_tcl_passing.json": "32534b7ec5770d63d4ae6a16164700809027d8cbce3ba5b0fceb148d8af04ebe"
+  },
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "96-103",
+    "--load-cores",
+    "104-111",
+    "--load-smt",
+    "",
+    "--ports",
+    "20680-20689",
+    "--candidate-binary",
+    "/home/user/Projects/cx-streamfix/build/streamfix/post-final/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-streamfix",
+  "env": {
+    "LANG": "en_US.UTF-8",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_ONLY_JOBS": "abba_selftest redis_tcl feature-split-0 feature-split-1 feature-armed-0 feature-armed-1",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_ZC_NET_IO": "uring",
+    "GATE_SHUTDOWN_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TEST_PORT": "20698",
+    "GATE_LEDGER": "/home/user/Projects/cx-streamfix/docs/streamfix/jobs/final-quiet-recheck.tsv"
+  },
+  "binary_sha256": "c671ede82505dda0c62da963e5230ba8aea8cd0edd08d1c5accf8948ed95ccf1",
+  "source_commit": "39f3f14d4df9cec2e42830ead1922d5196a4b9b4",
+  "gate_sha256": "76c4414f065feaf605b30007418e8e699fad080dd32b14bfd38858aee5ec6bb2",
+  "started": 1793096147.642155,
+  "exit": 1,
+  "seconds": 1173.277753353119,
+  "proof_file_hashes_after": {
+    "src/cmd/t_stream.cc": "e05602e82ae4cd3aae87c042d6d6527abaa2930c3d2ca4bebf83cd70c02d1f3e",
+    "src/cmd/t_stream_groups.cc": "3ca9d2a80a9009adf0d4bf12bf6ab0e88e4b262c2089c7b530d361dba64cdc8d",
+    "src/cmd/t_stream.h": "5d2c9afb962eede27d8282f3e1440fd81140f3de5e532450519d8cdafd06ea6c",
+    "src/cmd/blocking.inc": "b2a370f6c3e936ed288a44e0ab4333fa434b580a229424082e0a1aaeaf1980ea",
+    "src/cmd/xshard_commands.inc": "c41141bf0ac71294499c52ec2c153d3ccaf1f556060e78b9d2639d89a4ad252b",
+    "src/store/typeval.h": "9ffc9ab83e58c86b8d133b4af1a1f9ef4b25c75207771c8f8ab277d4d6e5b410",
+    "tests/gate.sh": "76c4414f065feaf605b30007418e8e699fad080dd32b14bfd38858aee5ec6bb2",
+    "tests/compat3_streamfix.py": "5506e400152173b6421b7cfc62c1d282a972b58b0cfd8496fafd6a5205256b08",
+    "tests/stream.py": "229e6f18ac43221708ed6fe286fcf92aa40307b3bdae009ab7c4695191038624",
+    "tests/netcmd.py": "9c9d932b007a6257cacee78a8213f43163c1b6c7ccf70da2a460a1fd72db8569",
+    "tests/redis_tcl_passing.json": "32534b7ec5770d63d4ae6a16164700809027d8cbce3ba5b0fceb148d8af04ebe"
+  },
+  "proof_files_unchanged": true,
+  "artifacts": "/home/user/Projects/cx-streamfix/build/gate-run.1SUkVx",
+  "summary": [
+    "GATE(PARTIAL): 141 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-streamfix/docs/streamfix/jobs/final-quiet-recheck.tsv.partial"
+  ],
+  "binary_unchanged": true
+}

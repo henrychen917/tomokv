@@ -1,0 +1,53 @@
+{
+  "PRE": {
+    "quick": 806,
+    "full": 823,
+    "quick_exit_line": 5762,
+    "streamfix_declarations": [],
+    "collect_streamfix_lines": [],
+    "expected_constants": [
+      "EXPECT_QUICK=798",
+      "EXPECT_FULL=815"
+    ]
+  },
+  "POST": {
+    "quick": 812,
+    "full": 829,
+    "quick_exit_line": 5785,
+    "streamfix_declarations": [
+      {
+        "line": 3801,
+        "label": "row_begin \"streamfix STREAM-TRIM-APPROX-LIMIT vs Redis 7.4\""
+      },
+      {
+        "line": 3804,
+        "label": "row_begin \"streamfix XREAD-PLUS-LAST vs Redis 7.4\""
+      },
+      {
+        "line": 3807,
+        "label": "row_begin \"streamfix XRANGE-EXCLUSIVE-SENTINEL vs Redis 7.4\""
+      },
+      {
+        "line": 3810,
+        "label": "row_begin \"streamfix STREAM-GROUP-ID-DASH vs Redis 7.4\""
+      },
+      {
+        "line": 3813,
+        "label": "row_begin \"streamfix XAUTOCLAIM-COUNT-RANGE vs Redis 7.4\""
+      },
+      {
+        "line": 3816,
+        "label": "row_begin \"streamfix MPOP-ARG-ERROR-TEXT vs Redis 7.4\""
+      }
+    ],
+    "collect_streamfix_lines": [
+      5617
+    ],
+    "expected_constants": [
+      "EXPECT_QUICK=798",
+      "EXPECT_FULL=815"
+    ],
+    "fixture_labels": 829,
+    "fixture_matches_source": true
+  }
+}

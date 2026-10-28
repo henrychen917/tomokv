@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-streamfix/build/streamfix/commands/post-normal-MSET-2s-32-1--1.log
+SHA-256: 63a5d7103ad2b4b25f0e165e36618702d4baa5c54e8311dba2a870d1da987979
+Exit: 0
+0x0000555555a5b9cc	569	}
+0x0000555555a5b9ce	569	}
+0x0000555555a5b9d0	569	}
+0x0000555TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+555d8fd56 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-streamfix/tests/txnorder_command_scope.cc:112
+112	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
+95	   for(unsigned i=0;i<n;i++){
+0x0000555555d8fd62	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d8fd69	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d8fd71	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d8fd78	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d8fd7e	115	   std::string want="+OK\r\n";
+0x0000555555d8fd85	115	   std::string want="+OK\r\n";
+0x0000555555d8fd8c	114	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-streamfix/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 3721778) exited normally]
+COUNT 953446
