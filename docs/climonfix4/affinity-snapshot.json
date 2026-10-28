@@ -1,454 +1,203 @@
-[
-  {
-    "pid": 2386281,
-    "command": [
-      "/bin/bash",
-      "-c",
-      "taskset -c 16-31 env REDIS74_ROOT=/home/user/Projects/redis GATE_ONLY_JOBS='climonfix4-1s-uring climonfix4-1s-epoll climonfix4-2s-uring climonfix4-2s-epoll redis_tcl climonfix clientfix scriptfix script_bounds lualibs multifix-1s-uring multifix-1s-epoll multifix-2s-uring multifix-2s-epoll notify notifycompat notify_order notify_aof tracking_redirect trackfix_order trackfix_accounting netcmd_units racefix_climon dispatch_arity dispatch_errors dispatch_children cmd_metadata release_batteries fused-0 fused-1 feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 flip' bash tests/gate.sh quick --server-cores 16-23 --load-cores 24-31 --server-smt '' --load-smt '' --ports 20200-20209 --candidate-binary /home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST > build/climonfix4/post-final12-gate.log 2>&1"
-    ],
-    "cpus": "16-31",
-    "valid": true
-  },
-  {
-    "pid": 2386282,
-    "command": [
-      "bash",
-      "tests/gate.sh",
-      "quick",
-      "--server-cores",
-      "16-23",
-      "--load-cores",
-      "24-31",
-      "--server-smt",
-      "--load-smt",
-      "--ports",
-      "20200-20209",
-      "--candidate-binary"
-    ],
-    "cpus": "24-31",
-    "valid": true
-  },
-  {
-    "pid": 2386289,
-    "command": [
-      "bash",
-      "-c",
-      "for engine in uring epoll; do REDIS74_ROOT=/home/user/Projects/redis GATE_DIFFER_ORACLE_BIN=/home/user/Projects/redis74/src/redis-server GATE_DIFFER_NET_IO=\"$engine\" GATE_NET_IO=\"$engine\" GATE_ONLY_JOBS=\"differ-split differ-armed\" bash tests/gate.sh full --server-cores 24-31 --load-cores 16-23 --server-smt \"\" --load-smt \"\" --ports 20230-20239 --candidate-binary \"$PWD/build/climonfix4/tomokv-POST\" > \"build/climonfix4/differ-final12-$engine.log\" 2>&1; printf \"%s %s\\n\" \"$engine\" \"$?\" >> build/climonfix4/differ-final12-exits.txt; done"
-    ],
-    "cpus": "16-31",
-    "valid": true
-  },
-  {
-    "pid": 2386290,
-    "command": [
-      "bash",
-      "tests/gate.sh",
-      "full",
-      "--server-cores",
-      "24-31",
-      "--load-cores",
-      "16-23",
-      "--server-smt",
-      "--load-smt",
-      "--ports",
-      "20230-20239",
-      "--candidate-binary"
-    ],
-    "cpus": "16-23",
-    "valid": true
-  },
-  {
-    "pid": 2386778,
-    "command": [
-      "bash",
-      "tests/gate.sh",
-      "quick",
-      "--server-cores",
-      "16-23",
-      "--load-cores",
-      "24-31",
-      "--server-smt",
-      "--load-smt",
-      "--ports",
-      "20200-20209",
-      "--candidate-binary"
-    ],
-    "cpus": "24-31",
-    "valid": true
-  },
-  {
-    "pid": 2387090,
-    "command": [
-      "bash",
-      "tests/gate.sh",
-      "full",
-      "--server-cores",
-      "24-31",
-      "--load-cores",
-      "16-23",
-      "--server-smt",
-      "--load-smt",
-      "--ports",
-      "20230-20239",
-      "--candidate-binary"
-    ],
-    "cpus": "16-23",
-    "valid": true
-  },
-  {
-    "pid": 2526254,
-    "command": [
-      "bash",
-      "tests/gate.sh",
-      "full",
-      "--server-cores",
-      "24-31",
-      "--load-cores",
-      "16-23",
-      "--server-smt",
-      "--load-smt",
-      "--ports",
-      "20230-20239",
-      "--candidate-binary"
-    ],
-    "cpus": "16-23",
-    "valid": true
-  },
-  {
-    "pid": 2526268,
-    "command": [
-      "/bin/bash",
-      "tests/differ_gate.sh",
-      "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST",
-      "20230",
-      "20231",
-      "24-31",
-      "6:2"
-    ],
-    "cpus": "16-23",
-    "valid": true
-  },
-  {
-    "pid": 2526318,
-    "command": [
-      "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST",
-      "--port",
-      "20230",
-      "--bind",
-      "127.0.0.1",
-      "--shards",
-      "16",
-      "--ratio",
-      "6:2",
-      "--net-io",
-      "uring",
-      "--databases"
-    ],
-    "cpus": "24-31",
-    "valid": true
-  },
-  {
-    "pid": 2577757,
-    "command": [
-      "bash",
-      "tests/gate.sh",
-      "quick",
-      "--server-cores",
-      "16-23",
-      "--load-cores",
-      "24-31",
-      "--server-smt",
-      "--load-smt",
-      "--ports",
-      "20200-20209",
-      "--candidate-binary"
-    ],
-    "cpus": "24-31",
-    "valid": true
-  },
-  {
-    "pid": 2596795,
-    "command": [
-      "/usr/libexec/gcc/x86_64-linux-gnu/13/cc1plus",
-      "-quiet",
-      "-I",
-      ".",
-      "-imultiarch",
-      "x86_64-linux-gnu",
-      "-D_GNU_SOURCE",
-      "-D_REENTRANT",
-      "-D",
-      "TOMO_MDBQSBR_TEST",
-      "-D",
-      "TOMO_CORE_CONCURRENCY_TEST"
-    ],
-    "cpus": "16-31",
-    "valid": true
-  },
-  {
-    "pid": 2596800,
-    "command": [
-      "/usr/libexec/gcc/x86_64-linux-gnu/13/cc1plus",
-      "-quiet",
-      "-I",
-      ".",
-      "-imultiarch",
-      "x86_64-linux-gnu",
-      "-D_GNU_SOURCE",
-      "-D_REENTRANT",
-      "-D",
-      "TOMO_MDBQSBR_TEST",
-      "-D",
-      "TOMO_CORE_CONCURRENCY_TEST"
-    ],
-    "cpus": "16-31",
-    "valid": true
-  },
-  {
-    "pid": 2597154,
-    "command": [
-      "/usr/libexec/gcc/x86_64-linux-gnu/13/cc1plus",
-      "-quiet",
-      "-I",
-      ".",
-      "-imultiarch",
-      "x86_64-linux-gnu",
-      "-D_GNU_SOURCE",
-      "-D_REENTRANT",
-      "-D",
-      "TOMO_MDBQSBR_TEST",
-      "-D",
-      "TOMO_CORE_CONCURRENCY_TEST"
-    ],
-    "cpus": "16-31",
-    "valid": true
-  },
-  {
-    "pid": 2608194,
-    "command": [
-      "/usr/libexec/gcc/x86_64-linux-gnu/13/cc1plus",
-      "-quiet",
-      "-I",
-      ".",
-      "-imultiarch",
-      "x86_64-linux-gnu",
-      "-D_GNU_SOURCE",
-      "-D_REENTRANT",
-      "-D",
-      "TOMO_MDBQSBR_TEST",
-      "-D",
-      "TOMO_CORE_CONCURRENCY_TEST"
-    ],
-    "cpus": "16-31",
-    "valid": true
-  },
-  {
-    "pid": 2614536,
-    "command": [
-      "/usr/libexec/gcc/x86_64-linux-gnu/13/cc1plus",
-      "-quiet",
-      "-I",
-      ".",
-      "-imultiarch",
-      "x86_64-linux-gnu",
-      "-D_GNU_SOURCE",
-      "-D_REENTRANT",
-      "-D",
-      "TOMO_JEMALLOC",
-      "-include",
-      "tests/reorderscan_witness.h"
-    ],
-    "cpus": "16-31",
-    "valid": true
-  },
-  {
-    "pid": 2614754,
-    "command": [
-      "/usr/libexec/gcc/x86_64-linux-gnu/13/cc1plus",
-      "-quiet",
-      "-I",
-      ".",
-      "-imultiarch",
-      "x86_64-linux-gnu",
-      "-D_GNU_SOURCE",
-      "-D_REENTRANT",
-      "-D",
-      "TOMO_JEMALLOC",
-      "-D",
-      "TOMO_SINGLE_DATABASE=1"
-    ],
-    "cpus": "16-31",
-    "valid": true
-  },
-  {
-    "pid": 2619944,
-    "command": [
-      "/usr/libexec/gcc/x86_64-linux-gnu/13/cc1plus",
-      "-quiet",
-      "-I",
-      ".",
-      "-imultiarch",
-      "x86_64-linux-gnu",
-      "-D_GNU_SOURCE",
-      "-D_REENTRANT",
-      "-D",
-      "TOMO_JEMALLOC",
-      "tests/wb_rule_phase_unit.cc",
-      "-D_FORTIFY_SOURCE=3"
-    ],
-    "cpus": "16-31",
-    "valid": true
-  },
-  {
-    "pid": 2619949,
-    "command": [
-      "/usr/libexec/gcc/x86_64-linux-gnu/13/cc1plus",
-      "-quiet",
-      "-I",
-      ".",
-      "-imultiarch",
-      "x86_64-linux-gnu",
-      "-D_GNU_SOURCE",
-      "-D_REENTRANT",
-      "-D",
-      "TOMO_JEMALLOC",
-      "-D",
-      "TOMO_SINGLE_DATABASE=1"
-    ],
-    "cpus": "16-31",
-    "valid": true
-  },
-  {
-    "pid": 2620134,
-    "command": [
-      "/usr/libexec/gcc/x86_64-linux-gnu/13/cc1plus",
-      "-quiet",
-      "-I",
-      "build/wb-rule-controls/budget/source",
-      "-I",
-      ".",
-      "-imultiarch",
-      "x86_64-linux-gnu",
-      "-D_GNU_SOURCE",
-      "-D_REENTRANT",
-      "-D",
-      "TOMO_JEMALLOC"
-    ],
-    "cpus": "16-31",
-    "valid": true
-  },
-  {
-    "pid": 2620146,
-    "command": [
-      "/usr/libexec/gcc/x86_64-linux-gnu/13/cc1plus",
-      "-quiet",
-      "-I",
-      "build/wb-rule-controls/rotation/source",
-      "-I",
-      ".",
-      "-imultiarch",
-      "x86_64-linux-gnu",
-      "-D_GNU_SOURCE",
-      "-D_REENTRANT",
-      "-D",
-      "TOMO_JEMALLOC"
-    ],
-    "cpus": "16-31",
-    "valid": true
-  },
-  {
-    "pid": 2620148,
-    "command": [
-      "/usr/libexec/gcc/x86_64-linux-gnu/13/cc1plus",
-      "-quiet",
-      "-I",
-      "build/wb-rule-controls/head/source",
-      "-I",
-      ".",
-      "-imultiarch",
-      "x86_64-linux-gnu",
-      "-D_GNU_SOURCE",
-      "-D_REENTRANT",
-      "-D",
-      "TOMO_JEMALLOC"
-    ],
-    "cpus": "16-31",
-    "valid": true
-  },
-  {
-    "pid": 2620252,
-    "command": [
-      "/usr/libexec/gcc/x86_64-linux-gnu/13/cc1plus",
-      "-quiet",
-      "-I",
-      "build/wb-rule-controls/pin/source",
-      "-I",
-      ".",
-      "-imultiarch",
-      "x86_64-linux-gnu",
-      "-D_GNU_SOURCE",
-      "-D_REENTRANT",
-      "-D",
-      "TOMO_JEMALLOC"
-    ],
-    "cpus": "16-31",
-    "valid": true
-  },
-  {
-    "pid": 2624414,
-    "command": [
-      "/usr/libexec/gcc/x86_64-linux-gnu/13/cc1plus",
-      "-quiet",
-      "-I",
-      "build/wb-rule-controls/capture/source",
-      "-I",
-      ".",
-      "-imultiarch",
-      "x86_64-linux-gnu",
-      "-D_GNU_SOURCE",
-      "-D_REENTRANT",
-      "-D",
-      "TOMO_JEMALLOC"
-    ],
-    "cpus": "16-31",
-    "valid": true
-  },
-  {
-    "pid": 2625095,
-    "command": [
-      "/usr/libexec/gcc/x86_64-linux-gnu/13/cc1plus",
-      "-quiet",
-      "-I",
-      "build/wb-rule-controls/visit/source",
-      "-I",
-      ".",
-      "-imultiarch",
-      "x86_64-linux-gnu",
-      "-D_GNU_SOURCE",
-      "-D_REENTRANT",
-      "-D",
-      "TOMO_JEMALLOC"
-    ],
-    "cpus": "16-31",
-    "valid": true
-  },
-  {
-    "pid": 2625108,
-    "command": [
-      "/usr/libexec/gcc/x86_64-linux-gnu/13/cc1plus",
-      "-quiet",
-      "-I",
-      "build/wb-rule-controls/dead/source",
-      "-I",
-      ".",
-      "-imultiarch",
-      "x86_64-linux-gnu",
-      "-D_GNU_SOURCE",
-      "-D_REENTRANT",
-      "-D",
-      "TOMO_JEMALLOC"
-    ],
-    "cpus": "16-31",
-    "valid": true
-  }
-]
+{
+  "binary_sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+  "allowed_cpus": "16-31",
+  "allowed_ports": "20200-20299",
+  "processes": [
+    {
+      "pid": 317800,
+      "exe": "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST",
+      "argv": [
+        "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST",
+        "--port",
+        "20230",
+        "--bind",
+        "127.0.0.1",
+        "--shards",
+        "16",
+        "--thread-mode",
+        "fused",
+        "--read-local",
+        "1",
+        "--net-io",
+        "uring",
+        "--databases",
+        "16",
+        "--atomic",
+        "0",
+        "--save",
+        "--dir",
+        "/home/user/Projects/cx-climonfix4/build/gate-run.PkC1v3/jobs/differ-armed-0/differ/target-atomic-0",
+        "--enable-debug-command",
+        "yes",
+        "--aclfile",
+        "/home/user/Projects/cx-climonfix4/build/gate-run.PkC1v3/jobs/differ-armed-0/differ/ccfix.acl"
+      ],
+      "port": 20230,
+      "threads": [
+        {
+          "tid": 317800,
+          "cpus": [
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31
+          ]
+        },
+        {
+          "tid": 317809,
+          "cpus": [
+            24
+          ]
+        },
+        {
+          "tid": 317810,
+          "cpus": [
+            25
+          ]
+        },
+        {
+          "tid": 317811,
+          "cpus": [
+            26
+          ]
+        },
+        {
+          "tid": 317812,
+          "cpus": [
+            27
+          ]
+        },
+        {
+          "tid": 317813,
+          "cpus": [
+            28
+          ]
+        },
+        {
+          "tid": 317814,
+          "cpus": [
+            29
+          ]
+        },
+        {
+          "tid": 317815,
+          "cpus": [
+            30
+          ]
+        },
+        {
+          "tid": 317816,
+          "cpus": [
+            31
+          ]
+        },
+        {
+          "tid": 342418,
+          "cpus": [
+            24
+          ]
+        },
+        {
+          "tid": 365666,
+          "cpus": [
+            30
+          ]
+        }
+      ]
+    },
+    {
+      "pid": 370295,
+      "exe": "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST",
+      "argv": [
+        "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST",
+        "--port",
+        "20200",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-climonfix4/build/gate-run.FBTG13/jobs/redis_tcl/redis-tcl-2s/unit/scripting/data",
+        "--enable-debug-command",
+        "yes",
+        "--thread-mode",
+        "2s",
+        "--shards",
+        "16",
+        "--databases",
+        "16",
+        "--ratio",
+        "6:2"
+      ],
+      "port": 20200,
+      "threads": [
+        {
+          "tid": 370295,
+          "cpus": [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23
+          ]
+        },
+        {
+          "tid": 370296,
+          "cpus": [
+            22
+          ]
+        },
+        {
+          "tid": 370297,
+          "cpus": [
+            23
+          ]
+        },
+        {
+          "tid": 370298,
+          "cpus": [
+            16
+          ]
+        },
+        {
+          "tid": 370299,
+          "cpus": [
+            17
+          ]
+        },
+        {
+          "tid": 370300,
+          "cpus": [
+            18
+          ]
+        },
+        {
+          "tid": 370301,
+          "cpus": [
+            19
+          ]
+        },
+        {
+          "tid": 370302,
+          "cpus": [
+            20
+          ]
+        },
+        {
+          "tid": 370303,
+          "cpus": [
+            21
+          ]
+        }
+      ]
+    }
+  ]
+}
