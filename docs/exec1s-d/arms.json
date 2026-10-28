@@ -26,5 +26,33 @@
     "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/X12",
     "sha256": "20d40ac975b49935500a75b9b2959d7058c03f54ededcb3b4131e27ef8edbec6",
     "bytes": 220018024
+  },
+  {
+    "arm": "X3",
+    "source_commit": "d602c8c3641436b992ed4ddf1410ad2d0f557e54",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/X3",
+    "sha256": "9bf432e191a5fed09f6bbc76b50c07281155ed802093bfc0a9578068b78ad4e1",
+    "bytes": 219976976
+  },
+  {
+    "arm": "X5",
+    "source_commit": "d602c8c3641436b992ed4ddf1410ad2d0f557e54",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/X5",
+    "sha256": "7381c44a183471f9a11521e0eb2ae0ce42201d6adf4b3805e8f3af1c98254cba",
+    "bytes": 220074592
+  },
+  {
+    "arm": "PRE",
+    "source_commit": "393d6ceb129d8c99dffd70959d6a19267c525fe0",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/PRE",
+    "sha256": "5347cbd4d66c2bfd9a60c802388f3b04015e2bb2801cd37f7fc49a55f6b0932d",
+    "bytes": 220087840
+  },
+  {
+    "arm": "REUSE",
+    "source_commit": "393d6ceb129d8c99dffd70959d6a19267c525fe0",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/REUSE",
+    "sha256": "13ff93444b3f2f23711c16937b59e0dff283ce1e7f86a29bdc17cd98c689abdc",
+    "bytes": 220087840
   }
 ]
