@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Replay the original complete split-0 seed plan, observing SAVE's actual result."""
-import argparse, fcntl, json, os, signal, subprocess, threading, time
+import argparse, fcntl, json, os, re, signal, subprocess, threading, time
 from pathlib import Path
 import exec1sd as d
 
@@ -45,6 +45,7 @@ end
 continue
 thread apply all bt
 ''')
+    busy_sites=[]
     if a.busy_only:
         # Stop only after SnapshotManager already returned Busy. No accepted
         # admission executes a breakpoint; this avoids the entry/finish
@@ -54,6 +55,24 @@ thread apply all bt
         busy_line=next(i+2 for i,line in enumerate(lines)
             if 'if (result == SnapshotManager::StartResult::Busy)' in line)
         assert 'Background save already in progress' in lines[busy_line-1]
+        # GCC assigns the source line to the non-Busy fallthrough. Resolve
+        # the taken Busy branch from each frozen symbol instead of setting a
+        # misleading line breakpoint that would stop on successful admissions.
+        for namespace in ('4tomo','8tomo_db0'):
+            symbol='_ZN'+namespace+'12_GLOBAL__N_116snapshot_commandERNS_2OpEb'
+            assembly=subprocess.check_output(['objdump','-d','--disassemble='+symbol,arm['binary']],text=True)
+            (out/(namespace+'-snapshot-command.asm')).write_text(assembly)
+            start=int(re.search(r'^([0-9a-f]+) <'+re.escape(symbol)+r'>:',assembly,re.M)[1],16)
+            ins=[]
+            for line in assembly.splitlines():
+                parts=line.split('\t')
+                if len(parts)>=3 and re.fullmatch(r'[0-9a-f]+:',parts[0].strip()):
+                    ins.append((int(parts[0].strip()[:-1],16),parts[-1].strip()))
+            index=next(i for i,(_,text) in enumerate(ins) if re.fullmatch(r'cmp\s+\$0x1,%al',text))
+            assert 'SnapshotManager5start' in ins[index-2][1]
+            destination=int(re.match(r'je\s+([0-9a-f]+)',ins[index+1][1])[1],16)
+            busy_sites.append(dict(symbol=symbol,offset=destination-start,elf_address=destination,
+                assembly_sha256=d.sha(out/(namespace+'-snapshot-command.asm'))))
         observer.write_text("""set pagination off
 set confirm off
 set print thread-events off
@@ -75,8 +94,9 @@ class Busy(gdb.Breakpoint):
     variable_errors=errors if message is None else [],
     backtrace=gdb.execute('bt 8',to_string=True))),flush=True)
   return False
-point=Busy('src/cmd/t_server.cc:"""+str(busy_line)+"""',internal=True)
-print('SAVE_BUSY_OBSERVER_ARMED '+json.dumps(dict(locations=len(point.locations))),flush=True)
+sites="""+repr(busy_sites)+"""
+points=[Busy('*'+hex(int(gdb.parse_and_eval('&'+site['symbol']))+site['offset']),internal=True) for site in sites]
+print('SAVE_BUSY_OBSERVER_ARMED '+json.dumps(dict(locations=sum(len(point.locations) for point in points))),flush=True)
 end
 continue
 thread apply all bt
@@ -135,7 +155,7 @@ thread apply all bt
     assert d.sha(arm['binary'])==arm['sha256']
     d.save(d.DOCS/(label+'.json'),dict(arm=arm,command=cmd,returncode=result.returncode,
         observer_kind='Busy reply only' if a.busy_only else 'Every admission entry and return',
-        busy_results=busy_rows,armed=armed,
+        busy_results=busy_rows,armed=armed,busy_sites=busy_sites,
         plan_sha256=d.sha(d.DOCS/'epoll-seed22-plan.json'),observer_sha256=d.sha(observer),
         target_log=str(logfile),target_log_sha256=d.sha(logfile),results=rows,
         observer_errors=[line for line in log.splitlines() if line.startswith('SAVE_OBSERVER_ERROR ')]))
