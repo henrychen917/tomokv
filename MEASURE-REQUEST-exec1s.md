@@ -170,11 +170,15 @@ made by this lane.
    The eight cells are `x1s_a0_unc,x1s_a0_hot,x1s_a1_unc,x1s_a1_hot,`
    `x2s_a0_unc,x2s_a0_hot,x2s_a1_unc,x2s_a1_hot`. Keep the harness’s four plain
    INCR clients in hot cells, placement, databases=1 and read-local settings.
+   Explicit driver arguments: `--conns 64 --threads 16 --cells all --blocks 3
+   --secs 20`. Its eight server cores use 1s/read-local=1/64 shards or
+   2s/ratio=6:2/16 shards; key/client balancing and automatic FLIP stay off.
 2. **Per-lever attribution: 1 block**, same eight cells and 64 connections:
    X1/PRE (includes X0 telemetry), X2/X1, X3/X2, isolated X4/X3, and X5/X3
    (X4 remains disabled). Run POST-layout/PAD-A as the type-A control. Record
    each arm separately; a one-block attribution result does not replace the
-   three-block POST/PRE decision.
+   three-block POST/PRE decision. Use the same driver arguments with `--blocks 1`;
+   the first arm in each pair is `--candidate`, the second is `--reference`.
 3. `/home/user/Projects/calib/exec-depth-sweep.py --binary build/exec1s-POST`,
    both `--mode 1s` and `--mode 2s`, atomic 0 and 1, cross/same-owner/same-shard,
    depths `16x1,16x4,32x4,64x4,128x4`, three blocks. X2’s same-shard decision is
@@ -200,6 +204,7 @@ taskset -c 48-63 python3 tools/exec1s_trace.py
 taskset -c 48-63 python3 tools/exec1s_retire_probes.py
 taskset -c 48-63 python3 tools/exec1s_directed.py
 taskset -c 48-63 python3 tools/exec1s_finish_proof.py
+taskset -c 48-63 python3 tools/exec1s_live_receipts.py
 ```
 
 After probe retirement, `tools/exec1s_trace.py --collect-only` verifies the
