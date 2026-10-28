@@ -261,7 +261,7 @@
       "namespace": "normal",
       "name": "tomo::FlatStore::read_local_capture_in(tomo::FlatStore::ReadLocalTable const&, unsigned long, tomo::Slice, unsigned long const*&) const [clone .isra.0]",
       "address": "0x68a730",
-      "count": 11088,
+      "count": 16632,
       "matches": [
         {
           "size": 416,
@@ -283,7 +283,7 @@
       "namespace": "normal",
       "name": "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]",
       "address": "0x68a9b0",
-      "count": 13872,
+      "count": 20802,
       "matches": [
         {
           "size": 477,
@@ -394,7 +394,7 @@
       "namespace": "normal",
       "name": "tomo::FlatStore::read_local_prefetch(unsigned long) const",
       "address": "0x68b200",
-      "count": 10584,
+      "count": 15876,
       "matches": [
         {
           "size": 383,
@@ -416,7 +416,7 @@
       "namespace": "normal",
       "name": "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const",
       "address": "0x68b380",
-      "count": 14616,
+      "count": 21924,
       "matches": [
         {
           "size": 1169,
@@ -658,7 +658,7 @@
       "namespace": "normal",
       "name": "tomo::ExLoopT<true>::notify_sender(tomo::Client*)",
       "address": "0x697bc0",
-      "count": 200,
+      "count": 300,
       "matches": [
         {
           "size": 698,
@@ -680,23 +680,29 @@
       "namespace": "normal",
       "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
       "address": "0x697e80",
-      "count": 3386,
-      "matches": [],
+      "count": 5079,
+      "matches": [
+        {
+          "size": 328,
+          "address": "0x6969b0",
+          "digest": "49d478cc379dac90e16c9a27105655ad54d588647338ff07d7da4164aaa7b41e"
+        }
+      ],
       "probe": [
         {
           "size": 328,
           "address": "0x697e80",
-          "digest": "9eddf919407c9ad47a15fcaf4c21aff4524de0965f1071825ad6d868e66be819"
+          "digest": "49d478cc379dac90e16c9a27105655ad54d588647338ff07d7da4164aaa7b41e"
         }
       ],
-      "pass_": false
+      "pass_": true
     },
     {
       "arm": "anchor",
       "namespace": "normal",
       "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
       "address": "0x6a0a90",
-      "count": 13608,
+      "count": 20412,
       "matches": [
         {
           "size": 1675,
@@ -718,7 +724,7 @@
       "namespace": "normal",
       "name": "unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)",
       "address": "0x6a1120",
-      "count": 17946,
+      "count": 26919,
       "matches": [
         {
           "size": 2757,
@@ -1036,6 +1042,22 @@
     },
     {
       "arm": "anchor",
+      "namespace": "normal",
+      "name": "tomo::[asm .rlfence]",
+      "address": "0x773e62",
+      "count": 60,
+      "assembly_region": ".rlfence",
+      "offsets": [
+        "0x38",
+        "0x3c",
+        "0x40",
+        "0x4a",
+        "0x4f"
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "anchor",
       "namespace": "db0",
       "name": "tomo_db0::multi_session_watch_size(tomo_db0::Client const&)",
       "address": "0x110540",
@@ -1184,7 +1206,7 @@
       "namespace": "db0",
       "name": "void tomo_db0::reply_bulk<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice) [clone .isra.0]",
       "address": "0x2f9d00",
-      "count": 13872,
+      "count": 20802,
       "matches": [
         {
           "size": 477,
@@ -1285,7 +1307,7 @@
       "namespace": "db0",
       "name": "tomo_db0::FlatStore::read_local_prefetch(unsigned long) const",
       "address": "0x2fa6c0",
-      "count": 10584,
+      "count": 15876,
       "matches": [
         {
           "size": 383,
@@ -1307,7 +1329,7 @@
       "namespace": "db0",
       "name": "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const",
       "address": "0x2fa840",
-      "count": 21672,
+      "count": 32508,
       "matches": [
         {
           "size": 1770,
@@ -1549,7 +1571,7 @@
       "namespace": "db0",
       "name": "tomo_db0::ExLoopT<true>::notify_sender(tomo_db0::Client*)",
       "address": "0x3074c0",
-      "count": 200,
+      "count": 300,
       "matches": [
         {
           "size": 698,
@@ -1571,23 +1593,29 @@
       "namespace": "db0",
       "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
       "address": "0x307780",
-      "count": 3386,
-      "matches": [],
+      "count": 5079,
+      "matches": [
+        {
+          "size": 328,
+          "address": "0x306190",
+          "digest": "e906ae66bd0e3a25dbf6f31074b73a898ce86c14a1b4770faa119a6a5b6e3251"
+        }
+      ],
       "probe": [
         {
           "size": 328,
           "address": "0x307780",
-          "digest": "05b1ef9596a719117b2ccd9bb0c2833357e9075b20279e7b058e146f133e3ecb"
+          "digest": "e906ae66bd0e3a25dbf6f31074b73a898ce86c14a1b4770faa119a6a5b6e3251"
         }
       ],
-      "pass_": false
+      "pass_": true
     },
     {
       "arm": "anchor",
       "namespace": "db0",
       "name": "tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::ReadLocalPrefetchCapture const*)",
       "address": "0x3105e0",
-      "count": 13608,
+      "count": 20412,
       "matches": [
         {
           "size": 1675,
@@ -1609,7 +1637,7 @@
       "namespace": "db0",
       "name": "unsigned int tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)",
       "address": "0x310c70",
-      "count": 18814,
+      "count": 28221,
       "matches": [
         {
           "size": 2827,
@@ -1975,6 +2003,22 @@
     {
       "arm": "anchor",
       "namespace": "db0",
+      "name": "tomo_db0::[asm .rlfence]",
+      "address": "0x773e04",
+      "count": 60,
+      "assembly_region": ".rlfence",
+      "offsets": [
+        "0x0",
+        "0x4",
+        "0x8",
+        "0x12",
+        "0x17"
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "anchor",
+      "namespace": "db0",
       "name": "tomo_db0::IoLoop::mark_active(tomo_db0::Client*)",
       "address": "0x78720",
       "count": 1192,
@@ -2017,5 +2061,5 @@
       "pass_": true
     }
   ],
-  "pass_": false
+  "pass_": true
 }

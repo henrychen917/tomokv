@@ -134,9 +134,16 @@ Wave 8's latencyfix integration `81a7ec066` is the first compiled boundary to em
 the DB0 R7 hash canary (+224/32), the extra DB0 `cmd_name` call site (+384/32 in
 ordinary parsing), and additional ordinary lane-room calls. The preceding
 `60725691c`, readability `3fece28eb` and Lua `7cdc95318` images do not have that
-canary. The same integration folds completion into a 17-instruction closure from
+canary. The ordinary DB0 clone already had that seven-instruction canary at
+the anchor (2912 versus 2688 hash instructions per 32 commands); POST removes it
+there too. That extra saving is not attributed to the October regression. The
+same integration folds completion into a 17-instruction closure from
 a 25-instruction `notify_sender` path (−8/drain). IO3 `ea28a43a6` changes the normal
-parser again. The subsequent wave-8 and wave-8b identity budgets are part of the
+parser again. Normal R7 begins calling `touch_worker` at iofix integration
+`f49beb99e`; DB0 R7 gains that call at latencyfix `81a7ec066` (+20 in the mixed
+batch). The latter also adds the normal mixed R7 storage-destructor call (+15).
+Those helper bodies already existed; the change is which caller enters them.
+The subsequent wave-8 and wave-8b identity budgets are part of the
 cause, rather than being treated as source-neutral metadata.
 
 For the clean batch-32 wave7 → PRE comparison, the exact additive ledger is:
@@ -162,8 +169,16 @@ an old line. Compile-boundary recipes and body hashes are recorded separately in
 integration are in [inlining-budget-history.json](docs/rlfix4/inlining-budget-history.json).
 
 <!-- BODY_ATTRIBUTION_BEGIN -->
-The remaining integration compile history is still running. Its final body-by-body
-index will be added before this lane is handed back.
+The completed [body-by-body index](docs/rlfix4/body-attribution.md) maps all 45
+entered-body/set changes to source, caller and compiler events. There are 82
+historical integration snapshots through wave 7, additional wave-8 merge/budget
+snapshots, and 40 budget/source flag snapshots. The compile-only `-g0` control
+matches 88 selected PRE bodies against the original `-g` objects. The
+[source-origin ledgers](docs/rlfix4/source-origin-deltas.json) account for all 72
+historical endpoint deltas. The only changed toolchain-origin bucket is normal R7
+mix: six inline destructor instructions become fifteen in an outlined helper
+(+9), at `81a7ec066`. The five anonymous ROB retirement instructions are unchanged.
+Each source-origin and per-function ledger sums exactly to its command-scope delta.
 <!-- BODY_ATTRIBUTION_END -->
 
 ### PRE versus POST and other commands
@@ -278,7 +293,8 @@ These are partial-job receipts, not a claim of a complete gate iteration.
 
 Run on the quiet box with the gate's own instrument and normal benchmark geometry.
 Verify artifact SHA-256s first. Record **three separately identified ABBA blocks**
-for `d32g_l1` and `x9_32_l1` for each pair:
+for `d32g_l1` and `x9_32_l1` from
+[tests/rlfix4_readlocal_cells.txt](tests/rlfix4_readlocal_cells.txt), for each pair:
 
 - natural POST versus PRE;
 - POST-layout versus **PAD-A (A: PRE behavior, matched candidate-control layout)**;

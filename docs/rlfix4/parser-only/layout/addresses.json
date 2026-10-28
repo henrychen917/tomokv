@@ -1,0 +1,61 @@
+{
+  "function_count": 10421,
+  "all_function_entries_equal": true,
+  "executable_sections_equal": true,
+  "sections": {
+    ".init": [
+      6,
+      118784,
+      118784,
+      27,
+      4
+    ],
+    ".plt": [
+      6,
+      118816,
+      118816,
+      5248,
+      16
+    ],
+    ".plt.got": [
+      6,
+      124064,
+      124064,
+      32,
+      16
+    ],
+    ".plt.sec": [
+      6,
+      124096,
+      124096,
+      5232,
+      16
+    ],
+    ".text.rlfix4": [
+      6,
+      129344,
+      129344,
+      6357712,
+      16
+    ],
+    ".text": [
+      6,
+      6487056,
+      6487056,
+      5228535,
+      16
+    ],
+    ".fini": [
+      6,
+      11715592,
+      11715592,
+      13,
+      4
+    ]
+  },
+  "negative_control": "one entry address changed: rejected",
+  "sha256": {
+    "pad-a": "3cd62d74538806965ba012bb769a26641157696ca42b1e784a2077b9fa70cfbc",
+    "post-layout": "5c5be266c6776ac645401cc16e31764e42b712e641265bdd835f2f1fca4b90b7"
+  }
+}

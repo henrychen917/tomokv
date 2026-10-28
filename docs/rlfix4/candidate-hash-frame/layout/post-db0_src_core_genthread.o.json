@@ -1,0 +1,30 @@
+{
+  "arm": "post",
+  "unit": "db0/src/core/genthread.o",
+  "command": [
+    "g++",
+    "-ffunction-sections",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=132012",
+    "-Wa,--defsym,tomo_rlfence_text_pad=16",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/core/genthread.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/post/db0/src/core/genthread.o"
+  ],
+  "original_sha256": "079c10501dcb3f5b8923547632c7783626360e7b4438087ad040c6b0fc1fa2d8",
+  "sha256": "420f65fbe2077b8aa62d98aca90c120f93358dc6bac4a7259c3914d3717ca054"
+}

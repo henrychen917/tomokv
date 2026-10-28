@@ -701,15 +701,21 @@
       "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
       "address": "0x737120",
       "count": 3522,
-      "matches": [],
+      "matches": [
+        {
+          "size": 590,
+          "address": "0x734c60",
+          "digest": "bdea8e9c7baf758b058b9a7216d6c12b5ab5514129493a17cd93b1fb926e1ba4"
+        }
+      ],
       "probe": [
         {
           "size": 590,
           "address": "0x737120",
-          "digest": "5d8c7ccf8047d9aa39625e10fd196f978932833cfcaab1ef1b12f500a5a88953"
+          "digest": "bdea8e9c7baf758b058b9a7216d6c12b5ab5514129493a17cd93b1fb926e1ba4"
         }
       ],
-      "pass_": false
+      "pass_": true
     },
     {
       "arm": "preparse",
@@ -721,14 +727,14 @@
         {
           "size": 2249,
           "address": "0x740270",
-          "digest": "e50095b15e16efba1ff1784b8b99fae4e6ea9a812c2cd22a68e825f9c230a6c1"
+          "digest": "125f648e2f7b783fcf4160c22cfc31d235ab2074264693c26855ef1ff094c05c"
         }
       ],
       "probe": [
         {
           "size": 2249,
           "address": "0x742730",
-          "digest": "e50095b15e16efba1ff1784b8b99fae4e6ea9a812c2cd22a68e825f9c230a6c1"
+          "digest": "125f648e2f7b783fcf4160c22cfc31d235ab2074264693c26855ef1ff094c05c"
         }
       ],
       "pass_": true
@@ -1110,6 +1116,22 @@
           "address": "0x7df4e0",
           "digest": "8a58b7ba03ea6401469c51abfccb047e28ad785e9681c87021e5114fc1afb9f3"
         }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "preparse",
+      "namespace": "normal",
+      "name": "tomo::[asm .rlfence]",
+      "address": "0x845919",
+      "count": 40,
+      "assembly_region": ".rlfence",
+      "offsets": [
+        "0x38",
+        "0x3c",
+        "0x40",
+        "0x4a",
+        "0x4f"
       ],
       "pass_": true
     },
@@ -1761,15 +1783,21 @@
       "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
       "address": "0x358580",
       "count": 3522,
-      "matches": [],
+      "matches": [
+        {
+          "size": 590,
+          "address": "0x355fa0",
+          "digest": "7fada4da83c4a2a4739b2a1151807a362fa9d00918fda6868f30b45c413edeac"
+        }
+      ],
       "probe": [
         {
           "size": 590,
           "address": "0x358580",
-          "digest": "b1ec885c09d7bee909b1754cf3248c4cbb8b7e0aebb22a3eab62d117c2b77f4a"
+          "digest": "7fada4da83c4a2a4739b2a1151807a362fa9d00918fda6868f30b45c413edeac"
         }
       ],
-      "pass_": false
+      "pass_": true
     },
     {
       "arm": "preparse",
@@ -1781,14 +1809,14 @@
         {
           "size": 2249,
           "address": "0x361690",
-          "digest": "aa1d398430ebcb3ecb8d6931916b7e28fbcd9ffcd0439b3b991cd41f9e8c6e95"
+          "digest": "50ee76f842091182dc23d21a1483dac1d25b5b2da4c714f10bb81f00bc88ad33"
         }
       ],
       "probe": [
         {
           "size": 2249,
           "address": "0x363c70",
-          "digest": "aa1d398430ebcb3ecb8d6931916b7e28fbcd9ffcd0439b3b991cd41f9e8c6e95"
+          "digest": "50ee76f842091182dc23d21a1483dac1d25b5b2da4c714f10bb81f00bc88ad33"
         }
       ],
       "pass_": true
@@ -2207,6 +2235,22 @@
     {
       "arm": "preparse",
       "namespace": "db0",
+      "name": "tomo_db0::[asm .rlfence]",
+      "address": "0x845c95",
+      "count": 40,
+      "assembly_region": ".rlfence",
+      "offsets": [
+        "0x0",
+        "0x4",
+        "0x8",
+        "0x12",
+        "0x17"
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "preparse",
+      "namespace": "db0",
       "name": "tomo_db0::Client::nothing_to_write() const",
       "address": "0x84bd0",
       "count": 108,
@@ -2315,5 +2359,5 @@
       "pass_": true
     }
   ],
-  "pass_": false
+  "pass_": true
 }

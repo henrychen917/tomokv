@@ -288,7 +288,7 @@
       "namespace": "normal",
       "name": "tomo::FlatStore::read_local_capture_in(tomo::FlatStore::ReadLocalTable const&, unsigned long, tomo::Slice, unsigned long const*&) const [clone .isra.0]",
       "address": "0x6f9730",
-      "count": 11088,
+      "count": 16632,
       "matches": [
         {
           "size": 416,
@@ -310,7 +310,7 @@
       "namespace": "normal",
       "name": "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]",
       "address": "0x6f9a90",
-      "count": 13872,
+      "count": 20802,
       "matches": [
         {
           "size": 477,
@@ -421,7 +421,7 @@
       "namespace": "normal",
       "name": "tomo::FlatStore::read_local_prefetch(unsigned long) const",
       "address": "0x6fa120",
-      "count": 10584,
+      "count": 15876,
       "matches": [
         {
           "size": 383,
@@ -443,7 +443,7 @@
       "namespace": "normal",
       "name": "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const",
       "address": "0x6fa2a0",
-      "count": 14616,
+      "count": 21924,
       "matches": [
         {
           "size": 1169,
@@ -685,7 +685,7 @@
       "namespace": "normal",
       "name": "tomo::ExLoopT<true>::notify_sender(tomo::Client*)",
       "address": "0x706fc0",
-      "count": 200,
+      "count": 300,
       "matches": [
         {
           "size": 698,
@@ -707,39 +707,51 @@
       "namespace": "normal",
       "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
       "address": "0x707280",
-      "count": 3386,
-      "matches": [],
+      "count": 5079,
+      "matches": [
+        {
+          "size": 328,
+          "address": "0x704e20",
+          "digest": "49d478cc379dac90e16c9a27105655ad54d588647338ff07d7da4164aaa7b41e"
+        }
+      ],
       "probe": [
         {
           "size": 328,
           "address": "0x707280",
-          "digest": "9c41c0aad66503575b3a328e61408969f5ba11eb98cdd21d3ce923978ba5e7e0"
+          "digest": "49d478cc379dac90e16c9a27105655ad54d588647338ff07d7da4164aaa7b41e"
         }
       ],
-      "pass_": false
+      "pass_": true
     },
     {
       "arm": "wave6",
       "namespace": "normal",
       "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
       "address": "0x709c20",
-      "count": 13734,
-      "matches": [],
+      "count": 20601,
+      "matches": [
+        {
+          "size": 2249,
+          "address": "0x7077c0",
+          "digest": "125f648e2f7b783fcf4160c22cfc31d235ab2074264693c26855ef1ff094c05c"
+        }
+      ],
       "probe": [
         {
           "size": 2249,
           "address": "0x709c20",
-          "digest": "98763f08258342bdd982cb81e99b1e30428a6cbb8c7032a9be77dbb8a109f879"
+          "digest": "125f648e2f7b783fcf4160c22cfc31d235ab2074264693c26855ef1ff094c05c"
         }
       ],
-      "pass_": false
+      "pass_": true
     },
     {
       "arm": "wave6",
       "namespace": "normal",
       "name": "unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)",
       "address": "0x70a4f0",
-      "count": 17994,
+      "count": 26991,
       "matches": [
         {
           "size": 2862,
@@ -1084,6 +1096,22 @@
     },
     {
       "arm": "wave6",
+      "namespace": "normal",
+      "name": "tomo::[asm .rlfence]",
+      "address": "0x8086c1",
+      "count": 60,
+      "assembly_region": ".rlfence",
+      "offsets": [
+        "0x38",
+        "0x3c",
+        "0x40",
+        "0x4a",
+        "0x4f"
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "wave6",
       "namespace": "db0",
       "name": "tomo_db0::multi_session_watch_size(tomo_db0::Client const&)",
       "address": "0x122cc0",
@@ -1307,7 +1335,7 @@
       "namespace": "db0",
       "name": "void tomo_db0::reply_bulk<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice) [clone .isra.0]",
       "address": "0x32af10",
-      "count": 13872,
+      "count": 20802,
       "matches": [
         {
           "size": 477,
@@ -1413,7 +1441,7 @@
       "namespace": "db0",
       "name": "tomo_db0::FlatStore::read_local_prefetch(unsigned long) const",
       "address": "0x32b6d0",
-      "count": 10584,
+      "count": 15876,
       "matches": [
         {
           "size": 383,
@@ -1435,7 +1463,7 @@
       "namespace": "db0",
       "name": "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const",
       "address": "0x32b850",
-      "count": 21672,
+      "count": 32508,
       "matches": [
         {
           "size": 1770,
@@ -1677,7 +1705,7 @@
       "namespace": "db0",
       "name": "tomo_db0::ExLoopT<true>::notify_sender(tomo_db0::Client*)",
       "address": "0x338780",
-      "count": 200,
+      "count": 300,
       "matches": [
         {
           "size": 698,
@@ -1699,35 +1727,41 @@
       "namespace": "db0",
       "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
       "address": "0x338a40",
-      "count": 3386,
-      "matches": [],
+      "count": 5079,
+      "matches": [
+        {
+          "size": 328,
+          "address": "0x3364c0",
+          "digest": "e906ae66bd0e3a25dbf6f31074b73a898ce86c14a1b4770faa119a6a5b6e3251"
+        }
+      ],
       "probe": [
         {
           "size": 328,
           "address": "0x338a40",
-          "digest": "3855ccc9f2a27bfe8da1b00fcd03a309c651ce1a48eec76de5b3c345a4491e65"
+          "digest": "e906ae66bd0e3a25dbf6f31074b73a898ce86c14a1b4770faa119a6a5b6e3251"
         }
       ],
-      "pass_": false
+      "pass_": true
     },
     {
       "arm": "wave6",
       "namespace": "db0",
       "name": "tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::ReadLocalPrefetchCapture const*)",
       "address": "0x33b610",
-      "count": 13734,
+      "count": 20601,
       "matches": [
         {
           "size": 2249,
           "address": "0x339090",
-          "digest": "aa1d398430ebcb3ecb8d6931916b7e28fbcd9ffcd0439b3b991cd41f9e8c6e95"
+          "digest": "50ee76f842091182dc23d21a1483dac1d25b5b2da4c714f10bb81f00bc88ad33"
         }
       ],
       "probe": [
         {
           "size": 2249,
           "address": "0x33b610",
-          "digest": "aa1d398430ebcb3ecb8d6931916b7e28fbcd9ffcd0439b3b991cd41f9e8c6e95"
+          "digest": "50ee76f842091182dc23d21a1483dac1d25b5b2da4c714f10bb81f00bc88ad33"
         }
       ],
       "pass_": true
@@ -1737,7 +1771,7 @@
       "namespace": "db0",
       "name": "unsigned int tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)",
       "address": "0x33bee0",
-      "count": 18854,
+      "count": 28281,
       "matches": [
         {
           "size": 2927,
@@ -2103,6 +2137,22 @@
     {
       "arm": "wave6",
       "namespace": "db0",
+      "name": "tomo_db0::[asm .rlfence]",
+      "address": "0x808872",
+      "count": 60,
+      "assembly_region": ".rlfence",
+      "offsets": [
+        "0x0",
+        "0x4",
+        "0x8",
+        "0x12",
+        "0x17"
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "wave6",
+      "namespace": "db0",
       "name": "tomo_db0::IoLoop::mark_active(tomo_db0::Client*)",
       "address": "0x851e0",
       "count": 1192,
@@ -2167,5 +2217,5 @@
       "pass_": true
     }
   ],
-  "pass_": false
+  "pass_": true
 }

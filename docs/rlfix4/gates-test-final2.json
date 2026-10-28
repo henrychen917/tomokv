@@ -1,0 +1,17 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "32-47",
+    "env",
+    "GATE_TEST_PORT=20397",
+    "python3",
+    "tests/gates_test.py"
+  ],
+  "exit": 0,
+  "tests": 73,
+  "seconds": 97.659,
+  "log": "docs/rlfix4/gates-test-final2.log",
+  "test_sha256": "9be44e13faf6b4f8f3330e1b58cec39b721562d687f617b2aa2f4b5635276d85",
+  "source_commit": "971520161b090723bd5bc99de664b18ff743379d"
+}

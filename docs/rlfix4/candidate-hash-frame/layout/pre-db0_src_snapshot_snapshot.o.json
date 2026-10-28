@@ -1,0 +1,29 @@
+{
+  "arm": "pre",
+  "unit": "db0/src/snapshot/snapshot.o",
+  "command": [
+    "g++",
+    "-ffunction-sections",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=14612",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/snapshot/snapshot.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/pre/db0/src/snapshot/snapshot.o"
+  ],
+  "original_sha256": "c8201684f619fed6da900dd2a0b596889aa6ea0ca89ec1900ca383ee089bf975",
+  "sha256": "402119d134cc378e3ca74d52fef3cf5f98380e9184997d2897b10c2baa83d6c5"
+}

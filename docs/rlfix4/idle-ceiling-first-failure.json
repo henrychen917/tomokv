@@ -1,0 +1,14 @@
+{
+  "source": "/home/user/Projects/cx-rlfix4/build/gate-run.flhojR/jobs/release_batteries/gate-idle-signals.txt",
+  "binary_sha256": "5a903fd856e7cccfcb27df13da666be6381f3c0ae3a0a9428bb01f542ab0cb97",
+  "observed": {
+    "thread": 0,
+    "spins": 0,
+    "wakes_sent": 29,
+    "wakes_received": 44,
+    "total_wakes": 73,
+    "ceiling": 64
+  },
+  "log": "pid 1815287 idle 1s LBSIGNALS delta: tid=0 role=fused iterations=27 spins=0 wakes=29/44; tid=1 role=fused iterations=48 spins=0 wakes=8/18; tid=2 role=fused iterations=38 spins=0 wakes=8/18; tid=3 role=fused iterations=43 spins=0 wakes=8/18; tid=4 role=fused iterations=32 spins=0 wakes=8/18; tid=5 role=fused iterations=46 spins=0 wakes=8/18; tid=6 role=fused iterations=27 spins=0 wakes=8/18; tid=7 role=fused iterations=31 spins=0 wakes=8/18; sampler tid=5 mechanism=fired\n",
+  "repeat_policy": "one fresh full release_batteries job for POST and PRE after other selected jobs finish; thresholds unchanged"
+}

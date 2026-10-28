@@ -1,0 +1,23 @@
+{
+  "arm": "pre",
+  "unit": "src/cmd/t_string_notify.o",
+  "command": [
+    "g++",
+    "-ffunction-sections",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/cmd/t_string_notify.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/pre/src/cmd/t_string_notify.o"
+  ],
+  "original_sha256": "211465521c477ba572f620c17e64398a0fbb011250a0f70c55b137f97564e75b",
+  "sha256": "9d3e121ed8e0b796b86a9474634cf97dfc9c9635634eb958d33d480b40388c25"
+}

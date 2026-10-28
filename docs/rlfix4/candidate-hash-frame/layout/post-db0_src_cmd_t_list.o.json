@@ -1,0 +1,25 @@
+{
+  "arm": "post",
+  "unit": "db0/src/cmd/t_list.o",
+  "command": [
+    "g++",
+    "-ffunction-sections",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/cmd/t_list.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/post/db0/src/cmd/t_list.o"
+  ],
+  "original_sha256": "91438933204cc5f16103c642296026c763bd9fc48668969be99b9107d15cff77",
+  "sha256": "7a3cf381a28b1c8bdbfaaa50f901d9350235c563a24842dbebe8e508c5a2ef85"
+}

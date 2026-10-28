@@ -1,0 +1,3 @@
+# rlfix4: the two cells for each three-block maintainer comparison.
+d32g_l1 | 1s | rl=1 | ov=0 | ro=0 | GET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+x9_32_l1 | 1s | rl=1 | ov=0 | ro=0 | MIX | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=9:1 | smoke=0

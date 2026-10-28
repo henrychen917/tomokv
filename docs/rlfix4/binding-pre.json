@@ -132,14 +132,14 @@
         {
           "size": 1606,
           "address": "0x459a90",
-          "digest": "049cad7236835c9975011eae5cf495b242ee21b954a7e52a9441cfd23734df86"
+          "digest": "cf4e885ce2583ac7f7d62d685b5980df891ad3ce4b832258a409d9de252f307c"
         }
       ],
       "probe": [
         {
           "size": 1606,
           "address": "0x45bf50",
-          "digest": "049cad7236835c9975011eae5cf495b242ee21b954a7e52a9441cfd23734df86"
+          "digest": "cf4e885ce2583ac7f7d62d685b5980df891ad3ce4b832258a409d9de252f307c"
         }
       ],
       "pass_": true
@@ -176,14 +176,14 @@
         {
           "size": 772,
           "address": "0x45a230",
-          "digest": "58eff824c83bcbb1c674d69e1d68e435b79062ed39d51947cb80f63724dd076f"
+          "digest": "3b2369942bed318d21b3008675e84f8c3c7a38be006d5c3852c8b76c630474f1"
         }
       ],
       "probe": [
         {
           "size": 772,
           "address": "0x45c6f0",
-          "digest": "58eff824c83bcbb1c674d69e1d68e435b79062ed39d51947cb80f63724dd076f"
+          "digest": "3b2369942bed318d21b3008675e84f8c3c7a38be006d5c3852c8b76c630474f1"
         }
       ],
       "pass_": true
@@ -1752,14 +1752,14 @@
         {
           "size": 21794,
           "address": "0x5511e0",
-          "digest": "44ccbfd130a1bf918ce88b741a0a73198a192cc2ced9c2df469484ac499a9916"
+          "digest": "21074153e2f98bf5f5d3a37a911554f8981d878009b085b54ccbf40d3b0b6874"
         }
       ],
       "probe": [
         {
           "size": 21794,
           "address": "0x5536a0",
-          "digest": "44ccbfd130a1bf918ce88b741a0a73198a192cc2ced9c2df469484ac499a9916"
+          "digest": "21074153e2f98bf5f5d3a37a911554f8981d878009b085b54ccbf40d3b0b6874"
         }
       ],
       "pass_": true
@@ -2887,15 +2887,21 @@
       "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
       "address": "0x737120",
       "count": 4506,
-      "matches": [],
+      "matches": [
+        {
+          "size": 590,
+          "address": "0x734c60",
+          "digest": "bdea8e9c7baf758b058b9a7216d6c12b5ab5514129493a17cd93b1fb926e1ba4"
+        }
+      ],
       "probe": [
         {
           "size": 590,
           "address": "0x737120",
-          "digest": "da3afae67060318d46ea332a4fe58bd60d2c5ec24dc0856893f6a996babf58e0"
+          "digest": "bdea8e9c7baf758b058b9a7216d6c12b5ab5514129493a17cd93b1fb926e1ba4"
         }
       ],
-      "pass_": false
+      "pass_": true
     },
     {
       "arm": "pre",
@@ -2995,14 +3001,14 @@
         {
           "size": 2249,
           "address": "0x740270",
-          "digest": "e50095b15e16efba1ff1784b8b99fae4e6ea9a812c2cd22a68e825f9c230a6c1"
+          "digest": "125f648e2f7b783fcf4160c22cfc31d235ab2074264693c26855ef1ff094c05c"
         }
       ],
       "probe": [
         {
           "size": 2249,
           "address": "0x742730",
-          "digest": "e50095b15e16efba1ff1784b8b99fae4e6ea9a812c2cd22a68e825f9c230a6c1"
+          "digest": "125f648e2f7b783fcf4160c22cfc31d235ab2074264693c26855ef1ff094c05c"
         }
       ],
       "pass_": true
@@ -3136,6 +3142,22 @@
           "address": "0x7cd320",
           "digest": "aff5dd5b914e1e142cfadd06ce367eb0eb981f3e40047993bca6554601eee80b"
         }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "pre",
+      "namespace": "normal",
+      "name": "tomo::[asm .rlfence]",
+      "address": "0x8458e9",
+      "count": 50,
+      "assembly_region": ".rlfence",
+      "offsets": [
+        "0x38",
+        "0x3c",
+        "0x40",
+        "0x4a",
+        "0x4f"
       ],
       "pass_": true
     },
@@ -4433,14 +4455,14 @@
         {
           "size": 23675,
           "address": "0x17cbf0",
-          "digest": "cd6b0fc532ef470fad6460b5dd17e266eeb5757f0301480974fc56112c36196b"
+          "digest": "af8f4d1c7ccc18946fd2b40bcebc61630e9dadca6ed503276cb427a0bdfb70d1"
         }
       ],
       "probe": [
         {
           "size": 23675,
           "address": "0x17f1d0",
-          "digest": "cd6b0fc532ef470fad6460b5dd17e266eeb5757f0301480974fc56112c36196b"
+          "digest": "af8f4d1c7ccc18946fd2b40bcebc61630e9dadca6ed503276cb427a0bdfb70d1"
         }
       ],
       "pass_": true
@@ -5673,15 +5695,21 @@
       "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
       "address": "0x358580",
       "count": 4506,
-      "matches": [],
+      "matches": [
+        {
+          "size": 590,
+          "address": "0x355fa0",
+          "digest": "7fada4da83c4a2a4739b2a1151807a362fa9d00918fda6868f30b45c413edeac"
+        }
+      ],
       "probe": [
         {
           "size": 590,
           "address": "0x358580",
-          "digest": "555e7891e85755e2246e24dab73f11fcff3d3901461a0791da69e215729e021c"
+          "digest": "7fada4da83c4a2a4739b2a1151807a362fa9d00918fda6868f30b45c413edeac"
         }
       ],
-      "pass_": false
+      "pass_": true
     },
     {
       "arm": "pre",
@@ -5781,14 +5809,14 @@
         {
           "size": 2249,
           "address": "0x361690",
-          "digest": "aa1d398430ebcb3ecb8d6931916b7e28fbcd9ffcd0439b3b991cd41f9e8c6e95"
+          "digest": "50ee76f842091182dc23d21a1483dac1d25b5b2da4c714f10bb81f00bc88ad33"
         }
       ],
       "probe": [
         {
           "size": 2249,
           "address": "0x363c70",
-          "digest": "aa1d398430ebcb3ecb8d6931916b7e28fbcd9ffcd0439b3b991cd41f9e8c6e95"
+          "digest": "50ee76f842091182dc23d21a1483dac1d25b5b2da4c714f10bb81f00bc88ad33"
         }
       ],
       "pass_": true
@@ -5966,6 +5994,22 @@
     {
       "arm": "pre",
       "namespace": "db0",
+      "name": "tomo_db0::[asm .rlfence]",
+      "address": "0x845cb8",
+      "count": 50,
+      "assembly_region": ".rlfence",
+      "offsets": [
+        "0x0",
+        "0x4",
+        "0x8",
+        "0x12",
+        "0x17"
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "pre",
+      "namespace": "db0",
       "name": "tomo_db0::atomic_tripwire_enabled()",
       "address": "0x84e30",
       "count": 13860,
@@ -6013,15 +6057,21 @@
       "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
       "address": "0x850d0",
       "count": 27060,
-      "matches": [],
+      "matches": [
+        {
+          "size": 1606,
+          "address": "0x82af0",
+          "digest": "a62248659d63c309d62aa4434d5ae2e663dc82dc1f13f48272201713b0a0a3a4"
+        }
+      ],
       "probe": [
         {
           "size": 1606,
           "address": "0x850d0",
-          "digest": "0f45ec9c8413220dc45e9427015947a13d66f13f98a262eeeb88c8c13fff4def"
+          "digest": "a62248659d63c309d62aa4434d5ae2e663dc82dc1f13f48272201713b0a0a3a4"
         }
       ],
-      "pass_": false
+      "pass_": true
     },
     {
       "arm": "pre",
@@ -6051,15 +6101,21 @@
       "name": "tomo_db0::kvobj_free_with_capacity(tomo_db0::KvObj*, unsigned long)",
       "address": "0x858c0",
       "count": 1254,
-      "matches": [],
+      "matches": [
+        {
+          "size": 772,
+          "address": "0x832e0",
+          "digest": "566be6f78cde50c28d2a0fdab4872afea9d8a7acf008a6de7d3f41cd9ffdae89"
+        }
+      ],
       "probe": [
         {
           "size": 772,
           "address": "0x858c0",
-          "digest": "5cc1898e0b79896384fc5b4e2a5a62654991efd4a45cfe49788cfc0e0ee1b606"
+          "digest": "566be6f78cde50c28d2a0fdab4872afea9d8a7acf008a6de7d3f41cd9ffdae89"
         }
       ],
-      "pass_": false
+      "pass_": true
     },
     {
       "arm": "pre",
@@ -6458,5 +6514,5 @@
       "pass_": true
     }
   ],
-  "pass_": false
+  "pass_": true
 }
