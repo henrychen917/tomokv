@@ -894,8 +894,7 @@ void notify_retire_batch_entry(IoLoop& loop, NotifyBatch* batch, uint64_t writer
         // The issuing IO already fed EVAL/FCALL before dispatch. Retiring its
         // script lines here preserves that order through the same IO inboxes,
         // including cross-owner scripts and EXEC children.
-        for (auto& line : batch->monitor_lines)
-            loop.climon_monitor_broadcast(std::move(line));
+        loop.climon_monitor_script_deliver(writer_id, batch->monitor_lines);
         records.reserve(batch->total);
         for (uint32_t i = 0; i < batch->inline_size; i++)
             records.push_back(batch->inline_records[i]);

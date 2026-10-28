@@ -5343,6 +5343,7 @@ job_climonfix4(){
             >"$TMPDIR/$root-db$databases-a$atomic-r$read_local.log" 2>&1 || passed=0
       else passed=0; fi
       stop
+      shutdown_clean || passed=0
     done; done; done
     [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/$root-*.log"
   done

@@ -9,7 +9,7 @@ import subprocess
 import time
 from pathlib import Path
 
-from _lib import Conn, RespError
+from _lib import Conn, RespError, encode
 from redis_tcl import sha, stop
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -97,6 +97,14 @@ def directed(host, port, root):
             assert '] "EVAL" ' in lines[0], lines
             assert '[0 lua] "set" "mon" "v\\"\\\\\\n"' in lines[1], lines
             assert '[0 lua] "get" "mon"' in lines[2], lines
+            # Later pipelined commands must follow the script's nested records.
+            # This checks log ordering without imposing an execution barrier.
+            a.raw(encode("EVAL", script, 1, "mon", "next") + encode("PING"))
+            assert a.read() == b"next" and a.read() == b"PONG"
+            lines = [read(m, 1) for _ in range(4)]
+            assert all(isinstance(line, str) for line in lines), lines
+            assert '] "EVAL" ' in lines[0] and '[0 lua] "set"' in lines[1], lines
+            assert '[0 lua] "get"' in lines[2] and '] "PING"' in lines[3], lines
         elif root == "RESET-CLEARS-LIBNAME":
             assert a.cmd("CLIENT", "SETINFO", "lib-name", "redis.py") == b"OK"
             assert a.cmd("CLIENT", "SETINFO", "lib-ver", "1.0") == b"OK"

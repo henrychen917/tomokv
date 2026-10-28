@@ -49,6 +49,12 @@
         uint64_t delivered = 0;
     };
     struct ClimonConn {
+        struct MonitorPending {
+            uint64_t id;
+            uint64_t excluded;
+            bool script;
+            std::string line;
+        };
         Client* client = nullptr;
         uint8_t reply_mode = kClimonReplyOn;
         bool monitor = false;
@@ -74,9 +80,13 @@
         // Invalidations in flight belong to one TRACKING configuration. This
         // side state migrates with the rest of ClimonConn at ownership commit.
         uint64_t tracking_generation = 0;
+        // Only MONITOR arms this queue. Hold log records, never commands, while
+        // an older script's nested records travel back to this IO owner.
+        uint64_t monitor_script_id = UINT64_MAX;
+        std::vector<MonitorPending> monitor_pending;
 
         bool idle() const {
-            return !pause_blocked && reply_mode == kClimonReplyOn && !monitor && !tracking_on && !tracking_draining && !broken_redirect && tracking_reads.empty();
+            return !pause_blocked && reply_mode == kClimonReplyOn && !monitor && !tracking_on && !tracking_draining && !broken_redirect && tracking_reads.empty() && monitor_script_id == UINT64_MAX && monitor_pending.empty();
         }
     };
 
@@ -142,6 +152,8 @@
     // ---- MONITOR --------------------------------------------------------------------------------
     void climon_monitor_feed(Client* client, Op& op);
     void climon_monitor_broadcast(std::string line, uint64_t excluded = 0);
+    void climon_monitor_flush(ClimonConn& state, uint64_t completed, bool before_script = false);
+    void climon_monitor_script_deliver(uint64_t writer_id, std::vector<std::string>& lines);
     void climon_monitor_format(Client* client, Op& op, std::string& out);
     void climon_monitor_deliver(const std::string& line, uint64_t excluded = 0);
     ClimonStartResult climon_start_monitor(Client* client, Op& op);
