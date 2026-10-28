@@ -152,3 +152,22 @@ will retain this limitation in their receipts.
   and requires the tenth writer's actual claim-wait counter before reading the
   script reply. Exact replies, nine conflicts, one escalation/commit and AOF
   reload assertions remain. An absent/expired window fails; no retry masks it.
+
+- The old `atomic_survivors` APPLY-window fixture expected TRYAGAIN after a
+  real foreign write. At412c intentionally hands that attempt to escalation.
+  The fixture now verifies cancellation preserves the foreign write and exposes
+  neither partial script result, then drives the real ROB redispatch and owner
+  inboxes to one successful escalated commit with exact final values. Its first
+  recheck caught a missing inbox initialization in the extended fixture; after
+  repair the entire `atomic_units` plus `at412-owner` jobs pass (29 rows), receipt
+  `docs/wave9/jobs/atomic-recheck2.json`. The unrelated commit-first arm remains.
+- The WATCH no-finalize negative control now recognizes the first invariant
+  that the broken implementation actually violates, rather than requiring its
+  later redundant assertion. The whole exbatch unit job, with every negative
+  control, passes in `repair-rechecks`; failure remains mandatory.
+- Lottery's copied-source instrumentation needed current EXEC/epoch/IO anchors
+  and a C++ guard around its forced include for Lua C helpers. Its release and
+  ASAN variants compile, and all 17 evidence controls pass. The CAS trace marks
+  a commit only after a successful decision. Publishfix's copy builder now
+  inherits the caller allocation rather than asserting the old lane's CPUs.
+  Variant hashes are in `docs/wave9/copied-builds.json`.

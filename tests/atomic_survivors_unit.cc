@@ -664,6 +664,12 @@ void watch_cycle(Server& server) {
 // Drive the real final decision in both orders around the first-owner APPLY window.
 // Foreign reads must finish from immutable predecessors while the decision is open.
 void post_apply_probe(Server& server) {
+    // The original direct-phase fixture needed no inbox. Redispatch posts real
+    // owner tasks, so initialize the same split inboxes as executor boot.
+    for (unsigned tid = 0; tid < server.nthreads(); ++tid)
+        require(server.thread(tid).init_task_inbox_local(
+                    server.placement().ifid_threads(), server.placement().ex_threads()),
+                "escalation owner inbox initialized");
     for (bool commit_first : {false, true}) {
         const auto x = key_on(server, 0, commit_first ? "commit-first-x" : "writer-first-x");
         const auto y = key_on(server, 1, commit_first ? "commit-first-y" : "writer-first-y");
@@ -699,19 +705,62 @@ void post_apply_probe(Server& server) {
                 server.worker_of_shard(1)) == ScatterTaskResult::Complete, "second APPLY completed");
         run.state->pending.store(1);
         Ring unused_ring;
-        require(xshard_complete_script<false>(server, server.thread(server.worker_of_shard(1)), unused_ring,
-                    Task{&run.client, 0, 1, run.state}, run.request.op, *run.state) == ScatterFinish::Final,
-                "production script final decision");
+        const auto finished = xshard_complete_script<false>(server,
+            server.thread(server.worker_of_shard(1)), unused_ring,
+            Task{&run.client, 0, 1, run.state}, run.request.op, *run.state);
+        require(finished == (commit_first ? ScatterFinish::Final : ScatterFinish::Waiting),
+                "production script commits or hands off a conflicted attempt");
         if (commit_first) {
             write_reply = local(server, {"APPEND", x, "W"}, 888);
             require(run.request.reply() == ":2\r\n" && write_reply == ":3\r\n" &&
                     local(server, {"GET", x}) == "$3\r\nBSW\r\n",
                     "committed script precedes foreign APPEND");
         } else {
-            require(run.request.reply().starts_with("-TRYAGAIN ") && write_reply == ":2\r\n" &&
+            require(run.state->epoch.load() == kAtomicCancelledEpoch &&
+                    !run.state->apply_open.load() && write_reply == ":2\r\n" &&
                     local(server, {"GET", x}) == "$2\r\nBW\r\n" &&
                     local(server, {"GET", y}) == "$1\r\nB\r\n",
-                    "explicit key conflict rejects the whole script, with no lost write or partial success");
+                    "cancelled attempt preserves the foreign write and exposes no partial script");
+            auto* attempt = run.state->group_attempt();
+            require(attempt && server.multi_retry_lane(0).head.exchange(nullptr) == &attempt->retry &&
+                    !attempt->retry.next, "conflict queues exactly one escalated attempt");
+            Op* carrier = run.client.rob().acquire<false>();
+            require(carrier, "escalation carrier");
+            for (const auto& arg : run.request.args)
+                require(carrier->push_arg(slice(arg)), "escalation argv");
+            carrier->spec = run.request.op.spec;
+            carrier->attach_scatter_state(run.state);
+            carrier->state.store(OpState::Issued);
+            run.client.rob().publish();
+            script_escalate_redispatch<false>(server, server.thread(0), unused_ring, run.pool, *run.state);
+            run.state = static_cast<ScatterState*>(carrier->scatter_state());
+            require(run.state && run.state->group_attempt(), "redispatch carries real claims");
+            std::vector<Task> pending;
+            unsigned finals = 0;
+            for (unsigned pass = 0; !finals && pass < 1000; ++pass) {
+                for (unsigned tid = 0; tid < server.nthreads(); ++tid)
+                    server.thread(tid).drain_tasks([&](const Task& task) { pending.push_back(task); });
+                std::vector<Task> retry;
+                for (const Task& task : pending) {
+                    auto& shard = server.shard(task.shard);
+                    const auto owner = server.worker_of_shard(task.shard);
+                    if (xshard_task_should_defer(server, shard, task, *carrier) ||
+                        xshard_execute(task, shard, *carrier, owner) == ScatterTaskResult::Defer) {
+                        retry.push_back(task); continue;
+                    }
+                    const auto result = xshard_complete_script<false>(server, server.thread(owner),
+                        unused_ring, task, *carrier, *run.state);
+                    if (result == ScatterFinish::Final) ++finals;
+                    else require(result == ScatterFinish::Waiting, "escalated phase continues");
+                }
+                pending.swap(retry);
+            }
+            require(finals == 1 && pending.empty() &&
+                    std::string(carrier->reply.data(), carrier->reply.size()) == ":3\r\n" &&
+                    local(server, {"GET", x}) == "$3\r\nBWS\r\n" &&
+                    local(server, {"GET", y}) == "$2\r\nBT\r\n",
+                    "escalated script commits once after the foreign writer without refusal");
+            carrier->detach_scatter_state();
         }
     }
 }
