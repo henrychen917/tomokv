@@ -164,7 +164,7 @@ def main():
             # doubling failure. The individual command receipts retain both.
             matrix('snapfix', 'bgsave-loop', 'pad/'+arm, arm,
                    ['--atomics', '1', '--no-oracle'])
-        for arm in ['pre', 'post']:
+        for arm in ['pre', 'base', 'post']:
             gate('uring', table_arm=arm)
         matrix('snapfix2_rss', 'large-rss', 'rss/large-final',
                extra=['--dataset', '1000000', '--stall', '60'])

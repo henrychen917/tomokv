@@ -31,9 +31,15 @@ do not compound them.
 
 The sole production caller is `ExLoopT::snapshot_control_pass` in Preparing.
 SAVE, BGSAVE, save-rule cron, shutdown-save, enabled-AOF rewrite and offline-AOF
-rewrite all use `SnapshotManager::start` and that owner path. Read-local Mark uses
-the same prepared allocation. Completion/cancellation leave it for the ordinary
-bounded merge. FLIP creates no snapshot table; its transition mutex and snapshot
+rewrite all use `SnapshotManager::start` and that owner path. Scheduled BGSAVE
+and DEBUG RELOAD also reach the same start method. The audited call sites are
+`src/cmd/t_server.cc:822`, `src/core/server.h:1979`,
+`src/cmd/server_tail.cc:235`, `src/persist/aof.cc:1541,1597,1709` and
+`src/cmd/scatter_engine.inc:1671`; the allocator caller is
+`src/core/ex_loop.h:1968`. Read-local Mark uses the same prepared allocation.
+Cancellation before Mark frees the prepared table; completion or cancellation
+after Mark leaves the frozen table for the ordinary bounded merge.
+FLIP creates no snapshot table; its transition mutex and snapshot
 admission exclude simultaneous placement changes, and the shared atomic barrier
 drains units before the snapshot cut.
 
@@ -41,7 +47,8 @@ drains units before the snapshot cut.
 
 `snapfix2_tables` independently runs 12 idle BGSAVEs on 1s/2s × uring/epoll ×
 atomic 0/1 and Redis 7.4. It is collected immediately after `snapfix_bgsave_exec`,
-before the quick-tier exit: **DQ=+1, DF=+1 relative to BASE**. EXPECT constants are
+at `tests/gate.sh:5743`, before the quick-tier exit at line 5819:
+**DQ=+1, DF=+1 relative to BASE**. EXPECT constants are
 unchanged. Including snapfix's inherited +3/+3, the maintainer's 807/824 becomes
 811/828. PRE fails the RSS bound on all eight TomoKV legs; Redis passes.
 Receipt: `docs/snapfix2/proof/rows-pre/record.json`.
