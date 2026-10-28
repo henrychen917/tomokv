@@ -365,6 +365,7 @@ bool command_client_set_info(Client* client, Slice option, Slice value);
 // client output-buffer eviction, a mechanism TomoKV does not implement.
 void command_client_set_no_evict(Client* client, bool enabled);
 void command_client_set_no_touch(Client* client, bool enabled);
+void command_client_set_pause_blocked(Client* client, bool enabled);
 // MONITOR feed lines and CLIENT INFO share the owner-catalog peer address.
 std::string command_client_addr(const Client* client);
 // CLIENT INFO's redir= field is owned by the tracking lane, which lives in the io loop.

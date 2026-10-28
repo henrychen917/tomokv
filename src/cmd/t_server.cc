@@ -188,6 +188,7 @@ struct ClientMeta {
     bool unix_socket = false;
     bool no_evict = false;
     bool no_touch = false;
+    bool pause_blocked = false;
     // Mirrored from the io loop's tracking state purely so CLIENT INFO/LIST can report the
     // redis field names. Nothing reads these except the info-line formatter.
     bool tracking = false;
@@ -252,7 +253,7 @@ std::string client_info_line_impl(const Client& client, const ClientMeta& meta, 
     char* flag = flags;
     if (client.subscriber_mode()) *flag++ = 'P';
     if (multi_session_active(client)) *flag++ = 'x';
-    if (client.blocked()) *flag++ = 'b';
+    if (client.blocked() || meta.pause_blocked) *flag++ = 'b';
     if (client.closing()) *flag++ = 'c';
     if (meta.unix_socket) *flag++ = 'U';
     if (meta.no_evict) *flag++ = 'e';
@@ -3703,6 +3704,10 @@ void command_client_set_no_touch(Client* client, bool enabled) {
     if (ClientMeta* meta = client_meta(client)) meta->no_touch = enabled;
 }
 
+void command_client_set_pause_blocked(Client* client, bool enabled) {
+    if (ClientMeta* meta = client_meta(client)) meta->pause_blocked = enabled;
+}
+
 std::string command_client_addr(const Client* client) {
     const ClientMeta* meta = client_meta(client);
     return meta ? meta->addr : std::string("unknown:0");
@@ -3720,8 +3725,7 @@ void command_client_reset_meta(Client* client) {
     if (!meta) return;
     std::lock_guard<std::mutex> lock(g_client_meta_mu);
     meta->name.clear();
-    meta->lib_name.clear();
-    meta->lib_ver.clear();
+    // Library identity describes the connection across RESET (Redis 7.4).
     meta->no_evict = false;
     meta->no_touch = false;
     meta->tracking = false;

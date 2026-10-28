@@ -259,6 +259,7 @@ void IoLoop::climon_refresh_armed() {
         for (auto it = climon_conn_.begin(); it != climon_conn_.end();) {
             if (it->second.pause_blocked) {
                 it->second.pause_blocked = false;
+                command_client_set_pause_blocked(it->second.client, false);
                 srv_->blocking_client_unparked();
             }
             if (it->second.idle()) it = climon_conn_.erase(it);
@@ -537,6 +538,7 @@ bool IoLoop::climon_armed_gate(Client* client, Op& op) {
             ClimonConn& held = climon_conn_get(client);
             if (!held.pause_blocked) {
                 held.pause_blocked = true;
+                command_client_set_pause_blocked(client, true);
                 srv_->blocking_client_parked();
             }
             srv_->climon_note_pause_hold();
