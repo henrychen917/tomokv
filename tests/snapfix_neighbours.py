@@ -192,16 +192,23 @@ def case_flushall(args, directory, mode, engine, atomic, oracle):
         workers = ([script_worker(booted.port, args.stall, spair, tally, i) for i in range(6)] +
                    [exec_worker(booted.port, args.stall, epair, tally, 6 + i) for i in range(4)] +
                    [writer_worker(booted.port, args.stall, f'{spair[i % 2]}:w', tally, 10 + i) for i in range(4)] +
-                   [observe, flush, s.bgsave_loop(saver, saves, args.stall)])
+                   [observe])
+        # --flushall-flush / --flushall-bgsave 0 isolate which ingredient a torn read needs.
+        if args.flushall_flush:
+            workers.append(flush)
+        if args.flushall_bgsave:
+            workers.append(s.bgsave_loop(saver, saves, args.stall))
         errors = s.run_storm(args.seconds, workers, args.stall)
         for x in (observer, flusher, saver):
             x.close()
         assert not errors, errors
-        assert not torn, ('torn atomic pair observed', torn[:5])
-        assert flushes[0] > 3 and saves[0] > 0, (flushes, saves)
+        assert not torn, ('torn atomic pair observed', len(torn), torn[:5])
+        assert (flushes[0] > 3 or not args.flushall_flush) and (saves[0] > 0 or not args.flushall_bgsave), \
+            (flushes, saves)
         final = [int(v or 0) for v in c.must('MGET', *spair, *epair)]
         assert final[0] == final[1] and final[2] == final[3], ('pairs diverged', final)
-        s.bgsave_done(c)
+        if args.flushall_bgsave:
+            s.bgsave_done(c)
         if not oracle:
             st = s.stats(c)
             assert st.get('atomic_txn_order_violations', 0) == 0, st
@@ -367,6 +374,8 @@ def main():
     p.add_argument('--no-oracle', action='store_true')
     p.add_argument('--seconds', type=float, default=5)
     p.add_argument('--stall', type=float, default=5)
+    p.add_argument('--flushall-flush', type=int, default=1, help='flushall case: issue FLUSHALL (0 = isolate)')
+    p.add_argument('--flushall-bgsave', type=int, default=1, help='flushall case: run the BGSAVE loop (0 = isolate)')
     args = p.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     results = []

@@ -123,6 +123,12 @@ def main():
                     opstart[i] = t0
                     if i < 8:
                         reply = client.cmd('EVAL', WRITE, 2, *keys)
+                        # The base refuses an over-full cross-owner window or an exhausted OCC
+                        # retry instead of queueing; a refusal writes nothing and is not a stall.
+                        if isinstance(reply, RespError) and str(reply).startswith(
+                                ('TRYAGAIN Cross-shard', 'BUSY Cross-shard')):
+                            opstart[i] = 0.0
+                            continue
                         assert isinstance(reply, list), reply
                     elif i < 16:
                         if i >= 12:

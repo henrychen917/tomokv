@@ -10,7 +10,9 @@ bgsave-script  (a) A BGSAVE sent on the IO thread that admitted a parked cross-o
                must return; PRE waits in drain_atomic_groups for a retirement that only its own
                thread can perform. (b) A bounded script + writer storm under a BGSAVE loop:
                no operation may wait past the stall bound, every activation completes, data
-               accounting is exact and a storm-time snapshot reloads consistently.
+               accounting is exact and a storm-time snapshot reloads consistently. (c) Twelve
+               back-to-back BGSAVEs return within the stall bound without growing the process
+               (PRE doubled every shard's table per snapshot).
 bgsave-exec    A capture-length dataset, pipelined plain writers of one hot key sharing one IO
                lane into that key's owner, an EXEC (+WATCH) storm on the hot key and a cross-owner
                witness pair, and a BGSAVE loop. A probe from a different IO lane into the same
@@ -435,7 +437,32 @@ def case_bgsave_script(args, directory, mode, engine, atomic, oracle):
     finally:
         with contextlib.suppress(Exception):
             b.stop()
+    result['loop'] = bgsave_loop_bounded(args, directory / 'loop', mode, engine, atomic, oracle)
     return result
+
+
+def bgsave_loop_bounded(args, directory, mode, engine, atomic, oracle, saves=12):
+    """(c) Back-to-back BGSAVEs must not grow the process. PRE sized every snapshot's fresh table as
+    twice the CURRENT capacity and never shrank it after the merge, so each BGSAVE doubled every
+    shard's table: RSS doubled per save and each Preparing first had to finish merging the
+    previous doubled table while the armed atomic barrier held every new unit."""
+    with Boot(args, directory, mode, engine, atomic, oracle, (), 'loop') as b:
+        c = b.c
+        c.must('SET', 'snapfix:loop', 1)
+        rss, seconds = [], []
+        for _ in range(saves):
+            began = time.monotonic()
+            try:
+                reply = c.cmd('BGSAVE')
+            except (TimeoutError, socket.timeout) as e:
+                raise Stall(f'BGSAVE did not return in {args.stall}s') from e
+            assert reply == b'Background saving started', reply
+            bgsave_done(c, args.stall)
+            seconds.append(round(time.monotonic() - began, 3))
+            rss.append(stats(c, 'memory')['used_memory_rss'])
+        # PRE: about 21 MB after the second save and about 1 GB after the twelfth.
+        assert rss[-1] <= 3 * rss[1] + (64 << 20), ('BGSAVE loop grew the process', rss)
+        return dict(rss=rss, seconds=seconds)
 
 
 def same_owner(c, prefix, owner, shard=None):
