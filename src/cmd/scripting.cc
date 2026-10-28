@@ -675,7 +675,12 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                     } else if (std::isnan(n) && std::signbit(n)) {
                         std::memcpy(number, "-nan", 4); length = 4;
                     } else length = redis_double_text(number, sizeof(number), n);
-                    value = number;
+                    // Op arguments are borrowed slices. Give each conversion
+                    // its own Lua-owned string before reusing the scratch buffer
+                    // for the next argument; the VM stack roots it through dispatch.
+                    lua_pushlstring(state, number, length);
+                    lua_replace(state, i);
+                    value = lua_tolstring(state, i, &length);
                 } else value = lua_tolstring(state, i, &length);
                 if (length > UINT32_MAX || !nested.push_arg(
                         Slice(value, static_cast<uint32_t>(length)))) {

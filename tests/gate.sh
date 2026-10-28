@@ -3214,19 +3214,24 @@ job_scriptfix(){
 # Collected before the quick exit: DQ=DF=+48; EXPECT remains maintainer-owned.
 job_scriptfix2(){
   stop
-  local mode engine root label
+  local mode engine root label databases passed
   for mode in 1s 2s; do
     for engine in uring epoll; do
       for root in EVAL-SHEBANG EVALSHA-SHA-CASE FCALL-NAME-CASE FUNCTION-LOAD-ENV FUNCTION-REGISTER-ARGS FUNCTION-SHEBANG-META FUNCTION-SUBCMD-ARGS LUA-REDIS-API LUA-SANDBOX-GLOBALS SCRIPT-ERROR-WORDING SCRIPT-NUMBER-ARG SCRIPT-REPLY-DEPTH; do
         label="scriptfix2 $root ($mode, $engine)"
         row_begin "$label"
-        if py tests/scriptfix2.py --root "$root" --binary "$CANDIDATE_BINARY" \
+        passed=1
+        for databases in 1 16; do
+          py tests/scriptfix2.py --root "$root" --binary "$CANDIDATE_BINARY" \
             --oracle "$REDIS74_ROOT/src/redis-server" --mode "$mode" --net-io "$engine" \
             --cores "$CORES" --oracle-cores "$LOAD_CORES" --ratio "$GATE_RATIO" \
-            --port "$PORT" --output "$TMPDIR/$root-$mode-$engine" \
-            >"$TMPDIR/$root-$mode-$engine.log" 2>&1; then
+            --databases "$databases" --port "$PORT" \
+            --output "$TMPDIR/$root-$mode-$engine-db$databases" \
+            >"$TMPDIR/$root-$mode-$engine-db$databases.log" 2>&1 || passed=0
+        done
+        if [ "$passed" = 1 ]; then
           ok "$label"
-        else bad "$label" "see $TMPDIR/$root-$mode-$engine.log"; fi
+        else bad "$label" "see $TMPDIR/$root-$mode-$engine-db*.log"; fi
       done
     done
   done

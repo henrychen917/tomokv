@@ -343,15 +343,18 @@ int fn_register(lua_State* state) {
                 return register_error(state, "named argument key given to redis.register_function is not a string");
             }
             lua_pushvalue(state, -2);
-            const std::string key = function_key(lua_tostring(state, -1));
+            const char* text = lua_tostring(state, -1);
+            const Slice label(text, std::strlen(text));
+            const char* key = nullptr;
+            for (const char* candidate : {"function_name", "callback", "flags", "description"})
+                if (label.eq_icase(candidate)) { key = candidate; break; }
             lua_pop(state, 1);
-            if (key != "function_name" && key != "callback" &&
-                key != "flags" && key != "description") {
+            if (!key) {
                 lua_pop(state, 2);
                 return register_error(state, "unknown argument given to redis.register_function");
             }
             lua_pushvalue(state, -1);
-            lua_setfield(state, named, key.c_str());
+            lua_setfield(state, named, key);
             lua_pop(state, 1);
         }
 

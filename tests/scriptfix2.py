@@ -169,6 +169,8 @@ def extras(root):
         load("redis.register_function('env_cb',function() return {type(math),type(redis.call)} end)")
         commands.append(['fcall', 'env_cb', 0])
     elif root == 'FUNCTION-REGISTER-ARGS':
+        load("redis.register_function{FUNCTION_NAME='named',CALLBACK=function() return 9 end,FLAGS={'no-writes'}}")
+        commands.append(['fcall_ro', 'named', 0])
         for call in ('()', '(1)', '({},function() end)', "('f',{})", "('',function() end)",
                      "('a-b',function() end)", "{[1]='x'}", "{function_name='f'}",
                      "{function_name='f',callback=1}", "{function_name='f',callback=function() end,flags='no-writes'}",
@@ -191,6 +193,10 @@ def extras(root):
         for value in ('-0.0', '1e-7', '1e-6', '1e20', '1e21', '1e100', '1e-100',
                       '9007199254740992', '-9007199254740991', '1/0', '-1/0', '0/0'):
             eval_("redis.call('set',KEYS[1]," + value + ") return redis.call('get',KEYS[1])", 'number')
+        eval_("redis.call('rpush',KEYS[1],1,22,333) return redis.call('lrange',KEYS[1],0,-1)",
+              'number-list')
+        eval_("redis.call('hset',KEYS[1],1,10,22,20,333,30) "
+              "return redis.call('hmget',KEYS[1],1,22,333)", 'number-hash')
     elif root == 'LUA-REDIS-API':
         for code in ("return redis.error_reply('')", "return redis.error_reply('message')",
                      "return redis.error_reply('-CUSTOM detail')", "return redis.error_reply('X a\\r\\nb')",
