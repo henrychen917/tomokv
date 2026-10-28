@@ -1,0 +1,60 @@
+FAIL 1s-uring-db1 global LEN 5
+FAIL 1s-uring-db1 global GET all 6
+FAIL 1s-uring-db1 newest first [[b'SLOWLOG', b'LEN'], [b'LPUSH', b'list', b'a'], [b'INCR', b'num'], [b'SADD', b'set', b'a', b'b', b'c'], [b'SET', b'key', b'test'], [b'SLOWLOG', b'RESET']]
+FAIL 1s-uring-db1 disabled logger retains history 5
+FAIL 1s-uring-db1 discarded history stays discarded 5
+FAIL 1s-uring-db1 GET limit 2 2
+FAIL 1s-uring-db1 GET limit -1 5
+FAIL 1s-uring-db1 zero disables retention changes 0
+FAIL 1s-uring-db16 global LEN 5
+FAIL 1s-uring-db16 global GET all 6
+FAIL 1s-uring-db16 newest first [[b'SLOWLOG', b'LEN'], [b'LPUSH', b'list', b'a'], [b'INCR', b'num'], [b'SADD', b'set', b'a', b'b', b'c'], [b'SET', b'key', b'test'], [b'SLOWLOG', b'RESET']]
+FAIL 1s-uring-db16 disabled logger retains history 4
+FAIL 1s-uring-db16 discarded history stays discarded 5
+FAIL 1s-uring-db16 GET limit 2 2
+FAIL 1s-uring-db16 GET limit -1 5
+FAIL 1s-uring-db16 zero disables retention changes 0
+FAIL 1s-epoll-db1 global LEN 5
+FAIL 1s-epoll-db1 global GET all 6
+FAIL 1s-epoll-db1 newest first [[b'SLOWLOG', b'LEN'], [b'LPUSH', b'list', b'a'], [b'INCR', b'num'], [b'SADD', b'set', b'a', b'b', b'c'], [b'SET', b'key', b'test'], [b'SLOWLOG', b'RESET']]
+FAIL 1s-epoll-db1 disabled logger retains history 5
+FAIL 1s-epoll-db1 discarded history stays discarded 5
+FAIL 1s-epoll-db1 GET limit 2 2
+FAIL 1s-epoll-db1 GET limit -1 5
+FAIL 1s-epoll-db1 zero disables retention changes 0
+FAIL 1s-epoll-db16 global LEN 5
+FAIL 1s-epoll-db16 global GET all 6
+FAIL 1s-epoll-db16 newest first [[b'SLOWLOG', b'LEN'], [b'LPUSH', b'list', b'a'], [b'INCR', b'num'], [b'SADD', b'set', b'a', b'b', b'c'], [b'SET', b'key', b'test'], [b'SLOWLOG', b'RESET']]
+FAIL 1s-epoll-db16 discarded history stays discarded 3
+FAIL 1s-epoll-db16 GET limit 2 2
+FAIL 1s-epoll-db16 GET limit -1 3
+FAIL 1s-epoll-db16 zero disables retention changes 0
+FAIL 2s-uring-db1 global LEN 5
+FAIL 2s-uring-db1 global GET all 6
+FAIL 2s-uring-db1 newest first [[b'SLOWLOG', b'LEN'], [b'LPUSH', b'list', b'a'], [b'INCR', b'num'], [b'SADD', b'set', b'a', b'b', b'c'], [b'SET', b'key', b'test'], [b'SLOWLOG', b'RESET']]
+FAIL 2s-uring-db1 discarded history stays discarded 3
+FAIL 2s-uring-db1 GET limit 2 2
+FAIL 2s-uring-db1 GET limit -1 3
+FAIL 2s-uring-db1 zero disables retention changes 0
+FAIL 2s-uring-db16 global LEN 5
+FAIL 2s-uring-db16 global GET all 6
+FAIL 2s-uring-db16 newest first [[b'SLOWLOG', b'LEN'], [b'LPUSH', b'list', b'a'], [b'INCR', b'num'], [b'SADD', b'set', b'a', b'b', b'c'], [b'SET', b'key', b'test'], [b'SLOWLOG', b'RESET']]
+FAIL 2s-uring-db16 discarded history stays discarded 3
+FAIL 2s-uring-db16 GET limit 2 2
+FAIL 2s-uring-db16 GET limit -1 3
+FAIL 2s-uring-db16 zero disables retention changes 0
+FAIL 2s-epoll-db1 global LEN 5
+FAIL 2s-epoll-db1 global GET all 6
+FAIL 2s-epoll-db1 newest first [[b'SLOWLOG', b'LEN'], [b'LPUSH', b'list', b'a'], [b'INCR', b'num'], [b'SADD', b'set', b'a', b'b', b'c'], [b'SET', b'key', b'test'], [b'SLOWLOG', b'RESET']]
+FAIL 2s-epoll-db1 discarded history stays discarded 3
+FAIL 2s-epoll-db1 GET limit 2 2
+FAIL 2s-epoll-db1 GET limit -1 3
+FAIL 2s-epoll-db1 zero disables retention changes 0
+FAIL 2s-epoll-db16 global LEN 5
+FAIL 2s-epoll-db16 global GET all 6
+FAIL 2s-epoll-db16 newest first [[b'SLOWLOG', b'LEN'], [b'LPUSH', b'list', b'a'], [b'INCR', b'num'], [b'SADD', b'set', b'a', b'b', b'c'], [b'SET', b'key', b'test'], [b'SLOWLOG', b'RESET']]
+FAIL 2s-epoll-db16 discarded history stays discarded 3
+FAIL 2s-epoll-db16 GET limit 2 2
+FAIL 2s-epoll-db16 GET limit -1 3
+FAIL 2s-epoll-db16 zero disables retention changes 0
+infofix slowlog: 59 failed checks; evidence /home/user/Projects/cx-infofix/build/gate-run.BvUBoy/jobs/infofix_compat-slowlog/infofix-slowlog

@@ -1,0 +1,52 @@
+{
+  "binary": "/home/user/Projects/redis74/src/redis-server",
+  "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "checks": [
+    {
+      "label": "redis-redis-db16 absent AOF",
+      "passed": true,
+      "actual": {
+        "error": "ERR Error trying to load the AOF files, check server logs."
+      }
+    },
+    {
+      "label": "redis-redis-db16 failed load flushes",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "redis-redis-db16 offline rewrite",
+      "passed": true,
+      "actual": "Background append only file rewriting started"
+    },
+    {
+      "label": "redis-redis-db16 offline LOADAOF",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "redis-redis-db16 loaded value",
+      "passed": true,
+      "actual": "10"
+    },
+    {
+      "label": "redis-redis-db16 restored TTL",
+      "passed": true,
+      "actual": 59908
+    },
+    {
+      "label": "redis-redis-db16 flushed new key",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "redis-redis-db16 stays appendonly no",
+      "passed": true,
+      "actual": [
+        "appendonly",
+        "no"
+      ]
+    }
+  ],
+  "slowlog": {}
+}

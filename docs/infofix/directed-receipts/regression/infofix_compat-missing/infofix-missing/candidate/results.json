@@ -1,0 +1,687 @@
+{
+  "binary": "/home/user/Projects/cx-infofix/build/infofix/regression/tomokv",
+  "sha256": "760eca3aa016819cb5f18ea3538ae5e8cefee5b3fa6d1dba37d5e0db15b284cc",
+  "checks": [
+    {
+      "label": "1s-uring-db1 CPU fields",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "1s-uring-db1 CPU values",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "1s-uring-db1 build redis_git_sha1",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db1 build redis_git_dirty",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db1 build redis_build_id",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db1 DEFAULT CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-uring-db1 ALL CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-uring-db1 EVERYTHING CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-uring-db1 CPU fields",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "1s-uring-db1 CPU values",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "1s-uring-db1 build redis_git_sha1",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db1 build redis_git_dirty",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db1 build redis_build_id",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db1 DEFAULT CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-uring-db1 ALL CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-uring-db1 EVERYTHING CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-uring-db1 CPU survives RESETSTAT",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db16 CPU fields",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "1s-uring-db16 CPU values",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "1s-uring-db16 build redis_git_sha1",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db16 build redis_git_dirty",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db16 build redis_build_id",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db16 DEFAULT CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-uring-db16 ALL CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-uring-db16 EVERYTHING CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-uring-db16 CPU fields",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "1s-uring-db16 CPU values",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "1s-uring-db16 build redis_git_sha1",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db16 build redis_git_dirty",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db16 build redis_build_id",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db16 DEFAULT CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-uring-db16 ALL CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-uring-db16 EVERYTHING CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-uring-db16 CPU survives RESETSTAT",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db1 CPU fields",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "1s-epoll-db1 CPU values",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "1s-epoll-db1 build redis_git_sha1",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db1 build redis_git_dirty",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db1 build redis_build_id",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db1 DEFAULT CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll-db1 ALL CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll-db1 EVERYTHING CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll-db1 CPU fields",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "1s-epoll-db1 CPU values",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "1s-epoll-db1 build redis_git_sha1",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db1 build redis_git_dirty",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db1 build redis_build_id",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db1 DEFAULT CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll-db1 ALL CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll-db1 EVERYTHING CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll-db1 CPU survives RESETSTAT",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db16 CPU fields",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "1s-epoll-db16 CPU values",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "1s-epoll-db16 build redis_git_sha1",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db16 build redis_git_dirty",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db16 build redis_build_id",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db16 DEFAULT CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll-db16 ALL CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll-db16 EVERYTHING CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll-db16 CPU fields",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "1s-epoll-db16 CPU values",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "1s-epoll-db16 build redis_git_sha1",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db16 build redis_git_dirty",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db16 build redis_build_id",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db16 DEFAULT CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll-db16 ALL CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll-db16 EVERYTHING CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll-db16 CPU survives RESETSTAT",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db1 CPU fields",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "2s-uring-db1 CPU values",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "2s-uring-db1 build redis_git_sha1",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db1 build redis_git_dirty",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db1 build redis_build_id",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db1 DEFAULT CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-uring-db1 ALL CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-uring-db1 EVERYTHING CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-uring-db1 CPU fields",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "2s-uring-db1 CPU values",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "2s-uring-db1 build redis_git_sha1",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db1 build redis_git_dirty",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db1 build redis_build_id",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db1 DEFAULT CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-uring-db1 ALL CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-uring-db1 EVERYTHING CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-uring-db1 CPU survives RESETSTAT",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db16 CPU fields",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "2s-uring-db16 CPU values",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "2s-uring-db16 build redis_git_sha1",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db16 build redis_git_dirty",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db16 build redis_build_id",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db16 DEFAULT CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-uring-db16 ALL CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-uring-db16 EVERYTHING CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-uring-db16 CPU fields",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "2s-uring-db16 CPU values",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "2s-uring-db16 build redis_git_sha1",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db16 build redis_git_dirty",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db16 build redis_build_id",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db16 DEFAULT CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-uring-db16 ALL CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-uring-db16 EVERYTHING CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-uring-db16 CPU survives RESETSTAT",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db1 CPU fields",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "2s-epoll-db1 CPU values",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "2s-epoll-db1 build redis_git_sha1",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db1 build redis_git_dirty",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db1 build redis_build_id",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db1 DEFAULT CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll-db1 ALL CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll-db1 EVERYTHING CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll-db1 CPU fields",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "2s-epoll-db1 CPU values",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "2s-epoll-db1 build redis_git_sha1",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db1 build redis_git_dirty",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db1 build redis_build_id",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db1 DEFAULT CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll-db1 ALL CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll-db1 EVERYTHING CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll-db1 CPU survives RESETSTAT",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db16 CPU fields",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "2s-epoll-db16 CPU values",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "2s-epoll-db16 build redis_git_sha1",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db16 build redis_git_dirty",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db16 build redis_build_id",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db16 DEFAULT CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll-db16 ALL CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll-db16 EVERYTHING CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll-db16 CPU fields",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "2s-epoll-db16 CPU values",
+      "passed": false,
+      "actual": []
+    },
+    {
+      "label": "2s-epoll-db16 build redis_git_sha1",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db16 build redis_git_dirty",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db16 build redis_build_id",
+      "passed": false,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db16 DEFAULT CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll-db16 ALL CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll-db16 EVERYTHING CPU",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll-db16 CPU survives RESETSTAT",
+      "passed": true,
+      "actual": true
+    }
+  ],
+  "slowlog": {}
+}

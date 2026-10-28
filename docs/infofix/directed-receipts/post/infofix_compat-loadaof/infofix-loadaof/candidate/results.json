@@ -1,0 +1,367 @@
+{
+  "binary": "/home/user/Projects/cx-infofix/build/infofix/post/tomokv",
+  "sha256": "63d57541078450bb987820d425577d502c25120406e57f94febcb00869eb0455",
+  "checks": [
+    {
+      "label": "1s-uring-db1 absent AOF",
+      "passed": true,
+      "actual": {
+        "error": "ERR Error trying to load the AOF files, check server logs."
+      }
+    },
+    {
+      "label": "1s-uring-db1 failed load flushes",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db1 offline rewrite",
+      "passed": true,
+      "actual": "Background append only file rewriting started"
+    },
+    {
+      "label": "1s-uring-db1 offline LOADAOF",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-uring-db1 loaded value",
+      "passed": true,
+      "actual": "10"
+    },
+    {
+      "label": "1s-uring-db1 restored TTL",
+      "passed": true,
+      "actual": 59989
+    },
+    {
+      "label": "1s-uring-db1 flushed new key",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db1 stays appendonly no",
+      "passed": true,
+      "actual": [
+        "appendonly",
+        "no"
+      ]
+    },
+    {
+      "label": "1s-uring-db16 absent AOF",
+      "passed": true,
+      "actual": {
+        "error": "ERR Error trying to load the AOF files, check server logs."
+      }
+    },
+    {
+      "label": "1s-uring-db16 failed load flushes",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db16 offline rewrite",
+      "passed": true,
+      "actual": "Background append only file rewriting started"
+    },
+    {
+      "label": "1s-uring-db16 offline LOADAOF",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-uring-db16 loaded value",
+      "passed": true,
+      "actual": "10"
+    },
+    {
+      "label": "1s-uring-db16 restored TTL",
+      "passed": true,
+      "actual": 59989
+    },
+    {
+      "label": "1s-uring-db16 flushed new key",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-uring-db16 stays appendonly no",
+      "passed": true,
+      "actual": [
+        "appendonly",
+        "no"
+      ]
+    },
+    {
+      "label": "1s-epoll-db1 absent AOF",
+      "passed": true,
+      "actual": {
+        "error": "ERR Error trying to load the AOF files, check server logs."
+      }
+    },
+    {
+      "label": "1s-epoll-db1 failed load flushes",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db1 offline rewrite",
+      "passed": true,
+      "actual": "Background append only file rewriting started"
+    },
+    {
+      "label": "1s-epoll-db1 offline LOADAOF",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-epoll-db1 loaded value",
+      "passed": true,
+      "actual": "10"
+    },
+    {
+      "label": "1s-epoll-db1 restored TTL",
+      "passed": true,
+      "actual": 59989
+    },
+    {
+      "label": "1s-epoll-db1 flushed new key",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db1 stays appendonly no",
+      "passed": true,
+      "actual": [
+        "appendonly",
+        "no"
+      ]
+    },
+    {
+      "label": "1s-epoll-db16 absent AOF",
+      "passed": true,
+      "actual": {
+        "error": "ERR Error trying to load the AOF files, check server logs."
+      }
+    },
+    {
+      "label": "1s-epoll-db16 failed load flushes",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db16 offline rewrite",
+      "passed": true,
+      "actual": "Background append only file rewriting started"
+    },
+    {
+      "label": "1s-epoll-db16 offline LOADAOF",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-epoll-db16 loaded value",
+      "passed": true,
+      "actual": "10"
+    },
+    {
+      "label": "1s-epoll-db16 restored TTL",
+      "passed": true,
+      "actual": 59989
+    },
+    {
+      "label": "1s-epoll-db16 flushed new key",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "1s-epoll-db16 stays appendonly no",
+      "passed": true,
+      "actual": [
+        "appendonly",
+        "no"
+      ]
+    },
+    {
+      "label": "2s-uring-db1 absent AOF",
+      "passed": true,
+      "actual": {
+        "error": "ERR Error trying to load the AOF files, check server logs."
+      }
+    },
+    {
+      "label": "2s-uring-db1 failed load flushes",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db1 offline rewrite",
+      "passed": true,
+      "actual": "Background append only file rewriting started"
+    },
+    {
+      "label": "2s-uring-db1 offline LOADAOF",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-uring-db1 loaded value",
+      "passed": true,
+      "actual": "10"
+    },
+    {
+      "label": "2s-uring-db1 restored TTL",
+      "passed": true,
+      "actual": 59990
+    },
+    {
+      "label": "2s-uring-db1 flushed new key",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db1 stays appendonly no",
+      "passed": true,
+      "actual": [
+        "appendonly",
+        "no"
+      ]
+    },
+    {
+      "label": "2s-uring-db16 absent AOF",
+      "passed": true,
+      "actual": {
+        "error": "ERR Error trying to load the AOF files, check server logs."
+      }
+    },
+    {
+      "label": "2s-uring-db16 failed load flushes",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db16 offline rewrite",
+      "passed": true,
+      "actual": "Background append only file rewriting started"
+    },
+    {
+      "label": "2s-uring-db16 offline LOADAOF",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-uring-db16 loaded value",
+      "passed": true,
+      "actual": "10"
+    },
+    {
+      "label": "2s-uring-db16 restored TTL",
+      "passed": true,
+      "actual": 59989
+    },
+    {
+      "label": "2s-uring-db16 flushed new key",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-uring-db16 stays appendonly no",
+      "passed": true,
+      "actual": [
+        "appendonly",
+        "no"
+      ]
+    },
+    {
+      "label": "2s-epoll-db1 absent AOF",
+      "passed": true,
+      "actual": {
+        "error": "ERR Error trying to load the AOF files, check server logs."
+      }
+    },
+    {
+      "label": "2s-epoll-db1 failed load flushes",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db1 offline rewrite",
+      "passed": true,
+      "actual": "Background append only file rewriting started"
+    },
+    {
+      "label": "2s-epoll-db1 offline LOADAOF",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-epoll-db1 loaded value",
+      "passed": true,
+      "actual": "10"
+    },
+    {
+      "label": "2s-epoll-db1 restored TTL",
+      "passed": true,
+      "actual": 59989
+    },
+    {
+      "label": "2s-epoll-db1 flushed new key",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db1 stays appendonly no",
+      "passed": true,
+      "actual": [
+        "appendonly",
+        "no"
+      ]
+    },
+    {
+      "label": "2s-epoll-db16 absent AOF",
+      "passed": true,
+      "actual": {
+        "error": "ERR Error trying to load the AOF files, check server logs."
+      }
+    },
+    {
+      "label": "2s-epoll-db16 failed load flushes",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db16 offline rewrite",
+      "passed": true,
+      "actual": "Background append only file rewriting started"
+    },
+    {
+      "label": "2s-epoll-db16 offline LOADAOF",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-epoll-db16 loaded value",
+      "passed": true,
+      "actual": "10"
+    },
+    {
+      "label": "2s-epoll-db16 restored TTL",
+      "passed": true,
+      "actual": 59999
+    },
+    {
+      "label": "2s-epoll-db16 flushed new key",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "label": "2s-epoll-db16 stays appendonly no",
+      "passed": true,
+      "actual": [
+        "appendonly",
+        "no"
+      ]
+    }
+  ],
+  "slowlog": {}
+}

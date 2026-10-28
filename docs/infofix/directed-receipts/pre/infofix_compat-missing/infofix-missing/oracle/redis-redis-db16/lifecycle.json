@@ -1,0 +1,28 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "48-55",
+    "/home/user/Projects/redis74/src/redis-server",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "20400",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-infofix/build/gate-run.zZAFOC/jobs/infofix_compat-missing/infofix-missing/oracle/redis-redis-db16/data",
+    "--protected-mode",
+    "no",
+    "--databases",
+    "16",
+    "--enable-debug-command",
+    "yes"
+  ],
+  "pid": 4001030,
+  "booted": true,
+  "exit": 0,
+  "port_closed": true
+}

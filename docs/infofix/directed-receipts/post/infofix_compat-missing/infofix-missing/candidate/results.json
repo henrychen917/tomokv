@@ -1,0 +1,911 @@
+{
+  "binary": "/home/user/Projects/cx-infofix/build/infofix/post/tomokv",
+  "sha256": "63d57541078450bb987820d425577d502c25120406e57f94febcb00869eb0455",
+  "checks": [
+    {
+      "label": "1s-uring-db1 CPU fields",
+      "passed": true,
+      "actual": [
+        "used_cpu_sys",
+        "used_cpu_sys_children",
+        "used_cpu_sys_main_thread",
+        "used_cpu_user",
+        "used_cpu_user_children",
+        "used_cpu_user_main_thread"
+      ]
+    },
+    {
+      "label": "1s-uring-db1 CPU values",
+      "passed": true,
+      "actual": [
+        "0.007410",
+        "0.001646",
+        "0.000000",
+        "0.000000",
+        "0.000000",
+        "0.000000"
+      ]
+    },
+    {
+      "label": "1s-uring-db1 build redis_git_sha1",
+      "passed": true,
+      "actual": "27a6821a"
+    },
+    {
+      "label": "1s-uring-db1 build redis_git_dirty",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-uring-db1 build redis_build_id",
+      "passed": true,
+      "actual": "12a7678300c94de5"
+    },
+    {
+      "label": "1s-uring-db1 DEFAULT CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db1 ALL CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db1 EVERYTHING CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db1 CPU fields",
+      "passed": true,
+      "actual": [
+        "used_cpu_sys",
+        "used_cpu_sys_children",
+        "used_cpu_sys_main_thread",
+        "used_cpu_user",
+        "used_cpu_user_children",
+        "used_cpu_user_main_thread"
+      ]
+    },
+    {
+      "label": "1s-uring-db1 CPU values",
+      "passed": true,
+      "actual": [
+        "0.008270",
+        "0.001732",
+        "0.000000",
+        "0.000000",
+        "0.000000",
+        "0.000000"
+      ]
+    },
+    {
+      "label": "1s-uring-db1 build redis_git_sha1",
+      "passed": true,
+      "actual": "27a6821a"
+    },
+    {
+      "label": "1s-uring-db1 build redis_git_dirty",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-uring-db1 build redis_build_id",
+      "passed": true,
+      "actual": "12a7678300c94de5"
+    },
+    {
+      "label": "1s-uring-db1 DEFAULT CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db1 ALL CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db1 EVERYTHING CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db1 CPU survives RESETSTAT",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db16 CPU fields",
+      "passed": true,
+      "actual": [
+        "used_cpu_sys",
+        "used_cpu_sys_children",
+        "used_cpu_sys_main_thread",
+        "used_cpu_user",
+        "used_cpu_user_children",
+        "used_cpu_user_main_thread"
+      ]
+    },
+    {
+      "label": "1s-uring-db16 CPU values",
+      "passed": true,
+      "actual": [
+        "0.005288",
+        "0.004230",
+        "0.000000",
+        "0.000000",
+        "0.000000",
+        "0.000000"
+      ]
+    },
+    {
+      "label": "1s-uring-db16 build redis_git_sha1",
+      "passed": true,
+      "actual": "27a6821a"
+    },
+    {
+      "label": "1s-uring-db16 build redis_git_dirty",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-uring-db16 build redis_build_id",
+      "passed": true,
+      "actual": "12a7678300c94de5"
+    },
+    {
+      "label": "1s-uring-db16 DEFAULT CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db16 ALL CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db16 EVERYTHING CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db16 CPU fields",
+      "passed": true,
+      "actual": [
+        "used_cpu_sys",
+        "used_cpu_sys_children",
+        "used_cpu_sys_main_thread",
+        "used_cpu_user",
+        "used_cpu_user_children",
+        "used_cpu_user_main_thread"
+      ]
+    },
+    {
+      "label": "1s-uring-db16 CPU values",
+      "passed": true,
+      "actual": [
+        "0.005288",
+        "0.005137",
+        "0.000000",
+        "0.000000",
+        "0.000000",
+        "0.000000"
+      ]
+    },
+    {
+      "label": "1s-uring-db16 build redis_git_sha1",
+      "passed": true,
+      "actual": "27a6821a"
+    },
+    {
+      "label": "1s-uring-db16 build redis_git_dirty",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-uring-db16 build redis_build_id",
+      "passed": true,
+      "actual": "12a7678300c94de5"
+    },
+    {
+      "label": "1s-uring-db16 DEFAULT CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db16 ALL CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db16 EVERYTHING CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-db16 CPU survives RESETSTAT",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db1 CPU fields",
+      "passed": true,
+      "actual": [
+        "used_cpu_sys",
+        "used_cpu_sys_children",
+        "used_cpu_sys_main_thread",
+        "used_cpu_user",
+        "used_cpu_user_children",
+        "used_cpu_user_main_thread"
+      ]
+    },
+    {
+      "label": "1s-epoll-db1 CPU values",
+      "passed": true,
+      "actual": [
+        "0.003454",
+        "0.004605",
+        "0.000000",
+        "0.000000",
+        "0.000000",
+        "0.000000"
+      ]
+    },
+    {
+      "label": "1s-epoll-db1 build redis_git_sha1",
+      "passed": true,
+      "actual": "27a6821a"
+    },
+    {
+      "label": "1s-epoll-db1 build redis_git_dirty",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-epoll-db1 build redis_build_id",
+      "passed": true,
+      "actual": "12a7678300c94de5"
+    },
+    {
+      "label": "1s-epoll-db1 DEFAULT CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db1 ALL CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db1 EVERYTHING CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db1 CPU fields",
+      "passed": true,
+      "actual": [
+        "used_cpu_sys",
+        "used_cpu_sys_children",
+        "used_cpu_sys_main_thread",
+        "used_cpu_user",
+        "used_cpu_user_children",
+        "used_cpu_user_main_thread"
+      ]
+    },
+    {
+      "label": "1s-epoll-db1 CPU values",
+      "passed": true,
+      "actual": [
+        "0.003645",
+        "0.005301",
+        "0.000000",
+        "0.000000",
+        "0.000000",
+        "0.000000"
+      ]
+    },
+    {
+      "label": "1s-epoll-db1 build redis_git_sha1",
+      "passed": true,
+      "actual": "27a6821a"
+    },
+    {
+      "label": "1s-epoll-db1 build redis_git_dirty",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-epoll-db1 build redis_build_id",
+      "passed": true,
+      "actual": "12a7678300c94de5"
+    },
+    {
+      "label": "1s-epoll-db1 DEFAULT CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db1 ALL CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db1 EVERYTHING CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db1 CPU survives RESETSTAT",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db16 CPU fields",
+      "passed": true,
+      "actual": [
+        "used_cpu_sys",
+        "used_cpu_sys_children",
+        "used_cpu_sys_main_thread",
+        "used_cpu_user",
+        "used_cpu_user_children",
+        "used_cpu_user_main_thread"
+      ]
+    },
+    {
+      "label": "1s-epoll-db16 CPU values",
+      "passed": true,
+      "actual": [
+        "0.005465",
+        "0.002732",
+        "0.000000",
+        "0.000000",
+        "0.000000",
+        "0.000000"
+      ]
+    },
+    {
+      "label": "1s-epoll-db16 build redis_git_sha1",
+      "passed": true,
+      "actual": "27a6821a"
+    },
+    {
+      "label": "1s-epoll-db16 build redis_git_dirty",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-epoll-db16 build redis_build_id",
+      "passed": true,
+      "actual": "12a7678300c94de5"
+    },
+    {
+      "label": "1s-epoll-db16 DEFAULT CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db16 ALL CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db16 EVERYTHING CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db16 CPU fields",
+      "passed": true,
+      "actual": [
+        "used_cpu_sys",
+        "used_cpu_sys_children",
+        "used_cpu_sys_main_thread",
+        "used_cpu_user",
+        "used_cpu_user_children",
+        "used_cpu_user_main_thread"
+      ]
+    },
+    {
+      "label": "1s-epoll-db16 CPU values",
+      "passed": true,
+      "actual": [
+        "0.006350",
+        "0.002732",
+        "0.000000",
+        "0.000000",
+        "0.000000",
+        "0.000000"
+      ]
+    },
+    {
+      "label": "1s-epoll-db16 build redis_git_sha1",
+      "passed": true,
+      "actual": "27a6821a"
+    },
+    {
+      "label": "1s-epoll-db16 build redis_git_dirty",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-epoll-db16 build redis_build_id",
+      "passed": true,
+      "actual": "12a7678300c94de5"
+    },
+    {
+      "label": "1s-epoll-db16 DEFAULT CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db16 ALL CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db16 EVERYTHING CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-db16 CPU survives RESETSTAT",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db1 CPU fields",
+      "passed": true,
+      "actual": [
+        "used_cpu_sys",
+        "used_cpu_sys_children",
+        "used_cpu_sys_main_thread",
+        "used_cpu_user",
+        "used_cpu_user_children",
+        "used_cpu_user_main_thread"
+      ]
+    },
+    {
+      "label": "2s-uring-db1 CPU values",
+      "passed": true,
+      "actual": [
+        "0.006992",
+        "0.001748",
+        "0.000000",
+        "0.000000",
+        "0.000000",
+        "0.000000"
+      ]
+    },
+    {
+      "label": "2s-uring-db1 build redis_git_sha1",
+      "passed": true,
+      "actual": "27a6821a"
+    },
+    {
+      "label": "2s-uring-db1 build redis_git_dirty",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-uring-db1 build redis_build_id",
+      "passed": true,
+      "actual": "12a7678300c94de5"
+    },
+    {
+      "label": "2s-uring-db1 DEFAULT CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db1 ALL CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db1 EVERYTHING CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db1 CPU fields",
+      "passed": true,
+      "actual": [
+        "used_cpu_sys",
+        "used_cpu_sys_children",
+        "used_cpu_sys_main_thread",
+        "used_cpu_user",
+        "used_cpu_user_children",
+        "used_cpu_user_main_thread"
+      ]
+    },
+    {
+      "label": "2s-uring-db1 CPU values",
+      "passed": true,
+      "actual": [
+        "0.007008",
+        "0.002628",
+        "0.000000",
+        "0.000000",
+        "0.000000",
+        "0.000000"
+      ]
+    },
+    {
+      "label": "2s-uring-db1 build redis_git_sha1",
+      "passed": true,
+      "actual": "27a6821a"
+    },
+    {
+      "label": "2s-uring-db1 build redis_git_dirty",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-uring-db1 build redis_build_id",
+      "passed": true,
+      "actual": "12a7678300c94de5"
+    },
+    {
+      "label": "2s-uring-db1 DEFAULT CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db1 ALL CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db1 EVERYTHING CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db1 CPU survives RESETSTAT",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db16 CPU fields",
+      "passed": true,
+      "actual": [
+        "used_cpu_sys",
+        "used_cpu_sys_children",
+        "used_cpu_sys_main_thread",
+        "used_cpu_user",
+        "used_cpu_user_children",
+        "used_cpu_user_main_thread"
+      ]
+    },
+    {
+      "label": "2s-uring-db16 CPU values",
+      "passed": true,
+      "actual": [
+        "0.005463",
+        "0.003642",
+        "0.000000",
+        "0.000000",
+        "0.000000",
+        "0.000000"
+      ]
+    },
+    {
+      "label": "2s-uring-db16 build redis_git_sha1",
+      "passed": true,
+      "actual": "27a6821a"
+    },
+    {
+      "label": "2s-uring-db16 build redis_git_dirty",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-uring-db16 build redis_build_id",
+      "passed": true,
+      "actual": "12a7678300c94de5"
+    },
+    {
+      "label": "2s-uring-db16 DEFAULT CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db16 ALL CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db16 EVERYTHING CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db16 CPU fields",
+      "passed": true,
+      "actual": [
+        "used_cpu_sys",
+        "used_cpu_sys_children",
+        "used_cpu_sys_main_thread",
+        "used_cpu_user",
+        "used_cpu_user_children",
+        "used_cpu_user_main_thread"
+      ]
+    },
+    {
+      "label": "2s-uring-db16 CPU values",
+      "passed": true,
+      "actual": [
+        "0.006321",
+        "0.003642",
+        "0.000000",
+        "0.000000",
+        "0.000000",
+        "0.000000"
+      ]
+    },
+    {
+      "label": "2s-uring-db16 build redis_git_sha1",
+      "passed": true,
+      "actual": "27a6821a"
+    },
+    {
+      "label": "2s-uring-db16 build redis_git_dirty",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-uring-db16 build redis_build_id",
+      "passed": true,
+      "actual": "12a7678300c94de5"
+    },
+    {
+      "label": "2s-uring-db16 DEFAULT CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db16 ALL CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db16 EVERYTHING CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-db16 CPU survives RESETSTAT",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db1 CPU fields",
+      "passed": true,
+      "actual": [
+        "used_cpu_sys",
+        "used_cpu_sys_children",
+        "used_cpu_sys_main_thread",
+        "used_cpu_user",
+        "used_cpu_user_children",
+        "used_cpu_user_main_thread"
+      ]
+    },
+    {
+      "label": "2s-epoll-db1 CPU values",
+      "passed": true,
+      "actual": [
+        "0.005677",
+        "0.001892",
+        "0.000000",
+        "0.000000",
+        "0.000000",
+        "0.000000"
+      ]
+    },
+    {
+      "label": "2s-epoll-db1 build redis_git_sha1",
+      "passed": true,
+      "actual": "27a6821a"
+    },
+    {
+      "label": "2s-epoll-db1 build redis_git_dirty",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-epoll-db1 build redis_build_id",
+      "passed": true,
+      "actual": "12a7678300c94de5"
+    },
+    {
+      "label": "2s-epoll-db1 DEFAULT CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db1 ALL CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db1 EVERYTHING CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db1 CPU fields",
+      "passed": true,
+      "actual": [
+        "used_cpu_sys",
+        "used_cpu_sys_children",
+        "used_cpu_sys_main_thread",
+        "used_cpu_user",
+        "used_cpu_user_children",
+        "used_cpu_user_main_thread"
+      ]
+    },
+    {
+      "label": "2s-epoll-db1 CPU values",
+      "passed": true,
+      "actual": [
+        "0.006021",
+        "0.002448",
+        "0.000000",
+        "0.000000",
+        "0.000000",
+        "0.000000"
+      ]
+    },
+    {
+      "label": "2s-epoll-db1 build redis_git_sha1",
+      "passed": true,
+      "actual": "27a6821a"
+    },
+    {
+      "label": "2s-epoll-db1 build redis_git_dirty",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-epoll-db1 build redis_build_id",
+      "passed": true,
+      "actual": "12a7678300c94de5"
+    },
+    {
+      "label": "2s-epoll-db1 DEFAULT CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db1 ALL CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db1 EVERYTHING CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db1 CPU survives RESETSTAT",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db16 CPU fields",
+      "passed": true,
+      "actual": [
+        "used_cpu_sys",
+        "used_cpu_sys_children",
+        "used_cpu_sys_main_thread",
+        "used_cpu_user",
+        "used_cpu_user_children",
+        "used_cpu_user_main_thread"
+      ]
+    },
+    {
+      "label": "2s-epoll-db16 CPU values",
+      "passed": true,
+      "actual": [
+        "0.002683",
+        "0.005367",
+        "0.000000",
+        "0.000000",
+        "0.000000",
+        "0.000000"
+      ]
+    },
+    {
+      "label": "2s-epoll-db16 build redis_git_sha1",
+      "passed": true,
+      "actual": "27a6821a"
+    },
+    {
+      "label": "2s-epoll-db16 build redis_git_dirty",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-epoll-db16 build redis_build_id",
+      "passed": true,
+      "actual": "12a7678300c94de5"
+    },
+    {
+      "label": "2s-epoll-db16 DEFAULT CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db16 ALL CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db16 EVERYTHING CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db16 CPU fields",
+      "passed": true,
+      "actual": [
+        "used_cpu_sys",
+        "used_cpu_sys_children",
+        "used_cpu_sys_main_thread",
+        "used_cpu_user",
+        "used_cpu_user_children",
+        "used_cpu_user_main_thread"
+      ]
+    },
+    {
+      "label": "2s-epoll-db16 CPU values",
+      "passed": true,
+      "actual": [
+        "0.002683",
+        "0.006253",
+        "0.000000",
+        "0.000000",
+        "0.000000",
+        "0.000000"
+      ]
+    },
+    {
+      "label": "2s-epoll-db16 build redis_git_sha1",
+      "passed": true,
+      "actual": "27a6821a"
+    },
+    {
+      "label": "2s-epoll-db16 build redis_git_dirty",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-epoll-db16 build redis_build_id",
+      "passed": true,
+      "actual": "12a7678300c94de5"
+    },
+    {
+      "label": "2s-epoll-db16 DEFAULT CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db16 ALL CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db16 EVERYTHING CPU",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-db16 CPU survives RESETSTAT",
+      "passed": true,
+      "actual": true
+    }
+  ],
+  "slowlog": {}
+}
