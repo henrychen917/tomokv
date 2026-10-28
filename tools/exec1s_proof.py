@@ -52,6 +52,11 @@ def run(label,cmd,env=None):
     log=OUT/(label+'.log')
     if env is not None and 'GATE_LEDGER' in env:
         env=dict(env, GATE_LEDGER=str(OUT/(label+'.ledger')))
+    cq_dir=None
+    if env and env.get('EXEC1S_CQ_WATCH')=='1':
+        cq_dir=OUT/(label+'-cq')
+        cq_dir.mkdir()
+        env=dict(env, EXEC1S_CQ_LOG_DIR=str(cq_dir))
     binary=Path(cmd[cmd.index('--candidate-binary')+1]) if '--candidate-binary' in cmd else None
     def sha(path):
         with path.open('rb') as f:return hashlib.file_digest(f,'sha256').hexdigest()
@@ -63,17 +68,15 @@ def run(label,cmd,env=None):
     row.update(started_utc=started,ended_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
         candidate_sha256=before,candidate_unchanged=(not binary or sha(binary)==before),
         proof_environment={k:v for k,v in (env or {}).items() if k in (
-            'GATE_TXN_FUSED','GATE_TXN_ATOMIC','GATE_EXEC1S_WB','GATE_DIFFER_NET_IO','GATE_PROOF_NO_RATES','GATE_TEST_PORT','LD_PRELOAD')})
+            'GATE_TXN_FUSED','GATE_TXN_ATOMIC','GATE_EXEC1S_WB','GATE_DIFFER_NET_IO','GATE_PROOF_NO_RATES','GATE_TEST_PORT','LD_PRELOAD','EXEC1S_CQ_LOG_DIR')})
     found=re.search(r'^  artifacts: (.+)$',log.read_text(),re.M)
     if found:row['artifacts']=found[1]
     if env and env.get('EXEC1S_CQ_WATCH')=='1':
         observations=[]
-        if found:
-            for path in Path(found[1]).rglob('*'):
-                if path.is_file() and (path.name.endswith('.log') or 'srv' in path.name):
-                    for line in path.read_text(errors='replace').splitlines():
-                        if line.startswith('EXEC1S_CQ '):
-                            observations.append(dict(log=str(path),**json.loads(line[len('EXEC1S_CQ '):])))
+        for path in cq_dir.glob('*.log'):
+            for line in path.read_text().splitlines():
+                assert line.startswith('EXEC1S_CQ '), (path,line)
+                observations.append(dict(log=str(path),**json.loads(line[len('EXEC1S_CQ '):])))
         row['cq_observations']=dict(instrument=env['LD_PRELOAD'],instrument_sha256=sha(Path(env['LD_PRELOAD'])),
             ring_rows=len(observations),samples=sum(x['samples'] for x in observations),
             fused_ex_ring_rows=sum(x['taskrun_flag'] for x in observations),

@@ -90,6 +90,11 @@ a placement-transition refusal. The actual Busy reason was not captured. This
 is neither classified as a confirmed lane regression nor waived as a harmless
 retry. The epoll proof is failed, with its original log and source comparison in
 `docs/exec1s/epoll-psfix-failure.json`; the remaining requested legs continue.
+The supplemental CQ observer also exposed a harness defect: its destructor
+wrote after the final `shutdown_report` line, causing the unchanged shutdown
+receipt checks to fail. Observer records now use separate per-thread files;
+both instrumented AOF gate-job reruns are pending. Production bytes and the
+shutdown-log assertions are unchanged.
 The Redis Tcl dependency passed both modes against the unchanged PRE manifest:
 all 70 file/mode assertion inventories match. Its existing named `appendonly`
 block-setup error remains visible in the raw logs and is checked exactly, not

@@ -4,8 +4,10 @@
 // after a userspace drain without passing another observed enter boundary.
 #include <liburing.h>
 #include <dlfcn.h>
+#include <fcntl.h>
 #include <cstdio>
 #include <cstdlib>
+#include <sys/syscall.h>
 #include <unistd.h>
 
 namespace {
@@ -21,6 +23,18 @@ struct Observations {
     Row rows[256];
     unsigned used = 0;
     ~Observations() {
+        if (!used) return;
+        // Main-thread ring teardown can outlive the final shutdown_report.
+        // Preserve that production log contract: observer data has its own
+        // per-process/per-thread file, never a trailing stderr record.
+        const char* directory = std::getenv("EXEC1S_CQ_LOG_DIR");
+        if (!directory || !*directory) std::abort();
+        char path[4096];
+        const int length = std::snprintf(path, sizeof(path), "%s/%ld-%ld.log", directory,
+                                        long(::getpid()), long(::syscall(SYS_gettid)));
+        if (length <= 0 || length >= int(sizeof(path))) std::abort();
+        const int out = ::open(path, O_WRONLY | O_CREAT | O_APPEND | O_CLOEXEC, 0644);
+        if (out < 0) std::abort();
         for (unsigned i=0;i<used;++i) {
             const auto& r=rows[i];char line[256];
             const int n=std::snprintf(line,sizeof(line),
@@ -28,8 +42,9 @@ struct Observations {
                 "\"samples\":%llu,\"overflow_samples\":%llu,\"dropped\":%u}\n",
                 r.fd,!!(r.flags & IORING_SETUP_DEFER_TASKRUN),
                 !!(r.flags & IORING_SETUP_TASKRUN_FLAG),r.samples,r.overflow_samples,r.dropped);
-            if(n<=0 || n>=int(sizeof(line)) || ::write(STDERR_FILENO,line,n)!=n) std::abort();
+            if(n<=0 || n>=int(sizeof(line)) || ::write(out,line,n)!=n) std::abort();
         }
+        if (::close(out)) std::abort();
     }
 };
 thread_local Observations observations;
