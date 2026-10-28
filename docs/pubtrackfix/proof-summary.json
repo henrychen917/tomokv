@@ -1398,10 +1398,74 @@
           }
         }
       }
+    },
+    "plant-consumer": {
+      "gate_summary": [
+        "GATE(PARTIAL): 1 ok, 2 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-pubtrackfix/build/gate-run.PaQK6G/ledger.partial"
+      ],
+      "jobs": {
+        "redis_tcl": {
+          "done": "0\t0\t2\n"
+        },
+        "release": {
+          "done": "0\t1\t0\n"
+        }
+      },
+      "tcl": {
+        "1s": {
+          "sha256": "49743c99bbcb09c653d95bd3882844723714a94ae752cfc807861e551fb815ce",
+          "files": 35,
+          "file_runs": 36,
+          "passed_assertions": 1720,
+          "promoted_passed": 30,
+          "promoted_missing": [
+            [
+              "unit/pubsub",
+              "Keyspace notifications: stream events test"
+            ]
+          ],
+          "root_witness": {
+            "file": "unit/pubsub",
+            "test": "Keyspace notifications: stream events test",
+            "started": true,
+            "passed": false,
+            "file_complete": true,
+            "file_error": "passing subset failed, incomplete, or assertion inventory changed",
+            "failure_events": [
+              "Keyspace notifications: stream events test in tests/unit/pubsub.tcl\nExpected 'pmessage * __keyspace@0__:mystream xgroup-createconsumer' to be equal to 'pmessage * __keyspace@0__:mystream xgroup-delconsumer' (context: type eval line 19 cmd {assert_equal \"pmessage * __keyspace@${db}__:mystream xgroup-createconsumer\" [$rd1 read]} proc ::test)"
+            ],
+            "detected": true
+          }
+        },
+        "2s": {
+          "sha256": "49743c99bbcb09c653d95bd3882844723714a94ae752cfc807861e551fb815ce",
+          "files": 35,
+          "file_runs": 36,
+          "passed_assertions": 1720,
+          "promoted_passed": 30,
+          "promoted_missing": [
+            [
+              "unit/pubsub",
+              "Keyspace notifications: stream events test"
+            ]
+          ],
+          "root_witness": {
+            "file": "unit/pubsub",
+            "test": "Keyspace notifications: stream events test",
+            "started": true,
+            "passed": false,
+            "file_complete": true,
+            "file_error": "passing subset failed, incomplete, or assertion inventory changed",
+            "failure_events": [
+              "Keyspace notifications: stream events test in tests/unit/pubsub.tcl\nExpected 'pmessage * __keyspace@0__:mystream xgroup-createconsumer' to be equal to 'pmessage * __keyspace@0__:mystream xgroup-delconsumer' (context: type eval line 19 cmd {assert_equal \"pmessage * __keyspace@${db}__:mystream xgroup-createconsumer\" [$rd1 read]} proc ::test)"
+            ],
+            "detected": true
+          }
+        }
+      }
     }
   },
   "missing_runs": [
-    "plant-consumer",
     "plant-eviction"
   ]
 }
