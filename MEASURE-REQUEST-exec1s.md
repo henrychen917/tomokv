@@ -139,6 +139,22 @@ execindex’s two rows beyond the stored 798/815 constants. The resulting invent
 is **804 quick / 821 full** (800/817 plus four), subject to owner integration.
 `EXPECT_QUICK` and `EXPECT_FULL` are unchanged.
 
+### EXEC instruction detail
+
+Linked preparation/dispatch instructions (queueing is outside this scope):
+
+| Namespace / mode | PRE / X3 | X5 / POST |
+| --- | ---: | ---: |
+| normal / 1s | 11,176 | 6,932 |
+| normal / 2s | 8,776 | 6,932 |
+| db0 / 1s | 9,992 | 5,846 |
+| db0 / 2s | 7,592 | 5,846 |
+
+The same-shard owner, idle and X4 WB counts and production/probe hashes are in
+`docs/exec1s/lever-counts.json`. X4’s parsed-block WB predicate is checked against
+the unchanged X3 decision in both modes and namespaces. All fixtures check exact
+results after their count window; a count without successful assertions is rejected.
+
 ### Maintainer merit request
 
 Use the current hashes, matched options and offered load, and the gate’s existing
@@ -172,11 +188,18 @@ made by this lane.
    with a kernel-side count as well as counters. X4 requires holds >0 and
    sends/EXEC <=1.1 hot, <=1.05 uncontended, and remains owner-gated.
 
-Reproduction: `taskset -c 48-63 python3 tools/exec1s_build.py`, then
-`tools/exec1s_trace.py`, `tools/exec1s_directed.py`, and
-`tools/exec1s_finish_proof.py` under the same affinity. After tracing,
-`tools/exec1s_retire_probes.py` deletes completed probes; the collector’s
-`--collect-only` mode verifies their retained hash bindings without retracing.
+Reproduction, in order (correctness only):
+
+```sh
+taskset -c 48-63 python3 tools/exec1s_build.py
+taskset -c 48-63 python3 tools/exec1s_trace.py
+taskset -c 48-63 python3 tools/exec1s_retire_probes.py
+taskset -c 48-63 python3 tools/exec1s_directed.py
+taskset -c 48-63 python3 tools/exec1s_finish_proof.py
+```
+
+After probe retirement, `tools/exec1s_trace.py --collect-only` verifies the
+retained hash bindings and completed logs without retracing.
 
 The decision is improvement outside the existing per-cell null with no ordinary
 cell regression. Instruction and allocation counts explain behaviour; they do
