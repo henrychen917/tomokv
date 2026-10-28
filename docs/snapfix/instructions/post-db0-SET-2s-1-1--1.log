@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-snapfix/build/snapfix/commands/post-db0-SET-2s-1-1--1.log
+SHA-256: 43dcaedb88d540147e7cf7c4e33627e557c3afc5605dedc44c18ee1512d09d39
+Exit: 0
+0x0000555555635e48	2364	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
+0x0000555555635d13 in tomo_db0::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff61939c8, batch=batch@entry=0x7ffffffda400, n=n@entry=1) at src/core/ex_loop.h:2367
+2367	    }
+0x0000555555635d18	2367	    }
+0x0000555555635d21	2367	    }
+0x0000555555635d27	2367	    }
+0x0000555555635d2b	2367	    }
+0x0000555555635d2c	2367	    }
+0x0000555555635d2e	2367	    }
+0x0000555555635d30	2367	    }
+0x0000555555635d32	2367	    }
+0x0000555555635d34	2367	    }
+0x0000555555635d35	2367	    }
+0x0000555555d8f914 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-snapfix/tests/txnorder_command_scope.cc:72
+72	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-snapfix/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 3173096) exited normally]
+COUNT 1188
