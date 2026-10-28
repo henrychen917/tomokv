@@ -43,6 +43,15 @@ def main():
         out.append(gate('fused-legs',fused,extra={'GATE_TXN_FUSED':'1','GATE_TXN_ATOMIC':'1'}))
         for mode in ('0','1'):
             out.append(gate('script-a0-'+mode,['script_bounds'],extra={'GATE_TXN_FUSED':mode,'GATE_TXN_ATOMIC':'0'}))
+        # X1 changes submission boundaries. Observe real CQ progress during the
+        # unchanged AOF correctness jobs, including the fused executor ring.
+        instrument=d.ROOT/'build/exec1s-cq-watch.so'
+        d.run(['g++','-std=c++20','-O2','-g','-shared','-fPIC',
+               'tests/exec1s_cq_watch.cc','-o',str(instrument),'-ldl'],
+              d.OUT/'evidence/cq-watch-build.log')
+        for mode in ('0','1'):
+            out.append(gate('aof-cq-'+mode,['aof-uring','aof_frame'],extra={
+                'GATE_TXN_FUSED':mode,'LD_PRELOAD':str(instrument),'EXEC1S_CQ_WATCH':'1'}))
     elif a.phase=='differ':
         for engine in ('uring','epoll'):
             out.append(gate('differ-'+engine,['differ-split','differ-armed'],engine))
