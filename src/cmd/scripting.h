@@ -119,6 +119,7 @@ bool function_is_fcall(const Op& op);
 // Cold persistence admission: registered no-writes flags override FCALL/FCALL_RO's
 // command flags. Unknown functions retain the command's default classification.
 bool function_metadata_write(const Op& op);
+bool script_metadata_write(const Op& op);
 // Execute one admitted callback after EXEC prepares its owner-private versions.
 // False means preparation parked; command errors complete normally with a reply.
 bool function_execute_exec(Shard& shard, Op& op, void* context,

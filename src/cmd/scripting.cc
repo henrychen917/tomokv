@@ -227,15 +227,53 @@ std::string clean_error(const char* text, size_t length) {
 // compatible error text starts here.
 constexpr const char* kEvalChunkName = "@user_script";
 
-// EXEC's pause regression includes Redis's plain engine header. Hash/cache
-// the original source, but let Lua compile starting with its newline so error
-// line numbers retain the original source coordinates. Headers with metadata
-// continue through the existing validation path; flag support is separate.
-Slice eval_compile_source(Slice source) {
-    if (source.n >= 5 && std::memcmp(source.p, "#!lua", 5) == 0 &&
-        (source.n == 5 || source.p[5] == '\n'))
-        return Slice(source.p + 5, source.n - 5);
-    return source;
+// Header admission and pause classification share the same grammar. Hash the
+// original source; compile from the newline to retain Lua's line numbers.
+bool eval_header(Slice source, Slice& body, bool& readonly, std::string& error) {
+    body = source;
+    readonly = false;
+    if (source.n < 2 || std::memcmp(source.p, "#!", 2)) return true;
+    const char* end = static_cast<const char*>(std::memchr(source.p, '\n', source.n));
+    if (!end) { error = "Invalid script shebang"; return false; }
+    std::string header(source.p, end + 1);
+    Op words;
+    uint32_t pos = 0, scanned = 0;
+    const char* parse_error = nullptr;
+    if (resp_parse_inline(header.data(), header.size(), pos, words, &parse_error, scanned) !=
+            ParseResult::Ok || !words.argc()) {
+        error = "Invalid engine in script shebang";
+        return false;
+    }
+    auto text = [](Slice value) { return std::string(value.p, value.n); };
+    if (text(words.arg(0)) != "#!lua") {
+        error = "Unexpected engine in script shebang: " + text(words.arg(0));
+        return false;
+    }
+    for (uint32_t i = 1; i < words.argc(); ++i) {
+        const std::string option = text(words.arg(i));
+        if (!option.starts_with("flags=")) {
+            error = "Unknown lua shebang option: " + option;
+            return false;
+        }
+        for (size_t begin = 6; begin < option.size();) {
+            const size_t comma = option.find(',', begin);
+            const std::string flag = option.substr(begin, comma - begin);
+            if (flag == "no-writes") readonly = true;
+            else if (flag != "allow-oom" && flag != "allow-stale" &&
+                     flag != "no-cluster" && flag != "allow-cross-slot-keys") {
+                error = "Unexpected flag in script shebang: " + flag;
+                return false;
+            }
+            if (comma == std::string::npos) break;
+            begin = comma + 1;
+            if (begin == option.size()) {
+                error = "Unexpected flag in script shebang: ";
+                return false;
+            }
+        }
+    }
+    body = Slice(end, source.n - static_cast<uint32_t>(end - source.p));
+    return true;
 }
 
 bool validate_source(Slice source, std::string& error) {
@@ -247,10 +285,12 @@ bool validate_source(Slice source, std::string& error) {
         error = "binary chunks are not allowed";
         return false;
     }
+    Slice body;
+    bool readonly;
+    if (!eval_header(source, body, readonly, error)) return false;
     lua_State* state = luaL_newstate();
     if (!state) { error = "out of memory"; return false; }
-    const int status = luaL_loadbuffer(state, eval_compile_source(source).p,
-                                             eval_compile_source(source).n, kEvalChunkName);
+    const int status = luaL_loadbuffer(state, body.p, body.n, kEvalChunkName);
     if (status != 0) {
         size_t length = 0;
         const char* detail = lua_tolstring(state, -1, &length);
@@ -1365,6 +1405,13 @@ namespace {
 
 void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_hint,
               bool notify, bool readonly) {
+    Slice body;
+    bool header_readonly;
+    std::string header_error;
+    if (!eval_header(source, body, header_readonly, header_error)) {
+        reply_text_error(op, "ERR", header_error);
+        return;
+    }
     if (source.n > kScriptMaxBytes) {
         reply_text_error(op, "ERR", "script exceeds the 1 MiB limit");
         return;
@@ -1396,8 +1443,7 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_h
     if (lua_isnil(state, -1)) {
         lua_pop(state, 1);
         g_compile_misses.fetch_add(1, std::memory_order_relaxed);
-        const int compiled = luaL_loadbuffer(state, eval_compile_source(source).p,
-                                             eval_compile_source(source).n, kEvalChunkName);
+        const int compiled = luaL_loadbuffer(state, body.p, body.n, kEvalChunkName);
         if (compiled != 0) {
             size_t length = 0;
             const char* text = lua_tolstring(state, -1, &length);
@@ -1428,7 +1474,7 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_h
     call.key_first = key_first;
     call.key_count = key_count;
     call.style = ScriptArgStyle::Globals;
-    call.readonly = readonly;
+    call.readonly = readonly || header_readonly;
     call.notify = notify;
     call.chunk = "user_script";
     call.tag = sha;
@@ -1594,6 +1640,21 @@ bool command_script_key_range(const Op& op, uint32_t& first, uint32_t& count) {
     bool negative = false;
     if (!parse_nonnegative(op.arg(2), count, negative) || negative) return false;
     return count <= op.argc() - first;
+}
+
+bool script_metadata_write(const Op& op) {
+    if (!op.spec || !(op.spec->flags & CmdFlags::Write)) return false;
+    if (op.argc() < 2) return true;
+    std::string cached;
+    Slice source = op.arg(1);
+    if (op.cmd_name().eq_icase("evalsha")) {
+        if (!g_scripts.find(source, cached)) return true;
+        source = Slice(cached.data(), cached.size());
+    }
+    Slice body;
+    bool readonly;
+    std::string error;
+    return !eval_header(source, body, readonly, error) || !readonly;
 }
 
 // THE SCRIPT STORE IS MAINTAINED ON THE IO THREAD, in connection parse order.

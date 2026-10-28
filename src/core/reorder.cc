@@ -2170,7 +2170,7 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
             finish_locally(c, *op, message); continue;
         }
         if ((spec->flags & CmdFlags::SubcmdRoute) &&
-            command_reply_container_subcommand_arity(*op, *spec)) {
+            command_reply_container_subcommand_arity(*op, *spec, c)) {
             // A known child has its own generated arity and Redis checks that before ACL and
             // MULTI. Unknown children continue to the cold AUTH/ACL hook or container
             // handler, where lookup errors precede authentication checks.
@@ -2332,6 +2332,7 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
         }
 subscriber_checks_done:
         if (spec->flags & CmdFlags::PubSub) {
+            command_client_note_command(c, *op);
             conn.advance_parse(consumed);
             self_->note_command(spec->id);
             flip_fingerprint_note(*spec, *op);
@@ -2358,6 +2359,7 @@ subscriber_checks_done:
         // easily wasted by routing it anyway.
         if ((spec->flags & CmdFlags::ConnLocal) ||
             ((spec->flags & CmdFlags::ConfigRoute) && !config_scatter)) {
+            command_client_note_command(c, *op);
             // SCRIPT/FUNCTION read and mutate state that in-flight EVAL/EVALSHA/FCALL
             // activations produce or consume, so they observe same-connection program order
             // through the ROB-head barrier the blocking lowering already uses. Everything

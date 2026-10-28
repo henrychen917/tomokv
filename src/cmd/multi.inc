@@ -2031,8 +2031,13 @@ void abort_multi_children(MultiExecState& state) {
 bool multi_pause_writes(const Client& client) {
     const auto* session = client.multi_session();
     if (!session || !session->active) return false;
-    for (const auto& command : session->queue)
-        if (command.spec->flags & CmdFlags::Write) return true;
+    for (const auto& command : session->queue) {
+        Op op;
+        op.spec = command.spec;
+        for (const auto& arg : command.argv)
+            if (!op.push_arg(Slice(arg.data(), arg.size()))) return true;
+        if (command_pause_write(op)) return true;
+    }
     return false;
 }
 

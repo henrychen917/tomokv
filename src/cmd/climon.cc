@@ -14,6 +14,7 @@
 #include "../core/io_loop.h"
 #include "cmdmeta.h"
 #include "client_pause.h"
+#include "scripting.h"
 
 #include <cinttypes>
 
@@ -540,6 +541,7 @@ bool IoLoop::climon_armed_gate(Client* client, Op& op) {
             if (!held.pause_blocked) {
                 held.pause_blocked = true;
                 command_client_set_pause_blocked(client, true);
+                command_client_note_command(client, op);
                 srv_->blocking_client_parked();
             }
             srv_->climon_note_pause_hold();
@@ -702,6 +704,15 @@ uint32_t IoLoop::climon_prepare_suppressed(Client* client, bool& submit_allowed)
 
 // ---- CLIENT PAUSE --------------------------------------------------------------------------
 
+bool command_pause_write(const Op& op) {
+    if (!op.spec) return false;
+    if (op.spec->flags & CmdFlags::ScriptRoute)
+        return function_is_fcall(op) ? function_metadata_write(op) : script_metadata_write(op);
+    // Redis's MAY_REPLICATE flag is deliberately absent from COMMAND INFO.
+    return (op.spec->flags & CmdFlags::Write) || op.cmd_name().eq_icase("pfcount") ||
+        op.cmd_name().eq_icase("publish") || op.cmd_name().eq_icase("spublish");
+}
+
 bool IoLoop::climon_pause_holds(const Client& client, Op& op) {
     if (!climon_pause_deadline_ms_) return false;
     // Cheap monotonic re-check: the per-batch clock in run_loop already refreshed cached_now_ms_
@@ -716,7 +727,7 @@ bool IoLoop::climon_pause_holds(const Client& client, Op& op) {
     // redis.
     if (spec->flags & CmdFlags::Climon) return false;
     if (srv_->climon_pause_mode() == Server::kPauseWrite)
-        return (spec->flags & CmdFlags::Write) != 0 ||
+        return command_pause_write(op) ||
             (op.cmd_name().eq_icase("exec") && multi_pause_writes(client));
     return true;
 }
