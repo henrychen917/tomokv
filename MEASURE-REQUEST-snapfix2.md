@@ -212,7 +212,8 @@ atomic RYOW performance assertion. The first main pass was interrupted before
 that job to enable the switch; its 18 completed rows and interrupted shutdown
 row are retained in `proof/proof-uring-interrupted` and are not the final proof.
 The oracle is Redis 7.4.10, verified with `--version`; command receipts bind its
-binary digest. Both main targeted passes completed, including all snapfix rows
+binary digest. The gate's two oracle paths contain identical binaries
+(`oracles.json`). Both main targeted passes completed, including all snapfix rows
 and the new RSS row:
 
 | Main pass | Jobs including prerequisites | Passing rows | Failing rows |
@@ -255,6 +256,12 @@ remained present. The transactional half completed all 8,192 rounds cleanly.
 Its original failing receipt is retained in `proof/extra-uring-1s/`; independent
 PRE/BASE/POST/Redis controls using the unchanged contender check are queued.
 
+**NOT RUN:** the unfiltered full iteration, `atomic_floor`, the atomic RYOW rate
+assertion, ABBA/NIC performance passes, the 18 merit cells and the quiet-box
+16-save BASE/POST latency curves. Those performance measurements remain with the
+maintainer under this lane's runtime authorization. Partial-job ledgers are not
+a full-gate receipt.
+
 ### Arms
 
 PRE and BASE sources were compared file-by-file with their Git objects: 1,059
@@ -265,7 +272,10 @@ binary digests differ from the other worktree's builds.
 PAD is **A (behaviour twin)** relative to BASE: BASE behaviour in the exact common
 POST-layout image. `POST-layout` and `PAD-A` have identical sections, symbols and
 function addresses; only the five-byte entry branch differs. They are larger
-than the release binary, so compare those twins separately. The generator and
+than the release binary, so compare those twins separately. Both graphs remain
+in the image; the entry selects which executes. This controls whole-image size
+and layout, but the selected BASE and POST functions occupy different addresses.
+It is not a proof of identical hot-path placement. The generator and
 all object/input digests are recorded in `docs/snapfix2/pad-a.json`.
 The 12-save functional control passed on POST-layout in all four mode/engine
 legs (atomic 1); PAD-A failed the RSS-growth assertion in all four, with exactly
