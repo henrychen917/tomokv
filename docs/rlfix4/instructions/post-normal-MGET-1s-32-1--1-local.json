@@ -1,0 +1,32 @@
+{
+  "binary_sha256": "f25558557856292a76b88d6cdad2fe1ade097431744c6e497a1695e8b183817f",
+  "backend": "ptrace-rep-once",
+  "total": 194619,
+  "functions": {
+    "tomo::FlatStore::hash_key(tomo::Slice)": 23296,
+    "tomo::Op::Sink::reserve(unsigned long)": 768,
+    "tomo::u64_to_dec(char*, unsigned long)": 1376,
+    "tomo::FlatStore::read_local_capture_in(tomo::FlatStore::ReadLocalTable const&, unsigned long, tomo::Slice, unsigned long const*&) const [clone .isra.0]": 22528,
+    "tomo::FlatStore::read_local_prefetch(unsigned long) const": 21504,
+    "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 29696,
+    "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 814,
+    "tomo::ExLoopT<true>::prepare_captured_local_mget(tomo::Op&)": 90176,
+    "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)": 992,
+    "unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 3469
+  },
+  "bodies": {
+    "0x460960 tomo::FlatStore::hash_key(tomo::Slice)": 23296,
+    "0x55d820 tomo::Op::Sink::reserve(unsigned long)": 768,
+    "0x55d8f0 tomo::u64_to_dec(char*, unsigned long)": 1376,
+    "0x728b50 tomo::FlatStore::read_local_capture_in(tomo::FlatStore::ReadLocalTable const&, unsigned long, tomo::Slice, unsigned long const*&) const [clone .isra.0]": 22528,
+    "0x72a0c0 tomo::FlatStore::read_local_prefetch(unsigned long) const": 21504,
+    "0x72a240 tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 29696,
+    "0x737540 tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 814,
+    "0x741930 tomo::ExLoopT<true>::prepare_captured_local_mget(tomo::Op&)": 90176,
+    "0x742b50 tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)": 992,
+    "0x743420 unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 3469
+  },
+  "raw_total": 194619,
+  "clock_calls": 0,
+  "excluded_calls": 769
+}

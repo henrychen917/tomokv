@@ -1,0 +1,32 @@
+{
+  "binary_sha256": "f25558557856292a76b88d6cdad2fe1ade097431744c6e497a1695e8b183817f",
+  "backend": "ptrace-rep-once",
+  "total": 6325,
+  "functions": {
+    "tomo::FlatStore::hash_key(tomo::Slice)": 728,
+    "tomo::Op::Sink::reserve(unsigned long)": 24,
+    "tomo::u64_to_dec(char*, unsigned long)": 43,
+    "tomo::FlatStore::read_local_capture_in(tomo::FlatStore::ReadLocalTable const&, unsigned long, tomo::Slice, unsigned long const*&) const [clone .isra.0]": 704,
+    "tomo::FlatStore::read_local_prefetch(unsigned long) const": 672,
+    "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 928,
+    "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 101,
+    "tomo::ExLoopT<true>::prepare_captured_local_mget(tomo::Op&)": 2818,
+    "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)": 31,
+    "unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 276
+  },
+  "bodies": {
+    "0x460960 tomo::FlatStore::hash_key(tomo::Slice)": 728,
+    "0x55d820 tomo::Op::Sink::reserve(unsigned long)": 24,
+    "0x55d8f0 tomo::u64_to_dec(char*, unsigned long)": 43,
+    "0x728b50 tomo::FlatStore::read_local_capture_in(tomo::FlatStore::ReadLocalTable const&, unsigned long, tomo::Slice, unsigned long const*&) const [clone .isra.0]": 704,
+    "0x72a0c0 tomo::FlatStore::read_local_prefetch(unsigned long) const": 672,
+    "0x72a240 tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 928,
+    "0x737540 tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 101,
+    "0x741930 tomo::ExLoopT<true>::prepare_captured_local_mget(tomo::Op&)": 2818,
+    "0x742b50 tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)": 31,
+    "0x743420 unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 276
+  },
+  "raw_total": 6325,
+  "clock_calls": 0,
+  "excluded_calls": 25
+}

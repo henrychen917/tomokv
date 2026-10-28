@@ -1,0 +1,30 @@
+{
+  "binary_sha256": "55faf96b33a0b26a20ed4c924118212c14fb96ecf95e51c59bdbec5085d1765e",
+  "backend": "ptrace-rep-once",
+  "total": 6119,
+  "functions": {
+    "tomo_db0::Op::Sink::reserve(unsigned long)": 24,
+    "tomo_db0::u64_to_dec(char*, unsigned long)": 43,
+    "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]": 763,
+    "tomo_db0::FlatStore::read_local_prefetch(unsigned long) const": 672,
+    "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 1376,
+    "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 101,
+    "tomo_db0::ExLoopT<true>::prepare_captured_local_mget(tomo_db0::Op&)": 2825,
+    "tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::ReadLocalPrefetchCapture const*)": 31,
+    "unsigned int tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 284
+  },
+  "bodies": {
+    "0x1899c0 tomo_db0::Op::Sink::reserve(unsigned long)": 24,
+    "0x189a90 tomo_db0::u64_to_dec(char*, unsigned long)": 43,
+    "0x340040 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]": 763,
+    "0x34aed0 tomo_db0::FlatStore::read_local_prefetch(unsigned long) const": 672,
+    "0x34b050 tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 1376,
+    "0x3586b0 tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 101,
+    "0x362b80 tomo_db0::ExLoopT<true>::prepare_captured_local_mget(tomo_db0::Op&)": 2825,
+    "0x363da0 tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::ReadLocalPrefetchCapture const*)": 31,
+    "0x364670 unsigned int tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 284
+  },
+  "raw_total": 6119,
+  "clock_calls": 0,
+  "excluded_calls": 25
+}
