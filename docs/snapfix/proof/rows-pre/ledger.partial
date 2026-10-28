@@ -1,0 +1,5 @@
+PARTIAL	0	GATE_ONLY_JOBS=snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+FAIL	9.270000	snapfix XS-SHUT-1 SHUTDOWN NOSAVE in script storm (both modes, both engines, atomic 0/1)
+FAIL	46.760000	snapfix SNAP-STORM-1 BGSAVE under script storm (both modes, both engines, atomic 0/1)
+FAIL	47.690000	snapfix SNAP-STORM-1 BGSAVE under EXEC + writer storm (both modes, both engines, atomic 0/1)

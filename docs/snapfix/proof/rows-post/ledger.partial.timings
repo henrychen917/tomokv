@@ -1,0 +1,4 @@
+ok	0.030000	release build (+footprint locks)
+ok	0.640000	snapfix XS-SHUT-1 SHUTDOWN NOSAVE in script storm (both modes, both engines, atomic 0/1)
+ok	58.970000	snapfix SNAP-STORM-1 BGSAVE under script storm (both modes, both engines, atomic 0/1)
+ok	55.680000	snapfix SNAP-STORM-1 BGSAVE under EXEC + writer storm (both modes, both engines, atomic 0/1)

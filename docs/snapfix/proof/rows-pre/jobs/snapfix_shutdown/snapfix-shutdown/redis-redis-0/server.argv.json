@@ -1,0 +1,1 @@
+["taskset", "-c", "16-23", "/home/user/Projects/redis/src/redis-server", "--bind", "127.0.0.1", "--port", "20201", "--dir", "/home/user/Projects/cx-snapfix/build/gate-run.8TPq6U/jobs/snapfix_shutdown/snapfix-shutdown/redis-redis-0", "--save", "", "--enable-debug-command", "yes", "--appendonly", "yes", "--appendfsync", "always"]

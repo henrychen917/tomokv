@@ -1,0 +1,2 @@
+  row budget: 900s; median=58.97s; correctness-plan-fallback; snapfix SNAP-STORM-1 BGSAVE under script storm (both modes, both engines, atomic 0/1)
+  snapfix SNAP-STORM-1 BGSAVE under script storm (both modes, both engines, atomic 0/1) FAIL (see /home/user/Projects/cx-snapfix/build/gate-run.8TPq6U/jobs/snapfix_bgsave_script/snapfix-bgsave-script.log)

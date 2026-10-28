@@ -1,0 +1,2 @@
+  row budget: 900s; median=0.64s; correctness-plan-fallback; snapfix XS-SHUT-1 SHUTDOWN NOSAVE in script storm (both modes, both engines, atomic 0/1)
+  snapfix XS-SHUT-1 SHUTDOWN NOSAVE in script storm (both modes, both engines, atomic 0/1) FAIL (see /home/user/Projects/cx-snapfix/build/gate-run.8TPq6U/jobs/snapfix_shutdown/snapfix-shutdown.log)

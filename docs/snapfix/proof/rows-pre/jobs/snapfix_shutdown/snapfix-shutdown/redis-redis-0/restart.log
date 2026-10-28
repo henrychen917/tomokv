@@ -1,0 +1,22 @@
+2482644:C 28 Oct 2026 10:14:18.656 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+2482644:C 28 Oct 2026 10:14:18.656 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+2482644:C 28 Oct 2026 10:14:18.656 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=2482644, just started
+2482644:C 28 Oct 2026 10:14:18.656 * Configuration loaded
+2482644:M 28 Oct 2026 10:14:18.656 * monotonic clock: POSIX clock_gettime
+2482644:M 28 Oct 2026 10:14:18.657 * Running mode=standalone, port=20201.
+2482644:M 28 Oct 2026 10:14:18.657 * Server initialized
+2482644:M 28 Oct 2026 10:14:18.657 * Reading RDB base file on AOF loading...
+2482644:M 28 Oct 2026 10:14:18.657 * Loading RDB produced by version 7.4.10
+2482644:M 28 Oct 2026 10:14:18.657 * RDB age 0 seconds
+2482644:M 28 Oct 2026 10:14:18.657 * RDB memory usage when created 0.91 Mb
+2482644:M 28 Oct 2026 10:14:18.657 * RDB is base AOF
+2482644:M 28 Oct 2026 10:14:18.657 * Done loading RDB, keys loaded: 0, keys expired: 0.
+2482644:M 28 Oct 2026 10:14:18.657 * DB loaded from base file appendonly.aof.1.base.rdb: 0.000 seconds
+2482644:M 28 Oct 2026 10:14:18.657 * DB loaded from incr file appendonly.aof.1.incr.aof: 0.000 seconds
+2482644:M 28 Oct 2026 10:14:18.657 * DB loaded from append only file: 0.000 seconds
+2482644:M 28 Oct 2026 10:14:18.657 * Opening AOF incr file appendonly.aof.1.incr.aof on server start
+2482644:M 28 Oct 2026 10:14:18.657 * Ready to accept connections tcp
+2482644:signal-handler (1793153658) Received SIGTERM scheduling shutdown...
+2482644:M 28 Oct 2026 10:14:18.759 * User requested shutdown...
+2482644:M 28 Oct 2026 10:14:18.759 * Calling fsync() on the AOF file.
+2482644:M 28 Oct 2026 10:14:18.759 # Redis is now ready to exit, bye bye...
