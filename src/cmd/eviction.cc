@@ -1,6 +1,6 @@
 // Periodic owner-side maxmemory enforcement, including idle CONFIG SET.
 // Kept out of the header so its victim search cannot affect command inlining.
-#include "flatstore.h"
+#include "../store/flatstore.h"
 
 namespace tomo {
 uint32_t FlatStore::evict_over_limit() {

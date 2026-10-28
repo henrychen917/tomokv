@@ -1,0 +1,21 @@
+{
+  "before_sha256": "1f0459559d72ce851e69163a43cfb474997f1e193d493468862ff506471b37f7",
+  "after_sha256": "b886df3f02822e4aafe0e62c1acc0d158317acef2baf3dfe389a9931ff9358fa",
+  "sections": {
+    ".text": {
+      "equal": true,
+      "before": 8584647,
+      "after": 8584647
+    },
+    ".rodata": {
+      "equal": true,
+      "before": 171020,
+      "after": 171020
+    },
+    ".data": {
+      "equal": true,
+      "before": 19321,
+      "after": 19321
+    }
+  }
+}

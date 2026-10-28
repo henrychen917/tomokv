@@ -1,0 +1,50 @@
+[
+  {
+    "namespace": "normal",
+    "command": "READLOCAL-GET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 2428,
+    "post": 2428,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "READLOCAL-GET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 49231,
+    "post": 49231,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "READLOCAL-GET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 2340,
+    "post": 2340,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "READLOCAL-GET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 45949,
+    "post": 45949,
+    "delta": 0,
+    "functions_equal": true
+  }
+]
