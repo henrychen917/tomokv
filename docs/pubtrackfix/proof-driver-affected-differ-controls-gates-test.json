@@ -150,5 +150,24 @@
     "selected_jobs": "redis_tcl",
     "engine": "uring",
     "log": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/gate-plant-consumer.log"
+  },
+  {
+    "name": "plant-eviction",
+    "returncode": 1,
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "32-39",
+      "--load-cores",
+      "40-47",
+      "--ports",
+      "20310-20399",
+      "--candidate-binary",
+      "build/pubtrackfix/plants/tomokv-eviction"
+    ],
+    "selected_jobs": "redis_tcl",
+    "engine": "uring",
+    "log": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/gate-plant-eviction.log"
   }
 ]

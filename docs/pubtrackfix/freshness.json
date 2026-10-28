@@ -34,6 +34,7 @@
     "persistfix-units",
     "publishfix-unit",
     "racefix-climon",
+    "redis-tcl",
     "rehash-waits-unit",
     "reorder-engagement-unit",
     "reorder-engagement-unit-db0",

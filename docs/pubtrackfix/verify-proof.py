@@ -67,6 +67,9 @@ def main():
  local=read('instructions-pc/local-comparison.json')
  check('52 zero-instruction comparisons',len(commands)==48 and len(local)==4 and
   all(r['delta']==0 and r['functions_equal'] for r in commands+local))
+ binding=read('instructions-production-binding.json')
+ check('instruction scopes bound to PRE and POST',binding['pre_sha256']==ARMS['PRE'][1] and
+  binding['post_sha256']==ARMS['POST'][1] and binding['comparisons']==52 and binding['all_instruction_deltas']==0)
  fresh=read('freshness.json')
  check('all 56 make-q queries pass',len(fresh['queries'])==56 and all(r['returncode']==0 for r in fresh['queries']))
  check('freshness POST binding',fresh['post_sha256']==ARMS['POST'][1])
