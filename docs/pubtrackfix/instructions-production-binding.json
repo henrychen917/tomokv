@@ -1,21 +1,987 @@
 {
-  "before_sha256": "1f0459559d72ce851e69163a43cfb474997f1e193d493468862ff506471b37f7",
-  "after_sha256": "b886df3f02822e4aafe0e62c1acc0d158317acef2baf3dfe389a9931ff9358fa",
-  "sections": {
-    ".text": {
-      "equal": true,
-      "before": 8584647,
-      "after": 8584647
+  "post_sha256": "de4f450065e1eb786a3d1a81acc7ce33a115931f937bb8075c2460fa3390456e",
+  "pre_sha256": "0cac9819e46cfdcb7836fd04d5ab55ef9a49e92403b13212d9d3edea8427d16f",
+  "comparisons": 52,
+  "all_instruction_deltas": 0,
+  "scope": "Linked production routines in selected namespace. External library callees and fixture glue excluded; NOPs included; clock_gettime frozen. Command scopes at batches 1/32, 1s/2s, normal/DB0; plus four fused read-local GET scopes.",
+  "probes": {
+    "normal": {
+      "probe_sha256": "05a8e7945b4880b5fb514a578a417dd327b5ac8ac461ba0b4bd1c0e2ff8542a6",
+      "inputs": [
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/counts/post-normal/original-main.o",
+          "sha256": "088d6c2371785c5ea636463ca62bb06dd1d47a65ca4b374ab61b7739167422ef"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/net/tls.o",
+          "sha256": "8fe8ca980c5f806561b842be1fd1d19bb6ab53bafd1f5103c6f6b8e98fabd0a2"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/commands.o",
+          "sha256": "e5ec06b235a8bdbfb8fea508a012307913b380d1a44e1135cadc33f2a92c0899"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/glob.o",
+          "sha256": "d905da345eec3ff15d703ddd8ae555ea338abe90cb011f1443d35d1131a0275a"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/xshard.o",
+          "sha256": "c82f8e69c9c45f5c06d86d6784a67a68d40113d4ac217b4c83bdd7f6d6963111"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/acl.o",
+          "sha256": "a760bedc6ab4dc4aaa25ddbb6742048c5e60366927eae13837e2b4bd0ee5c150"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/hll.o",
+          "sha256": "3a04d3aa66df90056ab50fd93289185f64a8f888c3844c977157fad28f5a8b2b"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_server.o",
+          "sha256": "7d3792b5136c82e75cb1946e345eea85284847e519931f73e70ba32d1068f04a"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_string.o",
+          "sha256": "506771a28c91fe54910b5b8f7c0768974d02485f8011c334315bc1dfa494f43c"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_string_notify.o",
+          "sha256": "d2e08a1474460ae2970b62ba9d3a78a1aa22c270c25176e1856adbea38d21529"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_hash.o",
+          "sha256": "271bf07096daedc731babdf23593724ac3d2880037909a83c11d1083b28c29e8"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_hash_ttl.o",
+          "sha256": "ba2be405b831e59dbeb69c00769ffd2681db75c27d4932048c5fd03759127bce"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_list.o",
+          "sha256": "f5e2aa2cfc7e2dc7fb07be618e717a7d9f9d286381bdd94bda29a19faca9e17a"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_set.o",
+          "sha256": "c4289c3353c5bae75469a56e9fc2939576ca2ed13d90216bb3b1cf09ae665829"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_zset.o",
+          "sha256": "63ed396390b4dca951f4e31fb0bc886cc416b20cbab84204bf68b06fe8722045"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_zset_ops.o",
+          "sha256": "282f0c1b53a5660d5ec7227e63b71ce0cc8c58a3d23aa18a120c342422ba5b59"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/geo.o",
+          "sha256": "3901e585440ffa550249a86a5a2a15a563dcd9409589ca0e72a706f39304ce07"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_stream.o",
+          "sha256": "328b1884469017ca87b5a81b8b13e0b994eb0743b40eaa8e9814eb37aa28a556"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_stream_groups.o",
+          "sha256": "47b92857724a0452d9fa0577e2000aff64f64b645489807052efae0292601322"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/scripting.o",
+          "sha256": "eaafdec22954376139fc23d890a5371b46d6ab545fdc9846ba461ec1ad89f6b1"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/functions.o",
+          "sha256": "a1f82ec1415d5d2c0d3b7c0f816c242777df06432348705ddcaa18e31f4b45a4"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/serialize.o",
+          "sha256": "a0504233b10ac796c77cf25ed5df7c7a5da779da024c087e2729551e68281dca"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/snapshot/snapshot.o",
+          "sha256": "77162dac7bd455f3c550ca304885d24d71774fc214ca39b085ba6e25a33de9c3"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/persist/aof.o",
+          "sha256": "f6b01c8126e72034d08eba91b291fabb5892a411de0831b6a3177f78c85a0540"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/climon.o",
+          "sha256": "1df2cc4cfc3e8787605a23d60f35b704198409be1195a02be7e27c044723e0f2"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/tracking.o",
+          "sha256": "e8a8cb5ba127136cea9208d18a67a18e3ee6f1835831b7057068ccc89f567ada"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/server_tail.o",
+          "sha256": "4f3bd02f7103afe10a4dc9ba93f68b29685d13ce8cfde366cbd4d7c0782cc418"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/slowlog.o",
+          "sha256": "47853fcbea86e24aec99ecc9f4b3b0e407ffd5e7e82a2bf0d05f6d4511e78f01"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/lcs.o",
+          "sha256": "a71644c7fce1320f3de2ed56cb0c925afa45e59ba84a83bb8938580e2f3d6019"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/info_stats.o",
+          "sha256": "d75253bb44e830095666f6e839e68c3ec6e0dca4390b616b7751fa96ad776b30"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/lbsignals.o",
+          "sha256": "78f7446291bf07f10f7a4b86d9b7f0d3c96f019e5f5296d991b89f7370b43d3f"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/flipctl.o",
+          "sha256": "987bfb561d33d06be7aa23587504fe009d28cd2370069d9da89ca45d9b8511b4"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/genthread.o",
+          "sha256": "6928be7f3724edddf2a247fbb9b9f41f7ae84b49fccef9699bf7b6d75575fa04"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/rl2s.o",
+          "sha256": "d9fe0c74938e284da4bd2504428f8ee6e641c4ef6febb1d40dac774768ecc649"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/lbstall.o",
+          "sha256": "a7750d2a0fc762dd65bad2f5d067769b4625b5c0d02851a5489bb590a100f59c"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/lbplanner.o",
+          "sha256": "e625158ca9193f1698cec1848ad0e0d818d7258887a8b23c2aab2a28fcb8a3e4"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/l4prebuild.o",
+          "sha256": "edb63b0cd79ca6e5c1ab13f80db99814393cdeb13d963b9aa392919e8a2630c2"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/cmdgap.o",
+          "sha256": "b1a790db67e349e9f7d69293396e6958d63c2eaa23f20c612b8a08cf39895b2e"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/pfdebug.o",
+          "sha256": "45bbb99d958bf985a3fccf772f6888e9927ca961ffc9d350440fb85191f71765"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/cmdmeta.o",
+          "sha256": "f29a2aecf7adc33c81e78cdddaafa6751e5e75982b350399ab4263f7213643a0"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_sort.o",
+          "sha256": "7447f403e6ba20a9605fc012abb0af10a372ddb8ccd1c0777838ba8652cf3337"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/multidb.o",
+          "sha256": "30fbf6a57204aeb964dd4a6a08a272e1856fb0b2b300f99a17a61fb11d6c3e0b"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/storesize.o",
+          "sha256": "29e265c08c7d155ccf071f2e8c9f7d0e4b2bc49b9e865ba30e346bc70c52b552"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/multi_admin.o",
+          "sha256": "120b1a03b670e76380b5269ed2db927afafc59ab7f865d6082a8c769c4f8bcee"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/reorder.o",
+          "sha256": "3b2bb2fb9a30995f054d9d9dd91b11d4793157461e5ac3566d23636585453dba"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/geo_store.o",
+          "sha256": "e5a89f82d8b9e8689d09e6d8cdced69fea7cda374788155eff88f2d5ec19c857"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/persist/aof_frame_debug.o",
+          "sha256": "7deae72b016fef0b6de4ec79180027d372c575ea1b8c09dd5f9256953be44238"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/aclkeys.o",
+          "sha256": "2f42cbf425820d6bd9d75b4eeeee0e5d19b35cfabee036de0304da2273431e57"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/blocking_debug.o",
+          "sha256": "97981964a22c1209fa7eff2d1fecae483ae94f9a3f0aad05aa906e0a1b35c594"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/objectpread.o",
+          "sha256": "15a844c98b57966f949ca2ee8b37e5c6cfc0649633d9a5a4a9abcae526caaf80"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/hexpread.o",
+          "sha256": "508ac1a648279f9cc7d2f26d16db924f532fd66a029c0e464a47cc15eac154d6"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/autharity.o",
+          "sha256": "6df1d802c71cc2913f2f17f5c45aecb00c4c947b9bc9028a5c5e43714c607124"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/fliplisten.o",
+          "sha256": "b007d68e87858b70d1fa3c8ae4ea619a11e60c596ffecaf10b5dbcb136f9701a"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/shutdown.o",
+          "sha256": "67ce1537de72cad9cd3bcd36e050bdd0fa8ecb58d161ce86a2ac4c80b21049fb"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/latency_tracking.o",
+          "sha256": "56ee3ea31596bc83a376dd7a3b8fd246f7e24fef7a0b21c130dbdc208c13474c"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/eviction.o",
+          "sha256": "7a1b957f0b035f2a8ddb5ea913b94ad325357eb47be161dd094bcd82b984ae62"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/version.o",
+          "sha256": "1b3f70ef3f66edc28ee634b5af5befba6e1453e028f02280d57ee7d48144cea3"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/main.o",
+          "sha256": "da1b38be4aac6ab6891f6c9a8f47748da0e34b8722304e4e64afb38f405e2016"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/net/tls.o",
+          "sha256": "e6a809f0e1325cba82f089c05071443dcdcd08f91a8969526cd813c9c7750227"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/commands.o",
+          "sha256": "07c4d6168d6d941047a438e457988c24a835116937b570d06ef0a889e919c529"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/glob.o",
+          "sha256": "ea917dc44b4d60f40320ff1a72d8802019ec5a874d464612c5e9377d7b74e91b"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/xshard.o",
+          "sha256": "c4a3bf573a3952728213c2a1f15aa64df63a853be9421d5ccc264296afc65a0e"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/acl.o",
+          "sha256": "0edc3304692f9a69ffd27a41a493422a877196245bec06b1b5bbf8fb471d4227"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/hll.o",
+          "sha256": "a15713981d473e8deeaf77b80972619ab6d62c283606d32a3dc0b1fb0d152a8b"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_server.o",
+          "sha256": "656bcb46da3326bcf279654ae7b22bb1da0edecfdcefe71bd6f767fb40427065"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_string.o",
+          "sha256": "c6b45782cfd81c50623bf8d5ffe3a52386b0f7d2e59619dfc5bd1f59190a0e73"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_string_notify.o",
+          "sha256": "de1253dd2bca7b908b7a30558a788af997f012101ba32f55ed22d66fcad50058"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_hash.o",
+          "sha256": "209ae7684f4fed3abc0f29f1ff9eec9c14c1cb5f66a177b8f7f19abfd146ad70"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_hash_ttl.o",
+          "sha256": "076189687dfd7aec2a8bc650e34a5d85f36feb78ecfd5e7a17224241b22b5dd3"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_list.o",
+          "sha256": "98a9dfb1b9e32cc58e39384bc5c269fa2b8aedbb0cc491edd1ae4b0053e881f8"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_set.o",
+          "sha256": "1f88f4c7c374b1fe0a7a57568fb40a0b945398da863ecc65865219eb960dbacb"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_zset.o",
+          "sha256": "7382a84a72bdb680f8480ed2ae6d7869453cd4d580fcbcbbfa5f222ac5d50e90"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_zset_ops.o",
+          "sha256": "b2319a91c77856a0f9f0de7560c1b2a7d93e93330c13a26dc20ee3c52503a7c1"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/geo.o",
+          "sha256": "65b7c7ca133be0f7defa76cf91283deb4e66a7a479fc2c64eab6023ec9c32abe"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_stream.o",
+          "sha256": "e7b1c864abe954d16f967f3bba52f8912a2174296bc7f3d55483fc7f43815b5b"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_stream_groups.o",
+          "sha256": "31734296faff4bc7ea381ed08552f9f06a64d06ea1be8fa0ca7ab8f888989443"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/scripting.o",
+          "sha256": "ba8257d5acd22fa3603bbddcf6efa295ef911bdd92a826c2fef8d435cf947d45"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/functions.o",
+          "sha256": "ec44a466556fbf00d51bbc03e9c896327a4cf7e90d0c02d155b7928f86e44519"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/serialize.o",
+          "sha256": "2d01528ed5fdb1871c56550a4fa62bd43919c8d4882adbc1510f57f7fdf5031f"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/snapshot/snapshot.o",
+          "sha256": "af09e63d2568ca165946519e76e87d3b827aa23a041f6d4d2d292283356e7164"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/persist/aof.o",
+          "sha256": "b1355bd565e2d45119ce0b8eac92e29661b1b347e731f462033f6a0a29d191ef"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/climon.o",
+          "sha256": "feab4812ba67598ded33c4c5d1b5fcbc2f15e6214e26f4dfe7072513443a16e3"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/tracking.o",
+          "sha256": "d4a7871b1e4f723414ecae6897b8894f96c2cde4c8b08c721ccdd5cfaa011750"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/server_tail.o",
+          "sha256": "4607c42275fdd693b0547447b7c4edd6bba9b04895be7358fa7642ba15765d55"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/slowlog.o",
+          "sha256": "c01d8547f30344f062a1d0c573af057b539bbabec19acfcd82ee5d0b3fe45de8"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/lcs.o",
+          "sha256": "7a8fb87dd2df3c372293164e90a23b39c6336cf44461918e9b34a96ffcf2ecba"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/info_stats.o",
+          "sha256": "35d02b5e1eb9f628595c18132c6b70223e959b2825afcdb5d95138f778de3627"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/lbsignals.o",
+          "sha256": "6f0c5f7443ace31fde6925706ed71ff843aca610a8c0c8fadee3c5b51c73db38"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/core/flipctl.o",
+          "sha256": "d7014497c18014f3c11bfee29ffcf713762656d6af1b058fe93a6b6562063f76"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/core/genthread.o",
+          "sha256": "8f86045ef9ce4835eba4060604f2aa3be2e4bf1237d1ee20d8e2d0b5e6a5a361"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/core/rl2s.o",
+          "sha256": "cbb16c62159932dffc9f666d1a03cb64bec2602065dd462b9e1ab263b47008d4"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/core/lbstall.o",
+          "sha256": "ced0696acd666fcc230972656d406428329e6ac78ebd2ceaa675c92a785fef4c"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/core/lbplanner.o",
+          "sha256": "46f39905058d5467f7ac1653c23de361af881e0aa629bd9f137bf2032cad7e0c"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/l4prebuild.o",
+          "sha256": "69ce0377311a5a0bd30eeadfd651f761bea18fbd6d8393d20ebb3c2b5d8851ac"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/cmdgap.o",
+          "sha256": "2c67ac1b7643edb58b22e4a2834d28c26b455b76cf9169411fecacc7d1362f05"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/pfdebug.o",
+          "sha256": "75d31ec02f051d6b914f954090157c28d465a89cd971900d1c56a025ee540933"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/cmdmeta.o",
+          "sha256": "a1ebdfce274b6f02ddba47e4a4462839168ca024200867acf740bc63ffc92c12"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_sort.o",
+          "sha256": "7c05d52f4ebe43106fcccdf1f871f7d0a9b5f1206c2d27bf3aecb987317db2ff"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/multidb.o",
+          "sha256": "bc522dbfff4a3d4853e3ad81d468fbc42aba6eaf83317967378863ef7ce1c021"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/storesize.o",
+          "sha256": "1a1f2b45d520c50f99600cf77a3f70eb398949c88f8e84a99b18bfc5327e87ca"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/multi_admin.o",
+          "sha256": "10f6756191268514a0d22d5dc93a9ab6bad278dbb7bcfe9e4455eb9b9f5448d3"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/core/reorder.o",
+          "sha256": "0fe55dd0b00c4a58cd566285c017c376c8596870fe4bc8d1c8367390c6086028"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/geo_store.o",
+          "sha256": "4e325078b6a91907b25f6d75b766afe6330ec8f4269d2dcf0d85d7acd9377d5a"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/persist/aof_frame_debug.o",
+          "sha256": "efc021e30c28db67c796adcb3bfb7d06b15cc22c133c097408e0fd110c2efba7"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/aclkeys.o",
+          "sha256": "1f428d71cd1ba123bb0a6f457c9e633ee01600c86885d90c2cf48dd97f8468a8"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/blocking_debug.o",
+          "sha256": "94e2eb3223564a515411a16541b9ba1a60c0b996d600daa08996c2a9eeff2567"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/objectpread.o",
+          "sha256": "1a2d7a14df32383b9882fc80e706e91e455d88412e51cc6f7ddd3ddf290dd5e3"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/hexpread.o",
+          "sha256": "9ed7d9ef82bc0287ce047008efdbadfeea6da6c45c39d13243e891c6e8614311"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/autharity.o",
+          "sha256": "6bc1ae616991394db0fc9f62eadf40e207bcca4a6aa8458b31f161ff93a5d523"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/core/fliplisten.o",
+          "sha256": "3cee3d78f9cdd06e2c2e1dcb61da2cd3de38f3332f7ec9ef297a370366c19bbd"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/core/shutdown.o",
+          "sha256": "7c37202bc934d948195767dceb33e332f46a4942a96b210e6eebb56bb1591392"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/latency_tracking.o",
+          "sha256": "978c1bd75ba82947b6b20f4cbdcc802c4d0f5abe6aa0d6001ddf20526a1892e7"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/eviction.o",
+          "sha256": "2af5342361203cf1510a5291fe9452972bd9dbe4a7ded2d68d2c8a6a2c5cb3ad"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/third_party/lua/helpers/lua_cjson.o",
+          "sha256": "4418d8c149dbf7d2aa0929ebe1dd3ac17711661da3e0a3878e81e3094bd5605e"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/third_party/lua/helpers/lua_cmsgpack.o",
+          "sha256": "ca08a14d5f12779f229a4e163fa3f6e4e8518e31bf68e98abb41b10b93fe12ac"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/third_party/lua/helpers/lua_bit.o",
+          "sha256": "f6d7c9adb61b52d80fdcd60ac92d30ec7192a8c2e2af14178edd9bc275f21d28"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/third_party/lua/helpers/lua_struct.o",
+          "sha256": "73a73d84ef5129cb0f7bd0daa7fc24d66eb9925ca95d38b2e8bbc9877cff77e5"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/third_party/lua/helpers/strbuf.o",
+          "sha256": "ee84d126f4fb37920a189d9155cfa31ffc73b8de49ee00d3b83b51898668ce7a"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/third_party/lua/helpers/fpconv.o",
+          "sha256": "6f1d81445b118c7c367d7e31229520416571c27cc5b8c2bd2e03cdf76184fd74"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/core/version.o",
+          "sha256": "f9e229a5e7fd43b8095d6a5fec6fd75167e8fb5fe53dfd4a231c8c7bfd3493a0"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/counts/post-normal/probe.o",
+          "sha256": "4c98747a0ffe9a2df564b7ce974368b189200e2c3934b2b73597327a4f28e800"
+        }
+      ]
     },
-    ".rodata": {
-      "equal": true,
-      "before": 171020,
-      "after": 171020
-    },
-    ".data": {
-      "equal": true,
-      "before": 19321,
-      "after": 19321
+    "db0": {
+      "probe_sha256": "519e1326f4b2433e228565ecc10944f13baf5f9fc318b7a97ca7e83142d23b8c",
+      "inputs": [
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/counts/post-db0/original-main.o",
+          "sha256": "088d6c2371785c5ea636463ca62bb06dd1d47a65ca4b374ab61b7739167422ef"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/net/tls.o",
+          "sha256": "8fe8ca980c5f806561b842be1fd1d19bb6ab53bafd1f5103c6f6b8e98fabd0a2"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/commands.o",
+          "sha256": "e5ec06b235a8bdbfb8fea508a012307913b380d1a44e1135cadc33f2a92c0899"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/glob.o",
+          "sha256": "d905da345eec3ff15d703ddd8ae555ea338abe90cb011f1443d35d1131a0275a"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/xshard.o",
+          "sha256": "c82f8e69c9c45f5c06d86d6784a67a68d40113d4ac217b4c83bdd7f6d6963111"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/acl.o",
+          "sha256": "a760bedc6ab4dc4aaa25ddbb6742048c5e60366927eae13837e2b4bd0ee5c150"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/hll.o",
+          "sha256": "3a04d3aa66df90056ab50fd93289185f64a8f888c3844c977157fad28f5a8b2b"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_server.o",
+          "sha256": "7d3792b5136c82e75cb1946e345eea85284847e519931f73e70ba32d1068f04a"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_string.o",
+          "sha256": "506771a28c91fe54910b5b8f7c0768974d02485f8011c334315bc1dfa494f43c"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_string_notify.o",
+          "sha256": "d2e08a1474460ae2970b62ba9d3a78a1aa22c270c25176e1856adbea38d21529"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_hash.o",
+          "sha256": "271bf07096daedc731babdf23593724ac3d2880037909a83c11d1083b28c29e8"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_hash_ttl.o",
+          "sha256": "ba2be405b831e59dbeb69c00769ffd2681db75c27d4932048c5fd03759127bce"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_list.o",
+          "sha256": "f5e2aa2cfc7e2dc7fb07be618e717a7d9f9d286381bdd94bda29a19faca9e17a"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_set.o",
+          "sha256": "c4289c3353c5bae75469a56e9fc2939576ca2ed13d90216bb3b1cf09ae665829"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_zset.o",
+          "sha256": "63ed396390b4dca951f4e31fb0bc886cc416b20cbab84204bf68b06fe8722045"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_zset_ops.o",
+          "sha256": "282f0c1b53a5660d5ec7227e63b71ce0cc8c58a3d23aa18a120c342422ba5b59"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/geo.o",
+          "sha256": "3901e585440ffa550249a86a5a2a15a563dcd9409589ca0e72a706f39304ce07"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_stream.o",
+          "sha256": "328b1884469017ca87b5a81b8b13e0b994eb0743b40eaa8e9814eb37aa28a556"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_stream_groups.o",
+          "sha256": "47b92857724a0452d9fa0577e2000aff64f64b645489807052efae0292601322"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/scripting.o",
+          "sha256": "eaafdec22954376139fc23d890a5371b46d6ab545fdc9846ba461ec1ad89f6b1"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/functions.o",
+          "sha256": "a1f82ec1415d5d2c0d3b7c0f816c242777df06432348705ddcaa18e31f4b45a4"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/serialize.o",
+          "sha256": "a0504233b10ac796c77cf25ed5df7c7a5da779da024c087e2729551e68281dca"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/snapshot/snapshot.o",
+          "sha256": "77162dac7bd455f3c550ca304885d24d71774fc214ca39b085ba6e25a33de9c3"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/persist/aof.o",
+          "sha256": "f6b01c8126e72034d08eba91b291fabb5892a411de0831b6a3177f78c85a0540"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/climon.o",
+          "sha256": "1df2cc4cfc3e8787605a23d60f35b704198409be1195a02be7e27c044723e0f2"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/tracking.o",
+          "sha256": "e8a8cb5ba127136cea9208d18a67a18e3ee6f1835831b7057068ccc89f567ada"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/server_tail.o",
+          "sha256": "4f3bd02f7103afe10a4dc9ba93f68b29685d13ce8cfde366cbd4d7c0782cc418"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/slowlog.o",
+          "sha256": "47853fcbea86e24aec99ecc9f4b3b0e407ffd5e7e82a2bf0d05f6d4511e78f01"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/lcs.o",
+          "sha256": "a71644c7fce1320f3de2ed56cb0c925afa45e59ba84a83bb8938580e2f3d6019"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/info_stats.o",
+          "sha256": "d75253bb44e830095666f6e839e68c3ec6e0dca4390b616b7751fa96ad776b30"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/lbsignals.o",
+          "sha256": "78f7446291bf07f10f7a4b86d9b7f0d3c96f019e5f5296d991b89f7370b43d3f"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/flipctl.o",
+          "sha256": "987bfb561d33d06be7aa23587504fe009d28cd2370069d9da89ca45d9b8511b4"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/genthread.o",
+          "sha256": "6928be7f3724edddf2a247fbb9b9f41f7ae84b49fccef9699bf7b6d75575fa04"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/rl2s.o",
+          "sha256": "d9fe0c74938e284da4bd2504428f8ee6e641c4ef6febb1d40dac774768ecc649"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/lbstall.o",
+          "sha256": "a7750d2a0fc762dd65bad2f5d067769b4625b5c0d02851a5489bb590a100f59c"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/lbplanner.o",
+          "sha256": "e625158ca9193f1698cec1848ad0e0d818d7258887a8b23c2aab2a28fcb8a3e4"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/l4prebuild.o",
+          "sha256": "edb63b0cd79ca6e5c1ab13f80db99814393cdeb13d963b9aa392919e8a2630c2"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/cmdgap.o",
+          "sha256": "b1a790db67e349e9f7d69293396e6958d63c2eaa23f20c612b8a08cf39895b2e"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/pfdebug.o",
+          "sha256": "45bbb99d958bf985a3fccf772f6888e9927ca961ffc9d350440fb85191f71765"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/cmdmeta.o",
+          "sha256": "f29a2aecf7adc33c81e78cdddaafa6751e5e75982b350399ab4263f7213643a0"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/t_sort.o",
+          "sha256": "7447f403e6ba20a9605fc012abb0af10a372ddb8ccd1c0777838ba8652cf3337"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/multidb.o",
+          "sha256": "30fbf6a57204aeb964dd4a6a08a272e1856fb0b2b300f99a17a61fb11d6c3e0b"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/storesize.o",
+          "sha256": "29e265c08c7d155ccf071f2e8c9f7d0e4b2bc49b9e865ba30e346bc70c52b552"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/multi_admin.o",
+          "sha256": "120b1a03b670e76380b5269ed2db927afafc59ab7f865d6082a8c769c4f8bcee"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/reorder.o",
+          "sha256": "3b2bb2fb9a30995f054d9d9dd91b11d4793157461e5ac3566d23636585453dba"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/geo_store.o",
+          "sha256": "e5a89f82d8b9e8689d09e6d8cdced69fea7cda374788155eff88f2d5ec19c857"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/persist/aof_frame_debug.o",
+          "sha256": "7deae72b016fef0b6de4ec79180027d372c575ea1b8c09dd5f9256953be44238"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/aclkeys.o",
+          "sha256": "2f42cbf425820d6bd9d75b4eeeee0e5d19b35cfabee036de0304da2273431e57"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/blocking_debug.o",
+          "sha256": "97981964a22c1209fa7eff2d1fecae483ae94f9a3f0aad05aa906e0a1b35c594"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/objectpread.o",
+          "sha256": "15a844c98b57966f949ca2ee8b37e5c6cfc0649633d9a5a4a9abcae526caaf80"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/hexpread.o",
+          "sha256": "508ac1a648279f9cc7d2f26d16db924f532fd66a029c0e464a47cc15eac154d6"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/autharity.o",
+          "sha256": "6df1d802c71cc2913f2f17f5c45aecb00c4c947b9bc9028a5c5e43714c607124"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/fliplisten.o",
+          "sha256": "b007d68e87858b70d1fa3c8ae4ea619a11e60c596ffecaf10b5dbcb136f9701a"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/shutdown.o",
+          "sha256": "67ce1537de72cad9cd3bcd36e050bdd0fa8ecb58d161ce86a2ac4c80b21049fb"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/latency_tracking.o",
+          "sha256": "56ee3ea31596bc83a376dd7a3b8fd246f7e24fef7a0b21c130dbdc208c13474c"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/eviction.o",
+          "sha256": "7a1b957f0b035f2a8ddb5ea913b94ad325357eb47be161dd094bcd82b984ae62"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/version.o",
+          "sha256": "1b3f70ef3f66edc28ee634b5af5befba6e1453e028f02280d57ee7d48144cea3"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/main.o",
+          "sha256": "da1b38be4aac6ab6891f6c9a8f47748da0e34b8722304e4e64afb38f405e2016"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/net/tls.o",
+          "sha256": "e6a809f0e1325cba82f089c05071443dcdcd08f91a8969526cd813c9c7750227"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/commands.o",
+          "sha256": "07c4d6168d6d941047a438e457988c24a835116937b570d06ef0a889e919c529"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/glob.o",
+          "sha256": "ea917dc44b4d60f40320ff1a72d8802019ec5a874d464612c5e9377d7b74e91b"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/xshard.o",
+          "sha256": "c4a3bf573a3952728213c2a1f15aa64df63a853be9421d5ccc264296afc65a0e"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/acl.o",
+          "sha256": "0edc3304692f9a69ffd27a41a493422a877196245bec06b1b5bbf8fb471d4227"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/hll.o",
+          "sha256": "a15713981d473e8deeaf77b80972619ab6d62c283606d32a3dc0b1fb0d152a8b"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_server.o",
+          "sha256": "656bcb46da3326bcf279654ae7b22bb1da0edecfdcefe71bd6f767fb40427065"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_string.o",
+          "sha256": "c6b45782cfd81c50623bf8d5ffe3a52386b0f7d2e59619dfc5bd1f59190a0e73"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_string_notify.o",
+          "sha256": "de1253dd2bca7b908b7a30558a788af997f012101ba32f55ed22d66fcad50058"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_hash.o",
+          "sha256": "209ae7684f4fed3abc0f29f1ff9eec9c14c1cb5f66a177b8f7f19abfd146ad70"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_hash_ttl.o",
+          "sha256": "076189687dfd7aec2a8bc650e34a5d85f36feb78ecfd5e7a17224241b22b5dd3"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_list.o",
+          "sha256": "98a9dfb1b9e32cc58e39384bc5c269fa2b8aedbb0cc491edd1ae4b0053e881f8"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_set.o",
+          "sha256": "1f88f4c7c374b1fe0a7a57568fb40a0b945398da863ecc65865219eb960dbacb"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_zset.o",
+          "sha256": "7382a84a72bdb680f8480ed2ae6d7869453cd4d580fcbcbbfa5f222ac5d50e90"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_zset_ops.o",
+          "sha256": "b2319a91c77856a0f9f0de7560c1b2a7d93e93330c13a26dc20ee3c52503a7c1"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/geo.o",
+          "sha256": "65b7c7ca133be0f7defa76cf91283deb4e66a7a479fc2c64eab6023ec9c32abe"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_stream.o",
+          "sha256": "e7b1c864abe954d16f967f3bba52f8912a2174296bc7f3d55483fc7f43815b5b"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_stream_groups.o",
+          "sha256": "31734296faff4bc7ea381ed08552f9f06a64d06ea1be8fa0ca7ab8f888989443"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/scripting.o",
+          "sha256": "ba8257d5acd22fa3603bbddcf6efa295ef911bdd92a826c2fef8d435cf947d45"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/functions.o",
+          "sha256": "ec44a466556fbf00d51bbc03e9c896327a4cf7e90d0c02d155b7928f86e44519"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/serialize.o",
+          "sha256": "2d01528ed5fdb1871c56550a4fa62bd43919c8d4882adbc1510f57f7fdf5031f"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/snapshot/snapshot.o",
+          "sha256": "af09e63d2568ca165946519e76e87d3b827aa23a041f6d4d2d292283356e7164"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/persist/aof.o",
+          "sha256": "b1355bd565e2d45119ce0b8eac92e29661b1b347e731f462033f6a0a29d191ef"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/climon.o",
+          "sha256": "feab4812ba67598ded33c4c5d1b5fcbc2f15e6214e26f4dfe7072513443a16e3"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/tracking.o",
+          "sha256": "d4a7871b1e4f723414ecae6897b8894f96c2cde4c8b08c721ccdd5cfaa011750"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/server_tail.o",
+          "sha256": "4607c42275fdd693b0547447b7c4edd6bba9b04895be7358fa7642ba15765d55"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/slowlog.o",
+          "sha256": "c01d8547f30344f062a1d0c573af057b539bbabec19acfcd82ee5d0b3fe45de8"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/lcs.o",
+          "sha256": "7a8fb87dd2df3c372293164e90a23b39c6336cf44461918e9b34a96ffcf2ecba"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/info_stats.o",
+          "sha256": "35d02b5e1eb9f628595c18132c6b70223e959b2825afcdb5d95138f778de3627"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/lbsignals.o",
+          "sha256": "6f0c5f7443ace31fde6925706ed71ff843aca610a8c0c8fadee3c5b51c73db38"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/core/flipctl.o",
+          "sha256": "d7014497c18014f3c11bfee29ffcf713762656d6af1b058fe93a6b6562063f76"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/core/genthread.o",
+          "sha256": "8f86045ef9ce4835eba4060604f2aa3be2e4bf1237d1ee20d8e2d0b5e6a5a361"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/core/rl2s.o",
+          "sha256": "cbb16c62159932dffc9f666d1a03cb64bec2602065dd462b9e1ab263b47008d4"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/core/lbstall.o",
+          "sha256": "ced0696acd666fcc230972656d406428329e6ac78ebd2ceaa675c92a785fef4c"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/core/lbplanner.o",
+          "sha256": "46f39905058d5467f7ac1653c23de361af881e0aa629bd9f137bf2032cad7e0c"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/l4prebuild.o",
+          "sha256": "69ce0377311a5a0bd30eeadfd651f761bea18fbd6d8393d20ebb3c2b5d8851ac"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/cmdgap.o",
+          "sha256": "2c67ac1b7643edb58b22e4a2834d28c26b455b76cf9169411fecacc7d1362f05"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/pfdebug.o",
+          "sha256": "75d31ec02f051d6b914f954090157c28d465a89cd971900d1c56a025ee540933"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/cmdmeta.o",
+          "sha256": "a1ebdfce274b6f02ddba47e4a4462839168ca024200867acf740bc63ffc92c12"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/t_sort.o",
+          "sha256": "7c05d52f4ebe43106fcccdf1f871f7d0a9b5f1206c2d27bf3aecb987317db2ff"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/multidb.o",
+          "sha256": "bc522dbfff4a3d4853e3ad81d468fbc42aba6eaf83317967378863ef7ce1c021"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/storesize.o",
+          "sha256": "1a1f2b45d520c50f99600cf77a3f70eb398949c88f8e84a99b18bfc5327e87ca"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/multi_admin.o",
+          "sha256": "10f6756191268514a0d22d5dc93a9ab6bad278dbb7bcfe9e4455eb9b9f5448d3"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/core/reorder.o",
+          "sha256": "0fe55dd0b00c4a58cd566285c017c376c8596870fe4bc8d1c8367390c6086028"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/geo_store.o",
+          "sha256": "4e325078b6a91907b25f6d75b766afe6330ec8f4269d2dcf0d85d7acd9377d5a"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/persist/aof_frame_debug.o",
+          "sha256": "efc021e30c28db67c796adcb3bfb7d06b15cc22c133c097408e0fd110c2efba7"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/aclkeys.o",
+          "sha256": "1f428d71cd1ba123bb0a6f457c9e633ee01600c86885d90c2cf48dd97f8468a8"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/blocking_debug.o",
+          "sha256": "94e2eb3223564a515411a16541b9ba1a60c0b996d600daa08996c2a9eeff2567"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/objectpread.o",
+          "sha256": "1a2d7a14df32383b9882fc80e706e91e455d88412e51cc6f7ddd3ddf290dd5e3"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/hexpread.o",
+          "sha256": "9ed7d9ef82bc0287ce047008efdbadfeea6da6c45c39d13243e891c6e8614311"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/autharity.o",
+          "sha256": "6bc1ae616991394db0fc9f62eadf40e207bcca4a6aa8458b31f161ff93a5d523"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/core/fliplisten.o",
+          "sha256": "3cee3d78f9cdd06e2c2e1dcb61da2cd3de38f3332f7ec9ef297a370366c19bbd"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/core/shutdown.o",
+          "sha256": "7c37202bc934d948195767dceb33e332f46a4942a96b210e6eebb56bb1591392"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/latency_tracking.o",
+          "sha256": "978c1bd75ba82947b6b20f4cbdcc802c4d0f5abe6aa0d6001ddf20526a1892e7"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/eviction.o",
+          "sha256": "2af5342361203cf1510a5291fe9452972bd9dbe4a7ded2d68d2c8a6a2c5cb3ad"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/third_party/lua/helpers/lua_cjson.o",
+          "sha256": "4418d8c149dbf7d2aa0929ebe1dd3ac17711661da3e0a3878e81e3094bd5605e"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/third_party/lua/helpers/lua_cmsgpack.o",
+          "sha256": "ca08a14d5f12779f229a4e163fa3f6e4e8518e31bf68e98abb41b10b93fe12ac"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/third_party/lua/helpers/lua_bit.o",
+          "sha256": "f6d7c9adb61b52d80fdcd60ac92d30ec7192a8c2e2af14178edd9bc275f21d28"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/third_party/lua/helpers/lua_struct.o",
+          "sha256": "73a73d84ef5129cb0f7bd0daa7fc24d66eb9925ca95d38b2e8bbc9877cff77e5"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/third_party/lua/helpers/strbuf.o",
+          "sha256": "ee84d126f4fb37920a189d9155cfa31ffc73b8de49ee00d3b83b51898668ce7a"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/third_party/lua/helpers/fpconv.o",
+          "sha256": "6f1d81445b118c7c367d7e31229520416571c27cc5b8c2bd2e03cdf76184fd74"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/src/core/version.o",
+          "sha256": "f9e229a5e7fd43b8095d6a5fec6fd75167e8fb5fe53dfd4a231c8c7bfd3493a0"
+        },
+        {
+          "path": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/counts/post-db0/probe.o",
+          "sha256": "6e89e2ae5e26f27f0d1a4c0e5869ac2b00f32554507190f9ff6bf0706326441f"
+        }
+      ]
     }
   }
 }

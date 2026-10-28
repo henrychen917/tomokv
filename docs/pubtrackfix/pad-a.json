@@ -155,18 +155,18 @@
     "-lm",
     "-Wl,--section-start=.text=0x20990"
   ],
-  "padding_bytes": 33424,
+  "padding_bytes": 33296,
   "pre_layout_text": {
     "address": 133488,
     "size": 8551223
   },
   "post_text": {
     "address": 133520,
-    "size": 8584647
+    "size": 8584519
   },
   "pad_text": {
     "address": 133520,
-    "size": 8584647
+    "size": 8584519
   },
   "inputs": [
     {
@@ -643,7 +643,7 @@
     },
     {
       "path": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pad-a/padding.o",
-      "sha256": "0df02ee98fbbba189afdc8b889815ac7a8986e0ad8bf07f3c010c3fdb28c8c55"
+      "sha256": "6686656b097acd26d02689f80f0b97418231b11774ec48c0f42a38b142716944"
     }
   ],
   "arms": {
@@ -653,32 +653,11 @@
     },
     "POST": {
       "path": "/home/user/Projects/cx-pubtrackfix/build/tomokv",
-      "sha256": "b886df3f02822e4aafe0e62c1acc0d158317acef2baf3dfe389a9931ff9358fa"
+      "sha256": "de4f450065e1eb786a3d1a81acc7ce33a115931f937bb8075c2460fa3390456e"
     },
     "PAD-A": {
       "path": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pad-a/tomokv",
-      "sha256": "7e655deeb0254937074e6a046b441293b99ec7770249b7d7b8f7268b6c6f68b6"
-    }
-  },
-  "post_source_move": {
-    "before_sha256": "1f0459559d72ce851e69163a43cfb474997f1e193d493468862ff506471b37f7",
-    "after_sha256": "b886df3f02822e4aafe0e62c1acc0d158317acef2baf3dfe389a9931ff9358fa",
-    "sections": {
-      ".text": {
-        "equal": true,
-        "before": 8584647,
-        "after": 8584647
-      },
-      ".rodata": {
-        "equal": true,
-        "before": 171020,
-        "after": 171020
-      },
-      ".data": {
-        "equal": true,
-        "before": 19321,
-        "after": 19321
-      }
+      "sha256": "66b403cbfcff3d01b48f628962d8e032be121f6650bbb4570a4a72228020c034"
     }
   }
 }

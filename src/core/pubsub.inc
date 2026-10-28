@@ -969,13 +969,16 @@
     // that batching window is what a pipelined publisher's coalescing is made of. Out-of-line and
     // cold, so a server with no subscribers pays one bool test per pass and nothing else.
     __attribute__((noinline)) uint32_t pubsub_pass_flush() {
-        uint32_t work = tracking_bcast_flush();
+        uint32_t work = 0;
         for (int guard = 0; guard < 8; guard++) {
             if (!pubsub_local_events_.empty()) work += pubsub_drain_events();
             if (pubsub_outbox_dirty_.empty()) break;
             work += pubsub_flush_outboxes();
             if (pubsub_local_events_.empty()) break;
         }
+        // Draining notifications can enroll BCAST keys in this same pass. Flush
+        // them after the drain, before clearing the shared pending bit below.
+        work += tracking_bcast_flush();
         pubsub_pass_pending_ = !pubsub_local_events_.empty() || !pubsub_outbox_dirty_.empty();
         return work;
     }

@@ -36,9 +36,10 @@ def main():
         for namespace in ('','db0/'):
             rel='src/cmd/'+('t_stream_groups' if name=='consumer' else 'tracking')+'.o'
             original='build/'+namespace+rel
-            if name=='consumer':obj=ROOT/'build/pubtrackfix/pre'/namespace/rel
+            src=OUT/(name+'-'+('db0' if namespace else 'normal')+'.cc')
+            if name=='consumer':
+                src.write_bytes(subprocess.check_output(['git','show','393d6ceb1:src/cmd/t_stream_groups.cc'],cwd=ROOT))
             else:
-                src=OUT/('tracking-'+('db0' if namespace else 'normal')+'.cc')
                 source=(ROOT/'src/cmd/tracking.cc').read_text()
                 old='''            tracking_deliver_frame(state, id,
                 Slice(array.data(), static_cast<uint32_t>(array.size())), false, true);'''
@@ -46,11 +47,11 @@ def main():
                 tracking_deliver_frame(state, id,
                     Slice(key.data(), static_cast<uint32_t>(key.size())), false);'''
                 assert source.count(old)==1;src.write_text(source.replace(old,new))
-                obj=src.with_suffix('.o')
-                compile=['g++','-std=c++20','-O2','-g','-Wall','-Wextra','-march=native','-pthread','-DTOMO_JEMALLOC','-I.','-Isrc/cmd']
-                if namespace:compile+=['-DTOMO_SINGLE_DATABASE=1','-Dtomo=tomo_db0']
-                compile+=['-c',str(src),'-o',str(obj)]
-                subprocess.run(compile,cwd=ROOT,check=True)
+            obj=src.with_suffix('.o')
+            compile=['g++','-std=c++20','-O2','-g','-Wall','-Wextra','-march=native','-pthread','-DTOMO_JEMALLOC','-I.','-Isrc/cmd']
+            if namespace:compile+=['-DTOMO_SINGLE_DATABASE=1','-Dtomo=tomo_db0']
+            compile+=['-c',str(src),'-o',str(obj)]
+            subprocess.run(compile,cwd=ROOT,check=True)
             cmd[cmd.index(original)]=str(obj);inputs.append(dict(path=str(obj),sha256=sha(obj)))
         subprocess.run(cmd,cwd=ROOT,check=True)
         results['plants'][name]=dict(path=str(binary),sha256=sha(binary),link=cmd,changed_inputs=inputs)

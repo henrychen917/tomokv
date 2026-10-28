@@ -86,7 +86,7 @@
     "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/fliplisten.o",
     "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/shutdown.o",
     "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/latency_tracking.o",
-    "/home/user/Projects/cx-pubtrackfix/build/db0/src/store/eviction.o",
+    "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/eviction.o",
     "/home/user/Projects/cx-pubtrackfix/build/db0/src/core/version.o",
     "/home/user/Projects/cx-pubtrackfix/build/src/main.o",
     "/home/user/Projects/cx-pubtrackfix/build/src/net/tls.o",
@@ -143,7 +143,7 @@
     "/home/user/Projects/cx-pubtrackfix/build/src/core/fliplisten.o",
     "/home/user/Projects/cx-pubtrackfix/build/src/core/shutdown.o",
     "/home/user/Projects/cx-pubtrackfix/build/src/cmd/latency_tracking.o",
-    "/home/user/Projects/cx-pubtrackfix/build/src/store/eviction.o",
+    "/home/user/Projects/cx-pubtrackfix/build/src/cmd/eviction.o",
     "/home/user/Projects/cx-pubtrackfix/build/third_party/lua/helpers/lua_cjson.o",
     "/home/user/Projects/cx-pubtrackfix/build/third_party/lua/helpers/lua_cmsgpack.o",
     "/home/user/Projects/cx-pubtrackfix/build/third_party/lua/helpers/lua_bit.o",
@@ -162,5 +162,5 @@
     "-lm",
     "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/counts/post-db0/probe.o"
   ],
-  "sha256": "e36fdeedab710e285666d904de91b40660fe02d544f35a0e3a804d55ba99f898"
+  "sha256": "519e1326f4b2433e228565ecc10944f13baf5f9fc318b7a97ca7e83142d23b8c"
 }

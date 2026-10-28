@@ -189,6 +189,7 @@ struct NetcmdRegression {
     static void pubsub() {
         pubsub_timeout();
         suppressed_retire_scope();
+        bcast_pass_boundary();
         for (auto kind : {IoLoop::PubSubPendingKind::Channels, IoLoop::PubSubPendingKind::Numsub,
                           IoLoop::PubSubPendingKind::Numpat, IoLoop::PubSubPendingKind::Modify}) {
             for (bool suppressed : {false, true}) {
@@ -217,9 +218,35 @@ struct NetcmdRegression {
                 const std::string reply(client.fill_buf().data(), client.fill_buf().size());
                 std::string push = message; push[0] = '>';
                 check(reply.find(push) != std::string::npos, "independent publication survives retirement");
-                if (suppressed) check(reply == push, "only command reply was suppressed");
+                if (kind == IoLoop::PubSubPendingKind::Modify)
+                    check(reply == "*3\r\n$9\r\nsubscribe\r\n$3\r\nnew\r\n:2\r\n" + push,
+                          "subscribe confirmation precedes publication even with REPLY OFF");
+                else if (suppressed) check(reply == push, "only command reply was suppressed");
             }
         }
+    }
+
+    static void bcast_pass_boundary() {
+        Sender sender;
+        Server server; ThreadCtx self; self.init(0, Role::Ifid, 1, 0, 0);
+        IoLoop loop; loop.srv_ = &server; loop.self_ = &self; sender.bind(loop.wb_);
+        Client client(-1); client.set_id(42); client.set_resp3(true); client.set_ifid_thread(0);
+        auto& state = loop.climon_conn_get(&client);
+        state.tracking_on = state.bcast = true; state.prefixes.emplace_back();
+        auto* event = loop.pubsub_new_event(PubSubEventKind::TrackingInvalidate);
+        event->caller_id = 43;
+        const uint64_t stamp = tracking_clock_commit();
+        event->items.push_back(PubSubEventItem{0, false, stamp, "b"});
+        event->items.push_back(PubSubEventItem{0, false, stamp, "a"});
+        loop.pubsub_post(0, event);
+        check(loop.pubsub_pass_pending_ && state.tracking_bcast_pending.empty() &&
+              client.fill_buf().empty(), "invalidation is queued before the pass drain");
+        loop.pubsub_pass_flush();
+        check(state.tracking_bcast_pending.empty() && !loop.pubsub_pass_pending_ &&
+              loop.pubsub_local_events_.empty(), "pass drained every newly enrolled BCAST key");
+        check(std::string(client.fill_buf().data(), client.fill_buf().size()) ==
+                  ">2\r\n$10\r\ninvalidate\r\n*2\r\n$1\r\na\r\n$1\r\nb\r\n",
+              "late invalidation produced one sorted frame in the same pass");
     }
 
     // clientfix routes CLIENT TRACKING connections through the cold suppressing drain so that even

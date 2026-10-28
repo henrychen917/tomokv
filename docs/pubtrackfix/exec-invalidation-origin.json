@@ -1,0 +1,468 @@
+{
+  "redis": {
+    "server_argv": [
+      "taskset",
+      "-c",
+      "40-47",
+      "/home/user/Projects/redis74/src/redis-server",
+      "--port",
+      "20300",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/exec-origin/redis",
+      "--enable-debug-command",
+      "yes"
+    ],
+    "transcript": [
+      {
+        "c": "a",
+        "compare": false,
+        "send": [
+          "HELLO",
+          "3"
+        ],
+        "reply": {
+          "map": [
+            [
+              "server",
+              "redis"
+            ],
+            [
+              "version",
+              "7.4.10"
+            ],
+            [
+              "proto",
+              3
+            ],
+            [
+              "id",
+              4
+            ],
+            [
+              "mode",
+              "standalone"
+            ],
+            [
+              "role",
+              "master"
+            ],
+            [
+              "modules",
+              []
+            ]
+          ]
+        }
+      },
+      {
+        "c": "a",
+        "send": [
+          "CLIENT",
+          "TRACKING",
+          "on"
+        ],
+        "reply": {
+          "simple": "OK"
+        }
+      },
+      {
+        "c": "a",
+        "send": [
+          "DEBUG",
+          "SET-ACTIVE-EXPIRE",
+          "0"
+        ],
+        "reply": {
+          "simple": "OK"
+        }
+      },
+      {
+        "c": "a",
+        "send": [
+          "MULTI"
+        ],
+        "reply": {
+          "simple": "OK"
+        }
+      },
+      {
+        "c": "a",
+        "send": [
+          "MSET",
+          "x{t}",
+          "1",
+          "y{t}",
+          "2"
+        ],
+        "reply": {
+          "simple": "QUEUED"
+        }
+      },
+      {
+        "c": "a",
+        "send": [
+          "PEXPIRE",
+          "y{t}",
+          "100"
+        ],
+        "reply": {
+          "simple": "QUEUED"
+        }
+      },
+      {
+        "c": "a",
+        "send": [
+          "GET",
+          "y{t}"
+        ],
+        "reply": {
+          "simple": "QUEUED"
+        }
+      },
+      {
+        "c": "a",
+        "send": [
+          "EXEC"
+        ],
+        "reply": [
+          {
+            "simple": "OK"
+          },
+          1,
+          "2"
+        ]
+      },
+      {
+        "c": "a",
+        "read": 1,
+        "timeout": 0.5,
+        "reply": "TIMEOUT"
+      }
+    ]
+  },
+  "2s": {
+    "server_argv": [
+      "taskset",
+      "-c",
+      "40-47",
+      "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+      "--port",
+      "20300",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/exec-origin/2s",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+    ],
+    "transcript": [
+      {
+        "c": "a",
+        "compare": false,
+        "send": [
+          "HELLO",
+          "3"
+        ],
+        "reply": {
+          "map": [
+            [
+              "server",
+              "redis"
+            ],
+            [
+              "version",
+              "7.4.10"
+            ],
+            [
+              "proto",
+              3
+            ],
+            [
+              "id",
+              2
+            ],
+            [
+              "mode",
+              "standalone"
+            ],
+            [
+              "role",
+              "master"
+            ],
+            [
+              "modules",
+              []
+            ]
+          ]
+        }
+      },
+      {
+        "c": "a",
+        "send": [
+          "CLIENT",
+          "TRACKING",
+          "on"
+        ],
+        "reply": {
+          "simple": "OK"
+        }
+      },
+      {
+        "c": "a",
+        "send": [
+          "DEBUG",
+          "SET-ACTIVE-EXPIRE",
+          "0"
+        ],
+        "reply": {
+          "simple": "OK"
+        }
+      },
+      {
+        "c": "a",
+        "send": [
+          "MULTI"
+        ],
+        "reply": {
+          "simple": "OK"
+        }
+      },
+      {
+        "c": "a",
+        "send": [
+          "MSET",
+          "x{t}",
+          "1",
+          "y{t}",
+          "2"
+        ],
+        "reply": {
+          "simple": "QUEUED"
+        }
+      },
+      {
+        "c": "a",
+        "send": [
+          "PEXPIRE",
+          "y{t}",
+          "100"
+        ],
+        "reply": {
+          "simple": "QUEUED"
+        }
+      },
+      {
+        "c": "a",
+        "send": [
+          "GET",
+          "y{t}"
+        ],
+        "reply": {
+          "simple": "QUEUED"
+        }
+      },
+      {
+        "c": "a",
+        "send": [
+          "EXEC"
+        ],
+        "reply": [
+          {
+            "simple": "OK"
+          },
+          1,
+          "2"
+        ]
+      },
+      {
+        "c": "a",
+        "read": 1,
+        "timeout": 0.5,
+        "reply": {
+          "push": [
+            "invalidate",
+            [
+              "y{t}"
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  "1s": {
+    "server_argv": [
+      "taskset",
+      "-c",
+      "40-47",
+      "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+      "--port",
+      "20300",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/exec-origin/1s",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+    ],
+    "transcript": [
+      {
+        "c": "a",
+        "compare": false,
+        "send": [
+          "HELLO",
+          "3"
+        ],
+        "reply": {
+          "map": [
+            [
+              "server",
+              "redis"
+            ],
+            [
+              "version",
+              "7.4.10"
+            ],
+            [
+              "proto",
+              3
+            ],
+            [
+              "id",
+              2
+            ],
+            [
+              "mode",
+              "standalone"
+            ],
+            [
+              "role",
+              "master"
+            ],
+            [
+              "modules",
+              []
+            ]
+          ]
+        }
+      },
+      {
+        "c": "a",
+        "send": [
+          "CLIENT",
+          "TRACKING",
+          "on"
+        ],
+        "reply": {
+          "simple": "OK"
+        }
+      },
+      {
+        "c": "a",
+        "send": [
+          "DEBUG",
+          "SET-ACTIVE-EXPIRE",
+          "0"
+        ],
+        "reply": {
+          "simple": "OK"
+        }
+      },
+      {
+        "c": "a",
+        "send": [
+          "MULTI"
+        ],
+        "reply": {
+          "simple": "OK"
+        }
+      },
+      {
+        "c": "a",
+        "send": [
+          "MSET",
+          "x{t}",
+          "1",
+          "y{t}",
+          "2"
+        ],
+        "reply": {
+          "simple": "QUEUED"
+        }
+      },
+      {
+        "c": "a",
+        "send": [
+          "PEXPIRE",
+          "y{t}",
+          "100"
+        ],
+        "reply": {
+          "simple": "QUEUED"
+        }
+      },
+      {
+        "c": "a",
+        "send": [
+          "GET",
+          "y{t}"
+        ],
+        "reply": {
+          "simple": "QUEUED"
+        }
+      },
+      {
+        "c": "a",
+        "send": [
+          "EXEC"
+        ],
+        "reply": [
+          {
+            "simple": "OK"
+          },
+          1,
+          "2"
+        ]
+      },
+      {
+        "c": "a",
+        "read": 1,
+        "timeout": 0.5,
+        "reply": {
+          "push": [
+            "invalidate",
+            [
+              "y{t}"
+            ]
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -1,9 +1,9 @@
 {
-  "post_sha256": "b886df3f02822e4aafe0e62c1acc0d158317acef2baf3dfe389a9931ff9358fa",
+  "post_sha256": "de4f450065e1eb786a3d1a81acc7ce33a115931f937bb8075c2460fa3390456e",
   "plants": {
     "reply-off": {
       "path": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/plants/tomokv-reply-off",
-      "sha256": "680ebfeab731b417e106cf0007352841e71d7aaed235e1ecd9e3535825ad4547",
+      "sha256": "7e0e027c1950fc42fb78cd1b3d5be6af25b9dfad38e8102e0b4c731e9a758e8c",
       "edits": [
         {
           "symbol": "_ZN8tomo_db06IoLoop21pubsub_finish_pendingEm",
@@ -13,7 +13,7 @@
         },
         {
           "symbol": "_ZN4tomo6IoLoop21pubsub_finish_pendingEm",
-          "file_offset": 5086759,
+          "file_offset": 5086679,
           "before": "f7",
           "after": "ff"
         }
@@ -21,17 +21,17 @@
     },
     "eviction": {
       "path": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/plants/tomokv-eviction",
-      "sha256": "c4a6fa29dd8ed3d0d5af1341aef820235be4de01d35c04a6b38293456c98f695",
+      "sha256": "91475762a9b4340f5d7b08984d034b6722883a99b538dc0dc2c806bcea4a0ae8",
       "edits": [
         {
           "symbol": "_ZN4tomo9FlatStore16evict_over_limitEv",
-          "file_offset": 8688916,
+          "file_offset": 8688788,
           "before": "415741",
           "after": "31c0c3"
         },
         {
           "symbol": "_ZN8tomo_db09FlatStore16evict_over_limitEv",
-          "file_offset": 4577588,
+          "file_offset": 4577508,
           "before": "415741",
           "after": "31c0c3"
         }
@@ -39,7 +39,7 @@
     },
     "consumer": {
       "path": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/plants/tomokv-consumer",
-      "sha256": "a8a66bc19f1e4fbadd8f6191c5e341fd9569f55144f7a6daa6db774ad6203054",
+      "sha256": "8ed544365f3b567677fdad80403370c3931331d85f9559b92539563279b5eb50",
       "link": [
         "g++",
         "-std=c++20",
@@ -67,7 +67,7 @@
         "build/db0/src/cmd/t_zset_ops.o",
         "build/db0/src/cmd/geo.o",
         "build/db0/src/cmd/t_stream.o",
-        "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/db0/src/cmd/t_stream_groups.o",
+        "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/plants/consumer-db0.o",
         "build/db0/src/cmd/scripting.o",
         "build/db0/src/cmd/functions.o",
         "build/db0/src/cmd/serialize.o",
@@ -124,7 +124,7 @@
         "build/src/cmd/t_zset_ops.o",
         "build/src/cmd/geo.o",
         "build/src/cmd/t_stream.o",
-        "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/src/cmd/t_stream_groups.o",
+        "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/plants/consumer-normal.o",
         "build/src/cmd/scripting.o",
         "build/src/cmd/functions.o",
         "build/src/cmd/serialize.o",
@@ -181,18 +181,18 @@
       ],
       "changed_inputs": [
         {
-          "path": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/src/cmd/t_stream_groups.o",
-          "sha256": "b769de6e69c012d72bdfed98f2757b1ab79bf6ae70a26dc027f3697508c321e8"
+          "path": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/plants/consumer-normal.o",
+          "sha256": "3c20672fc00f186d5739146bf62844ddd86806e92815a493a9763d5a8340e2de"
         },
         {
-          "path": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/db0/src/cmd/t_stream_groups.o",
-          "sha256": "42c4c85c3af84b3eb42557db44a45b49c90563a4f969a29e91eb5579bdddf08a"
+          "path": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/plants/consumer-db0.o",
+          "sha256": "a9f2ba8bea43c58b78d4976e721ee29a3646bab489403e0b675b432dba27bde8"
         }
       ]
     },
     "bcast": {
       "path": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/plants/tomokv-bcast",
-      "sha256": "5879ed5a5d6aeaa0b3b47099b4204d1d2354a76109e9b42dfd3f30a4eed2fa9c",
+      "sha256": "26fd5e4dcd1dc99b9040630580ccd98fb2eaf57c6750051e649e9ebdbbef7de0",
       "link": [
         "g++",
         "-std=c++20",
@@ -227,7 +227,7 @@
         "build/db0/src/snapshot/snapshot.o",
         "build/db0/src/persist/aof.o",
         "build/db0/src/cmd/climon.o",
-        "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/plants/tracking-db0.o",
+        "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/plants/bcast-db0.o",
         "build/db0/src/cmd/server_tail.o",
         "build/db0/src/cmd/slowlog.o",
         "build/db0/src/cmd/lcs.o",
@@ -284,7 +284,7 @@
         "build/src/snapshot/snapshot.o",
         "build/src/persist/aof.o",
         "build/src/cmd/climon.o",
-        "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/plants/tracking-normal.o",
+        "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/plants/bcast-normal.o",
         "build/src/cmd/server_tail.o",
         "build/src/cmd/slowlog.o",
         "build/src/cmd/lcs.o",
@@ -334,12 +334,12 @@
       ],
       "changed_inputs": [
         {
-          "path": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/plants/tracking-normal.o",
-          "sha256": "b5f86f5a5c8b2454b444de11199cc01f60cda6f1d8d9ed1f07241575eca9aa56"
+          "path": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/plants/bcast-normal.o",
+          "sha256": "cb2dfa4c09fbce9359c6e6682851f8db4e1555d3b295a269815ba5e03789f66b"
         },
         {
-          "path": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/plants/tracking-db0.o",
-          "sha256": "c6afd17b9ea239d52a4602ba3e5d339101c0fe028b33b0e2f894d5b1f7aad396"
+          "path": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/plants/bcast-db0.o",
+          "sha256": "1880a600814b6a31d4cc97f6cb7bd4023c265984be540ed6340bb6e0e13f62d1"
         }
       ]
     }
