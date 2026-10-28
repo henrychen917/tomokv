@@ -44,7 +44,7 @@
         return state.watch_shard_done[state.slot(sid)] || arriving || (state.execution_noted[state.slot(sid)] & 16u)
             ? MultiTaskResult::RetrySoon : MultiTaskResult::Retry;
     };
-    MultiWatchMapScope transaction_map(state.database_watch.empty() ? nullptr : &state.database_map);
+    MultiWatchMapScope transaction_map(state.database_watch.empty() ? nullptr : state.database_map.get());
     if (!state.watch_phase_done.load(std::memory_order_acquire)) {
         if (!execute_watch_phase(state, shard, promoter)) return retry();
         if (!state.watch_phase_done.load(std::memory_order_acquire)) return retry();
@@ -86,7 +86,7 @@
             continue;
         }
         const uint32_t stage = command.stage.load(std::memory_order_acquire);
-        uint8_t& done = command.shard_done[shard_id];
+        uint8_t& done = command.shard_done[command.shard_done.size() == 1 ? 0 : shard_id];
         if (command.kind == MultiCommandKind::Xshard) {
             if (!state.decision.aborted.load(std::memory_order_acquire) &&
                 command.scatter->kind == Kind::Sort && command.scatter->sort_options.deref &&
@@ -168,7 +168,7 @@
                 // membership first; the release store then publishes both the group contents and
                 // this immutable routing decision to every retrying transaction fragment.
                 xshard_multi_child_capture_groups(
-                    *command.scatter, command.xshard_stage_groups[next_stage]);
+                        *command.scatter, (*command.xshard_stage_groups)[next_stage]);
                 command.stage.store(next_stage, std::memory_order_release);
             } else if (finished == MultiChildFinish::Final) {
                 if (notify)
@@ -194,7 +194,7 @@
                             }
                         }
                         for (uint32_t db = 0; db < server.cfg().databases; ++db)
-                            visible[state.database_map[db]] = physical[(*command.watch_map)[db]];
+                            visible[(*state.database_map)[db]] = physical[(*command.watch_map)[db]];
                         command_info_with_databases(server, *command.op, visible);
                     }
                 } else {

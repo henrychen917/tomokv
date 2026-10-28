@@ -137,7 +137,8 @@ struct MultiCommand {
     // last task from the prior wave is allowed to rewrite it before publishing command.stage.
     // Four 64-bit words cover the server's 256-shard maximum.  Four stages cover the longest child
     // today (SORT source -> dynamic gather -> STORE apply) with one spare stage for a future retry.
-    std::array<std::array<uint64_t, kShardMaskWords>, kXshardStages> xshard_stage_groups{};
+    using StageGroups = std::array<std::array<uint64_t, kShardMaskWords>, kXshardStages>;
+    std::unique_ptr<StageGroups> xshard_stage_groups;
     uint32_t notify_order_base = 0;
     std::array<uint8_t, 2> swap_physical{};
     std::unique_ptr<DatabaseMap::Map> watch_map;
@@ -244,7 +245,7 @@ struct alignas(8) MultiExecState : SnapshotCut {
     std::vector<std::unique_ptr<MultiCommand>> commands;
     std::vector<MultiWatchedKey> watched;
     std::vector<MultiWriteKey> write_keys;
-    DatabaseMap::Map database_map;
+    std::unique_ptr<DatabaseMap::Map> database_map;
     std::unique_ptr<DatabaseMap::Map> database_publish;
     struct Swap { uint8_t first, second, physical_first, physical_second; };
     std::vector<Swap> database_swaps;
@@ -266,7 +267,9 @@ struct alignas(8) MultiExecState : SnapshotCut {
     // only this shard's owner releases its private overlay at finalization.
     std::unique_ptr<std::atomic<bool>[]> shard_aborted;
     std::vector<MultiOwnerRecordRefs> owner_record_refs;
-    ScatterArenaPool scatter_pool;
+    // Local-only EXECs never prepare a scatter child. Its 64 cached pointers
+    // belong to the lowered-child path, not every two-INCR transaction.
+    std::unique_ptr<ScatterArenaPool> scatter_pool;
     MultiDecision decision;
     bool doomed = false;               // published by finalized
     MultiRetryNode retry;
@@ -525,10 +528,10 @@ void destroy_multi_children(MultiExecState& state) {
             if (command->op) latency_tracking_forget(*command->op);
     for (const auto& command : state.commands) {
         if (!command->scatter) continue;
-        xshard_destroy(command->scatter, state.scatter_pool, state.owner_io);
+        xshard_destroy(command->scatter, *state.scatter_pool, state.owner_io);
         command->scatter = nullptr;
     }
-    state.scatter_pool.reap_deferred();
+    if (state.scatter_pool) state.scatter_pool->reap_deferred();
 }
 
 void destroy_multi_state(MultiExecState* state) {
@@ -685,7 +688,7 @@ void add_shard(std::vector<int32_t>& shards, int32_t shard) {
 bool multi_xshard_stage_has_group(const MultiCommand& command, uint32_t stage, int32_t shard) {
     if (stage >= MultiCommand::kXshardStages || shard < 0 || shard >= 256) std::abort();
     const uint32_t sid = static_cast<uint32_t>(shard);
-    return command.xshard_stage_groups[stage][sid >> 6] & (1ull << (sid & 63));
+    return (*command.xshard_stage_groups)[stage][sid >> 6] & (1ull << (sid & 63));
 }
 
 bool make_child_op(MultiCommand& command) {
@@ -919,7 +922,7 @@ void prepare_claims(MultiExecState& state) {
     // WATCH keys are part of placement's conflict set even when no queued
     // command accesses them. Inactive namespace aliases are validation-only.
     for (const auto& watched : state.watched) {
-        if (state.database_map[watched.db] != watched.ns) continue;
+        if ((*state.database_map)[watched.db] != watched.ns) continue;
         txn_add_claim(state.claims[state.slot(watched.shard)],
             Slice(watched.key.data(), watched.key.size(), watched.ns),
             state_writes_key(state, watched) ? TxnClaimMode::Write : TxnClaimMode::Read);
@@ -946,10 +949,11 @@ bool prepare_commands(Server& server, MultiExecState& state,
     try {
         state.commands.reserve(queue.size());
         state.write_key_set.reserve(queue.size());
-        state.database_map = server.databases().capture();
-        auto routing_map = state.database_map;
+        auto routing_map = server.databases().capture();
         const bool swaps = !kSingleDatabase && std::any_of(queue.begin(), queue.end(),
             [](const auto& queued) { return (queued.verb == MultiVerb::V_swapdb); });
+        if (swaps || !state.watched.empty())
+            state.database_map = std::make_unique<DatabaseMap::Map>(routing_map);
         uint8_t logical_db = state.client->session().db_index;
         for (MultiQueuedCommand& queued : queue) {
             auto command = std::make_unique<MultiCommand>();
@@ -1063,8 +1067,10 @@ bool prepare_commands(Server& server, MultiExecState& state,
                 (command->queued.spec->flags &
                  (CmdFlags::MultiShard | CmdFlags::AllShards | CmdFlags::ConfigRoute))) {
                 ScatterDispatch child_dispatch;
+                if (!state.scatter_pool) state.scatter_pool = std::make_unique<ScatterArenaPool>();
+                command->xshard_stage_groups = std::make_unique<MultiCommand::StageGroups>();
                 const ScatterPrepare prepared = xshard_prepare(
-                    server, *command->op, state.scatter_pool, state.owner_io,
+                    server, *command->op, *state.scatter_pool, state.owner_io,
                     state.origin_conn_id, child_dispatch, true, state.client);
                 if (prepared == ScatterPrepare::Ready) {
                     command->kind = MultiCommandKind::Xshard;
@@ -1076,7 +1082,7 @@ bool prepare_commands(Server& server, MultiExecState& state,
                     }
                     xshard_multi_child_bind(*command->scatter, &state);
                     xshard_multi_child_capture_groups(
-                        *command->scatter, command->xshard_stage_groups[0]);
+                        *command->scatter, (*command->xshard_stage_groups)[0]);
                     for (uint32_t i = 0; i < child_dispatch.nshards; i++)
                         add_shard(command->participants,
                                   xshard_dispatch_shard(child_dispatch, i));
@@ -1131,7 +1137,11 @@ bool prepare_commands(Server& server, MultiExecState& state,
                     add_shard(command->participants, shard);
                 if (command->participants.empty()) add_shard(command->participants, 0);
             }
-            command->shard_done.assign(server.nshards(), 0);
+            // Local/SCAN children never grow a second stage or participant.
+            // Scatter children retain physical indexing for dynamic waves.
+            command->shard_done.assign(
+                command->kind == MultiCommandKind::Local || command->kind == MultiCommandKind::Scan
+                    ? 1 : server.nshards(), 0);
             state.has_publication |= command->kind == MultiCommandKind::IoLocal &&
                 ((command->queued.verb == MultiVerb::V_publish) || (command->queued.verb == MultiVerb::V_spublish));
             // SCOPE: multi-owner READ fragments, nothing else.  Mget/Exists are reached only when
@@ -1944,7 +1954,7 @@ __attribute__((always_inline)) inline bool execute_watch_phase(MultiExecState& s
             if (watched.shard != shard.id()) continue;
             // Inactive namespace aliases detect a later SWAPDB, but do not reserve
             // another logical database or observe its deadline during EXEC.
-            if (state.database_map[watched.db] != watched.ns) continue;
+            if ((*state.database_map)[watched.db] != watched.ns) continue;
             const Slice key(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns);
             if (!shard.watch_validate_and_reserve(
                     key, state.client, state.watch_generation, &state, &state.decision.epoch,
