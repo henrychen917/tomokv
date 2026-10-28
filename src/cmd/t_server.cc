@@ -3033,7 +3033,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(read_local.mget_fallback_generation));
     }
     if (info_section(op, "CPU")) info_stats_cpu_fields(body);
-    if (info_section(op, "REPLICATION")) body += "# Replication\r\nrole:master\r\n";
+    if (info_section(op, "REPLICATION")) body += "# Replication\r\nrole:master\r\nmaster_repl_offset:0\r\n";
     if (want_commands) {
         body += "# Commandstats\r\n";
         for (uint32_t id = 0; id < command_registry_size(); id++) {

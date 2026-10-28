@@ -158,7 +158,8 @@ def run_file(args, tree, unit, only=None, extra=(), server_args=()):
     totals, complete = counts(observed, unit)
     row=dict(file=unit,mode=args.mode,**totals,complete=complete,exit_code=rc,error=failure,
              seconds=time.monotonic()-start,server_argv=command,suite_argv=client,
-             server_exit=server.returncode if server else None,smove_layout_attempts=layout_attempts,events=observed)
+             server_exit=server.returncode if server else None,smove_layout_attempts=layout_attempts,events=observed,
+             setup_stdout=(folder/"suite.log").read_text(errors="replace") if unit == "unit/printver" else "")
     (folder/'result.json').write_text(json.dumps(row,indent=2)+'\n')
     return row
 
@@ -185,14 +186,22 @@ def setup_errors(row):
     return Counter(setup_signature(e['data']) for e in row['events']
                    if e['status'] == 'err' and not e['test'].split(' in tests/')[0])
 
-def validate_passing(row, expected, known_setup_errors=()):
+def validate_passing(row, expected, known_setup_errors=(), setup_only=False):
     actual = [e['test'] for e in row['events'] if e['status'] == 'ok']
     known = Counter({(k['command'], k['reply']): k['count'] for k in known_setup_errors})
     observed = setup_errors(row)
     # Exactly the named block-setup errors, no other failure of any kind. runtest
     # exits 1 whenever it recorded any failure, including a named setup error.
     expected_rc = 1 if observed else 0
-    if (not expected or not actual or Counter(actual) != Counter(expected) or observed != known or
+    if setup_only:
+        # printver has no test{} block. Require its successful body output;
+        # an empty or skipped file may never satisfy this explicit witness.
+        import re
+        if (row.get('file') != 'unit/printver' or expected or actual or
+                len(re.findall(r'^Testing Redis version 7\.4\.10 \([0-9a-f]{8}\)$',
+                               row.get('setup_stdout', ''), re.M)) != 1):
+            raise ValueError('printver setup witness missing or duplicated')
+    if ((not setup_only and (not expected or not actual)) or Counter(actual) != Counter(expected) or observed != known or
             row['failed'] != sum(observed.values()) or row['error'] or not row['complete'] or
             row['exit_code'] != expected_rc):
         raise ValueError('passing subset failed, incomplete, or assertion inventory changed')
@@ -290,7 +299,10 @@ def load_manifest(path, redis_root, inventory):
         # A known failure is named, never silently dropped: it may not also be a
         # required pass, and every required file has at least one pass.
         required = {name.split(' in tests/')[0] for name in spec['passed_tests']}
-        if not spec['passed_tests'] or set(spec.get('skip_tests', ())) & required:
+        setup_only = spec.get('setup_only', False)
+        if setup_only and (unit != 'unit/printver' or spec['passed_tests'] or spec.get('skip_tests')):
+            raise ValueError('invalid setup-only witness: ' + unit)
+        if (not spec['passed_tests'] and not setup_only) or set(spec.get('skip_tests', ())) & required:
             raise ValueError(f'manifest file has no required pass or skips a required test: {unit}')
         fresh=spec.get('fresh_tests', [])
         if fresh and (unit!='unit/slowlog' or fresh!=[
@@ -360,7 +372,7 @@ def main():
             row['skip_tests']=sorted(spec.get('skip_tests', ()))
             row['setup_errors']=[dict(command=c, reply=r, count=n) for (c, r), n in sorted(setup_errors(row).items())]
             expected = [name for name in spec['passed_tests'] if name.split(' in tests/')[0] not in isolated]
-            try: validate_passing(row, expected, spec.get('known_setup_errors', ()))
+            try: validate_passing(row, expected, spec.get('known_setup_errors', ()), spec.get('setup_only', False))
             except ValueError as error: row['error'] = '; '.join(filter(None, (row['error'], str(error))))
         report['rows'].append(row)
         if args.manifest:

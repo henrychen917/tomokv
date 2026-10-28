@@ -1173,7 +1173,7 @@ plan_jobs(){
       JOB_NAMES+=("feature-cell-$FM-$FR-$FC-$FQ-$FF")
     done; done; done; done
   done
-  JOB_NAMES+=(infofix_compat-missing infofix_compat-docs infofix_compat-slowlog infofix_compat-loadaof)
+  JOB_NAMES+=(infofix_latency infofix_compat-missing infofix_compat-docs infofix_compat-slowlog infofix_compat-loadaof)
   JOB_NAMES+=(feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto)
 }
 start_workers(){
@@ -5325,6 +5325,19 @@ job_multifix(){
 }
 
 # infofix: each directed row owns both modes/engines and both database runtimes.
+job_infofix_latency(){
+  local passed=1 mode tracking batch label="Redis 7.4 infofix exact latency batch witness"
+  row_begin "$label"
+  pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" -f Makefile -f tools/infofix_latency.mk \
+      build/infofix-latency-unit >"$TMPDIR/build.log" 2>&1 &&
+      make -q -f Makefile -f tools/infofix_latency.mk build/infofix-latency-unit || passed=0
+  for mode in 1s 2s; do for tracking in 0 1; do for batch in 1 32; do
+    taskset -c "$CORES" "${GATE_INFOFIX_LATENCY_UNIT:-build/infofix-latency-unit}" "$mode" "$tracking" "$batch" \
+        >>"$TMPDIR/latency.log" 2>&1 || passed=0
+  done; done; done
+  [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/build.log and latency.log"
+}
+
 job_infofix_compat(){
   local case=${1#infofix_compat-} label
   label="Redis 7.4 infofix $case (both modes/engines/runtimes)"
@@ -5962,7 +5975,8 @@ done
 
 collect_job bplus
 collect_job rlfix3_zc
-# Four rows above the quick-tier exit: DQ=+4, DF=+4; EXPECT is owner-owned.
+# Five rows above the quick-tier exit: DQ=+5, DF=+5; EXPECT is owner-owned.
+collect_job infofix_latency
 for CASE in missing docs slowlog loadaof; do collect_job "infofix_compat-$CASE"; done
 collect_job rlfix3_info
 

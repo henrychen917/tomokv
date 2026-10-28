@@ -82,6 +82,18 @@ struct alignas(64) ExecutorHistograms {
 };
 struct Slot { alignas(64) std::atomic<ExecutorHistograms*> value{nullptr}; };
 std::array<Slot, kMaxThreads> stores{};
+// A homogeneous GET batch holds its physical executor's histogram lock once.
+// The existing per-command start/completion clocks and pre-Done recording stay
+// exact. Forwarded/parked operations never call the recorder and add no sample.
+struct GetHistogramBatch {
+    uint32_t executor;
+    const Op* current = nullptr;
+    Histogram* histogram;
+};
+thread_local GetHistogramBatch* active_get_batch = nullptr;
+#ifdef TOMO_INFOFIX_LATENCY_WITNESS
+uint64_t infofix_batch_locks = 0;
+#endif
 struct Cleanup {
     ~Cleanup() { for (auto& slot : stores) delete slot.value.load(std::memory_order_relaxed); }
 } cleanup;
@@ -373,6 +385,11 @@ namespace {
 void record_generation(uint32_t executor, const Op& op, uint64_t duration_ns, uint64_t cut) {
     if (auto* server = command_server(); !server || !server->latency_tracking()) return;
     if (executor >= stores.size() || !op.spec) return;
+    if (auto* batch = active_get_batch; batch && batch->executor == executor && batch->current == &op) {
+        if (cut == disabled_cut_ns.load(std::memory_order_acquire))
+            batch->histogram->add((duration_ns / 1000) * 1000);
+        return;
+    }
     // The metadata resolver only reads Op; its existing API predates const use.
     // Unknown container children are rejected commands, not parent executions.
     const auto* metadata = command_metadata_resolve(const_cast<Op&>(op), 0);
@@ -473,6 +490,46 @@ void ExLoopT<Fused>::exec_batch_latency(ExLoopT* loop, const Task* batch, uint32
     const SlowlogArm arm = loop->slowlog_arm_;
     slowlog_note_batch_timed();
     loop->flush_xshard_commits_timed();
+    // Only GET can use this lock scope: no scripts, configuration, nested
+    // execution, scatter retirement or histogram introspection under the lock.
+    bool get_batch = n > 1;
+    for (uint32_t i = 0; get_batch && i < n; ++i) {
+        if (!batch[i].client || batch[i].scatter || multi_task_tagged(batch[i])) {
+            get_batch = false;
+            break;
+        }
+        const Op& op = batch[i].client->rob().at(batch[i].op_id);
+        get_batch = op.spec &&
+            (op.spec->flags & (CmdFlags::ReadLocalEligible | CmdFlags::MultiShard)) ==
+                CmdFlags::ReadLocalEligible &&
+            !op.has_scatter_state() && !op.has_multi_state() && !op.has_blocking_state();
+    }
+    if (get_batch) {
+        auto& local = store(loop->self_->id());
+        std::lock_guard lock(local.mutex);
+        const auto* metadata = command_metadata_for(*batch[0].client->rob().at(batch[0].op_id).spec);
+        GetHistogramBatch capture{loop->self_->id(), nullptr,
+            &local.values[command_metadata_index(*metadata)]};
+        struct Scope {
+            GetHistogramBatch* previous = active_get_batch;
+            explicit Scope(GetHistogramBatch& batch) { active_get_batch = &batch; }
+            ~Scope() { active_get_batch = previous; }
+        } scope(capture);
+#ifdef TOMO_INFOFIX_LATENCY_WITNESS
+        ++infofix_batch_locks;
+#endif
+        for (uint32_t i = 0; i < n; ++i) {
+            Client* client = batch[i].client;
+            capture.current = &client->rob().at(batch[i].op_id);
+            SlowlogTiming timing(capture.current, client->id(), loop->self_->id(),
+                                now_ns(), loop->cached_now_ms_, arm);
+            if (loop->template execute_latency<IofusedPrivateQueue>(batch[i])) continue;
+            loop->xshard_retries_.push_back(batch[i]);
+            for (uint32_t j = i + 1; j < n; ++j) loop->ordered_deferred_.push_back(batch[j]);
+            return;
+        }
+        return;
+    }
     for (uint32_t i = 0; i < n; ++i) {
         Client* client = batch[i].client;
         SlowlogTiming timing(client ? &client->rob().at(batch[i].op_id) : nullptr,
