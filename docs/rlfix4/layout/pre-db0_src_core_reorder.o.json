@@ -6,7 +6,7 @@
     "-ffunction-sections",
     "-std=c++20",
     "-O2",
-    "-g0",
+    "-g",
     "-Wall",
     "-Wextra",
     "-march=native",
@@ -27,5 +27,5 @@
     "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/pre/db0/src/core/reorder.o"
   ],
   "original_sha256": "cfd09e0573afcc75b922c3d8aa0a8dd626934e61f11f4757f0ff485776162597",
-  "sha256": "5183d83ef7b7921b77f7f48c7c5cd8f6deb7cdda90c1425310265843a560974b"
+  "sha256": "9bd4cac9b4e3d515ca5268b92a6fc17a742bdf303d501d34fd61448746351b83"
 }

@@ -1,0 +1,29 @@
+{
+  "arm": "pre",
+  "unit": "db0/src/persist/aof.o",
+  "command": [
+    "g++",
+    "-ffunction-sections",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=39024",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/persist/aof.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/pre/db0/src/persist/aof.o"
+  ],
+  "original_sha256": "133d8fc263d67becf13ebbc5411afb244b5522ef9ba15eade0fc1eedb134bf96",
+  "sha256": "34f75660fb0e99bc331959e1bce25d53825cc8681758450e485a6196998f01e7"
+}

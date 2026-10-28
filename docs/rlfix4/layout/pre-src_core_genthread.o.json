@@ -6,7 +6,7 @@
     "-ffunction-sections",
     "-std=c++20",
     "-O2",
-    "-g0",
+    "-g",
     "-Wall",
     "-Wextra",
     "-march=native",
@@ -23,5 +23,5 @@
     "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/pre/src/core/genthread.o"
   ],
   "original_sha256": "6b6dea8a550ed32c750221b04a73866dda29f899469b58df00f05bb25cb9d94d",
-  "sha256": "868f26ae4216065f43cc51a09395de55b6a8bdc8d0d982283a86199884ebde62"
+  "sha256": "68ad66040f72328f7aba71d3a09c7c12ed906c8c79d6394414d4ced62ebb1ab9"
 }

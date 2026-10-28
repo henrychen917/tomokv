@@ -1,0 +1,2743 @@
+[
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "db0",
+    "name": "tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::ReadLocalPrefetchCapture const*)",
+    "before_digests": [
+      "a0cb8a6320ef7eb4c9677dd55922386cea59654e1dfd60ee588192b2677302e9"
+    ],
+    "after_digests": [
+      "50ee76f842091182dc23d21a1483dac1d25b5b2da4c714f10bb81f00bc88ad33"
+    ],
+    "before_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "db0",
+    "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+    "before_digests": [
+      "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae",
+      "1eea3e9ecfdc3a00d645571ed40f9dd8065534c046d14ca4fde91254195b80c1"
+    ],
+    "after_digests": [
+      "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae",
+      "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "db0",
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+    "before_digests": [
+      "7c2b50b6614810a48614c1acb7782b22c49048f4f479c6f1d838ad10e28e7f66"
+    ],
+    "after_digests": [
+      "6e3218f6370f3f51260dd0353b637a54d5949e4ff3fc344f95265fb7c2fdfd96"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "db0",
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+    "before_digests": [
+      "7260358312b16ec4fdfaceeba8e39739fe866fec69f5ac461fa3cad39c1022cc"
+    ],
+    "after_digests": [
+      "39846c433f26d4555384a4acb83c0762c3ad2f9f0816c85e628935c8f2c46f4d"
+    ],
+    "before_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "db0",
+    "name": "tomo_db0::IoLoop::flip_dispatch_paused() const",
+    "before_digests": [],
+    "after_digests": [
+      "2882fd39d0233de99c6019d50d9d89a286aea90cc3b992695989bb96f57cedc3"
+    ],
+    "before_cases": [],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "db0",
+    "name": "tomo_db0::IoLoop::query_buffer_exceeded(tomo_db0::Client const&) const",
+    "before_digests": [
+      "fdaaf04d556b2ecd39118772ea8a5e25f84fec8718e548e27a6c6c4adefce0e9"
+    ],
+    "after_digests": [
+      "c2437d9cd2d695497cde28cec5f6b8ca7add28c3eaa14d8b00089f6a930ba4c4"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "db0",
+    "name": "tomo_db0::ParseResult tomo_db0::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long, tomo_db0::RespFrontier*) [clone .isra.0]",
+    "before_digests": [],
+    "after_digests": [
+      "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+    ],
+    "before_cases": [],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "db0",
+    "name": "tomo_db0::ParseResult tomo_db0::resp_parse_t<false>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long) [clone .isra.0]",
+    "before_digests": [
+      "1f04f41a1cb6d67052e5aa7b72a10fd63abae32b6c30110511755e3faf48c2ef"
+    ],
+    "after_digests": [],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": []
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "db0",
+    "name": "tomo_db0::multi_session_watch_size(tomo_db0::Client const&)",
+    "before_digests": [
+      "df775932244cd860c578e01357847368f78a9dbb1372c72d5e6fed97efb53dea"
+    ],
+    "after_digests": [
+      "6a8a826fbd78b6052a3c28333a3c7fb25ce12b565994d1485e9f04c3a54dae8f"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "db0",
+    "name": "unsigned int tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)",
+    "before_digests": [
+      "4bc2139e9d3fe9827642f20836af8656c039dadb7ed8436cb7a28fdc11f76e0e"
+    ],
+    "after_digests": [
+      "9b3704298ea2d9a05843b552100f25ecd9cbf2d30282f3aeffc740453ea899b8"
+    ],
+    "before_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "normal",
+    "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
+    "before_digests": [
+      "a7d151021afed64ce2de45855bad01639b02b24473019422d39a68ea9aa2eebc"
+    ],
+    "after_digests": [
+      "125f648e2f7b783fcf4160c22cfc31d235ab2074264693c26855ef1ff094c05c"
+    ],
+    "before_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "normal",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+    "before_digests": [
+      "74b2fd1e1c77a8c51a69af7b94b318efc8779c9fa5ee6815d913c67a3b09f25a"
+    ],
+    "after_digests": [
+      "9885d43a79b881926da18d0b1b29fef19a08570503ddd730b2efc423ac9393eb"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "normal",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+    "before_digests": [
+      "a322ef061f57f9e9ac51588e8a39bd9243b5ca22f3fdb5b561f6787035d1b4f4"
+    ],
+    "after_digests": [
+      "8833703278170ef6f5c54715e83a42f399ff9ec06d05474035df8da55aeb4b99"
+    ],
+    "before_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "normal",
+    "name": "tomo::IoLoop::flip_dispatch_paused() const",
+    "before_digests": [],
+    "after_digests": [
+      "4996941468a10e38880bee692fefc16282954f494564bd816059d0f7401578c5"
+    ],
+    "before_cases": [],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "normal",
+    "name": "tomo::IoLoop::query_buffer_exceeded(tomo::Client const&) const",
+    "before_digests": [
+      "9ba314b102b2c23ce30a86071685f60a050a21f24aae1da238a0784588e85941"
+    ],
+    "after_digests": [
+      "692529f1a5b9ac067ee6c3706592b9446f76226730a4d913c4132b31599f52e9"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "normal",
+    "name": "tomo::IoLoop::touch_worker(unsigned int)",
+    "before_digests": [],
+    "after_digests": [
+      "70abbcd24468d6ebbbb7525f0b2efb35128dc46d044d520ade51b4cc00cc8edb"
+    ],
+    "before_cases": [],
+    "after_cases": [
+      [
+        32,
+        "r7mix"
+      ]
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "normal",
+    "name": "tomo::ParseResult tomo::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long, tomo::RespFrontier*) [clone .isra.0]",
+    "before_digests": [],
+    "after_digests": [
+      "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+    ],
+    "before_cases": [],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "normal",
+    "name": "tomo::ParseResult tomo::resp_parse_t<false>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long) [clone .isra.0]",
+    "before_digests": [
+      "9eabd156f0d5ef8bca4ffea85c400caafc2e8eb0a81ca15b4d1d1456f2ccbc31"
+    ],
+    "after_digests": [],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": []
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "normal",
+    "name": "tomo::multi_session_watch_size(tomo::Client const&)",
+    "before_digests": [
+      "df775932244cd860c578e01357847368f78a9dbb1372c72d5e6fed97efb53dea"
+    ],
+    "after_digests": [
+      "6a8a826fbd78b6052a3c28333a3c7fb25ce12b565994d1485e9f04c3a54dae8f"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "normal",
+    "name": "unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)",
+    "before_digests": [
+      "a69292ba335f6cd6bdc5936555096f8d9e45b092588c7ac50fef53cf87e54cf0"
+    ],
+    "after_digests": [
+      "67000a1c95aac39ae7ec23b0e3cda5ab06fbd8c657c73f82c9c35996dff35eb9"
+    ],
+    "before_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "wave6",
+    "after": "wave7",
+    "namespace": "db0",
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+    "before_digests": [
+      "6e3218f6370f3f51260dd0353b637a54d5949e4ff3fc344f95265fb7c2fdfd96"
+    ],
+    "after_digests": [
+      "2aad4ad792bee61ce2f061e00d6f5a4983ad95a6342e5c4daad55b4f51f5be82"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ]
+  },
+  {
+    "before": "wave6",
+    "after": "wave7",
+    "namespace": "db0",
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+    "before_digests": [
+      "39846c433f26d4555384a4acb83c0762c3ad2f9f0816c85e628935c8f2c46f4d"
+    ],
+    "after_digests": [
+      "f7b6b75eed4e76dea1edd2e0f4ae0e702493c83cd23efdce729fb2c2d503df39"
+    ],
+    "before_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "wave6",
+    "after": "wave7",
+    "namespace": "db0",
+    "name": "tomo_db0::multi_session_watch_size(tomo_db0::Client const&)",
+    "before_digests": [
+      "6a8a826fbd78b6052a3c28333a3c7fb25ce12b565994d1485e9f04c3a54dae8f"
+    ],
+    "after_digests": [
+      "16d9aae4c006f8389a687e0710a1e1c47e4fbf6fc4d5c0b3a49b0f9fcc01b058"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "wave6",
+    "after": "wave7",
+    "namespace": "normal",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+    "before_digests": [
+      "9885d43a79b881926da18d0b1b29fef19a08570503ddd730b2efc423ac9393eb"
+    ],
+    "after_digests": [
+      "2f7b146be1d8ec074fe50f395ff68804cd59ac0c057647d9ecc7829d43d4806b"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ]
+  },
+  {
+    "before": "wave6",
+    "after": "wave7",
+    "namespace": "normal",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+    "before_digests": [
+      "8833703278170ef6f5c54715e83a42f399ff9ec06d05474035df8da55aeb4b99"
+    ],
+    "after_digests": [
+      "6143a879bdcbb72bc3d0a21ca1dc2515e8d658605b418d3e66e9d0c38f0ed690"
+    ],
+    "before_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "wave6",
+    "after": "wave7",
+    "namespace": "normal",
+    "name": "tomo::multi_session_watch_size(tomo::Client const&)",
+    "before_digests": [
+      "6a8a826fbd78b6052a3c28333a3c7fb25ce12b565994d1485e9f04c3a54dae8f"
+    ],
+    "after_digests": [
+      "7dfad166103c2528f9eeed0c3f51385f44ac8cf0bedc24820a738927b67a2185"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "db0",
+    "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "before_digests": [
+      "e906ae66bd0e3a25dbf6f31074b73a898ce86c14a1b4770faa119a6a5b6e3251"
+    ],
+    "after_digests": [
+      "7fada4da83c4a2a4739b2a1151807a362fa9d00918fda6868f30b45c413edeac"
+    ],
+    "before_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "db0",
+    "name": "tomo_db0::ExLoopT<true>::notify_sender(tomo_db0::Client*)",
+    "before_digests": [
+      "edd4c63a6af85b4d8db7ae0d1aa0f21ffcf5ece524f89d2a0866f398bca77f6c"
+    ],
+    "after_digests": [],
+    "before_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": []
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "db0",
+    "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+    "before_digests": [
+      "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae",
+      "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+    ],
+    "after_digests": [
+      "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "db0",
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+    "before_digests": [
+      "2aad4ad792bee61ce2f061e00d6f5a4983ad95a6342e5c4daad55b4f51f5be82"
+    ],
+    "after_digests": [
+      "32d19109d691e99b7615972571c0b1cc4fcfd3955a456c484151c52d8e2b6ec1"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ]
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "db0",
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+    "before_digests": [
+      "f7b6b75eed4e76dea1edd2e0f4ae0e702493c83cd23efdce729fb2c2d503df39"
+    ],
+    "after_digests": [
+      "ce5b41efe39d9ae0a6e971c29cef9866018073658ec68591c5b76fa3cbbd276f"
+    ],
+    "before_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "db0",
+    "name": "tomo_db0::IoLoop::touch_worker(unsigned int)",
+    "before_digests": [],
+    "after_digests": [
+      "70abbcd24468d6ebbbb7525f0b2efb35128dc46d044d520ade51b4cc00cc8edb"
+    ],
+    "before_cases": [],
+    "after_cases": [
+      [
+        32,
+        "r7mix"
+      ]
+    ]
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "db0",
+    "name": "tomo_db0::Op::cmd_name() const",
+    "before_digests": [],
+    "after_digests": [
+      "0a04a76eabf3e42b4a15c170100679892f7f55dd673b8574322afe6f5ce599e5"
+    ],
+    "before_cases": [],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "normal",
+    "name": "std::unique_ptr<tomo::IoLoop::r7_ReadLocalDemotionPlan::Storage, std::default_delete<tomo::IoLoop::r7_ReadLocalDemotionPlan::Storage> >::~unique_ptr()",
+    "before_digests": [],
+    "after_digests": [
+      "d6d2bb1ff22823721bc43a5bae8cbfa619f008ddba01b5718ee13aa06c606024"
+    ],
+    "before_cases": [],
+    "after_cases": [
+      [
+        32,
+        "r7mix"
+      ]
+    ]
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "normal",
+    "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "before_digests": [
+      "49d478cc379dac90e16c9a27105655ad54d588647338ff07d7da4164aaa7b41e"
+    ],
+    "after_digests": [
+      "bdea8e9c7baf758b058b9a7216d6c12b5ab5514129493a17cd93b1fb926e1ba4"
+    ],
+    "before_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "normal",
+    "name": "tomo::ExLoopT<true>::notify_sender(tomo::Client*)",
+    "before_digests": [
+      "100a1eea42755dafd999cd98defce4a92a309c466582b376f33ca187051bf33e"
+    ],
+    "after_digests": [],
+    "before_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": []
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "normal",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+    "before_digests": [
+      "2f7b146be1d8ec074fe50f395ff68804cd59ac0c057647d9ecc7829d43d4806b"
+    ],
+    "after_digests": [
+      "e4ab4faf47d934a3574f3136bdf8789b67c29f03465302dbbee86fa331ee8532"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ]
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "normal",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+    "before_digests": [
+      "6143a879bdcbb72bc3d0a21ca1dc2515e8d658605b418d3e66e9d0c38f0ed690"
+    ],
+    "after_digests": [
+      "8a58b7ba03ea6401469c51abfccb047e28ad785e9681c87021e5114fc1afb9f3"
+    ],
+    "before_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "pre",
+    "after": "post",
+    "namespace": "db0",
+    "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+    "before_digests": [
+      "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+    ],
+    "after_digests": [
+      "c96363c1dc9b539fbe5dc184f9757159d7df594dbe9297ddf5956a21183ddf1b"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "pre",
+    "after": "post",
+    "namespace": "db0",
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+    "before_digests": [
+      "32d19109d691e99b7615972571c0b1cc4fcfd3955a456c484151c52d8e2b6ec1"
+    ],
+    "after_digests": [
+      "7179874d2e2881c24002953859778c45373639546c421cfa04b296d709088798"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ]
+  },
+  {
+    "before": "pre",
+    "after": "post",
+    "namespace": "db0",
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+    "before_digests": [
+      "ce5b41efe39d9ae0a6e971c29cef9866018073658ec68591c5b76fa3cbbd276f"
+    ],
+    "after_digests": [
+      "4cdca9c83527a9160ef8fb7d70c5ea2562c20148875aa3670d26710a566e3eb6"
+    ],
+    "before_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "pre",
+    "after": "post",
+    "namespace": "db0",
+    "name": "tomo_db0::Op::cmd_name() const",
+    "before_digests": [
+      "0a04a76eabf3e42b4a15c170100679892f7f55dd673b8574322afe6f5ce599e5"
+    ],
+    "after_digests": [],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": []
+  },
+  {
+    "before": "pre",
+    "after": "post",
+    "namespace": "normal",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+    "before_digests": [
+      "e4ab4faf47d934a3574f3136bdf8789b67c29f03465302dbbee86fa331ee8532"
+    ],
+    "after_digests": [
+      "348faee6273d03e69b299f47a957722c366f3ba0f6db9e786c8b174a157468e4"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ]
+  },
+  {
+    "before": "pre",
+    "after": "post",
+    "namespace": "normal",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+    "before_digests": [
+      "8a58b7ba03ea6401469c51abfccb047e28ad785e9681c87021e5114fc1afb9f3"
+    ],
+    "after_digests": [
+      "5e898fb863cdeb2b1ebf67c6c1715d31cfe9d2813bb66dc83a49abd1f9af0fb5"
+    ],
+    "before_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ]
+  },
+  {
+    "before": "pre",
+    "after": "post",
+    "namespace": "normal",
+    "name": "tomo::Op::cmd_name() const",
+    "before_digests": [
+      "127b11c28dc9f34bd4e049f9ea88043e9bb329dd7eab9ed62ced2dd14bc43586"
+    ],
+    "after_digests": [],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": []
+  }
+]

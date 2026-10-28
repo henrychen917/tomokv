@@ -1,0 +1,42 @@
+{
+  "binary_sha256": "b2fef653d8951c5ab52d3dc3e15c27f4b47dd8d801aa8aead2409d5077aad67c",
+  "backend": "ptrace-rep-once",
+  "total": 1399,
+  "functions": {
+    "tomo::Client::nothing_to_write() const": 18,
+    "tomo::FlatStore::hash_key(tomo::Slice)": 86,
+    "tomo::ThreadCtx::post_task_quiet(unsigned int, tomo::Task const&, tomo::LoopSignals&)": 45,
+    "tomo::IoLoop::mark_active(tomo::Client*)": 56,
+    "tomo::IoLoop::flip_dispatch_paused() const": 7,
+    "tomo::Rob<64u>::publish()": 5,
+    "tomo::IoLoop::ReadLocalDemotionPlan::cancel()": 10,
+    "tomo::Rob<64u>::in_flight() const": 5,
+    "tomo::IoLoop::ReadLocalDemotionPlan::commit_reads()": 26,
+    "tomo::Rob<64u>::mark_current_write()": 14,
+    "tomo::Rob<64u>::refine_current_write_hash(unsigned long) [clone .isra.0]": 3,
+    "tomo::ParseResult tomo::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long, tomo::RespFrontier*) [clone .isra.0]": 209,
+    "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)": 836,
+    "tomo::stamp_regular_range(tomo::Op&)": 42,
+    "tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)": 37
+  },
+  "bodies": {
+    "0x45a9e0 tomo::Client::nothing_to_write() const": 18,
+    "0x45f5d0 tomo::FlatStore::hash_key(tomo::Slice)": 86,
+    "0x46a4d0 tomo::ThreadCtx::post_task_quiet(unsigned int, tomo::Task const&, tomo::LoopSignals&)": 45,
+    "0x470b10 tomo::IoLoop::mark_active(tomo::Client*)": 56,
+    "0x471280 tomo::IoLoop::flip_dispatch_paused() const": 7,
+    "0x477880 tomo::Rob<64u>::publish()": 5,
+    "0x72b130 tomo::IoLoop::ReadLocalDemotionPlan::cancel()": 10,
+    "0x72d220 tomo::Rob<64u>::in_flight() const": 5,
+    "0x72dcf0 tomo::IoLoop::ReadLocalDemotionPlan::commit_reads()": 26,
+    "0x72fde0 tomo::Rob<64u>::mark_current_write()": 14,
+    "0x76a950 tomo::Rob<64u>::refine_current_write_hash(unsigned long) [clone .isra.0]": 3,
+    "0x76d8e0 tomo::ParseResult tomo::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long, tomo::RespFrontier*) [clone .isra.0]": 209,
+    "0x785020 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)": 836,
+    "0x7c4bf0 tomo::stamp_regular_range(tomo::Op&)": 42,
+    "0x7cb4f0 tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)": 37
+  },
+  "raw_total": 1399,
+  "clock_calls": 0,
+  "excluded_calls": 4
+}

@@ -6,7 +6,7 @@
     "-ffunction-sections",
     "-std=c++20",
     "-O2",
-    "-g0",
+    "-g",
     "-Wall",
     "-Wextra",
     "-march=native",
@@ -25,5 +25,5 @@
     "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/pre/db0/src/core/rl2s.o"
   ],
   "original_sha256": "63b24765a1d8c7856615e236550a6dd453075416ba2be3202884948375eb4f27",
-  "sha256": "016cf176829c192d6b6b6b2ba4016a76f0101042d951d1b90ea9ad671c7eca5c"
+  "sha256": "bf935360b8eebeff36f3387922633eb9bc704760fd1ef1b146c0a3920596fb90"
 }

@@ -1,0 +1,23 @@
+{
+  "arm": "post",
+  "unit": "src/cmd/t_stream.o",
+  "command": [
+    "g++",
+    "-ffunction-sections",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/cmd/t_stream.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/post/src/cmd/t_stream.o"
+  ],
+  "original_sha256": "4b751bd613ededc44eb11d996fb0b10b91d1834ec5ec07845e4e355175aa2712",
+  "sha256": "b58fbf8462c99ce6ae5891ca305feb7ab3154c9583ab24f299408b76e153ef8b"
+}

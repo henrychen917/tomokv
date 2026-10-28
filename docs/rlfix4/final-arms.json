@@ -1,0 +1,22 @@
+{
+  "pre": {
+    "path": "build/tomokv-rlfix4-pre",
+    "sha256": "2ffc953c8820419009929629e985b517d02787a461493edd81ce79571b030e5c",
+    "bytes": 218091616
+  },
+  "post": {
+    "path": "build/tomokv-rlfix4-post",
+    "sha256": "5a903fd856e7cccfcb27df13da666be6381f3c0ae3a0a9428bb01f542ab0cb97",
+    "bytes": 218096480
+  },
+  "pad-a": {
+    "path": "build/tomokv-rlfix4-pad-a",
+    "sha256": "88a45e76757236ef402721884f56de59aba01fef1f51b7c14e79403592c4e10d",
+    "bytes": 223208232
+  },
+  "post-layout": {
+    "path": "build/tomokv-rlfix4-post-layout",
+    "sha256": "091a70220da1967f5b9fbda573f9c3b47ff877bcc4e5f7a29588907968d8cf93",
+    "bytes": 223217120
+  }
+}

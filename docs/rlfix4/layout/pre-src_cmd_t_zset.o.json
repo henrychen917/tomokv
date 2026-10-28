@@ -1,0 +1,27 @@
+{
+  "arm": "pre",
+  "unit": "src/cmd/t_zset.o",
+  "command": [
+    "g++",
+    "-ffunction-sections",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=33447",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/cmd/t_zset.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/pre/src/cmd/t_zset.o"
+  ],
+  "original_sha256": "830c67f37d568548fe1e4259ec56e6513551257726891b0d07e0218422321f3a",
+  "sha256": "a73609b5cfe414d1a7404b4d770724445008eb1bc6aad9400968c085500e305d"
+}

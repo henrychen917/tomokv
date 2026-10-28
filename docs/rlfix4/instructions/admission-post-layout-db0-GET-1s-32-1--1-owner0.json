@@ -1,0 +1,38 @@
+{
+  "binary_sha256": "c0528c2decdee1905e2f3efd61ad5f1cfcd6aa7757aff5e50274f62b8a8c0475",
+  "backend": "ptrace-rep-once",
+  "total": 21051,
+  "functions": {
+    "tomo_db0::Rob<64u>::publish()": 160,
+    "tomo_db0::IoLoop::mark_active(tomo_db0::Client*)": 242,
+    "tomo_db0::ThreadCtx::post_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 1440,
+    "tomo_db0::Client::nothing_to_write() const": 18,
+    "tomo_db0::IoLoop::flip_dispatch_paused() const": 7,
+    "tomo_db0::ParseResult tomo_db0::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long, tomo_db0::RespFrontier*) [clone .isra.0]": 6240,
+    "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 9859,
+    "tomo_db0::IoLoop::ReadLocalDemotionPlan::cancel()": 160,
+    "tomo_db0::IoLoop::flip_fingerprint_note(tomo_db0::CommandSpec const&, tomo_db0::Op const&)": 192,
+    "tomo_db0::IoLoop::flip_fingerprint_finish_pass()": 12,
+    "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]": 2688,
+    "tomo_db0::Rob<64u>::in_flight() const": 5,
+    "tomo_db0::IoLoop::query_buffer_exceeded(tomo_db0::Client const&) const": 28
+  },
+  "bodies": {
+    "0xdf620 tomo_db0::Rob<64u>::publish()": 160,
+    "0xe6340 tomo_db0::IoLoop::mark_active(tomo_db0::Client*)": 242,
+    "0x1519a0 tomo_db0::ThreadCtx::post_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 1440,
+    "0x153aa0 tomo_db0::Client::nothing_to_write() const": 18,
+    "0x154280 tomo_db0::IoLoop::flip_dispatch_paused() const": 7,
+    "0x3f2f30 tomo_db0::ParseResult tomo_db0::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long, tomo_db0::RespFrontier*) [clone .isra.0]": 6240,
+    "0x410890 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 9859,
+    "0x428ea0 tomo_db0::IoLoop::ReadLocalDemotionPlan::cancel()": 160,
+    "0x42a990 tomo_db0::IoLoop::flip_fingerprint_note(tomo_db0::CommandSpec const&, tomo_db0::Op const&)": 192,
+    "0x434890 tomo_db0::IoLoop::flip_fingerprint_finish_pass()": 12,
+    "0x46cb20 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]": 2688,
+    "0x471400 tomo_db0::Rob<64u>::in_flight() const": 5,
+    "0x471f40 tomo_db0::IoLoop::query_buffer_exceeded(tomo_db0::Client const&) const": 28
+  },
+  "raw_total": 21051,
+  "clock_calls": 0,
+  "excluded_calls": 5
+}

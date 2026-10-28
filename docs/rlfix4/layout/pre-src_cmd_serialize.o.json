@@ -1,0 +1,23 @@
+{
+  "arm": "pre",
+  "unit": "src/cmd/serialize.o",
+  "command": [
+    "g++",
+    "-ffunction-sections",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/cmd/serialize.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/pre/src/cmd/serialize.o"
+  ],
+  "original_sha256": "631665acda3c7ef1cd23f04a41e7ed29ac9a24c03699fb2f68bb8bc2bf0817e5",
+  "sha256": "897a8cbcbcf8bd6f48576839b94aa217f3b625a1344cdb5494fdf852a0271ba0"
+}

@@ -6,7 +6,7 @@
     "-ffunction-sections",
     "-std=c++20",
     "-O2",
-    "-g0",
+    "-g",
     "-Wall",
     "-Wextra",
     "-march=native",
@@ -14,7 +14,7 @@
     "--param",
     "inline-unit-growth=0",
     "--param",
-    "large-unit-insns=164621",
+    "large-unit-insns=164637",
     "-DTOMO_JEMALLOC",
     "-I.",
     "-c",
@@ -22,6 +22,6 @@
     "-o",
     "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/post/src/core/rl2s.o"
   ],
-  "original_sha256": "4cb12f910da27107dc7939da2a79fa4a240868c661926d12a9a295ba216dc883",
-  "sha256": "89cf647c4736d171b78a97125f4075b97f5f3e85ac47c8ae34808fabca681637"
+  "original_sha256": "f08797dcb5ef9fd3c0b6dfee138dd105bd049a4fe567b4265efe47bf33fb9ba3",
+  "sha256": "37e484ba90e27599b010f86633940eb9e9becc72fd3fc389482b89cc7f958152"
 }

@@ -1,5 +1,5 @@
-/home/user/Projects/cx-rlfix4/build/rlfix4/trace /home/user/Projects/cx-rlfix4/build/rlfix4/commands/post-db0/probe /home/user/Projects/cx-rlfix4/build/rlfix4/commands/post-db0-MGET-1s-32-1--1-local.ranges 8349e0 8349f0 20a40 MGET 1s 32 1 -1 local
+/home/user/Projects/cx-rlfix4/build/rlfix4/trace /home/user/Projects/cx-rlfix4/build/rlfix4/commands/post-db0/probe /home/user/Projects/cx-rlfix4/build/rlfix4/commands/post-db0-MGET-1s-32-1--1-local.ranges 8345c0 8345d0 20a40 MGET 1s 32 1 -1 local
 TomoKV 1.0-cpp (Redis 7.4.10 compatible)
 WITNESS reads=32 pending_writes=0 keys_per_read=8
 PASS bounded production command scope
-COUNT 187846
+COUNT 186086

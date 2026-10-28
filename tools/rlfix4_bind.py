@@ -7,6 +7,7 @@ ROOT=Path(__file__).resolve().parents[1]
 DOC=ROOT/'docs/rlfix4';INS=DOC/'instructions'
 ARMS={'anchor':'anchor','wave6':'wave6','wave7':'wave7','pre':'pre',
       'preparse':'pre','post':'post','pad-a':'pad-a','post-layout':'post-layout'}
+ARMS.update({'admission-'+a:a for a in ('pre','post','pad-a','post-layout')})
 def run(arm):
  server=inventory(ROOT/('build/tomokv-rlfix4-'+ARMS[arm]))
  with gzip.open(DOC/('identity/rebuilt-'+arm+'.json.gz'),'wt') as out:json.dump(server,out)

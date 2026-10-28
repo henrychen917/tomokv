@@ -1,5 +1,5 @@
 {
-  "binary_sha256": "ebb7cffab13790ed267790662bfe4a22ece184cc0664b70229964945cc81037a",
+  "binary_sha256": "6330758100355271a1aa55ec36e6f2b7829ee4b27aef6cbc59bb941f46ca5822",
   "backend": "ptrace-rep-once",
   "total": 194624,
   "functions": {
@@ -16,17 +16,17 @@
     "tomo::[asm .rlfence]": 5
   },
   "bodies": {
-    "0x460960 tomo::FlatStore::hash_key(tomo::Slice)": 23296,
-    "0x55d820 tomo::Op::Sink::reserve(unsigned long)": 768,
-    "0x55d8f0 tomo::u64_to_dec(char*, unsigned long)": 1376,
-    "0x728b50 tomo::FlatStore::read_local_capture_in(tomo::FlatStore::ReadLocalTable const&, unsigned long, tomo::Slice, unsigned long const*&) const [clone .isra.0]": 22528,
-    "0x72a0c0 tomo::FlatStore::read_local_prefetch(unsigned long) const": 21504,
-    "0x72a240 tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 29696,
-    "0x737540 tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 814,
-    "0x741930 tomo::ExLoopT<true>::prepare_captured_local_mget(tomo::Op&)": 90176,
-    "0x742b50 tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)": 992,
-    "0x743420 unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 3469,
-    "0x845ff9 tomo::[asm .rlfence]": 5
+    "0x4605e0 tomo::FlatStore::hash_key(tomo::Slice)": 23296,
+    "0x55d4a0 tomo::Op::Sink::reserve(unsigned long)": 768,
+    "0x55d570 tomo::u64_to_dec(char*, unsigned long)": 1376,
+    "0x728730 tomo::FlatStore::read_local_capture_in(tomo::FlatStore::ReadLocalTable const&, unsigned long, tomo::Slice, unsigned long const*&) const [clone .isra.0]": 22528,
+    "0x729ca0 tomo::FlatStore::read_local_prefetch(unsigned long) const": 21504,
+    "0x729e20 tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 29696,
+    "0x737120 tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 814,
+    "0x741510 tomo::ExLoopT<true>::prepare_captured_local_mget(tomo::Op&)": 90176,
+    "0x742730 tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)": 992,
+    "0x743000 unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 3469,
+    "0x845bd9 tomo::[asm .rlfence]": 5
   },
   "raw_total": 194624,
   "clock_calls": 0,

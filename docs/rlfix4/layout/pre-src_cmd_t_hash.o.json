@@ -1,0 +1,23 @@
+{
+  "arm": "pre",
+  "unit": "src/cmd/t_hash.o",
+  "command": [
+    "g++",
+    "-ffunction-sections",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/cmd/t_hash.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/pre/src/cmd/t_hash.o"
+  ],
+  "original_sha256": "0c890626e3ee815d04c8b5e63d8d24fe1cc7cfc64556b5624d01ccf268507c16",
+  "sha256": "93ea40d85857ed6399761c3398c538a85c9fad8ec90145313b4a78d6eea0ed3e"
+}

@@ -6,7 +6,7 @@
     "-ffunction-sections",
     "-std=c++20",
     "-O2",
-    "-g0",
+    "-g",
     "-Wall",
     "-Wextra",
     "-march=native",
@@ -19,5 +19,5 @@
     "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/pre/src/core/fliplisten.o"
   ],
   "original_sha256": "5e42c8ee883a0420f487a68641d9c5c9ce775879856b42f20057dbfad6b653f0",
-  "sha256": "883c0b2c562451a4d4bb53400bc0b0935d1d2520c06377d98326e84a69c7c7e9"
+  "sha256": "cb878e5e3d7c219dcb62c614697c02cce20d1cdf7cc25ca402e19c56115d8230"
 }

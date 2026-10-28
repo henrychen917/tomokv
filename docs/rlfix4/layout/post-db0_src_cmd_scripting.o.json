@@ -1,0 +1,25 @@
+{
+  "arm": "post",
+  "unit": "db0/src/cmd/scripting.o",
+  "command": [
+    "g++",
+    "-ffunction-sections",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/cmd/scripting.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/post/db0/src/cmd/scripting.o"
+  ],
+  "original_sha256": "e6dcfa50242797ffa0813c4235e51d1909978951445e49848737e2f5c4626ea7",
+  "sha256": "9a0d064305c84a10047120cc63ec5bbbeb737620fc30e8ed59554c38c1de44b4"
+}
