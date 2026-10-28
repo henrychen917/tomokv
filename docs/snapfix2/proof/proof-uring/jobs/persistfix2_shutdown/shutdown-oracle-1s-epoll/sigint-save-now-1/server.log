@@ -1,0 +1,16 @@
+492088:C 28 Oct 2026 23:41:05.176 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+492088:C 28 Oct 2026 23:41:05.176 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+492088:C 28 Oct 2026 23:41:05.176 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=492088, just started
+492088:C 28 Oct 2026 23:41:05.176 * Configuration loaded
+492088:M 28 Oct 2026 23:41:05.176 * monotonic clock: POSIX clock_gettime
+492088:M 28 Oct 2026 23:41:05.177 * Running mode=standalone, port=20100.
+492088:M 28 Oct 2026 23:41:05.177 * Server initialized
+492088:M 28 Oct 2026 23:41:05.177 * Ready to accept connections tcp
+492088:signal-handler (1793202065) Received SIGINT scheduling shutdown...
+492088:M 28 Oct 2026 23:41:05.279 * User requested shutdown...
+492088:M 28 Oct 2026 23:41:05.279 * Saving the final RDB snapshot before exiting.
+492088:M 28 Oct 2026 23:41:05.279 # Error moving temp DB file temp-492088.rdb on the final destination dump.rdb (in server root dir /home/user/Projects/cx-snapfix2/build/gate-run.1RnZQ6/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-save-now-1/data): Is a directory
+492088:M 28 Oct 2026 23:41:05.279 # Error trying to save the DB, can't exit.
+492088:M 28 Oct 2026 23:41:05.279 # Errors trying to shut down the server. Check the logs for more information.
+492088:M 28 Oct 2026 23:41:05.283 * User requested shutdown...
+492088:M 28 Oct 2026 23:41:05.283 # Redis is now ready to exit, bye bye...

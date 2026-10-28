@@ -5,6 +5,7 @@ No performance workloads, full gate, debugger, or core capture. Each command is
 recorded with its input digest, exit code and output digest, including failures.
 """
 import argparse
+import gzip
 import hashlib
 import json
 import os
@@ -12,6 +13,7 @@ from pathlib import Path
 import re
 import resource
 import shlex
+import shutil
 import signal
 import subprocess
 import time
@@ -81,12 +83,37 @@ def matrix(script, case, label, arm='post', extra=(), timeout=1500):
                       *extra], ARMS[arm], timeout)
 
 
+def prune_gate_run(run_dir, archive):
+    """The recorder hashed every artifact. Preserve large text compressed,
+    then discard the completed run's temporary binaries, source trees and data."""
+    run_dir, archive = Path(run_dir), Path(archive)
+    assert run_dir.parent == ROOT / 'build' and run_dir.name.startswith('gate-run.')
+    receipt = archive / 'record.json'
+    record = json.loads(receipt.read_text())
+    kept = {}
+    for path in run_dir.rglob('*'):
+        if path.is_file() and path.suffix in {'.log', '.txt', '.json', '.tsv'} and path.stat().st_size > 512*1024:
+            target = archive / (str(path.relative_to(run_dir))+'.gz')
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with path.open('rb') as src, gzip.open(target, 'wb') as dst:
+                shutil.copyfileobj(src, dst)
+            kept[str(target.relative_to(archive))] = sha(target)
+    record.update(compressed_large_text=kept, removed_run_artifacts=True)
+    receipt.write_text(json.dumps(record, indent=2)+'\n')
+    shutil.rmtree(run_dir)
+
+
 def gate(engine, differ=False, extra=False, fused=False):
     label = ('extra-' if extra else 'differ-' if differ else 'proof-')+engine
     if extra:
         label += '-1s' if fused else '-2s'
     jobs = ('release_batteries asan_batteries' if extra else
             'differ-split differ-armed' if differ else ' '.join(JOBS))
+    if extra and fused:
+        # Mirror the ordinary split boots that use the gate's existing mode
+        # switch. Explicit mode/engine matrices already ran in the main pass.
+        jobs += (' debug-0 debug-1 atomic_batteries script_bounds dump_restore aof_frame'
+                 f' snapshot-{engine} aof-{engine}')
     env = dict(GATE_ONLY_JOBS=jobs, REDIS74_ROOT='/home/user/Projects/redis',
                GATE_NET_IO=engine, GATE_DIFFER_NET_IO=engine, GATE_PROOF_NO_RATES='1')
     if extra:
@@ -101,6 +128,7 @@ def gate(engine, differ=False, extra=False, fused=False):
                         '--command', shlex.join(['env', *[k+'='+v for k,v in env.items()], *cmd]),
                         '--binary', ARMS['post'], '--log', str(log),
                         '--output-root', str(OUT/'proof')], check=True)
+        prune_gate_run(m[1], OUT/'proof'/label)
 
 
 def main():

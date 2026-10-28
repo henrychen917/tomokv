@@ -94,7 +94,10 @@ both namespaces were counted on PRE, BASE and POST by
 `tools/snapfix2_artifacts.py scope`. This launches GDB only on the serverless
 fixture; it never attaches to or debugs a server. All **48 cells per arm**, hence
 **96 PRE/BASE-vs-POST comparisons**, have identical totals and per-function
-counts: zero added executed instructions. Totals are recorded in
+counts: zero added executed instructions in the named production routines and
+inlined code. As in snapfix, the fixture excludes library callees and fixture
+glue, runs with no snapshot armed and read-local 0, and uses atomic 1 except the
+additional MSET atomic-0 cells. Totals are recorded in
 `docs/snapfix2/instructions/comparison.json`.
 
 ### FLUSHALL: pre-existing atomicity defect, separate repair required
@@ -147,8 +150,17 @@ taskset -c 8-15 python3 tests/snapfix2_flush.py --case flush-pair \
 
 `tools/snapfix2_verify.py` records command lines, binary/oracle SHA-256, exit codes
 and logs, and drives the gate's **partial job interface**. No full iteration,
-ABBA or NIC pass runs. The all-leg isolation, POST RSS/diagnostics/long storms,
-selected gate jobs and both differential engines are in progress. Initial
+ABBA or NIC pass runs. `GATE_PROOF_NO_RATES=1` suppresses only the existing
+atomic RYOW performance assertion. The first main pass was interrupted before
+that job to enable the switch; its 18 completed rows and interrupted shutdown
+row are retained in `proof/proof-uring-interrupted` and are not the final proof.
+The oracle is Redis 7.4.10, verified with `--version`; command receipts bind its
+binary digest. The main targeted pass completed: **53 jobs, 329 ok, 0 FAIL**, including all
+snapfix rows and the new RSS row (`proof/proof-uring/record.json`). The idle RSS
+row passed all eight TomoKV legs plus Redis: 1s stayed at 18.79–18.87 MiB and 2s
+at 15.30–15.38 MiB over 12 saves. Both storm rows passed all nine legs.
+The FLUSHALL matrix, larger/longer RSS checks, other engine pass and differential
+suites remain in progress. Initial
 `tests/gates_test.py` hit three fixture timeout failures while compilation and
 instruction tracing overlapped; it will be repeated in isolation, with the
 original log retained. No assertion or timeout is weakened.

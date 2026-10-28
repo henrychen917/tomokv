@@ -1,0 +1,10 @@
+{"affinity": [8, 9, 10, 11, 12, 13, 14, 15], "argv": ["taskset", "-c", "0-7", "/home/user/Projects/cx-snapfix2/build/tomokv", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.1RnZQ6/jobs/flip/flipfix-sigterm-epoll/sigterm", "--save", "3600 1", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--databases", "1", "--net-io", "epoll", "--enable-debug-command", "yes"], "event": "boot", "label": "sigterm", "loadavg": [9.6953125, 20.7119140625, 28.650390625]}
+{"event": "ready", "exe": "/home/user/Projects/cx-snapfix2/build/tomokv", "label": "sigterm", "pid": 901379}
+{"acknowledged": 1000, "case": "sigterm", "event": "armed", "moving": 1}
+{"elapsed": 0.0072, "event": "sigterm-exit", "status": 0}
+{"event": "flip-reply", "reply": "RespError(b'ERR FLIP aborted: the server is shutting down')"}
+{"event": "stop", "label": "sigterm", "loadavg": [9.6953125, 20.7119140625, 28.650390625], "log": "/home/user/Projects/cx-snapfix2/build/gate-run.1RnZQ6/jobs/flip/flipfix-sigterm-epoll/sigterm/sigterm.log", "rc": 0}
+{"affinity": [8, 9, 10, 11, 12, 13, 14, 15], "argv": ["taskset", "-c", "0-7", "/home/user/Projects/cx-snapfix2/build/tomokv", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.1RnZQ6/jobs/flip/flipfix-sigterm-epoll/sigterm", "--save", "", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--databases", "1", "--net-io", "epoll", "--enable-debug-command", "yes"], "event": "boot", "label": "restart", "loadavg": [9.6953125, 20.7119140625, 28.650390625]}
+{"event": "ready", "exe": "/home/user/Projects/cx-snapfix2/build/tomokv", "label": "restart", "pid": 901478}
+{"case": "sigterm", "recovered": 1000, "result": "PASS"}
+{"event": "stop", "label": "restart", "loadavg": [9.6953125, 20.7119140625, 28.650390625], "log": "/home/user/Projects/cx-snapfix2/build/gate-run.1RnZQ6/jobs/flip/flipfix-sigterm-epoll/sigterm/restart.log", "rc": 0}
