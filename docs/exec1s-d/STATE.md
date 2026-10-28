@@ -1,14 +1,18 @@
 exec1s-d continuation state (2026-10-29)
 
-Production is frozen at b3eadebf9, POST SHA 22d10835d2b4ab630f5214d857802a0c72bce83e9f4e06eecf8422d9024b1128.
-All final command/idle/allocation counts, frozen arms and the common-image PAD pair are recorded.
-Ordinary 48 scopes: max delta 0. Read-local 4 scopes: exact equality. Allocation ratio .247743.
-X3 idle budget remains missed (+7, budget +2). Historical SAVE Busy remains unresolved.
-Native psfix22 repeats time out on repeat6 in C-PRE and MERGE; this is distinct from Busy.
-The full seed22 plan is also being replayed natively without GDB, in addition to successful observed runs.
+Production revised at cf3bdaa9e, POST SHA 4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18.
+Prior POST22d failed the existing EXECABORT/WATCH directed row: queue-error EXEC skipped prepare_commands and lazy database_map stayed null. Production cold error path now captures the map when watched. All24 direct variants pass; original test unchanged.
 
-Correctness driver session 86621 runs families (gate-run.BZeNRx), supplement, differ, harness sequentially.
-Native full-plan session 42463 runs C-PRE then MERGE on ports20000/20001; shared port lock is now enforced.
-Final lottery copied-source build succeeded. Its bounded gate smoke and final production freshness remain.
-MEASURE-REQUEST-exec1s-d.md is drafted; replace PROOF_STATUS_PENDING only from final receipts.
-At finish: aggregate receipts, run make-q checks, record any failure honestly, commit, leave clean. No push.
+Active sessions:
+- 27282 regenerates all final POST scopes/counts/allocation/retirements.
+- 4965 rebuilds PRE objects and final common-image PAD, then deletes PRE source and PAD objects.
+- 63818 runs selected watch-fix gate (atomic_units+exec1s), then families, supplement, differ and harness. No full iteration.
+- Old86621 stopped after family-attempt3 exit130 (candidate unchanged); old22d proof contains the one real EXECABORT failure. Preserve it; no longer final proof.
+- Native original full plan passed235/0 on C-PRE, MERGE and old POST22d. The oldPOST session66083 then refused stale lottery build (make-q1), correctly. Need rebuild final lottery and run lottery phase, then controls phase for final POST-layout/PAD-A.
+
+Report MEASURE-REQUEST-exec1s-d.md is drafted/tracked but must update final commit/hash/counts/table and PROOF_STATUS_PENDING.
+After final counts, run tools/exec1sd_receipts.py. Re-run make-q freshness after production_units completes.
+Old counts met ordinary48 max0/readlocal4 exact/alloc.247743; new counts pending. X3 idle budget previously+7 remains likelymiss; do not claim before finalcheck.
+SAVE Busy historical failure remains unresolved. Native repeat6 timeout is a separate older-code failure, not Busy.
+Disk near30G: retired large successful oldgate payloads/disassemblies with digests; retiring old exbatch/checks copies. Keep only final arm binaries, smalllogs/receipts; remove completed copies and steptraces.
+CPU64-95 only, ports20000-20099, builds-j32. No rates/loadgenerators/fullgate. Commit small steps, no push, clean at finish.

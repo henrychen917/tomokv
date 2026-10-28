@@ -72,8 +72,10 @@ def proof():
  final_jobs={}
  for run in sorted(runs,key=lambda r:r['started_utc']):
   if not run['bound_to_final_post']:continue
+  env=run.get('proof_environment',{})
+  variant='fused='+env.get('GATE_TXN_FUSED','0')+',atomic='+env.get('GATE_TXN_ATOMIC','1')+',engine='+env.get('GATE_DIFFER_NET_IO','uring')
   for job in run['jobs']:
-   if job['completed']:final_jobs[job['name']]=dict(invocation=run['receipt'],**job)
+   if job['completed']:final_jobs[job['name']+' ['+variant+']']=dict(invocation=run['receipt'],variant=variant,**job)
  d.save(d.DOCS/'live-proof.json',dict(production_sha256=manifest['POST']['sha256'],runs=runs,final_jobs=final_jobs,
   not_run=[dict(job=name,reason=reason) for name,reason in [
    ('full gate iteration / performance merit','Maintainer-only; all invoked gates use GATE_ONLY_JOBS.'),

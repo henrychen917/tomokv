@@ -19,7 +19,7 @@ def gate(label, jobs, engine='uring', extra=None, candidate=None, ports='20010-2
 def main():
     assert os.sched_getaffinity(0)<=set(range(64,96))
     p=argparse.ArgumentParser()
-    p.add_argument('phase',choices=['core','families','supplement','differ','harness','lottery'])
+    p.add_argument('phase',choices=['core','families','supplement','differ','harness','lottery','controls'])
     a=p.parse_args();out=[]
     if a.phase=='core':
         out.append(gate('core',['exec1s','txnorder_wound','at412-owner','txnorder_index']+
@@ -46,6 +46,12 @@ def main():
     elif a.phase=='differ':
         for engine in ('uring','epoll'):
             out.append(gate('differ-'+engine,['differ-split','differ-armed'],engine))
+    elif a.phase=='controls':
+        for arm in ('POST-layout','PAD-A'):
+            binary=d.OUT/arm
+            saved=next(r for r in json.loads((d.DOCS/'arms.json').read_text()) if r['arm']==arm)
+            assert d.sha(binary)==saved['sha256']
+            out.append(gate(arm+'-smoke',['execfair'],candidate=binary,ports='20002-20009',server_cores='64-71',load_cores='72-95'))
     elif a.phase=='lottery':
         binary=d.ROOT/'build/lottery/tomokv'
         subprocess.run(['make','-q','build/lottery/tomokv'],check=True)

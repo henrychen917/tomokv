@@ -155,13 +155,15 @@ preceding suites. The original full seed/suite plan is copied unchanged to
 
 The full split-0 replay passed on MERGE and C-PRE with an admission-result
 observer: all 15 SAVE/BGSAVE starts returned Started in each arm. The observer
-does change timing. Native full-plan replay receipts are recorded separately;
-neither successful replay proves the historical failure fixed or pre-existing.
+does change timing. Native full-plan replays on C-PRE and MERGE also passed all 235 legs each.
+The harness bytes match exec1s-c and the oracle is Redis 7.4.10; see
+[save-reproduction-environment.json](docs/exec1s-d/save-reproduction-environment.json).
+These successful replays do not prove the historical failure fixed or pre-existing.
 
 Bounded native repeats of unchanged `tests/differ.py ... psfix 22` reproduce a
 different failure on both C-PRE and MERGE: repeats 0–5 pass, then repeat 6
 times out waiting for SAVE. The two failure logs have the same SHA-256. This
-is a pre-existing SAVE hang under that repeated schedule, **not** the original
+is a timeout reproduced on older code under that repeated schedule, **not** the original
 Busy rejection. GDB snapshots are diagnostic only; no persistence fix or
 root-cause claim is based on optimized variables. An overlapped observer
 attempt is explicitly invalidated in its receipt and is not proof.
