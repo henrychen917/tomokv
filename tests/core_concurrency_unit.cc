@@ -257,8 +257,8 @@ struct CoreConcurrencyTest {
         f.io.close_client(client);
         for (uint32_t i = 0; i < 4; i++) f.io.reap_dead();
         require(f.io.dead_next_.empty() && f.io.dead_ready_.empty() &&
-                    f.server.live_clients() == 1 && !client->dead(),
-                "close/reap held client across more than two IO iterations");
+                    f.server.live_clients() == 0 && !client->dead(),
+                "close uncounted admission but retained storage across more than two IO iterations");
         {
             std::lock_guard lock(pause_mutex);
             done_hook_release = true;
@@ -341,15 +341,15 @@ struct CoreConcurrencyTest {
         };
         for (unsigned n = 0; n < 2; ++n) {
             for (auto* io : ios) pass(*io);
-            require(f.server.live_clients() == 2 && !clients[0]->dead() && !clients[1]->dead(),
-                    "bounded pass preserves both clients while peer scopes are live");
+            require(f.server.live_clients() == 0 && !clients[0]->dead() && !clients[1]->dead(),
+                    "bounded close uncounts both clients while live peer scopes retain their storage");
         }
         first.reset();
         pass(f.io);
         require(!clients[0]->dead(), "one ended epoch cannot waive the other peer");
         pass(peer);
-        require(clients[1]->dead() && f.server.live_clients() == 1,
-                "peer closes only after its captured epoch ends");
+        require(clients[1]->dead() && f.server.live_clients() == 0,
+                "peer storage closes only after its captured epoch ends without uncounting twice");
         second.reset();
         first.emplace(f.server, f.io_id);
         second.emplace(f.server, other); // newer active epochs must not require global idle

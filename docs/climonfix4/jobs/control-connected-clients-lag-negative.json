@@ -2,7 +2,6 @@
   "cwd": "/home/user/Projects/cx-climonfix4",
   "gate_sha256": "2c5fa24f27a7ecf16a252457c210cbae842fefd8d150b19d742cd05f259b097c",
   "cpu_boundary": "16-31",
-  "source_commit": "f86022ba4",
   "exit": 1,
   "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
   "argv": [
@@ -48,5 +47,7 @@
       "error": null
     }
   },
-  "manifest_sha256": "975ee3e5ee2b50acffd897e208389bd8d2f62006d3f8a36954e583f5ccd992bf"
+  "manifest_sha256": "975ee3e5ee2b50acffd897e208389bd8d2f62006d3f8a36954e583f5ccd992bf",
+  "harness_source_commit": "f86022ba4",
+  "binary_source_commit": "393d6ceb1"
 }

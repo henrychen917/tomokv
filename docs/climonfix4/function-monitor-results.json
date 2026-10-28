@@ -1,0 +1,254 @@
+[
+  {
+    "engine": "uring",
+    "mode": "redis",
+    "binary_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "argv": [
+      "taskset",
+      "-c",
+      "16-23",
+      "/home/user/Projects/redis74/src/redis-server",
+      "--port",
+      "20290",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/function-monitor-final/uring/redis",
+      "--enable-debug-command",
+      "yes"
+    ],
+    "lines": [
+      "1793209677.758255 [0 127.0.0.1:33688] \"FCALL\" \"cm4mon\" \"1\" \"cm4:mon\" \"value\"",
+      "1793209677.758269 [0 lua] \"set\" \"cm4:mon\" \"value\"",
+      "1793209677.758280 [0 lua] \"get\" \"cm4:mon\"",
+      "1793209677.758287 [0 127.0.0.1:33688] \"PING\""
+    ],
+    "expected": [
+      "] \"FCALL\"",
+      "[0 lua] \"set\" \"cm4:mon\" \"value\"",
+      "[0 lua] \"get\" \"cm4:mon\"",
+      "] \"PING\""
+    ],
+    "passed": true
+  },
+  {
+    "engine": "uring",
+    "mode": "1s",
+    "binary_sha256": "3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8",
+    "argv": [
+      "taskset",
+      "-c",
+      "16-23",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST",
+      "--port",
+      "20290",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/function-monitor-final/uring/1s",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--net-io",
+      "uring"
+    ],
+    "lines": [
+      "1793209677.868192 [0 127.0.0.1:33736] \"FCALL\" \"cm4mon\" \"1\" \"cm4:mon\" \"value\"",
+      "1793209677.868368 [0 lua] \"set\" \"cm4:mon\" \"value\"",
+      "1793209677.868372 [0 lua] \"get\" \"cm4:mon\"",
+      "1793209677.868204 [0 127.0.0.1:33736] \"PING\""
+    ],
+    "expected": [
+      "] \"FCALL\"",
+      "[0 lua] \"set\" \"cm4:mon\" \"value\"",
+      "[0 lua] \"get\" \"cm4:mon\"",
+      "] \"PING\""
+    ],
+    "passed": true
+  },
+  {
+    "engine": "uring",
+    "mode": "2s",
+    "binary_sha256": "3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8",
+    "argv": [
+      "taskset",
+      "-c",
+      "16-23",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST",
+      "--port",
+      "20290",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/function-monitor-final/uring/2s",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--net-io",
+      "uring",
+      "--ratio",
+      "6:2"
+    ],
+    "lines": [
+      "1793209678.129210 [0 127.0.0.1:33772] \"FCALL\" \"cm4mon\" \"1\" \"cm4:mon\" \"value\"",
+      "1793209678.129385 [0 lua] \"set\" \"cm4:mon\" \"value\"",
+      "1793209678.129390 [0 lua] \"get\" \"cm4:mon\"",
+      "1793209678.129222 [0 127.0.0.1:33772] \"PING\""
+    ],
+    "expected": [
+      "] \"FCALL\"",
+      "[0 lua] \"set\" \"cm4:mon\" \"value\"",
+      "[0 lua] \"get\" \"cm4:mon\"",
+      "] \"PING\""
+    ],
+    "passed": true
+  },
+  {
+    "engine": "epoll",
+    "mode": "redis",
+    "binary_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "argv": [
+      "taskset",
+      "-c",
+      "16-23",
+      "/home/user/Projects/redis74/src/redis-server",
+      "--port",
+      "20290",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/function-monitor-final/epoll/redis",
+      "--enable-debug-command",
+      "yes"
+    ],
+    "lines": [
+      "1793209678.388225 [0 127.0.0.1:33826] \"FCALL\" \"cm4mon\" \"1\" \"cm4:mon\" \"value\"",
+      "1793209678.388239 [0 lua] \"set\" \"cm4:mon\" \"value\"",
+      "1793209678.388251 [0 lua] \"get\" \"cm4:mon\"",
+      "1793209678.388257 [0 127.0.0.1:33826] \"PING\""
+    ],
+    "expected": [
+      "] \"FCALL\"",
+      "[0 lua] \"set\" \"cm4:mon\" \"value\"",
+      "[0 lua] \"get\" \"cm4:mon\"",
+      "] \"PING\""
+    ],
+    "passed": true
+  },
+  {
+    "engine": "epoll",
+    "mode": "1s",
+    "binary_sha256": "3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8",
+    "argv": [
+      "taskset",
+      "-c",
+      "16-23",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST",
+      "--port",
+      "20290",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/function-monitor-final/epoll/1s",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--net-io",
+      "epoll"
+    ],
+    "lines": [
+      "1793209678.496293 [0 127.0.0.1:33868] \"FCALL\" \"cm4mon\" \"1\" \"cm4:mon\" \"value\"",
+      "1793209678.496379 [0 lua] \"set\" \"cm4:mon\" \"value\"",
+      "1793209678.496382 [0 lua] \"get\" \"cm4:mon\"",
+      "1793209678.496308 [0 127.0.0.1:33868] \"PING\""
+    ],
+    "expected": [
+      "] \"FCALL\"",
+      "[0 lua] \"set\" \"cm4:mon\" \"value\"",
+      "[0 lua] \"get\" \"cm4:mon\"",
+      "] \"PING\""
+    ],
+    "passed": true
+  },
+  {
+    "engine": "epoll",
+    "mode": "2s",
+    "binary_sha256": "3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8",
+    "argv": [
+      "taskset",
+      "-c",
+      "16-23",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST",
+      "--port",
+      "20290",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/function-monitor-final/epoll/2s",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--net-io",
+      "epoll",
+      "--ratio",
+      "6:2"
+    ],
+    "lines": [
+      "1793209678.756118 [0 127.0.0.1:33908] \"FCALL\" \"cm4mon\" \"1\" \"cm4:mon\" \"value\"",
+      "1793209678.757230 [0 lua] \"set\" \"cm4:mon\" \"value\"",
+      "1793209678.757235 [0 lua] \"get\" \"cm4:mon\"",
+      "1793209678.756134 [0 127.0.0.1:33908] \"PING\""
+    ],
+    "expected": [
+      "] \"FCALL\"",
+      "[0 lua] \"set\" \"cm4:mon\" \"value\"",
+      "[0 lua] \"get\" \"cm4:mon\"",
+      "] \"PING\""
+    ],
+    "passed": true
+  }
+]
