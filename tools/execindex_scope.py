@@ -17,8 +17,9 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs/execindex/instructions"
 BUILD = ROOT / "build/execindex/commands"
-OUT.mkdir(exist_ok=True)
-BUILD.mkdir(exist_ok=True)
+OUT.mkdir(parents=True, exist_ok=True)
+BUILD.mkdir(parents=True, exist_ok=True)
+CORES = "96-103"
 ARMS = {"pre": (ROOT / "build/execindex/pre-source", ROOT / "build/execindex/pre-source/build"),
         "post": (ROOT, ROOT / "build"), "initial": (ROOT, ROOT / "build")}
 
@@ -140,7 +141,7 @@ end
 """
     script_file = BUILD / (label + ".gdb")
     script_file.write_text(script)
-    cmd = ["taskset", "-c", "96-103", "gdb", "-nx", "-batch", "-x", str(script_file), str(binary)]
+    cmd = ["taskset", "-c", CORES, "gdb", "-nx", "-batch", "-x", str(script_file), str(binary)]
     full_log = BUILD / (label + ".log")
     with full_log.open("w") as log:
         result = subprocess.run(cmd, stdout=log, stderr=subprocess.STDOUT, timeout=1200)
@@ -159,9 +160,18 @@ end
 
 
 def main():
+    global OUT, BUILD, CORES
     p = argparse.ArgumentParser();p.add_argument("--build-only", action="store_true")
     p.add_argument("--trace-only", action="store_true");p.add_argument("--arms", default="pre,post")
+    p.add_argument("--cores", default=CORES)
+    p.add_argument("--output", type=Path, default=OUT)
+    p.add_argument("--build-root", type=Path, default=BUILD)
+    p.add_argument("--pre-source", type=Path, default=ARMS["pre"][0])
+    p.add_argument("--pre-objects", type=Path, default=ARMS["pre"][1])
     a = p.parse_args();arms=a.arms.split(",")
+    OUT, BUILD, CORES = a.output.resolve(), a.build_root.resolve(), a.cores
+    OUT.mkdir(parents=True, exist_ok=True); BUILD.mkdir(parents=True, exist_ok=True)
+    ARMS["pre"] = (a.pre_source.resolve(), a.pre_objects.resolve())
     if not a.trace_only:
         for arm in arms:
             for ns in ("normal", "db0"):

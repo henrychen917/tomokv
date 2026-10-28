@@ -1,0 +1,22 @@
+{
+  "all_other_bytes_equal": true,
+  "entry_program_headers_and_sections_equal": true,
+  "every_function_address_and_size_equal": true,
+  "group": "watch-no-finalize",
+  "kind": "Serverless mechanism control; not a measurement PAD arm",
+  "pad": {
+    "binary_sha256": "5547f3278eb89154a9d13f8bffff419f2e4ef6fe8b8db82c521a95450b1a750a",
+    "function_table_sha256": "3c97af14c747a8ea38b438558bb5a3c5d89dc220299861621b986d5a3fbf1aea",
+    "functions": 10853,
+    "section_table_sha256": "a572114822a79bbbc128855ad5a4d86dbb45dcfc7555acbe74071127c60836e2",
+    "text_bytes": 7612583
+  },
+  "patches": 2,
+  "post": {
+    "binary_sha256": "f989a3ade48e7355b4c65b5626c9edadbca895f666fa215c08aa12eb9958952b",
+    "function_table_sha256": "3c97af14c747a8ea38b438558bb5a3c5d89dc220299861621b986d5a3fbf1aea",
+    "functions": 10853,
+    "section_table_sha256": "a572114822a79bbbc128855ad5a4d86dbb45dcfc7555acbe74071127c60836e2",
+    "text_bytes": 7612583
+  }
+}

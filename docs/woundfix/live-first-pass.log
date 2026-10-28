@@ -1,0 +1,25 @@
+1s-db1-uring PASS repeats 20 group wounds 6751 EXEC wounds 10831 order violations 0
+1s-db1-epoll PASS repeats 20 group wounds 1795 EXEC wounds 2274 order violations 0
+1s-db16-uring PASS repeats 20 group wounds 1876 EXEC wounds 1859 order violations 0
+1s-db16-epoll PASS repeats 20 group wounds 2086 EXEC wounds 1433 order violations 0
+2s-db1-uring PASS repeats 20 group wounds 4268 EXEC wounds 3109 order violations 0
+2s-db1-epoll PASS repeats 20 group wounds 793 EXEC wounds 845 order violations 0
+2s-db16-uring PASS repeats 20 group wounds 6495 EXEC wounds 2520 order violations 0
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-woundfix/tools/woundfix_live.py", line 125, in <module>
+    failures=0, clients='four independent txn_nx processes, each with disjoint fresh keys',
+      ^^^^^^
+  File "/home/user/Projects/cx-woundfix/tools/woundfix_live.py", line 98, in main
+    assert result.returncode == 0 and len(summaries) == (1 if bare else 2), (label, rep, result.stdout, result.stderr)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 619, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 317, in _result_or_cancel
+    return fut.result(timeout)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 451, in result
+    self._condition.wait(timeout)
+  File "/usr/lib/python3.12/threading.py", line 355, in wait
+    waiter.acquire()
+KeyboardInterrupt

@@ -1,0 +1,4 @@
+FAIL	0.000000	txnorder wound group
+FAIL	0.000000	txnorder wound exec
+FAIL	0.010000	txnorder wound oom
+FAIL	0.010000	txnorder wound d2

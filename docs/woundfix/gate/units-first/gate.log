@@ -1,0 +1,115 @@
+GATE(quick): 16 physical cores; 1 correctness slots = min(14/8 server, 2/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 14 server + 2 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8
+PARTIAL jobs (including prerequisites): release production_units atomic_units txnorder_index txnorder_wound txnorder2 txnorder_wake
+PARTIAL jobs (including prerequisites): release production_units atomic_units txnorder_index txnorder_wound txnorder2 txnorder_wake
+  row budget: 900s; median=18.72s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic commit publication catches up at quiescence
+  atomic commit publication catches up at quiescence   ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix flush witnesses
+  flushfix flush witnesses                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix headers witnesses
+  flushfix headers witnesses                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; multidb serverless owners
+  multidb serverless owners                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; multidb global namespace boundary
+  multidb global namespace boundary                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; storesize published monitoring
+  storesize published monitoring                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; MULTI admin command replies
+  MULTI admin command replies                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; EXECABORT releases WATCH reservation
+  EXECABORT releases WATCH reservation                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivors unit build
+  atomic survivors unit build                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: admission
+  atomic survivor: admission                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: closure
+  atomic survivor: closure                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: script_keys
+  atomic survivor: script_keys                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: rename_overlay
+  atomic survivor: rename_overlay                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: write_latest
+  atomic survivor: write_latest                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: script_apply
+  atomic survivor: script_apply                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: post_apply_probe
+  atomic survivor: post_apply_probe                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: lua_conversion
+  atomic survivor: lua_conversion                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: watch_parent
+  atomic survivor: watch_parent                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: watch_cycle
+  atomic survivor: watch_cycle                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: mset_arity
+  atomic survivor: mset_arity                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: watch_oom
+  atomic survivor: watch_oom                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: lua_lines
+  atomic survivor: lua_lines                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: library_limit
+  atomic survivor: library_limit                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: stage_flag
+  atomic survivor: stage_flag                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: instruction_limit
+  atomic survivor: instruction_limit                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; armed resize retirement: atomic-growth
+  armed resize retirement: atomic-growth               ok
+  row budget: 900s; median=-s; no-history-conservative-default; armed resize retirement: flush-prepared
+  armed resize retirement: flush-prepared              ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder index oracle
+  txnorder index oracle                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder index complexity
+  txnorder index complexity                            ok
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder wound group
+unit txnorder-wound-unit did not build; see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/production_units/build.log
+unit txnorder-wound-db0-unit did not build; see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/production_units/build.log
+  txnorder wound group                                 FAIL (see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/txnorder_wound/group-*)
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder wound exec
+unit txnorder-wound-unit did not build; see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/production_units/build.log
+unit txnorder-wound-db0-unit did not build; see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/production_units/build.log
+  txnorder wound exec                                  FAIL (see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/txnorder_wound/exec-*)
+  row budget: 900s; median=-s; correctness-plan-fallback; txnorder wound oom
+unit txnorder-wound-unit did not build; see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/production_units/build.log
+unit txnorder-wound-db0-unit did not build; see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/production_units/build.log
+  txnorder wound oom                                   FAIL (see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/txnorder_wound/oom-*)
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder wound d2
+unit txnorder-wound-unit did not build; see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/production_units/build.log
+unit txnorder-wound-db0-unit did not build; see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/production_units/build.log
+  txnorder wound d2                                    FAIL (see /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/jobs/txnorder_wound/d2-*)
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R1
+  txnorder2 writer episode R1                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R2
+  txnorder2 writer episode R2                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R3
+  txnorder2 writer episode R3                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R4
+  txnorder2 writer episode R4                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R5
+  txnorder2 writer episode R5                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R6
+  txnorder2 writer episode R6                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R7
+  txnorder2 writer episode R7                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R8
+  txnorder2 writer episode R8                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R9
+  txnorder2 writer episode R9                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R10
+  txnorder2 writer episode R10                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R11
+  txnorder2 writer episode R11                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R12
+  txnorder2 writer episode R12                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 direct RENAME owner join
+  txnorder2 direct RENAME owner join                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 WATCH serve
+  txnorder2 WATCH serve                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 WATCH flush
+  txnorder2 WATCH flush                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 WATCH readonly
+  txnorder2 WATCH readonly                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 busy owner inbox wake
+  txnorder2 busy owner inbox wake                      ok
+GATE(PARTIAL): 47 ok, 4 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-woundfix/build/gate-run.9SXbM8/ledger.partial

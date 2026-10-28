@@ -1,0 +1,4 @@
+  row budget: 900s; median=0.055s; correctness-plan-fallback; xscript limit control
+  xscript limit control                                ok
+  row budget: 900s; median=0.54s; correctness-plan-fallback; xscript window control
+  xscript window control                               ok

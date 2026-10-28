@@ -1,0 +1,7 @@
+PARTIAL	0	GATE_ONLY_JOBS=asan_batteries; NOT A RECEIPT
+ok	1.100000	ASAN build
+ok	6.980000	torture under ASAN
+ok	1.100000	RYOW under ASAN
+ok	27.570000	atomic torn/window under ASAN
+ok	4.090000	atomic RYOW under ASAN
+ok	0.020000	ASAN clean

@@ -1,0 +1,2 @@
+  row budget: 900s; median=49.84s; correctness-plan-fallback; txnorder battery (fused, atomic 1)
+  txnorder battery (fused, atomic 1)                   ok

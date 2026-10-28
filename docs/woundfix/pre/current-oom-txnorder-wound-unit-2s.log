@@ -1,0 +1,2 @@
+wound-window namespace=multi mode=2s read_done=1 pre_epoch=0 aborted=1 no_such_key=1 source_present=1 commit_accepted=1 final_epoch=1
+FAIL: OOM wire reply, never an unmaterialized image

@@ -1,0 +1,51 @@
+ok	0.050000	release build (+footprint locks)
+ok	0.010000	atomic commit publication catches up at quiescence
+ok	3.640000	flushfix flush witnesses
+ok	0.100000	flushfix headers witnesses
+ok	4.080000	multidb serverless owners
+ok	0.060000	multidb global namespace boundary
+ok	16.640000	storesize published monitoring
+ok	0.270000	MULTI admin command replies
+ok	0.560000	EXECABORT releases WATCH reservation
+ok	0.000000	atomic survivors unit build
+ok	0.020000	atomic survivor: admission
+ok	0.010000	atomic survivor: closure
+ok	0.010000	atomic survivor: script_keys
+ok	0.010000	atomic survivor: rename_overlay
+ok	0.000000	atomic survivor: write_latest
+ok	0.010000	atomic survivor: script_apply
+ok	0.010000	atomic survivor: post_apply_probe
+ok	0.010000	atomic survivor: lua_conversion
+ok	0.000000	atomic survivor: watch_parent
+ok	0.010000	atomic survivor: watch_cycle
+ok	0.020000	atomic survivor: mset_arity
+ok	0.010000	atomic survivor: watch_oom
+ok	0.010000	atomic survivor: lua_lines
+ok	0.010000	atomic survivor: library_limit
+ok	0.030000	atomic survivor: stage_flag
+ok	0.010000	atomic survivor: instruction_limit
+ok	0.190000	armed resize retirement: atomic-growth
+ok	0.010000	armed resize retirement: flush-prepared
+ok	185.280000	txnorder index oracle
+ok	3.980000	txnorder index complexity
+FAIL	0.000000	txnorder wound group
+FAIL	0.000000	txnorder wound exec
+FAIL	0.010000	txnorder wound oom
+FAIL	0.010000	txnorder wound d2
+ok	0.040000	txnorder2 writer episode R1
+ok	0.040000	txnorder2 writer episode R2
+ok	0.040000	txnorder2 writer episode R3
+ok	0.030000	txnorder2 writer episode R4
+ok	0.030000	txnorder2 writer episode R5
+ok	0.040000	txnorder2 writer episode R6
+ok	0.040000	txnorder2 writer episode R7
+ok	0.110000	txnorder2 writer episode R8
+ok	0.030000	txnorder2 writer episode R9
+ok	0.030000	txnorder2 writer episode R10
+ok	0.030000	txnorder2 writer episode R11
+ok	4.640000	txnorder2 writer episode R12
+ok	0.060000	txnorder2 direct RENAME owner join
+ok	22.940000	txnorder2 WATCH serve
+ok	30.770000	txnorder2 WATCH flush
+ok	32.550000	txnorder2 WATCH readonly
+ok	0.010000	txnorder2 busy owner inbox wake

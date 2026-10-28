@@ -1,0 +1,1682 @@
+[
+  {
+    "rep": 0,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20381",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            12,
+            4
+          ],
+          [
+            12,
+            4
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ],
+    "counters": {
+      "atomic_txn_attempts": 16463,
+      "atomic_txn_retries": 79,
+      "atomic_txn_dooms": 0,
+      "atomic_txn_wounds": 79,
+      "atomic_txn_waits": 4,
+      "atomic_txn_intents": 33123,
+      "atomic_txn_intents_live": 0,
+      "atomic_group_dooms": 0,
+      "atomic_group_retries": 257,
+      "atomic_group_barriers": 0,
+      "atomic_txn_executed": 16384,
+      "atomic_txn_place_waits": 26530,
+      "atomic_txn_writer_waits": 0,
+      "atomic_txn_writer_marks": 0,
+      "atomic_txn_blind_restarts": 0,
+      "atomic_txn_readonly": 0,
+      "atomic_txn_order_violations": 0,
+      "atomic_group_wounds": 257,
+      "atomic_txn_fast_polls": 1174762,
+      "atomic_txn_poll_skips": 12944
+    }
+  },
+  {
+    "rep": 1,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20381",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            7,
+            7
+          ],
+          [
+            7,
+            7
+          ],
+          [
+            6,
+            6
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            4,
+            4
+          ],
+          [
+            4,
+            4
+          ],
+          [
+            15,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ],
+    "counters": {
+      "atomic_txn_attempts": 32862,
+      "atomic_txn_retries": 94,
+      "atomic_txn_dooms": 0,
+      "atomic_txn_wounds": 94,
+      "atomic_txn_waits": 30,
+      "atomic_txn_intents": 65945,
+      "atomic_txn_intents_live": 0,
+      "atomic_group_dooms": 0,
+      "atomic_group_retries": 294,
+      "atomic_group_barriers": 0,
+      "atomic_txn_executed": 32768,
+      "atomic_txn_place_waits": 49552,
+      "atomic_txn_writer_waits": 0,
+      "atomic_txn_writer_marks": 0,
+      "atomic_txn_blind_restarts": 0,
+      "atomic_txn_readonly": 0,
+      "atomic_txn_order_violations": 0,
+      "atomic_group_wounds": 294,
+      "atomic_txn_fast_polls": 1922538,
+      "atomic_txn_poll_skips": 35021
+    }
+  },
+  {
+    "rep": 2,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20381",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            15,
+            7
+          ],
+          [
+            15,
+            7
+          ],
+          [
+            5,
+            5
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            14,
+            6
+          ],
+          [
+            14,
+            6
+          ],
+          [
+            5,
+            5
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ],
+    "counters": {
+      "atomic_txn_attempts": 49246,
+      "atomic_txn_retries": 94,
+      "atomic_txn_dooms": 0,
+      "atomic_txn_wounds": 94,
+      "atomic_txn_waits": 30,
+      "atomic_txn_intents": 98735,
+      "atomic_txn_intents_live": 0,
+      "atomic_group_dooms": 0,
+      "atomic_group_retries": 312,
+      "atomic_group_barriers": 0,
+      "atomic_txn_executed": 49152,
+      "atomic_txn_place_waits": 50721,
+      "atomic_txn_writer_waits": 0,
+      "atomic_txn_writer_marks": 0,
+      "atomic_txn_blind_restarts": 0,
+      "atomic_txn_readonly": 0,
+      "atomic_txn_order_violations": 0,
+      "atomic_group_wounds": 312,
+      "atomic_txn_fast_polls": 2422412,
+      "atomic_txn_poll_skips": 45340
+    }
+  },
+  {
+    "rep": 3,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20381",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ],
+    "counters": {
+      "atomic_txn_attempts": 66558,
+      "atomic_txn_retries": 1022,
+      "atomic_txn_dooms": 0,
+      "atomic_txn_wounds": 1022,
+      "atomic_txn_waits": 84,
+      "atomic_txn_intents": 131918,
+      "atomic_txn_intents_live": 0,
+      "atomic_group_dooms": 0,
+      "atomic_group_retries": 552,
+      "atomic_group_barriers": 0,
+      "atomic_txn_executed": 65536,
+      "atomic_txn_place_waits": 64549,
+      "atomic_txn_writer_waits": 0,
+      "atomic_txn_writer_marks": 0,
+      "atomic_txn_blind_restarts": 0,
+      "atomic_txn_readonly": 0,
+      "atomic_txn_order_violations": 0,
+      "atomic_group_wounds": 552,
+      "atomic_txn_fast_polls": 3370124,
+      "atomic_txn_poll_skips": 57350
+    }
+  },
+  {
+    "rep": 4,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20381",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            13,
+            5
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            12,
+            4
+          ],
+          [
+            12,
+            4
+          ],
+          [
+            14,
+            6
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ],
+    "counters": {
+      "atomic_txn_attempts": 84928,
+      "atomic_txn_retries": 3008,
+      "atomic_txn_dooms": 0,
+      "atomic_txn_wounds": 3008,
+      "atomic_txn_waits": 84,
+      "atomic_txn_intents": 165519,
+      "atomic_txn_intents_live": 0,
+      "atomic_group_dooms": 0,
+      "atomic_group_retries": 1027,
+      "atomic_group_barriers": 0,
+      "atomic_txn_executed": 81920,
+      "atomic_txn_place_waits": 83872,
+      "atomic_txn_writer_waits": 0,
+      "atomic_txn_writer_marks": 0,
+      "atomic_txn_blind_restarts": 0,
+      "atomic_txn_readonly": 0,
+      "atomic_txn_order_violations": 0,
+      "atomic_group_wounds": 1027,
+      "atomic_txn_fast_polls": 4472391,
+      "atomic_txn_poll_skips": 84366
+    }
+  },
+  {
+    "rep": 5,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20381",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            5,
+            5
+          ],
+          [
+            5,
+            5
+          ],
+          [
+            11,
+            3
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            9,
+            1
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ],
+    "counters": {
+      "atomic_txn_attempts": 102281,
+      "atomic_txn_retries": 3977,
+      "atomic_txn_dooms": 0,
+      "atomic_txn_wounds": 3977,
+      "atomic_txn_waits": 84,
+      "atomic_txn_intents": 200120,
+      "atomic_txn_intents_live": 0,
+      "atomic_group_dooms": 0,
+      "atomic_group_retries": 2597,
+      "atomic_group_barriers": 0,
+      "atomic_txn_executed": 98304,
+      "atomic_txn_place_waits": 99103,
+      "atomic_txn_writer_waits": 0,
+      "atomic_txn_writer_marks": 0,
+      "atomic_txn_blind_restarts": 0,
+      "atomic_txn_readonly": 0,
+      "atomic_txn_order_violations": 0,
+      "atomic_group_wounds": 2597,
+      "atomic_txn_fast_polls": 5247894,
+      "atomic_txn_poll_skips": 127329
+    }
+  },
+  {
+    "rep": 6,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20381",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            12,
+            4
+          ],
+          [
+            12,
+            4
+          ],
+          [
+            7,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            8,
+            0
+          ],
+          [
+            8,
+            0
+          ],
+          [
+            10,
+            2
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ],
+    "counters": {
+      "atomic_txn_attempts": 118907,
+      "atomic_txn_retries": 4219,
+      "atomic_txn_dooms": 0,
+      "atomic_txn_wounds": 4219,
+      "atomic_txn_waits": 87,
+      "atomic_txn_intents": 235007,
+      "atomic_txn_intents_live": 0,
+      "atomic_group_dooms": 0,
+      "atomic_group_retries": 4287,
+      "atomic_group_barriers": 0,
+      "atomic_txn_executed": 114688,
+      "atomic_txn_place_waits": 112153,
+      "atomic_txn_writer_waits": 0,
+      "atomic_txn_writer_marks": 0,
+      "atomic_txn_blind_restarts": 0,
+      "atomic_txn_readonly": 0,
+      "atomic_txn_order_violations": 0,
+      "atomic_group_wounds": 4287,
+      "atomic_txn_fast_polls": 5709038,
+      "atomic_txn_poll_skips": 138507
+    }
+  },
+  {
+    "rep": 7,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20381",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            7,
+            7
+          ],
+          [
+            7,
+            7
+          ],
+          [
+            12,
+            4
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            14,
+            6
+          ],
+          [
+            14,
+            6
+          ],
+          [
+            13,
+            5
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ],
+    "counters": {
+      "atomic_txn_attempts": 135692,
+      "atomic_txn_retries": 4620,
+      "atomic_txn_dooms": 0,
+      "atomic_txn_wounds": 4620,
+      "atomic_txn_waits": 88,
+      "atomic_txn_intents": 268475,
+      "atomic_txn_intents_live": 0,
+      "atomic_group_dooms": 0,
+      "atomic_group_retries": 4699,
+      "atomic_group_barriers": 0,
+      "atomic_txn_executed": 131072,
+      "atomic_txn_place_waits": 120019,
+      "atomic_txn_writer_waits": 0,
+      "atomic_txn_writer_marks": 0,
+      "atomic_txn_blind_restarts": 0,
+      "atomic_txn_readonly": 0,
+      "atomic_txn_order_violations": 0,
+      "atomic_group_wounds": 4699,
+      "atomic_txn_fast_polls": 6367482,
+      "atomic_txn_poll_skips": 148365
+    }
+  },
+  {
+    "rep": 8,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20381",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            15,
+            7
+          ],
+          [
+            15,
+            7
+          ],
+          [
+            12,
+            4
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            15,
+            7
+          ],
+          [
+            15,
+            7
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ],
+    "counters": {
+      "atomic_txn_attempts": 152837,
+      "atomic_txn_retries": 5381,
+      "atomic_txn_dooms": 0,
+      "atomic_txn_wounds": 5381,
+      "atomic_txn_waits": 88,
+      "atomic_txn_intents": 301439,
+      "atomic_txn_intents_live": 0,
+      "atomic_group_dooms": 0,
+      "atomic_group_retries": 4814,
+      "atomic_group_barriers": 0,
+      "atomic_txn_executed": 147456,
+      "atomic_txn_place_waits": 125689,
+      "atomic_txn_writer_waits": 0,
+      "atomic_txn_writer_marks": 0,
+      "atomic_txn_blind_restarts": 0,
+      "atomic_txn_readonly": 0,
+      "atomic_txn_order_violations": 0,
+      "atomic_group_wounds": 4814,
+      "atomic_txn_fast_polls": 6823173,
+      "atomic_txn_poll_skips": 161975
+    }
+  },
+  {
+    "rep": 9,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20381",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            15,
+            7
+          ],
+          [
+            15,
+            7
+          ],
+          [
+            5,
+            5
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            10,
+            2
+          ],
+          [
+            10,
+            2
+          ],
+          [
+            7,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ],
+    "counters": {
+      "atomic_txn_attempts": 169590,
+      "atomic_txn_retries": 5750,
+      "atomic_txn_dooms": 0,
+      "atomic_txn_wounds": 5750,
+      "atomic_txn_waits": 90,
+      "atomic_txn_intents": 334255,
+      "atomic_txn_intents_live": 0,
+      "atomic_group_dooms": 0,
+      "atomic_group_retries": 4849,
+      "atomic_group_barriers": 0,
+      "atomic_txn_executed": 163840,
+      "atomic_txn_place_waits": 140546,
+      "atomic_txn_writer_waits": 0,
+      "atomic_txn_writer_marks": 0,
+      "atomic_txn_blind_restarts": 0,
+      "atomic_txn_readonly": 0,
+      "atomic_txn_order_violations": 0,
+      "atomic_group_wounds": 4849,
+      "atomic_txn_fast_polls": 7370849,
+      "atomic_txn_poll_skips": 173024
+    }
+  },
+  {
+    "rep": 10,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20381",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            7,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            15,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ],
+    "counters": {
+      "atomic_txn_attempts": 187732,
+      "atomic_txn_retries": 7508,
+      "atomic_txn_dooms": 0,
+      "atomic_txn_wounds": 7508,
+      "atomic_txn_waits": 91,
+      "atomic_txn_intents": 367602,
+      "atomic_txn_intents_live": 0,
+      "atomic_group_dooms": 0,
+      "atomic_group_retries": 5199,
+      "atomic_group_barriers": 0,
+      "atomic_txn_executed": 180224,
+      "atomic_txn_place_waits": 161015,
+      "atomic_txn_writer_waits": 0,
+      "atomic_txn_writer_marks": 0,
+      "atomic_txn_blind_restarts": 0,
+      "atomic_txn_readonly": 0,
+      "atomic_txn_order_violations": 0,
+      "atomic_group_wounds": 5199,
+      "atomic_txn_fast_polls": 8201412,
+      "atomic_txn_poll_skips": 200760
+    }
+  },
+  {
+    "rep": 11,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20381",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            6,
+            6
+          ],
+          [
+            6,
+            6
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            7,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ],
+    "counters": {
+      "atomic_txn_attempts": 204426,
+      "atomic_txn_retries": 7818,
+      "atomic_txn_dooms": 0,
+      "atomic_txn_wounds": 7818,
+      "atomic_txn_waits": 94,
+      "atomic_txn_intents": 400370,
+      "atomic_txn_intents_live": 0,
+      "atomic_group_dooms": 0,
+      "atomic_group_retries": 5199,
+      "atomic_group_barriers": 0,
+      "atomic_txn_executed": 196608,
+      "atomic_txn_place_waits": 175748,
+      "atomic_txn_writer_waits": 0,
+      "atomic_txn_writer_marks": 0,
+      "atomic_txn_blind_restarts": 0,
+      "atomic_txn_readonly": 0,
+      "atomic_txn_order_violations": 0,
+      "atomic_group_wounds": 5199,
+      "atomic_txn_fast_polls": 8947201,
+      "atomic_txn_poll_skips": 243722
+    }
+  },
+  {
+    "rep": 12,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20381",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            14,
+            6
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            5,
+            5
+          ],
+          [
+            5,
+            5
+          ],
+          [
+            15,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ],
+    "counters": {
+      "atomic_txn_attempts": 220810,
+      "atomic_txn_retries": 7818,
+      "atomic_txn_dooms": 0,
+      "atomic_txn_wounds": 7818,
+      "atomic_txn_waits": 94,
+      "atomic_txn_intents": 433164,
+      "atomic_txn_intents_live": 0,
+      "atomic_group_dooms": 0,
+      "atomic_group_retries": 5216,
+      "atomic_group_barriers": 0,
+      "atomic_txn_executed": 212992,
+      "atomic_txn_place_waits": 183184,
+      "atomic_txn_writer_waits": 0,
+      "atomic_txn_writer_marks": 0,
+      "atomic_txn_blind_restarts": 0,
+      "atomic_txn_readonly": 0,
+      "atomic_txn_order_violations": 0,
+      "atomic_group_wounds": 5216,
+      "atomic_txn_fast_polls": 9622588,
+      "atomic_txn_poll_skips": 251069
+    }
+  },
+  {
+    "rep": 13,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20381",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            7,
+            7
+          ],
+          [
+            7,
+            7
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            15,
+            7
+          ],
+          [
+            15,
+            7
+          ],
+          [
+            9,
+            1
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ],
+    "counters": {
+      "atomic_txn_attempts": 237213,
+      "atomic_txn_retries": 7837,
+      "atomic_txn_dooms": 0,
+      "atomic_txn_wounds": 7837,
+      "atomic_txn_waits": 94,
+      "atomic_txn_intents": 465932,
+      "atomic_txn_intents_live": 0,
+      "atomic_group_dooms": 0,
+      "atomic_group_retries": 5216,
+      "atomic_group_barriers": 0,
+      "atomic_txn_executed": 229376,
+      "atomic_txn_place_waits": 183696,
+      "atomic_txn_writer_waits": 0,
+      "atomic_txn_writer_marks": 0,
+      "atomic_txn_blind_restarts": 0,
+      "atomic_txn_readonly": 0,
+      "atomic_txn_order_violations": 0,
+      "atomic_group_wounds": 5216,
+      "atomic_txn_fast_polls": 10323561,
+      "atomic_txn_poll_skips": 251592
+    }
+  },
+  {
+    "rep": 14,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20381",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            7,
+            7
+          ],
+          [
+            7,
+            7
+          ],
+          [
+            5,
+            5
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            5,
+            5
+          ],
+          [
+            5,
+            5
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ],
+    "counters": {
+      "atomic_txn_attempts": 253951,
+      "atomic_txn_retries": 8191,
+      "atomic_txn_dooms": 0,
+      "atomic_txn_wounds": 8191,
+      "atomic_txn_waits": 94,
+      "atomic_txn_intents": 498713,
+      "atomic_txn_intents_live": 0,
+      "atomic_group_dooms": 0,
+      "atomic_group_retries": 5224,
+      "atomic_group_barriers": 0,
+      "atomic_txn_executed": 245760,
+      "atomic_txn_place_waits": 185512,
+      "atomic_txn_writer_waits": 0,
+      "atomic_txn_writer_marks": 0,
+      "atomic_txn_blind_restarts": 0,
+      "atomic_txn_readonly": 0,
+      "atomic_txn_order_violations": 0,
+      "atomic_group_wounds": 5224,
+      "atomic_txn_fast_polls": 11385449,
+      "atomic_txn_poll_skips": 260772
+    }
+  },
+  {
+    "rep": 15,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20381",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            3,
+            3
+          ],
+          [
+            3,
+            3
+          ],
+          [
+            6,
+            6
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            13,
+            5
+          ],
+          [
+            13,
+            5
+          ],
+          [
+            9,
+            1
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ],
+    "counters": {
+      "atomic_txn_attempts": 270335,
+      "atomic_txn_retries": 8191,
+      "atomic_txn_dooms": 0,
+      "atomic_txn_wounds": 8191,
+      "atomic_txn_waits": 94,
+      "atomic_txn_intents": 531481,
+      "atomic_txn_intents_live": 0,
+      "atomic_group_dooms": 0,
+      "atomic_group_retries": 5224,
+      "atomic_group_barriers": 0,
+      "atomic_txn_executed": 262144,
+      "atomic_txn_place_waits": 185666,
+      "atomic_txn_writer_waits": 0,
+      "atomic_txn_writer_marks": 0,
+      "atomic_txn_blind_restarts": 0,
+      "atomic_txn_readonly": 0,
+      "atomic_txn_order_violations": 0,
+      "atomic_group_wounds": 5224,
+      "atomic_txn_fast_polls": 11841350,
+      "atomic_txn_poll_skips": 260841
+    }
+  },
+  {
+    "rep": 16,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20381",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            4,
+            4
+          ],
+          [
+            4,
+            4
+          ],
+          [
+            5,
+            5
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            3,
+            3
+          ],
+          [
+            3,
+            3
+          ],
+          [
+            8,
+            0
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ],
+    "counters": {
+      "atomic_txn_attempts": 286723,
+      "atomic_txn_retries": 8195,
+      "atomic_txn_dooms": 0,
+      "atomic_txn_wounds": 8195,
+      "atomic_txn_waits": 94,
+      "atomic_txn_intents": 564250,
+      "atomic_txn_intents_live": 0,
+      "atomic_group_dooms": 0,
+      "atomic_group_retries": 5225,
+      "atomic_group_barriers": 0,
+      "atomic_txn_executed": 278528,
+      "atomic_txn_place_waits": 186415,
+      "atomic_txn_writer_waits": 0,
+      "atomic_txn_writer_marks": 0,
+      "atomic_txn_blind_restarts": 0,
+      "atomic_txn_readonly": 0,
+      "atomic_txn_order_violations": 0,
+      "atomic_group_wounds": 5225,
+      "atomic_txn_fast_polls": 12534417,
+      "atomic_txn_poll_skips": 262018
+    }
+  },
+  {
+    "rep": 17,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20381",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            12,
+            4
+          ],
+          [
+            12,
+            4
+          ],
+          [
+            5,
+            5
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            12,
+            4
+          ],
+          [
+            12,
+            4
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ],
+    "counters": {
+      "atomic_txn_attempts": 303107,
+      "atomic_txn_retries": 8195,
+      "atomic_txn_dooms": 0,
+      "atomic_txn_wounds": 8195,
+      "atomic_txn_waits": 94,
+      "atomic_txn_intents": 597029,
+      "atomic_txn_intents_live": 0,
+      "atomic_group_dooms": 0,
+      "atomic_group_retries": 5233,
+      "atomic_group_barriers": 0,
+      "atomic_txn_executed": 294912,
+      "atomic_txn_place_waits": 186522,
+      "atomic_txn_writer_waits": 0,
+      "atomic_txn_writer_marks": 0,
+      "atomic_txn_blind_restarts": 0,
+      "atomic_txn_readonly": 0,
+      "atomic_txn_order_violations": 0,
+      "atomic_group_wounds": 5233,
+      "atomic_txn_fast_polls": 12820425,
+      "atomic_txn_poll_skips": 262105
+    }
+  },
+  {
+    "rep": 18,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20381",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            8,
+            0
+          ],
+          [
+            8,
+            0
+          ],
+          [
+            10,
+            2
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            6,
+            6
+          ],
+          [
+            6,
+            6
+          ],
+          [
+            4,
+            4
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ],
+    "counters": {
+      "atomic_txn_attempts": 319491,
+      "atomic_txn_retries": 8195,
+      "atomic_txn_dooms": 0,
+      "atomic_txn_wounds": 8195,
+      "atomic_txn_waits": 94,
+      "atomic_txn_intents": 629797,
+      "atomic_txn_intents_live": 0,
+      "atomic_group_dooms": 0,
+      "atomic_group_retries": 5233,
+      "atomic_group_barriers": 0,
+      "atomic_txn_executed": 311296,
+      "atomic_txn_place_waits": 188269,
+      "atomic_txn_writer_waits": 0,
+      "atomic_txn_writer_marks": 0,
+      "atomic_txn_blind_restarts": 0,
+      "atomic_txn_readonly": 0,
+      "atomic_txn_order_violations": 0,
+      "atomic_group_wounds": 5233,
+      "atomic_txn_fast_polls": 13007340,
+      "atomic_txn_poll_skips": 262982
+    }
+  },
+  {
+    "rep": 19,
+    "command": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/txn_nx.py",
+      "127.0.0.1",
+      "20381",
+      "--rounds",
+      "8192"
+    ],
+    "results": [
+      {
+        "transactional": true,
+        "geometry": [
+          [
+            3,
+            3
+          ],
+          [
+            3,
+            3
+          ],
+          [
+            7,
+            7
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      },
+      {
+        "transactional": false,
+        "geometry": [
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            12,
+            4
+          ]
+        ],
+        "rounds": 8192,
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": [],
+        "threads_alive": false
+      }
+    ],
+    "counters": {
+      "atomic_txn_attempts": 337067,
+      "atomic_txn_retries": 9387,
+      "atomic_txn_dooms": 0,
+      "atomic_txn_wounds": 9387,
+      "atomic_txn_waits": 102,
+      "atomic_txn_intents": 664214,
+      "atomic_txn_intents_live": 0,
+      "atomic_group_dooms": 0,
+      "atomic_group_retries": 6602,
+      "atomic_group_barriers": 0,
+      "atomic_txn_executed": 327680,
+      "atomic_txn_place_waits": 205500,
+      "atomic_txn_writer_waits": 0,
+      "atomic_txn_writer_marks": 0,
+      "atomic_txn_blind_restarts": 0,
+      "atomic_txn_readonly": 0,
+      "atomic_txn_order_violations": 0,
+      "atomic_group_wounds": 6602,
+      "atomic_txn_fast_polls": 13477779,
+      "atomic_txn_poll_skips": 288990
+    }
+  }
+]

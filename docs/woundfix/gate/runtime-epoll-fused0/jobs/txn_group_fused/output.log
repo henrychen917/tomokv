@@ -1,0 +1,2 @@
+  row budget: 900s; median=12.88s; correctness-plan-fallback; fused txngroup battery (atomic 1)
+  fused txngroup battery (atomic 1)                    ok

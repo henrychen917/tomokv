@@ -181,6 +181,13 @@ bool Shard::watch_place_unit(const std::vector<TxnClaim>& keys, WatchReservation
         else if (older.refs && !younger_placing) cached.take(older);
         return ready;
     } catch (const std::bad_alloc&) {
+        // A placement allocation error is terminal, unlike a wound. Publish
+        // its work error before aborted so a group cannot reply from an image
+        // whose read phase never ran. EXEC retains its execution-error reply.
+        if (unit.unit_kind == 2) {
+            auto& state = *static_cast<ScatterState*>(const_cast<void*>(unit.token));
+            group_for(state, id())->error = WorkError::Oom;
+        }
         unit.aborted->store(true, std::memory_order_release);
         return true;
     }

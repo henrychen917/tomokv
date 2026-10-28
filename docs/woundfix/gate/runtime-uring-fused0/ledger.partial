@@ -1,0 +1,83 @@
+PARTIAL	0	GATE_ONLY_JOBS=debug-0 debug-1 atomic_batteries release_batteries script_bounds fused-0 fused-1 txn_group_split txn_group_fused txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 atomfix5_watch atomfix5_accounting datafix2_watch exbatch_live atomic_floor execfair exbatch_units; NOT A RECEIPT
+ok	0.030000	release build (+footprint locks)
+ok	9.170000	plain-write lost updates (atomic 0)
+ok	0.160000	lbsignals battery (atomic 0)
+ok	1.480000	slowlog battery (atomic 0)
+ok	0.040000	atomfix battery (atomic 0)
+ok	0.040000	scriptatomic battery (atomic 0)
+ok	14.460000	execatomic battery (atomic 0)
+ok	11.890000	execiso battery (atomic 0)
+ok	0.450000	execfix battery (atomic 0)
+ok	0.110000	multires battery (atomic 0)
+ok	0.740000	multirace battery (atomic 0)
+ok	30.480000	session_monotonic battery (atomic 0)
+ok	0.370000	xacct battery (atomic 0)
+ok	0.300000	xmove battery (atomic 0)
+ok	1.870000	xscript battery (atomic 0)
+ok	2.270000	txn_nx battery (atomic 0)
+ok	9.460000	txniso battery (atomic 0)
+ok	6.170000	plain-write lost updates (atomic 1)
+ok	0.160000	lbsignals battery (atomic 1)
+ok	1.490000	slowlog battery (atomic 1)
+ok	0.050000	atomfix battery (atomic 1)
+ok	0.040000	scriptatomic battery (atomic 1)
+ok	14.480000	execatomic battery (atomic 1)
+ok	11.890000	execiso battery (atomic 1)
+ok	0.470000	execfix battery (atomic 1)
+ok	0.120000	multires battery (atomic 1)
+ok	0.780000	multirace battery (atomic 1)
+ok	30.490000	session_monotonic battery (atomic 1)
+ok	0.400000	xacct battery (atomic 1)
+ok	0.300000	xmove battery (atomic 1)
+ok	1.870000	xscript battery (atomic 1)
+ok	2.310000	txn_nx battery (atomic 1)
+ok	8.820000	txniso battery (atomic 1)
+ok	1.990000	atomfix5 WATCH key count (both modes, both engines, atomic 0/1)
+ok	14.100000	atomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1)
+ok	19.000000	exbatch publication unit + negative controls
+FAIL	11.040000	exbatch watch unit + negative controls
+ok	18.870000	exbatch metadata unit + negative controls
+ok	0.310000	exbatch publication and WATCH lifecycle (1s)
+ok	0.290000	exbatch publication and WATCH lifecycle (2s)
+ok	6.760000	torture battery
+ok	1.170000	RYOW battery
+ok	0.080000	ACL category runtime table
+ok	0.110000	ACL LOAD/SAVE no-file errors
+ok	1.080000	idle loop ceiling (LBSIGNALS, 1s)
+ok	0.110000	shutdown invariants (nothing stuck)
+ok	0.020000	direct-reply fired (direct=N)
+ok	0.040000	dispatched==executed (N)
+ok	32.750000	atomic torn/window battery
+ok	4.080000	atomic RYOW/mixed-write battery
+ok	4.260000	atomic owner-local hazard battery
+ok	0.030000	atomic shutdown invariants
+ok	112.040000	datafix2 CD4.9 write WATCH table vs Redis 7.4
+ok	0.060000	xscript limit control
+ok	0.540000	xscript window control
+ok	0.010000	tripwire arm/disarm round-trip
+ok	0.050000	pipelined same-conn program order (400 rolls)
+ok	0.280000	fused boot line (atomic 0)
+ok	1.190000	fused s6 battery (atomic 0)
+ok	2.080000	fused multi_exec battery (atomic 0)
+ok	0.750000	fused edgeproto battery (atomic 0)
+ok	0.050000	fused atomfix battery (atomic 0)
+ok	2.240000	fused spinprobe battery (atomic 0)
+ok	1.170000	fused shutdown report (atomic 0)
+ok	1.790000	fused txn_nx battery (atomic 0)
+ok	9.170000	fused txniso battery (atomic 0)
+ok	0.280000	fused boot line (atomic 1)
+ok	1.170000	fused s6 battery (atomic 1)
+ok	2.090000	fused multi_exec battery (atomic 1)
+ok	0.700000	fused edgeproto battery (atomic 1)
+ok	0.040000	fused atomfix battery (atomic 1)
+ok	2.230000	fused spinprobe battery (atomic 1)
+ok	1.160000	fused shutdown report (atomic 1)
+ok	3.250000	fused txn_nx battery (atomic 1)
+ok	8.560000	fused txniso battery (atomic 1)
+ok	12.880000	fused txngroup battery (atomic 1)
+ok	12.950000	txngroup battery (atomic 1)
+ok	20.780000	EXEC fast-lane polls
+ok	49.900000	txnorder battery (fused, atomic 0)
+ok	49.840000	txnorder battery (fused, atomic 1)
+ok	49.460000	txnorder battery (split, atomic 0)
+ok	49.420000	txnorder battery (split, atomic 1)

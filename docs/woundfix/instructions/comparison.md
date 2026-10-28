@@ -1,0 +1,54 @@
+# PRE versus POST command-scope instruction counts
+
+Counts cover bounded production command entry through completion in the serverless harness. Clock is deterministic; allocator, libc and kernel internals are outside this scope. Counts are per batch, not a throughput or cycles measurement. All 48 pairs have identical totals and per-function counts.
+
+| Namespace | Command | Mode | Batch | Atomic | PRE | POST | Delta |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
+| normal | GET | 1s | 1 | 1 | 949 | 949 | 0 |
+| normal | GET | 1s | 32 | 1 | 18898 | 18898 | 0 |
+| normal | GET | 2s | 1 | 1 | 1575 | 1575 | 0 |
+| normal | GET | 2s | 32 | 1 | 18935 | 18935 | 0 |
+| normal | SET | 1s | 1 | 1 | 1078 | 1078 | 0 |
+| normal | SET | 1s | 32 | 1 | 23026 | 23026 | 0 |
+| normal | SET | 2s | 1 | 1 | 1704 | 1704 | 0 |
+| normal | SET | 2s | 32 | 1 | 23063 | 23063 | 0 |
+| normal | INCR | 1s | 1 | 1 | 1541 | 1541 | 0 |
+| normal | INCR | 1s | 32 | 1 | 38371 | 38371 | 0 |
+| normal | INCR | 2s | 1 | 1 | 2167 | 2167 | 0 |
+| normal | INCR | 2s | 32 | 1 | 38408 | 38408 | 0 |
+| normal | MGET | 1s | 1 | 1 | 10243 | 10243 | 0 |
+| normal | MGET | 1s | 32 | 1 | 326598 | 326598 | 0 |
+| normal | MGET | 2s | 1 | 1 | 10243 | 10243 | 0 |
+| normal | MGET | 2s | 32 | 1 | 326598 | 326598 | 0 |
+| normal | MSET | 1s | 1 | 0 | 10894 | 10894 | 0 |
+| normal | MSET | 1s | 1 | 1 | 17080 | 17080 | 0 |
+| normal | MSET | 1s | 32 | 0 | 348453 | 348453 | 0 |
+| normal | MSET | 1s | 32 | 1 | 964774 | 964774 | 0 |
+| normal | MSET | 2s | 1 | 0 | 10690 | 10690 | 0 |
+| normal | MSET | 2s | 1 | 1 | 16726 | 16726 | 0 |
+| normal | MSET | 2s | 32 | 0 | 341925 | 341925 | 0 |
+| normal | MSET | 2s | 32 | 1 | 953446 | 953446 | 0 |
+| db0 | GET | 1s | 1 | 1 | 828 | 828 | 0 |
+| db0 | GET | 1s | 32 | 1 | 19025 | 19025 | 0 |
+| db0 | GET | 2s | 1 | 1 | 1067 | 1067 | 0 |
+| db0 | GET | 2s | 32 | 1 | 18675 | 18675 | 0 |
+| db0 | SET | 1s | 1 | 1 | 965 | 965 | 0 |
+| db0 | SET | 1s | 32 | 1 | 23409 | 23409 | 0 |
+| db0 | SET | 2s | 1 | 1 | 1204 | 1204 | 0 |
+| db0 | SET | 2s | 32 | 1 | 23059 | 23059 | 0 |
+| db0 | INCR | 1s | 1 | 1 | 1324 | 1324 | 0 |
+| db0 | INCR | 1s | 32 | 1 | 35426 | 35426 | 0 |
+| db0 | INCR | 2s | 1 | 1 | 1563 | 1563 | 0 |
+| db0 | INCR | 2s | 32 | 1 | 35076 | 35076 | 0 |
+| db0 | MGET | 1s | 1 | 1 | 10370 | 10370 | 0 |
+| db0 | MGET | 1s | 32 | 1 | 330662 | 330662 | 0 |
+| db0 | MGET | 2s | 1 | 1 | 10370 | 10370 | 0 |
+| db0 | MGET | 2s | 32 | 1 | 330662 | 330662 | 0 |
+| db0 | MSET | 1s | 1 | 0 | 11143 | 11143 | 0 |
+| db0 | MSET | 1s | 1 | 1 | 16497 | 16497 | 0 |
+| db0 | MSET | 1s | 32 | 0 | 356421 | 356421 | 0 |
+| db0 | MSET | 1s | 32 | 1 | 955046 | 955046 | 0 |
+| db0 | MSET | 2s | 1 | 0 | 10962 | 10962 | 0 |
+| db0 | MSET | 2s | 1 | 1 | 16166 | 16166 | 0 |
+| db0 | MSET | 2s | 32 | 0 | 350629 | 350629 | 0 |
+| db0 | MSET | 2s | 32 | 1 | 944454 | 944454 | 0 |

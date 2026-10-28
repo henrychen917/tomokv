@@ -1,0 +1,274 @@
+[
+  {
+    "label": "runtime-uring-fused0",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "32-45",
+      "--load-cores",
+      "46-47",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20301-20359"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "debug-0 debug-1 atomic_batteries release_batteries script_bounds fused-0 fused-1 txn_group_split txn_group_fused txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 atomfix5_watch atomfix5_accounting datafix2_watch exbatch_live atomic_floor execfair exbatch_units",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_PROOF_NET_IO": "uring",
+      "GATE_TXN_FUSED": "0",
+      "GATE_TXN_ATOMIC": "1",
+      "GATE_DIFFER_NET_IO": "uring",
+      "GATE_DIFFER_ORACLE_CORES": "40-45",
+      "REDIS74_ROOT": "/home/user/Projects/redis"
+    },
+    "sha256": "e50e343c32bca46cfd5d2856225c97b9d313968209262f00f97b847d840d8ec6",
+    "exit": 1,
+    "counts": [
+      81,
+      1
+    ],
+    "artifacts": "/home/user/Projects/cx-woundfix/build/gate-run.WGPvdU"
+  },
+  {
+    "label": "script-bounds-uring-fused0-a0",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "32-45",
+      "--load-cores",
+      "46-47",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20301-20359"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "script_bounds",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_PROOF_NET_IO": "uring",
+      "GATE_TXN_FUSED": "0",
+      "GATE_TXN_ATOMIC": "0",
+      "GATE_DIFFER_NET_IO": "uring",
+      "GATE_DIFFER_ORACLE_CORES": "40-45",
+      "REDIS74_ROOT": "/home/user/Projects/redis"
+    },
+    "sha256": "e50e343c32bca46cfd5d2856225c97b9d313968209262f00f97b847d840d8ec6",
+    "exit": 0,
+    "counts": [
+      3,
+      0
+    ],
+    "artifacts": "/home/user/Projects/cx-woundfix/build/gate-run.SydCq5"
+  },
+  {
+    "label": "runtime-uring-fused1",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "32-45",
+      "--load-cores",
+      "46-47",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20301-20359"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "debug-0 debug-1 atomic_batteries release_batteries script_bounds",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_PROOF_NET_IO": "uring",
+      "GATE_TXN_FUSED": "1",
+      "GATE_TXN_ATOMIC": "1",
+      "GATE_DIFFER_NET_IO": "uring",
+      "GATE_DIFFER_ORACLE_CORES": "40-45",
+      "REDIS74_ROOT": "/home/user/Projects/redis"
+    },
+    "sha256": "e50e343c32bca46cfd5d2856225c97b9d313968209262f00f97b847d840d8ec6",
+    "exit": 0,
+    "counts": [
+      47,
+      0
+    ],
+    "artifacts": "/home/user/Projects/cx-woundfix/build/gate-run.mZToaA"
+  },
+  {
+    "label": "script-bounds-uring-fused1-a0",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "32-45",
+      "--load-cores",
+      "46-47",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20301-20359"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "script_bounds",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_PROOF_NET_IO": "uring",
+      "GATE_TXN_FUSED": "1",
+      "GATE_TXN_ATOMIC": "0",
+      "GATE_DIFFER_NET_IO": "uring",
+      "GATE_DIFFER_ORACLE_CORES": "40-45",
+      "REDIS74_ROOT": "/home/user/Projects/redis"
+    },
+    "sha256": "e50e343c32bca46cfd5d2856225c97b9d313968209262f00f97b847d840d8ec6",
+    "exit": 0,
+    "counts": [
+      3,
+      0
+    ],
+    "artifacts": "/home/user/Projects/cx-woundfix/build/gate-run.TudwiC"
+  },
+  {
+    "label": "runtime-epoll-fused0",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "32-45",
+      "--load-cores",
+      "46-47",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20301-20359"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "debug-0 debug-1 atomic_batteries release_batteries script_bounds fused-0 fused-1 txn_group_split txn_group_fused txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 atomfix5_watch atomfix5_accounting datafix2_watch exbatch_live atomic_floor",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_PROOF_NET_IO": "epoll",
+      "GATE_TXN_FUSED": "0",
+      "GATE_TXN_ATOMIC": "1",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_DIFFER_ORACLE_CORES": "40-45",
+      "REDIS74_ROOT": "/home/user/Projects/redis"
+    },
+    "sha256": "e50e343c32bca46cfd5d2856225c97b9d313968209262f00f97b847d840d8ec6",
+    "exit": 0,
+    "counts": [
+      78,
+      0
+    ],
+    "artifacts": "/home/user/Projects/cx-woundfix/build/gate-run.Ltnh6l"
+  },
+  {
+    "label": "script-bounds-epoll-fused0-a0",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "32-45",
+      "--load-cores",
+      "46-47",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20301-20359"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "script_bounds",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_PROOF_NET_IO": "epoll",
+      "GATE_TXN_FUSED": "0",
+      "GATE_TXN_ATOMIC": "0",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_DIFFER_ORACLE_CORES": "40-45",
+      "REDIS74_ROOT": "/home/user/Projects/redis"
+    },
+    "sha256": "e50e343c32bca46cfd5d2856225c97b9d313968209262f00f97b847d840d8ec6",
+    "exit": 0,
+    "counts": [
+      3,
+      0
+    ],
+    "artifacts": "/home/user/Projects/cx-woundfix/build/gate-run.fBnuyS"
+  },
+  {
+    "label": "runtime-epoll-fused1",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "32-45",
+      "--load-cores",
+      "46-47",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20301-20359"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "debug-0 debug-1 atomic_batteries release_batteries script_bounds",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_PROOF_NET_IO": "epoll",
+      "GATE_TXN_FUSED": "1",
+      "GATE_TXN_ATOMIC": "1",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_DIFFER_ORACLE_CORES": "40-45",
+      "REDIS74_ROOT": "/home/user/Projects/redis"
+    },
+    "sha256": "e50e343c32bca46cfd5d2856225c97b9d313968209262f00f97b847d840d8ec6",
+    "exit": 0,
+    "counts": [
+      47,
+      0
+    ],
+    "artifacts": "/home/user/Projects/cx-woundfix/build/gate-run.a0aqad"
+  },
+  {
+    "label": "script-bounds-epoll-fused1-a0",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "32-45",
+      "--load-cores",
+      "46-47",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20301-20359"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "script_bounds",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_PROOF_NET_IO": "epoll",
+      "GATE_TXN_FUSED": "1",
+      "GATE_TXN_ATOMIC": "0",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_DIFFER_ORACLE_CORES": "40-45",
+      "REDIS74_ROOT": "/home/user/Projects/redis"
+    },
+    "sha256": "e50e343c32bca46cfd5d2856225c97b9d313968209262f00f97b847d840d8ec6",
+    "exit": 0,
+    "counts": [
+      3,
+      0
+    ],
+    "artifacts": "/home/user/Projects/cx-woundfix/build/gate-run.e33Leq"
+  }
+]

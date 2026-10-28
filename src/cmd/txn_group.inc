@@ -147,13 +147,14 @@ bool txn_group_ready(ScatterState& state, Shard& shard, Op& op) {
         if (attempt->phase.compare_exchange_strong(placing, TxnPhase::Wounded,
                                                    std::memory_order_acq_rel)) {
             uint64_t zero = 0;
-            if (state.epoch.compare_exchange_strong(zero, kAtomicCancelledEpoch,
-                                                    std::memory_order_acq_rel)) {
-                state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::BlindRestarts);
-                attempt->retry_after_ns = now_ns() + std::min(kTxnRetryBackoffMax,
-                    uint64_t{1000} << std::min(attempt->attempt, uint32_t{10}));
-                state.aborted.store(true, std::memory_order_release);
-            }
+            state.epoch.compare_exchange_strong(zero, kAtomicCancelledEpoch,
+                                                std::memory_order_acq_rel);
+            // The phase CAS owns this restart even if the last placer helped
+            // cancel the epoch while this owner was descheduled.
+            state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::BlindRestarts);
+            attempt->retry_after_ns = now_ns() + std::min(kTxnRetryBackoffMax,
+                uint64_t{1000} << std::min(attempt->attempt, uint32_t{10}));
+            state.aborted.store(true, std::memory_order_release);
         }
         return false;
     }
@@ -182,6 +183,11 @@ bool txn_group_ready(ScatterState& state, Shard& shard, Op& op) {
         TxnPhase placing = TxnPhase::Placing;
         if (!attempt->phase.compare_exchange_strong(placing, TxnPhase::Executing,
                                                     std::memory_order_acq_rel)) {
+            // A wound publishes phase before epoch. Complete its cancellation
+            // before any completion/commit consumer can see a terminal abort.
+            uint64_t zero = 0;
+            state.epoch.compare_exchange_strong(zero, kAtomicCancelledEpoch,
+                                                std::memory_order_acq_rel);
             state.aborted.store(true, std::memory_order_release);
             return false;
         }
@@ -250,6 +256,20 @@ TxnGroupRead txn_group_read_prepare(ScatterState& state, Shard& shard, Op& op) {
 }
 
 bool txn_group_decide(ScatterState& state, uint64_t ticket) {
+    if (state.aborted.load(std::memory_order_acquire)) {
+        // OOM or an NX veto can skip the last-placement CAS. Close placement
+        // before deciding this terminal abort, so a delayed wound cannot turn
+        // it into a cancelled unit after it has already answered. If the wound
+        // won, finish its cancellation instead. Ordinary errors keep tickets.
+        TxnPhase placing = TxnPhase::Placing;
+        if (!state.group_attempt()->phase.compare_exchange_strong(
+                placing, TxnPhase::Executing, std::memory_order_acq_rel) &&
+            placing == TxnPhase::Wounded) {
+            uint64_t zero = 0;
+            state.epoch.compare_exchange_strong(zero, kAtomicCancelledEpoch,
+                                                std::memory_order_acq_rel);
+        }
+    }
     uint64_t undecided = 0;
     if (state.epoch.compare_exchange_strong(undecided, ticket,
                                            std::memory_order_acq_rel)) {

@@ -21,13 +21,19 @@ class Resp:
         self.socket.sendall(b'*'+str(len(data)).encode()+b'\r\n'+b''.join(b'$'+str(len(a)).encode()+b'\r\n'+a+b'\r\n' for a in data));return self.read()
     def close(self):self.file.close();self.socket.close()
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--visits',action='store_true');args=parser.parse_args()
+    global PORT
+    parser=argparse.ArgumentParser();parser.add_argument('--visits',action='store_true')
+    parser.add_argument('--cores', default='96-103');parser.add_argument('--port', type=int, default=PORT)
+    parser.add_argument('--artifacts', type=Path, default=ROOT/'build/execindex')
+    parser.add_argument('--output', type=Path)
+    args=parser.parse_args();PORT=args.port
+    artifacts=args.artifacts.resolve()
     rows=[]
     arms=['PRE-visits','POST-visits'] if args.visits else ['POST-layout','PAD-A']
     for arm,mode,engine,db in itertools.product(arms,['1s','2s'],['uring','epoll'],[1,16]):
         with socket.socket() as guard:guard.bind(('127.0.0.1',PORT))
-        path=ROOT/'build/execindex'/arm;directory=ROOT/'build/execindex/control-data'/f'{arm}-{mode}-{engine}-{db}';directory.mkdir(parents=True,exist_ok=True)
-        cmd=['taskset','-c','96-103',str(path),'--port',str(PORT),'--bind','127.0.0.1','--shards','16','--thread-mode','fused' if mode=='1s' else 'split','--net-io',engine,'--databases',str(db),'--atomic','1','--key-lb','0','--client-lb','0','--flip-auto','0','--save','','--dir',str(directory)]
+        path=artifacts/arm;directory=artifacts/'control-data'/f'{arm}-{mode}-{engine}-{db}';directory.mkdir(parents=True,exist_ok=True)
+        cmd=['taskset','-c',args.cores,str(path),'--port',str(PORT),'--bind','127.0.0.1','--shards','16','--thread-mode','fused' if mode=='1s' else 'split','--net-io',engine,'--databases',str(db),'--atomic','1','--key-lb','0','--client-lb','0','--flip-auto','0','--save','','--dir',str(directory)]
         if mode=='2s':cmd+=['--ratio','6:2']
         if args.visits:cmd+=['--enable-debug-command','yes']
         clients=[]
@@ -63,5 +69,5 @@ def main():
                 except subprocess.TimeoutExpired:proc.kill();proc.wait();raise
                 assert rc==0,rc
         rows.append(dict(arm=arm,mode=mode,engine=engine,databases=db,pass_=True,visits_before=before,visits_after=after,command=cmd,sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
-    (ROOT/('docs/execindex/debug-smoke.json' if args.visits else 'docs/execindex/pad-smoke.json')).write_text(json.dumps(rows,indent=2)+'\n');print('PASS',len(rows),'control-image correctness cells')
+    (args.output or ROOT/('docs/execindex/debug-smoke.json' if args.visits else 'docs/execindex/pad-smoke.json')).write_text(json.dumps(rows,indent=2)+'\n');print('PASS',len(rows),'control-image correctness cells')
 if __name__=='__main__':main()

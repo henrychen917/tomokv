@@ -1,0 +1,27 @@
+[
+  {
+    "path": "/home/user/Projects/cx-woundfix/build/gate-run.SydCq5/jobs/script_bounds/output.log",
+    "sha256": "888bbe1f94aa18d948c8f85c660e97e8b2e0a51e0a8a6f8eb0a571fd8294803b",
+    "bytes": 283
+  },
+  {
+    "path": "/home/user/Projects/cx-woundfix/build/gate-run.SydCq5/jobs/script_bounds/gate-xscript-limit.txt",
+    "sha256": "1690d208dba9e4e22b5e0da558192f9efc301af2a0e8e927349c4251b9a372c4",
+    "bytes": 386
+  },
+  {
+    "path": "/home/user/Projects/cx-woundfix/build/gate-run.SydCq5/jobs/script_bounds/gate-xscript-window.txt",
+    "sha256": "f8ca15b40b05807b64addda509d43d6fbcc74a603101fa656927a6f1ad0dedf6",
+    "bytes": 518
+  },
+  {
+    "path": "/home/user/Projects/cx-woundfix/build/gate-run.SydCq5/jobs/release/output.log",
+    "sha256": "f2965fb544e53574d592d548d3303b129b8ecfac2f614f1511980eb8ced941a9",
+    "bytes": 212
+  },
+  {
+    "path": "/home/user/Projects/cx-woundfix/build/gate-run.SydCq5/jobs/release/gate-build.txt",
+    "sha256": "68c5f548009ee20966e380682cc0b78f39bea9c8895af0403577a7204fef2e99",
+    "bytes": 36
+  }
+]

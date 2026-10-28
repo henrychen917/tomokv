@@ -1,0 +1,12 @@
+{
+  "branch": "cx-woundfix",
+  "production_commit": "f90cfa1f3",
+  "production_files_unchanged": [
+    "src/cmd/multi.inc",
+    "src/cmd/txn_group.inc",
+    "src/cmd/txn_key_queue.inc"
+  ],
+  "release_sha256": "e50e343c32bca46cfd5d2856225c97b9d313968209262f00f97b847d840d8ec6",
+  "listeners_20300_20399": "State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess\n",
+  "remaining_processes": []
+}
