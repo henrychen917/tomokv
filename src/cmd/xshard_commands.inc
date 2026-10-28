@@ -2193,6 +2193,7 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
             if constexpr (kNotify) if (!values.empty())
                 notify_record(shard, op, NOTIFY_LIST, NotifyEventId::Sortstore, key);
             reply_int(op.sink(), static_cast<long long>(values.size()));
+            blocking_publish_key(shard, FlatStore::hash_key(key), key.p, key.n, key.ns);
         }
         return;
     }
@@ -2285,6 +2286,10 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
                 notify_record(shard, op, NOTIFY_GENERIC, NotifyEventId::RenameTo, op.arg(2));
             }
             if (kind == Kind::Rename) reply_ok(op.sink()); else reply_int(op.sink(), 1);
+            for (uint32_t arg : {2u, 1u}) {
+                const Slice key = op.arg(arg);
+                blocking_publish_key(shard, FlatStore::hash_key(key), key.p, key.n, key.ns);
+            }
         }
         return;
     }

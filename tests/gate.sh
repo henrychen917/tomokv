@@ -1156,7 +1156,7 @@ plan_jobs(){
   for mode in 1s 2s; do
     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
   done
-  JOB_NAMES+=(blockfix_structure blockfix_registry blockfix_mkstream persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
+  JOB_NAMES+=(blockfix2 blockfix_structure blockfix_registry blockfix_mkstream persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
               iofix-deferred iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               atomfix5_watch atomfix5_accounting core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat crlffix boot_grammar dbdefault wait_units readonly
@@ -3848,6 +3848,60 @@ job_blockfix_registry(){
   else bad "blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4" "see $TMPDIR/{instructions,registry-*}.log"; fi
 }
 
+# Optional lane proof: the same counted rows must also reject their private
+# planted regressions. Build controls first with tools/blockfix2_controls.py.
+# No production flag is added, and ordinary gate runs keep the full positive matrix.
+blockfix2_case(){
+  local case=$1 negative="$TMPDIR/control-$1"
+  compat3_case blockfix2 "$case" || return 1
+  [ "${GATE_BLOCKFIX2_CONTROLS:-0}" != 1 ] || {
+    mkdir -p "$negative"
+    if ( CANDIDATE_BINARY="$PWD/build/blockfix2/controls/$case/tomokv"
+         TMPDIR="$negative"
+         compat3_case blockfix2 "$case" ); then
+      echo "blockfix2 $case: planted regression unexpectedly passed" >&2
+      return 1
+    fi
+    py tools/blockfix2_controls.py check-directed --case "$case" --binary "$CANDIDATE_BINARY" \
+        --output "$negative" >"$negative/verdict.log" 2>&1 || return 1
+    py tools/blockfix2_controls.py check-tcl --case "$case" --binary "$CANDIDATE_BINARY" \
+        --cores "$CORES" --port "$PORT" --redis-root "$REDIS74_ROOT" \
+        --output "$negative/tcl" >"$negative/tcl.log" 2>&1 || return 1
+  }
+}
+
+# Six rows before quick exit (+6/+6); the owner updates EXPECT_QUICK/FULL.
+# The removed-stream delete/re-create diagnostic stays in compat3_blockfix2.py;
+# see docs/wave9/diagnostics.md for its retained 24-leg failing evidence.
+job_blockfix2(){
+  row_begin "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE"
+  blockfix2_case rename && ok "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE" || bad "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE"
+  row_begin "blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS"
+  blockfix2_case wrongtype && ok "blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS" || bad "blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS"
+  row_begin "blockfix2 MULTI-XREADGROUP-BLOCK-HANG"
+  blockfix2_case multi && ok "blockfix2 MULTI-XREADGROUP-BLOCK-HANG" || bad "blockfix2 MULTI-XREADGROUP-BLOCK-HANG"
+  row_begin "blockfix2 INFO-TOTAL-BLOCKING-KEYS"
+  blockfix2_case counts && ok "blockfix2 INFO-TOTAL-BLOCKING-KEYS" || bad "blockfix2 INFO-TOTAL-BLOCKING-KEYS"
+  row_begin "blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED"
+  blockfix2_case slowlog && ok "blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED" || bad "blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED"
+  row_begin "blockfix2 BLOCK-SERVE-REFUSED-DROP"
+  local failed=0 mode target unitdir
+  unitdir=$(dirname "$CANDIDATE_BINARY")
+  for target in blockfix2-unit blockfix2-db0-unit; do
+    if [ "$CANDIDATE_BINARY" = "$PWD/build/tomokv" ]; then unit_ready "$target" || failed=1; fi
+    for mode in 1s 2s; do
+      taskset -c "$CORES" "$unitdir/$target" "$mode" >"$TMPDIR/$target-$mode.log" 2>&1 || failed=1
+    done
+  done
+  if [ "${GATE_BLOCKFIX2_CONTROLS:-0}" = 1 ]; then
+    py tools/blockfix2_controls.py check-refusal --binary "$CANDIDATE_BINARY" \
+        --cores "$CORES" --output "$TMPDIR/control-refusal" \
+        >"$TMPDIR/control-refusal.log" 2>&1 || failed=1
+  fi
+  if [ "$failed" = 0 ]; then ok "blockfix2 BLOCK-SERVE-REFUSED-DROP"
+  else bad "blockfix2 BLOCK-SERVE-REFUSED-DROP"; fi
+}
+
 job_blockfix_structure(){
   row_begin "blockfix CC4.19 XINFO structural counts vs Redis 7.4"
   compat3_case blockfix structure && ok "blockfix CC4.19 XINFO structural counts vs Redis 7.4" \
@@ -5549,6 +5603,11 @@ job_production_units(){
       -j"$BUILD_JOBS" build/blockfix-cost >"$TMPDIR/blockfix-cost-build.log" 2>&1 &&
       make -f Makefile -f tools/blockfix_cost.mk -q build/blockfix-cost \
           build/tomokv.blockfix-cost.sha256 && : > "$RUN_DIR/unit-ready/blockfix-cost"
+  pausable taskset -c "$BUILD_CORES" make -f Makefile -f tools/blockfix2.mk \
+      -j"$BUILD_JOBS" build/blockfix2-unit build/blockfix2-db0-unit >"$TMPDIR/blockfix2-build.log" 2>&1
+  for target in blockfix2-unit blockfix2-db0-unit; do
+    make -f Makefile -f tools/blockfix2.mk -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
+  done
   return 0
 }
 job_multidb(){
@@ -5628,7 +5687,7 @@ job_dependencies(){
     racefix_counters) echo racefix_tsan_build;;
     racefix_climon) echo production_units;;
     compat2) echo 'release production_units redis_tcl';;
-    tls|blockfix_registry|slotless) echo 'release production_units';;
+    tls|blockfix_registry|slotless|blockfix2) echo 'release production_units';;
     respresume-*) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
     debug-*|fused-*|txn_group_*|txnorder_index|txnorder_wound|txnorder2|txnorder_wake|txnorder-*|aof_frame|aoforder|moverfix) echo 'release production_units';;
@@ -5822,6 +5881,7 @@ collect_job streamfix
 collect_job blockfix_registry
 collect_job blockfix_mkstream
 collect_job blockfix_structure
+collect_job blockfix2
 collect_job dispatch_arity
 collect_job dispatch_errors
 collect_job dispatch_children

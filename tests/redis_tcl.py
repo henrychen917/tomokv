@@ -251,6 +251,10 @@ def load_manifest(path, redis_root, inventory):
                 'SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl'] or
                 not set(fresh)<=set(spec['passed_tests'])):
             raise ValueError(f'invalid fresh assertion setup: {unit}')
+        isolated = spec.get('isolated_tests', {})
+        if (not isinstance(isolated, dict) or not set(isolated) <= required or
+                any(not isinstance(reason, str) or not reason for reason in isolated.values())):
+            raise ValueError(f'invalid isolated required tests: {unit}')
         # The upstream histogram file assumes Redis's default yes. TomoKV's
         # owner-selected default is no, so this explicit, bound file setup
         # enables the feature under test without editing upstream assertions.
@@ -299,6 +303,8 @@ def main():
             skipfile=args.output/unit/'skip.txt'; skipfile.parent.mkdir(parents=True,exist_ok=True)
             primary_skip=set(spec.get('skip_tests', ()))
             primary_skip.update(name.split(' in tests/')[0] for name in spec.get('fresh_tests', []))
+            isolated = spec.get('isolated_tests', {})
+            primary_skip.update(isolated)
             skipfile.write_text(''.join(name+'\n' for name in sorted(primary_skip)), encoding='utf-8')
             extra=['--skipfile',str(skipfile),*spec.get('extra_args',[])]
         if args.resume and path.exists(): row=json.loads(path.read_text())
@@ -307,9 +313,22 @@ def main():
         if args.manifest:
             row['skip_tests']=sorted(spec.get('skip_tests', ()))
             row['setup_errors']=[dict(command=c, reply=r, count=n) for (c, r), n in sorted(setup_errors(row).items())]
-            try: validate_passing(row, spec['passed_tests'], spec.get('known_setup_errors', ()))
+            expected = [name for name in spec['passed_tests'] if name.split(' in tests/')[0] not in isolated]
+            try: validate_passing(row, expected, spec.get('known_setup_errors', ()))
             except ValueError as error: row['error'] = '; '.join(filter(None, (row['error'], str(error))))
         report['rows'].append(row)
+        if args.manifest:
+            for name, reason in isolated.items():
+                isolated_args = argparse.Namespace(**vars(args))
+                isolated_args.output = args.output / 'isolated' / hashlib.sha256(name.encode()).hexdigest()[:16]
+                isolated_row = run_file(isolated_args, tree, unit, only=[name],
+                    extra=spec.get('extra_args', ()), server_args=server_args)
+                isolated_row['isolation_reason'] = reason
+                expected = [label for label in spec['passed_tests'] if label.split(' in tests/')[0] == name]
+                try: validate_passing(isolated_row, expected)
+                except ValueError as error:
+                    isolated_row['error'] = '; '.join(filter(None, (isolated_row['error'], str(error))))
+                report['rows'].append(isolated_row)
         (args.output/'summary.json').write_text(json.dumps(report,indent=2)+'\n')
         print(f"{args.mode} {unit}: {row['passed']} pass {row['failed']} fail {row['skipped']} skip rc={row['exit_code']} complete={row['complete']}",flush=True)
     if sha(args.binary) != report['binary_sha256']: raise ValueError('candidate changed during suite')

@@ -1,0 +1,58 @@
+[
+  {
+    "name": "features",
+    "argv": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "16-23",
+      "--load-cores",
+      "24-31",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20400-20469"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+      "GATE_TEST_PORT": "20499",
+      "GATE_ONLY_JOBS": "blockfix2 feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 compat3 serverfix_lines latencyfix_shape",
+      "GATE_LEDGER": "/home/user/Projects/cx-blockfix2/build/blockfix2/features.tsv",
+      "GATE_BLOCKFIX2_CONTROLS": "1"
+    },
+    "started": 1793100093.0102465,
+    "rc": 1,
+    "finished": 1793101439.5635412
+  },
+  {
+    "name": "notify-fused",
+    "argv": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "16-23",
+      "--load-cores",
+      "24-31",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20400-20469"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+      "GATE_TEST_PORT": "20499",
+      "GATE_ONLY_JOBS": "notify",
+      "GATE_LEDGER": "/home/user/Projects/cx-blockfix2/build/blockfix2/notify-fused.tsv",
+      "GATE_TXN_FUSED": "1"
+    },
+    "started": 1793101439.5638912,
+    "rc": 0,
+    "finished": 1793101493.9528048
+  }
+]

@@ -1,0 +1,53 @@
+{
+  "job": {
+    "name": "differ-epoll",
+    "pid": 1654838
+  },
+  "rows": [
+    {
+      "pid": 1654838,
+      "comm": "gate.sh",
+      "cpus_allowed_list": "24-31"
+    },
+    {
+      "pid": 1655015,
+      "comm": "gate.sh",
+      "cpus_allowed_list": "24-31"
+    },
+    {
+      "pid": 1655124,
+      "comm": "gate.sh",
+      "cpus_allowed_list": "24-31"
+    },
+    {
+      "pid": 1655148,
+      "comm": "differ_gate.sh",
+      "cpus_allowed_list": "24-31"
+    },
+    {
+      "pid": 1655611,
+      "comm": "timeout",
+      "cpus_allowed_list": "24-31"
+    },
+    {
+      "pid": 1655612,
+      "comm": "python3",
+      "cpus_allowed_list": "24-31"
+    },
+    {
+      "pid": 1655248,
+      "comm": "tomokv",
+      "cpus_allowed_list": "16-23"
+    },
+    {
+      "pid": 1655214,
+      "comm": "redis-server",
+      "cpus_allowed_list": "16-23"
+    },
+    {
+      "pid": 1655147,
+      "comm": "python3",
+      "cpus_allowed_list": "24-31"
+    }
+  ]
+}

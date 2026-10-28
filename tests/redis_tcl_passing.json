@@ -447,7 +447,7 @@
     "GEOSEARCH fuzzy test - byradius in tests/unit/geo.tcl",
     "GEOSEARCH non square, long and narrow in tests/unit/geo.tcl",
     "GEOSEARCH simple (sorted) in tests/unit/geo.tcl",
-    "GEOSEARCH the box spans -180° or 180° in tests/unit/geo.tcl",
+    "GEOSEARCH the box spans -180\u00b0 or 180\u00b0 in tests/unit/geo.tcl",
     "GEOSEARCH vs GEORADIUS in tests/unit/geo.tcl",
     "GEOSEARCH with STOREDIST option in tests/unit/geo.tcl",
     "GEOSEARCH with small distance in tests/unit/geo.tcl",
@@ -709,6 +709,7 @@
    "passed_tests": [
     "After failed EXEC key is no longer watched in tests/unit/multi.tcl",
     "After successful EXEC key is no longer watched in tests/unit/multi.tcl",
+    "Blocking commands ignores the timeout in tests/unit/multi.tcl",
     "DISCARD in tests/unit/multi.tcl",
     "DISCARD should UNWATCH all the keys in tests/unit/multi.tcl",
     "DISCARD should clear the WATCH dirty flag on the client in tests/unit/multi.tcl",
@@ -741,7 +742,6 @@
    },
    "sha256": "f994cb2f460e1478036f9b151db9e80d06af57d58e4173bb411580be35d3ce2b",
    "skip_tests": {
-    "Blocking commands ignores the timeout": "failed on TomoKV 2s in the survey",
     "DISCARD should not fail during OOM": "failed on TomoKV 2s in the survey",
     "EXEC and script timeout": "failed on TomoKV 2s in the survey",
     "EXEC fails if there are errors while queueing commands #2": "failed on TomoKV 2s in the survey",
@@ -1173,6 +1173,8 @@
    "passed_tests": [
     "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl",
     "SLOWLOG - RESET subcommand works in tests/unit/slowlog.tcl",
+    "SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl",
+    "SLOWLOG - blocking command is reported only after unblocked in tests/unit/slowlog.tcl",
     "SLOWLOG - can be disabled in tests/unit/slowlog.tcl",
     "SLOWLOG - check that it starts with an empty log in tests/unit/slowlog.tcl",
     "SLOWLOG - count must be >= -1 in tests/unit/slowlog.tcl",
@@ -1187,9 +1189,7 @@
    "skip_tests": {
     "SLOWLOG - Certain commands are omitted that contain sensitive information": "failed on TomoKV 2s in the survey",
     "SLOWLOG - GET optional argument to limit output len works": "failed on TomoKV 2s in the survey",
-    "SLOWLOG - Rewritten commands are logged as their original command": "failed on TomoKV 2s in the survey",
     "SLOWLOG - Some commands can redact sensitive fields": "failed on TomoKV 2s in the survey",
-    "SLOWLOG - blocking command is reported only after unblocked": "failed on TomoKV 2s in the survey",
     "SLOWLOG - can clean older entries": "failed or hung on TomoKV 2s in an earlier builder run (round 0)",
     "SLOWLOG - commands with too many arguments are trimmed": "failed or hung on TomoKV 2s in an earlier builder run (round 0)",
     "SLOWLOG - get all slow logs": "failed on TomoKV 2s in the survey",
@@ -1199,7 +1199,10 @@
    },
    "fresh_tests": [
     "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl"
-   ]
+   ],
+   "isolated_tests": {
+    "SLOWLOG - Rewritten commands are logged as their original command": "The required zero-max-length test leaves slowlog-max-len=0; its restoring max-entries test remains skipped for SLOWLOG-MAXLEN-PER-THREAD. Run the unchanged required assertion on fresh default state."
+   }
   },
   "unit/sort": {
    "extra_args": [],
@@ -1500,6 +1503,8 @@
     "BLMOVE right right - quicklist in tests/unit/type/list.tcl",
     "BLMOVE right right with zero timeout should block indefinitely in tests/unit/type/list.tcl",
     "BLMPOP_LEFT inside a transaction in tests/unit/type/list.tcl",
+    "BLMPOP_LEFT when new key is moved into place in tests/unit/type/list.tcl",
+    "BLMPOP_LEFT when result key is created by SORT..STORE in tests/unit/type/list.tcl",
     "BLMPOP_LEFT with variadic LPUSH in tests/unit/type/list.tcl",
     "BLMPOP_LEFT, LPUSH + DEL + SET should not awake blocked client in tests/unit/type/list.tcl",
     "BLMPOP_LEFT, LPUSH + DEL should not awake blocked client in tests/unit/type/list.tcl",
@@ -1524,6 +1529,8 @@
     "BLMPOP_RIGHT: with single empty list argument in tests/unit/type/list.tcl",
     "BLMPOP_RIGHT: with zero timeout should block indefinitely in tests/unit/type/list.tcl",
     "BLPOP inside a transaction in tests/unit/type/list.tcl",
+    "BLPOP when new key is moved into place in tests/unit/type/list.tcl",
+    "BLPOP when result key is created by SORT..STORE in tests/unit/type/list.tcl",
     "BLPOP with same key multiple times should work (issue #801) in tests/unit/type/list.tcl",
     "BLPOP with variadic LPUSH in tests/unit/type/list.tcl",
     "BLPOP, LPUSH + DEL + SET should not awake blocked client in tests/unit/type/list.tcl",
@@ -1554,6 +1561,7 @@
     "BRPOPLPUSH does not affect WATCH while still blocked in tests/unit/type/list.tcl",
     "BRPOPLPUSH inside a transaction in tests/unit/type/list.tcl",
     "BRPOPLPUSH maintains order of elements after failure in tests/unit/type/list.tcl",
+    "BRPOPLPUSH with multiple blocked clients in tests/unit/type/list.tcl",
     "BRPOPLPUSH with wrong destination type in tests/unit/type/list.tcl",
     "BRPOPLPUSH with wrong source type in tests/unit/type/list.tcl",
     "BRPOPLPUSH with zero timeout should block indefinitely in tests/unit/type/list.tcl",
@@ -1719,18 +1727,13 @@
    "skip_tests": {
     "BLMPOP propagate as pop with count command to replica": "failed on TomoKV 2s in the survey",
     "BLMPOP with multiple blocked clients": "failed on TomoKV 2s in the survey",
-    "BLMPOP_LEFT when new key is moved into place": "hung on TomoKV 2s in the survey",
-    "BLMPOP_LEFT when result key is created by SORT..STORE": "failed on TomoKV 2s in the survey",
     "BLMPOP_LEFT: with 0.001 timeout should not block indefinitely": "failed on TomoKV 2s in the survey",
     "BLMPOP_RIGHT: with 0.001 timeout should not block indefinitely": "failed on TomoKV 2s in the survey",
     "BLPOP unblock but the key is expired and then block again - reprocessing command": "failed on TomoKV 2s in the survey",
-    "BLPOP when new key is moved into place": "hung on TomoKV 2s in the survey",
-    "BLPOP when result key is created by SORT..STORE": "failed on TomoKV 2s in the survey",
     "BLPOP/BLMOVE should increase dirty": "failed on TomoKV 2s in the survey",
     "BLPOP: with 0.001 timeout should not block indefinitely": "failed on TomoKV 2s in the survey",
     "BRPOP: with 0.001 timeout should not block indefinitely": "failed on TomoKV 2s in the survey",
     "BRPOPLPUSH timeout": "failed on TomoKV 2s in the survey",
-    "BRPOPLPUSH with multiple blocked clients": "hung on TomoKV 2s in the survey",
     "Blocking command accounted only once in commandstats": "failed on TomoKV 2s in the survey",
     "Blocking command accounted only once in commandstats after timeout": "failed on TomoKV 2s in the survey",
     "Blocking timeout following PAUSE should honor the timeout": "failed on TomoKV 2s in the survey",
@@ -2028,10 +2031,19 @@
    "passed_tests": [
     "Blocking XREAD: key deleted in tests/unit/type/stream-cgroups.tcl",
     "Blocking XREAD: key type changed with SET in tests/unit/type/stream-cgroups.tcl",
+    "Blocking XREADGROUP for stream key that has clients blocked on list in tests/unit/type/stream-cgroups.tcl",
+    "Blocking XREADGROUP for stream key that has clients blocked on stream - avoid endless loop in tests/unit/type/stream-cgroups.tcl",
+    "Blocking XREADGROUP for stream key that has clients blocked on stream - reprocessing command in tests/unit/type/stream-cgroups.tcl",
     "Blocking XREADGROUP for stream that ran dry (issue #5299) in tests/unit/type/stream-cgroups.tcl",
     "Blocking XREADGROUP will ignore BLOCK if ID is not > in tests/unit/type/stream-cgroups.tcl",
     "Blocking XREADGROUP will not reply with an empty array in tests/unit/type/stream-cgroups.tcl",
+    "Blocking XREADGROUP: flushed DB in tests/unit/type/stream-cgroups.tcl",
+    "Blocking XREADGROUP: key deleted in tests/unit/type/stream-cgroups.tcl",
+    "Blocking XREADGROUP: key type changed with SET in tests/unit/type/stream-cgroups.tcl",
+    "Blocking XREADGROUP: key type changed with transaction in tests/unit/type/stream-cgroups.tcl",
     "PEL NACK reassignment after XGROUP SETID event in tests/unit/type/stream-cgroups.tcl",
+    "RENAME can unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl",
+    "RENAME can unblock XREADGROUP with data in tests/unit/type/stream-cgroups.tcl",
     "XACK can't remove the same item multiple times in tests/unit/type/stream-cgroups.tcl",
     "XACK is able to accept multiple arguments in tests/unit/type/stream-cgroups.tcl",
     "XACK is able to remove items from the consumer/group PEL in tests/unit/type/stream-cgroups.tcl",
@@ -2054,6 +2066,7 @@
     "XGROUP CREATE: with ENTRIESREAD parameter in tests/unit/type/stream-cgroups.tcl",
     "XGROUP CREATECONSUMER: create consumer if does not exist in tests/unit/type/stream-cgroups.tcl",
     "XGROUP CREATECONSUMER: group must exist in tests/unit/type/stream-cgroups.tcl",
+    "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl",
     "XINFO FULL output in tests/unit/type/stream-cgroups.tcl",
     "XPENDING can return single consumer items in tests/unit/type/stream-cgroups.tcl",
     "XPENDING is able to return pending items in tests/unit/type/stream-cgroups.tcl",
@@ -2072,17 +2085,7 @@
    },
    "sha256": "3c701f4315918a9038d63542733806e611603189d4024ce403f501361d710d86",
    "skip_tests": {
-    "Blocking XREADGROUP for stream key that has clients blocked on list": "failed on TomoKV 2s in the survey",
-    "Blocking XREADGROUP for stream key that has clients blocked on stream - avoid endless loop": "failed on TomoKV 2s in the survey",
-    "Blocking XREADGROUP for stream key that has clients blocked on stream - reprocessing command": "failed on TomoKV 2s in the survey",
-    "Blocking XREADGROUP: flushed DB": "hung on TomoKV 2s in the survey",
-    "Blocking XREADGROUP: key deleted": "hung on TomoKV 2s in the survey",
-    "Blocking XREADGROUP: key type changed with SET": "hung on TomoKV 2s in the survey",
-    "Blocking XREADGROUP: key type changed with transaction": "hung on TomoKV 2s in the survey",
     "Consumer seen-time and active-time": "failed on TomoKV 2s in the survey",
-    "RENAME can unblock XREADGROUP with -NOGROUP": "failed on TomoKV 2s in the survey",
-    "RENAME can unblock XREADGROUP with data": "failed on TomoKV 2s in the survey",
-    "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP": "failed on TomoKV 2s in the survey",
     "XREADGROUP from PEL does not change dirty": "failed on TomoKV 2s in the survey",
     "XREADGROUP of multiple entries changes dirty by one": "failed on TomoKV 2s in the survey"
    }

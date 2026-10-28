@@ -4133,8 +4133,9 @@ void xshard_flush_commits_impl(Server& server, ThreadCtx& self, Ring& ring,
                 }
                 aof_abort_scatter_group(*state);
             }
-            if (state->phase == 2 &&
-                __builtin_expect(server.blocking_waiters() != 0, false))
+            // Atomic MSET/DEL publish in phase one as well: replacement of a
+            // stream must reprobe its group readers at the commit decision.
+            if (__builtin_expect(server.blocking_waiters() != 0, false))
                 blocking_atomic_published(server, self, ring, *state);
             if (op.spec->flags & CmdFlags::NotifySelected)
                 notify_xshard_finished(server.shard(state->commit_shard), op, *state);

@@ -1,0 +1,40 @@
+{
+  "total": 939,
+  "functions": {
+    "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 91,
+    "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)": 198,
+    "tomo::Server::ClientWorkScope::ClientWorkScope(tomo::Server&, unsigned int)": 22,
+    "tomo::multi_task_tagged(tomo::Task const&)": 4,
+    "tomo::atomic_tripwire_enabled()": 6,
+    "void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)": 77,
+    "tomo::FlatStore::find(unsigned long, tomo::Slice)": 85,
+    "tomo::KvObj::key() const": 13,
+    "tomo::Slice::key_eq(tomo::Slice const&) const": 29,
+    "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]": 110,
+    "tomo::ExLoopT<true>::note_lb_hash(tomo::Shard&, unsigned long)": 5,
+    "tomo::ExLoopT<true>::flush_notify_batch()": 94,
+    "tomo::Shard::publish_size()": 58,
+    "tomo::FlatStore::publish_database_counts() const": 147
+  },
+  "bodies": {
+    "0x73ba10 void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 91,
+    "0x73a7d0 bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)": 198,
+    "0x4662f0 tomo::Server::ClientWorkScope::ClientWorkScope(tomo::Server&, unsigned int)": 22,
+    "0x50b830 tomo::multi_task_tagged(tomo::Task const&)": 4,
+    "0x45ad10 tomo::atomic_tripwire_enabled()": 6,
+    "0x5c0ab0 void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)": 77,
+    "0x563d50 tomo::FlatStore::find(unsigned long, tomo::Slice)": 85,
+    "0x55c310 tomo::KvObj::key() const": 13,
+    "0x55b3f0 tomo::Slice::key_eq(tomo::Slice const&) const": 29,
+    "0x5bddc0 void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]": 110,
+    "0x739920 tomo::ExLoopT<true>::note_lb_hash(tomo::Shard&, unsigned long)": 5,
+    "0x738c50 tomo::ExLoopT<true>::flush_notify_batch()": 94,
+    "0x7cdaa0 tomo::Shard::publish_size()": 58,
+    "0x7cd9a0 tomo::FlatStore::publish_database_counts() const": 147
+  },
+  "excluded": {
+    "memcpy@plt": 1
+  },
+  "clock_calls": 1,
+  "binary_sha256": "ad8408c2df26efd06332761eafdac33ca5b5e857f4e37704fc49fa5eccfde266"
+}
