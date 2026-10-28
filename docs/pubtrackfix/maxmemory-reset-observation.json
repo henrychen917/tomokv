@@ -1,0 +1,150 @@
+{
+  "source_archive": "docs/pubtrackfix/proof/superseded-eviction-rearm/receipts.tar.gz",
+  "binary": "/home/user/Projects/cx-pubtrackfix/build/tomokv",
+  "sha256": "dd675721d0f862c424b6d73719afbe9921607a9a1f1fd95df6ecac3a93cfb19f",
+  "failed_checks": [
+    {
+      "label": "2s-uring-db1-a1-r0",
+      "passed": false,
+      "actual": false
+    }
+  ],
+  "classification": "Unresolved: eviction succeeded, but a later SET was OOM-rejected after CONFIG SET maxmemory 0 and DBSIZE 0. The bounded follow-up probe did not reproduce this on PRE or POST.",
+  "wire": [
+    {
+      "send": [
+        "'CONFIG'",
+        "'SET'",
+        "'notify-keyspace-events'",
+        "'Ee'"
+      ]
+    },
+    {
+      "reply_hex": "2b4f4b0d0a",
+      "expected_hex": "2b4f4b0d0a"
+    },
+    {
+      "send": [
+        "'CONFIG'",
+        "'SET'",
+        "'maxmemory-policy'",
+        "'allkeys-lru'"
+      ]
+    },
+    {
+      "reply_hex": "2b4f4b0d0a",
+      "expected_hex": "2b4f4b0d0a"
+    },
+    {
+      "send": [
+        "'PSUBSCRIBE'",
+        "'*'"
+      ]
+    },
+    {
+      "reply_hex": "2a330d0a2431300d0a707375627363726962650d0a24310d0a2a0d0a3a310d0a",
+      "expected_hex": "2a330d0a2431300d0a707375627363726962650d0a24310d0a2a0d0a3a310d0a"
+    },
+    {
+      "send": [
+        "'SET'",
+        "'foo'",
+        "'bar'"
+      ]
+    },
+    {
+      "reply_hex": "2b4f4b0d0a",
+      "expected_hex": "2b4f4b0d0a"
+    },
+    {
+      "send": [
+        "'CONFIG'",
+        "'SET'",
+        "'maxmemory'",
+        "1"
+      ]
+    },
+    {
+      "reply_hex": "2b4f4b0d0a",
+      "expected_hex": "2b4f4b0d0a"
+    },
+    {
+      "reply_hex": "2a340d0a24380d0a706d6573736167650d0a24310d0a2a0d0a2432320d0a5f5f6b65796576656e7440305f5f3a657669637465640d0a24330d0a666f6f0d0a",
+      "expected_hex": "2a340d0a24380d0a706d6573736167650d0a24310d0a2a0d0a2432320d0a5f5f6b65796576656e7440305f5f3a657669637465640d0a24330d0a666f6f0d0a"
+    },
+    {
+      "send": [
+        "'CONFIG'",
+        "'SET'",
+        "'maxmemory'",
+        "0"
+      ]
+    },
+    {
+      "reply_hex": "2b4f4b0d0a",
+      "expected_hex": "2b4f4b0d0a"
+    },
+    {
+      "send": [
+        "'DBSIZE'"
+      ]
+    },
+    {
+      "reply_hex": "3a300d0a",
+      "expected_hex": "3a300d0a"
+    },
+    {
+      "send": [
+        "'SET'",
+        "''",
+        "'bar'"
+      ]
+    },
+    {
+      "reply_hex": "2d4f4f4d20636f6d6d616e64206e6f7420616c6c6f776564207768656e2075736564206d656d6f7279203e20276d61786d656d6f7279272e0d0a",
+      "expected_hex": "2b4f4b0d0a"
+    }
+  ],
+  "lifecycle": {
+    "command": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-pubtrackfix/build/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "20310",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-pubtrackfix/build/gate-run.Gx50WO/jobs/pubtrackfix/PUBSUB-EVICT-ON-MAXMEMORY/candidate/2s-uring-db1-a1-r0/data",
+      "--protected-mode",
+      "no",
+      "--databases",
+      "1",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--ratio",
+      "6:2",
+      "--enable-debug-command",
+      "yes",
+      "--net-io",
+      "uring",
+      "--databases",
+      "1",
+      "--atomic",
+      "1",
+      "--read-local",
+      "0"
+    ],
+    "pid": 1826654,
+    "booted": true,
+    "exit": 0,
+    "port_closed": true
+  }
+}

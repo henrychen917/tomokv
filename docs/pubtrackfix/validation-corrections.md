@@ -37,7 +37,8 @@ failures; there is no performance result in these receipts.
 - One intermediate directed run successfully evicted `foo`, acknowledged
   `CONFIG SET maxmemory 0`, returned DBSIZE 0, then OOM-rejected SET of the empty
   key. The complete wire transcript is retained in
-  `proof/superseded-eviction-rearm`. A 128-cycle CONFIG 1/0 + SET probe on Redis,
+  `proof/superseded-eviction-rearm` and extracted into
+  `maxmemory-reset-observation.json`. A 128-cycle CONFIG 1/0 + SET probe on Redis,
   PRE and POST in both modes did not reproduce it (`config-zero-audit.json`).
   Attribution is therefore unresolved. The existing owner-local memory-policy
   cache refreshes at pass entry; this code is unchanged by the lane. Each key's
