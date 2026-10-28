@@ -356,9 +356,9 @@ void txn_intents(Server& server) {
     }
     {
         // XS-SHUT-1: cross-owner activations abandoned between their PIN and UNPIN waves still
-        // hold PIN references when the owners join (SHUTDOWN NOSAVE, signal). Post-join
-        // teardown drops them, balancing the script-intent and activity accounting, instead of
-        // aborting on its empty-list check.
+        // hold PIN references when the owners join (SHUTDOWN NOSAVE, signal). The coordinator's
+        // post-join teardown drops them (the same two calls as main.cc's sequence), balancing the
+        // script-intent and activity accounting, instead of aborting on the empty-list check.
         const std::string other = key_on(server, 0, "txn-intent-abandoned");
         const auto other_hash = FlatStore::hash_key(slice(other));
         require(store.atomic_script_pin(hash, slice(key)), "abandoned activation PIN armed");
@@ -366,6 +366,7 @@ void txn_intents(Server& server) {
         require(store.atomic_script_pin(other_hash, slice(other)), "abandoned PIN on another key");
         require(store.atomic_has_script_pins() && server.script_intents_active() &&
                 server.atomic_work_active(), "abandoned PINs armed at teardown");
+        IoLoop::shutdown_release_abandoned_script_pins(server);
         store.atomic_shutdown_release_records();
         require(!store.atomic_has_records() && !server.script_intents_active() &&
                 !server.atomic_work_active(),

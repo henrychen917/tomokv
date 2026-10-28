@@ -392,6 +392,7 @@ int main(int argc, char** argv) {
         // destruction, then return their deferred ScatterState arenas to the correct IO-owned
         // pools. Server normally outlives those pools, so leaving this to FlatStore destructors
         // would leak the retained arenas.
+        IoLoop::shutdown_release_abandoned_script_pins(srv);
         for (uint32_t sid = 0; sid < srv.nshards(); sid++)
             srv.shard(static_cast<int32_t>(sid)).store().atomic_shutdown_release_records();
         for (IoLoop& io : ios) io.reap_atomic_deferred();

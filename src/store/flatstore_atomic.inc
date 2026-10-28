@@ -8,6 +8,33 @@
     // IO-owned arena pools are destroyed; the destructor repeats it harmlessly for early exits.
     void atomic_shutdown_release_records() { atomic_promote_all_for_shutdown(); }
 
+    // XS-SHUT-1. A cross-owner script activation holds one reference on each declared key's PIN
+    // (kind 0, always the list prefix) from its PIN wave until its own UNPIN wave, or the APPLY
+    // owner's ScriptApplyPins, drops it. SHUTDOWN NOSAVE or a signal can stop the owners between
+    // those waves. The activation is then abandoned: it was never acknowledged, and no wave will
+    // ever run again to drop its references. Only post-join teardown can still release them, and
+    // it must do so before atomic_shutdown_release_records(), whose empty-list check means
+    // "nothing outlived its holder". Called only from IoLoop::shutdown_release_abandoned_script_pins
+    // (src/core/shutdown.cc), so no request-path translation unit instantiates it.
+    void atomic_release_abandoned_script_pins() {
+        if (!atomic_pending_) return;
+        AtomicScriptIntent** link = &atomic_pending_->script_intents;
+        bool released = false;
+        while (*link && (*link)->kind == 0) {
+            AtomicScriptIntent* intent = *link;
+            *link = intent->next;
+            std::free(intent);
+            if (!atomic_pending_->script_intent_count) std::abort();
+            atomic_pending_->script_intent_count--;
+            released = true;
+        }
+        if (!released) return;
+        if (atomic_script_intents_)
+            atomic_script_intents_->fetch_sub(1, std::memory_order_release);
+        if (!atomic_pending_->script_intent_count && !atomic_pending_->live && atomic_activity_)
+            atomic_activity_->fetch_sub(1, std::memory_order_release);
+    }
+
     // Epoch-MVCC is a shard-local pending-entry list so KvObj remains byte-identical. These
     // bindings are installed once at boot; the null tracker pointer below is the complete
     // disabled-feature tax on store accesses.
@@ -1098,32 +1125,6 @@ private:
         atomic_free_entry(entry);
     }
 
-    // XS-SHUT-1. A cross-owner script activation holds one reference on each declared key's PIN
-    // (kind 0, the list prefix) from its PIN wave until its own UNPIN wave, or the APPLY owner's
-    // ScriptApplyPins, drops it. SHUTDOWN NOSAVE or a signal can stop the owners between those
-    // waves. The activation is then abandoned: it was never acknowledged, the shutdown promotion
-    // has already withdrawn any undecided APPLY records, and no wave will ever run again to drop
-    // its references. Only teardown, after every owner has joined, can still release them; it
-    // does so here so the empty-list check that follows keeps meaning "nothing outlived its
-    // holder". Unit intents were released just before, so only PIN nodes remain on the list.
-    void atomic_release_abandoned_script_pins() {
-        AtomicScriptIntent** link = &atomic_pending_->script_intents;
-        bool released = false;
-        while (*link && (*link)->kind == 0) {
-            AtomicScriptIntent* intent = *link;
-            *link = intent->next;
-            std::free(intent);
-            if (!atomic_pending_->script_intent_count) std::abort();
-            atomic_pending_->script_intent_count--;
-            released = true;
-        }
-        if (!released) return;
-        if (atomic_script_intents_)
-            atomic_script_intents_->fetch_sub(1, std::memory_order_release);
-        if (!atomic_pending_->script_intent_count && !atomic_pending_->live && atomic_activity_)
-            atomic_activity_->fetch_sub(1, std::memory_order_release);
-    }
-
     void atomic_destroy_pending() {
         if (!atomic_pending_) return;
         // Only shutdown reaches this destructor, after all workers have joined.
@@ -1136,7 +1137,6 @@ private:
             atomic_shutdown_unit_intent(intent);
             return true;
         });
-        atomic_release_abandoned_script_pins();
         if (atomic_pending_->live || atomic_pending_->script_intent_count) std::abort();
         const bool read_local_extended = atomic_pending_->read_local_extended;
         for (uint32_t cls = 0; cls < AtomicPendingState::kPoolClasses; cls++) {
