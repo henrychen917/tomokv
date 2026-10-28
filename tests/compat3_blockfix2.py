@@ -73,9 +73,10 @@ def removed(c, clients):
     parked(c, 1); c.cmd("RPUSH", "mixed", "x")
     equal(a.read(), [b"mixed", b"x"], "list waiter survives stream removal")
     parked(c, 0); out.append(got)
-    # Deletion is a command boundary even when recreation is already pipelined.
+    # Fresh registrations also cover owner cleanup racing the next dispatch.
+    # Every attempt must observe the deletion boundary, with no skipped window.
     for delete in (("DEL", "boundary"), ("UNLINK", "boundary"),
-                   ("DEL", "boundary", "other-owner")):
+                   ("DEL", "boundary", "other-owner")) * 8:
         c.cmd("DEL", "boundary", "other-owner")
         c.cmd("XGROUP", "CREATE", "boundary", "g", "$", "MKSTREAM")
         w = waiter(c, clients, "XREADGROUP", "GROUP", "g", "c", "BLOCK", 0,

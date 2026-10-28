@@ -446,6 +446,13 @@ void cmd_xgroup(Shard& shard, Op& op) {
         reply_stream_subcommand_syntax(op); return;
     }
     const Slice key = op.arg(2);
+    // A committed DEL may already have been materialized by owner cleanup,
+    // leaving no atomic record for the dispatch publication hook to observe.
+    // Publish the old group state before CREATE can replace it. EXEC/plain
+    // views retain their existing deferred publication; no object is borrowed
+    // across this call because waking a group reader can replace the stream.
+    if (create && shard.has_blocking_waiters())
+        blocking_publish_key(shard, op.hash, key.p, key.n, key.ns);
     KvObj* object = shard.store_find<kNotify>(op.hash, key);
     if (object && !obj_type_check(object, Type::Stream, op.sink())) return;
     if (!object && !mkstream) {

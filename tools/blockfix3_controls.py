@@ -22,6 +22,9 @@ def build():
         dest = OUT / arm
         dest.mkdir(parents=True, exist_ok=True)
         link = list(post)
+        source = dest / 'source'
+        shutil.copytree(ROOT / 'src', source / 'src', dirs_exist_ok=True)
+        path = source / 'src/cmd/t_stream_groups.cc'
         if arm == 'boundary':
             # PRE is this lane's base (already containing blockfix2's six
             # passing fixes). Keep POST's statistics objects so only the
@@ -30,20 +33,19 @@ def build():
             link = [str(ROOT / 'build/blockfix3/pre-source' / arg)
                     if arg.startswith('build/') and arg.endswith('.o') and
                     not arg.endswith(keep) else arg for arg in link]
+            old.replace(path, '    if (create && shard.has_blocking_waiters())\n'
+                        '        blocking_publish_key(shard, op.hash, key.p, key.n, key.ns);', '')
         else:
-            source = dest / 'source'
-            shutil.copytree(ROOT / 'src', source / 'src', dirs_exist_ok=True)
-            path = source / 'src/cmd/t_stream_groups.cc'
             old.replace(path, 'if (xreadgroup) xreadgroup_nogroup.fetch_add',
                         'if (false && xreadgroup) xreadgroup_nogroup.fetch_add')
-            for namespace in ('', 'db0/'):
-                target = 'build/' + namespace + 'src/cmd/t_stream_groups.o'
-                command = old.recipe(target)
-                command = [str(path) if arg == 'src/cmd/t_stream_groups.cc' else arg for arg in command]
-                obj = dest / ('db0.o' if namespace else 'normal.o')
-                command[command.index('-o') + 1] = str(obj)
-                subprocess.run(command, cwd=ROOT, check=True)
-                link = [str(obj) if arg == target else arg for arg in link]
+        for namespace in ('', 'db0/'):
+            target = 'build/' + namespace + 'src/cmd/t_stream_groups.o'
+            command = old.recipe(target)
+            command = [str(path) if arg == 'src/cmd/t_stream_groups.cc' else arg for arg in command]
+            obj = dest / ('db0.o' if namespace else 'normal.o')
+            command[command.index('-o') + 1] = str(obj)
+            subprocess.run(command, cwd=ROOT, check=True)
+            link = [str(obj) if arg == target else arg for arg in link]
         link[link.index('-o') + 1] = str(dest / 'tomokv')
         subprocess.run(link, cwd=ROOT, check=True)
         record = dict(post_sha256=redis_tcl.sha(ROOT / 'build/tomokv'),
