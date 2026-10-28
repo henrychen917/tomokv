@@ -19,7 +19,7 @@ def gate(label, jobs, engine='uring', extra=None, candidate=None, ports='20010-2
 def main():
     assert os.sched_getaffinity(0)<=set(range(64,96))
     p=argparse.ArgumentParser()
-    p.add_argument('phase',choices=['core','families','supplement','differ','harness','lottery','controls'])
+    p.add_argument('phase',choices=['core','families','supplement','differ','harness','lottery','controls','zc','freshness'])
     a=p.parse_args();out=[]
     if a.phase=='core':
         out.append(gate('core',['exec1s','txnorder_wound','at412-owner','txnorder_index']+
@@ -61,6 +61,14 @@ def main():
             saved=next(r for r in json.loads((d.DOCS/'arms.json').read_text()) if r['arm']==arm)
             assert d.sha(binary)==saved['sha256']
             out.append(gate(arm+'-smoke',['execfair'],candidate=binary,ports='20002-20009',server_cores='64-71',load_cores='72-95'))
+    elif a.phase=='zc':
+        # This job has an idle-core preflight. Run it alone after the parallel
+        # families and any source/count rebuilds, without bypassing that check.
+        for mode in ('0','1'):
+            for engine in ('uring','epoll'):
+                out.append(gate('zc-'+mode+'-'+engine,['zc'],engine,extra={
+                    'GATE_TXN_FUSED':mode,'GATE_TXN_ATOMIC':'0','GATE_ZC_NET_IO':engine},
+                    ports='20002-20009',server_cores='64-71',load_cores='72-95'))
     elif a.phase=='lottery':
         binary=d.ROOT/'build/lottery/tomokv'
         subprocess.run(['make','-q','build/lottery/tomokv'],check=True)
@@ -69,6 +77,22 @@ def main():
             copy_patches_sha256=d.sha(d.ROOT/'build/lottery/source/lottery-patches.json'),
             build_log_sha256=d.sha(d.OUT/'evidence/lottery-final-build.log')))
         out.append(gate('lottery-copy-smoke',['execfair'],candidate=binary,ports='20002-20009',server_cores='64-71',load_cores='72-95'))
+    elif a.phase=='freshness':
+        import exec1s_finish_proof as finish
+        finish.DOCS=d.DOCS
+        finish.freshness()
+        record=json.loads((d.DOCS/'freshness.json').read_text())
+        for target in ('build/blockfix2-unit','build/blockfix2-db0-unit'):
+            cmd=['make','-f','Makefile','-f','tools/blockfix2.mk','-q',target]
+            result=subprocess.run(cmd,cwd=d.ROOT,text=True,capture_output=True)
+            record['checks'].append(dict(command=cmd,returncode=result.returncode,
+                                         output=result.stdout+result.stderr))
+        post=next(r for r in json.loads((d.DOCS/'arms.json').read_text()) if r['arm']=='POST')
+        assert record['production_sha256']==post['sha256']
+        record['passed']=all(r['returncode']==0 for r in record['checks'])
+        d.save(d.DOCS/'freshness.json',record);out.append(record['passed'])
+        print('freshness',sum(r['returncode']==0 for r in record['checks']),
+              '/',len(record['checks']),flush=True)
     else:
         env=dict(os.environ,GATE_TEST_PORT='20098')
         inherited.OUT=d.OUT/'proof'
