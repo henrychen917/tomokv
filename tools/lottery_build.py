@@ -27,7 +27,9 @@ def prepare(output):
         for path in sorted((ROOT / name).rglob('*')):
             if path.is_file():
                 staged[path.relative_to(ROOT).as_posix()] = (path.read_bytes(), path.stat().st_mode)
-    hooks = (ROOT / 'tests/lottery_hooks.h').read_bytes()
+    # CXXFLAGS are filtered into the Lua helper C rule, including -include.
+    # These observations are C++ only; the copied include is empty for C.
+    hooks = b'#ifdef __cplusplus\n' + (ROOT / 'tests/lottery_hooks.h').read_bytes() + b'\n#endif\n'
     staged['tests/lottery_hooks.h'] = (hooks, 0o644)
     staged['Makefile'] = ((ROOT / 'Makefile').read_bytes(), 0o644)
     staged['tools/assert_map.py'] = ((ROOT / 'tools/assert_map.py').read_bytes(), 0o644)
@@ -80,16 +82,16 @@ def prepare(output):
 
     # W2/W16: boundaries carry operation identity and actual key hashes. The W16
     # begin is AFTER the last owner joins; end is BEFORE epoch publication.
-    after('src/cmd/multi.inc', '                    assemble_ownerless_replies(state);', '''
+    after('src/cmd/multi_execute.inc', '                    assemble_ownerless_replies<Tracked>(state, owner_thread_id);', '''
                     if (lottery::enabled(lottery::bit(2)|lottery::bit(16))) {
                         lottery::event(lottery::bit(2)|lottery::bit(16), "write_new",
-                            lottery::ptr(&state.epoch));
+                            lottery::ptr(&state.decision.epoch));
                         for (const auto& key : state.write_keys)
                             lottery::event(lottery::bit(2)|lottery::bit(16), "exec_key",
-                                lottery::ptr(&state.epoch), key.hash, state.origin_conn_id, key.shard);
+                                lottery::ptr(&state.decision.epoch), key.hash, state.origin_conn_id, key.shard);
                         // Its call-site stamp follows the last owner's join (lists_pending 0).
                         lottery::event(lottery::bit(2)|lottery::bit(16), "exec_installed",
-                            lottery::ptr(&state.epoch), state.shards.size(), state.write_keys.size(),
+                            lottery::ptr(&state.decision.epoch), state.shards.size(), state.write_keys.size(),
                             state.origin_conn_id);
                     }''')
     after('src/core/server.h', '        store_tickets(first);',
@@ -98,6 +100,14 @@ def prepare(output):
             lottery::event(lottery::bit(2)|lottery::bit(9)|lottery::bit(16), "exec_decision",
                            lottery::ptr(&epoch), ticket);
             epoch.store(ticket, std::memory_order_release);''')
+    # Current EXEC uses a cancellable CAS. The before-CAS decision stamp is
+    # paired with a commit only on success, after every child decision is set.
+    patch('src/core/server.h', '        const bool won = epoch.compare_exchange_strong(', '''
+        lottery::event(lottery::bit(2)|lottery::bit(9)|lottery::bit(16), "exec_decision",
+                       lottery::ptr(&epoch), ticket);
+        const bool won = epoch.compare_exchange_strong(''')
+    after('src/core/server.h', '        if (won) publish_members(ticket);', '''
+        if (won) lottery::event(lottery::bit(2), "commit", 0, ticket, 1);''')
     # The reader stamps BEFORE it loads the decision word; seeing epoch 0 then
     # proves the load preceded the decision store. Stamp > installed stamp
     # puts the whole load inside the W16 window (all owners joined, undecided).
@@ -122,7 +132,7 @@ def prepare(output):
         for (uint32_t i=0; i<group.count; ++i)
             lottery::event(lottery::bit(2), "read_key", lottery::ptr(&state),
                           state.keys[state.key_order[group.begin+i]].hash, shard.id());''')
-    after('src/cmd/multi.inc', '    const bool read_kind = command.kind == MultiCommandKind::Mget ||\n                           command.kind == MultiCommandKind::Exists;', '''
+    after('src/cmd/multi.inc', '    const bool read_kind = command.kind == MultiCommandKind::Mget ||\n                           command.kind == MultiCommandKind::Exists ||\n                           (command.kind == MultiCommandKind::Msetnx && stage == 0);', '''
     lottery::Scope lottery_fragment(read_kind ? lottery::bit(2) : 0,
         "read_begin", "read_end", lottery::ptr(&command), shard.id(),
         command.participants.size(), multi_read_cut(state), state.origin_conn_id);
@@ -158,7 +168,7 @@ def prepare(output):
     after('src/cmd/scatter_engine.inc', '                    xshard_peek_list(object, state.from_left, result->bulk);', '''
                 lottery::event(lottery::bit(6), "move_selected", lottery::ptr(&state),
                     key.hash, state.from_left, state.origin_conn_id);''')
-    after('src/cmd/scatter_engine.inc', '        if (state.phase == 2) {', '''
+    after('src/cmd/scatter_engine.inc', '\n        if (state.phase == 2) {', '''
             if (is_element_mover(state.kind))
                 lottery::event(lottery::bit(6), "move_remove", lottery::ptr(&state));''')
     after('src/cmd/t_list.cc',
@@ -201,7 +211,7 @@ def prepare(output):
                     c->id(), self_->id(), c->is_tls(), conn.rlen()-conn.rpos());''')
         patch(file, 'if (pr == ParseResult::Error) {', '''lottery::event(lottery::bit(10)|lottery::bit(12), "parser_complete", c->id());
         if (pr == ParseResult::Error) {''')
-    after('src/core/io_loop.h', '    void release_tls(Client* c) {\n        if (!c->is_tls()) return;',
+    after('src/core/io_loop.h', '    __attribute__((noinline)) void release_tls(Client* c) {\n        if (!c->is_tls()) return;',
           '        lottery::event(lottery::bit(12), "tls_retire", c->id());')
     after('src/core/io_loop.h', '    void on_tls_recv(Client* c, int res) {', '''
         if (res > 0) lottery::event(lottery::bit(12), "tls_input", c->id(), res);''')
@@ -240,18 +250,18 @@ def prepare(output):
                 state->keys[i].hash, state->origin_conn_id, state->keys[i].shard);
     }''')
     after('src/cmd/multi.inc', '    op.attach_multi_state(dispatch);', '''
-    lottery::event(lottery::bit(9), "apply_group", lottery::ptr(&dispatch->epoch),
+    lottery::event(lottery::bit(9), "apply_group", lottery::ptr(&dispatch->decision.epoch),
                    dispatch->write_keys.size());''')
-    # W16 incarnations: a transaction publishes through state.epoch (plain
+    # W16 incarnations: a transaction publishes through state.decision.epoch (plain
     # installs) and each lowered child's scatter epoch; all open here, before
     # the first task is visible. Any other scatter group re-opens its address.
     after('src/cmd/multi.inc', '    op.attach_multi_state(dispatch);', '''
     if (lottery::enabled(lottery::bit(16))) {
-        lottery::event(lottery::bit(16), "exec_open", lottery::ptr(&dispatch->epoch));
+        lottery::event(lottery::bit(16), "exec_open", lottery::ptr(&dispatch->decision.epoch));
         for (const auto& command : dispatch->commands)
             if (command->scatter)
                 lottery::event(lottery::bit(16), "exec_child",
-                    lottery::ptr(&command->scatter->epoch), lottery::ptr(&dispatch->epoch));
+                    lottery::ptr(&command->scatter->epoch), lottery::ptr(&dispatch->decision.epoch));
     }''')
     after('src/cmd/scatter_engine.inc', '    dispatch.state = state;',
           '    lottery::event(lottery::bit(16), "group_open", lottery::ptr(&state->epoch));')
@@ -282,7 +292,7 @@ def prepare(output):
             event->kind == PubSubEventKind::TrackingDeliver)
             lottery::event(lottery::bit(13), "tracking_post", lottery::ptr(event), target_io);''')
     after('src/cmd/tracking.cc',
-          'void IoLoop::tracking_emit_invalidation(Client* target, bool redirected, Slice key, bool flush) {',
+          'void IoLoop::tracking_emit_invalidation(Client* target, bool redirected, Slice key, bool flush,\n                                       uint64_t source_id, uint64_t generation) {',
           '    lottery::event(lottery::bit(13), "tracking_emit", target->id());')
     # W11 reads EXISTING per-thread state at the admitted FLIP request and at
     # its completion: the ClientWorkScope epoch (odd = inside client work) and
@@ -299,7 +309,7 @@ def prepare(output):
     }''')
     for anchor, kind, done in (
             ('        const uint32_t live_io = role_count(Role::Ifid);', 'flip_work', 'flip_begin'),
-            ('        flip_last_transfers_.store(transfers, std::memory_order_relaxed);',
+            ('        flip_last_transfers_.store(flip_active_transfers_.load(std::memory_order_relaxed),\n                                   std::memory_order_relaxed);',
              'flip_work_end', 'flip_end')):
         after('src/core/server.h', anchor, f'''
         if (lottery::enabled(lottery::bit(11)))

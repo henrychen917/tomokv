@@ -1,0 +1,24 @@
+{
+  "arms": [
+    {
+      "path": "build/lottery/tomokv",
+      "sha256": "9896a3225abd5c290333ea9f6b49eecff0a60311641941f9c067d33ea4abd8ef",
+      "size": 225062456
+    },
+    {
+      "path": "build/lottery/tomokv-asan",
+      "sha256": "b35e0859cb6fde74b104c8733181e1b366cb68107fbe1b6d162ae159571b864a",
+      "size": 689503168
+    },
+    {
+      "path": "build/wave9/publishfix/tomokv",
+      "sha256": "1dbb63953fd61e92568a7129ec261f5580ec5de5835ac9f896f61023d1a7f270",
+      "size": 220090056
+    }
+  ],
+  "lottery_evidence": {
+    "exit": 0,
+    "tests": 17
+  },
+  "note": "Compile-only copied-source arms; no lottery nightly or performance run."
+}
