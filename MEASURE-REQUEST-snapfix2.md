@@ -195,8 +195,16 @@ atomic RYOW performance assertion. The first main pass was interrupted before
 that job to enable the switch; its 18 completed rows and interrupted shutdown
 row are retained in `proof/proof-uring-interrupted` and are not the final proof.
 The oracle is Redis 7.4.10, verified with `--version`; command receipts bind its
-binary digest. The main targeted pass completed: **53 jobs, 329 ok, 0 FAIL**, including all
-snapfix rows and the new RSS row (`proof/proof-uring/record.json`). The idle RSS
+binary digest. Both main targeted passes completed, including all snapfix rows
+and the new RSS row:
+
+| Main pass | Jobs including prerequisites | Passing rows | Failing rows |
+|---|---:|---:|---:|
+| uring | 53 | 329 | 0 |
+| epoll | 53 | 329 | 0 |
+
+Their ledgers and all per-job outcomes are in `proof/proof-{uring,epoll}/record.json`.
+The idle RSS
 row passed all eight TomoKV legs plus Redis: 1s stayed at 18.79–18.87 MiB and 2s
 at 15.30–15.38 MiB over 12 saves. Both storm rows passed all nine legs.
 The million-key, 16-save/reload matrix passed all nine legs. All **12 long
@@ -211,7 +219,7 @@ writer `SNAP-STORM-1` diagnostic has **0 failures in 20 attempts** (five 30-seco
 attempts per mode/engine). As in snapfix's diagnostic, `--pre-control` permits
 the existing BUSY refusals and records their counts; successful scripts, writes
 and saves must still advance. This is a stall/correctness result, not a rate
-claim. The other engine pass and differential suites remain in progress. Initial
+claim. The differential suites and supplementary mode/battery passes remain in progress. Initial
 `tests/gates_test.py` hit three fixture timeout failures while compilation and
 instruction tracing overlapped; it will be repeated in isolation, with the
 original log retained. No assertion or timeout is weakened.

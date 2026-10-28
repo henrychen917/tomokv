@@ -1,0 +1,20 @@
+2027801:C 29 Oct 2026 00:51:30.460 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+2027801:C 29 Oct 2026 00:51:30.460 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+2027801:C 29 Oct 2026 00:51:30.460 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=2027801, just started
+2027801:C 29 Oct 2026 00:51:30.460 * Configuration loaded
+2027801:M 29 Oct 2026 00:51:30.460 * monotonic clock: POSIX clock_gettime
+2027801:M 29 Oct 2026 00:51:30.461 * Running mode=standalone, port=20100.
+2027801:M 29 Oct 2026 00:51:30.461 * Server initialized
+2027801:M 29 Oct 2026 00:51:30.461 * Creating AOF base file appendonly.aof.1.base.rdb on server start
+2027801:M 29 Oct 2026 00:51:30.461 * Creating AOF incr file appendonly.aof.1.incr.aof on server start
+2027801:M 29 Oct 2026 00:51:30.461 * Ready to accept connections tcp
+2027801:M 29 Oct 2026 00:51:30.545 * Creating AOF incr file appendonly.aof.2.incr.aof on background rewrite
+2027801:M 29 Oct 2026 00:51:30.545 * Background append only file rewriting started by pid 2027809
+2027801:M 29 Oct 2026 00:51:32.654 * DB saved on disk
+2027801:M 29 Oct 2026 00:51:32.656 * User requested shutdown...
+2027801:M 29 Oct 2026 00:51:32.656 # There is a child rewriting the AOF. Killing it!
+2027801:M 29 Oct 2026 00:51:32.656 * Killing running AOF rewrite child: 2027809
+2027809:C 29 Oct 2026 00:51:32.656 * Successfully created the temporary AOF base file temp-rewriteaof-bg-2027809.aof
+2027809:signal-handler (1793206292) Received SIGUSR1 in child, exiting now.
+2027801:M 29 Oct 2026 00:51:32.656 * Calling fsync() on the AOF file.
+2027801:M 29 Oct 2026 00:51:32.656 # Redis is now ready to exit, bye bye...

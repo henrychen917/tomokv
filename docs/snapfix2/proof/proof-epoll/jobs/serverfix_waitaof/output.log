@@ -1,0 +1,2 @@
+  row budget: 900s; median=6.89s; correctness-plan-fallback; serverfix SV4.5 WAITAOF wait lifecycle
+  serverfix SV4.5 WAITAOF wait lifecycle               ok

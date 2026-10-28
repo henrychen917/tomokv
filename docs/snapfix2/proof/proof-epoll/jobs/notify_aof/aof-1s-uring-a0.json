@@ -1,0 +1,24 @@
+[
+  {
+    "target": true,
+    "keys": [
+      "notifyorder:aof:0000",
+      "notifyorder:aof:0015"
+    ],
+    "records": "[(3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (5, 'notifyorder:aof:0000', 1), (5, 'notifyorder:aof:0015', 1), (7, '', 1)]",
+    "grouped": true,
+    "live": "[b'one', b'two']",
+    "recovered": "[b'one', b'two']"
+  },
+  {
+    "target": false,
+    "keys": [
+      "notifyorder:aof:0000",
+      "notifyorder:aof:0015"
+    ],
+    "records": "[[b'MULTI'], [b'SET', b'notifyorder:aof:0000', b'one'], [b'SET', b'notifyorder:aof:0015', b'two'], [b'EXEC']]",
+    "grouped": true,
+    "live": "[b'one', b'two']",
+    "recovered": "[b'one', b'two']"
+  }
+]

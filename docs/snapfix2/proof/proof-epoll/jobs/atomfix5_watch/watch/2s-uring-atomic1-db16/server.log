@@ -1,0 +1,35 @@
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [0,1,2,3,4,5,6,7]
+tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0
+  thread t0: role=ifid cpu=0 L3=0 shards=0
+  thread t1: role=ifid cpu=1 L3=0 shards=0
+  thread t2: role=ifid cpu=2 L3=0 shards=0
+  thread t3: role=ifid cpu=3 L3=0 shards=0
+  thread t4: role=ifid cpu=4 L3=0 shards=0
+  thread t5: role=ifid cpu=5 L3=0 shards=0
+  thread t6: role=ex cpu=6 L3=0 shards=8
+  thread t7: role=ex cpu=7 L3=0 shards=8
+listening on 127.0.0.1:20100
+persistence: enabled=0 posted=0 flushed=0 durable=0 refused=0 pending_chunks=0 producers_with_pending=0 drain_gave_up=0 failed=0
+
+thread role          ops      iters   busy_ms   idle_ms    cpu_ms   wake_tx  wake_rx
+t0     io              0        301       0.2     165.9       0.5         3       11
+io_tenure t0/0 busy_ns=165601 idle_ns=165894477 entry_ns=4862956816362799 begin_ns=4862956816362849 end_ns=4862956982422927 exit_ns=4862956982423207 role_exit=0 stopped=1
+t1     io              0        302       0.2     165.5       0.6         1        9
+io_tenure t1/0 busy_ns=155581 idle_ns=165511894 entry_ns=4862956816750702 begin_ns=4862956816750742 end_ns=4862956982418217 exit_ns=4862956982418337 role_exit=0 stopped=1
+t2     io              9        213       0.6     165.0       1.1        40       48
+io_tenure t2/0 busy_ns=594572 idle_ns=164984792 entry_ns=4862956816834813 begin_ns=4862956816834853 end_ns=4862956982414217 exit_ns=4862956982414337 role_exit=0 stopped=1
+t3     io              7        368       0.5     165.3       1.0         3       18
+io_tenure t3/0 busy_ns=512202 idle_ns=165273794 entry_ns=4862956816636121 begin_ns=4862956816636161 end_ns=4862956982422157 exit_ns=4862956982422387 role_exit=0 stopped=1
+t4     io              0        275       0.2     165.5       0.6         2       10
+io_tenure t4/0 busy_ns=157381 idle_ns=165488534 entry_ns=4862956816771802 begin_ns=4862956816771942 end_ns=4862956982417857 exit_ns=4862956982418067 role_exit=0 stopped=1
+t5     io              0        273       0.2     165.5       0.6         1        9
+io_tenure t5/0 busy_ns=156440 idle_ns=165545635 entry_ns=4862956816732452 begin_ns=4862956816732492 end_ns=4862956982434567 exit_ns=4862956982434847 role_exit=0 stopped=1
+t6     ex             51      13924       0.1     165.6       2.5         4        5
+t7     ex             43      13946       0.1     165.6       2.3         3        4
+wb: retired=40 direct=0 sends=40/40 short=0 err=0 peer_aborts=0 bytes=9724 zc_sends=0 zc_bytes=0 zc_releases=0 serves=42 empty=2
+tls: accepts=0 handshakes=0/0 failed=0 freed=0 want_read=0 want_write=0 cipher_in=0 plain_in=0 cipher_out=0 plain_out=0 zc_suppressed=0 ktls_active=0 ktls_fallback=0
+stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0 | slots done=0 issued=0 free=0 flag_set=0
+shutdown: dispatched=16 executed=94 accepts=2 accept_err=0 rearm=0 sqe_starved=0 notify_drop=0
+shutdown_report {"schema":1,"thread_mode":"2s","work":{"kind":"split","dispatched":16,"executed":94},"threads":[{"tid":0,"role":"io","ops":0,"iterations":301,"busy_ns":165601,"idle_ns":165894477,"cpu_ns":511440,"wake_tx":3,"wake_rx":11,"io_tenures":[{"entry_ns":4862956816362799,"begin_ns":4862956816362849,"end_ns":4862956982422927,"exit_ns":4862956982423207,"busy_ns":165601,"idle_ns":165894477,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":1,"role":"io","ops":0,"iterations":302,"busy_ns":155581,"idle_ns":165511894,"cpu_ns":583120,"wake_tx":1,"wake_rx":9,"io_tenures":[{"entry_ns":4862956816750702,"begin_ns":4862956816750742,"end_ns":4862956982418217,"exit_ns":4862956982418337,"busy_ns":155581,"idle_ns":165511894,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":2,"role":"io","ops":9,"iterations":213,"busy_ns":594572,"idle_ns":164984792,"cpu_ns":1068790,"wake_tx":40,"wake_rx":48,"io_tenures":[{"entry_ns":4862956816834813,"begin_ns":4862956816834853,"end_ns":4862956982414217,"exit_ns":4862956982414337,"busy_ns":594572,"idle_ns":164984792,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":3,"role":"io","ops":7,"iterations":368,"busy_ns":512202,"idle_ns":165273794,"cpu_ns":1040420,"wake_tx":3,"wake_rx":18,"io_tenures":[{"entry_ns":4862956816636121,"begin_ns":4862956816636161,"end_ns":4862956982422157,"exit_ns":4862956982422387,"busy_ns":512202,"idle_ns":165273794,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":4,"role":"io","ops":0,"iterations":275,"busy_ns":157381,"idle_ns":165488534,"cpu_ns":565010,"wake_tx":2,"wake_rx":10,"io_tenures":[{"entry_ns":4862956816771802,"begin_ns":4862956816771942,"end_ns":4862956982417857,"exit_ns":4862956982418067,"busy_ns":157381,"idle_ns":165488534,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":5,"role":"io","ops":0,"iterations":273,"busy_ns":156440,"idle_ns":165545635,"cpu_ns":639840,"wake_tx":1,"wake_rx":9,"io_tenures":[{"entry_ns":4862956816732452,"begin_ns":4862956816732492,"end_ns":4862956982434567,"exit_ns":4862956982434847,"busy_ns":156440,"idle_ns":165545635,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":6,"role":"ex","ops":51,"iterations":13924,"busy_ns":116202,"idle_ns":165599450,"cpu_ns":2464120,"wake_tx":4,"wake_rx":5,"io_tenures":[]},{"tid":7,"role":"ex","ops":43,"iterations":13946,"busy_ns":118750,"idle_ns":165648763,"cpu_ns":2344650,"wake_tx":3,"wake_rx":4,"io_tenures":[]}],"wb":{"retired":40,"direct":0,"sends_completed":40,"sends_submitted":40,"short_writes":0,"send_errors":0,"peer_aborts":0,"bytes_sent":9724,"zc_sends":0,"zc_bytes":0,"zc_releases":0,"serves":42,"serves_empty":2},"tls":{"accepts":0,"handshakes_completed":0,"handshakes_started":0,"handshakes_failed":0,"connections_freed":0,"want_read":0,"want_write":0,"ciphertext_input_bytes":0,"plaintext_input_bytes":0,"ciphertext_output_bytes":0,"plaintext_output_bytes":0,"zc_suppressed":0,"ktls_active":0,"ktls_fallback":0},"stuck":{"live_conns":0,"rob_not_quiesced":0,"unsent_bytes_pending":0,"slots_done":0,"slots_issued":0,"slots_free":0,"flag_set":0},"epoll":{"enabled":false,"events":0,"recvs":0},"persistence":{"enabled":false,"recording":false,"failed":false,"drain_gave_up":false,"posted":0,"flushed":0,"durable":0,"refused":0,"pending_chunks":0,"records_written":0,"producers_with_pending":0,"producers_stopped":0,"producers_expected":0,"completions_pending":0},"accept":{"accepts":2,"accept_err":0,"rearm":0,"sqe_starved":0,"notify_drop":0}}
