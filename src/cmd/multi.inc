@@ -1562,8 +1562,10 @@ void multi_slowlog_finish(MultiExecState& state, MultiCommand& command, uint32_t
 void multi_slowlog_record(MultiExecState& state, MultiCommand& command, uint32_t owner) {
     if (command.slow_threshold < 0) return;
     const SlowlogArm arm{command.slow_threshold, 0, false};
+    // EXEC's histogram is retired separately with its accumulated active slices.
+    // This direct recorder only emits the slowlog; its start argument is unused.
     slowlog_record(owner, state.origin_conn_id, *command.op,
-                  command.slow_ns.load(std::memory_order_relaxed), state.now_cut_ms, arm, true);
+                   command.slow_ns.load(std::memory_order_relaxed), state.now_cut_ms, arm, true, 0);
 }
 
 __attribute__((always_inline)) inline bool execute_local_command(Server& server, MultiExecState& state, MultiCommand& command,
