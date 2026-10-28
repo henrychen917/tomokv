@@ -289,8 +289,9 @@ std::string client_info_line_impl(const Client& client, const ClientMeta& meta, 
         const Slice name = command_metadata_name(*meta.last_command);
         last_cmd.assign(name.p, name.n);
         const Op& current = client.rob().at(meta.last_command_id);
-        if (meta.last_command_id == dispatched ||
-            current.state.load(std::memory_order_acquire) != OpState::Free)
+        // CLIENT LIST publishes its async ROB slot before it becomes Done;
+        // that slot can still carry Free. The retirement cursor owns lifetime.
+        if (meta.last_command_id >= client.rob().flush_id())
             qbuf = client.rlen() - current.rbuf_off;
     } else if (dispatched) {
         const Op& last = client.rob().at(dispatched - 1);

@@ -153,6 +153,9 @@ def directed(host, port, root):
             assert a.cmd("PING") == b"PONG"
         elif root == "CLIENT-LIST-CMD-NAME":
             assert fields(a, "INFO")[b"cmd"] == b"client|info"
+            assert a.cmd("PING") == b"PONG"
+            current = fields(a, "LIST")
+            assert current[b"cmd"] == b"client|list" and current[b"qbuf"] == b"26", current
             aid = a.cmd("CLIENT", "ID")
             assert fields(a, "LIST", "ID", aid)[b"cmd"] == b"client|list"
             b = new()
