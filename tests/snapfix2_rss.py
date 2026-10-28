@@ -15,6 +15,7 @@ def case_large_rss(args, directory, mode, engine, atomic, oracle):
         c = b.c
         s.populate(c, args.dataset)
         assert c.must('DBSIZE') == args.dataset, 'large dataset never loaded'
+        completed_before = int(s.persistence(c)['rdb_saves'])
         rss, starts, seconds = [], [], []
         for n in range(16):
             # Cardinality stays fixed; these values must survive the final snapshot.
@@ -25,10 +26,13 @@ def case_large_rss(args, directory, mode, engine, atomic, oracle):
             assert c.must('BGSAVE') == b'Background saving started'
             starts.append(time.monotonic() - began)
             s.bgsave_done(c, args.stall)
+            completed = int(s.persistence(c)['rdb_saves']) - completed_before
+            assert completed == n + 1, ('BGSAVE never completed its cut', n + 1, completed)
             seconds.append(time.monotonic() - began)
             rss.append(s.stats(c, 'memory')['used_memory_rss'])
             assert c.must('DBSIZE') == args.dataset
-        result = dict(keys=args.dataset, rss=rss, start_seconds=starts, seconds=seconds)
+        result = dict(keys=args.dataset, rss=rss, start_seconds=starts, seconds=seconds,
+                      completed_saves=completed)
         (directory / 'rss.json').write_text(json.dumps(result, indent=2) + '\n')
         assert max(rss[2:]) <= 3 * rss[1] + (64 << 20), ('large BGSAVE loop grew', result)
     with s.Boot(args, directory, mode, engine, atomic, oracle, (), 'restart') as b:

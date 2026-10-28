@@ -449,8 +449,9 @@ def bgsave_loop_bounded(args, directory, mode, engine, atomic, oracle, saves=12)
     with Boot(args, directory, mode, engine, atomic, oracle, (), 'loop') as b:
         c = b.c
         c.must('SET', 'snapfix:loop', 1)
+        completed_before = int(persistence(c)['rdb_saves'])
         rss, seconds, start_seconds = [], [], []
-        for _ in range(saves):
+        for save in range(saves):
             began = time.monotonic()
             try:
                 reply = c.cmd('BGSAVE')
@@ -459,11 +460,13 @@ def bgsave_loop_bounded(args, directory, mode, engine, atomic, oracle, saves=12)
             assert reply == b'Background saving started', reply
             start_seconds.append(round(time.monotonic() - began, 6))
             bgsave_done(c, args.stall)
+            completed = int(persistence(c)['rdb_saves']) - completed_before
+            assert completed == save + 1, ('BGSAVE never completed its cut', save + 1, completed)
             seconds.append(round(time.monotonic() - began, 3))
             rss.append(stats(c, 'memory')['used_memory_rss'])
         # PRE: about 21 MB after the second save and about 1 GB after the twelfth.
         assert max(rss[2:]) <= 3 * rss[1] + (64 << 20), ('BGSAVE loop grew the process', rss)
-        return dict(rss=rss, seconds=seconds, start_seconds=start_seconds)
+        return dict(rss=rss, seconds=seconds, start_seconds=start_seconds, completed_saves=completed)
 
 
 def same_owner(c, prefix, owner, shard=None):

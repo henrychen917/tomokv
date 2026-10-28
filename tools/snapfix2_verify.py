@@ -103,7 +103,7 @@ def prune_gate_run(run_dir, archive):
     shutil.rmtree(run_dir)
 
 
-def gate(engine, differ=False, extra=False, fused=False):
+def gate(engine, differ=False, extra=False, fused=False, table_arm=None):
     label = ('extra-' if extra else 'differ-' if differ else 'proof-')+engine
     if extra:
         label += '-1s' if fused else '-2s'
@@ -114,6 +114,9 @@ def gate(engine, differ=False, extra=False, fused=False):
         # switch. Explicit mode/engine matrices already ran in the main pass.
         jobs += (' debug-0 debug-1 atomic_batteries script_bounds dump_restore aof_frame'
                  f' snapshot-{engine} aof-{engine}')
+    binary = ARMS[table_arm or 'post']
+    if table_arm:
+        label, jobs = 'tables-'+table_arm+'-final', 'snapfix2_tables'
     env = dict(GATE_ONLY_JOBS=jobs, REDIS74_ROOT='/home/user/Projects/redis',
                GATE_NET_IO=engine, GATE_DIFFER_NET_IO=engine, GATE_PROOF_NO_RATES='1')
     if extra:
@@ -121,12 +124,14 @@ def gate(engine, differ=False, extra=False, fused=False):
     cmd = ['taskset', '-c', '0-15', 'tests/gate.sh', 'iteration',
            '--server-cores', '0-7', '--load-cores', '8-15', '--server-smt', '',
            '--load-smt', '', '--ports', '20100-20199']
-    _, log = run('proof/'+label, cmd, ARMS['post'], 14400, env)
+    if table_arm:
+        cmd += ['--candidate-binary', binary]
+    _, log = run('proof/'+label, cmd, binary, 14400, env)
     m = re.search(r'artifacts: (\S+)', log.read_text())
     if m:
         subprocess.run(['python3', 'tools/snapfix_record.py', m[1], '--name', label,
                         '--command', shlex.join(['env', *[k+'='+v for k,v in env.items()], *cmd]),
-                        '--binary', ARMS['post'], '--log', str(log),
+                        '--binary', binary, '--log', str(log),
                         '--output-root', str(OUT/'proof')], check=True)
         prune_gate_run(m[1], OUT/'proof'/label)
 
@@ -154,6 +159,10 @@ def main():
             # doubling failure. The individual command receipts retain both.
             matrix('snapfix', 'bgsave-loop', 'pad/'+arm, arm,
                    ['--atomics', '1', '--no-oracle'])
+        for arm in ['pre', 'post']:
+            gate('uring', table_arm=arm)
+        matrix('snapfix2_rss', 'large-rss', 'rss/large-final',
+               extra=['--dataset', '1000000', '--stall', '60'])
     elif a.phase == 'isolation':
         for arm in ARMS:
             for label, extra in [('no-save', ['--flushall-bgsave', '0']),
@@ -174,6 +183,8 @@ def main():
     elif a.phase == 'neighbours':
         for case in ['shutdown-save', 'sigterm', 'bgsave-flip', 'aofrw-exec', 'aofrw-script']:
             matrix('snapfix_neighbours', case, 'neighbours/'+case)
+        for arm in ARMS:
+            matrix('snapfix2_flush', 'flush-script', f'isolation/{arm}-script-minimal', arm)
     else:
         for mode in ['1s', '2s']:
             for engine in ['uring', 'epoll']:

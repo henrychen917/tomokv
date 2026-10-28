@@ -15,7 +15,7 @@ import snapfix as s
 from _lib import Conn, encode
 
 
-def case_flush_pair(args, directory, mode, engine, atomic, oracle):
+def case_flush_pair(args, directory, mode, engine, atomic, oracle, script=False):
     with s.Boot(args, directory, mode, engine, atomic, oracle) as b:
         pair, owners = s.keys_for(b.c, 'snapfix2:flush', oracle, 2)
         counts = {'cycles': 0, 'observations': 0, 'torn': 0}
@@ -24,10 +24,16 @@ def case_flush_pair(args, directory, mode, engine, atomic, oracle):
         def mutate(stop):
             with contextlib.closing(Conn('127.0.0.1', b.port, timeout=args.stall)) as c:
                 while not stop.is_set():
-                    c.raw(encode('MULTI') + encode('SET', pair[0], 1) + encode('SET', pair[1], 1) +
-                          encode('EXEC') + encode('FLUSHALL'))
-                    assert [c.read() for _ in range(5)] == [b'OK', b'QUEUED', b'QUEUED',
-                                                          [b'OK', b'OK'], b'OK']
+                    if script:
+                        c.raw(encode('EVAL', "redis.call('SET',KEYS[1],1);"
+                                     "redis.call('SET',KEYS[2],1);return 1", 2, *pair) +
+                              encode('FLUSHALL'))
+                        assert [c.read(), c.read()] == [1, b'OK']
+                    else:
+                        c.raw(encode('MULTI') + encode('SET', pair[0], 1) + encode('SET', pair[1], 1) +
+                              encode('EXEC') + encode('FLUSHALL'))
+                        assert [c.read() for _ in range(5)] == [b'OK', b'QUEUED', b'QUEUED',
+                                                              [b'OK', b'OK'], b'OK']
                     counts['cycles'] += 1
 
         def observe(stop):
@@ -105,5 +111,6 @@ def case_flush_only(args, directory, mode, engine, atomic, oracle):
 
 
 if __name__ == '__main__':
-    s.CASES = {'flush-pair': case_flush_pair, 'flush-only': case_flush_only}
+    s.CASES = {'flush-pair': case_flush_pair, 'flush-only': case_flush_only,
+               'flush-script': lambda *args: case_flush_pair(*args, script=True)}
     raise SystemExit(s.main())
