@@ -5350,13 +5350,19 @@ job_climonfix4(){
 }
 
 job_redis_tcl(){
-  local mode passed=1 label
+  local mode passed=1 label manifest=${GATE_TCL_MANIFEST:-tests/redis_tcl_passing.json}
+  # Focused regression controls use this same runner/watchdog/ledger in a
+  # PARTIAL job. Complete gates always require the checked-in full manifest.
+  if [ -n "${GATE_TCL_MANIFEST:-}" ] && [ "${GATE_PARTIAL:-0}" != 1 ]; then
+    echo 'GATE_TCL_MANIFEST is only valid for partial correctness controls' >&2
+    return 2
+  fi
   for mode in 2s 1s; do
     label="Redis 7.4.10 Tcl passing subset ($mode)"
     row_begin "$label"
     if py tests/redis_tcl.py --redis-root "$REDIS74_ROOT" --binary "$CANDIDATE_BINARY" \
         --mode "$mode" --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --controller-port "$((PORT+1))" \
-        --baseport "$((PORT+2))" --manifest tests/redis_tcl_passing.json --arm-smove \
+        --baseport "$((PORT+2))" --manifest "$manifest" --arm-smove \
         --output "$TMPDIR/redis-tcl-$mode" >"$TMPDIR/redis-tcl-$mode.log" 2>&1; then
       say "$label" ok; ledger ok "$label" 0
     else

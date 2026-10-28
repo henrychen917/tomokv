@@ -59,6 +59,9 @@ def run(case, prepared):
     with (OUT / (label + '.log')).open('w') as log:
         subprocess.run(cmd, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=900)
     raw = json.loads(temporary.read_text())
+    pcs = raw.pop('pc_counts')
+    raw['pc_trace_sha256'] = hashlib.sha256(json.dumps(pcs, separators=(',', ':')).encode()).hexdigest()
+    raw['pc_trace_entries'] = len(pcs)
     functions = {}
     for n, r in zip(raw.pop('counts')[1:], ranges):
         if n: functions[r[3]] = functions.get(r[3], 0) + n
@@ -67,6 +70,7 @@ def run(case, prepared):
     row.update(raw, total=sum(functions.values()), functions=functions,
                probe_sha256=hashlib.sha256(binary.read_bytes()).hexdigest())
     scope.save(dest, row)
+    temporary.unlink()
     print(label, row['total'], flush=True)
     return row
 

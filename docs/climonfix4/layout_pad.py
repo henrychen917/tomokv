@@ -16,6 +16,8 @@ def sha(p): return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 def text(p):
  e=Elf(p);s=e.sections[e.names.index('.text')];return dict(address=s[3],size=s[5])
 def main():
+ if '--relink' in sys.argv:
+  prior=json.loads(DOC.read_text());relink(prior['changes'],prior['command']);return
  OUT.mkdir(parents=True,exist_ok=True);SRC.mkdir(exist_ok=True)
  changes=[]
  archive=subprocess.check_output(['git','archive','393d6ceb1','src','third_party','Makefile','tools/assert_map.py'],cwd=ROOT)
@@ -37,6 +39,9 @@ def main():
          '        std::vector<MonitorPending> monitor_pending;')
  cmd=['make','-j16','BUILD_ROOT='+str(OBJ),'all']
  with (OUT/'build.log').open('w') as f:subprocess.run(cmd,cwd=SRC,stdout=f,stderr=subprocess.STDOUT,check=True)
+ relink(changes,cmd)
+
+def relink(changes,cmd):
  recipe=subprocess.check_output(['make','BUILD_ROOT='+str(OBJ),'-n','-W',str(OBJ/'src/main.o'),'all'],cwd=SRC,text=True)
  link=shlex.split(next(s for s in recipe.splitlines() if s.startswith('g++ ') and ' -Wl,--wrap=main ' in s))
  output=OUT/'tomokv';link[link.index('-o')+1]=str(output)

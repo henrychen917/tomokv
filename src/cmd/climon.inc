@@ -151,6 +151,7 @@
 
     // ---- MONITOR --------------------------------------------------------------------------------
     void climon_monitor_feed(Client* client, Op& op);
+    void climon_unpark_paused(Client* client);
     void climon_monitor_broadcast(std::string line, uint64_t excluded = 0);
     void climon_monitor_flush(ClimonConn& state, uint64_t completed, bool before_script = false);
     void climon_monitor_script_deliver(uint64_t writer_id, std::vector<std::string>& lines);

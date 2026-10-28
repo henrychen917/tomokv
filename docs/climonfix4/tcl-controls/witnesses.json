@@ -1,0 +1,34 @@
+{
+  "PAUSE-BLOCKED-COUNT": [
+    "unit/pause",
+    "Test write commands are paused by RO"
+  ],
+  "PAUSE-MAY-REPLICATE": [
+    "unit/pause",
+    "Test special commands are paused by RO"
+  ],
+  "PAUSE-SCRIPT-FLAGS": [
+    "unit/pause",
+    "Test RO scripts are not blocked by pause RO"
+  ],
+  "MONITOR-SCRIPT-CMDS": [
+    "unit/introspection",
+    "MONITOR can log commands issued by the scripting engine"
+  ],
+  "RESET-CLEARS-LIBNAME": [
+    "unit/introspection",
+    "RESET does NOT clean library name"
+  ],
+  "RESET-MONITOR-ECHO": [
+    "unit/other",
+    "RESET clears MONITOR state"
+  ],
+  "CLIENT-LIST-CMD-NAME": [
+    "unit/introspection",
+    "CLIENT LIST with IDs"
+  ],
+  "CONNECTED-CLIENTS-LAG": [
+    "unit/introspection",
+    "CLIENT KILL SKIPME YES/NO will kill all clients"
+  ]
+}

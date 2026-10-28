@@ -197,7 +197,8 @@ bool command_validate_subcommand(Op& op, const char* container,
 // the complete unknown-subcommand or child-arity reply.
 bool command_validate_container_subcommand(Op& op, const CommandSpec& spec,
                                            int16_t& first_key);
-// This early gate rejects known children with bad generated arity. Unknown children continue
+// This cold gate records connection-local/container command identity and rejects
+// SubcmdRoute children with bad generated arity. Unknown children continue
 // to the cold AUTH/ACL hook (or the normal container handler), which emits the lookup error
 // before checking authentication, matching Redis's processCommand order.
 bool command_reply_container_subcommand_arity(Op& op, const CommandSpec& spec,

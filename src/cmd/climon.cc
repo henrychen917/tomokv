@@ -714,6 +714,14 @@ uint32_t IoLoop::climon_prepare_suppressed(Client* client, bool& submit_allowed)
 
 // ---- CLIENT PAUSE --------------------------------------------------------------------------
 
+void IoLoop::climon_unpark_paused(Client* client) {
+    auto* state = climon_conn_find(client->id());
+    if (!state || !state->pause_blocked) return;
+    state->pause_blocked = false;
+    command_client_set_pause_blocked(client, false);
+    srv_->blocking_client_unparked();
+}
+
 bool command_pause_write(const Op& op) {
     if (!op.spec) return false;
     if (op.spec->flags & CmdFlags::ScriptRoute)

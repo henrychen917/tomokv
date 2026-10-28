@@ -55,6 +55,12 @@ def directed(host, port, root):
             assert b.read() == b"OK"
             until(lambda: info(a, "blocked_clients") == 0)
             assert b"b" not in fields(a, "LIST", "ID", bid)[b"flags"]
+            assert a.cmd("CLIENT", "PAUSE", 10000, "WRITE") == b"OK"
+            b.send("SET", "paused", "again")
+            until(lambda: info(a, "blocked_clients") == 1)
+            assert a.cmd("CLIENT", "KILL", "ID", bid) == 1
+            assert info(a, "blocked_clients") == 0, "killed postponed client remains blocked"
+            assert a.cmd("CLIENT", "UNPAUSE") == b"OK"
         elif root == "PAUSE-MAY-REPLICATE":
             assert a.cmd("PFADD", "hll", "x") == 1
             b, c = new(), new()
