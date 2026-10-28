@@ -125,5 +125,124 @@
       "hdel deliver invalidate message after response in the same connection"
     ]
   ],
-  "held_for_maxkeys_owner_decision": []
+  "retained_known_failures": {
+    "TRACK-MAXKEYS-IMMUTABLE": [
+      [
+        "unit/tracking",
+        "CLIENT GETREDIR provides correct client id"
+      ],
+      [
+        "unit/tracking",
+        "CLIENT TRACKINGINFO provides reasonable results when tracking redir broken"
+      ],
+      [
+        "unit/tracking",
+        "Invalidation message received for flushall"
+      ],
+      [
+        "unit/tracking",
+        "Invalidation message received for flushdb"
+      ],
+      [
+        "unit/tracking",
+        "RESP2 based basic invalidation with client reply off"
+      ],
+      [
+        "unit/tracking",
+        "RESP3 based basic invalidation with client reply off"
+      ],
+      [
+        "unit/tracking",
+        "RESP3 based basic redirect invalidation with client reply off"
+      ],
+      [
+        "unit/tracking",
+        "RESP3 based basic tracking-redir-broken with client reply off"
+      ],
+      [
+        "unit/tracking",
+        "Regression test for #11715"
+      ],
+      [
+        "unit/tracking",
+        "Server is able to evacuate enough keys when num of keys surpasses limit by more than defined initial effort"
+      ],
+      [
+        "unit/tracking",
+        "Test ASYNC flushall"
+      ],
+      [
+        "unit/tracking",
+        "Tracking gets notification on tracking table key eviction"
+      ],
+      [
+        "unit/tracking",
+        "Tracking info is correct"
+      ],
+      [
+        "unit/tracking",
+        "flushdb tracking invalidation message is not interleaved with transaction response"
+      ]
+    ],
+    "TRACK-INVALIDATE-BEFORE-REPLY": [
+      [
+        "unit/tracking",
+        "Tracking invalidation message is not interleaved with multiple keys response"
+      ],
+      [
+        "unit/tracking",
+        "Tracking invalidation message is not interleaved with transaction response"
+      ]
+    ],
+    "PUBSUB-SUBSCRIBE-NO-DENYOOM": [
+      [
+        "unit/pubsub",
+        "psubscribe  fails with OOM when memory limit exceeded"
+      ],
+      [
+        "unit/pubsub",
+        "psubscribe succeeds with small pattern but fails with large pattern due to OOM"
+      ],
+      [
+        "unit/pubsub",
+        "psubscribe with 2 clients fails with OOM when memory limit exceeded"
+      ],
+      [
+        "unit/pubsub",
+        "psubscribe with large pattern name fails due to OOM"
+      ],
+      [
+        "unit/pubsub",
+        "ssubscribe  fails with OOM when memory limit exceeded"
+      ],
+      [
+        "unit/pubsub",
+        "ssubscribe succeeds with small channel but fails with large channel due to OOM"
+      ],
+      [
+        "unit/pubsub",
+        "ssubscribe with 2 clients fails with OOM when memory limit exceeded"
+      ],
+      [
+        "unit/pubsub",
+        "ssubscribe with large shard channel name fails due to OOM"
+      ],
+      [
+        "unit/pubsub",
+        "subscribe  fails with OOM when memory limit exceeded"
+      ],
+      [
+        "unit/pubsub",
+        "subscribe succeeds with small channel but fails with large channel due to OOM"
+      ],
+      [
+        "unit/pubsub",
+        "subscribe with 2 clients fails with OOM when memory limit exceeded"
+      ],
+      [
+        "unit/pubsub",
+        "subscribe with large channel name fails due to OOM"
+      ]
+    ]
+  }
 }
