@@ -17,7 +17,7 @@ import blockfix2_receipts
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('stages', nargs='+', choices=('directed', 'broad', 'tcl',
-        'tcl-negative', 'tcl-compat2', 'trackfix', 'differ-uring', 'differ-epoll', 'pre', 'pad-a'))
+        'tcl-negative', 'tcl-compat2', 'trackfix', 'execfair', 'execfair-pre', 'differ-uring', 'differ-epoll', 'pre', 'pad-a'))
     parser.add_argument('--tag', required=True)
     args = parser.parse_args()
     output = ROOT / 'docs/blockfix3/gate-receipts'
@@ -36,6 +36,9 @@ def main():
             jobs = (ROOT / 'docs/blockfix3/required-jobs.txt').read_text().strip()
         elif stage == 'trackfix':
             jobs = 'trackfix_order'
+        elif stage in ('execfair', 'execfair-pre'):
+            jobs = 'execfair'
+            if stage == 'execfair-pre': binary = folder / 'pre/tomokv'
         elif stage.startswith('differ-'):
             tier = 'full'
             jobs = 'differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence'
