@@ -502,5 +502,7 @@
       "done": "0\t13\t0\n",
       "timings": "ok\t0.000000\tstorage unlinked regression\nok\t0.010000\tstorage randomkey regression\nok\t0.020000\tstorage rehash regression\nok\t0.020000\tstorage rollback regression\nok\t0.010000\tstorage snapshot-eviction regression\nok\t0.130000\tstorage flags regression\nok\t0.010000\tstorage aof-eviction regression\nok\t0.010000\tstorage intents regression\nok\t0.010000\tstorage imported-hash regression\nok\t0.010000\tstorage field-index-failure regression\nok\t0.020000\tstorage hash-bytes regression\nok\t0.010000\tstorage deadline-allocation-failure regression\nok\t0.010000\tstorage flush-prepared-capacity regression\n"
     }
-  }
+  },
+  "compressed_large_text": {},
+  "removed_run_artifacts": true
 }

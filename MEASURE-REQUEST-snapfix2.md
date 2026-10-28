@@ -260,12 +260,37 @@ split jobs. The uring fused failure is `txn_nx` at atomic 1: bare
 concurrent RENAMENX returned `ERR no such key` for one contender while its source
 remained present. The transactional half completed all 8,192 rounds cleanly.
 Its original failing receipt is retained in `proof/extra-uring-1s/`; independent
-PRE/BASE/POST/Redis controls using the unchanged contender check are queued.
+controls using the unchanged contender check reproduce the same failure on
+**BASE 5572e84cc**, before this sizing fix. With the gate's DB0/read-local-0
+geometry, BASE has one failure in 131,072 rounds (iteration 44,085,
+`[1, ERR no such key]` and `[nil, winner-b, winner-a]`). PRE and POST have zero
+in 131,072 rounds each: **NOT REPRODUCED**, not proof of absence. Fresh multi-DB,
+read-local-1 controls are clean on all three arms, and Redis is clean for
+131,072 rounds. All controls complete every round without worker errors.
+See `control/txn-nx-*/result.json`; this separate RENAMENX defect remains unfixed,
+and its origin before BASE is unconfirmed. A bounded reproduction is:
+
+```sh
+taskset -c 8-15 python3 tools/snapfix2_nx_control.py \
+  --binary build/snapfix2/base/tomokv --databases 1 --read-local 0 \
+  --rounds 131072 --output build/snapfix2/reproduce-nx
+```
+
+The additional `auth` jobs pass **8/8 rows in each of four mode/engine runs**,
+including their typed SAVE/DEBUG RELOAD round-trip and ACL matrices
+(`proof/auth-*/record.json`).
 
 `python3 tests/gates_test.py` passes **73/73 tests** in the isolated rerun
 (`proof/gates-test-isolated.{log,command.json}`). The initial run hit three
 fixture timeout failures while compilation and instruction tracing overlapped;
 its original log is retained. No assertion or timeout was weakened.
+
+`make all` and the gate's entire 45-target `job_production_units` inventory build
+successfully. The two real MDB live-arm builds and blockfix-cost target also
+build. **All 51 `make -q` queries pass**, including PRE and BASE; the phony MDB
+aggregate is checked via its two real recursive `all` targets with identical
+flags. Commands, logs and every output digest are in `freshness.json` and
+`freshness-*.log`.
 
 **NOT RUN:** the unfiltered full iteration, `atomic_floor`, the atomic RYOW rate
 assertion, ABBA/NIC performance passes, the 18 merit cells and the quiet-box
@@ -303,6 +328,14 @@ legs (atomic 1); PAD-A failed the RSS-growth assertion in all four, with exactly
 
 Section sizes and merit-cell digests: `docs/snapfix2/arms.json`. POST release
 `.text` is 8,459,175 bytes, **+160 bytes** versus BASE.
+The final delivery audit rechecked all five hashes and production freshness:
+`docs/snapfix2/delivery.json`. Build usage is **17.51 GiB**. Superseded arm
+objects/source trees and raw instruction traces were removed after recording
+digests and counts; repeated instruction address maps are deduplicated into six
+compressed files. Completed gate scratch directories were removed after
+archiving their receipts. Initial scheduler failure artifacts are retained as
+hashed compressed archives. All owned servers have stopped and ports
+20100–20199 are free. No push was performed.
 
 ### Maintainer measurement request
 

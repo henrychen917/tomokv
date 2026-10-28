@@ -1,0 +1,18 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "0-15",
+    "python3",
+    "tools/snapfix2_artifacts.py",
+    "freshness"
+  ],
+  "environment": {},
+  "binary": "build/tomokv",
+  "binary_sha256": "dd169c2f10040c4b13cb87c3731e4ba1a2dbd74088635008e8512ba64e84021c",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "exit": 0,
+  "seconds": 11.631,
+  "log_sha256": "77e60634a31449e17f767159a24349a65f2cd4c0b6de43997329e154b7f7af27",
+  "removed_data": {}
+}

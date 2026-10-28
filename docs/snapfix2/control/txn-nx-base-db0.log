@@ -1,0 +1,2 @@
+FAIL {'iteration': 44085, 'replies': [1, RespError(b'ERR no such key')], 'values': [None, b'winner-b', b'winner-a']}
+{"transactional": false, "geometry": [[6, 6], [6, 6], [10, 2]], "rounds": 131072, "completed": 131072, "failures": 1, "examples": [{"iteration": 44085, "replies": [1, "RespError(b'ERR no such key')"], "values": [null, "b'winner-b'", "b'winner-a'"]}], "errors": [], "threads_alive": false}

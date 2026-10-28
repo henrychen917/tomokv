@@ -83,8 +83,10 @@ class Boot:
                  '--save', '', '--enable-debug-command', 'yes', *extra]
         if not oracle:
             flags += ['--shards', '16', '--thread-mode', mode, '--net-io', engine,
-                      '--atomic', str(atomic), '--read-local', '1' if mode == '1s' else '0',
-                      '--key-lb', '0', '--client-lb', '0', '--flip-auto', '0', '--databases', '16']
+                      '--atomic', str(atomic), '--read-local',
+                      str(getattr(args, 'read_local', int(mode == '1s'))),
+                      '--key-lb', '0', '--client-lb', '0', '--flip-auto', '0',
+                      '--databases', str(getattr(args, 'databases', 16))]
             if mode == '2s':
                 flags += ['--ratio', '6:2']
         self.argv = ['taskset', '-c', args.cores, str(binary), *flags]
