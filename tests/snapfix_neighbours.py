@@ -169,7 +169,7 @@ def case_flushall(args, directory, mode, engine, atomic, oracle):
         spair, _ = s.keys_for(c, 'snapfix:fs', oracle, 2)
         epair, _ = s.keys_for(c, 'snapfix:fe', oracle, 2)
         tally = [0] * 20
-        saves, flushes, torn = [0], [0], []
+        saves, flushes, torn, observations = [0], [0], [], [0]
         observer = Conn('127.0.0.1', booted.port, timeout=args.stall)
         flusher = Conn('127.0.0.1', booted.port, timeout=args.stall)
         saver = Conn('127.0.0.1', booted.port, timeout=args.stall)
@@ -178,6 +178,7 @@ def case_flushall(args, directory, mode, engine, atomic, oracle):
             while not stop.is_set():
                 for pair in (spair, epair):
                     a, b = observer.must('MGET', *pair)
+                    observations[0] += 1
                     if (a or b'0') != (b or b'0'):
                         torn.append((pair, a, b))
                 time.sleep(.005)
@@ -189,10 +190,16 @@ def case_flushall(args, directory, mode, engine, atomic, oracle):
                 flushes[0] += 1
                 time.sleep(.3)
         flush.__name__ = 'flushall'
-        workers = ([script_worker(booted.port, args.stall, spair, tally, i) for i in range(6)] +
-                   [exec_worker(booted.port, args.stall, epair, tally, 6 + i) for i in range(4)] +
-                   [writer_worker(booted.port, args.stall, f'{spair[i % 2]}:w', tally, 10 + i) for i in range(4)] +
-                   [observe])
+        mix = set(args.flushall_mix.split(','))
+        assert mix <= {'scripts', 'execs', 'writers'} and mix, mix
+        workers = [observe]
+        if 'scripts' in mix:
+            workers += [script_worker(booted.port, args.stall, spair, tally, i) for i in range(6)]
+        if 'execs' in mix:
+            workers += [exec_worker(booted.port, args.stall, epair, tally, 6 + i) for i in range(4)]
+        if 'writers' in mix:
+            workers += [writer_worker(booted.port, args.stall, f'{spair[i % 2]}:w', tally, 10 + i)
+                        for i in range(4)]
         # --flushall-flush / --flushall-bgsave 0 isolate which ingredient a torn read needs.
         if args.flushall_flush:
             workers.append(flush)
@@ -201,7 +208,16 @@ def case_flushall(args, directory, mode, engine, atomic, oracle):
         errors = s.run_storm(args.seconds, workers, args.stall)
         for x in (observer, flusher, saver):
             x.close()
+        evidence = dict(mix=sorted(mix), flushes=flushes[0], saves=saves[0],
+                        observations=observations[0], torn=len(torn),
+                        examples=[dict(keys=pair, values=[None if v is None else int(v) for v in (a, b)])
+                                  for pair, a, b in torn[:20]], tally=tally, errors=errors)
+        (directory / 'flushall-observations.json').write_text(json.dumps(evidence, indent=2) + '\n')
         assert not errors, errors
+        assert observations[0] > 0, 'observer never ran'
+        for kind, count in [('scripts', sum(tally[:6])), ('execs', sum(tally[6:10])),
+                            ('writers', sum(tally[10:14]))]:
+            assert kind not in mix or count > 0, ('worker never ran', kind)
         assert not torn, ('torn atomic pair observed', len(torn), torn[:5])
         assert (flushes[0] > 3 or not args.flushall_flush) and (saves[0] > 0 or not args.flushall_bgsave), \
             (flushes, saves)
@@ -376,6 +392,8 @@ def main():
     p.add_argument('--stall', type=float, default=5)
     p.add_argument('--flushall-flush', type=int, default=1, help='flushall case: issue FLUSHALL (0 = isolate)')
     p.add_argument('--flushall-bgsave', type=int, default=1, help='flushall case: run the BGSAVE loop (0 = isolate)')
+    p.add_argument('--flushall-mix', default='scripts,execs,writers',
+                   help='comma-separated scripts,execs,writers for ingredient isolation')
     args = p.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     results = []

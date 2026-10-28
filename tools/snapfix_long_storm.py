@@ -23,7 +23,7 @@ FIELDS = ('rdb_bgsave_in_progress', 'snapshot_cuts_armed', 'snapshot_groups_drai
           'snapshot_preimages', 'atomic_pending_entries', 'atomic_entries', 'atomic_chain_max',
           'atomic_promotions', 'atomic_cleanup_fast', 'atomic_records_freed', 'atomic_groups',
           'atomic_txn_executed', 'atomic_txn_writer_waits', 'atomic_txn_place_waits',
-          'atomic_txn_fast_polls', 'total_commands_processed', 'used_memory')
+          'atomic_txn_fast_polls', 'total_commands_processed', 'used_memory', 'used_memory_rss')
 
 
 def sampler(port, every, stop, rows):
