@@ -1,0 +1,2 @@
+  row budget: 900s; median=0.04s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); build dependency: make build/blockfix-cost
+make: 'build/blockfix-cost' is up to date.
