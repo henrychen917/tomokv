@@ -16,3 +16,5 @@ Final counts preserve ordinary48 max0/readlocal4 exact/alloc.247743. X3 idle +7 
 SAVE Busy historical failure remains unresolved. Native repeat6 timeout is a separate older-code failure, not Busy.
 Disk near30G: retired large successful oldgate payloads/disassemblies with digests; retiring old exbatch/checks copies. Keep only final arm binaries, smalllogs/receipts; remove completed copies and steptraces.
 CPU64-95 only, ports20000-20099, builds-j32. No rates/loadgenerators/fullgate. Commit small steps, no push, clean at finish.
+
+Latest diagnosis: final4111 redis_tcl has 1 real fused isolated slowlog failure. Five unnamed setup errors are expected manifest errors, not failures. Bounded unchanged Tcl replay: POST1s2/8fail; PRE1s5/64fail (plus initial8passes); both2s8passes. Exact assertion newest BLPOP versus SLOWLOG RESET. Pre-existing source commit-to-IO-retirement gap; leave row red, no manifest/retry/assertion changes. Receipts and tools committed. Final idle assembly regenerated both namespaces and bound to4111; benchtxn built/hash recorded, never executed.

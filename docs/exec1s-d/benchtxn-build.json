@@ -1,0 +1,8 @@
+{
+  "binary": "/home/user/Projects/cx-exec1s-d/build/benchtxn",
+  "sha256": "a4ff7640d31dc07709d0ef91fd7f0f61f7e8936edcc7a4a9ff62a2982a57c2ce",
+  "build_log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/evidence/benchtxn-build.log",
+  "build_log_sha256": "4492c992f65113e5bdaf1e32c8f47916ba81f813719740bf8f6c61957d404506",
+  "command": "taskset -c 64-95 make -j32 build/benchtxn",
+  "executed": false
+}

@@ -196,6 +196,25 @@ The targeted gate invocation passed 32/32 rows, including all 27
 The watched-EXECABORT row passes unchanged. Lottery, POST-layout and PAD-A
 each passed the gate's execfair smoke, which covers both modes and engines.
 
+The final-binary `redis_tcl` job failed its fused isolated upstream assertion
+`SLOWLOG - Rewritten commands are logged as their original command`: after
+EXEC pushes to a blocked list and resets the slowlog, the newest entry was
+`slowlog reset`, not `blpop l 0`. The same unchanged assertion and gate geometry
+reproduce this on frozen headline PRE: 5 failures in 64 fresh-server fused
+attempts, after an initial 8/8 pass. POST failed 2/8 fused attempts; both arms
+passed their eight split attempts. These are bounded correctness attempts, not
+failure-rate estimates. See [slowlog-replay.json](docs/exec1s-d/slowlog-replay.json)
+and [slowlog-pre-replay.json](docs/exec1s-d/slowlog-pre-replay.json).
+
+The source ordering explains the exposed window: owner commit makes the list
+visible and marks its blocked registry dirty; queued connection-local
+`SLOWLOG RESET` and child log records execute later in `multi_retire`. A blocked
+client can complete and log in between, then have its entry cleared. That
+ordering exists on PRE. This defect is **pre-existing and unfixed**, and the
+failed gate row remains red. The frozen Tcl manifest, assertions and retry
+policy are unchanged. The five unnamed setup errors printed elsewhere in the
+Tcl log exactly match its existing manifest entries; they are not new failures.
+
 PROOF_STATUS_PENDING
 
 The inventory includes txnorder, execfair, multirace/WATCH/blocking batteries,
@@ -286,8 +305,10 @@ the three-block acceptance comparison.
 
 Explicit lane-safe resource arguments for both external drivers are
 `--server-cores 64-71 --load-cores 72-95 --port 20000`. Supply `--candidate`
-and `--reference` for merit, or `--binary` for depth, plus `--benchtxn` and a
-distinct `--output` per arm/comparison. The maintainer schedules the quiet box.
+and `--reference` for merit, or `--binary` for depth, plus
+`--benchtxn /home/user/Projects/cx-exec1s-d/build/benchtxn` and a distinct
+`--output` per arm/comparison. The client was built but never executed; its
+hash is in [benchtxn-build.json](docs/exec1s-d/benchtxn-build.json). The maintainer schedules the quiet box.
 
 ### Reproduction and storage
 
