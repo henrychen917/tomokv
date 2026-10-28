@@ -13,6 +13,15 @@ def sha(path):
         return hashlib.file_digest(stream, 'sha256').hexdigest()
 
 
+def ledger_rows(path):
+    rows = []
+    for line in path.read_text().splitlines():
+        status, seconds, label = line.split('\t', 2)
+        assert status in ('ok', 'FAIL'), (path, status)
+        rows.append(dict(status=status, seconds=float(seconds), label=label))
+    return rows
+
+
 def main():
     proof = json.loads((DOCS / 'live-proof.json').read_text())
     binary = Path(proof['production_binary'])
@@ -32,11 +41,7 @@ def main():
             for folder in sorted((root / 'jobs').iterdir()):
                 rc, passed, failed = map(int, (folder / 'done').read_text().split())
                 ledger = folder / 'ledger'
-                rows = []
-                for line in ledger.read_text().splitlines():
-                    status, seconds, label = line.split('\t', 2)
-                    assert status in ('ok', 'FAIL'), (folder, status)
-                    rows.append(dict(status=status, seconds=float(seconds), label=label))
+                rows = ledger_rows(ledger)
                 assert passed == sum(row['status'] == 'ok' for row in rows)
                 assert failed == sum(row['status'] == 'FAIL' for row in rows)
                 run['jobs'].append(dict(name=folder.name, returncode=rc,
@@ -45,9 +50,18 @@ def main():
                                         output_sha256=sha(folder / 'output.log')))
             selected = set(receipt['selected_jobs'].split())
             observed = {job['name'] for job in run['jobs']}
-            assert selected <= observed, selected - observed
+            # These public groups fold their separately completed children;
+            # the gate intentionally creates no job directory for a fold.
+            groups = {'differ-split': {'differ-split-0', 'differ-split-1', 'differ-equivalence'},
+                      'differ-armed': {'differ-armed-0', 'differ-armed-1'}}
+            expanded = set().union(*(groups.get(name, {name}) for name in selected))
+            assert expanded <= observed, expanded - observed
             run['selected_jobs'] = sorted(selected)
-            run['dependency_jobs'] = sorted(observed - selected)
+            run['expanded_selected_jobs'] = sorted(expanded)
+            run['dependency_jobs'] = sorted(observed - expanded)
+            public_ledger = Path(receipt['receipt']).with_suffix('.ledger')
+            run['published_ledger'] = dict(path=str(public_ledger), sha256=sha(public_ledger),
+                                            rows=ledger_rows(public_ledger))
             run['passed_rows'] = sum(job['passed'] for job in run['jobs'])
             run['failed_rows'] = sum(job['failed'] for job in run['jobs'])
             run['all_jobs_passed'] = all(job['returncode'] == 0 and job['failed'] == 0
