@@ -245,16 +245,27 @@ on each engine**: split atomic 0/1, armed fused atomic 0/1, and mode equivalence
 Both used permanent seeds 7, 19, 20, 23; the rotating seeds were 21 for uring and
 22 for epoll. Complete suite, repeat and seed plans are retained in
 `proof/differ-{uring,epoll}/differ-plan.json`.
-The supplementary mode/battery passes remain in progress. Initial
-`tests/gates_test.py` hit three fixture timeout failures while compilation and
-instruction tracing overlapped; it will be repeated in isolation, with the
-original log retained. No assertion or timeout is weakened.
-Both completed supplementary split passes (uring and epoll) have 100 passes and
-no failures each. The uring fused pass has 203 passes and one failure in `txn_nx` at atomic 1: bare
+All supplementary mode/battery passes completed:
+
+| Supplementary pass | Jobs including prerequisites | Passing rows | Failing rows |
+|---|---:|---:|---:|
+| uring 2s | 12 | 100 | 0 |
+| uring 1s | 16 | 203 | 1 |
+| epoll 2s | 12 | 100 | 0 |
+| epoll 1s | 16 | 204 | 0 |
+
+These add the complete feature/script surfaces, release and ASAN batteries,
+embedded snapshot migration/retirement units and the fused variants of ordinary
+split jobs. The uring fused failure is `txn_nx` at atomic 1: bare
 concurrent RENAMENX returned `ERR no such key` for one contender while its source
 remained present. The transactional half completed all 8,192 rounds cleanly.
 Its original failing receipt is retained in `proof/extra-uring-1s/`; independent
 PRE/BASE/POST/Redis controls using the unchanged contender check are queued.
+
+`python3 tests/gates_test.py` passes **73/73 tests** in the isolated rerun
+(`proof/gates-test-isolated.{log,command.json}`). The initial run hit three
+fixture timeout failures while compilation and instruction tracing overlapped;
+its original log is retained. No assertion or timeout was weakened.
 
 **NOT RUN:** the unfiltered full iteration, `atomic_floor`, the atomic RYOW rate
 assertion, ABBA/NIC performance passes, the 18 merit cells and the quiet-box
