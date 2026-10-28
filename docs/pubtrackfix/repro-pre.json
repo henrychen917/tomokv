@@ -1,0 +1,4268 @@
+{
+  "binary_sha256": "0cac9819e46cfdcb7836fd04d5ab55ef9a49e92403b13212d9d3edea8427d16f",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "cases": {
+    "TRACK-BCAST-BATCH": {
+      "results": {
+        "redis-oracle": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/redis74/src/redis-server",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/TRACK-BCAST-BATCH/redis-oracle",
+            "--enable-debug-command",
+            "yes"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "compare": false,
+              "send": [
+                "HELLO",
+                "3"
+              ],
+              "reply": {
+                "map": [
+                  [
+                    "server",
+                    "redis"
+                  ],
+                  [
+                    "version",
+                    "7.4.10"
+                  ],
+                  [
+                    "proto",
+                    3
+                  ],
+                  [
+                    "id",
+                    4
+                  ],
+                  [
+                    "mode",
+                    "standalone"
+                  ],
+                  [
+                    "role",
+                    "master"
+                  ],
+                  [
+                    "modules",
+                    []
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CLIENT",
+                "TRACKING",
+                "on",
+                "BCAST"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "MSET",
+                "a",
+                "1",
+                "b",
+                "2",
+                "c",
+                "3"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": {
+                "push": [
+                  "invalidate",
+                  [
+                    "a",
+                    "b",
+                    "c"
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "read": 1,
+              "timeout": 0.5,
+              "reply": "TIMEOUT"
+            },
+            {
+              "c": "a",
+              "read": 1,
+              "timeout": 0.5,
+              "reply": "TIMEOUT"
+            }
+          ]
+        },
+        "2s-uring": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/TRACK-BCAST-BATCH/2s-uring",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "compare": false,
+              "send": [
+                "HELLO",
+                "3"
+              ],
+              "reply": {
+                "map": [
+                  [
+                    "server",
+                    "redis"
+                  ],
+                  [
+                    "version",
+                    "7.4.10"
+                  ],
+                  [
+                    "proto",
+                    3
+                  ],
+                  [
+                    "id",
+                    2
+                  ],
+                  [
+                    "mode",
+                    "standalone"
+                  ],
+                  [
+                    "role",
+                    "master"
+                  ],
+                  [
+                    "modules",
+                    []
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CLIENT",
+                "TRACKING",
+                "on",
+                "BCAST"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "MSET",
+                "a",
+                "1",
+                "b",
+                "2",
+                "c",
+                "3"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": {
+                "push": [
+                  "invalidate",
+                  [
+                    "a"
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "read": 1,
+              "timeout": 0.5,
+              "reply": {
+                "push": [
+                  "invalidate",
+                  [
+                    "b"
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "read": 1,
+              "timeout": 0.5,
+              "reply": {
+                "push": [
+                  "invalidate",
+                  [
+                    "c"
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        "1s-uring": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/TRACK-BCAST-BATCH/1s-uring",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "compare": false,
+              "send": [
+                "HELLO",
+                "3"
+              ],
+              "reply": {
+                "map": [
+                  [
+                    "server",
+                    "redis"
+                  ],
+                  [
+                    "version",
+                    "7.4.10"
+                  ],
+                  [
+                    "proto",
+                    3
+                  ],
+                  [
+                    "id",
+                    2
+                  ],
+                  [
+                    "mode",
+                    "standalone"
+                  ],
+                  [
+                    "role",
+                    "master"
+                  ],
+                  [
+                    "modules",
+                    []
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CLIENT",
+                "TRACKING",
+                "on",
+                "BCAST"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "MSET",
+                "a",
+                "1",
+                "b",
+                "2",
+                "c",
+                "3"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": {
+                "push": [
+                  "invalidate",
+                  [
+                    "a"
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "read": 1,
+              "timeout": 0.5,
+              "reply": {
+                "push": [
+                  "invalidate",
+                  [
+                    "b"
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "read": 1,
+              "timeout": 0.5,
+              "reply": {
+                "push": [
+                  "invalidate",
+                  [
+                    "c"
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        "2s-epoll": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/TRACK-BCAST-BATCH/2s-epoll",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "compare": false,
+              "send": [
+                "HELLO",
+                "3"
+              ],
+              "reply": {
+                "map": [
+                  [
+                    "server",
+                    "redis"
+                  ],
+                  [
+                    "version",
+                    "7.4.10"
+                  ],
+                  [
+                    "proto",
+                    3
+                  ],
+                  [
+                    "id",
+                    2
+                  ],
+                  [
+                    "mode",
+                    "standalone"
+                  ],
+                  [
+                    "role",
+                    "master"
+                  ],
+                  [
+                    "modules",
+                    []
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CLIENT",
+                "TRACKING",
+                "on",
+                "BCAST"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "MSET",
+                "a",
+                "1",
+                "b",
+                "2",
+                "c",
+                "3"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": {
+                "push": [
+                  "invalidate",
+                  [
+                    "a"
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "read": 1,
+              "timeout": 0.5,
+              "reply": {
+                "push": [
+                  "invalidate",
+                  [
+                    "b"
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "read": 1,
+              "timeout": 0.5,
+              "reply": {
+                "push": [
+                  "invalidate",
+                  [
+                    "c"
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        "1s-epoll": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/TRACK-BCAST-BATCH/1s-epoll",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "compare": false,
+              "send": [
+                "HELLO",
+                "3"
+              ],
+              "reply": {
+                "map": [
+                  [
+                    "server",
+                    "redis"
+                  ],
+                  [
+                    "version",
+                    "7.4.10"
+                  ],
+                  [
+                    "proto",
+                    3
+                  ],
+                  [
+                    "id",
+                    2
+                  ],
+                  [
+                    "mode",
+                    "standalone"
+                  ],
+                  [
+                    "role",
+                    "master"
+                  ],
+                  [
+                    "modules",
+                    []
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CLIENT",
+                "TRACKING",
+                "on",
+                "BCAST"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "MSET",
+                "a",
+                "1",
+                "b",
+                "2",
+                "c",
+                "3"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": {
+                "push": [
+                  "invalidate",
+                  [
+                    "a"
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "read": 1,
+              "timeout": 0.5,
+              "reply": {
+                "push": [
+                  "invalidate",
+                  [
+                    "b"
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "read": 1,
+              "timeout": 0.5,
+              "reply": {
+                "push": [
+                  "invalidate",
+                  [
+                    "c"
+                  ]
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "verdict": {
+        "2s-uring": "DIFFERENT",
+        "1s-uring": "DIFFERENT",
+        "2s-epoll": "DIFFERENT",
+        "1s-epoll": "DIFFERENT"
+      }
+    },
+    "TRACK-INVALIDATE-BEFORE-REPLY": {
+      "results": {
+        "redis-oracle": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/redis74/src/redis-server",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/TRACK-INVALIDATE-BEFORE-REPLY/redis-oracle",
+            "--enable-debug-command",
+            "yes"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "compare": false,
+              "send": [
+                "HELLO",
+                "3"
+              ],
+              "reply": {
+                "map": [
+                  [
+                    "server",
+                    "redis"
+                  ],
+                  [
+                    "version",
+                    "7.4.10"
+                  ],
+                  [
+                    "proto",
+                    3
+                  ],
+                  [
+                    "id",
+                    4
+                  ],
+                  [
+                    "mode",
+                    "standalone"
+                  ],
+                  [
+                    "role",
+                    "master"
+                  ],
+                  [
+                    "modules",
+                    []
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CLIENT",
+                "TRACKING",
+                "on"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "DEBUG",
+                "SET-ACTIVE-EXPIRE",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "MSET",
+                "x{t}",
+                "1",
+                "y{t}",
+                "2"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "PEXPIRE",
+                "y{t}",
+                "100"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "GET",
+                "y{t}"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "EXEC"
+              ],
+              "reply": [
+                {
+                  "simple": "OK"
+                },
+                1,
+                "2"
+              ]
+            },
+            {
+              "sleep": 0.2
+            },
+            {
+              "c": "a",
+              "send": [
+                "MGET",
+                "x{t}",
+                "y{t}"
+              ],
+              "reply": [
+                "1",
+                {
+                  "null3": true
+                }
+              ]
+            },
+            {
+              "c": "a",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": {
+                "push": [
+                  "invalidate",
+                  [
+                    "y{t}"
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "DEBUG",
+                "SET-ACTIVE-EXPIRE",
+                "1"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            }
+          ]
+        },
+        "2s-uring": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/TRACK-INVALIDATE-BEFORE-REPLY/2s-uring",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "compare": false,
+              "send": [
+                "HELLO",
+                "3"
+              ],
+              "reply": {
+                "map": [
+                  [
+                    "server",
+                    "redis"
+                  ],
+                  [
+                    "version",
+                    "7.4.10"
+                  ],
+                  [
+                    "proto",
+                    3
+                  ],
+                  [
+                    "id",
+                    2
+                  ],
+                  [
+                    "mode",
+                    "standalone"
+                  ],
+                  [
+                    "role",
+                    "master"
+                  ],
+                  [
+                    "modules",
+                    []
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CLIENT",
+                "TRACKING",
+                "on"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "DEBUG",
+                "SET-ACTIVE-EXPIRE",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "MSET",
+                "x{t}",
+                "1",
+                "y{t}",
+                "2"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "PEXPIRE",
+                "y{t}",
+                "100"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "GET",
+                "y{t}"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "EXEC"
+              ],
+              "reply": [
+                {
+                  "simple": "OK"
+                },
+                1,
+                "2"
+              ]
+            },
+            {
+              "sleep": 0.2
+            },
+            {
+              "c": "a",
+              "send": [
+                "MGET",
+                "x{t}",
+                "y{t}"
+              ],
+              "reply": {
+                "push": [
+                  "invalidate",
+                  [
+                    "y{t}"
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": [
+                "1",
+                {
+                  "null3": true
+                }
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "DEBUG",
+                "SET-ACTIVE-EXPIRE",
+                "1"
+              ],
+              "reply": {
+                "push": [
+                  "invalidate",
+                  [
+                    "y{t}"
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        "1s-uring": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/TRACK-INVALIDATE-BEFORE-REPLY/1s-uring",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "compare": false,
+              "send": [
+                "HELLO",
+                "3"
+              ],
+              "reply": {
+                "map": [
+                  [
+                    "server",
+                    "redis"
+                  ],
+                  [
+                    "version",
+                    "7.4.10"
+                  ],
+                  [
+                    "proto",
+                    3
+                  ],
+                  [
+                    "id",
+                    2
+                  ],
+                  [
+                    "mode",
+                    "standalone"
+                  ],
+                  [
+                    "role",
+                    "master"
+                  ],
+                  [
+                    "modules",
+                    []
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CLIENT",
+                "TRACKING",
+                "on"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "DEBUG",
+                "SET-ACTIVE-EXPIRE",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "MSET",
+                "x{t}",
+                "1",
+                "y{t}",
+                "2"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "PEXPIRE",
+                "y{t}",
+                "100"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "GET",
+                "y{t}"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "EXEC"
+              ],
+              "reply": [
+                {
+                  "simple": "OK"
+                },
+                1,
+                "2"
+              ]
+            },
+            {
+              "sleep": 0.2
+            },
+            {
+              "c": "a",
+              "send": [
+                "MGET",
+                "x{t}",
+                "y{t}"
+              ],
+              "reply": {
+                "push": [
+                  "invalidate",
+                  [
+                    "y{t}"
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": [
+                "1",
+                {
+                  "null3": true
+                }
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "DEBUG",
+                "SET-ACTIVE-EXPIRE",
+                "1"
+              ],
+              "reply": {
+                "push": [
+                  "invalidate",
+                  [
+                    "y{t}"
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        "2s-epoll": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/TRACK-INVALIDATE-BEFORE-REPLY/2s-epoll",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "compare": false,
+              "send": [
+                "HELLO",
+                "3"
+              ],
+              "reply": {
+                "map": [
+                  [
+                    "server",
+                    "redis"
+                  ],
+                  [
+                    "version",
+                    "7.4.10"
+                  ],
+                  [
+                    "proto",
+                    3
+                  ],
+                  [
+                    "id",
+                    2
+                  ],
+                  [
+                    "mode",
+                    "standalone"
+                  ],
+                  [
+                    "role",
+                    "master"
+                  ],
+                  [
+                    "modules",
+                    []
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CLIENT",
+                "TRACKING",
+                "on"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "DEBUG",
+                "SET-ACTIVE-EXPIRE",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "MSET",
+                "x{t}",
+                "1",
+                "y{t}",
+                "2"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "PEXPIRE",
+                "y{t}",
+                "100"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "GET",
+                "y{t}"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "EXEC"
+              ],
+              "reply": [
+                {
+                  "simple": "OK"
+                },
+                1,
+                "2"
+              ]
+            },
+            {
+              "sleep": 0.2
+            },
+            {
+              "c": "a",
+              "send": [
+                "MGET",
+                "x{t}",
+                "y{t}"
+              ],
+              "reply": {
+                "push": [
+                  "invalidate",
+                  [
+                    "y{t}"
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": [
+                "1",
+                {
+                  "null3": true
+                }
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "DEBUG",
+                "SET-ACTIVE-EXPIRE",
+                "1"
+              ],
+              "reply": {
+                "push": [
+                  "invalidate",
+                  [
+                    "y{t}"
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        "1s-epoll": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/TRACK-INVALIDATE-BEFORE-REPLY/1s-epoll",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "compare": false,
+              "send": [
+                "HELLO",
+                "3"
+              ],
+              "reply": {
+                "map": [
+                  [
+                    "server",
+                    "redis"
+                  ],
+                  [
+                    "version",
+                    "7.4.10"
+                  ],
+                  [
+                    "proto",
+                    3
+                  ],
+                  [
+                    "id",
+                    2
+                  ],
+                  [
+                    "mode",
+                    "standalone"
+                  ],
+                  [
+                    "role",
+                    "master"
+                  ],
+                  [
+                    "modules",
+                    []
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CLIENT",
+                "TRACKING",
+                "on"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "DEBUG",
+                "SET-ACTIVE-EXPIRE",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "MULTI"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "MSET",
+                "x{t}",
+                "1",
+                "y{t}",
+                "2"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "PEXPIRE",
+                "y{t}",
+                "100"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "GET",
+                "y{t}"
+              ],
+              "reply": {
+                "simple": "QUEUED"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "EXEC"
+              ],
+              "reply": [
+                {
+                  "simple": "OK"
+                },
+                1,
+                "2"
+              ]
+            },
+            {
+              "sleep": 0.2
+            },
+            {
+              "c": "a",
+              "send": [
+                "MGET",
+                "x{t}",
+                "y{t}"
+              ],
+              "reply": {
+                "push": [
+                  "invalidate",
+                  [
+                    "y{t}"
+                  ]
+                ]
+              }
+            },
+            {
+              "c": "a",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": [
+                "1",
+                {
+                  "null3": true
+                }
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "DEBUG",
+                "SET-ACTIVE-EXPIRE",
+                "1"
+              ],
+              "reply": {
+                "push": [
+                  "invalidate",
+                  [
+                    "y{t}"
+                  ]
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "verdict": {
+        "2s-uring": "DIFFERENT",
+        "1s-uring": "DIFFERENT",
+        "2s-epoll": "DIFFERENT",
+        "1s-epoll": "DIFFERENT"
+      }
+    },
+    "TRACK-MAXKEYS-IMMUTABLE": {
+      "results": {
+        "redis-oracle": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/redis74/src/redis-server",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/TRACK-MAXKEYS-IMMUTABLE/redis-oracle",
+            "--enable-debug-command",
+            "yes"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "tracking-table-max-keys",
+                "1000000"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "GET",
+                "tracking-table-max-keys"
+              ],
+              "reply": [
+                "tracking-table-max-keys",
+                "1000000"
+              ]
+            }
+          ]
+        },
+        "2s-uring": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/TRACK-MAXKEYS-IMMUTABLE/2s-uring",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "tracking-table-max-keys",
+                "1000000"
+              ],
+              "reply": {
+                "error": "ERR CONFIG SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "GET",
+                "tracking-table-max-keys"
+              ],
+              "reply": [
+                "tracking-table-max-keys",
+                "1000000"
+              ]
+            }
+          ]
+        },
+        "1s-uring": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/TRACK-MAXKEYS-IMMUTABLE/1s-uring",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "tracking-table-max-keys",
+                "1000000"
+              ],
+              "reply": {
+                "error": "ERR CONFIG SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "GET",
+                "tracking-table-max-keys"
+              ],
+              "reply": [
+                "tracking-table-max-keys",
+                "1000000"
+              ]
+            }
+          ]
+        },
+        "2s-epoll": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/TRACK-MAXKEYS-IMMUTABLE/2s-epoll",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "tracking-table-max-keys",
+                "1000000"
+              ],
+              "reply": {
+                "error": "ERR CONFIG SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "GET",
+                "tracking-table-max-keys"
+              ],
+              "reply": [
+                "tracking-table-max-keys",
+                "1000000"
+              ]
+            }
+          ]
+        },
+        "1s-epoll": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/TRACK-MAXKEYS-IMMUTABLE/1s-epoll",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "tracking-table-max-keys",
+                "1000000"
+              ],
+              "reply": {
+                "error": "ERR CONFIG SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "GET",
+                "tracking-table-max-keys"
+              ],
+              "reply": [
+                "tracking-table-max-keys",
+                "1000000"
+              ]
+            }
+          ]
+        }
+      },
+      "verdict": {
+        "2s-uring": "DIFFERENT",
+        "1s-uring": "DIFFERENT",
+        "2s-epoll": "DIFFERENT",
+        "1s-epoll": "DIFFERENT"
+      }
+    },
+    "PUBSUB-SUBSCRIBE-NO-DENYOOM": {
+      "results": {
+        "redis-oracle": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/redis74/src/redis-server",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/PUBSUB-SUBSCRIBE-NO-DENYOOM/redis-oracle",
+            "--enable-debug-command",
+            "yes"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "1"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "k",
+                "v"
+              ],
+              "reply": {
+                "error": "OOM command not allowed when used memory > 'maxmemory'."
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "SUBSCRIBE",
+                "ch"
+              ],
+              "reply": {
+                "error": "OOM command not allowed when used memory > 'maxmemory'."
+              }
+            },
+            {
+              "c": "c",
+              "send": [
+                "PSUBSCRIBE",
+                "p*"
+              ],
+              "reply": {
+                "error": "OOM command not allowed when used memory > 'maxmemory'."
+              }
+            },
+            {
+              "c": "d",
+              "send": [
+                "SSUBSCRIBE",
+                "s"
+              ],
+              "reply": {
+                "error": "OOM command not allowed when used memory > 'maxmemory'."
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            }
+          ]
+        },
+        "2s-uring": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/PUBSUB-SUBSCRIBE-NO-DENYOOM/2s-uring",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "1"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "k",
+                "v"
+              ],
+              "reply": {
+                "error": "OOM command not allowed when used memory > 'maxmemory'."
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "SUBSCRIBE",
+                "ch"
+              ],
+              "reply": [
+                "subscribe",
+                "ch",
+                1
+              ]
+            },
+            {
+              "c": "c",
+              "send": [
+                "PSUBSCRIBE",
+                "p*"
+              ],
+              "reply": [
+                "psubscribe",
+                "p*",
+                1
+              ]
+            },
+            {
+              "c": "d",
+              "send": [
+                "SSUBSCRIBE",
+                "s"
+              ],
+              "reply": [
+                "ssubscribe",
+                "s",
+                1
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            }
+          ]
+        },
+        "1s-uring": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/PUBSUB-SUBSCRIBE-NO-DENYOOM/1s-uring",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "1"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "k",
+                "v"
+              ],
+              "reply": {
+                "error": "OOM command not allowed when used memory > 'maxmemory'."
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "SUBSCRIBE",
+                "ch"
+              ],
+              "reply": [
+                "subscribe",
+                "ch",
+                1
+              ]
+            },
+            {
+              "c": "c",
+              "send": [
+                "PSUBSCRIBE",
+                "p*"
+              ],
+              "reply": [
+                "psubscribe",
+                "p*",
+                1
+              ]
+            },
+            {
+              "c": "d",
+              "send": [
+                "SSUBSCRIBE",
+                "s"
+              ],
+              "reply": [
+                "ssubscribe",
+                "s",
+                1
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            }
+          ]
+        },
+        "2s-epoll": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/PUBSUB-SUBSCRIBE-NO-DENYOOM/2s-epoll",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "1"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "k",
+                "v"
+              ],
+              "reply": {
+                "error": "OOM command not allowed when used memory > 'maxmemory'."
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "SUBSCRIBE",
+                "ch"
+              ],
+              "reply": [
+                "subscribe",
+                "ch",
+                1
+              ]
+            },
+            {
+              "c": "c",
+              "send": [
+                "PSUBSCRIBE",
+                "p*"
+              ],
+              "reply": [
+                "psubscribe",
+                "p*",
+                1
+              ]
+            },
+            {
+              "c": "d",
+              "send": [
+                "SSUBSCRIBE",
+                "s"
+              ],
+              "reply": [
+                "ssubscribe",
+                "s",
+                1
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            }
+          ]
+        },
+        "1s-epoll": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/PUBSUB-SUBSCRIBE-NO-DENYOOM/1s-epoll",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "1"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "k",
+                "v"
+              ],
+              "reply": {
+                "error": "OOM command not allowed when used memory > 'maxmemory'."
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "SUBSCRIBE",
+                "ch"
+              ],
+              "reply": [
+                "subscribe",
+                "ch",
+                1
+              ]
+            },
+            {
+              "c": "c",
+              "send": [
+                "PSUBSCRIBE",
+                "p*"
+              ],
+              "reply": [
+                "psubscribe",
+                "p*",
+                1
+              ]
+            },
+            {
+              "c": "d",
+              "send": [
+                "SSUBSCRIBE",
+                "s"
+              ],
+              "reply": [
+                "ssubscribe",
+                "s",
+                1
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            }
+          ]
+        }
+      },
+      "verdict": {
+        "2s-uring": "DIFFERENT",
+        "1s-uring": "DIFFERENT",
+        "2s-epoll": "DIFFERENT",
+        "1s-epoll": "DIFFERENT"
+      }
+    },
+    "PUBSUB-REPLY-OFF-PUSH": {
+      "results": {
+        "redis-oracle": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/redis74/src/redis-server",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/PUBSUB-REPLY-OFF-PUSH/redis-oracle",
+            "--enable-debug-command",
+            "yes"
+          ],
+          "transcript": [
+            {
+              "c": "b",
+              "read": 0,
+              "send": [
+                "CLIENT",
+                "REPLY",
+                "OFF"
+              ]
+            },
+            {
+              "c": "b",
+              "send": [
+                "SUBSCRIBE",
+                "ch"
+              ],
+              "timeout": 1.0,
+              "reply": [
+                "subscribe",
+                "ch",
+                1
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "PUBLISH",
+                "ch",
+                "hello"
+              ],
+              "reply": 1
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": [
+                "message",
+                "ch",
+                "hello"
+              ]
+            },
+            {
+              "c": "c",
+              "read": 0,
+              "send": [
+                "CLIENT",
+                "REPLY",
+                "SKIP"
+              ]
+            },
+            {
+              "c": "c",
+              "send": [
+                "PSUBSCRIBE",
+                "*"
+              ],
+              "timeout": 1.0,
+              "reply": [
+                "psubscribe",
+                "*",
+                1
+              ]
+            }
+          ]
+        },
+        "2s-uring": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/PUBSUB-REPLY-OFF-PUSH/2s-uring",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "b",
+              "read": 0,
+              "send": [
+                "CLIENT",
+                "REPLY",
+                "OFF"
+              ]
+            },
+            {
+              "c": "b",
+              "send": [
+                "SUBSCRIBE",
+                "ch"
+              ],
+              "timeout": 1.0,
+              "reply": "TIMEOUT"
+            },
+            {
+              "c": "a",
+              "send": [
+                "PUBLISH",
+                "ch",
+                "hello"
+              ],
+              "reply": 1
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": [
+                "message",
+                "ch",
+                "hello"
+              ]
+            },
+            {
+              "c": "c",
+              "read": 0,
+              "send": [
+                "CLIENT",
+                "REPLY",
+                "SKIP"
+              ]
+            },
+            {
+              "c": "c",
+              "send": [
+                "PSUBSCRIBE",
+                "*"
+              ],
+              "timeout": 1.0,
+              "reply": "TIMEOUT"
+            }
+          ]
+        },
+        "1s-uring": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/PUBSUB-REPLY-OFF-PUSH/1s-uring",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "b",
+              "read": 0,
+              "send": [
+                "CLIENT",
+                "REPLY",
+                "OFF"
+              ]
+            },
+            {
+              "c": "b",
+              "send": [
+                "SUBSCRIBE",
+                "ch"
+              ],
+              "timeout": 1.0,
+              "reply": "TIMEOUT"
+            },
+            {
+              "c": "a",
+              "send": [
+                "PUBLISH",
+                "ch",
+                "hello"
+              ],
+              "reply": 1
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": [
+                "message",
+                "ch",
+                "hello"
+              ]
+            },
+            {
+              "c": "c",
+              "read": 0,
+              "send": [
+                "CLIENT",
+                "REPLY",
+                "SKIP"
+              ]
+            },
+            {
+              "c": "c",
+              "send": [
+                "PSUBSCRIBE",
+                "*"
+              ],
+              "timeout": 1.0,
+              "reply": "TIMEOUT"
+            }
+          ]
+        },
+        "2s-epoll": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/PUBSUB-REPLY-OFF-PUSH/2s-epoll",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "b",
+              "read": 0,
+              "send": [
+                "CLIENT",
+                "REPLY",
+                "OFF"
+              ]
+            },
+            {
+              "c": "b",
+              "send": [
+                "SUBSCRIBE",
+                "ch"
+              ],
+              "timeout": 1.0,
+              "reply": "TIMEOUT"
+            },
+            {
+              "c": "a",
+              "send": [
+                "PUBLISH",
+                "ch",
+                "hello"
+              ],
+              "reply": 1
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": [
+                "message",
+                "ch",
+                "hello"
+              ]
+            },
+            {
+              "c": "c",
+              "read": 0,
+              "send": [
+                "CLIENT",
+                "REPLY",
+                "SKIP"
+              ]
+            },
+            {
+              "c": "c",
+              "send": [
+                "PSUBSCRIBE",
+                "*"
+              ],
+              "timeout": 1.0,
+              "reply": "TIMEOUT"
+            }
+          ]
+        },
+        "1s-epoll": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/PUBSUB-REPLY-OFF-PUSH/1s-epoll",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "b",
+              "read": 0,
+              "send": [
+                "CLIENT",
+                "REPLY",
+                "OFF"
+              ]
+            },
+            {
+              "c": "b",
+              "send": [
+                "SUBSCRIBE",
+                "ch"
+              ],
+              "timeout": 1.0,
+              "reply": "TIMEOUT"
+            },
+            {
+              "c": "a",
+              "send": [
+                "PUBLISH",
+                "ch",
+                "hello"
+              ],
+              "reply": 1
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": [
+                "message",
+                "ch",
+                "hello"
+              ]
+            },
+            {
+              "c": "c",
+              "read": 0,
+              "send": [
+                "CLIENT",
+                "REPLY",
+                "SKIP"
+              ]
+            },
+            {
+              "c": "c",
+              "send": [
+                "PSUBSCRIBE",
+                "*"
+              ],
+              "timeout": 1.0,
+              "reply": "TIMEOUT"
+            }
+          ]
+        }
+      },
+      "verdict": {
+        "2s-uring": "DIFFERENT",
+        "1s-uring": "DIFFERENT",
+        "2s-epoll": "DIFFERENT",
+        "1s-epoll": "DIFFERENT"
+      }
+    },
+    "PUBSUB-IMPLICIT-CONSUMER-EVENT": {
+      "results": {
+        "redis-oracle": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/redis74/src/redis-server",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/PUBSUB-IMPLICIT-CONSUMER-EVENT/redis-oracle",
+            "--enable-debug-command",
+            "yes"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "notify-keyspace-events",
+                "Kt"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "PSUBSCRIBE",
+                "*"
+              ],
+              "reply": [
+                "psubscribe",
+                "*",
+                1
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "XGROUP",
+                "CREATE",
+                "mystream",
+                "mygroup",
+                "$",
+                "MKSTREAM"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "mystream",
+                "1-0",
+                "field1",
+                "A"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XREADGROUP",
+                "GROUP",
+                "mygroup",
+                "Alice",
+                "STREAMS",
+                "mystream",
+                ">"
+              ],
+              "reply": [
+                [
+                  "mystream",
+                  [
+                    [
+                      "1-0",
+                      [
+                        "field1",
+                        "A"
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "XCLAIM",
+                "mystream",
+                "mygroup",
+                "Mike",
+                "0",
+                "1-0",
+                "FORCE"
+              ],
+              "reply": [
+                [
+                  "1-0",
+                  [
+                    "field1",
+                    "A"
+                  ]
+                ]
+              ]
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": [
+                "pmessage",
+                "*",
+                "__keyspace@0__:mystream",
+                "xgroup-create"
+              ]
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": [
+                "pmessage",
+                "*",
+                "__keyspace@0__:mystream",
+                "xadd"
+              ]
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": [
+                "pmessage",
+                "*",
+                "__keyspace@0__:mystream",
+                "xgroup-createconsumer"
+              ]
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": [
+                "pmessage",
+                "*",
+                "__keyspace@0__:mystream",
+                "xgroup-createconsumer"
+              ]
+            }
+          ]
+        },
+        "2s-uring": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/PUBSUB-IMPLICIT-CONSUMER-EVENT/2s-uring",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "notify-keyspace-events",
+                "Kt"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "PSUBSCRIBE",
+                "*"
+              ],
+              "reply": [
+                "psubscribe",
+                "*",
+                1
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "XGROUP",
+                "CREATE",
+                "mystream",
+                "mygroup",
+                "$",
+                "MKSTREAM"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "mystream",
+                "1-0",
+                "field1",
+                "A"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XREADGROUP",
+                "GROUP",
+                "mygroup",
+                "Alice",
+                "STREAMS",
+                "mystream",
+                ">"
+              ],
+              "reply": [
+                [
+                  "mystream",
+                  [
+                    [
+                      "1-0",
+                      [
+                        "field1",
+                        "A"
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "XCLAIM",
+                "mystream",
+                "mygroup",
+                "Mike",
+                "0",
+                "1-0",
+                "FORCE"
+              ],
+              "reply": [
+                [
+                  "1-0",
+                  [
+                    "field1",
+                    "A"
+                  ]
+                ]
+              ]
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": [
+                "pmessage",
+                "*",
+                "__keyspace@0__:mystream",
+                "xgroup-create"
+              ]
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": [
+                "pmessage",
+                "*",
+                "__keyspace@0__:mystream",
+                "xadd"
+              ]
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": "TIMEOUT"
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": "TIMEOUT"
+            }
+          ]
+        },
+        "1s-uring": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/PUBSUB-IMPLICIT-CONSUMER-EVENT/1s-uring",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "notify-keyspace-events",
+                "Kt"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "PSUBSCRIBE",
+                "*"
+              ],
+              "reply": [
+                "psubscribe",
+                "*",
+                1
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "XGROUP",
+                "CREATE",
+                "mystream",
+                "mygroup",
+                "$",
+                "MKSTREAM"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "mystream",
+                "1-0",
+                "field1",
+                "A"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XREADGROUP",
+                "GROUP",
+                "mygroup",
+                "Alice",
+                "STREAMS",
+                "mystream",
+                ">"
+              ],
+              "reply": [
+                [
+                  "mystream",
+                  [
+                    [
+                      "1-0",
+                      [
+                        "field1",
+                        "A"
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "XCLAIM",
+                "mystream",
+                "mygroup",
+                "Mike",
+                "0",
+                "1-0",
+                "FORCE"
+              ],
+              "reply": [
+                [
+                  "1-0",
+                  [
+                    "field1",
+                    "A"
+                  ]
+                ]
+              ]
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": [
+                "pmessage",
+                "*",
+                "__keyspace@0__:mystream",
+                "xgroup-create"
+              ]
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": [
+                "pmessage",
+                "*",
+                "__keyspace@0__:mystream",
+                "xadd"
+              ]
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": "TIMEOUT"
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": "TIMEOUT"
+            }
+          ]
+        },
+        "2s-epoll": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/PUBSUB-IMPLICIT-CONSUMER-EVENT/2s-epoll",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "notify-keyspace-events",
+                "Kt"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "PSUBSCRIBE",
+                "*"
+              ],
+              "reply": [
+                "psubscribe",
+                "*",
+                1
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "XGROUP",
+                "CREATE",
+                "mystream",
+                "mygroup",
+                "$",
+                "MKSTREAM"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "mystream",
+                "1-0",
+                "field1",
+                "A"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XREADGROUP",
+                "GROUP",
+                "mygroup",
+                "Alice",
+                "STREAMS",
+                "mystream",
+                ">"
+              ],
+              "reply": [
+                [
+                  "mystream",
+                  [
+                    [
+                      "1-0",
+                      [
+                        "field1",
+                        "A"
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "XCLAIM",
+                "mystream",
+                "mygroup",
+                "Mike",
+                "0",
+                "1-0",
+                "FORCE"
+              ],
+              "reply": [
+                [
+                  "1-0",
+                  [
+                    "field1",
+                    "A"
+                  ]
+                ]
+              ]
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": [
+                "pmessage",
+                "*",
+                "__keyspace@0__:mystream",
+                "xgroup-create"
+              ]
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": [
+                "pmessage",
+                "*",
+                "__keyspace@0__:mystream",
+                "xadd"
+              ]
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": "TIMEOUT"
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": "TIMEOUT"
+            }
+          ]
+        },
+        "1s-epoll": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/PUBSUB-IMPLICIT-CONSUMER-EVENT/1s-epoll",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "notify-keyspace-events",
+                "Kt"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "PSUBSCRIBE",
+                "*"
+              ],
+              "reply": [
+                "psubscribe",
+                "*",
+                1
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "XGROUP",
+                "CREATE",
+                "mystream",
+                "mygroup",
+                "$",
+                "MKSTREAM"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "XADD",
+                "mystream",
+                "1-0",
+                "field1",
+                "A"
+              ],
+              "reply": "1-0"
+            },
+            {
+              "c": "a",
+              "send": [
+                "XREADGROUP",
+                "GROUP",
+                "mygroup",
+                "Alice",
+                "STREAMS",
+                "mystream",
+                ">"
+              ],
+              "reply": [
+                [
+                  "mystream",
+                  [
+                    [
+                      "1-0",
+                      [
+                        "field1",
+                        "A"
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "XCLAIM",
+                "mystream",
+                "mygroup",
+                "Mike",
+                "0",
+                "1-0",
+                "FORCE"
+              ],
+              "reply": [
+                [
+                  "1-0",
+                  [
+                    "field1",
+                    "A"
+                  ]
+                ]
+              ]
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": [
+                "pmessage",
+                "*",
+                "__keyspace@0__:mystream",
+                "xgroup-create"
+              ]
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": [
+                "pmessage",
+                "*",
+                "__keyspace@0__:mystream",
+                "xadd"
+              ]
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": "TIMEOUT"
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.0,
+              "reply": "TIMEOUT"
+            }
+          ]
+        }
+      },
+      "verdict": {
+        "2s-uring": "DIFFERENT",
+        "1s-uring": "DIFFERENT",
+        "2s-epoll": "DIFFERENT",
+        "1s-epoll": "DIFFERENT"
+      }
+    },
+    "PUBSUB-EVICT-ON-MAXMEMORY": {
+      "results": {
+        "redis-oracle": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/redis74/src/redis-server",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/PUBSUB-EVICT-ON-MAXMEMORY/redis-oracle",
+            "--enable-debug-command",
+            "yes"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "notify-keyspace-events",
+                "Ee"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory-policy",
+                "allkeys-lru"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "PSUBSCRIBE",
+                "*"
+              ],
+              "reply": [
+                "psubscribe",
+                "*",
+                1
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "foo",
+                "bar"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "1"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.5,
+              "reply": [
+                "pmessage",
+                "*",
+                "__keyevent@0__:evicted",
+                "foo"
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "DBSIZE"
+              ],
+              "reply": 0
+            }
+          ]
+        },
+        "2s-uring": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/PUBSUB-EVICT-ON-MAXMEMORY/2s-uring",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "notify-keyspace-events",
+                "Ee"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory-policy",
+                "allkeys-lru"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "PSUBSCRIBE",
+                "*"
+              ],
+              "reply": [
+                "psubscribe",
+                "*",
+                1
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "foo",
+                "bar"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "1"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.5,
+              "reply": "TIMEOUT"
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "DBSIZE"
+              ],
+              "reply": 1
+            }
+          ]
+        },
+        "1s-uring": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/PUBSUB-EVICT-ON-MAXMEMORY/1s-uring",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "uring"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "notify-keyspace-events",
+                "Ee"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory-policy",
+                "allkeys-lru"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "PSUBSCRIBE",
+                "*"
+              ],
+              "reply": [
+                "psubscribe",
+                "*",
+                1
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "foo",
+                "bar"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "1"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.5,
+              "reply": "TIMEOUT"
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "DBSIZE"
+              ],
+              "reply": 1
+            }
+          ]
+        },
+        "2s-epoll": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/PUBSUB-EVICT-ON-MAXMEMORY/2s-epoll",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "2s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--ratio",
+            "6:2",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "notify-keyspace-events",
+                "Ee"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory-policy",
+                "allkeys-lru"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "PSUBSCRIBE",
+                "*"
+              ],
+              "reply": [
+                "psubscribe",
+                "*",
+                1
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "foo",
+                "bar"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "1"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.5,
+              "reply": "TIMEOUT"
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "DBSIZE"
+              ],
+              "reply": 1
+            }
+          ]
+        },
+        "1s-epoll": {
+          "server_argv": [
+            "taskset",
+            "-c",
+            "32-39",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/pre/tomokv",
+            "--port",
+            "20300",
+            "--bind",
+            "127.0.0.1",
+            "--save",
+            "",
+            "--appendonly",
+            "no",
+            "--dir",
+            "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/repro/repro-pre/PUBSUB-EVICT-ON-MAXMEMORY/1s-epoll",
+            "--enable-debug-command",
+            "yes",
+            "--thread-mode",
+            "1s",
+            "--shards",
+            "16",
+            "--databases",
+            "16",
+            "--net-io",
+            "epoll"
+          ],
+          "transcript": [
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "notify-keyspace-events",
+                "Ee"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory-policy",
+                "allkeys-lru"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "send": [
+                "PSUBSCRIBE",
+                "*"
+              ],
+              "reply": [
+                "psubscribe",
+                "*",
+                1
+              ]
+            },
+            {
+              "c": "a",
+              "send": [
+                "SET",
+                "foo",
+                "bar"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "1"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "b",
+              "read": 1,
+              "timeout": 1.5,
+              "reply": "TIMEOUT"
+            },
+            {
+              "c": "a",
+              "send": [
+                "CONFIG",
+                "SET",
+                "maxmemory",
+                "0"
+              ],
+              "reply": {
+                "simple": "OK"
+              }
+            },
+            {
+              "c": "a",
+              "send": [
+                "DBSIZE"
+              ],
+              "reply": 1
+            }
+          ]
+        }
+      },
+      "verdict": {
+        "2s-uring": "DIFFERENT",
+        "1s-uring": "DIFFERENT",
+        "2s-epoll": "DIFFERENT",
+        "1s-epoll": "DIFFERENT"
+      }
+    }
+  }
+}
