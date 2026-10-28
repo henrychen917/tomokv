@@ -78,6 +78,10 @@ could not find the cost-witness SHA sidecar under the frozen POST filename.
 Its 24 live oracle legs passed, but its instruction leg did not run. The original
 source-built witness/server hashes and POST byte identity have now been verified
 (`docs/exec1s/blockfix-cost-binding.json`); an unchanged gate-job rerun is pending.
+The Redis Tcl dependency passed both modes against the unchanged PRE manifest:
+all 70 file/mode assertion inventories match. Its existing named `appendonly`
+block-setup error remains visible in the raw logs and is checked exactly, not
+silently ignored (`docs/exec1s/tcl-manifest-verification.json`).
 
 - X2: production TSAN owner-word helper, the old overlapping-write negative
   control, actual 256-live-group wrap/decrement checks, pinned-floor cleanup,
