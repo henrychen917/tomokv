@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-snapfix/build/snapfix/commands/post-normal-GET-2s-1-1--1.log
-SHA-256: 40d8b1aa00f206d5c139ef4aa196a3f416a54c53c198eaacc1bf2de7e2a14c55
+SHA-256: 6a62dda5a710eebeb625439e91a1d3ba57c4407ed332540c6309f0e43214e1dd
 Exit: 0
-0x0000555555a047a8	2364	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
-0x0000555555a04673 in tomo::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff61df9c8, batch=batch@entry=0x7ffffffda280, n=n@entry=1) at src/core/ex_loop.h:2367
+0x0000555555a05038	2364	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
+0x0000555555a04f03 in tomo::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff61df9c8, batch=batch@entry=0x7ffffffda280, n=n@entry=1) at src/core/ex_loop.h:2367
 2367	    }
-0x0000555555a04678	2367	    }
-0x0000555555a04681	2367	    }
-0x0000555555a04687	2367	    }
-0x0000555555a0468b	2367	    }
-0x0000555555a0468c	2367	    }
-0x0000555555a0468e	2367	    }
-0x0000555555a04690	2367	    }
-0x0000555555a04692	2367	    }
-0x0000555555a04694	2367	    }
-0x0000555555a04695	2367	    }
-0x0000555555d8f604 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-snapfix/tests/txnorder_command_scope.cc:72
+0x0000555555a04f08	2367	    }
+0x0000555555a04f11	2367	    }
+0x0000555555a04f17	2367	    }
+0x0000555555a04f1b	2367	    }
+0x0000555555a04f1c	2367	    }
+0x0000555555a04f1e	2367	    }
+0x0000555555a04f20	2367	    }
+0x0000555555a04f22	2367	    }
+0x0000555555a04f24	2367	    }
+0x0000555555a04f25	2367	    }
+0x0000555555d90774 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-snapfix/tests/txnorder_command_scope.cc:72
 72	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-snapfix/tests/txnorder_command_scope.cc:20
 20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 2798949) exited normally]
+[Inferior 1 (process 1935459) exited normally]
 COUNT 1559

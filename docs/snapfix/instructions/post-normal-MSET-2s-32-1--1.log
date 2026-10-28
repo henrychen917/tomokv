@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-snapfix/build/snapfix/commands/post-normal-MSET-2s-32-1--1.log
-SHA-256: ad2b11ee1f692f03e96f963c25742d4b911f56663f0516253bc1bce26ea0113c
+SHA-256: 06e91f9db235eb215c5f876b9843fab66c0e1749813e3eefbd2a69c1f1bbaedd
 Exit: 0
-0x0000555555a5cf09	569	}
-0x0000555555a5cf0a	569	}
-0x0000555555a5cf0c	569	}
-0x0000555555a5cf0e	569	}
-0x0000555555a5cf10	569	}
-0x0000555555d8fbe6 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-snapfix/tests/txnorder_command_scope.cc:112
+0x0000555555a5e299	569	}
+0x0000555555a5e29a	569	}
+0x0000555555a5e29c	569	}
+0x0000555555a5e29e	569	}
+0x0000555555a5e2a0	569	}
+0x0000555555d90d56 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-snapfix/tests/txnorder_command_scope.cc:112
 112	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
 95	   for(unsigned i=0;i<n;i++){
-0x0000555555d8fbf2	95	   for(unsigned i=0;i<n;i++){
-0x0000555555d8fbf9	95	   for(unsigned i=0;i<n;i++){
-0x0000555555d8fc01	95	   for(unsigned i=0;i<n;i++){
-0x0000555555d8fc08	95	   for(unsigned i=0;i<n;i++){
-0x0000555555d8fc0e	115	   std::string want="+OK\r\n";
-0x0000555555d8fc15	115	   std::string want="+OK\r\n";
-0x0000555555d8fc1c	114	   scope_end();
+0x0000555555d90d62	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d90d69	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d90d71	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d90d78	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d90d7e	115	   std::string want="+OK\r\n";
+0x0000555555d90d85	115	   std::string want="+OK\r\n";
+0x0000555555d90d8c	114	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-snapfix/tests/txnorder_command_scope.cc:20
 20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 3123776) exited normally]
+[Inferior 1 (process 1947990) exited normally]
 COUNT 953446

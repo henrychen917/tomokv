@@ -1,23 +1,23 @@
 Full bounded GDB trace: /home/user/Projects/cx-snapfix/build/snapfix/commands/post-normal-SET-1s-32-1--1.log
-SHA-256: d4f81491760a1bd6d78ab08693af8c946e47163355e06f3e4ed4131bda436900
+SHA-256: b487a74ca568bae62d0221db1744e13e6e19ba03d5afe316fd123f080a669195
 Exit: 0
 2367	    }
-0x0000555555c8cd38	2367	    }
-0x0000555555c8cd41	2367	    }
-0x0000555555c8cd47	2367	    }
-0x0000555555c8cd4b	2367	    }
-0x0000555555c8cd4c	2367	    }
-0x0000555555c8cd4e	2367	    }
-0x0000555555c8cd50	2367	    }
-0x0000555555c8cd52	2367	    }
-0x0000555555c8cd54	2367	    }
-0x0000555555c8cd55	2367	    }
-0x0000555555d8c0a8 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entTomoKV 1.0-cpp (Redis 7.4.10 compatible)
+0x0000555555c8dd18	2367	    }
+0x0000555555c8dd21	2367	    }
+0x0000555555c8dd27	2367	    }
+0x0000555555c8dd2b	2367	    }
+0x0000555555c8dd2c	2367	    }
+0x0000555555c8dd2e	2367	    }
+0x0000555555c8dd30	2367	    }
+0x0000555555c8dd32	2367	    }
+0x0000555555c8dd34	2367	    }
+0x0000555555c8dd35	2367	    }
+0x0000555555d8d218 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entTomoKV 1.0-cpp (Redis 7.4.10 compatible)
 PASS bounded production command scope
 ry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-snapfix/tests/txnorder_command_scope.cc:72
 72	   scope_end();
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-snapfix/tests/txnorder_command_scope.cc:20
 20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 2804019) exited normally]
+[Inferior 1 (process 1935524) exited normally]
 COUNT 22706
