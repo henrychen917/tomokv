@@ -45,6 +45,8 @@ def main():
         source,ref=d.snapshot('d602c8c36',arm)
         for name in ('multi.inc','multi_execute.inc'):
             shutil.copy2(d.OUT/('X12-'+name),source/'src/cmd'/name)
+        (source/'src/cmd/txn_key_queue.inc').write_bytes(subprocess.check_output(
+            ['git','show','393d6ceb1:src/cmd/txn_key_queue.inc'],cwd=d.ROOT))
         old=d.ROOT/'src/cmd/multi.inc'
         text=old.read_text();start=text.index('void multi_ring_participants(');end=text.index('\nvoid multi_enqueue_node',start)
         path=source/'src/cmd/multi.inc'
@@ -53,7 +55,7 @@ def main():
                        '        state.watch_phase_done.store(true, std::memory_order_release);'):
             replace(path,anchor,anchor+'\n        multi_ring_participants(state);')
         path=source/'src/cmd/multi_execute.inc'
-        for anchor in ('        finish_command(command, stage, owner_thread_id);',
+        for anchor in ('        finish_command(state, command, stage, owner_thread_id);',
                        '                state.finalized.store(true, std::memory_order_release);'):
             replace(path,anchor,anchor+'\n        multi_ring_participants(state);')
         finish(arm,source,ref,'EXEC,IDLE')

@@ -14,7 +14,10 @@ struct ScriptUnit {
     bool script;
     ScriptUnit(Server& s, bool e, uint64_t age) : server(s), script(e) {
         client.set_id(e ? 801 : 802);
-        exec.reset(allocate_state(s, client, 0, MultiStateKind::Execute));
+        // This owner-only fixture declares physical shard IDs directly, just
+        // like the survivor/index fixtures. Production EXEC discovers compact
+        // participant slots while preparing its queued commands.
+        exec.reset(fixture_allocate_state(s, client, 0, MultiStateKind::Execute));
         require(bool(exec), "owner unit allocation");
         exec->read_only = false;
         state.server = &s; state.kind = Kind::Script;

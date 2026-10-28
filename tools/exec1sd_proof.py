@@ -13,7 +13,7 @@ def gate(label, jobs, engine='uring', extra=None):
                GATE_LEDGER=str(inherited.OUT/(label+'.ledger')))
     if extra: env.update(extra)
     return inherited.run(label, ['taskset','-c',d.CPUS,'tests/gate.sh','iteration',
-        '--server-cores','64-71','--load-cores','72-95','--server-smt','','--load-smt','',
+        '--server-cores','64-87','--load-cores','88-95','--server-smt','','--load-smt','',
         '--ports','20010-20097','--candidate-binary',str(d.ROOT/'build/tomokv')],env)
 
 def main():
