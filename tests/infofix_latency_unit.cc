@@ -14,6 +14,21 @@ static bool tracking = true;
 #include <memory>
 #include <string>
 
+// Drive the real executor's clocks, rather than testing a recorder helper in
+// isolation. Alternating 1 us / 16 ms commands must remain separate samples.
+static bool exact_clock_active = false;
+static uint64_t exact_clock_calls = 0, exact_clock_ns = 0;
+extern "C" int __real_clock_gettime(clockid_t, timespec*);
+extern "C" int __wrap_clock_gettime(clockid_t clock, timespec* out) {
+    if (!exact_clock_active || clock != CLOCK_MONOTONIC)
+        return __real_clock_gettime(clock, out);
+    const uint64_t call = exact_clock_calls++;
+    exact_clock_ns += (call & 1) && ((call / 2) & 1) ? 16000000 : 1000;
+    out->tv_sec = exact_clock_ns / 1000000000;
+    out->tv_nsec = exact_clock_ns % 1000000000;
+    return 0;
+}
+
 using namespace tomo;
 extern "C" void batch_split(void*, const Task*, uint32_t)
     asm("_ZN4tomo7ExLoopTILb0EE21exec_batch_prefetchedILb0EEEvPKNS_4TaskEj");
@@ -105,31 +120,29 @@ struct CoreConcurrencyTest {
         for (unsigned warm = 0; warm < 4; ++warm) {
             prepare(); entry(owner.get(), tasks, batch); finish();
         }
-        prepare(); entry(owner.get(), tasks, batch); finish();
+        latency_tracking_reset();
+        infofix_batch_locks = 0;
+        prepare();
+        exact_clock_ns = now_ns();
+        exact_clock_calls = 0;
+        exact_clock_active = true;
+        entry(owner.get(), tasks, batch);
+        exact_clock_active = false;
+        finish();
+        need(exact_clock_calls == (tracking ? 2 * batch : 0), "exact per-command clocks, zero clocks off");
         const auto values = collect();
         uint64_t samples = 0;
         for (const auto& [id, histogram] : values) samples += histogram.calls;
-        need(samples == (tracking ? 5 * batch : 0), "one histogram observation per completed command");
-        need(infofix_batch_locks == (tracking && batch > 1 ? 5 : 0), "one histogram lock per GET batch");
+        need(samples == (tracking ? batch : 0), "one histogram observation per completed command");
+        need(infofix_batch_locks == (tracking && batch > 1 ? 1 : 0), "one histogram lock per GET batch");
         need(tracking || latency_tracking_allocated_histograms() == 0, "tracking off allocated nothing");
-        // Distinct exact durations must remain distinct under the batch lock.
-        // Replacing each sample with the batch mean fails this witness.
-#ifndef TOMO_INFOFIX_BASELINE
         if (tracking) {
-            auto& local = store(source);
-            std::lock_guard lock(local.mutex);
-            Histogram histogram;
-            Op op; op.reset(); op.push_arg(Slice("GET")); op.push_arg(k); op.spec = command_lookup(op.arg(0));
-            GetHistogramBatch context{source, &op, &histogram};
-            active_get_batch = &context;
-            const uint64_t cut = disabled_cut_ns.load(std::memory_order_acquire);
-            record_generation(source, op, 1000, cut);
-            record_generation(source, op, 16000000, cut);
-            active_get_batch = nullptr;
-            need(histogram.calls == 2 && histogram.bins[Histogram::index(1000)] == 1 &&
-                 histogram.bins[Histogram::index(16000000)] == 1, "batch keeps individual durations");
+            need(values.size() == 1, "GET histogram only");
+            const auto& histogram = values.begin()->second;
+            need(histogram.bins[Histogram::index(1000)] == (batch + 1) / 2 &&
+                 histogram.bins[Histogram::index(16000000)] == batch / 2,
+                 "real batch preserves short commands and long outliers separately");
         }
-#endif
         std::printf("PASS infofix latency %s tracking=%d batch=%u samples=%llu locks=%llu\n",
                     Fused ? "1s" : "2s", int(tracking), batch,
                     (unsigned long long)samples, (unsigned long long)infofix_batch_locks);
