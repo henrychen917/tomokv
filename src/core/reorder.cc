@@ -771,6 +771,9 @@ void IoLoop::r7_run_loop() {
 
     Ring::RegisteredFd registered_io(Fused && !SplitLocal ? &ring_ : nullptr);
     Ring::RegisteredFd registered_ex(Fused && !SplitLocal && fused_executor_ ? &fused_executor_->ring() : nullptr);
+    // Thread identity is fixed for this run. Hoist hint addressing out of
+    // both boundaries rather than rediscovering it through the executor.
+    const auto* const owner_bell = &fused_owner_bells[self_->id()];
     wb_rule::IdleWindow wb_idle;
     Server::DebugSleepWorker sleep_worker(srv_->debug_sleep_coordinator(), self_->id());
     if constexpr (Fused) {
@@ -878,7 +881,7 @@ void IoLoop::r7_run_loop() {
             did += scatter_pool_.refresh_snapshot_floor(*srv_, self_->id());
             if constexpr (HasUnix) did += flush_handoffs();
             if constexpr (Fused && !SplitLocal) {
-                if (fused_executor_->fused_owner_ready())
+                if (owner_bell->runnable.load(std::memory_order_relaxed))
                     did += fused_executor_->fused_owner_turn<true>();
             }
             did += multi_owner_pass_entry(*this);
@@ -908,7 +911,7 @@ void IoLoop::r7_run_loop() {
                 did += r7_flush_ready<HasTls, kEp>();
             }
             if constexpr (Fused && !SplitLocal) {
-                if (fused_executor_->fused_owner_ready())
+                if (owner_bell->runnable.load(std::memory_order_relaxed))
                     did += fused_executor_->fused_owner_turn<true>();
             }
             did += flip_control_pass<kEp>();
