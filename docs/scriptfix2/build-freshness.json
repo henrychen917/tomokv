@@ -1,0 +1,260 @@
+{
+  "rows": [
+    {
+      "target": "all",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/expire-notify-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/ktls-lifetime-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/moverfix-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/moverfix-db0-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/publishfix-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/at15-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/at15-db0-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/execabort-watch-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/execabort-watch-db0-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/core-concurrency-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/atomic-survivors-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/txnorder-index-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/txnorder-index-db0-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/txnorder-retry-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/txnorder-wake-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/txnorder-episodes",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/txnorder-episodes-debug",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/txnorder-watch-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/txnorder-watch-db0-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/netcmd-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/encodingfix-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/netcap-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/waits-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/rehash-waits-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/multidb-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/multidb-boundary-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/storesize-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/respresume-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/respresume-migration",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/exbatch-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/exbatch-db0-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/wb-rule-units",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/wbland-units",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/rltopo-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/lbplanner-units",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/shutdown-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/persistfix-units",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/ktls-keyupdate",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/ktls-keyupdate-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/flushfix-units",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/splitlocal-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/reorder-engagement-unit",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/reorder-engagement-unit-db0",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/racefix-climon",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/aoforder-scheduled",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "mdbqsbr2-park/all",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "mdbqsbr2-no-wake/all",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/blockfix-cost",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "target": "build/tomokv.blockfix-cost.sha256",
+      "exit_code": 0,
+      "stderr": ""
+    }
+  ],
+  "phony_alias": {
+    "target": "mdbqsbr-live-arms",
+    "exit_code": 0,
+    "reason": "PHONY recipe always invokes recursive make; its two concrete all targets are checked above."
+  },
+  "main_sha256": "cb5dbeae537f1171a54171ddc37f7b2517500360bd6fc8c9208763a75994a317"
+}
