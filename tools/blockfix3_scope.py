@@ -21,7 +21,7 @@ OUT.mkdir(exist_ok=True)
 BUILD.mkdir(exist_ok=True)
 ARMS = {"pre": (ROOT / "build/blockfix3/pre-source", ROOT / "build/blockfix3/pre-source/build"),
         "post": (ROOT, ROOT / "build"), "final": (ROOT, ROOT / "build"),
-        "verified": (ROOT, ROOT / "build")}
+        "verified": (ROOT, ROOT / "build"), "land": (ROOT, ROOT / "build")}
 
 
 def save(path, value):
