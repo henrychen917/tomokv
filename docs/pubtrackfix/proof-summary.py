@@ -12,7 +12,7 @@ WITNESS={'bcast':('unit/tracking','The connection gets invalidation messages abo
  'eviction':('unit/pubsub','Keyspace notifications: evicted events')}
 def main():
  p=argparse.ArgumentParser();p.add_argument('--partial',action='store_true');a=p.parse_args()
- names=['post-affected-final','differ-uring','differ-epoll','pre-directed','pad-directed']+['plant-'+x for x in WITNESS]
+ names=['post-affected-final','post-neighbors','differ-uring','differ-epoll','pre-directed','pad-directed']+['plant-'+x for x in WITNESS]
  out={};missing=[]
  for name in names:
   directory=DOC/'proof'/name
@@ -32,7 +32,7 @@ def main():
        'passed':sum(c['passed'] for c in d['checks']),
        'failed_labels':[c['label'] for c in d['checks'] if not c['passed']]}
     entry['directed']=rows
-   if name=='post-affected-final' or name.startswith('plant-'):
+   if name in ('post-affected-final','post-neighbors') or name.startswith('plant-'):
     modes={}
     for mode in ('1s','2s'):
      path=f'redis_tcl/redis-tcl-{mode}/summary.json'

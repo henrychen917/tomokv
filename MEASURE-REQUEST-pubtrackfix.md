@@ -60,7 +60,9 @@ hazard in the first implementation; that interrupted run is retained.
 The final directed matrix and both Tcl modes pass on the final binary. Both Tcl
 modes cover all 36 selected files and all 31 promoted names, without using the
 pre-existing named ordering retries. The complete
-selected affected-job list is [proof-jobs.txt](docs/pubtrackfix/proof-jobs.txt).
+selected affected-job list is [proof-jobs.txt](docs/pubtrackfix/proof-jobs.txt),
+with `clientfix` and the public `compat2` verdict in the additional
+`post-neighbors` run.
 The driver [run-proof.py](docs/pubtrackfix/run-proof.py) invokes only explicitly
 selected jobs; its `iteration` invocations select the standard differential
 jobs only and report `GATE(PARTIAL)`, with no ABBA, NIC or full-tier run.
