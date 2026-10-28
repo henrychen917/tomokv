@@ -74,7 +74,7 @@ jobs only and report `GATE(PARTIAL)`, with no ABBA, NIC or full-tier run.
 - Final affected-job run: **245 passed, 0 failed**, 36 selected jobs including prerequisites. Includes all 160 directed candidate legs and five oracle legs, 138 feature-matrix rows, all eight eviction legs, clientfix, compat2 and the focused notification/tracking/stream jobs.
 - Tcl subset: both modes pass 35 selected files (36 result records) and all 31 promoted assertions. Fused mode uses the existing one-time MONITOR ordering retry; the original failure and retry receipts are retained. The promoted assertions pass without retries.
 - Final make all, every production-unit target and all 56 freshness queries pass. All 52 command-scope comparisons add zero instructions.
-- Standard differential runs: PASS on both engines, 954 comparisons each including equivalence. io_uring seeds: 7/19/20/23/21; epoll: 7/19/20/23/22. PRE/PAD directed negatives, four Tcl regression plants and isolated gates_test: RUNNING; replace before handoff.
+- Standard differential runs: PASS on both engines, 954 comparisons each including equivalence. io_uring seeds: 7/19/20/23/21; epoll: 7/19/20/23/22. PRE and PAD-A each fail all 160 directed candidate legs for the intended defects; all five oracle legs pass in each run. Four Tcl regression plants and isolated gates_test: RUNNING; replace before handoff.
 <!-- /PROOF-STATUS -->
 
 **NOT RUN:** positive POST regression rows and Tcl promotions for the three
