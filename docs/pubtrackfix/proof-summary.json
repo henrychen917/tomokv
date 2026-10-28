@@ -1040,10 +1040,274 @@
           "expected_exceptions": 64
         }
       }
+    },
+    "plant-bcast": {
+      "gate_summary": [
+        "GATE(PARTIAL): 1 ok, 2 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-pubtrackfix/build/gate-run.41aQC0/ledger.partial"
+      ],
+      "jobs": {
+        "redis_tcl": {
+          "done": "0\t0\t2\n"
+        },
+        "release": {
+          "done": "0\t1\t0\n"
+        }
+      },
+      "tcl": {
+        "1s": {
+          "sha256": "ac785a8cf03a4a1ea59c7752a1c4043bfce8c6ab20a483b69f4e235cb5deb6f4",
+          "files": 35,
+          "file_runs": 36,
+          "passed_assertions": 1688,
+          "promoted_passed": 5,
+          "promoted_missing": [
+            [
+              "unit/tracking",
+              "Able to redirect to a RESP3 client"
+            ],
+            [
+              "unit/tracking",
+              "Adding prefixes to BCAST mode works"
+            ],
+            [
+              "unit/tracking",
+              "After switching from normal tracking to BCAST mode, no invalidation message is produced for pre-BCAST keys"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking bcast mode"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking off"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking on"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking on with options"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking optin"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking optout"
+            ],
+            [
+              "unit/tracking",
+              "Clients can enable the BCAST mode with prefixes"
+            ],
+            [
+              "unit/tracking",
+              "Different clients can redirect to the same connection"
+            ],
+            [
+              "unit/tracking",
+              "Different clients using different protocols can track the same key"
+            ],
+            [
+              "unit/tracking",
+              "Invalidation message sent when using OPTIN option with CLIENT CACHING yes"
+            ],
+            [
+              "unit/tracking",
+              "Invalidation message sent when using OPTOUT option"
+            ],
+            [
+              "unit/tracking",
+              "Invalidations of new keys can be redirected after switching to RESP3"
+            ],
+            [
+              "unit/tracking",
+              "Invalidations of previous keys can be redirected after switching to RESP3"
+            ],
+            [
+              "unit/tracking",
+              "No invalidation message when using OPTIN option"
+            ],
+            [
+              "unit/tracking",
+              "No invalidation message when using OPTOUT option with CLIENT CACHING no"
+            ],
+            [
+              "unit/tracking",
+              "RESP3 Client gets tracking-redir-broken push message after cached key changed when rediretion client is terminated"
+            ],
+            [
+              "unit/tracking",
+              "RESP3 tracking redirection"
+            ],
+            [
+              "unit/tracking",
+              "The connection gets invalidation messages about all the keys"
+            ],
+            [
+              "unit/tracking",
+              "Tracking NOLOOP mode in BCAST mode works"
+            ],
+            [
+              "unit/tracking",
+              "Tracking NOLOOP mode in standard mode works"
+            ],
+            [
+              "unit/tracking",
+              "Tracking gets notification of expired keys"
+            ],
+            [
+              "unit/tracking",
+              "Tracking gets notification of lazy expired keys"
+            ],
+            [
+              "unit/tracking",
+              "hdel deliver invalidate message after response in the same connection"
+            ]
+          ],
+          "root_witness": {
+            "file": "unit/tracking",
+            "test": "The connection gets invalidation messages about all the keys",
+            "started": true,
+            "passed": false,
+            "file_complete": false,
+            "file_error": "passing subset failed, incomplete, or assertion inventory changed",
+            "failure_events": [
+              "The connection gets invalidation messages about all the keys in tests/unit/tracking.tcl\nExpected a{t} eq {a{t} b{t} c{t}} (context: type eval line 4 cmd {assert {$keys eq {a{t} b{t} c{t}}}} proc ::test)"
+            ],
+            "detected": true
+          }
+        },
+        "2s": {
+          "sha256": "ac785a8cf03a4a1ea59c7752a1c4043bfce8c6ab20a483b69f4e235cb5deb6f4",
+          "files": 35,
+          "file_runs": 36,
+          "passed_assertions": 1689,
+          "promoted_passed": 5,
+          "promoted_missing": [
+            [
+              "unit/tracking",
+              "Able to redirect to a RESP3 client"
+            ],
+            [
+              "unit/tracking",
+              "Adding prefixes to BCAST mode works"
+            ],
+            [
+              "unit/tracking",
+              "After switching from normal tracking to BCAST mode, no invalidation message is produced for pre-BCAST keys"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking bcast mode"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking off"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking on"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking on with options"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking optin"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking optout"
+            ],
+            [
+              "unit/tracking",
+              "Clients can enable the BCAST mode with prefixes"
+            ],
+            [
+              "unit/tracking",
+              "Different clients can redirect to the same connection"
+            ],
+            [
+              "unit/tracking",
+              "Different clients using different protocols can track the same key"
+            ],
+            [
+              "unit/tracking",
+              "Invalidation message sent when using OPTIN option with CLIENT CACHING yes"
+            ],
+            [
+              "unit/tracking",
+              "Invalidation message sent when using OPTOUT option"
+            ],
+            [
+              "unit/tracking",
+              "Invalidations of new keys can be redirected after switching to RESP3"
+            ],
+            [
+              "unit/tracking",
+              "Invalidations of previous keys can be redirected after switching to RESP3"
+            ],
+            [
+              "unit/tracking",
+              "No invalidation message when using OPTIN option"
+            ],
+            [
+              "unit/tracking",
+              "No invalidation message when using OPTOUT option with CLIENT CACHING no"
+            ],
+            [
+              "unit/tracking",
+              "RESP3 Client gets tracking-redir-broken push message after cached key changed when rediretion client is terminated"
+            ],
+            [
+              "unit/tracking",
+              "RESP3 tracking redirection"
+            ],
+            [
+              "unit/tracking",
+              "The connection gets invalidation messages about all the keys"
+            ],
+            [
+              "unit/tracking",
+              "Tracking NOLOOP mode in BCAST mode works"
+            ],
+            [
+              "unit/tracking",
+              "Tracking NOLOOP mode in standard mode works"
+            ],
+            [
+              "unit/tracking",
+              "Tracking gets notification of expired keys"
+            ],
+            [
+              "unit/tracking",
+              "Tracking gets notification of lazy expired keys"
+            ],
+            [
+              "unit/tracking",
+              "hdel deliver invalidate message after response in the same connection"
+            ]
+          ],
+          "root_witness": {
+            "file": "unit/tracking",
+            "test": "The connection gets invalidation messages about all the keys",
+            "started": true,
+            "passed": false,
+            "file_complete": false,
+            "file_error": "passing subset failed, incomplete, or assertion inventory changed",
+            "failure_events": [
+              "The connection gets invalidation messages about all the keys in tests/unit/tracking.tcl\nExpected a{t} eq {a{t} b{t} c{t}} (context: type eval line 4 cmd {assert {$keys eq {a{t} b{t} c{t}}}} proc ::test)"
+            ],
+            "detected": true
+          }
+        }
+      }
     }
   },
   "missing_runs": [
-    "plant-bcast",
     "plant-reply-off",
     "plant-consumer",
     "plant-eviction"
