@@ -1,0 +1,704 @@
+{
+  "post_sha256": "99491127743b527b96f9389d6d238ef8702d58005e50fd4b999baa985c9798d5",
+  "binary_sha256": "1e5222abadeadf68bcd878b084c11c9d5be094aaf6fb9aa8220898dbf7c71009",
+  "compile": [
+    [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=148537",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-multifix/build/multifix/regression/build/src/cmd/xshard.o"
+    ],
+    [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=32703",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/cmd/t_server.cc",
+      "-o",
+      "/home/user/Projects/cx-multifix/build/multifix/regression/build/src/cmd/t_server.o"
+    ],
+    [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=147343",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-multifix/build/multifix/regression/build/db0/src/cmd/xshard.o"
+    ],
+    [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=33448",
+      "--param",
+      "max-inline-insns-auto=16",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/t_server.cc",
+      "-o",
+      "/home/user/Projects/cx-multifix/build/multifix/regression/build/db0/src/cmd/t_server.o"
+    ]
+  ],
+  "link": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "/home/user/Projects/cx-multifix/build/db0/src/main.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/net/tls.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/commands.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/glob.o",
+    "/home/user/Projects/cx-multifix/build/multifix/regression/build/db0/src/cmd/xshard.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/acl.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/hll.o",
+    "/home/user/Projects/cx-multifix/build/multifix/regression/build/db0/src/cmd/t_server.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/t_string.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/t_string_notify.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/t_hash.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/t_hash_ttl.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/t_list.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/t_set.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/t_zset.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/t_zset_ops.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/geo.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/t_stream.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/t_stream_groups.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/scripting.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/functions.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/serialize.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/snapshot/snapshot.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/persist/aof.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/climon.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/tracking.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/server_tail.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/slowlog.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/lcs.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/info_stats.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/lbsignals.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/core/flipctl.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/core/genthread.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/core/rl2s.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/core/lbstall.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/core/lbplanner.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/l4prebuild.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/cmdgap.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/pfdebug.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/cmdmeta.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/t_sort.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/multidb.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/storesize.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/multi_admin.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/core/reorder.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/geo_store.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/persist/aof_frame_debug.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/aclkeys.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/blocking_debug.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/objectpread.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/hexpread.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/autharity.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/core/fliplisten.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/core/shutdown.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/cmd/latency_tracking.o",
+    "/home/user/Projects/cx-multifix/build/db0/src/core/version.o",
+    "/home/user/Projects/cx-multifix/build/src/main.o",
+    "/home/user/Projects/cx-multifix/build/src/net/tls.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/commands.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/glob.o",
+    "/home/user/Projects/cx-multifix/build/multifix/regression/build/src/cmd/xshard.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/acl.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/hll.o",
+    "/home/user/Projects/cx-multifix/build/multifix/regression/build/src/cmd/t_server.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/t_string.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/t_string_notify.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/t_hash.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/t_hash_ttl.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/t_list.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/t_set.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/t_zset.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/t_zset_ops.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/geo.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/t_stream.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/t_stream_groups.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/scripting.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/functions.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/serialize.o",
+    "/home/user/Projects/cx-multifix/build/src/snapshot/snapshot.o",
+    "/home/user/Projects/cx-multifix/build/src/persist/aof.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/climon.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/tracking.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/server_tail.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/slowlog.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/lcs.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/info_stats.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/lbsignals.o",
+    "/home/user/Projects/cx-multifix/build/src/core/flipctl.o",
+    "/home/user/Projects/cx-multifix/build/src/core/genthread.o",
+    "/home/user/Projects/cx-multifix/build/src/core/rl2s.o",
+    "/home/user/Projects/cx-multifix/build/src/core/lbstall.o",
+    "/home/user/Projects/cx-multifix/build/src/core/lbplanner.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/l4prebuild.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/cmdgap.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/pfdebug.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/cmdmeta.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/t_sort.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/multidb.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/storesize.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/multi_admin.o",
+    "/home/user/Projects/cx-multifix/build/src/core/reorder.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/geo_store.o",
+    "/home/user/Projects/cx-multifix/build/src/persist/aof_frame_debug.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/aclkeys.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/blocking_debug.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/objectpread.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/hexpread.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/autharity.o",
+    "/home/user/Projects/cx-multifix/build/src/core/fliplisten.o",
+    "/home/user/Projects/cx-multifix/build/src/core/shutdown.o",
+    "/home/user/Projects/cx-multifix/build/src/cmd/latency_tracking.o",
+    "/home/user/Projects/cx-multifix/build/third_party/lua/helpers/lua_cjson.o",
+    "/home/user/Projects/cx-multifix/build/third_party/lua/helpers/lua_cmsgpack.o",
+    "/home/user/Projects/cx-multifix/build/third_party/lua/helpers/lua_bit.o",
+    "/home/user/Projects/cx-multifix/build/third_party/lua/helpers/lua_struct.o",
+    "/home/user/Projects/cx-multifix/build/third_party/lua/helpers/strbuf.o",
+    "/home/user/Projects/cx-multifix/build/third_party/lua/helpers/fpconv.o",
+    "/home/user/Projects/cx-multifix/build/src/core/version.o",
+    "-o",
+    "/home/user/Projects/cx-multifix/build/multifix/tomokv-regression",
+    "-Wl,--wrap=main",
+    "-ljemalloc",
+    "-luring",
+    "-pthread",
+    "-lssl",
+    "-lcrypto",
+    "-lm"
+  ],
+  "inputs": [
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/main.o",
+      "sha256": "1fbb5c965dc997f996f7a354d777f2b9bbbaf15ad62fdbe29f41c2bc5e4f5f9e"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/net/tls.o",
+      "sha256": "029f69a9ec475a5d9a87db3a63ae98263ccb6aefd3b79c7e31e6133fc764014f"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/commands.o",
+      "sha256": "57cb97f6791e989c317b461b463572cb32fbdfaee5601059c88340ad13ac1e55"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/glob.o",
+      "sha256": "04c076febf62d324290aa88c84751818f75c175de54dc041b377af26f9886ed7"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/multifix/regression/build/db0/src/cmd/xshard.o",
+      "sha256": "ed697e8f73bbfc46cebdc440faf4ec565df444cb9e28ef2c6dfbdcdf3772550b"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/acl.o",
+      "sha256": "0a10af173e06b7be90d73633b5044049546005d6b89c3ec8c287bfe107fa143b"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/hll.o",
+      "sha256": "399db434bca6170132ac2377f944e8726dbf6deb21eb20ca191e7768f7dcf6e4"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/multifix/regression/build/db0/src/cmd/t_server.o",
+      "sha256": "57909deaec31cc1783ec00b4e43c52edd3f6ba5d81f3147ea7d4bca480f69606"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/t_string.o",
+      "sha256": "77a9c74e05a8b40d1639a38d1b02b7e5a30b3977a214a00ea5a869613a5d1489"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/t_string_notify.o",
+      "sha256": "ed73d887d4e89caca528fbcaad2f6613b211b9bfc24d42f4edc65fdd8e7dbc9d"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/t_hash.o",
+      "sha256": "0c17737e6509ae870b2d79fbc2f59b10a8035c16b07aaf543e547a0378e00ff1"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/t_hash_ttl.o",
+      "sha256": "70bc426b4030e4dc8698b562f8e9ce7cbf348425a1b7f949bc13c06b471e0d3c"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/t_list.o",
+      "sha256": "b2eb6a17a415ac81ca82a14033229fbd59b2850d8838131b82a3078c03f07953"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/t_set.o",
+      "sha256": "09a0299f187730083bc62e8ebb4b2ddb2e82774a72a81530eef62f1cdfdbcea6"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/t_zset.o",
+      "sha256": "0632304312435dedbda99b55a39539b448b04cb58b608673a9d4e50fce46315e"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/t_zset_ops.o",
+      "sha256": "652063caac31132e27ce6e0862a4813fcf997362430ff4a22c7b079ce166ffaa"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/geo.o",
+      "sha256": "f0cbf3f1ab3003ec3e3f487fd10ccd3d3118af80eade2a62e2f04345c1a6b82e"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/t_stream.o",
+      "sha256": "182f17d44c3e8c9c71b91e17f030a0218627783af52737d17178f646205ab2dd"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/t_stream_groups.o",
+      "sha256": "df9dd2515b9216219cda85289a00210ec7b99314ef3ebe24cc24e6131eff624b"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/scripting.o",
+      "sha256": "49931630d5aa2f9c63271b5b8b98344c585b335d3fb5d2d11d4336457c708e42"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/functions.o",
+      "sha256": "0d607933e1180de2ddff8809a9d4c5531d4092dbab23643c95b1bc02bc98dad0"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/serialize.o",
+      "sha256": "651121a83acf78337ac4a728816af7bae7f96695171482fb928d9947fb5e4085"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/snapshot/snapshot.o",
+      "sha256": "22cc3ad339ab9b381d678a575a63c2c9b757ff4ae2f78d87a331b3fc6dfb3cf6"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/persist/aof.o",
+      "sha256": "7f6717147ad3870dbac608dc2629b99f854f15f7f3b7ca9b3dfebd6f2589e69f"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/climon.o",
+      "sha256": "e9dd62d0593ab4285385d8ff35e27ceee26ed9eea75ec40f8c7db63537f8b449"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/tracking.o",
+      "sha256": "fe13596e7558a6df14b427a4388b5caf13e66cf44b3f5beb032c23844987c1e2"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/server_tail.o",
+      "sha256": "22a00056aa3fe0fac55e78c23a2dcdf2fb7d48f419126fd452d0b997c33ad89a"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/slowlog.o",
+      "sha256": "980dd3a3527e7db4f3e3709355666fa0678c1f9864419a0ec8d933b270fc8c5a"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/lcs.o",
+      "sha256": "9071a86e9416dc6f48d53f82a079dea91efc19c6d64052b559fe508fbdd5ad03"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/info_stats.o",
+      "sha256": "e83280433c4ab9a3ed2f8bb8523fdb4662f585a49c71029203c9aa6f9541dccf"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/lbsignals.o",
+      "sha256": "526ec9f2a4f3b0a36f5fe170d5b9daed644f36358f43c46da108372d156073ee"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/core/flipctl.o",
+      "sha256": "0c0b608b0375cbb57da2787bd3a10ba6017715fc705de848b3b2c473e2993bc1"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/core/genthread.o",
+      "sha256": "5e5f5e263dc60505dabb14bc740479a85502475eaa57bad3ec63ac9f93f70e22"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/core/rl2s.o",
+      "sha256": "4808de89b81e7971c4e317ef94f045c8454bbebee7035e7f8cc6253dc49a6aff"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/core/lbstall.o",
+      "sha256": "a6ae017104f14b91a3864d4d3f370313d4312cdf3c7d8b090acb24a32d2b1e87"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/core/lbplanner.o",
+      "sha256": "af8fe3d2411e0f5d581732bce1bf1f28d62c711cf65492186f9cd2a374c88f81"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/l4prebuild.o",
+      "sha256": "bc0b742161e7b9bda0831e67455521dcd8a4b524deae2bca6f69ca8c3934ea4a"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/cmdgap.o",
+      "sha256": "d3d32c67a9326e3c1793a04ce32c1d5cb3973c3324b3b99e8b53cab7120a93a7"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/pfdebug.o",
+      "sha256": "b63a9dfc62f301b3bca22cadb88f3fa203df4ab950cef89975d36a6de640f2bb"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/cmdmeta.o",
+      "sha256": "a0d6eb42934078d20b8899608f2cbfdd2c379af473c290379873f23c33d57a23"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/t_sort.o",
+      "sha256": "5661bf99b67988d54de5d4ae08545981e656db0ff4b39ba15aa0e19fd9ea01ab"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/multidb.o",
+      "sha256": "963fb04d706ac7ef762b2d4190b2acc9ab690d64b9b25e333d18d98c74e6356a"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/storesize.o",
+      "sha256": "cfa8b4300f1ce6c26431425e646d4d7824d64abcdaf79a71e1267346581af63a"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/multi_admin.o",
+      "sha256": "21ae3021afc2235e2ff2c503eae8ddaba1fe4380ae0590323b0f618f94df527a"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/core/reorder.o",
+      "sha256": "91ab705a58063b30e0cf9386a7ffc32f0bf0bd7aab4b16572e10511d704ab4ed"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/geo_store.o",
+      "sha256": "ae4b873dec4c9149040edda159d3cb6126dd1d2a21fc65ee21217c79bcbd220a"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/persist/aof_frame_debug.o",
+      "sha256": "6be7f9de9f11dcd5ecb341267f9bbab851fc0bf64fe38ce376eacaddb5094914"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/aclkeys.o",
+      "sha256": "3d983352a119473d3e8dd2779511a068de0e25faec107fec1c623dc92726e8b2"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/blocking_debug.o",
+      "sha256": "988542bc590dea3315b0570edec781c656cd2cd2bc96170a02bef7f5647b5ce9"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/objectpread.o",
+      "sha256": "dcb16063414c0a5e9810da8e086fdf1bd13c4267578f9e4aed8cc85d804a950e"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/hexpread.o",
+      "sha256": "b744adb1c5981946e331ffb8a1f4de3a7e7bc54469d2b714572a437a64e889e4"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/autharity.o",
+      "sha256": "834869488336c7f8eac6474ea36c957c783e552d7fecd8ba7521b1064fb7b6a1"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/core/fliplisten.o",
+      "sha256": "e3a45d4df14085975610ecda010571758bb3e92223d1346ec2bda41fb67df124"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/core/shutdown.o",
+      "sha256": "88cc4652933a6e24c8dc439ec6a8b747ebbb946e096562fd68784c76af16703a"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/cmd/latency_tracking.o",
+      "sha256": "06616e4acd69d9247013875cf7fb7b473df49df42fa598802d6a056972d3bb24"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/db0/src/core/version.o",
+      "sha256": "87666831a9be9c1a5b967ba8300f7bb385444d773462bdb3e431307dbc83413e"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/main.o",
+      "sha256": "8b901218c99bc88d51fbd34cf922a41bfda9da600e0a3e7b8ced498f8addd7e3"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/net/tls.o",
+      "sha256": "9e716c68d514ba99cd3ee6ad4c1f997cb9a3539bff20d507d12b94fbdd2084f8"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/commands.o",
+      "sha256": "140f64938799193b49923a629cb39f807363c6aeecbed81f1b3845c41941fd02"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/glob.o",
+      "sha256": "88f86c2bec59e806e6bce17f35fdb25246fbea0442e3be6cc852f41d386b5ff0"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/multifix/regression/build/src/cmd/xshard.o",
+      "sha256": "9970f88ebb6be5259302428bc201e926e2a3cb524a5cc81be473b7979ea95f1f"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/acl.o",
+      "sha256": "b25553c1c008cae9d120df3e20bc7c09fcc4c1ace3b846d75808fbac28fca574"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/hll.o",
+      "sha256": "13b4b1f9546d048b47ed1f184e1c3e70a1f9b043af32e5d93e795eee4795bcce"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/multifix/regression/build/src/cmd/t_server.o",
+      "sha256": "bd385f49270fc698f53daf9df7151b18133a152b520a994743fc02fa50f302b9"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/t_string.o",
+      "sha256": "31d4608f80abac7ac5529086baf3c83b047d47c9233e1ed5bb90abc00192b333"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/t_string_notify.o",
+      "sha256": "92c3ee3765f9a9bd7fe6e00ef2da75e476c0a34ba05b9f232dd87ec28e55088f"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/t_hash.o",
+      "sha256": "bf5fefa4ff2599ab78d1b27c4bee99201dd387bc10d2e62cc1725a38cf4887ef"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/t_hash_ttl.o",
+      "sha256": "c91105b184f5f595a8d8de518287d2dee586e6bd0392d346d75d62f72cb5bab6"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/t_list.o",
+      "sha256": "20c98bf8b7f5665f792de2cf9b580e6da283f449e6254fd638fe4a467da96339"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/t_set.o",
+      "sha256": "597a7807fb958d7b2cc323099dbf50aa31d77e713442bb1a34a07611677cbcbb"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/t_zset.o",
+      "sha256": "5b991136efd4f8410fe061e75c175f7179ac7502d0b42fc97c45795b29d46f5f"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/t_zset_ops.o",
+      "sha256": "96448fea05a8327a6f096cd74e9cff704447f25b67e7456cba9dd61984a90928"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/geo.o",
+      "sha256": "67ecc5c6a3d3c12a407a2382d3d75defcb1cdc8510c995234269e77dcb1f1437"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/t_stream.o",
+      "sha256": "97724e85600ee7f1b1a629691f9910db92561d513c02494673300130842ae609"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/t_stream_groups.o",
+      "sha256": "7344b248471863bc05f1ec94e17c40c575943a032c52dd9cbb3990eaeadfe9bf"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/scripting.o",
+      "sha256": "c0c304b2180d21aafd4c2113fa7e0c5f10cac111c64febf44565dabf98e2f8d8"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/functions.o",
+      "sha256": "53df2d3dfb3192a6c3d94717a570bc90fb69cbcc2451671207edafb52eed3ada"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/serialize.o",
+      "sha256": "6b42cbe5769e8ef3d90418519757623dd30ad4c8af152dbe6f3b8d6f9862ff38"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/snapshot/snapshot.o",
+      "sha256": "fe954ef0a9f4e9712aa884e262b06fba1f0b470493c5ceb6e5ff0a13e3ddaa35"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/persist/aof.o",
+      "sha256": "a24603768a9ddd660d8add1077bb0c03146ca579a788d2cafe9b996b045a6942"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/climon.o",
+      "sha256": "a3a25ff8a73d27973b76e931a1c6af26fa3270623055fcf0ff0297b7656a241e"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/tracking.o",
+      "sha256": "731ed7b6c3fa213d1c1bfd9067ab6bca38828bccd172946384cc9083dfae1cba"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/server_tail.o",
+      "sha256": "c970b4dfa044df473a0a78db568c2fc224e3bd3d279b80cc3d0f6f74cde82041"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/slowlog.o",
+      "sha256": "9290ce58c5a3e8faab66ddc9db827934cc935ed39f6bde2a677af630a46b6859"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/lcs.o",
+      "sha256": "426a0d89ea4b0abc4092162fe5c77c92f8308b2abb34dc7b4a3ee70f78258a7d"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/info_stats.o",
+      "sha256": "304f1982f01a9ec24526c3b8afb49545a3d317e36a5008b212855a08ae901f34"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/lbsignals.o",
+      "sha256": "3f9698bb78ba2b7e929c81a7daac18b46ce4afce5986ec23c1fd0ec710df7a12"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/core/flipctl.o",
+      "sha256": "47cbcdeb2d3b9d0508c86a8d0cb1305c9f8074060caf60d2610f36f5670d126d"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/core/genthread.o",
+      "sha256": "6c21d71abc558b05e1802b63ee7f24d2d642d33a36ca8dd79ea74f2081595cc1"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/core/rl2s.o",
+      "sha256": "56960253c99d172c4101be83d23f4caa97c0c527398e65ef8b8eb670312f5dac"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/core/lbstall.o",
+      "sha256": "a40d9a4e80af0356e264f10642e796ea7182d7854e8ffeace6f05d9a0c840c51"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/core/lbplanner.o",
+      "sha256": "acecbda950001b6f5fed639ee3e54e6db6cecb440b9dd1bb2a62acab2ab62d37"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/l4prebuild.o",
+      "sha256": "78b8c3d1ff397625da834ce663de6e062f82f2d89339fbd99538e11732ca2410"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/cmdgap.o",
+      "sha256": "5117425947e76544b114afb887c05ef54128f35929eaeafd80a2eeb1ff3f6b78"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/pfdebug.o",
+      "sha256": "a346bbc11349862c3b18bb7cc23612d8c7bf0f37793964b88468cd7e4c135626"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/cmdmeta.o",
+      "sha256": "debf79bb042c568cffaba03fd0f65b407a366c4dda8dfaf5202da833855277d7"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/t_sort.o",
+      "sha256": "587613e2f1d7c3e087b7881291116bc94a4bc282a3f5a9c5eca38babf7d91011"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/multidb.o",
+      "sha256": "3d9410a265448e952d972cd73954c2a9cff23e20014541831e9416fb5762910e"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/storesize.o",
+      "sha256": "72d574fb03b8e72c39d638eda0cfa33330d55ab7a578728b4debb05ce936eeaa"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/multi_admin.o",
+      "sha256": "5dcb04937113c65a98a70457424826ad47c0ab45516830193c475efd8f32d829"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/core/reorder.o",
+      "sha256": "c1c9a804e50a1349f3da4cde9321d4912aa4deab80b0bc56d36b793625c35ae1"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/geo_store.o",
+      "sha256": "f01185a6416f76c2e7f19aad403551f62ddaaf7e33e747f2942916dafd49a3bd"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/persist/aof_frame_debug.o",
+      "sha256": "0a81dbf862a906c2b24b0234a74baaf97a064d6a941c6a1bb442701d93d73f2f"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/aclkeys.o",
+      "sha256": "3369f69fe1f2f48178bd0c31d73cdba541769597ef268c65d745fbc29afa57a9"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/blocking_debug.o",
+      "sha256": "4caa7a64ed9842acf53c40e58fa75f1ed858e326152e0af12cfdb8553a938151"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/objectpread.o",
+      "sha256": "d97740a5b1da30c2c079a46e37516e8e62b50f59c08be4cb4bc948bd75e46868"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/hexpread.o",
+      "sha256": "1cbf8fafeebdefdef2c37f92d71c8da5f13c96913e34ec656baf8981a1ec808f"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/autharity.o",
+      "sha256": "9cc4a9a67f3762c04156baeb3b4bc35c93edf2c3bd0d615e538f1605e84a28de"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/core/fliplisten.o",
+      "sha256": "a1806226ce4322203571fe8ecc60aa125e080f844f90b005d8d603cb98954a65"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/core/shutdown.o",
+      "sha256": "a1c63aff055e3dcb541d24056b76fdaf081ce1b582ea740a165d98bd47694365"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/cmd/latency_tracking.o",
+      "sha256": "d3e5571d8d3c82f37ab4ed9644489e66f82f0710547621b1c0e396892217551e"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/third_party/lua/helpers/lua_cjson.o",
+      "sha256": "51ed0c9e10dae72e7dcfb3a01a64c77d7c18ff7d766b28605ebffa721969d179"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/third_party/lua/helpers/lua_cmsgpack.o",
+      "sha256": "91afe1c6c12fcd15747916431d316ecebf34cbea7bdd9454170cbfa94ac3cb10"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/third_party/lua/helpers/lua_bit.o",
+      "sha256": "c47f697ef3759542a6cafa64338762b84093ce4ad88f0a16f61dd9d6b5964d27"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/third_party/lua/helpers/lua_struct.o",
+      "sha256": "630d7b74f7095cfc8672a50b06a3c47c3be526e1759b693aa74dbda7a59d549e"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/third_party/lua/helpers/strbuf.o",
+      "sha256": "8e38e58c9e751ee2e2b5de35952aa1b0776f648a17aa4fff02a873a9d6620c56"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/third_party/lua/helpers/fpconv.o",
+      "sha256": "4baa254555613ad145dabb5ccbea184627dbc9c3225793be318067694077b16e"
+    },
+    {
+      "path": "/home/user/Projects/cx-multifix/build/src/core/version.o",
+      "sha256": "1d07516b6f8c7b795031c533fd6b0ec99cd893a535d26a49a633eb60bf98ccae"
+    }
+  ],
+  "patch_sha256": "b24e63c9fe06c914704505f01e94826f04c7505cff7901437cbca2ef54127aad"
+}

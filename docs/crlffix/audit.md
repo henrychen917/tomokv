@@ -55,3 +55,14 @@ unsupported commands, Lua APIs or embedded-NUL conversion differences. Ordinary
 CR/LF-free replies retain their existing bytes. The battery's clean twins are
 Redis-equal; MODULE's intentionally absent command surface is audited separately
 instead of presenting that known difference as equality.
+
+## Wave9 integration additions
+
+The original 966-site inventory above is frozen lane evidence. These additions
+audit the subsequently integrated source without rewriting that evidence.
+
+| Lane / added or moved site | Disposition |
+| --- | --- |
+| protofix, `RespInlineDecoder::decode` and `resp_parse_inline` | Unbalanced quoting and allocation errors are fixed strings returned through `err`; the existing IO completion routes them through central `reply_err`. No direct error writer or request-derived line is introduced. |
+| multifix, `command_client_pause` in `cmd/climon.cc` | Four moved validation replies (subcommand/arity, timeout integer/range, negative timeout, WRITE/ALL mode) call central `reply_err` with fixed strings. EXEC reuses this handler, including its winning-commit and IO-retirement paths. |
+| multifix, literal Lua engine header | Existing compile/runtime error helpers still use the central length-aware builder. Removing the header for compilation introduces no new writer. |

@@ -1,3 +1,4 @@
+#include "client_pause.h"
 // scatter_engine.inc — arena-backed scatter/gather state and execution engine.
 //
 // This file is textually included by xshard.cc. It deliberately remains part of that one
@@ -3470,6 +3471,11 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
             }
             case Kind::RandomKey:
             case Kind::Keys: {
+                // Redis RANDOMKEY can return an expired resident key while
+                // PAUSE suppresses physical expiry. Retain the MVCC read cut;
+                // only this cold command's expiry clock sees the resident set.
+                PinnedNowMs paused_randomkey(shard,
+                    state.kind == Kind::RandomKey && client_pause_expiry_held() ? -1 : 0);
                 if (!group.aux) group.aux = new GroupAux;
                 const Slice pattern = state.kind == Kind::RandomKey ? Slice("*", 1) : op.arg(1);
                 group.scan_cursor = shard.store().scan(group.scan_cursor, 256, [&](KvObj* object) {

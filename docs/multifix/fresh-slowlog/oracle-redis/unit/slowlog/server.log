@@ -1,0 +1,17 @@
+3520637:C 27 Oct 2026 17:28:45.239 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+3520637:C 27 Oct 2026 17:28:45.239 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+3520637:C 27 Oct 2026 17:28:45.239 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=3520637, just started
+3520637:C 27 Oct 2026 17:28:45.239 * Configuration loaded
+3520637:M 27 Oct 2026 17:28:45.239 * monotonic clock: POSIX clock_gettime
+3520637:M 27 Oct 2026 17:28:45.240 * Running mode=standalone, port=20540.
+3520637:M 27 Oct 2026 17:28:45.240 * Server initialized
+3520637:M 27 Oct 2026 17:28:45.240 * Ready to accept connections tcp
+3520637:M 27 Oct 2026 17:28:45.330 # DEBUG LOG: ### Starting test SLOWLOG - check that it starts with an empty log in tests/unit/slowlog.tcl
+3520637:M 27 Oct 2026 17:28:45.331 # DEBUG LOG: ### Starting test SLOWLOG - only logs commands taking more time than specified in tests/unit/slowlog.tcl
+3520637:M 27 Oct 2026 17:28:45.532 # DEBUG LOG: ### Starting test SLOWLOG - zero max length is correctly handled in tests/unit/slowlog.tcl
+3520637:M 27 Oct 2026 17:28:45.534 # DEBUG LOG: ### Starting test SLOWLOG - RESET subcommand works in tests/unit/slowlog.tcl
+3520637:M 27 Oct 2026 17:28:45.535 # DEBUG LOG: ### Starting test SLOWLOG - can be disabled in tests/unit/slowlog.tcl
+3520637:M 27 Oct 2026 17:28:45.936 # DEBUG LOG: ### Starting test SLOWLOG - count must be >= -1 in tests/unit/slowlog.tcl
+3520637:signal-handler (1793093325) Received SIGTERM scheduling shutdown...
+3520637:M 27 Oct 2026 17:28:46.036 * User requested shutdown...
+3520637:M 27 Oct 2026 17:28:46.036 # Redis is now ready to exit, bye bye...

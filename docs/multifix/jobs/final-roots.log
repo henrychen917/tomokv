@@ -1,0 +1,59 @@
+GATE(full): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-multifix/build/gate-run.GuNtba
+PARTIAL jobs (including prerequisites): release multifix-1s-uring multifix-1s-epoll multifix-2s-uring multifix-2s-epoll redis_tcl
+PARTIAL jobs (including prerequisites): release multifix-1s-uring multifix-1s-epoll multifix-2s-uring multifix-2s-epoll redis_tcl
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=11.955s; correctness-plan-fallback; multifix RESET-IN-MULTI (1s uring)
+  multifix RESET-IN-MULTI (1s uring)                   ok
+  row budget: 900s; median=12.9s; correctness-plan-fallback; multifix WATCH-SPURIOUS-INVALIDATION (1s uring)
+  multifix WATCH-SPURIOUS-INVALIDATION (1s uring)      ok
+  row budget: 900s; median=13.325s; correctness-plan-fallback; multifix EXEC-REPEATED-KEY-LINEAR (1s uring)
+  multifix EXEC-REPEATED-KEY-LINEAR (1s uring)         ok
+  row budget: 900s; median=13.665s; correctness-plan-fallback; multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)
+  multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)     ok
+  row budget: 900s; median=12.49s; correctness-plan-fallback; multifix PAUSE-IN-MULTI (1s uring)
+  multifix PAUSE-IN-MULTI (1s uring)                   ok
+  row budget: 900s; median=12.585s; correctness-plan-fallback; multifix PAUSE-EXEC-NOT-HELD (1s uring)
+  multifix PAUSE-EXEC-NOT-HELD (1s uring)              ok
+  row budget: 900s; median=11.935s; correctness-plan-fallback; multifix RESET-IN-MULTI (1s epoll)
+  multifix RESET-IN-MULTI (1s epoll)                   ok
+  row budget: 900s; median=11.34s; correctness-plan-fallback; multifix WATCH-SPURIOUS-INVALIDATION (1s epoll)
+  multifix WATCH-SPURIOUS-INVALIDATION (1s epoll)      ok
+  row budget: 900s; median=11.72s; correctness-plan-fallback; multifix EXEC-REPEATED-KEY-LINEAR (1s epoll)
+  multifix EXEC-REPEATED-KEY-LINEAR (1s epoll)         ok
+  row budget: 900s; median=12.84s; correctness-plan-fallback; multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)
+  multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)     ok
+  row budget: 900s; median=12.03s; correctness-plan-fallback; multifix PAUSE-IN-MULTI (1s epoll)
+  multifix PAUSE-IN-MULTI (1s epoll)                   ok
+  row budget: 900s; median=12.08s; correctness-plan-fallback; multifix PAUSE-EXEC-NOT-HELD (1s epoll)
+  multifix PAUSE-EXEC-NOT-HELD (1s epoll)              ok
+  row budget: 900s; median=11.13s; correctness-plan-fallback; multifix RESET-IN-MULTI (2s uring)
+  multifix RESET-IN-MULTI (2s uring)                   ok
+  row budget: 900s; median=11.14s; correctness-plan-fallback; multifix WATCH-SPURIOUS-INVALIDATION (2s uring)
+  multifix WATCH-SPURIOUS-INVALIDATION (2s uring)      ok
+  row budget: 900s; median=11.55s; correctness-plan-fallback; multifix EXEC-REPEATED-KEY-LINEAR (2s uring)
+  multifix EXEC-REPEATED-KEY-LINEAR (2s uring)         ok
+  row budget: 900s; median=12.76s; correctness-plan-fallback; multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)
+  multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)     ok
+  row budget: 900s; median=11.96s; correctness-plan-fallback; multifix PAUSE-IN-MULTI (2s uring)
+  multifix PAUSE-IN-MULTI (2s uring)                   ok
+  row budget: 900s; median=12.09s; correctness-plan-fallback; multifix PAUSE-EXEC-NOT-HELD (2s uring)
+  multifix PAUSE-EXEC-NOT-HELD (2s uring)              ok
+  row budget: 900s; median=11.21s; correctness-plan-fallback; multifix RESET-IN-MULTI (2s epoll)
+  multifix RESET-IN-MULTI (2s epoll)                   ok
+  row budget: 900s; median=11.27s; correctness-plan-fallback; multifix WATCH-SPURIOUS-INVALIDATION (2s epoll)
+  multifix WATCH-SPURIOUS-INVALIDATION (2s epoll)      ok
+  row budget: 900s; median=12.7s; correctness-plan-fallback; multifix EXEC-REPEATED-KEY-LINEAR (2s epoll)
+  multifix EXEC-REPEATED-KEY-LINEAR (2s epoll)         ok
+  row budget: 900s; median=14.3s; correctness-plan-fallback; multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)
+  multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)     ok
+  row budget: 900s; median=13.55s; correctness-plan-fallback; multifix PAUSE-IN-MULTI (2s epoll)
+  multifix PAUSE-IN-MULTI (2s epoll)                   ok
+  row budget: 900s; median=14.06s; correctness-plan-fallback; multifix PAUSE-EXEC-NOT-HELD (2s epoll)
+  multifix PAUSE-EXEC-NOT-HELD (2s epoll)              ok
+  row budget: 900s; median=-s; correctness-plan-fallback; Redis 7.4.10 Tcl passing subset (2s)
+  Redis 7.4.10 Tcl passing subset (2s)                 FAIL
+  row budget: 900s; median=-s; correctness-plan-fallback; Redis 7.4.10 Tcl passing subset (1s)
+  Redis 7.4.10 Tcl passing subset (1s)                 FAIL
+GATE(PARTIAL): 25 ok, 2 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-roots.tsv.partial

@@ -1,0 +1,12 @@
+SLOWLOG - Certain commands are omitted that contain sensitive information
+SLOWLOG - EXEC is not logged, just executed commands
+SLOWLOG - GET optional argument to limit output len works
+SLOWLOG - Rewritten commands are logged as their original command
+SLOWLOG - Some commands can redact sensitive fields
+SLOWLOG - blocking command is reported only after unblocked
+SLOWLOG - can clean older entries
+SLOWLOG - commands with too many arguments are trimmed
+SLOWLOG - get all slow logs
+SLOWLOG - logged entry sanity check
+SLOWLOG - max entries is correctly handled
+SLOWLOG - too long arguments are trimmed

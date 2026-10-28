@@ -1,0 +1,1 @@
+PARTIAL	0	GATE_ONLY_JOBS=multifix-1s-uring multifix-1s-epoll multifix-2s-uring multifix-2s-epoll redis_tcl differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence; NOT A RECEIPT

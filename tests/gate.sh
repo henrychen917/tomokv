@@ -993,6 +993,7 @@ job_body(){
     iofix-hz) job_iofix_hz "$name";;
     iofix-sleep) job_iofix_sleep "$name";;
     iofix-signal) job_iofix_signal "$name";;
+    multifix-*) job_multifix "$name";;
     multidb-*) job_multidb "$name";;
     feature-cell-*) job_feature_cell "$name";;
     snapshot-*) job_snapshot "$name";;
@@ -1128,6 +1129,9 @@ plan_jobs(){
   # Compilers use that slot's server+load cores. The release build alone unlocks release jobs;
   # ASAN and standalone units do not delay boots, and full-only builds start immediately too.
   JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build)
+  for MF_MODE in 1s 2s; do for MF_ENGINE in uring epoll; do
+    JOB_NAMES+=("multifix-$MF_MODE-$MF_ENGINE")
+  done; done
   [ "$TIER" != full ] || JOB_NAMES+=(rldbg)
   JOB_NAMES+=(datafix1_randscan datafix1_hexpire datafix1_bitfield datafix1_locale datafix1_lists datafix1_spop datafix1_geo config_unit flip_unit filter_unit ring_unit storage_units
               production_units source_identity acl_metadata cmd_metadata abba_selftest redis_tcl bugs5)
@@ -5192,6 +5196,30 @@ py tests/tailgen_stall.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || 
     || bad "ABBA comparison + saturation negative controls" "see $TMPDIR/gate-abbagate-unit.txt"
 }
 
+# multifix: six directed roots in each mode/engine, before the quick exit.
+# Each row retains both atomic settings, both read-local settings and both
+# compiled namespace variants. DQ=DF=+24; EXPECT remains owner-owned.
+job_multifix(){
+  local prefix mode engine root label atomic read_local databases passed boot_fn
+  IFS=- read -r prefix mode engine <<< "$1"
+  boot_fn=boot
+  [ "$mode" != 1s ] || boot_fn=boot_fused
+  for root in RESET-IN-MULTI WATCH-SPURIOUS-INVALIDATION EXEC-REPEATED-KEY-LINEAR \
+      SLOWLOG-EXEC-BODY-NOT-LOGGED PAUSE-IN-MULTI PAUSE-EXEC-NOT-HELD; do
+    label="multifix $root ($mode $engine)"
+    row_begin "$label"; passed=1
+    for atomic in 0 1; do for read_local in 0 1; do for databases in 1 16; do
+      if "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine" --atomic "$atomic" \
+          --read-local "$read_local" --databases "$databases" --save '' --enable-debug-command yes; then
+        py tests/multifix.py 127.0.0.1 "$PORT" --case "$root" \
+          >"$TMPDIR/$root-a$atomic-r$read_local-db$databases.log" 2>&1 || passed=0
+      else passed=0; fi
+      stop
+    done; done; done
+    [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/$root-*.log"
+  done
+}
+
 job_redis_tcl(){
   local mode passed=1 label
   for mode in 2s 1s; do
@@ -5199,7 +5227,7 @@ job_redis_tcl(){
     row_begin "$label"
     if py tests/redis_tcl.py --redis-root "$REDIS74_ROOT" --binary "$CANDIDATE_BINARY" \
         --mode "$mode" --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --controller-port "$((PORT+1))" \
-        --baseport "$((PORT+2))" --manifest tests/redis_tcl_passing.json \
+        --baseport "$((PORT+2))" --manifest tests/redis_tcl_passing.json --arm-smove \
         --output "$TMPDIR/redis-tcl-$mode" >"$TMPDIR/redis-tcl-$mode.log" 2>&1; then
       say "$label" ok; ledger ok "$label" 0
     else
@@ -5760,6 +5788,9 @@ collect_job moverfix
 # EXPECT_QUICK / EXPECT_FULL remain maintainer-owned.
 collect_job hexpread
 # Three compat2 rows, collected before the quick-tier exit: DQ=+3, DF=+3.
+for MF_MODE in 1s 2s; do for MF_ENGINE in uring epoll; do
+  collect_job "multifix-$MF_MODE-$MF_ENGINE"
+done; done
 collect_job compat2
 collect_job bugs5
 # Six oracle regressions before the quick exit: DQ=+6, DF=+6. EXPECT is owner-owned.

@@ -3444,6 +3444,8 @@ void command_config_resetstat() {
 
 void command_bind_server(Server* server) {
     g_server = server;
+    client_pause_expiry_clock.store(server ? server->climon_pause_clock() : nullptr,
+                                   std::memory_order_release);
     scripting_bind_server(server);
     g_started_monotonic_ns = now_ns();
     info_stats_init(server);

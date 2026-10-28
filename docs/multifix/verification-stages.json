@@ -1,0 +1,152 @@
+[
+  {
+    "name": "required-freshness",
+    "argv": [
+      "python3",
+      "docs/multifix/freshness.py",
+      "--build"
+    ],
+    "exit": 0,
+    "seconds": 87.59867572784424
+  },
+  {
+    "name": "final-gates-test",
+    "argv": [
+      "python3",
+      "tests/gates_test.py"
+    ],
+    "exit": 0,
+    "seconds": 113.48412609100342
+  },
+  {
+    "name": "final-affected",
+    "argv": [
+      "python3",
+      "docs/multifix/run_jobs.py",
+      "final-affected",
+      "compat2",
+      "clientfix",
+      "atomfix5_watch",
+      "atomfix5_accounting",
+      "moverfix",
+      "txn_group_fused",
+      "txn_group_split",
+      "txnorder-fused-0",
+      "txnorder-fused-1",
+      "txnorder-split-0",
+      "txnorder-split-1",
+      "txnorder2",
+      "txnorder_wake",
+      "txnorder_index",
+      "script_bounds",
+      "scriptfix",
+      "lualibs",
+      "serverfix_slowlog",
+      "notify",
+      "notifycompat",
+      "notify_order",
+      "atomic_units",
+      "core_units",
+      "climonfix",
+      "racefix_climon",
+      "fused-0",
+      "fused-1",
+      "release_batteries",
+      "--single-slot",
+      "--binary",
+      "build/multifix/tomokv-post",
+      "--engine",
+      "uring",
+      "--port",
+      "20550"
+    ],
+    "exit": 1,
+    "seconds": 1661.4259915351868
+  },
+  {
+    "name": "final-differ-uring",
+    "argv": [
+      "python3",
+      "docs/multifix/run_jobs.py",
+      "final-differ-uring",
+      "differ-split-0",
+      "differ-split-1",
+      "differ-armed-0",
+      "differ-armed-1",
+      "differ-equivalence",
+      "--single-slot",
+      "--binary",
+      "build/multifix/tomokv-post",
+      "--engine",
+      "uring",
+      "--port",
+      "20570"
+    ],
+    "exit": 0,
+    "seconds": 2158.8708021640778
+  },
+  {
+    "name": "final-differ-epoll",
+    "argv": [
+      "python3",
+      "docs/multifix/run_jobs.py",
+      "final-differ-epoll",
+      "differ-split-0",
+      "differ-split-1",
+      "differ-armed-0",
+      "differ-armed-1",
+      "differ-equivalence",
+      "--single-slot",
+      "--binary",
+      "build/multifix/tomokv-post",
+      "--engine",
+      "epoll",
+      "--port",
+      "20570"
+    ],
+    "exit": 0,
+    "seconds": 330.2958171367645
+  },
+  {
+    "name": "final-instrument-controls",
+    "argv": [
+      "python3",
+      "docs/multifix/run_jobs.py",
+      "final-instrument-controls",
+      "abba_selftest",
+      "--single-slot",
+      "--binary",
+      "build/multifix/tomokv-post",
+      "--engine",
+      "uring",
+      "--port",
+      "20580"
+    ],
+    "exit": 1,
+    "seconds": 200.82370114326477
+  },
+  {
+    "name": "final-wire",
+    "argv": [
+      "python3",
+      "docs/multifix/reproduce.py",
+      "--binary",
+      "build/multifix/tomokv-post",
+      "--output",
+      "docs/multifix/final-wire",
+      "--port",
+      "20500"
+    ],
+    "exit": 0,
+    "seconds": 6.1097731590271
+  },
+  {
+    "name": "last-freshness",
+    "argv": [
+      "python3",
+      "docs/multifix/freshness.py"
+    ],
+    "exit": 0,
+    "seconds": 17.715856552124023
+  }
+]

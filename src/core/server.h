@@ -2358,6 +2358,9 @@ public:
     uint64_t climon_pause_end_ms() const {
         return climon_pause_end_ms_.load(std::memory_order_relaxed);
     }
+    const std::atomic<uint64_t>* climon_pause_clock() const {
+        return &climon_pause_end_ms_;
+    }
     uint8_t climon_pause_mode() const {
         return climon_pause_mode_.load(std::memory_order_relaxed);
     }

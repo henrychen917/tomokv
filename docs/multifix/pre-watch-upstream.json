@@ -1,0 +1,3167 @@
+[
+  {
+    "file": "unit/type/set",
+    "mode": "1s",
+    "passed": 0,
+    "failed": 1,
+    "skipped": 119,
+    "teardown_exceptions": 1,
+    "complete": true,
+    "exit_code": 1,
+    "error": null,
+    "seconds": 1.860001940280199,
+    "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-multifix/build/multifix/tomokv-pre",
+      "--port",
+      "20500",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-multifix/build/multifix/pre-watch-upstream/1s/unit/type/set/data",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+    ],
+    "suite_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "./runtest",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "20500",
+      "--singledb",
+      "--clients",
+      "1",
+      "--baseport",
+      "20502",
+      "--portcount",
+      "1",
+      "--single",
+      "unit/type/set",
+      "--durable",
+      "--timeout",
+      "60",
+      "--dont-clean",
+      "--dont-pre-clean",
+      "--only",
+      "SMOVE only notify dstset when the addition is successful"
+    ],
+    "server_exit": 0,
+    "smove_layout_attempts": [
+      {
+        "attempt": 1,
+        "shards": [
+          0,
+          6
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 2,
+        "shards": [
+          5,
+          8
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 3,
+        "shards": [
+          1,
+          5
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 4,
+        "shards": [
+          0,
+          6
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 5,
+        "shards": [
+          13,
+          10
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 6,
+        "shards": [
+          11,
+          12
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 7,
+        "shards": [
+          3,
+          14
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 8,
+        "shards": [
+          6,
+          11
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 9,
+        "shards": [
+          3,
+          12
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 10,
+        "shards": [
+          8,
+          13
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 11,
+        "shards": [
+          10,
+          15
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 12,
+        "shards": [
+          12,
+          11
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 13,
+        "shards": [
+          1,
+          13
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 14,
+        "shards": [
+          6,
+          15
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 15,
+        "shards": [
+          11,
+          0
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 16,
+        "shards": [
+          4,
+          14
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 17,
+        "shards": [
+          14,
+          12
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 18,
+        "shards": [
+          14,
+          7
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 19,
+        "shards": [
+          11,
+          11
+        ],
+        "armed": true
+      }
+    ],
+    "events": [
+      {
+        "status": "ready",
+        "file": "",
+        "test": "",
+        "data": "4003684",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD, SCARD, SISMEMBER, SMISMEMBER, SMEMBERS basics - listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD, SCARD, SISMEMBER, SMISMEMBER, SMEMBERS basics - hashtable",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD, SCARD, SISMEMBER, SMISMEMBER, SMEMBERS basics - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMISMEMBER SMEMBERS SCARD against non set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMISMEMBER SMEMBERS SCARD against non existing key",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMISMEMBER requires one or more members",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD against non set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD a non-integer against a small intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD a non-integer against a large intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD an integer larger than 64 bits",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD an integer larger than 64 bits to a large intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD overflows the maximum allowed integers in an intset - single",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD overflows the maximum allowed elements in a listpack - single",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD overflows the maximum allowed integers in an intset - multiple",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD overflows the maximum allowed elements in a listpack - multiple",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD overflows the maximum allowed integers in an intset - single_multiple",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD overflows the maximum allowed elements in a listpack - single_multiple",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "Variadic SADD",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "Set encoding after DEBUG RELOAD",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SREM basics - $type",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SREM basics - $type",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SREM basics - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SREM with multiple arguments",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SREM variadic version with more args needed to destroy the key",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERCARD with illegal arguments",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERCARD against non-set should throw error",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERCARD against non-existing key",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "Generated sets must be encoded correctly - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER with two sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERCARD with two sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with two sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with two sets, after a DEBUG RELOAD - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNION with two sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNIONSTORE with two sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER against three sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERCARD against three sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with three sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNION with non existing keys - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF with two sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF with three sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFFSTORE with three sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER/SUNION/SDIFF with three same sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "Generated sets must be encoded correctly - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER with two sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERCARD with two sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with two sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with two sets, after a DEBUG RELOAD - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNION with two sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNIONSTORE with two sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER against three sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERCARD against three sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with three sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNION with non existing keys - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF with two sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF with three sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFFSTORE with three sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER/SUNION/SDIFF with three same sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with two listpack sets where result is intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with two hashtable sets where result is intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNION hashtable and listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF with first set empty",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF with same set two times",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF fuzzing",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF against non-set should throw error",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF should handle non existing key as empty",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFFSTORE against non-set should throw error",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFFSTORE should handle non existing key as empty",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER against non-set should throw error",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER should handle non existing key as empty",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER with same integer elements but different encoding",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE against non-set should throw error",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE against non existing keys should delete dstkey",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNION against non-set should throw error",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNION should handle non existing key as empty",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNIONSTORE against non-set should throw error",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNIONSTORE should handle non existing key as empty",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNIONSTORE against non existing keys should delete dstkey",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP basics - listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP with <count>=1 - listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER - listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP basics - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP with <count>=1 - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP integer from listpack set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP with <count> - listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP with <count> - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP with <count> - hashtable",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP using integers, testing Knuth's and Floyd's algorithm",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP using integers with Knuth's algorithm",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP new implementation: code path #1 intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP new implementation: code path #2 intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP new implementation: code path #3 intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP new implementation: code path #1 listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP new implementation: code path #2 listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP new implementation: code path #3 listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP new implementation: code path #1 propagate as DEL or UNLINK",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER count of 0 is handled correctly",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER with <count> against non existing key",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER count overflow",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER count of 0 is handled correctly - emptyarray",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER with <count> against non existing key - emptyarray",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER with <count> - listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER with <count> - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER with <count> - hashtable",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER histogram distribution - listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER histogram distribution - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER histogram distribution - hashtable",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER with a dict containing long chain",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE basics - from regular set to intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE basics - from intset to regular set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE non existing key",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE non existing src set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE from regular set to non existing destination set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE from intset to non existing destination set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE wrong src key type",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE wrong dst key type",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE with identical source and destination",
+        "milliseconds": "0"
+      },
+      {
+        "status": "testing",
+        "file": "tests/unit/type/set.tcl",
+        "test": "SMOVE only notify dstset when the addition is successful in tests/unit/type/set.tcl",
+        "data": "SMOVE only notify dstset when the addition is successful",
+        "milliseconds": "0"
+      },
+      {
+        "status": "err",
+        "file": "tests/unit/type/set.tcl",
+        "test": "SMOVE only notify dstset when the addition is successful in tests/unit/type/set.tcl",
+        "data": "SMOVE only notify dstset when the addition is successful in tests/unit/type/set.tcl\nExpected '1' to be equal to '2' (context: type eval line 19 cmd {assert_equal $res 2} proc ::test)",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "intsets implementation stress testing",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD, SCARD, SISMEMBER - large data",
+        "milliseconds": "0"
+      },
+      {
+        "status": "done",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "unit/type/set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "exception",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+        "milliseconds": "0"
+      }
+    ],
+    "binary_sha256": "75d75adb8907cd6c97f010dfd6337fe7f58806c17143b025795808ca06aefdc3"
+  },
+  {
+    "file": "unit/type/set",
+    "mode": "2s",
+    "passed": 0,
+    "failed": 1,
+    "skipped": 119,
+    "teardown_exceptions": 1,
+    "complete": true,
+    "exit_code": 1,
+    "error": null,
+    "seconds": 1.5229068854823709,
+    "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-multifix/build/multifix/tomokv-pre",
+      "--port",
+      "20500",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-multifix/build/multifix/pre-watch-upstream/2s/unit/type/set/data",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+    ],
+    "suite_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "./runtest",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "20500",
+      "--singledb",
+      "--clients",
+      "1",
+      "--baseport",
+      "20502",
+      "--portcount",
+      "1",
+      "--single",
+      "unit/type/set",
+      "--durable",
+      "--timeout",
+      "60",
+      "--dont-clean",
+      "--dont-pre-clean",
+      "--only",
+      "SMOVE only notify dstset when the addition is successful"
+    ],
+    "server_exit": 0,
+    "smove_layout_attempts": [
+      {
+        "attempt": 1,
+        "shards": [
+          5,
+          13
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 2,
+        "shards": [
+          10,
+          2
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 3,
+        "shards": [
+          3,
+          7
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 4,
+        "shards": [
+          3,
+          2
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 5,
+        "shards": [
+          1,
+          10
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 6,
+        "shards": [
+          14,
+          2
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 7,
+        "shards": [
+          9,
+          4
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 8,
+        "shards": [
+          5,
+          2
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 9,
+        "shards": [
+          2,
+          8
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 10,
+        "shards": [
+          7,
+          2
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 11,
+        "shards": [
+          12,
+          3
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 12,
+        "shards": [
+          12,
+          8
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 13,
+        "shards": [
+          6,
+          0
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 14,
+        "shards": [
+          8,
+          6
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 15,
+        "shards": [
+          11,
+          9
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 16,
+        "shards": [
+          13,
+          12
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 17,
+        "shards": [
+          4,
+          11
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 18,
+        "shards": [
+          2,
+          1
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 19,
+        "shards": [
+          7,
+          9
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 20,
+        "shards": [
+          6,
+          8
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 21,
+        "shards": [
+          15,
+          14
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 22,
+        "shards": [
+          14,
+          12
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 23,
+        "shards": [
+          11,
+          7
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 24,
+        "shards": [
+          5,
+          7
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 25,
+        "shards": [
+          6,
+          1
+        ],
+        "armed": false
+      },
+      {
+        "attempt": 26,
+        "shards": [
+          7,
+          7
+        ],
+        "armed": true
+      }
+    ],
+    "events": [
+      {
+        "status": "ready",
+        "file": "",
+        "test": "",
+        "data": "4004032",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD, SCARD, SISMEMBER, SMISMEMBER, SMEMBERS basics - listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD, SCARD, SISMEMBER, SMISMEMBER, SMEMBERS basics - hashtable",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD, SCARD, SISMEMBER, SMISMEMBER, SMEMBERS basics - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMISMEMBER SMEMBERS SCARD against non set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMISMEMBER SMEMBERS SCARD against non existing key",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMISMEMBER requires one or more members",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD against non set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD a non-integer against a small intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD a non-integer against a large intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD an integer larger than 64 bits",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD an integer larger than 64 bits to a large intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD overflows the maximum allowed integers in an intset - single",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD overflows the maximum allowed elements in a listpack - single",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD overflows the maximum allowed integers in an intset - multiple",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD overflows the maximum allowed elements in a listpack - multiple",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD overflows the maximum allowed integers in an intset - single_multiple",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD overflows the maximum allowed elements in a listpack - single_multiple",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "Variadic SADD",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "Set encoding after DEBUG RELOAD",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SREM basics - $type",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SREM basics - $type",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SREM basics - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SREM with multiple arguments",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SREM variadic version with more args needed to destroy the key",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERCARD with illegal arguments",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERCARD against non-set should throw error",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERCARD against non-existing key",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "Generated sets must be encoded correctly - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER with two sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERCARD with two sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with two sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with two sets, after a DEBUG RELOAD - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNION with two sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNIONSTORE with two sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER against three sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERCARD against three sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with three sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNION with non existing keys - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF with two sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF with three sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFFSTORE with three sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER/SUNION/SDIFF with three same sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "Generated sets must be encoded correctly - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER with two sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERCARD with two sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with two sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with two sets, after a DEBUG RELOAD - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNION with two sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNIONSTORE with two sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER against three sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERCARD against three sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with three sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNION with non existing keys - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF with two sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF with three sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFFSTORE with three sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER/SUNION/SDIFF with three same sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with two listpack sets where result is intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with two hashtable sets where result is intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNION hashtable and listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF with first set empty",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF with same set two times",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF fuzzing",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF against non-set should throw error",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF should handle non existing key as empty",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFFSTORE against non-set should throw error",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFFSTORE should handle non existing key as empty",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER against non-set should throw error",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER should handle non existing key as empty",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER with same integer elements but different encoding",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE against non-set should throw error",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE against non existing keys should delete dstkey",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNION against non-set should throw error",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNION should handle non existing key as empty",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNIONSTORE against non-set should throw error",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNIONSTORE should handle non existing key as empty",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNIONSTORE against non existing keys should delete dstkey",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP basics - listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP with <count>=1 - listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER - listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP basics - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP with <count>=1 - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP integer from listpack set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP with <count> - listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP with <count> - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP with <count> - hashtable",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP using integers, testing Knuth's and Floyd's algorithm",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP using integers with Knuth's algorithm",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP new implementation: code path #1 intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP new implementation: code path #2 intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP new implementation: code path #3 intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP new implementation: code path #1 listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP new implementation: code path #2 listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP new implementation: code path #3 listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP new implementation: code path #1 propagate as DEL or UNLINK",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER count of 0 is handled correctly",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER with <count> against non existing key",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER count overflow",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER count of 0 is handled correctly - emptyarray",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER with <count> against non existing key - emptyarray",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER with <count> - listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER with <count> - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER with <count> - hashtable",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER histogram distribution - listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER histogram distribution - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER histogram distribution - hashtable",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER with a dict containing long chain",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE basics - from regular set to intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE basics - from intset to regular set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE non existing key",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE non existing src set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE from regular set to non existing destination set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE from intset to non existing destination set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE wrong src key type",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE wrong dst key type",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE with identical source and destination",
+        "milliseconds": "0"
+      },
+      {
+        "status": "testing",
+        "file": "tests/unit/type/set.tcl",
+        "test": "SMOVE only notify dstset when the addition is successful in tests/unit/type/set.tcl",
+        "data": "SMOVE only notify dstset when the addition is successful",
+        "milliseconds": "0"
+      },
+      {
+        "status": "err",
+        "file": "tests/unit/type/set.tcl",
+        "test": "SMOVE only notify dstset when the addition is successful in tests/unit/type/set.tcl",
+        "data": "SMOVE only notify dstset when the addition is successful in tests/unit/type/set.tcl\nExpected '1' to be equal to '2' (context: type eval line 19 cmd {assert_equal $res 2} proc ::test)",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "intsets implementation stress testing",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD, SCARD, SISMEMBER - large data",
+        "milliseconds": "0"
+      },
+      {
+        "status": "done",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "unit/type/set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "exception",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+        "milliseconds": "0"
+      }
+    ],
+    "binary_sha256": "75d75adb8907cd6c97f010dfd6337fe7f58806c17143b025795808ca06aefdc3"
+  },
+  {
+    "file": "unit/type/set",
+    "mode": "redis",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 119,
+    "teardown_exceptions": 1,
+    "complete": true,
+    "exit_code": 0,
+    "error": null,
+    "seconds": 0.22933774627745152,
+    "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis74/src/redis-server",
+      "--port",
+      "20500",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-multifix/build/multifix/pre-watch-upstream/redis/unit/type/set/data",
+      "--enable-debug-command",
+      "yes",
+      "--enable-module-command",
+      "yes"
+    ],
+    "suite_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "./runtest",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "20500",
+      "--singledb",
+      "--clients",
+      "1",
+      "--baseport",
+      "20502",
+      "--portcount",
+      "1",
+      "--single",
+      "unit/type/set",
+      "--durable",
+      "--timeout",
+      "60",
+      "--dont-clean",
+      "--dont-pre-clean",
+      "--only",
+      "SMOVE only notify dstset when the addition is successful"
+    ],
+    "server_exit": 0,
+    "smove_layout_attempts": [],
+    "events": [
+      {
+        "status": "ready",
+        "file": "",
+        "test": "",
+        "data": "4004104",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD, SCARD, SISMEMBER, SMISMEMBER, SMEMBERS basics - listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD, SCARD, SISMEMBER, SMISMEMBER, SMEMBERS basics - hashtable",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD, SCARD, SISMEMBER, SMISMEMBER, SMEMBERS basics - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMISMEMBER SMEMBERS SCARD against non set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMISMEMBER SMEMBERS SCARD against non existing key",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMISMEMBER requires one or more members",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD against non set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD a non-integer against a small intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD a non-integer against a large intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD an integer larger than 64 bits",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD an integer larger than 64 bits to a large intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD overflows the maximum allowed integers in an intset - single",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD overflows the maximum allowed elements in a listpack - single",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD overflows the maximum allowed integers in an intset - multiple",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD overflows the maximum allowed elements in a listpack - multiple",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD overflows the maximum allowed integers in an intset - single_multiple",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD overflows the maximum allowed elements in a listpack - single_multiple",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "Variadic SADD",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "Set encoding after DEBUG RELOAD",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SREM basics - $type",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SREM basics - $type",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SREM basics - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SREM with multiple arguments",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SREM variadic version with more args needed to destroy the key",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERCARD with illegal arguments",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERCARD against non-set should throw error",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERCARD against non-existing key",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "Generated sets must be encoded correctly - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER with two sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERCARD with two sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with two sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with two sets, after a DEBUG RELOAD - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNION with two sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNIONSTORE with two sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER against three sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERCARD against three sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with three sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNION with non existing keys - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF with two sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF with three sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFFSTORE with three sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER/SUNION/SDIFF with three same sets - regular",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "Generated sets must be encoded correctly - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER with two sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERCARD with two sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with two sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with two sets, after a DEBUG RELOAD - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNION with two sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNIONSTORE with two sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER against three sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERCARD against three sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with three sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNION with non existing keys - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF with two sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF with three sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFFSTORE with three sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER/SUNION/SDIFF with three same sets - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with two listpack sets where result is intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE with two hashtable sets where result is intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNION hashtable and listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF with first set empty",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF with same set two times",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF fuzzing",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF against non-set should throw error",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFF should handle non existing key as empty",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFFSTORE against non-set should throw error",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SDIFFSTORE should handle non existing key as empty",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER against non-set should throw error",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER should handle non existing key as empty",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTER with same integer elements but different encoding",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE against non-set should throw error",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SINTERSTORE against non existing keys should delete dstkey",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNION against non-set should throw error",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNION should handle non existing key as empty",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNIONSTORE against non-set should throw error",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNIONSTORE should handle non existing key as empty",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SUNIONSTORE against non existing keys should delete dstkey",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP basics - listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP with <count>=1 - listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER - listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP basics - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP with <count>=1 - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP integer from listpack set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP with <count> - listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP with <count> - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP with <count> - hashtable",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP using integers, testing Knuth's and Floyd's algorithm",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP using integers with Knuth's algorithm",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP new implementation: code path #1 intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP new implementation: code path #2 intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP new implementation: code path #3 intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP new implementation: code path #1 listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP new implementation: code path #2 listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP new implementation: code path #3 listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SPOP new implementation: code path #1 propagate as DEL or UNLINK",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER count of 0 is handled correctly",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER with <count> against non existing key",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER count overflow",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER count of 0 is handled correctly - emptyarray",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER with <count> against non existing key - emptyarray",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER with <count> - listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER with <count> - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER with <count> - hashtable",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER histogram distribution - listpack",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER histogram distribution - intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER histogram distribution - hashtable",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SRANDMEMBER with a dict containing long chain",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE basics - from regular set to intset",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE basics - from intset to regular set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE non existing key",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE non existing src set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE from regular set to non existing destination set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE from intset to non existing destination set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE wrong src key type",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE wrong dst key type",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SMOVE with identical source and destination",
+        "milliseconds": "0"
+      },
+      {
+        "status": "testing",
+        "file": "tests/unit/type/set.tcl",
+        "test": "SMOVE only notify dstset when the addition is successful in tests/unit/type/set.tcl",
+        "data": "SMOVE only notify dstset when the addition is successful",
+        "milliseconds": "0"
+      },
+      {
+        "status": "ok",
+        "file": "tests/unit/type/set.tcl",
+        "test": "SMOVE only notify dstset when the addition is successful in tests/unit/type/set.tcl",
+        "data": "SMOVE only notify dstset when the addition is successful",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "intsets implementation stress testing",
+        "milliseconds": "0"
+      },
+      {
+        "status": "skip",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "SADD, SCARD, SISMEMBER - large data",
+        "milliseconds": "0"
+      },
+      {
+        "status": "done",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "unit/type/set",
+        "milliseconds": "0"
+      },
+      {
+        "status": "exception",
+        "file": "tests/unit/type/set.tcl",
+        "test": "",
+        "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+        "milliseconds": "0"
+      }
+    ],
+    "binary_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b"
+  }
+]

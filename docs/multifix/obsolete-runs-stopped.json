@@ -1,0 +1,17 @@
+{
+  "reason": "Restart correctness only after final publication inlining adjustment; previous binary receipts are not final proof.",
+  "stopped": [
+    {
+      "name": "directed-tcl2",
+      "gate_pid": 1451807
+    },
+    {
+      "name": "final-uring",
+      "gate_pid": 2260443
+    },
+    {
+      "name": "final-epoll",
+      "gate_pid": 2262805
+    }
+  ]
+}

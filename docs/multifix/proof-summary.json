@@ -1,0 +1,1499 @@
+{
+  "jobs": [
+    {
+      "source_commit": "bd6ee81c0bfb7a512dce0216846160eba91972eb",
+      "binary_sha256": "2140542ef44aadba3cf0dd0b6b75cc0b965300ec189474ab3818e59de4f98494",
+      "binary_unchanged": true,
+      "exit": 2,
+      "seconds": 0.4974398612976074,
+      "summary": [],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.1eZ8zM",
+      "name": "directed-tcl"
+    },
+    {
+      "source_commit": "bd6ee81c0bfb7a512dce0216846160eba91972eb",
+      "binary_sha256": "2140542ef44aadba3cf0dd0b6b75cc0b965300ec189474ab3818e59de4f98494",
+      "binary_unchanged": true,
+      "exit": 130,
+      "seconds": 967.2733278274536,
+      "summary": [],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.8htgGB",
+      "name": "directed-tcl2"
+    },
+    {
+      "source_commit": "7b40601639fd7485fd03fb361f0ffaff757ebd0b",
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "binary_unchanged": true,
+      "exit": 1,
+      "seconds": 1660.7847082614899,
+      "summary": [
+        "GATE(PARTIAL): 143 ok, 8 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-affected.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.XW8cZW",
+      "name": "final-affected"
+    },
+    {
+      "source_commit": "a13d010bdbeda92c26d2a220496bf57170b6a66b",
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "binary_unchanged": true,
+      "exit": 0,
+      "seconds": 36.5833375453949,
+      "summary": [
+        "GATE(PARTIAL): 5 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-atomic-1s-epoll.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.77APFB",
+      "name": "final-atomic-1s-epoll"
+    },
+    {
+      "source_commit": "a13d010bdbeda92c26d2a220496bf57170b6a66b",
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "binary_unchanged": true,
+      "exit": 0,
+      "seconds": 36.56701731681824,
+      "summary": [
+        "GATE(PARTIAL): 5 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-atomic-1s-uring.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.KPmCKc",
+      "name": "final-atomic-1s-uring"
+    },
+    {
+      "source_commit": "a13d010bdbeda92c26d2a220496bf57170b6a66b",
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "binary_unchanged": true,
+      "exit": 0,
+      "seconds": 44.04888963699341,
+      "summary": [
+        "GATE(PARTIAL): 5 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-atomic-2s-epoll.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.9sUgfj",
+      "name": "final-atomic-2s-epoll"
+    },
+    {
+      "source_commit": "a13d010bdbeda92c26d2a220496bf57170b6a66b",
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "binary_unchanged": true,
+      "exit": 0,
+      "seconds": 44.04581880569458,
+      "summary": [
+        "GATE(PARTIAL): 5 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-atomic-2s-uring.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.taK8SX",
+      "name": "final-atomic-2s-uring"
+    },
+    {
+      "source_commit": "79556e88003c716fd403ef9efc8b59805df17c58",
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "binary_unchanged": true,
+      "exit": 0,
+      "seconds": 2145.46572804451,
+      "summary": [
+        "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-differ-epoll.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.vrnAfA",
+      "name": "final-differ-epoll"
+    },
+    {
+      "source_commit": "79556e88003c716fd403ef9efc8b59805df17c58",
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "binary_unchanged": true,
+      "exit": 0,
+      "seconds": 2158.3664417266846,
+      "summary": [
+        "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-differ-uring.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.6145vi",
+      "name": "final-differ-uring"
+    },
+    {
+      "source_commit": "01fabda27b09b528c995fa2339e98154e9f975ae",
+      "binary_sha256": "b46977828bc7bbacb73a02243a7966a9f3a9afb59ad326740aea3c6d88b91c3c",
+      "binary_unchanged": true,
+      "exit": 130,
+      "seconds": 107.32431030273438,
+      "summary": [],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.pZMWk4",
+      "name": "final-epoll"
+    },
+    {
+      "source_commit": "79556e88003c716fd403ef9efc8b59805df17c58",
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "binary_unchanged": true,
+      "exit": 1,
+      "seconds": 200.31255507469177,
+      "summary": [
+        "GATE(PARTIAL): 0 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-instrument-controls.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.a8uIkB",
+      "name": "final-instrument-controls"
+    },
+    {
+      "source_commit": "7b40601639fd7485fd03fb361f0ffaff757ebd0b",
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "binary_unchanged": true,
+      "exit": 0,
+      "seconds": 25.345659255981445,
+      "summary": [
+        "GATE(PARTIAL): 9 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-moverfix-paired.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.4DbeYR",
+      "name": "final-moverfix-paired"
+    },
+    {
+      "source_commit": "7b40601639fd7485fd03fb361f0ffaff757ebd0b",
+      "binary_sha256": "1e5222abadeadf68bcd878b084c11c9d5be094aaf6fb9aa8220898dbf7c71009",
+      "binary_unchanged": true,
+      "exit": 1,
+      "seconds": 610.169047832489,
+      "summary": [
+        "GATE(PARTIAL): 1 ok, 2 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-planted-tcl.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.6GuKAr",
+      "name": "final-planted-tcl"
+    },
+    {
+      "source_commit": "dbecac9ad1d7e99c93fe9a63282fe8b1fa84722b",
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "binary_unchanged": true,
+      "exit": 1,
+      "seconds": 915.3310947418213,
+      "summary": [
+        "GATE(PARTIAL): 25 ok, 2 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-roots.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.GuNtba",
+      "name": "final-roots"
+    },
+    {
+      "source_commit": "01fabda27b09b528c995fa2339e98154e9f975ae",
+      "binary_sha256": "b46977828bc7bbacb73a02243a7966a9f3a9afb59ad326740aea3c6d88b91c3c",
+      "binary_unchanged": true,
+      "exit": 130,
+      "seconds": 108.29683136940002,
+      "summary": [],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.YQexyZ",
+      "name": "final-uring"
+    },
+    {
+      "source_commit": "56407d84433c3b773c137e428906b59fc5d249bf",
+      "binary_sha256": "025af9078f39a72499d9a69b1957e0ab8ea5231d90483a6fa3d75bacd0814a09",
+      "binary_unchanged": true,
+      "exit": 2,
+      "seconds": 0.40021538734436035,
+      "summary": [],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.tVkbju",
+      "name": "frozen-build"
+    },
+    {
+      "source_commit": "56407d84433c3b773c137e428906b59fc5d249bf",
+      "binary_sha256": "025af9078f39a72499d9a69b1957e0ab8ea5231d90483a6fa3d75bacd0814a09",
+      "binary_unchanged": true,
+      "exit": 1,
+      "seconds": 1008.9660174846649,
+      "summary": [
+        "GATE(PARTIAL): 25 ok, 3 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/frozen-units.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.cb5ujY",
+      "name": "frozen-units"
+    },
+    {
+      "source_commit": "01fabda27b09b528c995fa2339e98154e9f975ae",
+      "binary_sha256": "1e5222abadeadf68bcd878b084c11c9d5be094aaf6fb9aa8220898dbf7c71009",
+      "binary_unchanged": true,
+      "exit": 1,
+      "seconds": 517.629896402359,
+      "summary": [
+        "GATE(PARTIAL): 1 ok, 24 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/planted-directed.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.UVwk6Q",
+      "name": "planted-directed"
+    },
+    {
+      "source_commit": "01fabda27b09b528c995fa2339e98154e9f975ae",
+      "binary_sha256": "1e5222abadeadf68bcd878b084c11c9d5be094aaf6fb9aa8220898dbf7c71009",
+      "binary_unchanged": true,
+      "exit": 1,
+      "seconds": 864.132515668869,
+      "summary": [
+        "GATE(PARTIAL): 1 ok, 2 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/planted-tcl.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.cZTLSb",
+      "name": "planted-tcl"
+    },
+    {
+      "source_commit": "01fabda27b09b528c995fa2339e98154e9f975ae",
+      "binary_sha256": "75d75adb8907cd6c97f010dfd6337fe7f58806c17143b025795808ca06aefdc3",
+      "binary_unchanged": true,
+      "exit": 1,
+      "seconds": 579.9984884262085,
+      "summary": [
+        "GATE(PARTIAL): 1 ok, 24 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/pre-directed.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.wfL2HC",
+      "name": "pre-directed"
+    }
+  ],
+  "promotions": {
+    "final-affected": {
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "assertions": [
+        {
+          "mode": "1s",
+          "unit": "unit/other",
+          "name": "RESET clears and discards MULTI state",
+          "status": "ok",
+          "data": "RESET clears and discards MULTI state"
+        },
+        {
+          "mode": "1s",
+          "unit": "unit/type/set",
+          "name": "SMOVE only notify dstset when the addition is successful",
+          "status": "ok",
+          "data": "SMOVE only notify dstset when the addition is successful"
+        },
+        {
+          "mode": "1s",
+          "unit": "unit/slowlog",
+          "name": "SLOWLOG - EXEC is not logged, just executed commands",
+          "status": "ok",
+          "data": "SLOWLOG - EXEC is not logged, just executed commands"
+        },
+        {
+          "mode": "1s",
+          "unit": "unit/pause",
+          "name": "Test both active and passive expires are skipped during client pause",
+          "status": "ok",
+          "data": "Test both active and passive expires are skipped during client pause"
+        },
+        {
+          "mode": "1s",
+          "unit": "unit/pause",
+          "name": "Test that client pause starts at the end of a transaction",
+          "status": "ok",
+          "data": "Test that client pause starts at the end of a transaction"
+        },
+        {
+          "mode": "1s",
+          "unit": "unit/pause",
+          "name": "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write",
+          "status": "ok",
+          "data": "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write"
+        },
+        {
+          "mode": "1s",
+          "unit": "unit/pause",
+          "name": "Test write multi-execs are blocked by pause RO",
+          "status": "ok",
+          "data": "Test write multi-execs are blocked by pause RO"
+        },
+        {
+          "mode": "1s",
+          "unit": "unit/pause",
+          "name": "Test write scripts in multi-exec are blocked by pause RO",
+          "status": "ok",
+          "data": "Test write scripts in multi-exec are blocked by pause RO"
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/other",
+          "name": "RESET clears and discards MULTI state",
+          "status": "ok",
+          "data": "RESET clears and discards MULTI state"
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/type/set",
+          "name": "SMOVE only notify dstset when the addition is successful",
+          "status": "ok",
+          "data": "SMOVE only notify dstset when the addition is successful"
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/slowlog",
+          "name": "SLOWLOG - EXEC is not logged, just executed commands",
+          "status": "ok",
+          "data": "SLOWLOG - EXEC is not logged, just executed commands"
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/pause",
+          "name": "Test both active and passive expires are skipped during client pause",
+          "status": "ok",
+          "data": "Test both active and passive expires are skipped during client pause"
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/pause",
+          "name": "Test that client pause starts at the end of a transaction",
+          "status": "ok",
+          "data": "Test that client pause starts at the end of a transaction"
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/pause",
+          "name": "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write",
+          "status": "ok",
+          "data": "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write"
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/pause",
+          "name": "Test write multi-execs are blocked by pause RO",
+          "status": "ok",
+          "data": "Test write multi-execs are blocked by pause RO"
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/pause",
+          "name": "Test write scripts in multi-exec are blocked by pause RO",
+          "status": "ok",
+          "data": "Test write scripts in multi-exec are blocked by pause RO"
+        }
+      ],
+      "arming": {
+        "1s": [
+          {
+            "attempt": 1,
+            "shards": [
+              14,
+              10
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 2,
+            "shards": [
+              8,
+              2
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 3,
+            "shards": [
+              12,
+              1
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 4,
+            "shards": [
+              7,
+              0
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 5,
+            "shards": [
+              1,
+              7
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 6,
+            "shards": [
+              13,
+              4
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 7,
+            "shards": [
+              13,
+              8
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 8,
+            "shards": [
+              12,
+              7
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 9,
+            "shards": [
+              2,
+              1
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 10,
+            "shards": [
+              12,
+              15
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 11,
+            "shards": [
+              13,
+              3
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 12,
+            "shards": [
+              3,
+              7
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 13,
+            "shards": [
+              10,
+              14
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 14,
+            "shards": [
+              12,
+              4
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 15,
+            "shards": [
+              8,
+              11
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 16,
+            "shards": [
+              10,
+              9
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 17,
+            "shards": [
+              3,
+              7
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 18,
+            "shards": [
+              4,
+              3
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 19,
+            "shards": [
+              13,
+              3
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 20,
+            "shards": [
+              1,
+              6
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 21,
+            "shards": [
+              0,
+              12
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 22,
+            "shards": [
+              15,
+              1
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 23,
+            "shards": [
+              4,
+              8
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 24,
+            "shards": [
+              7,
+              7
+            ],
+            "armed": true
+          }
+        ],
+        "2s": [
+          {
+            "attempt": 1,
+            "shards": [
+              15,
+              15
+            ],
+            "armed": true
+          }
+        ]
+      }
+    },
+    "final-planted-tcl": {
+      "binary_sha256": "1e5222abadeadf68bcd878b084c11c9d5be094aaf6fb9aa8220898dbf7c71009",
+      "assertions": [
+        {
+          "mode": "1s",
+          "unit": "unit/other",
+          "name": "RESET clears and discards MULTI state",
+          "status": "err",
+          "data": "RESET clears and discards MULTI state in tests/unit/other.tcl\nExpected 'OK RESET' to match '*EXEC without MULTI*' (context: type eval line 7 cmd {assert_match {*EXEC without MULTI*} $err} proc ::test) "
+        },
+        {
+          "mode": "1s",
+          "unit": "unit/type/set",
+          "name": "SMOVE only notify dstset when the addition is successful",
+          "status": "err",
+          "data": "SMOVE only notify dstset when the addition is successful in tests/unit/type/set.tcl\nExpected '1' to be equal to '2' (context: type eval line 19 cmd {assert_equal $res 2} proc ::test)"
+        },
+        {
+          "mode": "1s",
+          "unit": "unit/slowlog",
+          "name": "SLOWLOG - EXEC is not logged, just executed commands",
+          "status": "err",
+          "data": "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl\nExpected '0' to be equal to '1' (context: type eval line 8 cmd {assert_equal [r slowlog len] 1} proc ::test)"
+        },
+        {
+          "mode": "1s",
+          "unit": "unit/pause",
+          "name": "Test both active and passive expires are skipped during client pause",
+          "status": "err",
+          "data": "Test both active and passive expires are skipped during client pause in tests/unit/pause.tcl\nn subcommand 'PAUSE'. Try CLIENT HELP.\nERR unknown subcommand 'PAUSE'. Try CLIENT HELP.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r exec\"\n    (\"uplevel\" body line 7)\n    invoked from within\n\"uplevel 1 $code\""
+        },
+        {
+          "mode": "1s",
+          "unit": "unit/pause",
+          "name": "Test that client pause starts at the end of a transaction",
+          "status": "err",
+          "data": "Test that client pause starts at the end of a transaction in tests/unit/pause.tcl\nn subcommand 'PAUSE'. Try CLIENT HELP.\nERR unknown subcommand 'PAUSE'. Try CLIENT HELP.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r exec\"\n    (\"uplevel\" body line 6)\n    invoked from within\n\"uplevel 1 $code\""
+        },
+        {
+          "mode": "1s",
+          "unit": "unit/pause",
+          "name": "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write",
+          "status": "err",
+          "data": "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write in tests/unit/pause.tcl\nn subcommand 'pause'. Try CLIENT HELP.\nERR unknown subcommand 'pause'. Try CLIENT HELP.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r exec\"\n    (\"uplevel\" body line 7)\n    invoked from within\n\"uplevel 1 $code\""
+        },
+        {
+          "mode": "1s",
+          "unit": "unit/pause",
+          "name": "Test write multi-execs are blocked by pause RO",
+          "status": "err",
+          "data": "Test write multi-execs are blocked by pause RO in tests/unit/pause.tcl\nTimeout waiting for blocked clients"
+        },
+        {
+          "mode": "1s",
+          "unit": "unit/pause",
+          "name": "Test write scripts in multi-exec are blocked by pause RO",
+          "status": "err",
+          "data": "Test write scripts in multi-exec are blocked by pause RO in tests/unit/pause.tcl\nTimeout waiting for blocked clients"
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/other",
+          "name": "RESET clears and discards MULTI state",
+          "status": "err",
+          "data": "RESET clears and discards MULTI state in tests/unit/other.tcl\nExpected 'OK RESET' to match '*EXEC without MULTI*' (context: type eval line 7 cmd {assert_match {*EXEC without MULTI*} $err} proc ::test) "
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/type/set",
+          "name": "SMOVE only notify dstset when the addition is successful",
+          "status": "err",
+          "data": "SMOVE only notify dstset when the addition is successful in tests/unit/type/set.tcl\nExpected '1' to be equal to '2' (context: type eval line 19 cmd {assert_equal $res 2} proc ::test)"
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/slowlog",
+          "name": "SLOWLOG - EXEC is not logged, just executed commands",
+          "status": "err",
+          "data": "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl\nExpected '0' to be equal to '1' (context: type eval line 8 cmd {assert_equal [r slowlog len] 1} proc ::test)"
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/pause",
+          "name": "Test both active and passive expires are skipped during client pause",
+          "status": "err",
+          "data": "Test both active and passive expires are skipped during client pause in tests/unit/pause.tcl\nn subcommand 'PAUSE'. Try CLIENT HELP.\nERR unknown subcommand 'PAUSE'. Try CLIENT HELP.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r exec\"\n    (\"uplevel\" body line 7)\n    invoked from within\n\"uplevel 1 $code\""
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/pause",
+          "name": "Test that client pause starts at the end of a transaction",
+          "status": "err",
+          "data": "Test that client pause starts at the end of a transaction in tests/unit/pause.tcl\nn subcommand 'PAUSE'. Try CLIENT HELP.\nERR unknown subcommand 'PAUSE'. Try CLIENT HELP.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r exec\"\n    (\"uplevel\" body line 6)\n    invoked from within\n\"uplevel 1 $code\""
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/pause",
+          "name": "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write",
+          "status": "err",
+          "data": "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write in tests/unit/pause.tcl\nn subcommand 'pause'. Try CLIENT HELP.\nERR unknown subcommand 'pause'. Try CLIENT HELP.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r exec\"\n    (\"uplevel\" body line 7)\n    invoked from within\n\"uplevel 1 $code\""
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/pause",
+          "name": "Test write multi-execs are blocked by pause RO",
+          "status": "err",
+          "data": "Test write multi-execs are blocked by pause RO in tests/unit/pause.tcl\nTimeout waiting for blocked clients"
+        },
+        {
+          "mode": "2s",
+          "unit": "unit/pause",
+          "name": "Test write scripts in multi-exec are blocked by pause RO",
+          "status": "err",
+          "data": "Test write scripts in multi-exec are blocked by pause RO in tests/unit/pause.tcl\nTimeout waiting for blocked clients"
+        }
+      ],
+      "arming": {
+        "1s": [
+          {
+            "attempt": 1,
+            "shards": [
+              3,
+              9
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 2,
+            "shards": [
+              0,
+              3
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 3,
+            "shards": [
+              6,
+              2
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 4,
+            "shards": [
+              14,
+              0
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 5,
+            "shards": [
+              12,
+              7
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 6,
+            "shards": [
+              3,
+              6
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 7,
+            "shards": [
+              14,
+              15
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 8,
+            "shards": [
+              4,
+              12
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 9,
+            "shards": [
+              11,
+              14
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 10,
+            "shards": [
+              0,
+              5
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 11,
+            "shards": [
+              6,
+              15
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 12,
+            "shards": [
+              5,
+              8
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 13,
+            "shards": [
+              3,
+              3
+            ],
+            "armed": true
+          }
+        ],
+        "2s": [
+          {
+            "attempt": 1,
+            "shards": [
+              3,
+              7
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 2,
+            "shards": [
+              15,
+              1
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 3,
+            "shards": [
+              1,
+              8
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 4,
+            "shards": [
+              2,
+              4
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 5,
+            "shards": [
+              2,
+              10
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 6,
+            "shards": [
+              6,
+              10
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 7,
+            "shards": [
+              3,
+              8
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 8,
+            "shards": [
+              8,
+              3
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 9,
+            "shards": [
+              12,
+              1
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 10,
+            "shards": [
+              3,
+              5
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 11,
+            "shards": [
+              6,
+              5
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 12,
+            "shards": [
+              6,
+              1
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 13,
+            "shards": [
+              12,
+              10
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 14,
+            "shards": [
+              8,
+              7
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 15,
+            "shards": [
+              8,
+              11
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 16,
+            "shards": [
+              3,
+              11
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 17,
+            "shards": [
+              14,
+              0
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 18,
+            "shards": [
+              12,
+              3
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 19,
+            "shards": [
+              7,
+              1
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 20,
+            "shards": [
+              12,
+              8
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 21,
+            "shards": [
+              9,
+              13
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 22,
+            "shards": [
+              1,
+              10
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 23,
+            "shards": [
+              5,
+              8
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 24,
+            "shards": [
+              4,
+              10
+            ],
+            "armed": false
+          },
+          {
+            "attempt": 25,
+            "shards": [
+              11,
+              11
+            ],
+            "armed": true
+          }
+        ]
+      }
+    }
+  },
+  "instructions": true,
+  "freshness": true,
+  "directed": {
+    "final-roots": [
+      {
+        "status": "ok",
+        "seconds": 14.49,
+        "label": "multifix RESET-IN-MULTI (1s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 16.26,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 19.78,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 22.33,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 33.29,
+        "label": "multifix PAUSE-IN-MULTI (1s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 18.36,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (1s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 15.52,
+        "label": "multifix RESET-IN-MULTI (1s epoll)"
+      },
+      {
+        "status": "ok",
+        "seconds": 16.52,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s epoll)"
+      },
+      {
+        "status": "ok",
+        "seconds": 16.29,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s epoll)"
+      },
+      {
+        "status": "ok",
+        "seconds": 20.57,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)"
+      },
+      {
+        "status": "ok",
+        "seconds": 33.8,
+        "label": "multifix PAUSE-IN-MULTI (1s epoll)"
+      },
+      {
+        "status": "ok",
+        "seconds": 16.47,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (1s epoll)"
+      },
+      {
+        "status": "ok",
+        "seconds": 13.59,
+        "label": "multifix RESET-IN-MULTI (2s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 13.74,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 14.12,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 17.1,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 30.35,
+        "label": "multifix PAUSE-IN-MULTI (2s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 13.33,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (2s uring)"
+      },
+      {
+        "status": "ok",
+        "seconds": 12.36,
+        "label": "multifix RESET-IN-MULTI (2s epoll)"
+      },
+      {
+        "status": "ok",
+        "seconds": 12.35,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s epoll)"
+      },
+      {
+        "status": "ok",
+        "seconds": 13.16,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s epoll)"
+      },
+      {
+        "status": "ok",
+        "seconds": 16.52,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)"
+      },
+      {
+        "status": "ok",
+        "seconds": 29.6,
+        "label": "multifix PAUSE-IN-MULTI (2s epoll)"
+      },
+      {
+        "status": "ok",
+        "seconds": 12.24,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (2s epoll)"
+      }
+    ],
+    "pre-directed": [
+      {
+        "status": "FAIL",
+        "seconds": 14.77,
+        "label": "multifix RESET-IN-MULTI (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 14.15,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 58.35,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 16.12,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 14.78,
+        "label": "multifix PAUSE-IN-MULTI (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 25.22,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 16.03,
+        "label": "multifix RESET-IN-MULTI (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 16.57,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 76.51,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 16.08,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 14.09,
+        "label": "multifix PAUSE-IN-MULTI (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 21.54,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 13.27,
+        "label": "multifix RESET-IN-MULTI (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 13.96,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 70.71,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 15.26,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 13.86,
+        "label": "multifix PAUSE-IN-MULTI (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 22.75,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 13.38,
+        "label": "multifix RESET-IN-MULTI (2s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 13.95,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 40.42,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 13.27,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 11.61,
+        "label": "multifix PAUSE-IN-MULTI (2s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 19.83,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (2s epoll)"
+      }
+    ],
+    "planted-directed": [
+      {
+        "status": "FAIL",
+        "seconds": 12.99,
+        "label": "multifix RESET-IN-MULTI (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 11.71,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 49.36,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 13.98,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 12.65,
+        "label": "multifix PAUSE-IN-MULTI (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 25.38,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (1s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 16.72,
+        "label": "multifix RESET-IN-MULTI (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 15.85,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 66.58,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 14.64,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 12.21,
+        "label": "multifix PAUSE-IN-MULTI (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 20.12,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (1s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 11.91,
+        "label": "multifix RESET-IN-MULTI (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 12.06,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 39.86,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 13.64,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 12.1,
+        "label": "multifix PAUSE-IN-MULTI (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 23.15,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (2s uring)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 14.53,
+        "label": "multifix RESET-IN-MULTI (2s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 14.29,
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 47.76,
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 13.42,
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 11.87,
+        "label": "multifix PAUSE-IN-MULTI (2s epoll)"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 20.11,
+        "label": "multifix PAUSE-EXEC-NOT-HELD (2s epoll)"
+      }
+    ]
+  },
+  "affected_jobs": {
+    "original_passes": 143,
+    "resolved_failures": [
+      {
+        "status": "FAIL",
+        "seconds": 2.52,
+        "label": "moverfix conservation (1s, uring, databases 1, atomic 0)",
+        "rerun": "final-moverfix-paired",
+        "rerun_status": "ok"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 2.5,
+        "label": "moverfix conservation (1s, uring, databases 16, atomic 0)",
+        "rerun": "final-moverfix-paired",
+        "rerun_status": "ok"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 2.48,
+        "label": "moverfix conservation (1s, epoll, databases 1, atomic 0)",
+        "rerun": "final-moverfix-paired",
+        "rerun_status": "ok"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 2.5,
+        "label": "moverfix conservation (1s, epoll, databases 16, atomic 0)",
+        "rerun": "final-moverfix-paired",
+        "rerun_status": "ok"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 2.51,
+        "label": "moverfix conservation (2s, uring, databases 1, atomic 0)",
+        "rerun": "final-moverfix-paired",
+        "rerun_status": "ok"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 2.51,
+        "label": "moverfix conservation (2s, uring, databases 16, atomic 0)",
+        "rerun": "final-moverfix-paired",
+        "rerun_status": "ok"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 2.51,
+        "label": "moverfix conservation (2s, epoll, databases 1, atomic 0)",
+        "rerun": "final-moverfix-paired",
+        "rerun_status": "ok"
+      },
+      {
+        "status": "FAIL",
+        "seconds": 2.5,
+        "label": "moverfix conservation (2s, epoll, databases 16, atomic 0)",
+        "rerun": "final-moverfix-paired",
+        "rerun_status": "ok"
+      }
+    ],
+    "unresolved_failures": []
+  },
+  "final_jobs": {
+    "final-differ-uring": {
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "summary": [
+        "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-differ-uring.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.6145vi"
+    },
+    "final-differ-epoll": {
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "summary": [
+        "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-differ-epoll.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.vrnAfA"
+    },
+    "final-atomic-1s-uring": {
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "summary": [
+        "GATE(PARTIAL): 5 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-atomic-1s-uring.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.KPmCKc",
+      "correctness_output_sha256": {
+        "build/gate-run.KPmCKc/jobs/atomic_batteries/gate-atomic-torn.txt": "3f1e0b38a1b0fdfcad16d7aa03b1c11e642e439525b651be023e29fda32233f5",
+        "build/gate-run.KPmCKc/jobs/atomic_batteries/gate-atomic-ryow.txt": "5c7cc1c51c839e5557374adce15b5bbe069a574c4443fe7df20da6a1af58f24b",
+        "build/gate-run.KPmCKc/jobs/atomic_batteries/gate-atomic-hazards.txt": "68e1606400b91875caf1552b63902a256e66eea0f2b06e6150f7294b9e8b16c2"
+      },
+      "throughput_experiment": "NOT RUN: GATE_PROOF_NO_RATES=1"
+    },
+    "final-atomic-1s-epoll": {
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "summary": [
+        "GATE(PARTIAL): 5 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-atomic-1s-epoll.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.77APFB",
+      "correctness_output_sha256": {
+        "build/gate-run.77APFB/jobs/atomic_batteries/gate-atomic-torn.txt": "6dde10b519a5e71e859633dfa5fab5429c24e2452d1b4b8d559ce1c137fa12a3",
+        "build/gate-run.77APFB/jobs/atomic_batteries/gate-atomic-ryow.txt": "7f62105aa8dd402750a972258f65d1f05bb7e1c0c23a82c7fbf34aa933259b1c",
+        "build/gate-run.77APFB/jobs/atomic_batteries/gate-atomic-hazards.txt": "1a74d49b5be4849f50e7b24a6aaddfcba8c96f369d11d390011b1901b300d62e"
+      },
+      "throughput_experiment": "NOT RUN: GATE_PROOF_NO_RATES=1"
+    },
+    "final-atomic-2s-uring": {
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "summary": [
+        "GATE(PARTIAL): 5 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-atomic-2s-uring.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.taK8SX",
+      "correctness_output_sha256": {
+        "build/gate-run.taK8SX/jobs/atomic_batteries/gate-atomic-torn.txt": "d72144e61885b5bcf10f7994e9bc2269bb79fa7c70cc24e6de60677f24463a30",
+        "build/gate-run.taK8SX/jobs/atomic_batteries/gate-atomic-ryow.txt": "925cf4f8129e9a12bf0b2986dd2dca58f48cf3d9bbcbb80181762216348846c8",
+        "build/gate-run.taK8SX/jobs/atomic_batteries/gate-atomic-hazards.txt": "051e81b8d004d4d8c330715f2654b557e0017d2cf9a549517d97415c7ca0c2ab"
+      },
+      "throughput_experiment": "NOT RUN: GATE_PROOF_NO_RATES=1"
+    },
+    "final-atomic-2s-epoll": {
+      "binary_sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5",
+      "summary": [
+        "GATE(PARTIAL): 5 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-atomic-2s-epoll.tsv.partial"
+      ],
+      "artifacts": "/home/user/Projects/cx-multifix/build/gate-run.9sUgfj",
+      "correctness_output_sha256": {
+        "build/gate-run.9sUgfj/jobs/atomic_batteries/gate-atomic-torn.txt": "d169cf1458ecd1f554f9d544efb420f059f740405b80b301185305e50a688fde",
+        "build/gate-run.9sUgfj/jobs/atomic_batteries/gate-atomic-ryow.txt": "82a5560fd6b7e3fef9fdfd942df0328e824ad4f9c85894a7eb8c09686854a20d",
+        "build/gate-run.9sUgfj/jobs/atomic_batteries/gate-atomic-hazards.txt": "e41293d2de049c1fd5c5aee77017fe72f6d2fa14d633745c870816f67f88e652"
+      },
+      "throughput_experiment": "NOT RUN: GATE_PROOF_NO_RATES=1"
+    }
+  },
+  "unresolved_required_checks": [
+    {
+      "job": "final-instrument-controls",
+      "status": "FAIL",
+      "reason": "RECEIPT FIXTURE REFUSED: tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=815, fixture=847, source declarations=847",
+      "owner_action": "Review DQ=DF=+24 and set the owner-managed counts to 830 quick / 847 full.",
+      "output": "build/gate-run.a8uIkB/jobs/abba_selftest/gate-abbagate-unit.txt",
+      "output_sha256": "854d4949b3702559d3cf36ce78d3bcb4197c8431dd08840bfcc308d7f933e1ff",
+      "summary": [
+        "GATE(PARTIAL): 0 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-multifix/docs/multifix/jobs/final-instrument-controls.tsv.partial"
+      ]
+    }
+  ]
+}

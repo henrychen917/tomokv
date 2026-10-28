@@ -1006,8 +1006,10 @@ void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state) {
                 emit(NOTIFY_SET, NotifyEventId::Srem, 1);
                 if (state.atomic_apply && state.apply && !state.apply[0].present)
                     emit(NOTIFY_GENERIC, NotifyEventId::Del, 1);
-                emit_atomic_new(1, 2);
-                emit(NOTIFY_SET, NotifyEventId::Sadd, 2);
+                if (!state.atomic_apply || state.hop2_count == 2) {
+                    emit_atomic_new(1, 2);
+                    emit(NOTIFY_SET, NotifyEventId::Sadd, 2);
+                }
             }
             break;
         case Kind::Lmove:

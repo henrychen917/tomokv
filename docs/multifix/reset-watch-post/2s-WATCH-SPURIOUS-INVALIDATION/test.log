@@ -1,0 +1,2 @@
+{"topologies": [["multifix:watch:2", "multifix:watch:6"], ["multifix:watch:2", "multifix:watch:0"]]}
+PASS WATCH-SPURIOUS-INVALIDATION

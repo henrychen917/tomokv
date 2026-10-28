@@ -147,6 +147,7 @@
                 }
             }
             ScatterTaskResult executed = ScatterTaskResult::Complete;
+            const uint64_t slow_started = execute_child ? multi_slowlog_start(state, owner_thread_id) : 0;
             if (execute_child) {
                 MultiLatencyPart<Tracked> latency_child(owner_thread_id, command.op.get());
                 if (command.scatter->kind == Kind::DatabaseInfo)
@@ -155,6 +156,7 @@
                     ? watch_execute_scatter(child_task, shard, *command.op, owner_thread_id)
                     : xshard_execute(child_task, shard, *command.op, owner_thread_id);
             }
+            multi_slowlog_part(command, slow_started);
             if (executed != ScatterTaskResult::Complete) return retry();
             done = static_cast<uint8_t>(stage + 1);
             const MultiChildFinish finished = xshard_multi_child_complete(
@@ -199,6 +201,7 @@
                     assemble_final(*state.client, *command.op, *command.scatter,
                                    nullptr, nullptr, nullptr);
                 }
+                multi_slowlog_finish(state, command, owner_thread_id);
                 command.finished.store(true, std::memory_order_release);
             }
             continue;
@@ -209,6 +212,7 @@
         }
         MultiLatencyPart<Tracked> latency_child(owner_thread_id,
             command.kind == MultiCommandKind::IoLocal ? nullptr : command.op.get());
+        const uint64_t slow_started = multi_slowlog_start(state, owner_thread_id);
         bool executed = true;
         if (state.decision.aborted.load(std::memory_order_acquire)) {
             // Still join the command barrier; another owner may already have installed a
@@ -220,10 +224,11 @@
             executed = execute_cross_command(
                 server, state, command, shard, owner_thread_id, stage);
         }
+        multi_slowlog_part(command, slow_started);
         if (!executed) return retry();
         done = static_cast<uint8_t>(stage + 1);
         latency_child.finish();
-        finish_command(command, stage);
+        finish_command(state, command, stage, owner_thread_id);
     }
 
     uint8_t& joined = state.execution_joined[shard_id];
@@ -251,6 +256,19 @@
                     const uint64_t ticket = server.atomic_commit_group_cas(
                         state.decision.epoch,
                         [&](uint64_t shared) {
+                            // Install a queued pause before publishing the read/GC
+                            // watermark. Otherwise a committed TTL can be reaped
+                            // between the owner decision and IO reply retirement.
+                            // Only the winning attempt may change global pause state.
+                            for (const auto& command : state.commands) {
+                                if (command->kind != MultiCommandKind::IoLocal) continue;
+                                const uint64_t started = multi_slowlog_start(state, owner_thread_id);
+                                if (command_client_pause(server, *command->op, state.now_cut_mono_ms)) {
+                                    command->io_effect_done = true;
+                                    multi_slowlog_part(*command, started);
+                                    multi_slowlog_finish(state, *command, owner_thread_id);
+                                }
+                            }
                             publish_multi_child_epochs(state, shared);
                             if (state.database_publish)
                                 server.databases().publish_prepared(std::move(state.database_publish));
