@@ -143,6 +143,22 @@ struct CoreConcurrencyTest {
                  histogram.bins[Histogram::index(16000000)] == batch / 2,
                  "real batch preserves short commands and long outliers separately");
         }
+        if (tracking && batch > 1) {
+            // Model a batch selected by an owner that completes no commands.
+            // The public endpoint must not expose its allocated, empty bucket.
+            {
+                auto& local = store(source);
+                std::lock_guard lock(local.mutex);
+                const auto* metadata = command_metadata_lookup(Slice("SET"));
+                auto& empty = local.values[command_metadata_index(*metadata)];
+                need(empty.calls == 0, "empty histogram state armed");
+            }
+            Op query; query.reset();
+            query.push_arg(Slice("LATENCY")); query.push_arg(Slice("HISTOGRAM")); query.push_arg(Slice("SET"));
+            latency_tracking_histogram(query);
+            need(query.reply.size() == 4 && !std::memcmp(query.reply.data(), "*0\r\n", 4),
+                 "no completed commands means no histogram entry");
+        }
         std::printf("PASS infofix latency %s tracking=%d batch=%u samples=%llu locks=%llu\n",
                     Fused ? "1s" : "2s", int(tracking), batch,
                     (unsigned long long)samples, (unsigned long long)infofix_batch_locks);

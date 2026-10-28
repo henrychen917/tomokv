@@ -126,7 +126,10 @@ Histograms collect() {
         auto* value = slot.value.load(std::memory_order_acquire);
         if (!value) continue;
         std::lock_guard lock(value->mutex);
-        for (const auto& [id, histogram] : value->values) result[id].merge(histogram);
+        // A GET batch can preselect a histogram and then forward/park every
+        // operation. No completed sample means no externally visible entry.
+        for (const auto& [id, histogram] : value->values)
+            if (histogram.calls) result[id].merge(histogram);
     }
     return result;
 }

@@ -29,14 +29,19 @@ def main():
         tar.extractall(pre_source, filter='data')
     source = (ROOT / 'src/cmd/latency_tracking.cc').read_text()
     reports = []
-    for arm in ('pre', 'no-batch', 'average'):
+    for arm in ('pre', 'no-batch', 'average', 'empty-entry'):
         destination = OUT / arm
         destination.mkdir(parents=True, exist_ok=True)
         include = pre_source if arm == 'pre' else destination / 'source'
         if arm != 'pre':
-            changed = source.replace('bool get_batch = n > 1;', 'bool get_batch = false;', 1) if arm == 'no-batch' else source.replace(
-                'batch->histogram->add((duration_ns / 1000) * 1000);',
-                'batch->histogram->add(8000000); // planted shared-duration regression', 1)
+            if arm == 'no-batch':
+                changed = source.replace('bool get_batch = n > 1;', 'bool get_batch = false;', 1)
+            elif arm == 'average':
+                changed = source.replace('batch->histogram->add((duration_ns / 1000) * 1000);',
+                    'batch->histogram->add(8000000); // planted shared-duration regression', 1)
+            else:
+                changed = source.replace('if (histogram.calls) result[id].merge(histogram);',
+                    'result[id].merge(histogram); // planted empty-entry regression', 1)
             assert changed != source
             file = include / 'src/cmd/latency_tracking.cc'
             file.parent.mkdir(parents=True, exist_ok=True)
