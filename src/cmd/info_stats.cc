@@ -229,11 +229,16 @@ void info_stats_build_fields(std::string& body) {
                 if (sizeof(*note) + name + data > size_t(end - p)) break;
                 if (note->n_type == NT_GNU_BUILD_ID && note->n_namesz == 4 &&
                     !std::memcmp(p + sizeof(*note), "GNU", 4)) {
-                    constexpr char hex[] = "0123456789abcdef";
+                    // Redis exposes an unpadded 64-bit hexadecimal build identity.
+                    // Use this executable's build-id prefix, never the oracle's ID.
                     const auto* bytes = p + sizeof(*note) + name;
-                    for (unsigned j = 0; j < note->n_descsz; ++j) {
-                        id += hex[bytes[j] >> 4]; id += hex[bytes[j] & 15];
-                    }
+                    uint64_t identity = 0;
+                    for (unsigned j = 0; j < std::min(note->n_descsz, 8u); ++j)
+                        identity = (identity << 8) | bytes[j];
+                    char hex[17];
+                    std::snprintf(hex, sizeof(hex), "%llx",
+                                  static_cast<unsigned long long>(identity));
+                    id = hex;
                     return 1;
                 }
                 p += sizeof(*note) + name + data;

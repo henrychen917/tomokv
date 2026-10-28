@@ -42,9 +42,11 @@ def missing(c, run, label):
         run.check(label + ' CPU values', list(cpu.values()),
                   lambda rows: len(rows) == 6 and all(re.fullmatch(rb'\d+\.\d{6}', x) for x in rows))
         server = fields(c, 'SERVER')
-        for name in (b'redis_git_sha1', b'redis_git_dirty', b'redis_build_id'):
+        for name, pattern in ((b'redis_git_sha1', rb'[0-9a-f]{8}'),
+                              (b'redis_git_dirty', rb'[01]'),
+                              (b'redis_build_id', rb'[0-9a-f]{1,16}')):
             run.check(label + ' build ' + name.decode(), server.get(name),
-                      lambda x: isinstance(x, bytes) and re.fullmatch(rb'[0-9a-f]+', x) is not None)
+                      lambda x: isinstance(x, bytes) and re.fullmatch(pattern, x) is not None)
         for selection in ('DEFAULT', 'ALL', 'EVERYTHING'):
             run.check(label + ' ' + selection + ' CPU', b'used_cpu_user' in fields(c, selection), True)
     c.cmd('CONFIG', 'RESETSTAT')
