@@ -210,6 +210,57 @@ void participants(Server& server) {
     destroy_multi_state(state);
 }
 
+void reuse_check(Server& server) {
+    const auto name = key_on(server, 0, "exec1sd-reuse:");
+    auto& store = server.shard(0).store();
+    const Slice key = slice(name);
+    const auto hash = FlatStore::hash_key(key);
+    for (unsigned depth : {0u, 16u, 64u}) {
+        require(store.atomic_live_records() == 0, "fresh reuse history");
+        for (unsigned i = 0; i < depth; ++i) {
+            void* entry = nullptr; KvObj* value = nullptr;
+            require(store.atomic_prepare_plain(key, hash, 0, entry), "old version prepared");
+            store.atomic_install_plain(hash, key, entry, value, 1);
+        }
+        MultiExecState parent; parent.server = &server; parent.decision.owner = &parent;
+        std::atomic<bool> aborted{false};
+        uint32_t owner_refs = 0;
+        require(store.atomic_live_records() == depth, "requested history really installed");
+        const auto check = [&](bool expected, unsigned maximum) {
+            auto& counter = exec1s_counters[0]; const auto before = counter.record_visits;
+            bool actual;
+            { Exec1sVisitScope scope(0);
+              actual = store.atomic_reuses_transaction(hash, key, &parent.decision.epoch, &aborted); }
+            require(actual == expected, "newest ownership controls reuse");
+            require(counter.record_visits - before <= maximum, "reuse ignores older versions");
+            bool oracle = false;
+            store.atomic_visit_unit_records(hash, key, false, [&](AtomicEntry& e) {
+                oracle = e.plain() && e.group_epoch == &parent.decision.epoch && e.group_aborted == &aborted;
+            });
+            require(actual == oracle, "reuse equals complete oldest-to-newest oracle");
+        };
+        check(false, depth ? 1 : 0);
+        void* entry = nullptr; KvObj* value = nullptr;
+        require(store.atomic_prepare_transaction(key, hash, 991, &parent.decision.epoch,
+            &parent.record_refs, &aborted, &owner_refs, entry), "parent layer prepared");
+        store.atomic_install_transaction(hash, key, entry, value); ++owner_refs;
+        check(true, 1);
+        // An unrelated newest record must not hide a reusable private layer.
+        const auto other_name = key_on(server, 0, "exec1sd-other:");
+        const Slice other = slice(other_name); const auto other_hash = FlatStore::hash_key(other);
+        require(store.atomic_prepare_plain(other, other_hash, 0, entry), "unrelated layer prepared");
+        store.atomic_install_plain(other_hash, other, entry, value, 2);
+        check(true, 2);
+        // A newer foreign record forbids reuse even though the parent still exists.
+        require(store.atomic_prepare_plain(key, hash, 0, entry), "newer foreign layer prepared");
+        store.atomic_install_plain(hash, key, entry, value, 3);
+        check(false, 1);
+        parent.decision.epoch.store(1);
+        store.atomic_shutdown_release_records();
+        require(parent.record_refs.load() == 0 && owner_refs == 0, "reuse fixture releases parent lifetime");
+    }
+}
+
 
 void blind_group_check(Server& server) {
     server.set_atomic_enabled(true);
@@ -395,6 +446,7 @@ int main(int argc,char** argv) {
     else if(name=="reclaim") { reclaim_check(server,false); blind_group_check(server); }
     else if(name=="floor") reclaim_check(server,true);
     else if(name=="publication") publication_check(server);
+    else if(name=="reuse") reuse_check(server);
     else require(false,"known case");
     release_records(server); std::printf("PASS exec1s %s\n",name.c_str());
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """exec1s-d frozen builds and bounded instruction scopes; no performance work."""
-import argparse, hashlib, json, os, shutil, subprocess, tarfile
+import argparse, concurrent.futures, hashlib, json, os, shlex, shutil, subprocess, tarfile
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'build/exec1s-d'
@@ -64,12 +64,77 @@ def probes(arm, source, kinds):
         s.FIXTURE = ROOT / 'tests' / fixture
         for ns in ('normal', 'db0'): s.build(label, ns)
 
+def allocations(arm, source):
+    from exec1s_pad import recipe
+    objects = source / 'build'
+    link = recipe(source, objects)
+    for ns in ('normal', 'db0'):
+        flags = ['g++', '-std=c++20', '-O2', '-g', '-march=native', '-pthread',
+                 '-DTOMO_JEMALLOC', '-I' + str(source)]
+        if ns == 'db0': flags += ['-DTOMO_SINGLE_DATABASE=1', '-Dtomo=tomo_db0']
+        selected = []
+        for x in link:
+            if not x.endswith('.o') or x.endswith(('/src/main.o', '/src/core/version.o')): continue
+            db0 = '/db0/' in x
+            if ns == 'normal' and db0: continue
+            if x.endswith('/src/cmd/xshard.o') and db0 == (ns == 'db0'): continue
+            selected.append(x)
+        binary = OUT / (arm + '-allocation-' + ns)
+        cmd = flags + [str(ROOT/'tests/exec1s_alloc_scope.cc'), *selected, '-o', str(binary),
+                       '-ljemalloc', '-luring', '-pthread', '-lssl', '-lcrypto', '-lm']
+        run(cmd, OUT/'evidence'/(arm+'-allocation-'+ns+'-build.log'))
+        rows = []
+        for mode, shards in [('2s', '16'), ('1s', '64')]:
+            output = subprocess.check_output(['taskset', '-c', '64-71', str(binary), mode, shards], text=True)
+            rows.append(json.loads(next(l for l in output.splitlines() if l.startswith('{'))))
+        save(DOCS/(arm+'-allocation-'+ns+'.json'), dict(arm=arm, namespace=ns, command=cmd,
+             sha256=sha(binary), production_sha256=sha(objects/'tomokv'), results=rows))
+        binary.unlink()
+        print('ALLOC', arm, ns, rows, flush=True)
+
+def traces(arm, kinds):
+    s = scope_module()
+    import crlffix_fast_scope as fast
+    fast.scope = s
+    fast.OUT = s.OUT
+    # Reuse the established finite ptrace counter and its exact-data exit check.
+    step = ROOT/'build/crlffix/step'
+    step.parent.mkdir(exist_ok=True, parents=True)
+    run(['gcc', '-O2', '-g', 'tools/crlffix_step.c', '-o', str(step)], OUT/'evidence/step-build.log')
+    for kind in kinds.split(','):
+        label = kind+'-'+arm
+        cases = []
+        if kind == 'ORD':
+            cases = [(label, ns, cmd, mode, n, atomic, -1)
+                     for ns in ('normal','db0') for cmd in ('GET','SET','INCR','MGET','MSET')
+                     for mode in ('1s','2s') for n in (1,32)
+                     for atomic in ((0,1) if cmd=='MSET' else (1,))]
+        elif kind == 'RL':
+            cases = [(label, ns, 'READLOCAL-GET', '1s', n, 1, -1)
+                     for ns in ('normal','db0') for n in (1,32)]
+        elif kind == 'EXEC':
+            cases = [(label, ns, cmd, mode, n, atomic, -1)
+                     for ns in ('normal','db0') for cmd in ('EXEC-same','EXEC-cross')
+                     for mode in ('1s','2s') for n in (1,2,4) for atomic in (0,1)]
+            cases += [(label, ns, 'EXEC-depth-'+str(depth), mode, 2, atomic, -1)
+                      for ns in ('normal','db0') for depth in (0,16,64)
+                      for mode in ('1s','2s') for atomic in (0,1)]
+        elif kind == 'IDLE':
+            cases = [(label, ns, 'IDLE', '1s', 1, 1, -1) for ns in ('normal','db0')]
+        if kind == 'IDLE':
+            with concurrent.futures.ThreadPoolExecutor(2) as pool: rows = list(pool.map(s.trace,cases))
+        else:
+            prepared = {(label,ns):fast.prepare(label,ns) for ns in ('normal','db0')}
+            with concurrent.futures.ThreadPoolExecutor(8) as pool:
+                rows = list(pool.map(lambda case:fast.run(case,prepared),cases))
+        save(DOCS/(kind+'-'+arm+'-counts.json'),rows)
+
 def main():
     assert os.sched_getaffinity(0) <= set(range(64, 96)), 'taskset -c 64-95 required'
     OUT.mkdir(parents=True, exist_ok=True)
     DOCS.mkdir(parents=True, exist_ok=True)
     p = argparse.ArgumentParser()
-    p.add_argument('action', choices=['build', 'probes'])
+    p.add_argument('action', choices=['build', 'probes', 'allocations', 'trace'])
     p.add_argument('arm')
     p.add_argument('--ref')
     p.add_argument('--kinds', default='ORD,EXEC,RL')
@@ -79,7 +144,11 @@ def main():
     if a.action == 'build':
         run(['make', '-j32', 'all'], OUT / 'evidence' / (a.arm + '-build.log'), cwd=source)
         record(a.arm, source, commit)
-    else:
+    elif a.action == 'probes':
         probes(a.arm, source, a.kinds)
+    elif a.action == 'allocations':
+        allocations(a.arm, source)
+    else:
+        traces(a.arm, a.kinds)
 
 if __name__ == '__main__': main()
