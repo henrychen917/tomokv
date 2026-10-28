@@ -2195,13 +2195,24 @@ private:
     template <uint32_t BatchOps = kGenthreadExBatchOps,
               bool IofusedPrivateQueue = false>
     uint32_t drain_tasks_snapshot(bool unmasked = false) {
+        // ONE BOUNDED QUANTUM PER PRODUCER LANE, NOT "UNTIL EMPTY" (SNAP-STORM-1).
+        // While a shard captures, atomic_collapse() refuses to clean its MVCC pending list, so
+        // every plain-version write to a hot key walks a chain that grows with each write until
+        // that shard's capture ends -- and the capture advances only in snapshot_control_pass(),
+        // between drains. Draining a lane until empty therefore stopped returning as soon as a
+        // few closed-loop clients refilled one lane as fast as the growing walk emptied it: the
+        // capture stalled, the chain kept growing, and every other producer's tasks, every parked
+        // EXEC/WATCH/group retry and the capture itself waited behind that one lane until the
+        // load stopped. Capping each lane returns this owner to its control pass and retry
+        // queues every pass; a capped lane is re-flagged and resumes on the next pass. Only the
+        // snapshot path changes: an owner with no snapshot armed keeps drain_tasks().
         auto take = [&](const Task& task) {
             refresh_command_clock();
             schedule_snapshot_task<IofusedPrivateQueue>(task);
+            return false;
         };
-        const uint32_t n = unmasked
-            ? self_->drain_tasks_unmasked<IofusedPrivateQueue>(take)
-            : self_->drain_tasks<IofusedPrivateQueue>(take);
+        const uint32_t n = self_->drain_task_producer_chunks<IofusedPrivateQueue>(
+            BatchOps, take, [] {}, unmasked);
         self_->sig().ops += n;
         // Retire at least as many deferred Tasks as this drain can add, plus one batch of old debt;
         // otherwise a saturated post-capture owner could remain in Draining forever.
