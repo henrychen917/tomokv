@@ -1442,10 +1442,12 @@ void blocking_atomic_published(Server& server, ThreadCtx& self, Ring& ring,
 void blocking_scatter_mutation_published(const Task& task, Shard& shard, Op& op) {
     if (!task.scatter || !shard.has_blocking_waiters()) return;
     ScatterState& state = *task.scatter;
-    if (state.atomic_group || state.phase != 2 ||
+    const bool deletion = !state.atomic_apply && state.phase == 1 &&
+        (state.kind == Kind::Del || state.kind == Kind::Unlink);
+    if (state.atomic_group || (!deletion && (state.phase != 2 ||
         !(state.kind == Kind::Lmove || state.kind == Kind::Rpoplpush ||
           state.kind == Kind::Rename || state.kind == Kind::Renamenx ||
-          state.kind == Kind::Sort)) return;
+          state.kind == Kind::Sort)))) return;
     ShardGroup* group = group_for(state, shard.id());
     if (!group) return;
     for (uint32_t i = 0; i < group->count; i++) {

@@ -1,0 +1,269 @@
+[
+  {
+    "label": "post",
+    "source": "/home/user/Projects/cx-blockfix3/build/blockfix3/post-repro-v4",
+    "archive": "docs/blockfix3/focused/post.tar.gz",
+    "archive_sha256": "043b282b6ed7856b16dec8cf2aa2919ac07a20e3e7d887cb4966462a741836a6",
+    "files": [
+      {
+        "path": "1s-epoll/server.log",
+        "size": 7611,
+        "sha256": "95ae68afade0d881a70dc80e36b46e4e74a49bb17f74df078441c9796d8ac2d6"
+      },
+      {
+        "path": "1s-epoll/tcl/unit/type/stream-cgroups/events.tsv",
+        "size": 8699,
+        "sha256": "3a903d71e2fe688b37247cbd8ea0f17611bf2e7d435f06008a1d7dd2af9429ef"
+      },
+      {
+        "path": "1s-epoll/tcl/unit/type/stream-cgroups/result.json",
+        "size": 13767,
+        "sha256": "cb6bbdf957412f47495811857bb91c7806fdddb9aa41cc1d02906eca428be540"
+      },
+      {
+        "path": "1s-epoll/tcl/unit/type/stream-cgroups/server.log",
+        "size": 7683,
+        "sha256": "9269d0c6b5a96e12c88e985dbb67682eb96fa99a80522a00d81529f41c9b7af7"
+      },
+      {
+        "path": "1s-epoll/tcl/unit/type/stream-cgroups/suite.log",
+        "size": 5426,
+        "sha256": "3f79275b7d48e493733d35218db15b9ece5ebec4bad000ba2383df0423c41966"
+      },
+      {
+        "path": "1s-uring/server.log",
+        "size": 7517,
+        "sha256": "fde38b527cdca9a6815a717f8a972de9319db2117f08d63a117c327a355da1c3"
+      },
+      {
+        "path": "1s-uring/tcl/unit/type/stream-cgroups/events.tsv",
+        "size": 8699,
+        "sha256": "63efe580fcd804564ad8c60ad39518bfb611f9c49c923c5c47e4e9bc13683a1d"
+      },
+      {
+        "path": "1s-uring/tcl/unit/type/stream-cgroups/result.json",
+        "size": 13765,
+        "sha256": "ad0bd4ddab0c15ee107f1ec090f138f03f214e0cebde70207458337934e46931"
+      },
+      {
+        "path": "1s-uring/tcl/unit/type/stream-cgroups/server.log",
+        "size": 7581,
+        "sha256": "a3de3b1558d5dc084e4a25c4cd2eb1810bc85c9ab86163e92c373acf6deed1e6"
+      },
+      {
+        "path": "1s-uring/tcl/unit/type/stream-cgroups/suite.log",
+        "size": 5425,
+        "sha256": "40b21aa7f6534bddea1f02c575259c20cf86e11b9056259d58a6249580fa0d26"
+      },
+      {
+        "path": "2s-epoll/server.log",
+        "size": 6707,
+        "sha256": "8603811b9e637c5bc6f3035e5c2c19038adaf407198b1f79cc18fef6f192779f"
+      },
+      {
+        "path": "2s-epoll/tcl/unit/type/stream-cgroups/events.tsv",
+        "size": 8699,
+        "sha256": "38eaaeb146d66a564a148ae2eb7bfa6cba3dc708d5a566cfe2fb96d667219bc3"
+      },
+      {
+        "path": "2s-epoll/tcl/unit/type/stream-cgroups/result.json",
+        "size": 13793,
+        "sha256": "4e79ae6f4eff0c527d7ac37799587c4a0ba0f2c2f0c6868771cc668aa791589c"
+      },
+      {
+        "path": "2s-epoll/tcl/unit/type/stream-cgroups/server.log",
+        "size": 6721,
+        "sha256": "7cfbec059f5fff7a19167ff2f94489fcd23578dda5a94a7ad2d338726b476eb3"
+      },
+      {
+        "path": "2s-epoll/tcl/unit/type/stream-cgroups/suite.log",
+        "size": 5426,
+        "sha256": "930d9125dda46e4b1cab12f9a39bcd791cb13290deef297d18a6b56bf36da7f8"
+      },
+      {
+        "path": "2s-uring/server.log",
+        "size": 6636,
+        "sha256": "aa37d34589b5d82f251594433fa805185e84d6d97a3ab019e866014d2f345584"
+      },
+      {
+        "path": "2s-uring/tcl/unit/type/stream-cgroups/events.tsv",
+        "size": 8699,
+        "sha256": "43c1a24eb3928edd1d9ea0246960e68700f4260b9ca5ba636101637a1cfcb040"
+      },
+      {
+        "path": "2s-uring/tcl/unit/type/stream-cgroups/result.json",
+        "size": 13792,
+        "sha256": "6a10236c211a744fac0f7aae6780aa9d641d04913af89a9a7a6b5400f3ced966"
+      },
+      {
+        "path": "2s-uring/tcl/unit/type/stream-cgroups/server.log",
+        "size": 6637,
+        "sha256": "5a5bf4e6ce86d2c7e94031f3c5baaf447935f32c7b92ebc78a3415fb9efe3250"
+      },
+      {
+        "path": "2s-uring/tcl/unit/type/stream-cgroups/suite.log",
+        "size": 5426,
+        "sha256": "10fd85e2c187a2932751dce821e64a154c159484aaa3bb2c8d3bf535f1156f2b"
+      },
+      {
+        "path": "redis-None/server.log",
+        "size": 1203,
+        "sha256": "5a7d9f73f606ce0b099367eb9185e20d5f9d359b1638ccdb0fd57bddf1c3c26a"
+      },
+      {
+        "path": "redis-None/tcl/unit/type/stream-cgroups/events.tsv",
+        "size": 9226,
+        "sha256": "d250291b13571e1d4a55515b8c9d71455195588951342a8d333ab25529ceeb17"
+      },
+      {
+        "path": "redis-None/tcl/unit/type/stream-cgroups/result.json",
+        "size": 15172,
+        "sha256": "f5c7011e83e0f84c26ad41dd8133f323953d5a67096bd00813dd1b4ec71ce6af"
+      },
+      {
+        "path": "redis-None/tcl/unit/type/stream-cgroups/server.log",
+        "size": 3334,
+        "sha256": "3cd813327771eb4c099a8812244c0b0c6618e88b340e38462475f93213d3df91"
+      },
+      {
+        "path": "redis-None/tcl/unit/type/stream-cgroups/suite.log",
+        "size": 4795,
+        "sha256": "d38d8a0dcb32f3511d0cae72ba575b49a1afbf38c7bbd9e1b7bd0400f716f9dd"
+      },
+      {
+        "path": "results.json",
+        "size": 23063,
+        "sha256": "2f76067b62eb2bdff54f82cd9fa31b923eb70c625644a35e2841c03235b69a66"
+      }
+    ],
+    "jobs": []
+  },
+  {
+    "label": "intermediate-pre-stats",
+    "source": "/home/user/Projects/cx-blockfix3/build/blockfix3/post-repro-v2",
+    "archive": "docs/blockfix3/focused/intermediate-pre-stats.tar.gz",
+    "archive_sha256": "51c1d7f629e7e5f32d00b8d7873dabb61c9e9b24a5bb5aed197c81cb65507f60",
+    "files": [
+      {
+        "path": "1s-epoll/server.log",
+        "size": 7612,
+        "sha256": "1326256c630196f80658c4efdfd6d83ad56a70fd3abc667a79b62725e1f0bcb0"
+      },
+      {
+        "path": "1s-epoll/tcl/unit/type/stream-cgroups/events.tsv",
+        "size": 8699,
+        "sha256": "cb2bc54060ca72c52d8465627b6af63efc177aa5f8aaf7a39871f37f414d3b2b"
+      },
+      {
+        "path": "1s-epoll/tcl/unit/type/stream-cgroups/result.json",
+        "size": 13765,
+        "sha256": "7c07a526c2d0a5b016939d5a14cebf1e8c337deb1b573958bbff37237f82c451"
+      },
+      {
+        "path": "1s-epoll/tcl/unit/type/stream-cgroups/server.log",
+        "size": 7676,
+        "sha256": "794f0e8def7f37465443edf2d27f82c9d59c26bfff6ac563f21598457276dbe4"
+      },
+      {
+        "path": "1s-epoll/tcl/unit/type/stream-cgroups/suite.log",
+        "size": 5425,
+        "sha256": "4112ddacf68869948676ca7155aff2416eeef9c429d0fb59dfeaa7e419610a2d"
+      },
+      {
+        "path": "redis-None/server.log",
+        "size": 1203,
+        "sha256": "e98542cfb4999032749f1400937b55d5e07a509fba037bf13553f294e38baec1"
+      },
+      {
+        "path": "redis-None/tcl/unit/type/stream-cgroups/events.tsv",
+        "size": 9226,
+        "sha256": "f127f5687b1e8e3a223ef7ab491a97b1209491dbe56e1f59c69af14209b053ef"
+      },
+      {
+        "path": "redis-None/tcl/unit/type/stream-cgroups/result.json",
+        "size": 15173,
+        "sha256": "813ef03b7e9edd93377077ebe3b606f78ac9a2ef85b306dc68affee45d8bdb54"
+      },
+      {
+        "path": "redis-None/tcl/unit/type/stream-cgroups/server.log",
+        "size": 3334,
+        "sha256": "59a2b7359c84c9fffcc784e90451abfad86009906087b3b2893913d05f1c3fee"
+      },
+      {
+        "path": "redis-None/tcl/unit/type/stream-cgroups/suite.log",
+        "size": 4795,
+        "sha256": "5d322c59b23c183d99cfcf3ea85659d2f4ef6fad635308bae5877c85dcc41af1"
+      },
+      {
+        "path": "results.json",
+        "size": 5659,
+        "sha256": "a652bc80c611e2d56ffb2bdf2a883b9dfbdd5bec09a9c1266e0a2c8f948b859c"
+      }
+    ],
+    "jobs": []
+  },
+  {
+    "label": "intermediate-tcl-setup",
+    "source": "/home/user/Projects/cx-blockfix3/build/blockfix3/post-repro-v3",
+    "archive": "docs/blockfix3/focused/intermediate-tcl-setup.tar.gz",
+    "archive_sha256": "e11f758d650f0ba45c26d974db90e62e42b31539d3e2ddd1f335d21f95762666",
+    "files": [
+      {
+        "path": "1s-epoll/server.log",
+        "size": 7606,
+        "sha256": "543d230e964b63d35ffda062d75c2289d7eb2692a661edb478a05a99509cf3c2"
+      },
+      {
+        "path": "1s-epoll/tcl/unit/type/stream-cgroups/events.tsv",
+        "size": 8699,
+        "sha256": "1b793661f168c342a788cdd83a7a77af8c782c3a6b2f26ef266ca02d1bdddce5"
+      },
+      {
+        "path": "1s-epoll/tcl/unit/type/stream-cgroups/result.json",
+        "size": 13767,
+        "sha256": "237283f5406fe04474b459b53a7e6e4ea80072e641dc7080c83300218dc5abc7"
+      },
+      {
+        "path": "1s-epoll/tcl/unit/type/stream-cgroups/server.log",
+        "size": 7674,
+        "sha256": "6be18e0b77b1b2209d09865fd7b0dd016a15ca6dcdc4fde56ae93bb4635df9c3"
+      },
+      {
+        "path": "1s-epoll/tcl/unit/type/stream-cgroups/suite.log",
+        "size": 5426,
+        "sha256": "ee9b93017b279d58e941cad8a547c03ee9c13850c8d35da300d9b353586d036b"
+      },
+      {
+        "path": "redis-None/server.log",
+        "size": 1203,
+        "sha256": "06e3fb719de79a6d78d4cd8b592d2e147c17336b4178bfd08be1bc790e40dfcc"
+      },
+      {
+        "path": "redis-None/tcl/unit/type/stream-cgroups/events.tsv",
+        "size": 9226,
+        "sha256": "79d5e9865f5959ff6a8fe39d9d2c5ad2ebaf6ce2e97f83721b8382c1b2229cf6"
+      },
+      {
+        "path": "redis-None/tcl/unit/type/stream-cgroups/result.json",
+        "size": 15172,
+        "sha256": "865183db177eac9be492cb0ac02ee59c3604885f5877f63b9b5aa3ce0fc021d7"
+      },
+      {
+        "path": "redis-None/tcl/unit/type/stream-cgroups/server.log",
+        "size": 3334,
+        "sha256": "8d3653c71f51a29a00214c8fbbc6477b12563b3bbce2dd3201ba7c699eb3a9d6"
+      },
+      {
+        "path": "redis-None/tcl/unit/type/stream-cgroups/suite.log",
+        "size": 4795,
+        "sha256": "6d8b6413f681c31fe3d468eb1acc277f3d80af76b12568f92a644e8714b7289f"
+      },
+      {
+        "path": "results.json",
+        "size": 9071,
+        "sha256": "86ee1a71832381ec3cacfcb62405a95bb5e5e2d6ed9732a55837972b7cddae1c"
+      }
+    ],
+    "jobs": []
+  }
+]

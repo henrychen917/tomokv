@@ -14,6 +14,7 @@
 #include "network_config.h"
 #include "hll.h"
 #include "t_sort.h"
+#include "t_stream.h"
 #include "scripting.h"
 #include "server_tail.h"
 #include "slowlog.h"
@@ -1950,6 +1951,7 @@ struct StatBaseline {
     ReadLocalStats read_local;
     std::vector<uint64_t> command_calls;
     std::vector<uint64_t> rejected_calls, failed_calls;
+    StreamGroupStats xreadgroup;
 };
 
 std::mutex g_stat_baseline_mu;
@@ -2000,6 +2002,7 @@ void add_read_local_stats(ReadLocalStats& total, const ReadLocalStats& local) {
 
 void collect_stat_totals(StatBaseline& out) {
     out = StatBaseline{};
+    out.xreadgroup = stream_xreadgroup_stats();
     if (!g_server) return;
     for (uint32_t i = 0; i < g_server->nshards(); i++) {
         const Shard& sh = g_server->shard(static_cast<int32_t>(i));
@@ -2238,10 +2241,14 @@ void cmd_info(Shard&, Op& op) {
         }
     }
     StatBaseline baseline;
-    if (want_stats || want_commands) {
+    const bool want_errors = info_section(op, "ERRORSTATS", false);
+    if (want_stats || want_commands || want_errors) {
         std::lock_guard<std::mutex> lock(g_stat_baseline_mu);
         baseline = g_stat_baseline;
     }
+    const StreamGroupStats group_totals = stream_xreadgroup_stats();
+    const uint64_t group_errors = minus_baseline(group_totals.nogroup, baseline.xreadgroup.nogroup);
+    const uint64_t group_usec = minus_baseline(group_totals.usec, baseline.xreadgroup.usec);
     const uint64_t expired_subkeys = want_stats
         ? minus_baseline(expired_hash_fields, baseline.expired_subkeys) : 0;
     if (want_stats) {
@@ -3023,6 +3030,14 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(read_local.mget_fallback_seq_churn),
                 static_cast<unsigned long long>(read_local.mget_fallback_generation));
     }
+    if (want_stats)
+        appendf(body, "total_error_replies:%llu\r\n", static_cast<unsigned long long>(group_errors));
+    if (want_errors) {
+        body += "# Errorstats\r\n";
+        if (group_errors)
+            appendf(body, "errorstat_NOGROUP:count=%llu\r\n",
+                    static_cast<unsigned long long>(group_errors));
+    }
     if (info_section(op, "REPLICATION")) body += "# Replication\r\nrole:master\r\n";
     if (want_commands) {
         body += "# Commandstats\r\n";
@@ -3041,6 +3056,15 @@ void cmd_info(Shard&, Op& op) {
                 failed_calls = minus_baseline(failed_calls, baseline.failed_calls[id]);
             if (!calls && !rejected_calls && !failed_calls) continue;
             const std::string name = lower_name(command_registry_at(id)->name);
+            if (name == "xreadgroup") {
+                appendf(body, "cmdstat_%s:calls=%llu,usec=%llu,usec_per_call=%.2f,rejected_calls=%llu,failed_calls=%llu\r\n",
+                        name.c_str(), static_cast<unsigned long long>(calls),
+                        static_cast<unsigned long long>(group_usec),
+                        calls ? double(group_usec) / double(calls) : 0.0,
+                        static_cast<unsigned long long>(rejected_calls),
+                        static_cast<unsigned long long>(failed_calls + group_errors));
+                continue;
+            }
             // Omit unmeasured timing and unimplemented failed_calls; never invent counters.
             appendf(body, "cmdstat_%s:calls=%llu,rejected_calls=%llu\r\n",
                     name.c_str(), static_cast<unsigned long long>(calls),

@@ -88,6 +88,11 @@ StreamGroupProbe stream_group_prepare_waiter(Shard& shard, Slice key, uint64_t h
                                              Slice group, Slice consumer);
 bool stream_xreadgroup_execute(Shard& shard, Op& op, bool may_block = true);
 void stream_xreadgroup_reply_nogroup(Op& op);
+struct StreamGroupStats {
+    uint64_t nogroup = 0;
+    uint64_t usec = 0;
+};
+StreamGroupStats stream_xreadgroup_stats();
 
 uint64_t stream_groups_snapshot_size(const void* groups);
 bool stream_groups_snapshot_read(const void* groups, uint64_t offset, uint8_t* destination,

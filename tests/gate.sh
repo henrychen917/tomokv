@@ -3780,6 +3780,21 @@ blockfix2_case(){
     py tools/blockfix2_controls.py check-tcl --case "$case" --binary "$CANDIDATE_BINARY" \
         --cores "$CORES" --port "$PORT" --redis-root "$REDIS74_ROOT" \
         --output "$negative/tcl" >"$negative/tcl.log" 2>&1 || return 1
+    if [ "$case" = removed ]; then
+      local boundary="$TMPDIR/control-boundary"
+      mkdir -p "$boundary"
+      if ( CANDIDATE_BINARY="$PWD/build/blockfix3/controls/boundary/tomokv"
+           TMPDIR="$boundary"
+           compat3_case blockfix2 removed ); then
+        echo 'blockfix3 boundary-only regression unexpectedly passed' >&2
+        return 1
+      fi
+      py tools/blockfix3_controls.py check-boundary --binary "$CANDIDATE_BINARY" \
+          --output "$boundary" >"$boundary/verdict.log" 2>&1 || return 1
+      py tools/blockfix3_controls.py check-tcl --binary "$CANDIDATE_BINARY" \
+          --cores "$CORES" --port "$PORT" --redis-root "$REDIS74_ROOT" \
+          --output "$TMPDIR/control-statistics" >"$TMPDIR/control-statistics.log" 2>&1 || return 1
+    fi
   }
 }
 

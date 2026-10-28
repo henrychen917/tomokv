@@ -214,11 +214,18 @@
             if (__builtin_expect(
                     sh.store().atomic_has_records() || scoped_foreign_write, false)) {
                 PlainForeignReadScope foreign_scope;
-                const bool execute_handler = xshard_plain_prepare(
-                    *srv_, sh, op, t.client->id(), foreign_scope);
                 const bool defer_blocking =
                     __builtin_expect(sh.has_blocking_waiters(), false);
-                if (defer_blocking) blocking_defer_plain_publication(true);
+                if (defer_blocking) {
+                    // Own undecided predecessors were parked above. Observe a
+                    // decided predecessor before this command installs its
+                    // replacement: a pipelined CREATE cannot inherit DEL's
+                    // group waiter. Do this before entering the plain view.
+                    blocking_plain_mutation_published(sh, op);
+                    blocking_defer_plain_publication(true);
+                }
+                const bool execute_handler = xshard_plain_prepare(
+                    *srv_, sh, op, t.client->id(), foreign_scope);
                 if (execute_handler) {
                     if (__builtin_expect(sh.has_watches(), false)) watch_execute_handler(sh, op);
                     else op.spec->handler(sh, op);

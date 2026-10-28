@@ -52,6 +52,8 @@ def main():
     a.output.mkdir(parents=True, exist_ok=True)
     tree = a.output / 'checkout'
     redis_tcl.prepare(Path('/home/user/Projects/redis'), tree, controller_port=20191)
+    spec = json.loads((ROOT / 'tests/redis_tcl_passing.json').read_text())['files']['unit/type/stream-cgroups']
+    expected = [name for name in spec['passed_tests'] if name.split(' in tests/')[0] == TEST]
     rows = []
     for mode, engine in [('redis', None)] + [(m, e) for m in ('1s', '2s') for e in ('epoll', 'uring')]:
         binary = Path('/home/user/Projects/redis74/src/redis-server') if mode == 'redis' else a.binary
@@ -81,8 +83,12 @@ def main():
             port=20190, baseport=20192, mode=mode, ratio='6:2', idle_timeout=15, file_timeout=45)
         tcl = redis_tcl.run_file(run, tree, 'unit/type/stream-cgroups', only=[TEST],
                                server_args=['--net-io', engine] if engine else [])
+        validated = True
+        try: redis_tcl.validate_passing(tcl, expected, spec.get('known_setup_errors', ()) if engine else ())
+        except ValueError: validated = False
         result.update(mode=mode, engine=engine, sha256=redis_tcl.sha(binary), argv=argv,
-                      tcl_passed=tcl['passed'], tcl_failed=tcl['failed'], tcl_error=tcl['error'])
+                      tcl_passed=tcl['passed'], tcl_failed=tcl['failed'], tcl_error=tcl['error'],
+                      tcl_validated=validated)
         rows.append(result)
         (a.output / 'results.json').write_text(json.dumps(rows, indent=2) + '\n')
         print(mode, engine, json.dumps(result), flush=True)
@@ -90,7 +96,7 @@ def main():
         assert ('removal_error' not in result) == expected_pass
         assert (result['errorstat'] == 'count=1') == expected_pass
         assert (result['total_errors'] == '1') == expected_pass
-        assert (tcl['passed'] == 1 and tcl['failed'] == 0 and tcl['complete']) == expected_pass
+        assert validated == expected_pass
 
 
 if __name__ == '__main__': main()

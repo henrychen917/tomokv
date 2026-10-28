@@ -74,19 +74,40 @@ def removed(c, clients):
     equal(a.read(), [b"mixed", b"x"], "list waiter survives stream removal")
     parked(c, 0); out.append(got)
     # Deletion is a command boundary even when recreation is already pipelined.
-    # Keep this assertion red until the owner chooses how to carry that boundary
-    # through stream retirement; a later dirty sweep can observe the new group.
+    for delete in (("DEL", "boundary"), ("UNLINK", "boundary"),
+                   ("DEL", "boundary", "other-owner")):
+        c.cmd("DEL", "boundary", "other-owner")
+        c.cmd("XGROUP", "CREATE", "boundary", "g", "$", "MKSTREAM")
+        w = waiter(c, clients, "XREADGROUP", "GROUP", "g", "c", "BLOCK", 0,
+                   "STREAMS", "boundary", ">")
+        c.raw(b"".join(encode(*command) for command in (
+            delete,
+            ("XGROUP", "CREATE", "boundary", "g", "$", "MKSTREAM"),
+            ("XADD", "boundary", "1-0", "f", "v"))))
+        equal([c.read(), c.read(), c.read()], [1, b"OK", b"1-0"], "pipeline replies")
+        got = w.read()
+        assert isinstance(got, RespError) and str(got).startswith("NOGROUP"), (
+            "deleted group's waiter must not consume recreated stream", delete, got)
+        parked(c, 0); out.append(got)
+        equal(c.cmd("XPENDING", "boundary", "g"), [0, None, None, None],
+              "recreated group has no inherited delivery")
+        equal(c.cmd("XINFO", "CONSUMERS", "boundary", "g"), [],
+              "recreated group has no inherited consumer")
+        equal(c.cmd("XREADGROUP", "GROUP", "g", "new", "STREAMS", "boundary", ">"),
+              [[b"boundary", [[b"1-0", [b"f", b"v"]]]]], "new consumer owns new entry")
+    # EXEC's command boundary is the whole transaction: recreation inside it
+    # retains the waiter and delivers the replacement group's committed data.
+    c.cmd("DEL", "boundary")
     c.cmd("XGROUP", "CREATE", "boundary", "g", "$", "MKSTREAM")
     w = waiter(c, clients, "XREADGROUP", "GROUP", "g", "c", "BLOCK", 0,
                "STREAMS", "boundary", ">")
-    c.raw(b"".join(encode(*command) for command in (
-        ("DEL", "boundary"),
-        ("XGROUP", "CREATE", "boundary", "g", "$", "MKSTREAM"),
-        ("XADD", "boundary", "1-0", "f", "v"))))
-    equal([c.read(), c.read(), c.read()], [1, b"OK", b"1-0"], "pipeline replies")
+    c.cmd("MULTI")
+    c.cmd("DEL", "boundary")
+    c.cmd("XGROUP", "CREATE", "boundary", "g", "$", "MKSTREAM")
+    c.cmd("XADD", "boundary", "1-0", "f", "v")
+    equal(c.cmd("EXEC"), [1, b"OK", b"1-0"], "EXEC replies")
     got = w.read()
-    assert isinstance(got, RespError) and str(got).startswith("NOGROUP"), (
-        "deleted group's waiter must not consume recreated stream", got)
+    equal(got, [[b"boundary", [[b"1-0", [b"f", b"v"]]]]], "EXEC publication boundary")
     parked(c, 0); out.append(got)
     return out
 
