@@ -48,6 +48,11 @@ def main():
                                         passed=passed, failed=failed, rows=rows,
                                         ledger=str(ledger), ledger_sha256=sha(ledger),
                                         output_sha256=sha(folder / 'output.log')))
+                completion = folder / 'differ/complete.json'
+                if completion.exists():
+                    run['jobs'][-1]['differ_completion'] = dict(
+                        data=json.loads(completion.read_text()), sha256=sha(completion),
+                        legs_sha256=sha(folder / 'differ/legs.tsv'))
             selected = set(receipt['selected_jobs'].split())
             observed = {job['name'] for job in run['jobs']}
             # These public groups fold their separately completed children;
