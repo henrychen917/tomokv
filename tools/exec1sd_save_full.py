@@ -6,12 +6,13 @@ import exec1sd as d
 
 def main():
     assert os.sched_getaffinity(0)<=set(range(64,96))
-    p=argparse.ArgumentParser();p.add_argument('arm');p.add_argument('--native',action='store_true');p.add_argument('--label',default='');a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('arm');p.add_argument('--native',action='store_true');p.add_argument('--busy-only',action='store_true');p.add_argument('--label',default='');a=p.parse_args()
+    assert not (a.native and a.busy_only)
     port_lock=(d.OUT/'save-native-ports.lock').open('w')
     fcntl.flock(port_lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
     arm=next(r for r in json.loads((d.DOCS/'arms.json').read_text()) if r['arm']==a.arm)
     assert d.sha(arm['binary'])==arm['sha256']
-    label=('save-full-native-' if a.native else 'save-full-traceable-')+a.arm+a.label
+    label=('save-full-native-' if a.native else 'save-full-busy-only-' if a.busy_only else 'save-full-traceable-')+a.arm+a.label
     out=d.OUT/label;out.mkdir(exist_ok=False)
     observer=out/'observe.gdb'
     observer.write_text('''set pagination off
@@ -44,6 +45,42 @@ end
 continue
 thread apply all bt
 ''')
+    if a.busy_only:
+        # Stop only after SnapshotManager already returned Busy. No accepted
+        # admission executes a breakpoint; this avoids the entry/finish
+        # observer's delays before the placement-admission decision.
+        source=subprocess.check_output(['git','show',arm['source_commit']+':src/cmd/t_server.cc'],text=True)
+        lines=source.splitlines()
+        busy_line=next(i+2 for i,line in enumerate(lines)
+            if 'if (result == SnapshotManager::StartResult::Busy)' in line)
+        assert 'Background save already in progress' in lines[busy_line-1]
+        observer.write_text("""set pagination off
+set confirm off
+set print thread-events off
+set debuginfod enabled off
+handle SIGPIPE nostop noprint pass
+handle SIGTERM nostop noprint pass
+python
+import gdb,json
+class Busy(gdb.Breakpoint):
+ def stop(self):
+  frame=gdb.newest_frame();errors=[];message=None
+  while frame:
+   try:
+    value=frame.read_var('error')
+    message=value['_M_dataplus']['_M_p'].string()
+    break
+   except Exception as error:errors.append(str(error));frame=frame.older()
+  print('SAVE_BUSY_RESULT '+json.dumps(dict(error=message,
+    variable_errors=errors if message is None else [],
+    backtrace=gdb.execute('bt 8',to_string=True))),flush=True)
+  return False
+point=Busy('src/cmd/t_server.cc:"""+str(busy_line)+"""',internal=True)
+print('SAVE_BUSY_OBSERVER_ARMED '+json.dumps(dict(locations=len(point.locations))),flush=True)
+end
+continue
+thread apply all bt
+""")
     env=dict(os.environ,REDIS74_ROOT='/home/user/Projects/redis',GATE_DIFFER_OUT=str(out/'differ'),
         GATE_DIFFER_NET_IO='epoll',GATE_DIFFER_GEOMETRY='split',GATE_DIFFER_PART='split-0',
         GATE_DIFFER_PLAN=str(d.DOCS/'epoll-seed22-plan.json'),GATE_LOAD_CORES='80-95',
@@ -90,7 +127,15 @@ thread apply all bt
                 except subprocess.TimeoutExpired:process.terminate();process.wait()
     logfile=out/'observer.log';log=logfile.read_text()
     rows=[json.loads(line[len('SAVE_RESULT '):]) for line in log.splitlines() if line.startswith('SAVE_RESULT ')]
+    busy_rows=[json.loads(line[len('SAVE_BUSY_RESULT '):]) for line in log.splitlines()
+               if line.startswith('SAVE_BUSY_RESULT ')]
+    armed=[json.loads(line[len('SAVE_BUSY_OBSERVER_ARMED '):]) for line in log.splitlines()
+           if line.startswith('SAVE_BUSY_OBSERVER_ARMED ')]
+    assert not a.busy_only or (len(armed)==1 and armed[0]['locations']>0), log
+    assert d.sha(arm['binary'])==arm['sha256']
     d.save(d.DOCS/(label+'.json'),dict(arm=arm,command=cmd,returncode=result.returncode,
+        observer_kind='Busy reply only' if a.busy_only else 'Every admission entry and return',
+        busy_results=busy_rows,armed=armed,
         plan_sha256=d.sha(d.DOCS/'epoll-seed22-plan.json'),observer_sha256=d.sha(observer),
         target_log=str(logfile),target_log_sha256=d.sha(logfile),results=rows,
         observer_errors=[line for line in log.splitlines() if line.startswith('SAVE_OBSERVER_ERROR ')]))
