@@ -83,4 +83,24 @@ def proof():
    ('atomic_ryow rate assertion','Existing GATE_PROOF_NO_RATES=1 partial interface; finite correctness schedules retained.')]]))
  print('proof invocations',len(runs),'completed final jobs',len(final_jobs),'failed final rows',sum(j.get('failed',0) for j in final_jobs.values()))
 
-if __name__=='__main__':counts();proof()
+def scatter():
+ manifest={r['arm']:r for r in read('arms.json')}
+ for arm in ('PRE','POST','X12','X3','X5','MERGE'):
+  label='SCAT-'+arm;binding=read(label+'-binding.json');rows=read(label+'-counts.json')
+  assert len(rows)==48 and binding['all_allocated_sections_equal']
+  assert binding['frozen_sha256']==manifest[arm]['sha256']
+  retired=read(label+'-retirements.json')
+  for ns in ('normal','db0'):
+   receipt=next(r for r in retired if r.get('namespace')==ns)
+   assert receipt['production_sha256']==binding['rebuilt_sha256']
+   assert receipt['binding_sha256']==d.sha(d.DOCS/(label+'-binding.json'))
+   assert receipt['count_sha256']==d.sha(d.DOCS/(label+'-counts.json'))
+   assert all(r['probe_sha256']==receipt['sha256'] for r in rows if r['namespace']==ns)
+ pairs={name:compare(read('SCAT-'+pre+'-counts.json'),read('SCAT-'+post+'-counts.json'))
+        for name,pre,post in [('final','PRE','POST'),('X3','X12','X3'),('X5','X12','X5'),
+                              ('X5-with-X3','X3','MERGE'),('X3-with-X5','X5','MERGE')]}
+ d.save(d.DOCS/'scatter-comparison.json',dict(scope='Each child is MSET of two distinct keys; same shard versus two shards on distinct owners, including one-child EXEC. Exact replies and final values required.',
+     production_sha256=manifest['POST']['sha256'],attribution=pairs))
+ print('scatter: 6 arms x 48 scopes, exact allocated-section bindings verified')
+
+if __name__=='__main__':counts();proof();scatter()

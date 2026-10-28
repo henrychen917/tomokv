@@ -118,9 +118,14 @@ shard, atomic 0/1, mode and namespace, plus 24 two-child depth scopes with
 `docs/exec1s-d/EXEC-<ARM>-counts.json`.
 The children in this matrix are INCRs. Same-shard repeats one key; cross-shard
 uses one key per child on distinct shards. Consequently the one-child cross
-label is the same single-shard control, not a scatter child. A one-child EXEC
-containing a cross-shard MSET was **NOT RUN** in this attribution matrix; these
-receipts must not be read as covering that different command shape.
+label is the same single-shard control, not a scatter child. The separate
+`SCAT-<ARM>-counts.json` matrix adds MSET children: each writes two distinct
+keys, on one shard or two shards owned by different threads. It includes
+1/2/4 children in both modes, atomic settings and namespaces. PRE and POST
+have passed all 48 scopes; the isolated-arm receipts are still pending.
+Rebuilt probe inputs must match every allocated section of the frozen binary
+except the build-id note, including bytes, addresses and sizes. This permits
+debug-only rebuild differences without substituting different production code.
 
 The normal-namespace 2s, atomic-0 two-child depth counts are:
 
