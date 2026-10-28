@@ -142,8 +142,19 @@ void wound_window(Server& server) {
             "script guard publishes cancellation before completion");
     uint64_t zero = 0;
     require(!state.epoch.compare_exchange_strong(zero, 123), "terminal commit cannot win the wound window");
+    // Integration: the wound decision survives the owner->IO retry hand-off.
+    Client client{-1}; Ring ring;
+    state.owner_io = 0; state.pending.store(0);
+    server.atomic_apply_open(0, state.apply_open);
+    require(script_escalate_handoff(server, server.thread(0), ring,
+                Task{&client, 0, 0, &state}, op.op) == ScatterFinish::Waiting,
+            "wounded escalated script hands off, never publishes a final reply");
+    require(state.epoch.load() == kAtomicCancelledEpoch && !state.apply_open.load() &&
+                op.op.reply.size() == 0 &&
+                server.multi_retry_lane(0).head.exchange(nullptr) == &state.group_attempt()->retry,
+            "cancelled decision, closed apply and one retry survive hand-off");
     require(txn_group_release(state), "empty sidecar retires");
-    std::puts("AT4-WOUND-1 script guard PASS; generic wound path unchanged");
+    std::puts("AT4-WOUND-1 script cancellation and hand-off PASS");
 }
 
 void final_window(Server& server, bool omit_owner_close) {

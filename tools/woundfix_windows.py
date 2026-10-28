@@ -47,7 +47,7 @@ def main():
     # EXEC's blind publication uses multi_cancel_decision on PRE. POST's local
     # helper may move its store into execute_watch_phase; choose exactly one.
     text = multi.read_text()
-    lo = text.index("bool execute_watch_phase("); hi = text.index("\nvoid finalize_reservations(", lo)
+    lo = text.index("bool execute_watch_phase("); hi = text.index("void finalize_reservations(", lo)
     body = text[lo:hi]
     if "multi_cancel_decision(state.decision, shard.id(), TxnCounter::BlindRestarts);" in body:
         lo = text.index("uint64_t multi_cancel_decision("); hi = text.index("\n}\n}", lo)
