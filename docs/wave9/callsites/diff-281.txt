@@ -1,0 +1,74 @@
+tomo_db0::stream_object_merge_scan(tomo_db0::KvObj*, void*, bool (*)(void*, tomo_db0::StreamID&), void (*)(void*, tomo_db0::StreamID const&, tomo_db0::StreamBorrowedEntry const*)) [clone .cold]
+--- headline
+
++++ post
+
+@@ -1,37 +1,37 @@
+
+-CLONE 0 0000 [ 7] mov -0x1d0(%rbp),%rdi
+-CLONE 0 0007 [ 3] vzeroupper
+-CLONE 0 000a [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
+-CLONE 0 000f [ 7] mov -0x1c0(%rbp),%rdi
+-CLONE 0 0016 [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
+-CLONE 0 001b [ 7] mov -0x1b8(%rbp),%rdi
+-CLONE 0 0022 [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
+-CLONE 0 0027 [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 002b [ 9] sub %fs:0x28,%rax
+-CLONE 0 0034 [ 2] jne <+0xa7>
+-CLONE 0 0036 [ 3] mov %rbx,%rdi
+-CLONE 0 0039 [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 003e [ 3] dec %rax
+-CLONE 0 0041 [ 2] jne <+0x9f>
+-CLONE 0 0043 [ 3] vzeroupper
+-CLONE 0 0046 [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 004b [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 0050 [ 7] mov -0x1b8(%rbp),%rdi
+-CLONE 0 0057 [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
+-CLONE 0 005c [ 5] jmp <tomo_db0::stream_object_merge_scan(tomo_db0::KvObj*, void*, bool (*)(void*, tomo_db0::StreamID&), void (*)(void*, tomo_db0::StreamID const&, tomo_db0::StreamBorrowedEntry const*))+0x123>
+-CLONE 0 0061 [ 7] mov -0x200(%rbp),%rdi
+-CLONE 0 0068 [ 3] vzeroupper
+-CLONE 0 006b [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
+-CLONE 0 0070 [ 7] mov -0x1d8(%rbp),%rdi
++CLONE 0 0000 [ 3] dec %rax
++CLONE 0 0003 [ 6] jne <+0xa4>
++CLONE 0 0009 [ 3] vzeroupper
++CLONE 0 000c [ 5] call <__cxa_begin_catch@plt>
++CLONE 0 0011 [ 5] call <__cxa_end_catch@plt>
++CLONE 0 0016 [ 7] mov -0x1c0(%rbp),%rdi
++CLONE 0 001d [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
++CLONE 0 0022 [ 5] jmp <tomo_db0::stream_object_merge_scan(tomo_db0::KvObj*, void*, bool (*)(void*, tomo_db0::StreamID&), void (*)(void*, tomo_db0::StreamID const&, tomo_db0::StreamBorrowedEntry const*))+0x11e>
++CLONE 0 0027 [ 7] mov -0x200(%rbp),%rdi
++CLONE 0 002e [ 3] vzeroupper
++CLONE 0 0031 [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
++CLONE 0 0036 [ 7] mov -0x1d0(%rbp),%rdi
++CLONE 0 003d [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
++CLONE 0 0042 [ 7] mov -0x1c0(%rbp),%rdi
++CLONE 0 0049 [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
++CLONE 0 004e [ 4] mov -0x38(%rbp),%rax
++CLONE 0 0052 [ 9] sub %fs:0x28,%rax
++CLONE 0 005b [ 2] jne <+0x9f>
++CLONE 0 005d [ 3] mov %rbx,%rdi
++CLONE 0 0060 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0065 [ 7] mov -0x208(%rbp),%rdi
++CLONE 0 006c [ 3] vzeroupper
++CLONE 0 006f [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
++CLONE 0 0074 [ 3] mov %rbx,%rdi
+ CLONE 0 0077 [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
+-CLONE 0 007c [ 7] mov -0x1b8(%rbp),%rdi
++CLONE 0 007c [ 7] mov -0x1d8(%rbp),%rdi
+ CLONE 0 0083 [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
+ CLONE 0 0088 [ 4] mov -0x38(%rbp),%rax
+ CLONE 0 008c [ 9] sub %fs:0x28,%rax
+ CLONE 0 0095 [ 2] jne <+0xac>
+-CLONE 0 0097 [ 3] mov %rbx,%rdi
++CLONE 0 0097 [ 3] mov %r12,%rdi
+ CLONE 0 009a [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 009f [ 3] mov %rdi,%rbx
+-CLONE 0 00a2 [ 3] vzeroupper
+-CLONE 0 00a5 [ 2] jmp <+0x7c>
+-CLONE 0 00a7 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 009f [ 5] call <__stack_chk_fail@plt>
++CLONE 0 00a4 [ 3] mov %rdi,%rbx
++CLONE 0 00a7 [ 3] vzeroupper
++CLONE 0 00aa [ 2] jmp <+0x42>
+ CLONE 0 00ac [ 5] call <__stack_chk_fail@plt>

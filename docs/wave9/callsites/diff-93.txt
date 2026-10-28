@@ -1,0 +1,12 @@
+tomo::FlatStore::read_local_table_mutation_end() [clone .isra.0] [clone .cold]
+--- headline
+
++++ post
+
+@@ -18,5 +18,3 @@
+
+ CLONE 8 0001 [ 5] call <abort@plt>
+ CLONE 9 0000 [ 1] push %rax
+ CLONE 9 0001 [ 5] call <abort@plt>
+-CLONE 10 0000 [ 1] push %rax
+-CLONE 10 0001 [ 5] call <abort@plt>

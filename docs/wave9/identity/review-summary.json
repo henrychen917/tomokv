@@ -1,0 +1,20 @@
+{
+  "lane body retained": 1098,
+  "symbolic reference annotation": 70,
+  "container template instantiation": 27,
+  "scatter and script admission composition": 21,
+  "blocking lifecycle and stream removal": 27,
+  "EXEC lane composition": 55,
+  "remaining compiler propagation": 48,
+  "executor script hand-off composition": 4,
+  "boot and loop instantiation": 2,
+  "stream node accounting and blocking signal": 22,
+  "configuration and INFO composition": 10,
+  "script escalation and reply composition": 19,
+  "version reuse and value retirement composition": 17,
+  "observer publication composition": 6,
+  "wound cancellation and escalated claims": 8,
+  "IO protocol and FIFO composition": 138,
+  "cold GET nil reply inlining": 1,
+  "central reply sanitization": 3
+}

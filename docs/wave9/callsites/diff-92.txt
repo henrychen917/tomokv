@@ -1,0 +1,67 @@
+tomo::FlatStore::read_local_table_mutation_end() [clone .isra.0]
+--- headline
+
++++ post
+
+@@ -167,33 +167,33 @@
+
+ CLONE 5 005c [ 7] mov %rax,0x548(%rsi)
+ CLONE 5 0063 [ 1] ret
+ CLONE 6 0000 [ 3] test %dil,%dil
+-CLONE 6 0003 [ 2] jne <+0x10>
+-CLONE 6 0005 [ 1] ret
+-CLONE 6 0006 [10] cs nopw 0x0(%rax,%rax,1)
+-CLONE 6 0010 [ 3] test %rsi,%rsi
+-CLONE 6 0013 [ 6] je <tomo::FlatStore::read_local_table_mutation_end() [clone .isra.0] [clone .cold]>
+-CLONE 6 0019 [ 7] cmpb $0x0,0x524(%rsi)
+-CLONE 6 0020 [ 6] je <tomo::FlatStore::read_local_table_mutation_end() [clone .isra.0] [clone .cold]>
+-CLONE 6 0026 [ 6] mov 0x580(%rsi),%eax
+-CLONE 6 002c [ 2] test %eax,%eax
+-CLONE 6 002e [ 6] je <tomo::FlatStore::read_local_table_mutation_end() [clone .isra.0] [clone .cold]>
+-CLONE 6 0034 [ 2] dec %eax
+-CLONE 6 0036 [ 6] mov %eax,0x580(%rsi)
+-CLONE 6 003c [ 2] jne <+0x5>
+-CLONE 6 003e [ 7] mov 0x548(%rsi),%rax
+-CLONE 6 0045 [ 2] test $0x1,%al
+-CLONE 6 0047 [ 6] je <tomo::FlatStore::read_local_table_mutation_end() [clone .isra.0] [clone .cold]>
+-CLONE 6 004d [ 3] mov %rax,%rcx
+-CLONE 6 0050 [10] movabs $0x3fffffffffffffff,%rdi
+-CLONE 6 005a [ 4] shr $0x2,%rcx
+-CLONE 6 005e [ 3] cmp %rdi,%rcx
+-CLONE 6 0061 [ 8] lea 0x4(,%rcx,4),%rdx
+-CLONE 6 0069 [ 7] mov $0xfffffffffffffffc,%rcx
+-CLONE 6 0070 [ 4] cmove %rcx,%rdx
+-CLONE 6 0074 [ 3] and $0x2,%eax
+-CLONE 6 0077 [ 3] or %rdx,%rax
+-CLONE 6 007a [ 7] mov %rax,0x548(%rsi)
+-CLONE 6 0081 [ 1] ret
++CLONE 6 0003 [ 2] je <+0x63>
++CLONE 6 0005 [ 3] test %rsi,%rsi
++CLONE 6 0008 [ 2] je <+0x1d>
++CLONE 6 000a [ 7] cmpb $0x0,0x524(%rsi)
++CLONE 6 0011 [ 2] je <+0x1d>
++CLONE 6 0013 [ 6] mov 0x580(%rsi),%eax
++CLONE 6 0019 [ 2] test %eax,%eax
++CLONE 6 001b [ 2] jne <+0x23>
++CLONE 6 001d [ 1] push %rax
++CLONE 6 001e [ 5] call <abort@plt>
++CLONE 6 0023 [ 2] dec %eax
++CLONE 6 0025 [ 6] mov %eax,0x580(%rsi)
++CLONE 6 002b [ 2] jne <+0x63>
++CLONE 6 002d [ 7] mov 0x548(%rsi),%rdx
++CLONE 6 0034 [ 3] test $0x1,%dl
++CLONE 6 0037 [ 2] je <+0x1d>
++CLONE 6 0039 [ 3] mov %rdx,%rax
++CLONE 6 003c [10] movabs $0x3fffffffffffffff,%rcx
++CLONE 6 0046 [ 4] shr $0x2,%rax
++CLONE 6 004a [ 3] cmp %rcx,%rax
++CLONE 6 004d [ 2] je <+0x52>
++CLONE 6 004f [ 3] inc %rax
++CLONE 6 0052 [ 4] shl $0x2,%rax
++CLONE 6 0056 [ 3] and $0x2,%edx
++CLONE 6 0059 [ 3] or %rdx,%rax
++CLONE 6 005c [ 7] mov %rax,0x548(%rsi)
++CLONE 6 0063 [ 1] ret
+ CLONE 7 0000 [ 3] test %dil,%dil
+ CLONE 7 0003 [ 2] jne <+0x10>
+ CLONE 7 0005 [ 1] ret

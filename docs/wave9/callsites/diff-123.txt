@@ -1,0 +1,25 @@
+tomo::acl_initialize(tomo::Server&, tomo::Config const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)
+--- headline
+
++++ post
+
+@@ -23,7 +23,7 @@
+
+ CLONE 0 0059 [ 2] test %al,%al
+ CLONE 0 005b [ 6] jne <+0x4c3>
+ CLONE 0 0061 [ 7] mov 0xb0(%rbx),%rsi
+-CLONE 0 0068 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 0068 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 006f [ 7] lea <rip>(%rip),%rdi # <tomo::(anonymous namespace)::g_acl_filename>
+ CLONE 0 0076 [ 7] mov %r12,<rip>(%rip) # <tomo::(anonymous namespace)::g_acl_server>
+ CLONE 0 007d [ 3] test %rsi,%rsi
+@@ -228,7 +228,7 @@
+
+ CLONE 0 04fa [ 6] nopw 0x0(%rax,%rax,1)
+ CLONE 0 0500 [ 2] test %eax,%eax
+ CLONE 0 0502 [ 6] je <+0x133>
+-CLONE 0 0508 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x788>
++CLONE 0 0508 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x782>
+ CLONE 0 050f [ 8] andl $0xfffffffb,0x230(%rsp)
+ CLONE 0 0517 [ 2] mov %eax,%edx
+ CLONE 0 0519 [ 3] mov %r13,%rsi

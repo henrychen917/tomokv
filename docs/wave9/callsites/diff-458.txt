@@ -1,0 +1,137 @@
+void tomo_db0::(anonymous namespace)::cmd_xadd<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]
+--- streamfix
+
++++ post
+
+@@ -1,67 +1,67 @@
+
+ CLONE 0 0000 [ 7] mov -0x400(%rbp),%rdi
+ CLONE 0 0007 [ 3] vzeroupper
+-CLONE 0 000a [ 5] call <tomo_db0::StreamVal::~StreamVal()>
+-CLONE 0 000f [ 3] mov %rbx,%rdi
+-CLONE 0 0012 [ 3] mov %r12,%rbx
+-CLONE 0 0015 [ 5] call <std::vector<tomo_db0::(anonymous namespace)::OwnedRecord, std::allocator<tomo_db0::(anonymous namespace)::OwnedRecord> >::~vector()>
+-CLONE 0 001a [ 3] mov %r14,%rdi
+-CLONE 0 001d [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0022 [ 7] mov -0x3d8(%rbp),%rdi
+-CLONE 0 0029 [ 5] call <std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()>
+-CLONE 0 002e [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 0032 [ 9] sub %fs:0x28,%rax
+-CLONE 0 003b [ 2] jne <+0x8c>
+-CLONE 0 003d [ 3] mov %rbx,%rdi
+-CLONE 0 0040 [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 0045 [ 3] mov %r14,%rdi
+-CLONE 0 0048 [ 3] vzeroupper
+-CLONE 0 004b [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0050 [ 7] lea -0x330(%rbp),%rdi
+-CLONE 0 0057 [ 5] call <tomo_db0::ObjectSizeTracker::finish()>
+-CLONE 0 005c [ 2] jmp <+0x22>
+-CLONE 0 005e [ 7] mov -0x3d0(%rbp),%rdi
+-CLONE 0 0065 [ 3] vzeroupper
+-CLONE 0 0068 [ 5] call <std::vector<tomo_db0::(anonymous namespace)::OwnedRecord, std::allocator<tomo_db0::(anonymous namespace)::OwnedRecord> >::~vector()>
+-CLONE 0 006d [ 3] mov %r14,%rdi
+-CLONE 0 0070 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0075 [ 3] mov %r12,%rdi
+-CLONE 0 0078 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 007d [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 0081 [ 9] sub %fs:0x28,%rax
+-CLONE 0 008a [ 2] je <+0x3d>
+-CLONE 0 008c [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 0091 [ 7] mov -0x400(%rbp),%rdi
++CLONE 0 000a [ 5] call <tomo_db0::ObjectSizeTracker::finish()>
++CLONE 0 000f [ 4] mov -0x38(%rbp),%rax
++CLONE 0 0013 [ 9] sub %fs:0x28,%rax
++CLONE 0 001c [ 2] jne <+0x68>
++CLONE 0 001e [ 3] mov %rbx,%rdi
++CLONE 0 0021 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0026 [ 7] lea -0x1c0(%rbp),%rdi
++CLONE 0 002d [ 3] vzeroupper
++CLONE 0 0030 [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
++CLONE 0 0035 [ 7] mov -0x3e0(%rbp),%rdi
++CLONE 0 003c [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
++CLONE 0 0041 [ 7] mov -0x418(%rbp),%rdi
++CLONE 0 0048 [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
++CLONE 0 004d [ 7] mov -0x3d8(%rbp),%rdi
++CLONE 0 0054 [ 5] call <std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()>
++CLONE 0 0059 [ 4] mov -0x38(%rbp),%rax
++CLONE 0 005d [ 9] sub %fs:0x28,%rax
++CLONE 0 0066 [ 2] je <+0x1e>
++CLONE 0 0068 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 006d [ 4] lea -0x60(%rbp),%r14
++CLONE 0 0071 [ 3] vzeroupper
++CLONE 0 0074 [ 3] mov %r14,%rdi
++CLONE 0 0077 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 007c [ 3] mov %r12,%rdi
++CLONE 0 007f [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0084 [ 4] mov -0x38(%rbp),%rax
++CLONE 0 0088 [ 9] sub %fs:0x28,%rax
++CLONE 0 0091 [ 2] je <+0x1e>
++CLONE 0 0093 [ 2] jmp <+0x68>
++CLONE 0 0095 [ 3] mov %r14,%rdi
+ CLONE 0 0098 [ 3] vzeroupper
+-CLONE 0 009b [ 5] call <tomo_db0::ObjectSizeTracker::finish()>
+-CLONE 0 00a0 [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 00a4 [ 9] sub %fs:0x28,%rax
+-CLONE 0 00ad [ 2] je <+0x3d>
+-CLONE 0 00af [ 2] jmp <+0x8c>
+-CLONE 0 00b1 [ 7] cmpb $0x0,-0x3e0(%rbp)
+-CLONE 0 00b8 [ 2] je <+0xcb>
+-CLONE 0 00ba [ 7] lea -0x1f0(%rbp),%rdi
+-CLONE 0 00c1 [ 3] vzeroupper
+-CLONE 0 00c4 [ 5] call <std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()>
+-CLONE 0 00c9 [ 2] jmp <+0x6d>
+-CLONE 0 00cb [ 3] vzeroupper
+-CLONE 0 00ce [ 2] jmp <+0x6d>
+-CLONE 0 00d0 [ 7] lea -0x1c0(%rbp),%rdi
+-CLONE 0 00d7 [ 3] vzeroupper
+-CLONE 0 00da [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
+-CLONE 0 00df [ 7] mov -0x3e0(%rbp),%rdi
+-CLONE 0 00e6 [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
+-CLONE 0 00eb [ 7] mov -0x418(%rbp),%rdi
+-CLONE 0 00f2 [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
+-CLONE 0 00f7 [ 5] jmp <+0x22>
+-CLONE 0 00fc [ 4] lea -0x60(%rbp),%r14
+-CLONE 0 0100 [ 3] vzeroupper
+-CLONE 0 0103 [ 5] jmp <+0x6d>
+-CLONE 0 0108 [ 3] mov %r12,%rsi
+-CLONE 0 010b [ 3] mov %rbx,%rdi
++CLONE 0 009b [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 00a0 [ 7] lea -0x330(%rbp),%rdi
++CLONE 0 00a7 [ 5] call <tomo_db0::ObjectSizeTracker::finish()>
++CLONE 0 00ac [ 2] jmp <+0x4d>
++CLONE 0 00ae [ 7] mov -0x400(%rbp),%rdi
++CLONE 0 00b5 [ 3] vzeroupper
++CLONE 0 00b8 [ 5] call <tomo_db0::StreamVal::~StreamVal()>
++CLONE 0 00bd [ 3] mov %rbx,%rdi
++CLONE 0 00c0 [ 3] mov %r12,%rbx
++CLONE 0 00c3 [ 5] call <std::vector<tomo_db0::(anonymous namespace)::OwnedRecord, std::allocator<tomo_db0::(anonymous namespace)::OwnedRecord> >::~vector()>
++CLONE 0 00c8 [ 3] mov %r14,%rdi
++CLONE 0 00cb [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 00d0 [ 5] jmp <+0x4d>
++CLONE 0 00d5 [ 3] mov %r12,%rsi
++CLONE 0 00d8 [ 3] mov %rbx,%rdi
++CLONE 0 00db [ 3] vzeroupper
++CLONE 0 00de [ 5] call <_ZdlPvRKSt9nothrow_t@plt>
++CLONE 0 00e3 [ 4] mov -0x38(%rbp),%rax
++CLONE 0 00e7 [ 9] sub %fs:0x28,%rax
++CLONE 0 00f0 [ 6] jne <+0x68>
++CLONE 0 00f6 [ 3] mov %r13,%rdi
++CLONE 0 00f9 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 00fe [ 7] cmpb $0x0,-0x3e0(%rbp)
++CLONE 0 0105 [ 2] je <+0x12f>
++CLONE 0 0107 [ 7] lea -0x1f0(%rbp),%rdi
+ CLONE 0 010e [ 3] vzeroupper
+-CLONE 0 0111 [ 5] call <_ZdlPvRKSt9nothrow_t@plt>
+-CLONE 0 0116 [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 011a [ 9] sub %fs:0x28,%rax
+-CLONE 0 0123 [ 6] jne <+0x8c>
+-CLONE 0 0129 [ 3] mov %r13,%rdi
+-CLONE 0 012c [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0111 [ 5] call <std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()>
++CLONE 0 0116 [ 5] jmp <+0x74>
++CLONE 0 011b [ 7] mov -0x3d0(%rbp),%rdi
++CLONE 0 0122 [ 3] vzeroupper
++CLONE 0 0125 [ 5] call <std::vector<tomo_db0::(anonymous namespace)::OwnedRecord, std::allocator<tomo_db0::(anonymous namespace)::OwnedRecord> >::~vector()>
++CLONE 0 012a [ 5] jmp <+0x74>
++CLONE 0 012f [ 3] vzeroupper
++CLONE 0 0132 [ 5] jmp <+0x74>

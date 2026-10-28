@@ -1,0 +1,93 @@
+tomo_db0::AofManager::seed_snapshot(tomo_db0::Config const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, tomo_db0::SnapshotLoadPlan const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .cold]
+--- headline
+
++++ post
+
+@@ -1,44 +1,44 @@
+
+-CLONE 0 0000 [ 3] mov %r15,%rdi
+-CLONE 0 0003 [ 3] vzeroupper
+-CLONE 0 0006 [ 7] lea -0x10470(%rbp),%rbx
+-CLONE 0 000d [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0012 [ 7] mov -0x105b8(%rbp),%rdi
+-CLONE 0 0019 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 001e [ 7] mov -0x105b0(%rbp),%rdi
+-CLONE 0 0025 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 002a [ 3] mov %rbx,%rdi
+-CLONE 0 002d [ 5] call <tomo_db0::AofManager::~AofManager()>
+-CLONE 0 0032 [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 0036 [ 9] sub %fs:0x28,%rax
+-CLONE 0 003f [ 2] jne <+0x8d>
+-CLONE 0 0041 [ 3] mov %r12,%rdi
+-CLONE 0 0044 [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 0049 [ 3] mov %r15,%rdi
+-CLONE 0 004c [ 3] vzeroupper
+-CLONE 0 004f [ 7] lea -0x10470(%rbp),%rbx
+-CLONE 0 0056 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 005b [ 7] lea -0x104e0(%rbp),%rdi
+-CLONE 0 0062 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0067 [ 2] jmp <+0x12>
+-CLONE 0 0069 [ 7] mov -0x105a8(%rbp),%rdi
+-CLONE 0 0070 [ 3] vzeroupper
+-CLONE 0 0073 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0078 [ 7] mov -0x105a0(%rbp),%rdi
+-CLONE 0 007f [ 7] lea -0x10470(%rbp),%rbx
+-CLONE 0 0086 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 008b [ 2] jmp <+0x2a>
+-CLONE 0 008d [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 0092 [ 3] mov %r13,%rdi
+-CLONE 0 0095 [ 3] vzeroupper
+-CLONE 0 0098 [ 3] mov %r14,%r13
+-CLONE 0 009b [ 5] call <std::vector<std::pair<unsigned long, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<unsigned long, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >::~vector()>
++CLONE 0 0000 [ 7] mov -0x105c0(%rbp),%rdi
++CLONE 0 0007 [ 3] vzeroupper
++CLONE 0 000a [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 000f [ 7] mov -0x105a0(%rbp),%rdi
++CLONE 0 0016 [ 7] lea -0x10470(%rbp),%rbx
++CLONE 0 001d [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0022 [ 2] jmp <+0x81>
++CLONE 0 0024 [ 3] mov %r13,%rdi
++CLONE 0 0027 [ 3] vzeroupper
++CLONE 0 002a [ 3] mov %r14,%r13
++CLONE 0 002d [ 5] call <std::vector<std::pair<unsigned long, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<unsigned long, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >::~vector()>
++CLONE 0 0032 [ 3] mov %r15,%rdi
++CLONE 0 0035 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 003a [ 3] mov %r12,%rdi
++CLONE 0 003d [ 3] mov %r13,%r12
++CLONE 0 0040 [ 5] call <std::vector<std::vector<unsigned int, std::allocator<unsigned int> >, std::allocator<std::vector<unsigned int, std::allocator<unsigned int> > > >::~vector()>
++CLONE 0 0045 [ 7] mov -0x10598(%rbp),%rdi
++CLONE 0 004c [ 5] call <std::vector<unsigned int, std::allocator<unsigned int> >::~vector()>
++CLONE 0 0051 [ 7] mov -0x105a0(%rbp),%rdi
++CLONE 0 0058 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 005d [ 7] lea -0x104e0(%rbp),%rdi
++CLONE 0 0064 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0069 [ 7] mov -0x105b0(%rbp),%rdi
++CLONE 0 0070 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0075 [ 7] mov -0x105a8(%rbp),%rdi
++CLONE 0 007c [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0081 [ 3] mov %rbx,%rdi
++CLONE 0 0084 [ 5] call <tomo_db0::AofManager::~AofManager()>
++CLONE 0 0089 [ 4] mov -0x38(%rbp),%rax
++CLONE 0 008d [ 9] sub %fs:0x28,%rax
++CLONE 0 0096 [ 2] jne <+0xb4>
++CLONE 0 0098 [ 3] mov %r12,%rdi
++CLONE 0 009b [ 5] call <_Unwind_Resume@plt>
+ CLONE 0 00a0 [ 3] mov %r15,%rdi
+-CLONE 0 00a3 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 00a8 [ 3] mov %r12,%rdi
+-CLONE 0 00ab [ 3] mov %r13,%r12
+-CLONE 0 00ae [ 5] call <std::vector<std::vector<unsigned int, std::allocator<unsigned int> >, std::allocator<std::vector<unsigned int, std::allocator<unsigned int> > > >::~vector()>
+-CLONE 0 00b3 [ 7] mov -0x10598(%rbp),%rdi
+-CLONE 0 00ba [ 5] call <std::vector<unsigned int, std::allocator<unsigned int> >::~vector()>
+-CLONE 0 00bf [ 7] mov -0x105a0(%rbp),%rdi
++CLONE 0 00a3 [ 3] vzeroupper
++CLONE 0 00a6 [ 7] lea -0x10470(%rbp),%rbx
++CLONE 0 00ad [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 00b2 [ 2] jmp <+0x69>
++CLONE 0 00b4 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 00b9 [ 3] mov %r15,%rdi
++CLONE 0 00bc [ 3] vzeroupper
++CLONE 0 00bf [ 7] lea -0x10470(%rbp),%rbx
+ CLONE 0 00c6 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 00cb [ 2] jmp <+0x5b>
++CLONE 0 00cb [ 2] jmp <+0x5d>

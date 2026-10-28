@@ -1,0 +1,15 @@
+tomo::(anonymous namespace)::parse_zset_operation(tomo::Op&, tomo::(anonymous namespace)::Kind, unsigned int&, std::vector<double, std::allocator<double> >&, tomo::(anonymous namespace)::ZAggregate&, bool&, unsigned long&) [clone .constprop.0]
+--- headline
+
++++ post
+
+@@ -169,7 +169,7 @@
+
+ CLONE 0 02bd [ 5] movb $0x0,0x78(%rsp)
+ CLONE 0 02c2 [ 4] cmp $0x6,%bpl
+ CLONE 0 02c6 [ 6] ja <+0x98f>
+-CLONE 0 02cc [ 7] lea <rip>(%rip),%rdx # <tomo::(anonymous namespace)::configure_protocols(ssl_ctx_st*, char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)::versions+0x4f4>
++CLONE 0 02cc [ 7] lea <rip>(%rip),%rdx # <tomo::(anonymous namespace)::configure_protocols(ssl_ctx_st*, char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)::versions+0x52c>
+ CLONE 0 02d3 [ 4] movzbl %bpl,%ebp
+ CLONE 0 02d7 [ 4] movslq (%rdx,%rbp,4),%rax
+ CLONE 0 02db [ 3] add %rdx,%rax

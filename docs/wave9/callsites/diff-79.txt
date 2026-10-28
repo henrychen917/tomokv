@@ -1,0 +1,34 @@
+tomo::(anonymous namespace)::run_eval(tomo::Shard&, tomo::Op&, tomo::Slice, bool, tomo::Slice, bool, bool) [clone .constprop.0] [clone .cold]
+--- multifix
+
++++ post
+
+@@ -1,13 +1,15 @@
+
+-CLONE 0 0000 [ 3] mov %r12,%rdi
+-CLONE 0 0003 [ 3] vzeroupper
+-CLONE 0 0006 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 000b [ 3] mov %r14,%rdi
+-CLONE 0 000e [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0013 [ 8] lea 0xb0(%rsp),%rdi
++CLONE 0 0000 [ 8] lea 0x110(%rsp),%rdi
++CLONE 0 0008 [ 3] vzeroupper
++CLONE 0 000b [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0010 [ 3] mov %r12,%rdi
++CLONE 0 0013 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0018 [ 3] mov %r14,%rdi
+ CLONE 0 001b [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0020 [ 8] mov 0x138(%rsp),%rax
+-CLONE 0 0028 [ 9] sub %fs:0x28,%rax
+-CLONE 0 0031 [ 2] jne <+0x3b>
+-CLONE 0 0033 [ 3] mov %rbx,%rdi
+-CLONE 0 0036 [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 003b [ 5] call <__stack_chk_fail@plt>
++CLONE 0 0020 [ 8] lea 0xb0(%rsp),%rdi
++CLONE 0 0028 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 002d [ 8] mov 0x138(%rsp),%rax
++CLONE 0 0035 [ 9] sub %fs:0x28,%rax
++CLONE 0 003e [ 2] jne <+0x48>
++CLONE 0 0040 [ 3] mov %rbx,%rdi
++CLONE 0 0043 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0048 [ 5] call <__stack_chk_fail@plt>

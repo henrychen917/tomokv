@@ -1,0 +1,37 @@
+tomo::(anonymous namespace)::blocking_run_direct(tomo::BlockingState&, tomo::Shard&, tomo::ThreadCtx&, tomo::Ring&) [clone .cold]
+--- headline
+
++++ post
+
+@@ -1,14 +1,16 @@
+
+-CLONE 0 0000 [ 7] mov -0xc8(%rbp),%rdi
+-CLONE 0 0007 [ 3] vzeroupper
+-CLONE 0 000a [ 4] lea -0x60(%rbp),%r12
+-CLONE 0 000e [ 5] call <std::_Vector_base<double, std::allocator<double> >::~_Vector_base()>
+-CLONE 0 0013 [ 3] mov %r13,%rdi
+-CLONE 0 0016 [ 5] call <std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()>
+-CLONE 0 001b [ 3] mov %r12,%rdi
+-CLONE 0 001e [ 5] call <std::_Optional_payload_base<tomo::LatencyTrackingPart>::_M_reset()>
+-CLONE 0 0023 [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 0027 [ 9] sub %fs:0x28,%rax
+-CLONE 0 0030 [ 2] jne <+0x3a>
+-CLONE 0 0032 [ 3] mov %rbx,%rdi
+-CLONE 0 0035 [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 003a [ 5] call <__stack_chk_fail@plt>
++CLONE 0 0000 [ 3] mov %r12,%rdi
++CLONE 0 0003 [ 3] vzeroupper
++CLONE 0 0006 [ 5] call <std::_Vector_base<double, std::allocator<double> >::~_Vector_base()>
++CLONE 0 000b [ 7] mov -0x138(%rbp),%rdi
++CLONE 0 0012 [ 5] call <std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()>
++CLONE 0 0017 [ 7] mov -0x148(%rbp),%rdi
++CLONE 0 001e [ 7] lea -0xb0(%rbp),%r13
++CLONE 0 0025 [ 5] call <tomo::SlowlogTiming::~SlowlogTiming()>
++CLONE 0 002a [ 3] mov %r13,%rdi
++CLONE 0 002d [ 5] call <std::_Optional_payload_base<tomo::LatencyTrackingPart>::_M_reset()>
++CLONE 0 0032 [ 4] mov -0x38(%rbp),%rax
++CLONE 0 0036 [ 9] sub %fs:0x28,%rax
++CLONE 0 003f [ 2] jne <+0x49>
++CLONE 0 0041 [ 3] mov %rbx,%rdi
++CLONE 0 0044 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0049 [ 5] call <__stack_chk_fail@plt>

@@ -1,0 +1,15 @@
+tomo::command_client_reset_meta(tomo::Client*)
+--- headline
+
++++ post
+
+@@ -23,7 +23,7 @@
+
+ CLONE 0 0060 [ 4] mov 0x50(%rbx),%rax
+ CLONE 0 0064 [ 8] movq $0x0,0x58(%rbx)
+ CLONE 0 006c [ 2] xor %edx,%edx
+-CLONE 0 006e [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x788>
++CLONE 0 006e [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x782>
+ CLONE 0 0075 [ 3] movb $0x0,(%rax)
+ CLONE 0 0078 [ 4] mov 0x70(%rbx),%rax
+ CLONE 0 007c [ 8] movq $0x0,0x78(%rbx)

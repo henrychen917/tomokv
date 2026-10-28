@@ -1,0 +1,15 @@
+tomo_db0::HashFieldMap::set(tomo_db0::Slice, tomo_db0::Slice)
+--- headline
+
++++ post
+
+@@ -153,7 +153,7 @@
+
+ CLONE 0 0274 [ 4] lea (%rsi,%rax,8),%r12
+ CLONE 0 0278 [ 8] mov 0x90(%rsp),%rcx
+ CLONE 0 0280 [ 8] mov 0x98(%rsp),%r15d
+-CLONE 0 0288 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 0288 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 028f [ 8] lea 0xe0(%rsp),%r13
+ CLONE 0 0297 [ 8] mov %r13,0xd0(%rsp)
+ CLONE 0 029f [12] movq $0x0,0xd8(%rsp)

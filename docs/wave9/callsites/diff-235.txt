@@ -1,0 +1,15 @@
+tomo_db0::IoLoop::socket_address[abi:cxx11](int, bool, bool) const [clone .isra.0] [clone .cold]
+--- headline
+
++++ post
+
+@@ -25,7 +25,7 @@
+
+ CLONE 2 001b [ 3] mov %rbx,%rdi
+ CLONE 2 001e [ 5] call <_Unwind_Resume@plt>
+ CLONE 2 0023 [ 5] call <__stack_chk_fail@plt>
+-CLONE 3 0000 [ 3] mov %rbp,%rdi
++CLONE 3 0000 [ 3] mov %r13,%rdi
+ CLONE 3 0003 [ 3] vzeroupper
+ CLONE 3 0006 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+ CLONE 3 000b [ 5] mov 0x78(%rsp),%rax

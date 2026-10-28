@@ -1,0 +1,64 @@
+tomo::(anonymous namespace)::destroy_multi_state(tomo::MultiExecState*) [clone .part.0]
+--- headline
+
++++ post
+
+@@ -40,7 +40,7 @@
+
+ CLONE 0 0090 [ 4] cmpb $0x0,0xc(%rbp)
+ CLONE 0 0094 [ 6] jne <tomo::(anonymous namespace)::destroy_multi_state(tomo::MultiExecState*) [clone .part.0] [clone .cold]>
+ CLONE 0 009a [ 2] xor %ebx,%ebx
+-CLONE 0 009c [ 7] xchg %rbx,0x618(%rbp)
++CLONE 0 009c [ 7] xchg %rbx,0x620(%rbp)
+ CLONE 0 00a3 [ 3] test %rbx,%rbx
+ CLONE 0 00a6 [ 2] je <+0xbd>
+ CLONE 0 00a8 [ 3] mov %rbx,%rdi
+@@ -52,21 +52,21 @@
+
+ CLONE 0 00c1 [ 7] movzbl 0x176fc(%rax),%eax
+ CLONE 0 00c8 [ 2] test %al,%al
+ CLONE 0 00ca [ 6] jne <+0x150>
+-CLONE 0 00d0 [ 7] mov 0x80(%rbp),%rbx
+-CLONE 0 00d7 [ 7] mov 0x88(%rbp),%r12
+-CLONE 0 00de [ 7] lea 0x338(%rbp),%r13
++CLONE 0 00d0 [ 7] mov 0x88(%rbp),%rbx
++CLONE 0 00d7 [ 7] mov 0x90(%rbp),%r12
++CLONE 0 00de [ 7] lea 0x340(%rbp),%r13
+ CLONE 0 00e5 [ 3] cmp %r12,%rbx
+ CLONE 0 00e8 [ 2] je <+0x121>
+ CLONE 0 00ea [ 6] nopw 0x0(%rax,%rax,1)
+ CLONE 0 00f0 [ 3] mov (%rbx),%rax
+-CLONE 0 00f3 [ 7] mov 0xe0(%rax),%rdi
++CLONE 0 00f3 [ 7] mov 0x100(%rax),%rdi
+ CLONE 0 00fa [ 3] test %rdi,%rdi
+ CLONE 0 00fd [ 2] je <+0x118>
+ CLONE 0 00ff [ 3] mov 0x20(%rbp),%edx
+ CLONE 0 0102 [ 3] mov %r13,%rsi
+ CLONE 0 0105 [ 5] call <tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)>
+ CLONE 0 010a [ 3] mov (%rbx),%rax
+-CLONE 0 010d [11] movq $0x0,0xe0(%rax)
++CLONE 0 010d [11] movq $0x0,0x100(%rax)
+ CLONE 0 0118 [ 4] add $0x8,%rbx
+ CLONE 0 011c [ 3] cmp %rbx,%r12
+ CLONE 0 011f [ 2] jne <+0xf0>
+@@ -78,15 +78,15 @@
+
+ CLONE 0 0134 [ 5] call <tomo::MultiExecState::~MultiExecState()>
+ CLONE 0 0139 [ 4] add $0x8,%rsp
+ CLONE 0 013d [ 3] mov %rbp,%rdi
+-CLONE 0 0140 [ 5] mov $0x640,%esi
++CLONE 0 0140 [ 5] mov $0x648,%esi
+ CLONE 0 0145 [ 1] pop %rbx
+ CLONE 0 0146 [ 1] pop %rbp
+ CLONE 0 0147 [ 2] pop %r12
+ CLONE 0 0149 [ 2] pop %r13
+ CLONE 0 014b [ 5] jmp <_ZdlPvm@plt>
+-CLONE 0 0150 [ 7] mov 0x80(%rbp),%rbx
+-CLONE 0 0157 [ 7] mov 0x88(%rbp),%r12
+-CLONE 0 015e [ 7] lea 0x338(%rbp),%r13
++CLONE 0 0150 [ 7] mov 0x88(%rbp),%rbx
++CLONE 0 0157 [ 7] mov 0x90(%rbp),%r12
++CLONE 0 015e [ 7] lea 0x340(%rbp),%r13
+ CLONE 0 0165 [ 3] cmp %r12,%rbx
+ CLONE 0 0168 [ 2] je <+0x121>
+ CLONE 0 016a [ 6] nopw 0x0(%rax,%rax,1)

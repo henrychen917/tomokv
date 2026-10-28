@@ -1,0 +1,54 @@
+tomo_db0::(anonymous namespace)::prepare_local_write_keys(tomo_db0::Server&, tomo_db0::MultiExecState&, tomo_db0::MultiCommand&, tomo_db0::Shard&, unsigned int) [clone .cold]
+--- multifix
+
++++ post
+
+@@ -1,25 +1,23 @@
+
+ CLONE 0 0000 [ 3] dec %rax
+-CLONE 0 0003 [ 2] je <+0x38>
+-CLONE 0 0005 [ 4] lea -0x50(%rbp),%rax
+-CLONE 0 0009 [ 3] mov %rdi,%rbx
+-CLONE 0 000c [ 4] mov %rax,-0x68(%rbp)
+-CLONE 0 0010 [ 4] mov -0x68(%rbp),%rdi
+-CLONE 0 0014 [ 3] vzeroupper
+-CLONE 0 0017 [ 5] call <std::vector<unsigned int, std::allocator<unsigned int> >::~vector()>
+-CLONE 0 001c [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 0020 [ 9] sub %fs:0x28,%rax
+-CLONE 0 0029 [ 2] jne <+0x33>
+-CLONE 0 002b [ 3] mov %rbx,%rdi
+-CLONE 0 002e [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 0033 [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 0038 [ 3] vzeroupper
+-CLONE 0 003b [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 0040 [ 2] xor %ebx,%ebx
+-CLONE 0 0042 [ 4] mov -0x70(%rbp),%rax
+-CLONE 0 0046 [ 7] movb $0x1,0x5a0(%rax)
+-CLONE 0 004d [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 0052 [ 4] mov -0x50(%rbp),%rax
+-CLONE 0 0056 [ 4] mov -0x40(%rbp),%rsi
+-CLONE 0 005a [ 4] mov %rax,-0x78(%rbp)
+-CLONE 0 005e [ 3] sub %rax,%rsi
+-CLONE 0 0061 [ 5] jmp <tomo_db0::(anonymous namespace)::prepare_local_write_keys(tomo_db0::Server&, tomo_db0::MultiExecState&, tomo_db0::MultiCommand&, tomo_db0::Shard&, unsigned int)+0xe0>
++CLONE 0 0003 [ 2] je <+0x30>
++CLONE 0 0005 [ 3] mov %rdi,%rbx
++CLONE 0 0008 [ 4] lea -0x50(%rbp),%rdi
++CLONE 0 000c [ 3] vzeroupper
++CLONE 0 000f [ 5] call <std::vector<unsigned int, std::allocator<unsigned int> >::~vector()>
++CLONE 0 0014 [ 4] mov -0x38(%rbp),%rax
++CLONE 0 0018 [ 9] sub %fs:0x28,%rax
++CLONE 0 0021 [ 2] jne <+0x2b>
++CLONE 0 0023 [ 3] mov %rbx,%rdi
++CLONE 0 0026 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 002b [ 5] call <__stack_chk_fail@plt>
++CLONE 0 0030 [ 3] vzeroupper
++CLONE 0 0033 [ 5] call <__cxa_begin_catch@plt>
++CLONE 0 0038 [ 2] xor %ebx,%ebx
++CLONE 0 003a [ 4] mov -0x70(%rbp),%rax
++CLONE 0 003e [ 7] movb $0x1,0x5a0(%rax)
++CLONE 0 0045 [ 5] call <__cxa_end_catch@plt>
++CLONE 0 004a [ 4] mov -0x50(%rbp),%rax
++CLONE 0 004e [ 4] mov -0x40(%rbp),%rsi
++CLONE 0 0052 [ 4] mov %rax,-0x78(%rbp)
++CLONE 0 0056 [ 3] sub %rax,%rsi
++CLONE 0 0059 [ 5] jmp <tomo_db0::(anonymous namespace)::prepare_local_write_keys(tomo_db0::Server&, tomo_db0::MultiExecState&, tomo_db0::MultiCommand&, tomo_db0::Shard&, unsigned int)+0xe0>

@@ -1,0 +1,83 @@
+tomo_db0::(anonymous namespace)::stream_snapshot_begin(tomo_db0::KvObj const&, tomo_db0::SnapshotSaveCursor&, unsigned char&) [clone .cold]
+--- headline
+
++++ post
+
+@@ -1,38 +1,38 @@
+
+-CLONE 0 0000 [ 4] lea -0x50(%rbp),%rdi
+-CLONE 0 0004 [ 3] vzeroupper
+-CLONE 0 0007 [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
+-CLONE 0 000c [ 7] mov -0x180(%rbp),%rdi
+-CLONE 0 0013 [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
+-CLONE 0 0018 [ 3] mov %r14,%rdi
+-CLONE 0 001b [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
+-CLONE 0 0020 [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 0024 [ 9] sub %fs:0x28,%rax
+-CLONE 0 002d [ 2] jne <+0xa1>
+-CLONE 0 002f [ 3] mov %rbx,%rdi
+-CLONE 0 0032 [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 0037 [ 4] lea -0x50(%rbp),%rdi
+-CLONE 0 003b [ 3] vzeroupper
+-CLONE 0 003e [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
+-CLONE 0 0043 [ 7] mov -0x180(%rbp),%rdi
+-CLONE 0 004a [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
+-CLONE 0 004f [ 7] mov -0x160(%rbp),%rdi
+-CLONE 0 0056 [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
+-CLONE 0 005b [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 005f [ 9] sub %fs:0x28,%rax
+-CLONE 0 0068 [ 2] jne <+0x9c>
+-CLONE 0 006a [ 3] mov %rbx,%rdi
+-CLONE 0 006d [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 0072 [ 3] dec %rax
+-CLONE 0 0075 [ 2] jne <+0xa6>
+-CLONE 0 0077 [ 3] vzeroupper
+-CLONE 0 007a [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 007f [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 0084 [ 7] mov -0x160(%rbp),%rdi
+-CLONE 0 008b [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
+-CLONE 0 0090 [ 7] mov -0x170(%rbp),%r13d
+-CLONE 0 0097 [ 5] jmp <tomo_db0::(anonymous namespace)::stream_snapshot_begin(tomo_db0::KvObj const&, tomo_db0::SnapshotSaveCursor&, unsigned char&)+0x12f>
+-CLONE 0 009c [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 00a1 [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 00a6 [ 3] mov %rdi,%rbx
+-CLONE 0 00a9 [ 3] vzeroupper
+-CLONE 0 00ac [ 2] jmp <+0x4f>
++CLONE 0 0000 [ 3] dec %rax
++CLONE 0 0003 [ 6] jne <+0x9d>
++CLONE 0 0009 [ 3] vzeroupper
++CLONE 0 000c [ 5] call <__cxa_begin_catch@plt>
++CLONE 0 0011 [ 5] call <__cxa_end_catch@plt>
++CLONE 0 0016 [ 7] mov -0x180(%rbp),%rdi
++CLONE 0 001d [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
++CLONE 0 0022 [ 7] mov -0x190(%rbp),%r13d
++CLONE 0 0029 [ 5] jmp <tomo_db0::(anonymous namespace)::stream_snapshot_begin(tomo_db0::KvObj const&, tomo_db0::SnapshotSaveCursor&, unsigned char&)+0x12f>
++CLONE 0 002e [ 4] lea -0x50(%rbp),%rdi
++CLONE 0 0032 [ 3] vzeroupper
++CLONE 0 0035 [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
++CLONE 0 003a [ 3] mov %r14,%rdi
++CLONE 0 003d [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
++CLONE 0 0042 [ 7] mov -0x180(%rbp),%rdi
++CLONE 0 0049 [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
++CLONE 0 004e [ 4] mov -0x38(%rbp),%rax
++CLONE 0 0052 [ 9] sub %fs:0x28,%rax
++CLONE 0 005b [ 2] jne <+0x98>
++CLONE 0 005d [ 3] mov %rbx,%rdi
++CLONE 0 0060 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0065 [ 4] lea -0x50(%rbp),%rdi
++CLONE 0 0069 [ 3] vzeroupper
++CLONE 0 006c [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
++CLONE 0 0071 [ 3] mov %r14,%rdi
++CLONE 0 0074 [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
++CLONE 0 0079 [ 3] mov %r15,%rdi
++CLONE 0 007c [ 5] call <std::vector<tomo_db0::Slice, std::allocator<tomo_db0::Slice> >::~vector()>
++CLONE 0 0081 [ 4] mov -0x38(%rbp),%rax
++CLONE 0 0085 [ 9] sub %fs:0x28,%rax
++CLONE 0 008e [ 2] jne <+0xa5>
++CLONE 0 0090 [ 3] mov %rbx,%rdi
++CLONE 0 0093 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0098 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 009d [ 3] mov %rdi,%rbx
++CLONE 0 00a0 [ 3] vzeroupper
++CLONE 0 00a3 [ 2] jmp <+0x42>
++CLONE 0 00a5 [ 5] call <__stack_chk_fail@plt>

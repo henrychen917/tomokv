@@ -1,0 +1,55 @@
+tomo_db0::IoLoop::pubsub_reply_ping(tomo_db0::Op&) [clone .isra.0]
+--- headline
+
++++ post
+
+@@ -85,7 +85,7 @@
+
+ CLONE 0 0161 [11] data16 cs nopw 0x0(%rax,%rax,1)
+ CLONE 0 016c [ 4] nopl 0x0(%rax)
+ CLONE 0 0170 [ 2] xor %edx,%edx
+-CLONE 0 0172 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x788>
++CLONE 0 0172 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x782>
+ CLONE 0 0179 [ 3] mov %rbp,%rdi
+ CLONE 0 017c [ 5] call <void tomo_db0::reply_bulk<tomo_db0::Op::Sink&>(tomo_db0::Op::Sink&, tomo_db0::Slice) [clone .isra.0]>
+ CLONE 0 0181 [ 5] jmp <+0xb0>
+@@ -215,7 +215,7 @@
+
+ CLONE 1 0204 [ 6] je <+0xc9>
+ CLONE 1 020a [ 3] mov %rsp,%rdi
+ CLONE 1 020d [ 2] xor %edx,%edx
+-CLONE 1 020f [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x788>
++CLONE 1 020f [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x782>
+ CLONE 1 0216 [ 5] call <void tomo_db0::reply_bulk<tomo_db0::Op::Sink&>(tomo_db0::Op::Sink&, tomo_db0::Slice) [clone .isra.0]>
+ CLONE 1 021b [ 5] jmp <+0xf0>
+ CLONE 1 0220 [ 6] mov 0xa4(%rdi),%edx
+@@ -353,7 +353,7 @@
+
+ CLONE 2 0204 [ 6] je <+0xc9>
+ CLONE 2 020a [ 3] mov %rsp,%rdi
+ CLONE 2 020d [ 2] xor %edx,%edx
+-CLONE 2 020f [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x788>
++CLONE 2 020f [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x782>
+ CLONE 2 0216 [ 5] call <void tomo_db0::reply_bulk<tomo_db0::Op::Sink&>(tomo_db0::Op::Sink&, tomo_db0::Slice) [clone .isra.0]>
+ CLONE 2 021b [ 5] jmp <+0xf0>
+ CLONE 2 0220 [ 6] mov 0xa4(%rdi),%edx
+@@ -491,7 +491,7 @@
+
+ CLONE 3 0204 [ 6] je <+0xc9>
+ CLONE 3 020a [ 3] mov %rsp,%rdi
+ CLONE 3 020d [ 2] xor %edx,%edx
+-CLONE 3 020f [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x788>
++CLONE 3 020f [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x782>
+ CLONE 3 0216 [ 5] call <void tomo_db0::reply_bulk<tomo_db0::Op::Sink&>(tomo_db0::Op::Sink&, tomo_db0::Slice) [clone .isra.0]>
+ CLONE 3 021b [ 5] jmp <+0xf0>
+ CLONE 3 0220 [ 6] mov 0xa4(%rdi),%edx
+@@ -591,7 +591,7 @@
+
+ CLONE 4 0161 [11] data16 cs nopw 0x0(%rax,%rax,1)
+ CLONE 4 016c [ 4] nopl 0x0(%rax)
+ CLONE 4 0170 [ 2] xor %edx,%edx
+-CLONE 4 0172 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x788>
++CLONE 4 0172 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x782>
+ CLONE 4 0179 [ 3] mov %rbp,%rdi
+ CLONE 4 017c [ 5] call <void tomo_db0::reply_bulk<tomo_db0::Op::Sink&>(tomo_db0::Op::Sink&, tomo_db0::Slice) [clone .isra.0]>
+ CLONE 4 0181 [ 5] jmp <+0xb0>

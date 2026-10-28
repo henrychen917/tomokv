@@ -1,0 +1,45 @@
+tomo_db0::Shard::watch_place_unit(std::vector<tomo_db0::TxnClaim, std::allocator<tomo_db0::TxnClaim> > const&, tomo_db0::TxnReservation, tomo_db0::MultiRetryPromoter const*)
+--- headline
+
++++ post
+
+@@ -16,7 +16,7 @@
+
+ CLONE 0 003c [ 4] cmpb $0x1,0x42(%rbp)
+ CLONE 0 0040 [ 6] jne <+0x4d0>
+ CLONE 0 0046 [ 3] movslq (%rdi),%rdx
+-CLONE 0 0049 [ 7] mov 0x630(%rax),%rax
++CLONE 0 0049 [ 7] mov 0x638(%rax),%rax
+ CLONE 0 0050 [ 4] lea (%rdx,%rdx,2),%rdx
+ CLONE 0 0054 [ 4] lea (%rax,%rdx,8),%rax
+ CLONE 0 0058 [ 5] mov %rax,0x60(%rsp)
+@@ -56,7 +56,7 @@
+
+ CLONE 0 0108 [ 3] mov (%rax),%r14
+ CLONE 0 010b [ 4] mov 0x8(%rax),%rax
+ CLONE 0 010f [ 5] mov %rax,0x28(%rsp)
+-CLONE 0 0114 [ 3] cmp %rax,%r14
++CLONE 0 0114 [ 3] cmp %r14,%rax
+ CLONE 0 0117 [ 6] je <+0x342>
+ CLONE 0 011d [ 5] lea 0x7f(%rsp),%rax
+ CLONE 0 0122 [ 5] mov %rax,0x50(%rsp)
+@@ -219,7 +219,7 @@
+
+ CLONE 0 041d [ 3] mov %rbx,%rsi
+ CLONE 0 0420 [ 5] call <tomo_db0::Shard::watch_append_reservation(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, tomo_db0::TxnReservation const&, tomo_db0::TxnWaiter*)>
+ CLONE 0 0425 [ 2] test %al,%al
+-CLONE 0 0427 [ 6] je <tomo_db0::Shard::watch_place_unit(std::vector<tomo_db0::TxnClaim, std::allocator<tomo_db0::TxnClaim> > const&, tomo_db0::TxnReservation, tomo_db0::MultiRetryPromoter const*) [clone .cold]+0x40>
++CLONE 0 0427 [ 6] je <tomo_db0::Shard::watch_place_unit(std::vector<tomo_db0::TxnClaim, std::allocator<tomo_db0::TxnClaim> > const&, tomo_db0::TxnReservation, tomo_db0::MultiRetryPromoter const*) [clone .cold]+0x57>
+ CLONE 0 042d [ 3] nopl (%rax)
+ CLONE 0 0430 [ 7] add $0xb8,%rbx
+ CLONE 0 0437 [ 3] cmp %r14,%rbx
+@@ -591,6 +591,6 @@
+
+ CLONE 0 0b7d [ 5] jmp <tomo_db0::Shard::watch_place_unit(std::vector<tomo_db0::TxnClaim, std::allocator<tomo_db0::TxnClaim> > const&, tomo_db0::TxnReservation, tomo_db0::MultiRetryPromoter const*) [clone .cold]+0xa>
+ CLONE 0 0b82 [ 4] endbr64
+ CLONE 0 0b86 [ 3] mov %rax,%rbx
+-CLONE 0 0b89 [ 3] mov %rdx,%rax
++CLONE 0 0b89 [ 3] mov %rdx,%r12
+ CLONE 0 0b8c [ 3] vzeroupper
+-CLONE 0 0b8f [ 5] jmp <tomo_db0::Shard::watch_place_unit(std::vector<tomo_db0::TxnClaim, std::allocator<tomo_db0::TxnClaim> > const&, tomo_db0::TxnReservation, tomo_db0::MultiRetryPromoter const*) [clone .cold]+0x1a>
++CLONE 0 0b8f [ 5] jmp <tomo_db0::Shard::watch_place_unit(std::vector<tomo_db0::TxnClaim, std::allocator<tomo_db0::TxnClaim> > const&, tomo_db0::TxnReservation, tomo_db0::MultiRetryPromoter const*) [clone .cold]+0x17>

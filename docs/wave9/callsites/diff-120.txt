@@ -1,0 +1,78 @@
+tomo::Shard::watch_place_unit(std::vector<tomo::TxnClaim, std::allocator<tomo::TxnClaim> > const&, tomo::TxnReservation, tomo::MultiRetryPromoter const*) [clone .cold]
+--- headline
+
++++ post
+
+@@ -3,34 +3,40 @@
+
+ CLONE 0 000a [ 5] mov 0x20(%rsp),%rdi
+ CLONE 0 000f [ 3] vzeroupper
+ CLONE 0 0012 [ 5] call <std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()>
+-CLONE 0 0017 [ 3] mov %r12,%rax
+-CLONE 0 001a [ 3] dec %rax
+-CLONE 0 001d [ 2] jne <+0x7d>
+-CLONE 0 001f [ 3] mov %rbx,%rdi
+-CLONE 0 0022 [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 0027 [ 4] mov 0x20(%rbp),%rax
+-CLONE 0 002b [ 3] movb $0x1,(%rax)
+-CLONE 0 002e [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 0033 [ 8] mov 0x90(%rsp),%rax
+-CLONE 0 003b [ 5] jmp <tomo::Shard::watch_place_unit(std::vector<tomo::TxnClaim, std::allocator<tomo::TxnClaim> > const&, tomo::TxnReservation, tomo::MultiRetryPromoter const*)+0x5c8>
+-CLONE 0 0040 [ 5] mov $0x8,%edi
+-CLONE 0 0045 [ 5] call <__cxa_allocate_exception@plt>
+-CLONE 0 004a [ 3] mov %rax,%rdi
+-CLONE 0 004d [ 7] lea <rip>(%rip),%rax # <_ZTVSt9bad_alloc@GLIBCXX_3.4+0x10>
+-CLONE 0 0054 [ 3] mov %rax,(%rdi)
+-CLONE 0 0057 [ 8] mov 0x188(%rsp),%rax
+-CLONE 0 005f [ 9] sub %fs:0x28,%rax
+-CLONE 0 0068 [ 2] jne <+0xa5>
+-CLONE 0 006a [ 7] mov <rip>(%rip),%rdx # <_ZNSt9bad_allocD1Ev@GLIBCXX_3.4>
+-CLONE 0 0071 [ 7] lea <rip>(%rip),%rsi # <_ZTISt9bad_alloc@GLIBCXX_3.4>
+-CLONE 0 0078 [ 5] call <__cxa_throw@plt>
+-CLONE 0 007d [ 8] lea 0x80(%rsp),%rdi
+-CLONE 0 0085 [ 5] call <tomo::TxnPlaceBlocker::clear()>
+-CLONE 0 008a [ 8] mov 0x188(%rsp),%rax
+-CLONE 0 0092 [ 9] sub %fs:0x28,%rax
+-CLONE 0 009b [ 2] jne <+0xa5>
+-CLONE 0 009d [ 3] mov %rbx,%rdi
+-CLONE 0 00a0 [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 00a5 [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 00aa [ 4] endbr64
+-CLONE 0 00ae [ 5] jmp <tomo::Shard::watch_place_unit(std::vector<tomo::TxnClaim, std::allocator<tomo::TxnClaim> > const&, tomo::TxnReservation, tomo::MultiRetryPromoter const*)+0xb86>
++CLONE 0 0017 [ 3] dec %r12
++CLONE 0 001a [ 2] jne <+0x94>
++CLONE 0 001c [ 3] mov %rbx,%rdi
++CLONE 0 001f [ 5] call <__cxa_begin_catch@plt>
++CLONE 0 0024 [ 4] cmpb $0x2,0x42(%rbp)
++CLONE 0 0028 [ 2] jne <+0x3e>
++CLONE 0 002a [ 5] mov 0x68(%rsp),%rax
++CLONE 0 002f [ 4] mov 0x10(%rbp),%rdi
++CLONE 0 0033 [ 2] mov (%rax),%esi
++CLONE 0 0035 [ 5] call <tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)>
++CLONE 0 003a [ 4] movb $0x4,0x29(%rax)
++CLONE 0 003e [ 4] mov 0x20(%rbp),%rax
++CLONE 0 0042 [ 3] movb $0x1,(%rax)
++CLONE 0 0045 [ 5] call <__cxa_end_catch@plt>
++CLONE 0 004a [ 8] mov 0x90(%rsp),%rax
++CLONE 0 0052 [ 5] jmp <tomo::Shard::watch_place_unit(std::vector<tomo::TxnClaim, std::allocator<tomo::TxnClaim> > const&, tomo::TxnReservation, tomo::MultiRetryPromoter const*)+0x5c8>
++CLONE 0 0057 [ 5] mov $0x8,%edi
++CLONE 0 005c [ 5] call <__cxa_allocate_exception@plt>
++CLONE 0 0061 [ 3] mov %rax,%rdi
++CLONE 0 0064 [ 7] lea <rip>(%rip),%rax # <_ZTVSt9bad_alloc@GLIBCXX_3.4+0x10>
++CLONE 0 006b [ 3] mov %rax,(%rdi)
++CLONE 0 006e [ 8] mov 0x188(%rsp),%rax
++CLONE 0 0076 [ 9] sub %fs:0x28,%rax
++CLONE 0 007f [ 2] jne <+0xb4>
++CLONE 0 0081 [ 7] mov <rip>(%rip),%rdx # <_ZNSt9bad_allocD1Ev@GLIBCXX_3.4>
++CLONE 0 0088 [ 7] lea <rip>(%rip),%rsi # <_ZTISt9bad_alloc@GLIBCXX_3.4>
++CLONE 0 008f [ 5] call <__cxa_throw@plt>
++CLONE 0 0094 [ 8] lea 0x80(%rsp),%rdi
++CLONE 0 009c [ 5] call <tomo::TxnPlaceBlocker::clear()>
++CLONE 0 00a1 [ 8] mov 0x188(%rsp),%rax
++CLONE 0 00a9 [ 9] sub %fs:0x28,%rax
++CLONE 0 00b2 [ 2] je <+0xb9>
++CLONE 0 00b4 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 00b9 [ 3] mov %rbx,%rdi
++CLONE 0 00bc [ 5] call <_Unwind_Resume@plt>
++CLONE 0 00c1 [ 4] endbr64
++CLONE 0 00c5 [ 5] jmp <tomo::Shard::watch_place_unit(std::vector<tomo::TxnClaim, std::allocator<tomo::TxnClaim> > const&, tomo::TxnReservation, tomo::MultiRetryPromoter const*)+0xb86>

@@ -1,0 +1,25 @@
+tomo::(anonymous namespace)::notify_get_or_create_batch(tomo::Op&)
+--- headline
+
++++ post
+
+@@ -11,7 +11,7 @@
+
+ CLONE 0 0027 [ 3] and $0xfffffffb,%edx
+ CLONE 0 002a [ 3] cmp $0xfffffffa,%edx
+ CLONE 0 002d [ 2] je <+0x70>
+-CLONE 0 002f [ 7] lea 0xd0(%rbx),%rbp
++CLONE 0 002f [ 7] lea 0xe8(%rbx),%rbp
+ CLONE 0 0036 [ 3] cmp $0xfffffffc,%eax
+ CLONE 0 0039 [ 2] je <+0x70>
+ CLONE 0 003b [ 3] cmp $0xfffffffb,%eax
+@@ -25,7 +25,7 @@
+
+ CLONE 0 0052 [ 2] pop %r12
+ CLONE 0 0054 [ 1] ret
+ CLONE 0 0055 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 0060 [ 7] lea 0x618(%rbx),%rbp
++CLONE 0 0060 [ 7] lea 0x620(%rbx),%rbp
+ CLONE 0 0067 [ 9] nopw 0x0(%rax,%rax,1)
+ CLONE 0 0070 [ 4] mov 0x0(%rbp),%rbx
+ CLONE 0 0074 [ 3] test %rbx,%rbx

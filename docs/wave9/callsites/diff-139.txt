@@ -1,0 +1,72 @@
+tomo::multi_aof_emit_fragment(tomo::MultiExecState&, tomo::Shard&)
+--- headline
+
++++ post
+
+@@ -6,17 +6,17 @@
+
+ CLONE 0 000c [ 1] push %rbp
+ CLONE 0 000d [ 1] push %rbx
+ CLONE 0 000e [ 4] sub $0x18,%rsp
+-CLONE 0 0012 [ 8] cmpq $0x0,0x620(%rdi)
++CLONE 0 0012 [ 8] cmpq $0x0,0x628(%rdi)
+ CLONE 0 001a [ 2] je <+0x7b>
+ CLONE 0 001c [ 3] mov (%rsi),%r13d
+ CLONE 0 001f [ 3] mov %rsi,%r12
+ CLONE 0 0022 [ 3] mov %rdi,%rbp
+ CLONE 0 0025 [ 3] mov %r13,%rsi
+-CLONE 0 0028 [ 7] add 0x2d0(%rdi),%r13
++CLONE 0 0028 [ 7] add 0x2d8(%rdi),%r13
+ CLONE 0 002f [ 5] cmpb $0x0,0x0(%r13)
+ CLONE 0 0034 [ 2] jne <+0x7b>
+-CLONE 0 0036 [ 7] mov 0xb0(%rdi),%rax
+-CLONE 0 003d [ 7] mov 0xb8(%rdi),%rdi
++CLONE 0 0036 [ 7] mov 0xb8(%rdi),%rax
++CLONE 0 003d [ 7] mov 0xc0(%rdi),%rdi
+ CLONE 0 0044 [ 3] cmp %rax,%rdi
+ CLONE 0 0047 [ 2] je <+0xa0>
+ CLONE 0 0049 [ 2] xor %edx,%edx
+@@ -30,7 +30,7 @@
+
+ CLONE 0 0061 [ 2] jne <+0x50>
+ CLONE 0 0063 [ 2] test %esi,%esi
+ CLONE 0 0065 [ 2] jne <+0x72>
+-CLONE 0 0067 [ 8] cmpq $0x1,0x1d0(%rbp)
++CLONE 0 0067 [ 8] cmpq $0x1,0x1d8(%rbp)
+ CLONE 0 006f [ 3] sbb $0xffffffff,%edx
+ CLONE 0 0072 [ 2] test %edx,%edx
+ CLONE 0 0074 [ 2] jne <+0xb0>
+@@ -49,11 +49,11 @@
+
+ CLONE 0 009e [ 2] xchg %ax,%ax
+ CLONE 0 00a0 [ 2] test %esi,%esi
+ CLONE 0 00a2 [ 2] jne <+0x76>
+-CLONE 0 00a4 [ 8] cmpq $0x0,0x1d0(%rbp)
++CLONE 0 00a4 [ 8] cmpq $0x0,0x1d8(%rbp)
+ CLONE 0 00ac [ 2] je <+0x76>
+ CLONE 0 00ae [ 2] xchg %ax,%ax
+ CLONE 0 00b0 [ 8] lea 0x300(%r12),%r15
+-CLONE 0 00b8 [ 7] lea 0x620(%rbp),%rsi
++CLONE 0 00b8 [ 7] lea 0x628(%rbp),%rsi
+ CLONE 0 00bf [ 3] mov %r15,%rdi
+ CLONE 0 00c2 [ 5] call <tomo::AofProducer::begin_group(std::shared_ptr<tomo::AofGroupDecision> const&)>
+ CLONE 0 00c7 [ 3] mov %eax,%r14d
+@@ -65,14 +65,14 @@
+
+ CLONE 0 00e6 [ 4] mov (%r12),%eax
+ CLONE 0 00ea [ 2] test %eax,%eax
+ CLONE 0 00ec [ 2] jne <+0x105>
+-CLONE 0 00ee [ 7] mov 0x1d0(%rbp),%rsi
++CLONE 0 00ee [ 7] mov 0x1d8(%rbp),%rsi
+ CLONE 0 00f5 [ 3] test %rsi,%rsi
+ CLONE 0 00f8 [ 2] je <+0x105>
+ CLONE 0 00fa [ 3] mov %r15,%rdi
+ CLONE 0 00fd [ 5] call <tomo::AofProducer::record_group_database_map(unsigned char const*)>
+ CLONE 0 0102 [ 3] mov %eax,%r14d
+-CLONE 0 0105 [ 7] mov 0xb0(%rbp),%rbx
+-CLONE 0 010c [ 7] mov 0xb8(%rbp),%rbp
++CLONE 0 0105 [ 7] mov 0xb8(%rbp),%rbx
++CLONE 0 010c [ 7] mov 0xc0(%rbp),%rbp
+ CLONE 0 0113 [ 3] cmp %rbx,%rbp
+ CLONE 0 0116 [ 2] je <+0x16e>
+ CLONE 0 0118 [ 5] lea 0x38(%r12),%rax

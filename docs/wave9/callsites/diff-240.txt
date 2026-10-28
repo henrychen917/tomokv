@@ -1,0 +1,20 @@
+tomo_db0::Server::init(tomo_db0::Config const&, tomo_db0::AofReplayPlan const*)
+--- headline
+
++++ post
+
+@@ -868,10 +868,10 @@
+
+ CLONE 0 1123 [ 3] mov 0x18(%rbx),%esi
+ CLONE 0 1126 [ 2] test %esi,%esi
+ CLONE 0 1128 [ 6] je <+0x2ec8>
+-CLONE 0 112e [ 8] vmovq <rip>(%rip),%xmm3 # <_GLOBAL_OFFSET_TABLE_+0xa80>
+-CLONE 0 1136 [10] vpinsrq $0x1,<rip>(%rip),%xmm3,%xmm2 # <_GLOBAL_OFFSET_TABLE_+0xa90>
++CLONE 0 112e [ 8] vmovq <rip>(%rip),%xmm3 # <_GLOBAL_OFFSET_TABLE_+0xa90>
++CLONE 0 1136 [10] vpinsrq $0x1,<rip>(%rip),%xmm3,%xmm2 # <_GLOBAL_OFFSET_TABLE_+0xaa0>
+ CLONE 0 1140 [ 3] xor %r14d,%r14d
+-CLONE 0 1143 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x1867c>
++CLONE 0 1143 [ 7] lea <rip>(%rip),%r13 # <on_signal(int)::kInsist+0x4dc>
+ CLONE 0 114a [ 8] vmovdqa %xmm2,-0x250(%rbp)
+ CLONE 0 1152 [11] data16 cs nopw 0x0(%rax,%rax,1)
+ CLONE 0 115d [ 3] nopl (%rax)

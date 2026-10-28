@@ -1,0 +1,18 @@
+auto tomo::Shard::watch_writer_check(tomo::Slice, bool, unsigned long)::{lambda(auto:1 const&)#1}::operator()<std::vector<tomo::TxnHeld, std::allocator<tomo::TxnHeld> > >(std::vector<tomo::TxnHeld, std::allocator<tomo::TxnHeld> > const&) const
+--- at412c
+
++++ post
+
+@@ -17,9 +17,9 @@
+
+ CLONE 0 0044 [ 4] cmpb $0x1,0x32(%rdx)
+ CLONE 0 0048 [ 3] mov (%rdx),%rax
+ CLONE 0 004b [ 6] jne <+0xd0>
+-CLONE 0 0051 [ 7] lea 0x599(%rax),%rsi
++CLONE 0 0051 [ 7] lea 0x5a1(%rax),%rsi
+ CLONE 0 0058 [ 4] mov %rsi,(%rsp)
+-CLONE 0 005c [ 7] mov 0x5a0(%rax),%rsi
++CLONE 0 005c [ 7] mov 0x5a8(%rax),%rsi
+ CLONE 0 0063 [ 3] mov (%r8),%rax
+ CLONE 0 0066 [ 3] cmp %rsi,(%rax)
+ CLONE 0 0069 [ 2] jae <+0x90>

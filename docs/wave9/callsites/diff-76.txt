@@ -1,0 +1,15 @@
+tomo::(anonymous namespace)::prepare_local_write_keys(tomo::Server&, tomo::MultiExecState&, tomo::MultiCommand&, tomo::Shard&, unsigned int) [clone .cold]
+--- headline
+
++++ post
+
+@@ -15,7 +15,7 @@
+
+ CLONE 0 0036 [ 5] call <__cxa_begin_catch@plt>
+ CLONE 0 003b [ 2] xor %ebx,%ebx
+ CLONE 0 003d [ 4] mov -0x70(%rbp),%rax
+-CLONE 0 0041 [ 7] movb $0x1,0x598(%rax)
++CLONE 0 0041 [ 7] movb $0x1,0x5a0(%rax)
+ CLONE 0 0048 [ 5] call <__cxa_end_catch@plt>
+ CLONE 0 004d [ 4] mov -0x50(%rbp),%rax
+ CLONE 0 0051 [ 4] mov -0x40(%rbp),%rsi

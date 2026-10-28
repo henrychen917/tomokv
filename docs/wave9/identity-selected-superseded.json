@@ -1,0 +1,3328 @@
+{
+  "status": "superseded: initial/overlapping relink audit; final audit replaces it",
+  "summary": {
+    "function_groups": 10018,
+    "unchanged": 8259,
+    "changed": 1759,
+    "lane_equal": 1083,
+    "residual": 676,
+    "hot_groups": 715,
+    "hot_headline": 521,
+    "hot_lane": 24,
+    "command_hot_groups": 88,
+    "command_hot_headline": 36,
+    "command_hot_lane": 10,
+    "hot_residual": [
+      {
+        "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, false>() const",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          1078
+        ],
+        "post_sizes": [
+          979
+        ],
+        "matches": [],
+        "changed_lanes": [],
+        "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+      },
+      {
+        "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, true>() const",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          1094
+        ],
+        "post_sizes": [
+          995
+        ],
+        "matches": [],
+        "changed_lanes": [],
+        "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+      },
+      {
+        "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          1190
+        ],
+        "post_sizes": [
+          1094
+        ],
+        "matches": [],
+        "changed_lanes": [],
+        "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+      },
+      {
+        "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, false>() const",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          1133
+        ],
+        "post_sizes": [
+          1037
+        ],
+        "matches": [],
+        "changed_lanes": [],
+        "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+      },
+      {
+        "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, true>() const",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          1094
+        ],
+        "post_sizes": [
+          995
+        ],
+        "matches": [],
+        "changed_lanes": [],
+        "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+      },
+      {
+        "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          1190
+        ],
+        "post_sizes": [
+          1094
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "crlffix",
+          "multifix",
+          "streamfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, crlffix, multifix, streamfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo::FlatStore::erase_resident(unsigned long, tomo::Slice)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          997
+        ],
+        "post_sizes": [
+          658
+        ],
+        "matches": [],
+        "changed_lanes": [],
+        "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+      },
+      {
+        "name": "tomo::FlatStore::find_without_touch(unsigned long, tomo::Slice)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          906
+        ],
+        "post_sizes": [
+          872
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "multifix"
+        ],
+        "reason": "multifix changes this body; merged compiler propagation differs from isolated POST."
+      },
+      {
+        "name": "tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          1602
+        ],
+        "post_sizes": [
+          1301
+        ],
+        "matches": [],
+        "changed_lanes": [],
+        "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+      },
+      {
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          19469
+        ],
+        "post_sizes": [
+          19438
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "protofix",
+          "crlffix",
+          "multifix",
+          "streamfix",
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, protofix, crlffix, multifix, streamfix, blockfix2, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          20181
+        ],
+        "post_sizes": [
+          20194
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "protofix",
+          "crlffix",
+          "multifix",
+          "streamfix",
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, protofix, crlffix, multifix, streamfix, blockfix2, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          10662,
+          11439,
+          10604,
+          11685
+        ],
+        "post_sizes": [
+          10662,
+          11430,
+          10604,
+          11656
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "protofix",
+          "crlffix",
+          "multifix",
+          "streamfix",
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, protofix, crlffix, multifix, streamfix, blockfix2, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          166,
+          244,
+          166,
+          244
+        ],
+        "post_sizes": [
+          166,
+          248,
+          166,
+          248
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "protofix",
+          "crlffix",
+          "multifix",
+          "streamfix",
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, protofix, crlffix, multifix, streamfix, blockfix2, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          20245
+        ],
+        "post_sizes": [
+          20252
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "protofix",
+          "crlffix",
+          "multifix",
+          "streamfix",
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, protofix, crlffix, multifix, streamfix, blockfix2, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo::ScatterFinish tomo::xshard_complete_script<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&, tomo::ScatterState&)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          1901
+        ],
+        "post_sizes": [
+          2275
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of blockfix2, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo::ScatterFinish tomo::xshard_complete_script<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&, tomo::ScatterState&)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          1901
+        ],
+        "post_sizes": [
+          2275
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of blockfix2, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          21794
+        ],
+        "post_sizes": [
+          21289
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "protofix",
+          "crlffix",
+          "multifix",
+          "streamfix",
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, protofix, crlffix, multifix, streamfix, blockfix2, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int) [clone .cold]",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          507
+        ],
+        "post_sizes": [
+          522
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "multifix",
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of multifix, blockfix2, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          1747
+        ],
+        "post_sizes": [
+          1561
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, blockfix2, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          45
+        ],
+        "post_sizes": [
+          43
+        ],
+        "matches": [],
+        "changed_lanes": [],
+        "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+      },
+      {
+        "name": "tomo::xshard_flush_commits_timed(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          1743
+        ],
+        "post_sizes": [
+          1529
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, blockfix2, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo::xshard_flush_commits_timed(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          45
+        ],
+        "post_sizes": [
+          43
+        ],
+        "matches": [],
+        "changed_lanes": [],
+        "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+      },
+      {
+        "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          18231
+        ],
+        "post_sizes": [
+          17937
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "multifix",
+          "at412c"
+        ],
+        "reason": "Composition of multifix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*) [clone .cold]",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          573
+        ],
+        "post_sizes": [
+          324
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "multifix",
+          "at412c"
+        ],
+        "reason": "Composition of multifix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo::xshard_prepare_script(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [],
+        "post_sizes": [
+          5163
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "at412c"
+        ],
+        "reason": "at412c changes this body; merged compiler propagation differs from isolated POST."
+      },
+      {
+        "name": "tomo::xshard_prepare_script(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*) [clone .cold]",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [],
+        "post_sizes": [
+          63
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "at412c"
+        ],
+        "reason": "at412c changes this body; merged compiler propagation differs from isolated POST."
+      },
+      {
+        "name": "tomo_db0::FlatStore::erase_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*, tomo_db0::FlatStore::EraseEvent)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          869
+        ],
+        "post_sizes": [
+          737
+        ],
+        "matches": [],
+        "changed_lanes": [],
+        "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+      },
+      {
+        "name": "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          1017
+        ],
+        "post_sizes": [
+          798
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "multifix"
+        ],
+        "reason": "multifix changes this body; merged compiler propagation differs from isolated POST."
+      },
+      {
+        "name": "tomo_db0::FlatStore::find_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          890
+        ],
+        "post_sizes": [
+          768
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "multifix"
+        ],
+        "reason": "multifix changes this body; merged compiler propagation differs from isolated POST."
+      },
+      {
+        "name": "tomo_db0::FlatStore::find_without_touch(unsigned long, tomo_db0::Slice)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          836
+        ],
+        "post_sizes": [
+          750
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "multifix"
+        ],
+        "reason": "multifix changes this body; merged compiler propagation differs from isolated POST."
+      },
+      {
+        "name": "tomo_db0::FlatStore::insert_notify(unsigned long, tomo_db0::KvObj*, tomo_db0::FlatNotifySink*)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          941
+        ],
+        "post_sizes": [
+          737
+        ],
+        "matches": [],
+        "changed_lanes": [],
+        "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+      },
+      {
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          10546,
+          12412,
+          10546,
+          11503
+        ],
+        "post_sizes": [
+          10546,
+          12412,
+          10546,
+          11511
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "protofix",
+          "crlffix",
+          "multifix",
+          "streamfix",
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, protofix, crlffix, multifix, streamfix, blockfix2, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          166,
+          248,
+          166,
+          244
+        ],
+        "post_sizes": [
+          166,
+          248,
+          166,
+          247
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "protofix",
+          "crlffix",
+          "multifix",
+          "streamfix",
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, protofix, crlffix, multifix, streamfix, blockfix2, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo_db0::ScatterFinish tomo_db0::xshard_complete_script<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::ScatterState&)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          1901
+        ],
+        "post_sizes": [
+          2275
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of blockfix2, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo_db0::ScatterFinish tomo_db0::xshard_complete_script<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::ScatterState&)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          1901
+        ],
+        "post_sizes": [
+          2275
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of blockfix2, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          23675
+        ],
+        "post_sizes": [
+          23696
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "protofix",
+          "crlffix",
+          "multifix",
+          "streamfix",
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, protofix, crlffix, multifix, streamfix, blockfix2, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          399
+        ],
+        "post_sizes": [
+          520
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "multifix",
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of multifix, blockfix2, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::KvObj*)#1}::operator()(tomo_db0::KvObj*) const",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [],
+        "post_sizes": [
+          330
+        ],
+        "matches": [],
+        "changed_lanes": [],
+        "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+      },
+      {
+        "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          1747
+        ],
+        "post_sizes": [
+          1561
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, blockfix2, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          45
+        ],
+        "post_sizes": [
+          43
+        ],
+        "matches": [],
+        "changed_lanes": [],
+        "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+      },
+      {
+        "name": "tomo_db0::xshard_flush_commits_timed(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          1743
+        ],
+        "post_sizes": [
+          1529
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, blockfix2, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo_db0::xshard_flush_commits_timed(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          45
+        ],
+        "post_sizes": [
+          43
+        ],
+        "matches": [],
+        "changed_lanes": [],
+        "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+      },
+      {
+        "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          18665
+        ],
+        "post_sizes": [
+          18202
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "at412c"
+        ],
+        "reason": "at412c changes this body; merged compiler propagation differs from isolated POST."
+      },
+      {
+        "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*) [clone .cold]",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          558
+        ],
+        "post_sizes": [
+          282
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "at412c"
+        ],
+        "reason": "at412c changes this body; merged compiler propagation differs from isolated POST."
+      },
+      {
+        "name": "tomo_db0::xshard_prepare_script(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [],
+        "post_sizes": [
+          5195
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "at412c"
+        ],
+        "reason": "at412c changes this body; merged compiler propagation differs from isolated POST."
+      },
+      {
+        "name": "tomo_db0::xshard_prepare_script(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*) [clone .cold]",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [],
+        "post_sizes": [
+          63
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "at412c"
+        ],
+        "reason": "at412c changes this body; merged compiler propagation differs from isolated POST."
+      },
+      {
+        "name": "unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3129
+        ],
+        "post_sizes": [
+          3273
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::FlatStore::scan_home<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}>(int, unsigned int, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}&, bool)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          1345
+        ],
+        "post_sizes": [
+          1119
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "multifix"
+        ],
+        "reason": "multifix changes this body; merged compiler propagation differs from isolated POST."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<false, false, false, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2391
+        ],
+        "post_sizes": [
+          2311
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, false, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2503
+        ],
+        "post_sizes": [
+          2423
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2286
+        ],
+        "post_sizes": [
+          2206
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, false, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2455
+        ],
+        "post_sizes": [
+          2375
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2238
+        ],
+        "post_sizes": [
+          2158
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, true, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2503
+        ],
+        "post_sizes": [
+          2423
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2286
+        ],
+        "post_sizes": [
+          2206
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, true, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2455
+        ],
+        "post_sizes": [
+          2375
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2238
+        ],
+        "post_sizes": [
+          2158
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<false, true, false, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3119
+        ],
+        "post_sizes": [
+          3073
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2875
+        ],
+        "post_sizes": [
+          2743
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2529
+        ],
+        "post_sizes": [
+          2567
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2843
+        ],
+        "post_sizes": [
+          2711
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2574
+        ],
+        "post_sizes": [
+          2551
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "protofix",
+          "crlffix",
+          "multifix",
+          "streamfix",
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, protofix, crlffix, multifix, streamfix, blockfix2, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2875
+        ],
+        "post_sizes": [
+          2743
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2529
+        ],
+        "post_sizes": [
+          2567
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2843
+        ],
+        "post_sizes": [
+          2711
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2497
+        ],
+        "post_sizes": [
+          2551
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "protofix",
+          "streamfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, protofix, streamfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<true, false, false, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          4647
+        ],
+        "post_sizes": [
+          4567
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3226
+        ],
+        "post_sizes": [
+          3146
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2918
+        ],
+        "post_sizes": [
+          2838
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3194
+        ],
+        "post_sizes": [
+          3114
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2886
+        ],
+        "post_sizes": [
+          2806
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3226
+        ],
+        "post_sizes": [
+          3146
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2918
+        ],
+        "post_sizes": [
+          2838
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3194
+        ],
+        "post_sizes": [
+          3114
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2886
+        ],
+        "post_sizes": [
+          2806
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<true, true, false, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          6175
+        ],
+        "post_sizes": [
+          6111
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3986
+        ],
+        "post_sizes": [
+          3954
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3415
+        ],
+        "post_sizes": [
+          3399
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          4002
+        ],
+        "post_sizes": [
+          3922
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3383
+        ],
+        "post_sizes": [
+          3367
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3986
+        ],
+        "post_sizes": [
+          3954
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3415
+        ],
+        "post_sizes": [
+          3399
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          4002
+        ],
+        "post_sizes": [
+          3922
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3383
+        ],
+        "post_sizes": [
+          3367
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2350
+        ],
+        "post_sizes": [
+          2270
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2350
+        ],
+        "post_sizes": [
+          2270
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2350
+        ],
+        "post_sizes": [
+          2270
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2350
+        ],
+        "post_sizes": [
+          2270
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2622
+        ],
+        "post_sizes": [
+          2567
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2622
+        ],
+        "post_sizes": [
+          2567
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2622
+        ],
+        "post_sizes": [
+          2567
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2622
+        ],
+        "post_sizes": [
+          2567
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3030
+        ],
+        "post_sizes": [
+          2950
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3030
+        ],
+        "post_sizes": [
+          2950
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3030
+        ],
+        "post_sizes": [
+          2950
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3030
+        ],
+        "post_sizes": [
+          2950
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3511
+        ],
+        "post_sizes": [
+          3511
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3511
+        ],
+        "post_sizes": [
+          3511
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3511
+        ],
+        "post_sizes": [
+          3511
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3511
+        ],
+        "post_sizes": [
+          3511
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3478
+        ],
+        "post_sizes": [
+          3478
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3790
+        ],
+        "post_sizes": [
+          3911
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          1422
+        ],
+        "post_sizes": [
+          1062
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "multifix"
+        ],
+        "reason": "multifix changes this body; merged compiler propagation differs from isolated POST."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, false, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2359
+        ],
+        "post_sizes": [
+          2279
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2471
+        ],
+        "post_sizes": [
+          2391
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2254
+        ],
+        "post_sizes": [
+          2238
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2423
+        ],
+        "post_sizes": [
+          2343
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2206
+        ],
+        "post_sizes": [
+          2190
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2471
+        ],
+        "post_sizes": [
+          2391
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2254
+        ],
+        "post_sizes": [
+          2238
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2423
+        ],
+        "post_sizes": [
+          2343
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2206
+        ],
+        "post_sizes": [
+          2190
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, false, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3087
+        ],
+        "post_sizes": [
+          3041
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, false, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2843
+        ],
+        "post_sizes": [
+          2711
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2740
+        ],
+        "post_sizes": [
+          2519
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, false, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2811
+        ],
+        "post_sizes": [
+          2679
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2708
+        ],
+        "post_sizes": [
+          2519
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, true, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2843
+        ],
+        "post_sizes": [
+          2711
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2740
+        ],
+        "post_sizes": [
+          2519
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, true, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2811
+        ],
+        "post_sizes": [
+          2679
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2708
+        ],
+        "post_sizes": [
+          2519
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, false, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          4615
+        ],
+        "post_sizes": [
+          4535
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3194
+        ],
+        "post_sizes": [
+          3114
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2934
+        ],
+        "post_sizes": [
+          2918
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3162
+        ],
+        "post_sizes": [
+          3082
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2902
+        ],
+        "post_sizes": [
+          2886
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3194
+        ],
+        "post_sizes": [
+          3114
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2934
+        ],
+        "post_sizes": [
+          2918
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3162
+        ],
+        "post_sizes": [
+          3082
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2902
+        ],
+        "post_sizes": [
+          2886
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, false, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          6143
+        ],
+        "post_sizes": [
+          6079
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3954
+        ],
+        "post_sizes": [
+          3922
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3415
+        ],
+        "post_sizes": [
+          3367
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3970
+        ],
+        "post_sizes": [
+          3890
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3399
+        ],
+        "post_sizes": [
+          3335
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, false, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3954
+        ],
+        "post_sizes": [
+          3922
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3415
+        ],
+        "post_sizes": [
+          3367
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3970
+        ],
+        "post_sizes": [
+          3890
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, true>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3399
+        ],
+        "post_sizes": [
+          3335
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, false, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2318
+        ],
+        "post_sizes": [
+          2238
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, false, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2318
+        ],
+        "post_sizes": [
+          2238
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, true, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2318
+        ],
+        "post_sizes": [
+          2238
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, true, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2318
+        ],
+        "post_sizes": [
+          2238
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, false, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2740
+        ],
+        "post_sizes": [
+          2519
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, false, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2740
+        ],
+        "post_sizes": [
+          2519
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, true, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2740
+        ],
+        "post_sizes": [
+          2519
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, true, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2740
+        ],
+        "post_sizes": [
+          2519
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, false, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3062
+        ],
+        "post_sizes": [
+          2982
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, false, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3062
+        ],
+        "post_sizes": [
+          2982
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, true, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3062
+        ],
+        "post_sizes": [
+          2982
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, true, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3062
+        ],
+        "post_sizes": [
+          2982
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, false, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3559
+        ],
+        "post_sizes": [
+          3479
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, false, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3559
+        ],
+        "post_sizes": [
+          3479
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, true, false, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3559
+        ],
+        "post_sizes": [
+          3479
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, true, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          3559
+        ],
+        "post_sizes": [
+          3479
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "unsigned long tomo::FlatStore::scan<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}>(unsigned long, unsigned int, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}&&, bool) [clone .constprop.0]",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [],
+        "post_sizes": [
+          1071
+        ],
+        "matches": [],
+        "changed_lanes": [],
+        "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_get<true, false>(tomo::Shard&, tomo::Op&)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          792
+        ],
+        "post_sizes": [
+          799
+        ],
+        "matches": [],
+        "changed_lanes": [],
+        "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+      },
+      {
+        "name": "void tomo::FlatStore::atomic_for_each_unique_key<tomo::FlatStore::atomic_for_each_side_key<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}>(unsigned long, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&)::{lambda(unsigned long, tomo::Slice)#1}>(tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&) [clone .isra.0]",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          2394
+        ],
+        "post_sizes": [],
+        "matches": [],
+        "changed_lanes": [],
+        "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+      },
+      {
+        "name": "void tomo::FlatStore::atomic_for_each_unique_key<tomo::FlatStore::atomic_for_each_side_key<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}>(unsigned long, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&)::{lambda(unsigned long, tomo::Slice)#1}>(tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&) [clone .isra.0] [clone .cold]",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          5
+        ],
+        "post_sizes": [],
+        "matches": [],
+        "changed_lanes": [],
+        "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          15966
+        ],
+        "post_sizes": [
+          16299
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "protofix",
+          "crlffix",
+          "multifix",
+          "streamfix",
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, protofix, crlffix, multifix, streamfix, blockfix2, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          17115
+        ],
+        "post_sizes": [
+          17436
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "protofix",
+          "crlffix",
+          "multifix",
+          "streamfix",
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, protofix, crlffix, multifix, streamfix, blockfix2, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "void tomo::reply_bulk<tomo::Op::Sink&>(tomo::Op::Sink&, tomo::Slice) [clone .isra.0]",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          477,
+          267,
+          477,
+          267,
+          477,
+          477,
+          477,
+          477,
+          477,
+          477,
+          477,
+          477,
+          477
+        ],
+        "post_sizes": [
+          477,
+          267,
+          267,
+          267,
+          477,
+          477,
+          477,
+          477,
+          477,
+          477,
+          477,
+          477,
+          477
+        ],
+        "matches": [],
+        "changed_lanes": [],
+        "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+      },
+      {
+        "name": "void tomo_db0::FlatStore::atomic_for_each_unique_key<tomo_db0::FlatStore::atomic_for_each_side_key<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}>(unsigned long, tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&)::{lambda(unsigned long, tomo_db0::Slice)#1}>(tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&) [clone .isra.0]",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          2219
+        ],
+        "post_sizes": [
+          2062
+        ],
+        "matches": [],
+        "changed_lanes": [],
+        "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+      },
+      {
+        "name": "void tomo_db0::IoLoop::run_loop<false, false, false, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          5151
+        ],
+        "post_sizes": [
+          5178
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "void tomo_db0::IoLoop::run_loop<false, false, true, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          5218
+        ],
+        "post_sizes": [
+          5269
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "void tomo_db0::IoLoop::run_loop<false, true, true, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          5218
+        ],
+        "post_sizes": [
+          5245
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "void tomo_db0::IoLoop::run_loop<true, false, true, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          5246
+        ],
+        "post_sizes": [
+          5273
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "void tomo_db0::IoLoop::run_loop<true, true, true, true, false>()",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          5246
+        ],
+        "post_sizes": [
+          5273
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          15887
+        ],
+        "post_sizes": [
+          16136
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "protofix",
+          "crlffix",
+          "multifix",
+          "streamfix",
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, protofix, crlffix, multifix, streamfix, blockfix2, at412c; residual instructions/layout require merit review."
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "hot": true,
+        "counted_command_scope": false,
+        "command_hot": true,
+        "equal": false,
+        "headline_sizes": [
+          17185
+        ],
+        "post_sizes": [
+          17476
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "woundfix",
+          "protofix",
+          "crlffix",
+          "multifix",
+          "streamfix",
+          "blockfix2",
+          "at412c"
+        ],
+        "reason": "Composition of woundfix, protofix, crlffix, multifix, streamfix, blockfix2, at412c; residual instructions/layout require merit review."
+      }
+    ],
+    "references": {
+      "headline": {
+        "path": "/home/user/Projects/bench-bins/tomokv-headline-a214652ec",
+        "sha256": "5235008bfab65401b335b67b4aff93fbb8cb76e7496d32edd73216885616be4d"
+      },
+      "woundfix": {
+        "path": "/home/user/Projects/bins/woundfix-post-e50e343c",
+        "sha256": "e50e343c32bca46cfd5d2856225c97b9d313968209262f00f97b847d840d8ec6"
+      },
+      "protofix": {
+        "path": "/home/user/Projects/bins/protofix-post-e99c3f23",
+        "sha256": "e99c3f23182c0872214c2e1475cb64cb4d8aa3dd27ebeaf769ca0197c4b5ba5b"
+      },
+      "crlffix": {
+        "path": "/home/user/Projects/bins/crlffix-post-6e9080a2",
+        "sha256": "6e9080a219a3f62dcc11838c7420bd4fe222e3c9e7f7cf3557e196affaa0ca25"
+      },
+      "multifix": {
+        "path": "/home/user/Projects/bins/multifix-post-a0b3524f",
+        "sha256": "a0b3524f37e1cb287d479247849f034484b3a6fd383c8748666793a514b4c1d5"
+      },
+      "streamfix": {
+        "path": "/home/user/Projects/bins/streamfix-post-c671ede8",
+        "sha256": "c671ede82505dda0c62da963e5230ba8aea8cd0edd08d1c5accf8948ed95ccf1"
+      },
+      "blockfix2": {
+        "path": "/home/user/Projects/bins/blockfix2-post-d7973893",
+        "sha256": "d79738936b83882fdf06de1f83f77ffa9e7674726eab8a231c9cd4eb199f48d3"
+      },
+      "at412c": {
+        "path": "/home/user/Projects/bins/at412c-post-b179853b",
+        "sha256": "b179853b0bdee33cea6c151e45a448bada761d19976df57ba834e739f92e78e7"
+      }
+    },
+    "post": {
+      "path": "build/tomokv",
+      "sha256": "b7618f4089cb88a1c0c921c9f13d342024065b3d1813cd5fc89f4403844d4c6c"
+    }
+  },
+  "summary_sha256": "1d7cb0a8f5a64304a7e32b64c3b1e29f85340073e7792c9a98bfc858f7bd99db"
+}

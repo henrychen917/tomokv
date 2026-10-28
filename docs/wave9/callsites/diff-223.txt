@@ -1,0 +1,25 @@
+tomo_db0::Config::Config()
+--- headline
+
++++ post
+
+@@ -79,7 +79,7 @@
+
+ CLONE 0 025c [ 6] vpinsrq $0x1,%rax,%xmm0,%xmm0
+ CLONE 0 0262 [10] movabs $0x1000000100,%rax
+ CLONE 0 026c [ 8] vmovdqu %xmm0,0x110(%rbx)
+-CLONE 0 0274 [10] vmovdqa64 <rip>(%rip),%zmm0 # <on_signal(int)::kInsist+0x150>
++CLONE 0 0274 [10] vmovdqa64 <rip>(%rip),%zmm0 # <on_signal(int)::kInsist+0x130>
+ CLONE 0 027e [ 7] mov %rax,0x130(%rbx)
+ CLONE 0 0285 [10] movabs $0x271000000bb8,%rax
+ CLONE 0 028f [ 7] mov %rax,0x1fc(%rbx)
+@@ -103,7 +103,7 @@
+
+ CLONE 0 0323 [11] movq $0x0,0x260(%rbx)
+ CLONE 0 032e [11] movq $0x0,0x268(%rbx)
+ CLONE 0 0339 [ 7] mov %rax,0x230(%rbx)
+-CLONE 0 0340 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 0340 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 0347 [ 8] vmovdqu %xmm0,0x23c(%rbx)
+ CLONE 0 034f [ 7] mov %rax,0x250(%rbx)
+ CLONE 0 0356 [ 1] pop %rbx

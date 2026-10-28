@@ -1,0 +1,50 @@
+lua_getinfo
+--- headline
+
++++ post
+
+@@ -29,7 +29,7 @@
+
+ CLONE 0 0063 [ 5] movzbl 0x0(%r13),%eax
+ CLONE 0 0068 [ 3] mov %r13,%r8
+ CLONE 0 006b [ 6] mov $0x1,%r14d
+-CLONE 0 0071 [ 7] lea <rip>(%rip),%r10 # <tomo::(anonymous namespace)::geo_neighbor_intervals(tomo::(anonymous namespace)::GeoSearchOptions const&, double, double)::neighbors+0x460>
++CLONE 0 0071 [ 7] lea <rip>(%rip),%r10 # <tomo::(anonymous namespace)::geo_neighbor_intervals(tomo::(anonymous namespace)::GeoSearchOptions const&, double, double)::neighbors+0x4b8>
+ CLONE 0 0078 [ 2] test %al,%al
+ CLONE 0 007a [ 2] je <+0xaf>
+ CLONE 0 007c [ 4] nopl 0x0(%rax)
+@@ -112,7 +112,7 @@
+
+ CLONE 0 01bd [ 5] call <luaO_chunkid>
+ CLONE 0 01c2 [ 5] mov 0x18(%rsp),%r11
+ CLONE 0 01c7 [ 5] mov 0x10(%rsp),%r8
+-CLONE 0 01cc [ 7] lea <rip>(%rip),%r10 # <tomo::(anonymous namespace)::geo_neighbor_intervals(tomo::(anonymous namespace)::GeoSearchOptions const&, double, double)::neighbors+0x460>
++CLONE 0 01cc [ 7] lea <rip>(%rip),%r10 # <tomo::(anonymous namespace)::geo_neighbor_intervals(tomo::(anonymous namespace)::GeoSearchOptions const&, double, double)::neighbors+0x4b8>
+ CLONE 0 01d3 [ 5] jmp <+0xa3>
+ CLONE 0 01d8 [ 8] nopl 0x0(%rax,%rax,1)
+ CLONE 0 01e0 [ 3] test %r11,%r11
+@@ -154,11 +154,11 @@
+
+ CLONE 0 025d [ 5] call <getobjname>
+ CLONE 0 0262 [ 5] mov 0x18(%rsp),%r11
+ CLONE 0 0267 [ 5] mov 0x10(%rsp),%r8
+-CLONE 0 026c [ 7] lea <rip>(%rip),%r10 # <tomo::(anonymous namespace)::geo_neighbor_intervals(tomo::(anonymous namespace)::GeoSearchOptions const&, double, double)::neighbors+0x460>
++CLONE 0 026c [ 7] lea <rip>(%rip),%r10 # <tomo::(anonymous namespace)::geo_neighbor_intervals(tomo::(anonymous namespace)::GeoSearchOptions const&, double, double)::neighbors+0x4b8>
+ CLONE 0 0273 [ 3] test %rax,%rax
+ CLONE 0 0276 [ 4] mov %rax,0x10(%r15)
+ CLONE 0 027a [ 6] jne <+0xa3>
+-CLONE 0 0280 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 0280 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 0287 [ 8] movq $0x0,0x8(%r15)
+ CLONE 0 028f [ 4] mov %rax,0x10(%r15)
+ CLONE 0 0293 [ 5] jmp <+0xa3>
+@@ -278,7 +278,7 @@
+
+ CLONE 0 048e [ 4] lea 0x38(%r15),%rdi
+ CLONE 0 0492 [ 5] mov $0x3c,%edx
+ CLONE 0 0497 [ 5] vmovq %rax,%xmm1
+-CLONE 0 049c [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 049c [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 04a3 [ 8] movl $0xffffffff,0x28(%r15)
+ CLONE 0 04ab [ 8] movq $0xffffffffffffffff,0x30(%r15)
+ CLONE 0 04b3 [ 6] vpinsrq $0x1,%rsi,%xmm1,%xmm1

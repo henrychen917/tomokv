@@ -1,0 +1,31 @@
+tomo::geo_build_store(tomo::Op&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > const&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> >&) [clone .cold]
+--- headline
+
++++ post
+
+@@ -13,11 +13,11 @@
+
+ CLONE 0 0035 [ 5] call <_Unwind_Resume@plt>
+ CLONE 0 003a [ 3] mov %rbx,%rdi
+ CLONE 0 003d [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 0042 [ 3] mov (%r14),%r13
++CLONE 0 0042 [ 3] mov (%r14),%r12
+ CLONE 0 0045 [ 4] mov 0x8(%r14),%rax
+-CLONE 0 0049 [ 3] cmp %rax,%r13
++CLONE 0 0049 [ 3] cmp %rax,%r12
+ CLONE 0 004c [ 2] je <+0x6a>
+-CLONE 0 004e [ 3] mov %r13,%rbx
++CLONE 0 004e [ 3] mov %r12,%rbx
+ CLONE 0 0051 [ 3] mov (%rbx),%rdi
+ CLONE 0 0054 [ 4] lea 0x10(%rbx),%rdx
+ CLONE 0 0058 [ 3] cmp %rdx,%rdi
+@@ -25,7 +25,7 @@
+
+ CLONE 0 005d [ 4] add $0x28,%rbx
+ CLONE 0 0061 [ 3] cmp %rbx,%rax
+ CLONE 0 0064 [ 2] jne <+0x51>
+-CLONE 0 0066 [ 4] mov %r13,0x8(%r14)
++CLONE 0 0066 [ 4] mov %r12,0x8(%r14)
+ CLONE 0 006a [ 5] call <__cxa_end_catch@plt>
+ CLONE 0 006f [ 7] movb $0x2,-0x109(%rbp)
+ CLONE 0 0076 [ 5] jmp <tomo::geo_build_store(tomo::Op&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > const&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> >&)+0xcf>

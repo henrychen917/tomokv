@@ -1,0 +1,319 @@
+tomo::multi_handle_io(tomo::Server&, tomo::Client&, tomo::Op&, unsigned int, tomo::MultiExecState*&) [clone .cold]
+--- headline
+
++++ post
+
+@@ -1,16 +1,16 @@
+
+ CLONE 0 0000 [ 5] mov 0x60(%rsp),%rdi
+ CLONE 0 0005 [ 3] vzeroupper
+ CLONE 0 0008 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 000d [ 5] mov 0x48(%rsp),%rdi
++CLONE 0 000d [ 5] mov 0x50(%rsp),%rdi
+ CLONE 0 0012 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+ CLONE 0 0017 [ 3] mov %rbx,%rdi
+ CLONE 0 001a [ 3] dec %r13
+-CLONE 0 001d [ 6] jne <+0x223>
++CLONE 0 001d [ 6] jne <+0x103>
+ CLONE 0 0023 [ 5] mov 0x20(%rsp),%rbx
+ CLONE 0 0028 [ 5] mov 0x18(%rsp),%rax
+ CLONE 0 002d [ 3] sub %rax,%rbx
+ CLONE 0 0030 [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 0035 [ 8] mov 0xa0(%rsp),%rax
++CLONE 0 0035 [ 8] mov 0xb0(%rsp),%rax
+ CLONE 0 003d [10] movabs $0xaaaaaaaaaaaaaaab,%rdi
+ CLONE 0 0047 [ 4] mov 0x40(%rax),%r14
+ CLONE 0 004b [ 4] lea 0x38(%rax),%r8
+@@ -21,7 +21,7 @@
+
+ CLONE 0 005c [ 4] sar $0x4,%rcx
+ CLONE 0 0060 [ 4] imul %rdi,%rcx
+ CLONE 0 0064 [ 3] cmp %rbx,%rdx
+-CLONE 0 0067 [ 6] jae <+0x2ef>
++CLONE 0 0067 [ 6] jae <+0x16c>
+ CLONE 0 006d [ 3] mov %rbx,%rsi
+ CLONE 0 0070 [ 4] sar $0x4,%rsi
+ CLONE 0 0074 [ 4] imul %rdi,%rsi
+@@ -30,14 +30,14 @@
+
+ CLONE 0 007e [ 5] call <std::vector<tomo::MultiWatchedKey, std::allocator<tomo::MultiWatchedKey> >::_M_default_append(unsigned long)>
+ CLONE 0 0083 [ 3] mov %r12,%rdi
+ CLONE 0 0086 [ 5] call <tomo::(anonymous namespace)::destroy_multi_state(tomo::MultiExecState*) [clone .part.0]>
+-CLONE 0 008b [ 8] mov 0xa8(%rsp),%rax
++CLONE 0 008b [ 8] mov 0xb8(%rsp),%rax
+ CLONE 0 0093 [ 8] lea 0xe0(%rsp),%rdi
+ CLONE 0 009b [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
+ CLONE 0 00a2 [ 8] movb $0x0,0xe8(%rsp)
+ CLONE 0 00aa [ 8] mov %rax,0xe0(%rsp)
+ CLONE 0 00b2 [ 5] call <void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)>
+ CLONE 0 00b7 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 00bc [ 5] jmp <tomo::multi_handle_io(tomo::Server&, tomo::Client&, tomo::Op&, unsigned int, tomo::MultiExecState*&)+0x5b0>
++CLONE 0 00bc [ 5] jmp <tomo::multi_handle_io(tomo::Server&, tomo::Client&, tomo::Op&, unsigned int, tomo::MultiExecState*&)+0x580>
+ CLONE 0 00c1 [ 4] endbr64
+ CLONE 0 00c5 [ 3] mov %rax,%r12
+ CLONE 0 00c8 [ 3] mov %rdx,%rbx
+@@ -45,129 +45,137 @@
+
+ CLONE 0 00ce [ 5] call <__cxa_end_catch@plt>
+ CLONE 0 00d3 [ 3] mov %r12,%rdi
+ CLONE 0 00d6 [ 3] dec %rbx
+-CLONE 0 00d9 [ 6] jne <+0x21b>
+-CLONE 0 00df [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 00e4 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 00e9 [ 8] mov 0xa0(%rsp),%rax
+-CLONE 0 00f1 [ 8] lea 0xd0(%rsp),%rdi
+-CLONE 0 00f9 [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
+-CLONE 0 0100 [ 4] movb $0x1,0x1(%rax)
+-CLONE 0 0104 [ 8] mov 0xa8(%rsp),%rax
+-CLONE 0 010c [ 8] movb $0x0,0xd8(%rsp)
+-CLONE 0 0114 [ 8] mov %rax,0xd0(%rsp)
+-CLONE 0 011c [ 5] call <void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)>
+-CLONE 0 0121 [ 5] jmp <tomo::multi_handle_io(tomo::Server&, tomo::Client&, tomo::Op&, unsigned int, tomo::MultiExecState*&)+0x1c98>
+-CLONE 0 0126 [ 3] dec %rax
+-CLONE 0 0129 [ 2] je <+0x15a>
+-CLONE 0 012b [ 3] mov %rdi,%rbx
+-CLONE 0 012e [ 3] vzeroupper
+-CLONE 0 0131 [ 5] mov 0x58(%rsp),%rdi
+-CLONE 0 0136 [ 5] call <std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()>
+-CLONE 0 013b [ 8] mov 0x278(%rsp),%rax
+-CLONE 0 0143 [ 9] sub %fs:0x28,%rax
+-CLONE 0 014c [ 6] jne <+0x1e8>
+-CLONE 0 0152 [ 3] mov %rbx,%rdi
+-CLONE 0 0155 [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 015a [ 3] vzeroupper
+-CLONE 0 015d [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 0162 [ 8] mov 0xa0(%rsp),%rax
+-CLONE 0 016a [ 8] lea 0xd0(%rsp),%rdi
+-CLONE 0 0172 [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
+-CLONE 0 0179 [ 4] movb $0x1,0x1(%rax)
+-CLONE 0 017d [ 8] mov 0xa8(%rsp),%rax
+-CLONE 0 0185 [ 8] movb $0x0,0xd8(%rsp)
+-CLONE 0 018d [ 8] mov %rax,0xd0(%rsp)
+-CLONE 0 0195 [ 5] call <void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)>
+-CLONE 0 019a [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 019f [ 5] jmp <tomo::multi_handle_io(tomo::Server&, tomo::Client&, tomo::Op&, unsigned int, tomo::MultiExecState*&)+0x1c98>
+-CLONE 0 01a4 [ 3] vzeroupper
+-CLONE 0 01a7 [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 01ac [ 9] cmpq $0x0,0x90(%rsp)
+-CLONE 0 01b5 [ 6] je <+0x29c>
+-CLONE 0 01bb [ 5] mov 0x68(%rsp),%rsi
+-CLONE 0 01c0 [ 8] mov 0x90(%rsp),%rdi
+-CLONE 0 01c8 [ 4] shl $0x5,%rsi
+-CLONE 0 01cc [ 5] call <_ZdlPvm@plt>
+-CLONE 0 01d1 [ 8] mov 0x278(%rsp),%rax
+-CLONE 0 01d9 [ 9] sub %fs:0x28,%rax
+-CLONE 0 01e2 [ 6] je <+0x2bf>
+-CLONE 0 01e8 [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 01ed [ 3] dec %rax
+-CLONE 0 01f0 [ 2] je <+0x23c>
+-CLONE 0 01f2 [ 3] mov %rdi,%rbx
+-CLONE 0 01f5 [ 3] vzeroupper
+-CLONE 0 01f8 [ 5] mov 0x28(%rsp),%rdi
+-CLONE 0 01fd [ 5] call <std::vector<unsigned int, std::allocator<unsigned int> >::~vector()>
+-CLONE 0 0202 [ 8] mov 0x278(%rsp),%rax
+-CLONE 0 020a [ 9] sub %fs:0x28,%rax
+-CLONE 0 0213 [ 6] je <+0x152>
+-CLONE 0 0219 [ 2] jmp <+0x1e8>
+-CLONE 0 021b [ 3] mov %rdi,%rbx
+-CLONE 0 021e [ 5] jmp <+0x131>
+-CLONE 0 0223 [ 8] mov 0x278(%rsp),%rax
+-CLONE 0 022b [ 9] sub %fs:0x28,%rax
+-CLONE 0 0234 [ 6] je <+0x155>
+-CLONE 0 023a [ 2] jmp <+0x1e8>
+-CLONE 0 023c [ 3] vzeroupper
+-CLONE 0 023f [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 0244 [ 3] mov %r12,%rdi
+-CLONE 0 0247 [ 5] call <tomo::(anonymous namespace)::destroy_multi_state(tomo::MultiExecState*) [clone .part.0]>
+-CLONE 0 024c [ 8] mov 0xa8(%rsp),%rax
+-CLONE 0 0254 [ 8] lea 0xd0(%rsp),%rdi
+-CLONE 0 025c [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
+-CLONE 0 0263 [ 8] movb $0x0,0xd8(%rsp)
+-CLONE 0 026b [ 8] mov %rax,0xd0(%rsp)
+-CLONE 0 0273 [ 5] call <void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)>
+-CLONE 0 0278 [ 8] mov 0xa0(%rsp),%rbx
+-CLONE 0 0280 [ 4] lea 0x18(%rbx),%rdi
+-CLONE 0 0284 [ 3] movb $0x0,(%rbx)
+-CLONE 0 0287 [ 5] call <std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >::clear()>
+-CLONE 0 028c [ 2] xor %eax,%eax
+-CLONE 0 028e [ 4] mov %rax,0x30(%rbx)
+-CLONE 0 0292 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 0297 [ 5] jmp <tomo::multi_handle_io(tomo::Server&, tomo::Client&, tomo::Op&, unsigned int, tomo::MultiExecState*&)+0x2177>
+-CLONE 0 029c [ 5] mov 0x60(%rsp),%rdi
+-CLONE 0 02a1 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 02a6 [ 5] jmp <+0x1d1>
+-CLONE 0 02ab [ 4] endbr64
+-CLONE 0 02af [ 3] mov %rax,%rbx
+-CLONE 0 02b2 [ 3] vzeroupper
+-CLONE 0 02b5 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 02ba [ 5] jmp <+0x1f8>
+-CLONE 0 02bf [ 5] call <__cxa_rethrow@plt>
+-CLONE 0 02c4 [ 8] mov 0x1e0(%rsp),%rdi
+-CLONE 0 02cc [ 3] vzeroupper
+-CLONE 0 02cf [ 5] call <free@plt>
+-CLONE 0 02d4 [ 8] mov 0x140(%rsp),%rdi
+-CLONE 0 02dc [ 3] cmp %r15,%rdi
+-CLONE 0 02df [ 6] je <+0x13b>
+-CLONE 0 02e5 [ 5] call <free@plt>
+-CLONE 0 02ea [ 5] jmp <+0x13b>
+-CLONE 0 02ef [ 3] cmp %rdx,%rbx
+-CLONE 0 02f2 [ 6] jae <+0x83>
+-CLONE 0 02f8 [ 3] add %rax,%rbx
+-CLONE 0 02fb [ 3] cmp %rbx,%r14
+-CLONE 0 02fe [ 6] je <+0x83>
+-CLONE 0 0304 [ 3] mov %rbx,%r13
+-CLONE 0 0307 [ 4] mov 0x0(%r13),%rdi
+-CLONE 0 030b [ 4] lea 0x10(%r13),%rax
+-CLONE 0 030f [ 3] cmp %rax,%rdi
+-CLONE 0 0312 [ 2] jne <+0x359>
+-CLONE 0 0314 [ 4] add $0x30,%r13
+-CLONE 0 0318 [ 3] cmp %r13,%r14
+-CLONE 0 031b [ 2] jne <+0x307>
+-CLONE 0 031d [ 8] mov 0xa0(%rsp),%rax
+-CLONE 0 0325 [ 4] mov %rbx,0x40(%rax)
+-CLONE 0 0329 [ 5] jmp <+0x83>
+-CLONE 0 032e [ 4] endbr64
+-CLONE 0 0332 [ 3] mov %rax,%rbx
+-CLONE 0 0335 [ 3] vzeroupper
+-CLONE 0 0338 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 033d [ 8] mov 0x278(%rsp),%rax
+-CLONE 0 0345 [ 9] sub %fs:0x28,%rax
+-CLONE 0 034e [ 6] je <+0x152>
+-CLONE 0 0354 [ 5] jmp <+0x1e8>
+-CLONE 0 0359 [ 4] mov 0x10(%r13),%rax
+-CLONE 0 035d [ 4] lea 0x1(%rax),%rsi
+-CLONE 0 0361 [ 5] call <_ZdlPvm@plt>
+-CLONE 0 0366 [ 2] jmp <+0x314>
++CLONE 0 00d9 [ 3] mov %rdi,%rbx
++CLONE 0 00dc [ 2] je <+0x11b>
++CLONE 0 00de [ 5] mov 0x58(%rsp),%rdi
++CLONE 0 00e3 [ 5] call <std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()>
++CLONE 0 00e8 [ 8] mov 0x278(%rsp),%rax
++CLONE 0 00f0 [ 9] sub %fs:0x28,%rax
++CLONE 0 00f9 [ 2] jne <+0x116>
++CLONE 0 00fb [ 3] mov %rbx,%rdi
++CLONE 0 00fe [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0103 [ 8] mov 0x278(%rsp),%rax
++CLONE 0 010b [ 9] sub %fs:0x28,%rax
++CLONE 0 0114 [ 2] je <+0xfe>
++CLONE 0 0116 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 011b [ 5] call <__cxa_begin_catch@plt>
++CLONE 0 0120 [ 5] call <__cxa_end_catch@plt>
++CLONE 0 0125 [ 8] mov 0xb0(%rsp),%rax
++CLONE 0 012d [ 8] lea 0xd0(%rsp),%rdi
++CLONE 0 0135 [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
++CLONE 0 013c [ 4] movb $0x1,0x1(%rax)
++CLONE 0 0140 [ 8] mov 0xb8(%rsp),%rax
++CLONE 0 0148 [ 8] movb $0x0,0xd8(%rsp)
++CLONE 0 0150 [ 8] mov %rax,0xd0(%rsp)
++CLONE 0 0158 [ 5] call <void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)>
++CLONE 0 015d [ 5] mov 0x58(%rsp),%rdi
++CLONE 0 0162 [ 5] call <std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()>
++CLONE 0 0167 [ 5] jmp <tomo::multi_handle_io(tomo::Server&, tomo::Client&, tomo::Op&, unsigned int, tomo::MultiExecState*&)+0x580>
++CLONE 0 016c [ 3] cmp %rdx,%rbx
++CLONE 0 016f [ 6] jae <+0x83>
++CLONE 0 0175 [ 3] add %rax,%rbx
++CLONE 0 0178 [ 3] cmp %rbx,%r14
++CLONE 0 017b [ 6] je <+0x83>
++CLONE 0 0181 [ 3] mov %rbx,%r13
++CLONE 0 0184 [ 4] mov 0x0(%r13),%rdi
++CLONE 0 0188 [ 4] lea 0x10(%r13),%rax
++CLONE 0 018c [ 3] cmp %rax,%rdi
++CLONE 0 018f [ 2] je <+0x19e>
++CLONE 0 0191 [ 4] mov 0x10(%r13),%rax
++CLONE 0 0195 [ 4] lea 0x1(%rax),%rsi
++CLONE 0 0199 [ 5] call <_ZdlPvm@plt>
++CLONE 0 019e [ 4] add $0x30,%r13
++CLONE 0 01a2 [ 3] cmp %r13,%r14
++CLONE 0 01a5 [ 2] jne <+0x184>
++CLONE 0 01a7 [ 8] mov 0xb0(%rsp),%rax
++CLONE 0 01af [ 4] mov %rbx,0x40(%rax)
++CLONE 0 01b3 [ 5] jmp <+0x83>
++CLONE 0 01b8 [ 4] endbr64
++CLONE 0 01bc [ 3] mov %rax,%rbx
++CLONE 0 01bf [ 3] vzeroupper
++CLONE 0 01c2 [ 5] call <__cxa_end_catch@plt>
++CLONE 0 01c7 [ 8] mov 0x278(%rsp),%rax
++CLONE 0 01cf [ 9] sub %fs:0x28,%rax
++CLONE 0 01d8 [ 6] je <+0xfb>
++CLONE 0 01de [ 5] jmp <+0x116>
++CLONE 0 01e3 [ 8] mov 0xb8(%rsp),%rax
++CLONE 0 01eb [ 8] lea 0xd0(%rsp),%rdi
++CLONE 0 01f3 [ 5] mov $0x6,%edx
++CLONE 0 01f8 [ 7] lea <rip>(%rip),%rsi # <literal-string-51554555454400>
++CLONE 0 01ff [ 8] movb $0x0,0xd8(%rsp)
++CLONE 0 0207 [ 8] mov %rax,0xd0(%rsp)
++CLONE 0 020f [ 5] call <void tomo::reply_simple<tomo::Op::Sink&>(tomo::Op::Sink&, char const*, unsigned long)>
++CLONE 0 0214 [ 5] jmp <+0x15d>
++CLONE 0 0219 [ 3] vzeroupper
++CLONE 0 021c [ 5] call <__cxa_begin_catch@plt>
++CLONE 0 0221 [ 9] cmpq $0x0,0x90(%rsp)
++CLONE 0 022a [ 6] je <+0x2ca>
++CLONE 0 0230 [ 8] mov 0x88(%rsp),%rsi
++CLONE 0 0238 [ 8] mov 0x90(%rsp),%rdi
++CLONE 0 0240 [ 4] shl $0x5,%rsi
++CLONE 0 0244 [ 5] call <_ZdlPvm@plt>
++CLONE 0 0249 [ 8] mov 0x278(%rsp),%rax
++CLONE 0 0251 [ 9] sub %fs:0x28,%rax
++CLONE 0 025a [ 6] jne <+0x116>
++CLONE 0 0260 [ 5] call <__cxa_rethrow@plt>
++CLONE 0 0265 [ 3] dec %rax
++CLONE 0 0268 [ 2] jne <+0x2dc>
++CLONE 0 026a [ 3] vzeroupper
++CLONE 0 026d [ 5] call <__cxa_begin_catch@plt>
++CLONE 0 0272 [ 3] mov %r12,%rdi
++CLONE 0 0275 [ 5] call <tomo::(anonymous namespace)::destroy_multi_state(tomo::MultiExecState*) [clone .part.0]>
++CLONE 0 027a [ 8] mov 0xb8(%rsp),%rax
++CLONE 0 0282 [ 8] lea 0xd0(%rsp),%rdi
++CLONE 0 028a [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
++CLONE 0 0291 [ 8] movb $0x0,0xd8(%rsp)
++CLONE 0 0299 [ 8] mov %rax,0xd0(%rsp)
++CLONE 0 02a1 [ 5] call <void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)>
++CLONE 0 02a6 [ 8] mov 0xb0(%rsp),%rbx
++CLONE 0 02ae [ 4] lea 0x18(%rbx),%rdi
++CLONE 0 02b2 [ 3] movb $0x0,(%rbx)
++CLONE 0 02b5 [ 5] call <std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >::clear()>
++CLONE 0 02ba [ 2] xor %eax,%eax
++CLONE 0 02bc [ 4] mov %rax,0x30(%rbx)
++CLONE 0 02c0 [ 5] call <__cxa_end_catch@plt>
++CLONE 0 02c5 [ 5] jmp <tomo::multi_handle_io(tomo::Server&, tomo::Client&, tomo::Op&, unsigned int, tomo::MultiExecState*&)+0x2521>
++CLONE 0 02ca [ 8] mov 0x80(%rsp),%rdi
++CLONE 0 02d2 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 02d7 [ 5] jmp <+0x249>
++CLONE 0 02dc [ 3] mov %rdi,%rbx
++CLONE 0 02df [ 3] vzeroupper
++CLONE 0 02e2 [ 5] mov 0x28(%rsp),%rdi
++CLONE 0 02e7 [ 5] call <std::vector<unsigned int, std::allocator<unsigned int> >::~vector()>
++CLONE 0 02ec [ 8] mov 0x278(%rsp),%rax
++CLONE 0 02f4 [ 9] sub %fs:0x28,%rax
++CLONE 0 02fd [ 6] je <+0xfb>
++CLONE 0 0303 [ 5] jmp <+0x116>
++CLONE 0 0308 [ 4] endbr64
++CLONE 0 030c [ 3] mov %rax,%rbx
++CLONE 0 030f [ 3] vzeroupper
++CLONE 0 0312 [ 5] call <__cxa_end_catch@plt>
++CLONE 0 0317 [ 2] jmp <+0x2e2>
++CLONE 0 0319 [ 8] mov 0x1e0(%rsp),%rdi
++CLONE 0 0321 [ 3] vzeroupper
++CLONE 0 0324 [ 5] call <free@plt>
++CLONE 0 0329 [ 8] mov 0x140(%rsp),%rdi
++CLONE 0 0331 [ 3] cmp %r15,%rdi
++CLONE 0 0334 [ 6] je <+0xe8>
++CLONE 0 033a [ 5] call <free@plt>
++CLONE 0 033f [ 5] jmp <+0xe8>
++CLONE 0 0344 [ 3] dec %rax
++CLONE 0 0347 [ 2] jne <+0x393>
++CLONE 0 0349 [ 3] vzeroupper
++CLONE 0 034c [ 5] call <__cxa_begin_catch@plt>
++CLONE 0 0351 [ 8] mov 0xb0(%rsp),%rax
++CLONE 0 0359 [ 8] lea 0xd0(%rsp),%rdi
++CLONE 0 0361 [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206f7574206f66206d656d6f727900>
++CLONE 0 0368 [ 4] movb $0x1,0x1(%rax)
++CLONE 0 036c [ 8] mov 0xb8(%rsp),%rax
++CLONE 0 0374 [ 8] movb $0x0,0xd8(%rsp)
++CLONE 0 037c [ 8] mov %rax,0xd0(%rsp)
++CLONE 0 0384 [ 5] call <void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)>
++CLONE 0 0389 [ 5] call <__cxa_end_catch@plt>
++CLONE 0 038e [ 5] jmp <+0x15d>
++CLONE 0 0393 [ 3] mov %rdi,%rbx
++CLONE 0 0396 [ 3] vzeroupper
++CLONE 0 0399 [ 5] jmp <+0xde>

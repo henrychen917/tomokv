@@ -1,0 +1,44 @@
+tomo::Shard::watch_flush(int) [clone .cold]
+--- headline
+
++++ post
+
+@@ -1,19 +1,18 @@
+
+-CLONE 0 0000 [ 5] call <abort@plt>
+-CLONE 0 0005 [ 3] dec %rax
+-CLONE 0 0008 [ 2] jne <+0x26>
+-CLONE 0 000a [ 3] vzeroupper
+-CLONE 0 000d [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 0012 [ 2] xor %ebx,%ebx
+-CLONE 0 0014 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 0019 [ 8] mov 0x80(%rsp),%rdi
+-CLONE 0 0021 [ 5] jmp <tomo_multidb2_pad_541528+0x1d3>
+-CLONE 0 0026 [ 3] mov %rdi,%rbx
+-CLONE 0 0029 [ 8] lea 0x80(%rsp),%rdi
+-CLONE 0 0031 [ 3] vzeroupper
+-CLONE 0 0034 [ 5] call <std::vector<tomo::Client*, std::allocator<tomo::Client*> >::~vector()>
+-CLONE 0 0039 [ 8] mov 0x98(%rsp),%rax
+-CLONE 0 0041 [ 9] sub %fs:0x28,%rax
+-CLONE 0 004a [ 2] jne <+0x54>
+-CLONE 0 004c [ 3] mov %rbx,%rdi
+-CLONE 0 004f [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 0054 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 0000 [ 3] dec %rax
++CLONE 0 0003 [ 2] je <+0x38>
++CLONE 0 0005 [ 3] mov %rdi,%rbx
++CLONE 0 0008 [ 8] lea 0x80(%rsp),%rdi
++CLONE 0 0010 [ 3] vzeroupper
++CLONE 0 0013 [ 5] call <std::vector<tomo::Client*, std::allocator<tomo::Client*> >::~vector()>
++CLONE 0 0018 [ 8] mov 0x98(%rsp),%rax
++CLONE 0 0020 [ 9] sub %fs:0x28,%rax
++CLONE 0 0029 [ 2] jne <+0x33>
++CLONE 0 002b [ 3] mov %rbx,%rdi
++CLONE 0 002e [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0033 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 0038 [ 3] vzeroupper
++CLONE 0 003b [ 5] call <__cxa_begin_catch@plt>
++CLONE 0 0040 [ 2] xor %ebx,%ebx
++CLONE 0 0042 [ 5] call <__cxa_end_catch@plt>
++CLONE 0 0047 [ 8] mov 0x80(%rsp),%rdi
++CLONE 0 004f [ 5] jmp <tomo_multidb2_pad_533958+0x1e6>

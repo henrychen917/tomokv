@@ -106,8 +106,9 @@ def main():
     # hot selection; this additional final inventory cannot change trial scores.
     if os.getenv('WAVE9_COUNTED_HOT') == '1':
         for arm in ('pre','post'):
-            for row in json.loads((ROOT/'docs/wave9/instructions'/('results-'+arm+'.json')).read_text()):
-                COUNTED_HOT.update(audit.canonical(name) for name in row['functions'])
+            for kind in ('commands', 'exec', 'local'):
+                for row in json.loads((ROOT/'docs/wave9/instructions'/(kind+'-results-'+arm+'.json')).read_text()):
+                    COUNTED_HOT.update(audit.canonical(name) for name in row['functions'])
     with ProcessPoolExecutor(max_workers=6) as pool:
         inventories = list(pool.map(inventory, [*REFS.values(), Path(sys.argv[1]) if len(sys.argv)>1 else ROOT / 'build/tomokv']))
     refs = dict(zip(REFS, inventories[:-1]))

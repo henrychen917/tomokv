@@ -1,0 +1,15 @@
+lua_concat
+--- headline
+
++++ post
+
+@@ -9,7 +9,7 @@
+
+ CLONE 0 0015 [11] data16 cs nopw 0x0(%rax,%rax,1)
+ CLONE 0 0020 [ 1] push %rbx
+ CLONE 0 0021 [ 2] xor %edx,%edx
+-CLONE 0 0023 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x788>
++CLONE 0 0023 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x782>
+ CLONE 0 002a [ 4] sub $0x10,%rsp
+ CLONE 0 002e [ 4] mov 0x10(%rdi),%rbx
+ CLONE 0 0032 [ 5] mov %rdi,0x8(%rsp)

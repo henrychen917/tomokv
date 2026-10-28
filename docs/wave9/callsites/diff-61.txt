@@ -1,0 +1,25 @@
+tomo::(anonymous namespace)::execute_plain_element_mover(tomo::Task const&, tomo::Shard&, tomo::Op&) [clone .isra.0]
+--- headline
+
++++ post
+
+@@ -366,7 +366,7 @@
+
+ CLONE 0 06b1 [ 5] jmp <+0x542>
+ CLONE 0 06b6 [10] cs nopw 0x0(%rax,%rax,1)
+ CLONE 0 06c0 [ 3] movzbl %al,%ecx
+-CLONE 0 06c3 [ 7] lea <rip>(%rip),%rdi # <CSWTCH.6896>
++CLONE 0 06c3 [ 7] lea <rip>(%rip),%rdi # <CSWTCH.7280>
+ CLONE 0 06ca [ 4] movzbl (%rdi,%rcx,1),%ecx
+ CLONE 0 06ce [ 2] mov %cl,(%rdx)
+ CLONE 0 06d0 [ 2] test %al,%al
+@@ -491,7 +491,7 @@
+
+ CLONE 0 08f8 [ 5] jmp <+0x390>
+ CLONE 0 08fd [ 3] nopl (%rax)
+ CLONE 0 0900 [ 3] movzbl %al,%eax
+-CLONE 0 0903 [ 7] lea <rip>(%rip),%rdx # <CSWTCH.6896>
++CLONE 0 0903 [ 7] lea <rip>(%rip),%rdx # <CSWTCH.7280>
+ CLONE 0 090a [ 4] movzbl (%rdx,%rax,1),%edx
+ CLONE 0 090e [ 2] mov %dl,(%rcx)
+ CLONE 0 0910 [ 3] test %r15b,%r15b

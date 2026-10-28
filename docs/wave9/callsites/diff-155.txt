@@ -1,0 +1,99 @@
+tomo::script_execute(tomo::Shard&, tomo::Op&, tomo::ScriptInvocation const&) [clone .cold]
+--- headline
+
++++ post
+
+@@ -1,38 +1,54 @@
+
+-CLONE 0 0000 [ 7] mov -0x5d0(%rbp),%rdi
+-CLONE 0 0007 [ 7] lea -0x500(%rbp),%r12
+-CLONE 0 000e [ 3] vzeroupper
+-CLONE 0 0011 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0016 [ 3] mov %r12,%rdi
+-CLONE 0 0019 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 001e [ 8] cmpq $0x0,-0x5a8(%rbp)
+-CLONE 0 0026 [ 2] je <+0x3d>
+-CLONE 0 0028 [ 7] mov -0x5a8(%rbp),%rax
+-CLONE 0 002f [ 7] mov -0x5b8(%rbp),%rdi
+-CLONE 0 0036 [ 7] mov %rdi,0x100(%rax)
+-CLONE 0 003d [ 7] movzbl -0x5a9(%rbp),%eax
+-CLONE 0 0044 [ 7] mov %al,0x12b(%r15)
+-CLONE 0 004b [ 4] mov -0x38(%rbp),%rax
+-CLONE 0 004f [ 9] sub %fs:0x28,%rax
+-CLONE 0 0058 [ 2] jne <+0x62>
+-CLONE 0 005a [ 3] mov %rbx,%rdi
+-CLONE 0 005d [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 0062 [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 0067 [ 7] mov -0x5d0(%rbp),%rdi
+-CLONE 0 006e [ 3] mov %r12,%r9
+-CLONE 0 0071 [ 6] mov $0x4,%r8d
+-CLONE 0 0077 [ 2] xor %edx,%edx
+-CLONE 0 0079 [ 5] call <_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE15_M_replace_coldEPcmPKcmm@plt>
+-CLONE 0 007e [ 7] mov -0x4c0(%rbp),%rcx
+-CLONE 0 0085 [ 5] jmp <tomo::script_execute(tomo::Shard&, tomo::Op&, tomo::ScriptInvocation const&)+0x6a1>
+-CLONE 0 008a [ 4] endbr64
+-CLONE 0 008e [ 5] jmp <tomo::script_execute(tomo::Shard&, tomo::Op&, tomo::ScriptInvocation const&)+0x1327>
+-CLONE 0 0093 [ 3] mov %r12,%rdi
+-CLONE 0 0096 [ 3] vzeroupper
+-CLONE 0 0099 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 009e [ 7] mov -0x5c8(%rbp),%rdi
+-CLONE 0 00a5 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 00aa [ 7] mov -0x4c0(%rbp),%rdi
+-CLONE 0 00b1 [ 3] cmp %r13,%rdi
+-CLONE 0 00b4 [ 6] je <+0x1e>
+-CLONE 0 00ba [ 5] call <free@plt>
+-CLONE 0 00bf [ 5] jmp <+0x1e>
++CLONE 0 0000 [ 7] mov -0x598(%rbp),%rax
++CLONE 0 0007 [ 7] mov -0x4f8(%rbp),%rdx
++CLONE 0 000e [ 7] mov -0x500(%rbp),%rsi
++CLONE 0 0015 [ 7] lea -0x580(%rbp),%rdi
++CLONE 0 001c [ 2] xor %ecx,%ecx
++CLONE 0 001e [ 7] movb $0x0,-0x578(%rbp)
++CLONE 0 0025 [ 7] mov %rax,-0x580(%rbp)
++CLONE 0 002c [ 5] call <void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*, unsigned long, bool)>
++CLONE 0 0031 [ 5] jmp <tomo::script_execute(tomo::Shard&, tomo::Op&, tomo::ScriptInvocation const&)+0x369>
++CLONE 0 0036 [ 7] mov -0x5d0(%rbp),%rdi
++CLONE 0 003d [ 3] mov %r12,%r9
++CLONE 0 0040 [ 6] mov $0x4,%r8d
++CLONE 0 0046 [ 2] xor %edx,%edx
++CLONE 0 0048 [ 5] call <_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE15_M_replace_coldEPcmPKcmm@plt>
++CLONE 0 004d [ 7] mov -0x4c0(%rbp),%rcx
++CLONE 0 0054 [ 5] jmp <tomo::script_execute(tomo::Shard&, tomo::Op&, tomo::ScriptInvocation const&)+0x55a>
++CLONE 0 0059 [ 4] endbr64
++CLONE 0 005d [ 5] jmp <tomo::script_execute(tomo::Shard&, tomo::Op&, tomo::ScriptInvocation const&)+0x1188>
++CLONE 0 0062 [ 7] lea -0x4e0(%rbp),%rdi
++CLONE 0 0069 [ 3] vzeroupper
++CLONE 0 006c [ 7] lea -0x500(%rbp),%r12
++CLONE 0 0073 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0078 [ 3] mov %r12,%rdi
++CLONE 0 007b [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0080 [ 7] mov -0x5d0(%rbp),%rdi
++CLONE 0 0087 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 008c [ 7] mov -0x4c0(%rbp),%rdi
++CLONE 0 0093 [ 3] cmp %r13,%rdi
++CLONE 0 0096 [ 2] je <+0x9d>
++CLONE 0 0098 [ 5] call <free@plt>
++CLONE 0 009d [ 8] cmpq $0x0,-0x5b0(%rbp)
++CLONE 0 00a5 [ 2] je <+0xbc>
++CLONE 0 00a7 [ 7] mov -0x5b0(%rbp),%rax
++CLONE 0 00ae [ 7] mov -0x5b8(%rbp),%rcx
++CLONE 0 00b5 [ 7] mov %rcx,0x100(%rax)
++CLONE 0 00bc [ 7] movzbl -0x599(%rbp),%eax
++CLONE 0 00c3 [ 7] mov %al,0x12b(%r15)
++CLONE 0 00ca [ 4] mov -0x38(%rbp),%rax
++CLONE 0 00ce [ 9] sub %fs:0x28,%rax
++CLONE 0 00d7 [ 2] jne <+0xe1>
++CLONE 0 00d9 [ 3] mov %rbx,%rdi
++CLONE 0 00dc [ 5] call <_Unwind_Resume@plt>
++CLONE 0 00e1 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 00e6 [ 7] mov -0x5d0(%rbp),%rdi
++CLONE 0 00ed [ 7] lea -0x500(%rbp),%r12
++CLONE 0 00f4 [ 3] vzeroupper
++CLONE 0 00f7 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 00fc [ 3] mov %r12,%rdi
++CLONE 0 00ff [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0104 [ 2] jmp <+0x9d>
++CLONE 0 0106 [ 7] lea -0x500(%rbp),%rdi
++CLONE 0 010d [ 3] vzeroupper
++CLONE 0 0110 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0115 [ 2] jmp <+0x9d>

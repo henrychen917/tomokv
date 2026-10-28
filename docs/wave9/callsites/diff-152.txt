@@ -1,0 +1,19 @@
+tomo::notify_tracking_commit(tomo::Op&)
+--- headline
+
++++ post
+
+@@ -60,10 +60,10 @@
+
+ CLONE 0 00d8 [ 1] pop %rbx
+ CLONE 0 00d9 [ 1] ret
+ CLONE 0 00da [ 6] nopw 0x0(%rax,%rax,1)
+-CLONE 0 00e0 [ 7] add $0xd0,%rbx
++CLONE 0 00e0 [ 7] add $0xe8,%rbx
+ CLONE 0 00e7 [ 5] jmp <+0x30>
+ CLONE 0 00ec [ 4] nopl 0x0(%rax)
+-CLONE 0 00f0 [ 7] add $0x618,%rbx
++CLONE 0 00f0 [ 7] add $0x620,%rbx
+ CLONE 0 00f7 [ 5] jmp <+0x30>
+ CLONE 0 00fc [ 4] nopl 0x0(%rax)
+ CLONE 0 0100 [ 2] xor %ecx,%ecx

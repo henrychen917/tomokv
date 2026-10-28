@@ -1,0 +1,61 @@
+void tomo::(anonymous namespace)::cmd_eval<false, true, true>(tomo::Shard&, tomo::Op&)
+--- headline
+
++++ post
+
+@@ -40,10 +40,10 @@
+
+ CLONE 0 0095 [ 3] mov (%rax),%r8
+ CLONE 0 0098 [ 2] push $0x1
+ CLONE 0 009a [ 2] push $0x0
+-CLONE 0 009c [ 5] call <tomo::(anonymous namespace)::run_eval(tomo::Shard&, tomo::Op&, tomo::Slice, bool, tomo::Slice, bool, bool) [clone .constprop.0] [clone .isra.0]>
+-CLONE 0 00a1 [ 4] mov -0x50(%rbp),%rdi
+-CLONE 0 00a5 [ 1] pop %rax
+-CLONE 0 00a6 [ 1] pop %rdx
++CLONE 0 009c [ 5] call <tomo::(anonymous namespace)::run_eval(tomo::Shard&, tomo::Op&, tomo::Slice, bool, tomo::Slice, bool, bool) [clone .constprop.0]>
++CLONE 0 00a1 [ 1] pop %rax
++CLONE 0 00a2 [ 1] pop %rdx
++CLONE 0 00a3 [ 4] mov -0x50(%rbp),%rdi
+ CLONE 0 00a7 [ 3] cmp %r12,%rdi
+ CLONE 0 00aa [ 2] je <+0xb9>
+ CLONE 0 00ac [ 4] mov -0x40(%rbp),%rax
+@@ -51,7 +51,7 @@
+
+ CLONE 0 00b4 [ 5] call <_ZdlPvm@plt>
+ CLONE 0 00b9 [ 4] mov -0x28(%rbp),%rax
+ CLONE 0 00bd [ 9] sub %fs:0x28,%rax
+-CLONE 0 00c6 [ 2] jne <+0x10b>
++CLONE 0 00c6 [ 2] jne <+0x102>
+ CLONE 0 00c8 [ 4] lea -0x20(%rbp),%rsp
+ CLONE 0 00cc [ 1] pop %rbx
+ CLONE 0 00cd [ 2] pop %r12
+@@ -60,17 +60,14 @@
+
+ CLONE 0 00d3 [ 1] pop %rbp
+ CLONE 0 00d4 [ 1] ret
+ CLONE 0 00d5 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 00e0 [ 3] mov %rbx,%rdi
+-CLONE 0 00e3 [ 5] mov $0x24,%ecx
+-CLONE 0 00e8 [ 7] lea <rip>(%rip),%r8 # <literal-string-4e6f206d61746368696e67207363726970742e20506c6561736520757365204556414c2e00>
+-CLONE 0 00ef [ 5] mov $0x8,%esi
+-CLONE 0 00f4 [ 7] lea <rip>(%rip),%rdx # <literal-string-4e4f53435249505400>
+-CLONE 0 00fb [ 5] call <tomo::(anonymous namespace)::reply_text_error(tomo::Op&, std::basic_string_view<char, std::char_traits<char> >, std::basic_string_view<char, std::char_traits<char> >)>
+-CLONE 0 0100 [ 4] mov -0x50(%rbp),%rdi
+-CLONE 0 0104 [ 3] cmp %r12,%rdi
+-CLONE 0 0107 [ 2] jne <+0xac>
+-CLONE 0 0109 [ 2] jmp <+0xb9>
+-CLONE 0 010b [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 0110 [ 4] endbr64
+-CLONE 0 0114 [ 3] mov %rax,%rbx
+-CLONE 0 0117 [ 5] jmp <void tomo::(anonymous namespace)::cmd_eval<false, true, true>(tomo::Shard&, tomo::Op&) [clone .cold]>
++CLONE 0 00e0 [ 5] mov $0x24,%ecx
++CLONE 0 00e5 [ 7] lea <rip>(%rip),%r8 # <literal-string-4e6f206d61746368696e67207363726970742e20506c6561736520757365204556414c2e00>
++CLONE 0 00ec [ 5] mov $0x8,%esi
++CLONE 0 00f1 [ 7] lea <rip>(%rip),%rdx # <literal-string-4e4f53435249505400>
++CLONE 0 00f8 [ 3] mov %rbx,%rdi
++CLONE 0 00fb [ 5] call <tomo::(anonymous namespace)::reply_text_error(tomo::Op&, std::basic_string_view<char, std::char_traits<char> >, std::basic_string_view<char, std::char_traits<char> >, bool) [clone .constprop.0]>
++CLONE 0 0100 [ 2] jmp <+0xa3>
++CLONE 0 0102 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 0107 [ 4] endbr64
++CLONE 0 010b [ 3] mov %rax,%rbx
++CLONE 0 010e [ 5] jmp <void tomo::(anonymous namespace)::cmd_eval<false, true, true>(tomo::Shard&, tomo::Op&) [clone .cold]>

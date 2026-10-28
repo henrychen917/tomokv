@@ -1,0 +1,110 @@
+tomo_db0::(anonymous namespace)::promote_hash(tomo_db0::CollectionRef&) [clone .cold]
+--- headline
+
++++ post
+
+@@ -1,52 +1,52 @@
+
+-CLONE 0 0000 [ 4] sub $0x2,%rax
+-CLONE 0 0004 [ 4] cmp $0x1,%rax
+-CLONE 0 0008 [ 2] ja <+0x76>
+-CLONE 0 000a [ 3] vzeroupper
+-CLONE 0 000d [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 0012 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 0017 [ 5] jmp <tomo_db0::(anonymous namespace)::promote_hash(tomo_db0::CollectionRef&)+0xa71>
+-CLONE 0 001c [ 4] endbr64
+-CLONE 0 0020 [ 3] mov %rax,%rbx
+-CLONE 0 0023 [ 3] vzeroupper
+-CLONE 0 0026 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 002b [ 3] mov %r12,%rsi
+-CLONE 0 002e [ 3] mov %r14,%rdi
+-CLONE 0 0031 [ 5] call <_ZdlPvRKSt9nothrow_t@plt>
+-CLONE 0 0036 [ 8] mov 0xd8(%rsp),%rax
+-CLONE 0 003e [ 9] sub %fs:0x28,%rax
+-CLONE 0 0047 [ 2] jne <+0x71>
+-CLONE 0 0049 [ 3] mov %rbx,%rdi
+-CLONE 0 004c [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 0051 [ 3] vzeroupper
+-CLONE 0 0054 [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 0059 [ 8] mov 0xd8(%rsp),%rax
+-CLONE 0 0061 [ 9] sub %fs:0x28,%rax
+-CLONE 0 006a [ 2] jne <+0x99>
+-CLONE 0 006c [ 5] call <__cxa_rethrow@plt>
++CLONE 0 0000 [ 3] vzeroupper
++CLONE 0 0003 [ 5] call <__cxa_begin_catch@plt>
++CLONE 0 0008 [ 8] mov 0xd8(%rsp),%rax
++CLONE 0 0010 [ 9] sub %fs:0x28,%rax
++CLONE 0 0019 [ 2] jne <+0x76>
++CLONE 0 001b [ 5] call <__cxa_rethrow@plt>
++CLONE 0 0020 [ 4] endbr64
++CLONE 0 0024 [ 3] mov %rax,%rbx
++CLONE 0 0027 [ 3] vzeroupper
++CLONE 0 002a [ 5] call <__cxa_end_catch@plt>
++CLONE 0 002f [ 3] mov %r15,%rsi
++CLONE 0 0032 [ 3] mov %r12,%rdi
++CLONE 0 0035 [ 5] call <_ZdlPvRKSt9nothrow_t@plt>
++CLONE 0 003a [ 8] mov 0xd8(%rsp),%rax
++CLONE 0 0042 [ 9] sub %fs:0x28,%rax
++CLONE 0 004b [ 2] jne <+0x71>
++CLONE 0 004d [ 3] mov %rbx,%rdi
++CLONE 0 0050 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0055 [ 4] sub $0x2,%rax
++CLONE 0 0059 [ 4] cmp $0x1,%rax
++CLONE 0 005d [ 2] ja <+0x7b>
++CLONE 0 005f [ 3] vzeroupper
++CLONE 0 0062 [ 5] call <__cxa_begin_catch@plt>
++CLONE 0 0067 [ 5] call <__cxa_end_catch@plt>
++CLONE 0 006c [ 5] jmp <tomo_db0::(anonymous namespace)::promote_hash(tomo_db0::CollectionRef&)+0xa5c>
+ CLONE 0 0071 [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 0076 [ 8] mov 0xd8(%rsp),%rax
+-CLONE 0 007e [ 9] sub %fs:0x28,%rax
+-CLONE 0 0087 [ 2] jne <+0x91>
+-CLONE 0 0089 [ 3] vzeroupper
+-CLONE 0 008c [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 0091 [ 3] vzeroupper
+-CLONE 0 0094 [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 0099 [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 009e [ 4] endbr64
+-CLONE 0 00a2 [ 3] mov %rax,%rbx
+-CLONE 0 00a5 [ 3] vzeroupper
+-CLONE 0 00a8 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 00ad [ 3] mov %rbx,%rdi
+-CLONE 0 00b0 [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 00b5 [ 4] mov 0x58(%r14),%rax
+-CLONE 0 00b9 [ 4] mov 0x50(%r14),%rdi
+-CLONE 0 00bd [ 8] lea 0x0(,%rax,8),%rsi
+-CLONE 0 00c5 [ 5] call <_ZdlPvm@plt>
+-CLONE 0 00ca [ 2] xor %eax,%eax
+-CLONE 0 00cc [ 4] mov %rax,0x50(%r14)
+-CLONE 0 00d0 [ 4] mov %rax,0x58(%r14)
+-CLONE 0 00d4 [ 8] mov 0xd8(%rsp),%rax
+-CLONE 0 00dc [ 9] sub %fs:0x28,%rax
+-CLONE 0 00e5 [ 2] jne <+0xec>
+-CLONE 0 00e7 [ 5] call <__cxa_rethrow@plt>
+-CLONE 0 00ec [ 5] call <__stack_chk_fail@plt>
++CLONE 0 0076 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 007b [ 8] mov 0xd8(%rsp),%rax
++CLONE 0 0083 [ 9] sub %fs:0x28,%rax
++CLONE 0 008c [ 2] jne <+0xe8>
++CLONE 0 008e [ 3] vzeroupper
++CLONE 0 0091 [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0096 [ 4] endbr64
++CLONE 0 009a [ 3] mov %rax,%rbx
++CLONE 0 009d [ 3] vzeroupper
++CLONE 0 00a0 [ 5] call <__cxa_end_catch@plt>
++CLONE 0 00a5 [ 3] mov %rbx,%rdi
++CLONE 0 00a8 [ 5] call <__cxa_begin_catch@plt>
++CLONE 0 00ad [ 5] mov 0x58(%r12),%rax
++CLONE 0 00b2 [ 5] mov 0x50(%r12),%rdi
++CLONE 0 00b7 [ 8] lea 0x0(,%rax,8),%rsi
++CLONE 0 00bf [ 5] call <_ZdlPvm@plt>
++CLONE 0 00c4 [ 2] xor %eax,%eax
++CLONE 0 00c6 [ 5] mov %rax,0x50(%r12)
++CLONE 0 00cb [ 5] mov %rax,0x58(%r12)
++CLONE 0 00d0 [ 8] mov 0xd8(%rsp),%rax
++CLONE 0 00d8 [ 9] sub %fs:0x28,%rax
++CLONE 0 00e1 [ 2] jne <+0xf0>
++CLONE 0 00e3 [ 5] call <__cxa_rethrow@plt>
++CLONE 0 00e8 [ 3] vzeroupper
++CLONE 0 00eb [ 5] call <__stack_chk_fail@plt>
++CLONE 0 00f0 [ 5] call <__stack_chk_fail@plt>

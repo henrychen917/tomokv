@@ -1,0 +1,59 @@
+tomo_db0::(anonymous namespace)::config_range_error(long, long) [clone .cold]
+--- headline
+
++++ post
+
+@@ -1,27 +1,26 @@
+
+-CLONE 0 0000 [ 3] mov %r15,%rdi
+-CLONE 0 0003 [ 3] vzeroupper
+-CLONE 0 0006 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 000b [ 5] mov 0x8(%rsp),%rdi
+-CLONE 0 0010 [ 5] lea 0x30(%rsp),%r15
+-CLONE 0 0015 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 001a [ 3] mov %r15,%rdi
+-CLONE 0 001d [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0022 [ 4] mov (%rsp),%rdi
++CLONE 0 0000 [ 5] mov 0x18(%rsp),%rdi
++CLONE 0 0005 [ 3] vzeroupper
++CLONE 0 0008 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 000d [ 5] mov 0x28(%rsp),%rdi
++CLONE 0 0012 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0017 [ 5] mov 0x20(%rsp),%rdi
++CLONE 0 001c [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0021 [ 5] mov 0x8(%rsp),%rdi
+ CLONE 0 0026 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 002b [ 3] mov %r14,%rdi
+-CLONE 0 002e [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0033 [ 8] mov 0xb8(%rsp),%rax
+-CLONE 0 003b [ 9] sub %fs:0x28,%rax
+-CLONE 0 0044 [ 2] jne <+0x73>
+-CLONE 0 0046 [ 3] mov %rbx,%rdi
+-CLONE 0 0049 [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 004e [ 4] mov (%rsp),%rdi
+-CLONE 0 0052 [ 3] mov %rdx,%r9
+-CLONE 0 0055 [ 6] mov $0x19,%r8d
+-CLONE 0 005b [ 2] xor %edx,%edx
+-CLONE 0 005d [ 3] mov %rbp,%rsi
+-CLONE 0 0060 [ 5] call <_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE15_M_replace_coldEPcmPKcmm@plt>
+-CLONE 0 0065 [ 5] jmp <tomo_db0::(anonymous namespace)::config_range_error(long, long)+0xbf>
+-CLONE 0 006a [ 4] endbr64
+-CLONE 0 006e [ 5] jmp <tomo_db0::(anonymous namespace)::config_range_error(long, long)+0x608>
+-CLONE 0 0073 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 002b [ 5] mov 0x10(%rsp),%rdi
++CLONE 0 0030 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0035 [ 8] mov 0xd8(%rsp),%rax
++CLONE 0 003d [ 9] sub %fs:0x28,%rax
++CLONE 0 0046 [ 2] jne <+0x76>
++CLONE 0 0048 [ 3] mov %rbx,%rdi
++CLONE 0 004b [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0050 [ 5] mov 0x8(%rsp),%rdi
++CLONE 0 0055 [ 3] mov %rdx,%r9
++CLONE 0 0058 [ 6] mov $0x19,%r8d
++CLONE 0 005e [ 2] xor %edx,%edx
++CLONE 0 0060 [ 3] mov %r12,%rsi
++CLONE 0 0063 [ 5] call <_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE15_M_replace_coldEPcmPKcmm@plt>
++CLONE 0 0068 [ 5] jmp <tomo_db0::(anonymous namespace)::config_range_error(long, long)+0xcb>
++CLONE 0 006d [ 4] endbr64
++CLONE 0 0071 [ 5] jmp <tomo_db0::(anonymous namespace)::config_range_error(long, long)+0x5d6>
++CLONE 0 0076 [ 5] call <__stack_chk_fail@plt>

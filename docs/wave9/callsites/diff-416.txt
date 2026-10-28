@@ -1,0 +1,25 @@
+void tomo::(anonymous namespace)::bitfield_generic<true>(tomo::Shard&, tomo::Op&, bool)
+--- headline
+
++++ post
+
+@@ -102,7 +102,7 @@
+
+ CLONE 0 01ff [ 3] mov %rax,%r15
+ CLONE 0 0202 [ 3] test %rax,%rax
+ CLONE 0 0205 [ 6] jne <+0x130>
+-CLONE 0 020b [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 020b [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 0212 [10] movl $0x0,-0x224(%rbp)
+ CLONE 0 021c [ 7] mov %rax,-0x230(%rbp)
+ CLONE 0 0223 [ 7] mov -0x224(%rbp),%r12d
+@@ -595,7 +595,7 @@
+
+ CLONE 0 0acf [ 5] jmp <+0x850>
+ CLONE 0 0ad4 [ 7] mov -0x218(%rbp),%r14
+ CLONE 0 0adb [ 5] jmp <+0x564>
+-CLONE 0 0ae0 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 0ae0 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x782>
+ CLONE 0 0ae7 [ 7] incq 0x3f8(%r13)
+ CLONE 0 0aee [10] movl $0x0,-0x224(%rbp)
+ CLONE 0 0af8 [ 7] mov %rax,-0x230(%rbp)

@@ -1,0 +1,15 @@
+tomo_db0::Topology::dump(_IO_FILE*) const
+--- headline
+
++++ post
+
+@@ -46,7 +46,7 @@
+
+ CLONE 0 00ac [ 2] je <+0xfa>
+ CLONE 0 00ae [ 3] mov (%rdx),%r8d
+ CLONE 0 00b1 [ 3] xor %r12d,%r12d
+-CLONE 0 00b4 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x788>
++CLONE 0 00b4 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x782>
+ CLONE 0 00bb [ 2] jmp <+0xc7>
+ CLONE 0 00bd [ 3] nopl (%rax)
+ CLONE 0 00c0 [ 4] mov (%rdx,%r12,4),%r8d

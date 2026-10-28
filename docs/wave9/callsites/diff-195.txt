@@ -1,0 +1,77 @@
+tomo_db0::(anonymous namespace)::multi_cancel_decision(tomo_db0::MultiDecision&, unsigned int, tomo_db0::TxnCounter) [clone .constprop.0] [clone .isra.0]
+--- headline
+
++++ post
+
+@@ -1,33 +1,38 @@
+
+ CLONE 0 0000 [ 3] mov (%rdi),%rax
+-CLONE 0 0003 [ 4] movzbl 0x9(%rdi),%ecx
+-CLONE 0 0007 [ 3] cmp $0x1,%cl
+-CLONE 0 000a [ 2] je <+0x50>
+-CLONE 0 000c [ 3] test %rax,%rax
+-CLONE 0 000f [ 2] jne <+0x4b>
+-CLONE 0 0011 [ 7] mov $0xffffffffffffffff,%rcx
+-CLONE 0 0018 [ 5] lock cmpxchg %rcx,(%rdi)
+-CLONE 0 001d [ 2] jne <+0x4b>
+-CLONE 0 001f [ 4] mov 0x20(%rdi),%rax
+-CLONE 0 0023 [ 3] movslq %esi,%rsi
+-CLONE 0 0026 [ 7] add $0x440e,%rsi
+-CLONE 0 002d [ 4] mov 0x10(%rax),%rax
+-CLONE 0 0031 [ 3] mov (%rax,%rsi,4),%ecx
+-CLONE 0 0034 [ 4] lea (%rcx,%rcx,2),%rcx
+-CLONE 0 0038 [ 4] shl $0x6,%rcx
+-CLONE 0 003c [ 3] add %rcx,%rax
+-CLONE 0 003f [ 8] lock incq 0x1a7b0(%rax)
+-CLONE 0 0047 [ 4] movb $0x1,0x8(%rdi)
+-CLONE 0 004b [ 1] ret
+-CLONE 0 004c [ 4] nopl 0x0(%rax)
+-CLONE 0 0050 [ 3] test %rax,%rax
+-CLONE 0 0053 [ 2] jne <+0x4b>
+-CLONE 0 0055 [ 4] mov 0x20(%rdi),%rax
+-CLONE 0 0059 [ 3] movslq %esi,%rsi
+-CLONE 0 005c [ 7] add $0x440e,%rsi
+-CLONE 0 0063 [ 4] mov 0x10(%rax),%rax
+-CLONE 0 0067 [ 3] mov (%rax,%rsi,4),%edx
+-CLONE 0 006a [ 4] lea (%rdx,%rdx,2),%rdx
+-CLONE 0 006e [ 4] shl $0x6,%rdx
+-CLONE 0 0072 [ 3] add %rdx,%rax
+-CLONE 0 0075 [ 8] lock incq 0x1a7c0(%rax)
+-CLONE 0 007d [ 1] ret
++CLONE 0 0003 [ 3] mov %rdi,%rdx
++CLONE 0 0006 [ 4] movzbl 0x9(%rdi),%ecx
++CLONE 0 000a [ 3] cmp $0x1,%cl
++CLONE 0 000d [ 2] je <+0x30>
++CLONE 0 000f [ 3] test %rax,%rax
++CLONE 0 0012 [ 2] jne <+0x20>
++CLONE 0 0014 [ 7] mov $0xffffffffffffffff,%rcx
++CLONE 0 001b [ 5] lock cmpxchg %rcx,(%rdi)
++CLONE 0 0020 [ 3] dec %rax
++CLONE 0 0023 [ 4] cmp $0xfffffffffffffffd,%rax
++CLONE 0 0027 [ 2] ja <+0x60>
++CLONE 0 0029 [ 1] ret
++CLONE 0 002a [ 6] nopw 0x0(%rax,%rax,1)
++CLONE 0 0030 [ 3] test %rax,%rax
++CLONE 0 0033 [ 2] jne <+0x29>
++CLONE 0 0035 [ 4] mov 0x20(%rdi),%rax
++CLONE 0 0039 [ 3] movslq %esi,%rsi
++CLONE 0 003c [ 7] add $0x440e,%rsi
++CLONE 0 0043 [ 4] mov 0x10(%rax),%rax
++CLONE 0 0047 [ 3] mov (%rax,%rsi,4),%edx
++CLONE 0 004a [ 4] lea (%rdx,%rdx,2),%rdx
++CLONE 0 004e [ 4] shl $0x6,%rdx
++CLONE 0 0052 [ 3] add %rdx,%rax
++CLONE 0 0055 [ 8] lock incq 0x1a7c0(%rax)
++CLONE 0 005d [ 1] ret
++CLONE 0 005e [ 2] xchg %ax,%ax
++CLONE 0 0060 [ 4] mov 0x20(%rdx),%rax
++CLONE 0 0064 [ 3] movslq %esi,%rsi
++CLONE 0 0067 [ 7] add $0x440e,%rsi
++CLONE 0 006e [ 4] mov 0x10(%rax),%rax
++CLONE 0 0072 [ 3] mov (%rax,%rsi,4),%ecx
++CLONE 0 0075 [ 4] lea (%rcx,%rcx,2),%rcx
++CLONE 0 0079 [ 4] shl $0x6,%rcx
++CLONE 0 007d [ 3] add %rcx,%rax
++CLONE 0 0080 [ 8] lock incq 0x1a7b0(%rax)
++CLONE 0 0088 [ 4] movb $0x1,0x8(%rdx)
++CLONE 0 008c [ 1] ret

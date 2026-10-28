@@ -1,0 +1,15 @@
+void tomo_db0::(anonymous namespace)::cmd_type<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]
+--- crlffix
+
++++ post
+
+@@ -18,7 +18,7 @@
+
+ CLONE 0 0045 [ 2] pop %r13
+ CLONE 0 0047 [ 1] ret
+ CLONE 0 0048 [ 3] movzbl (%rax),%eax
+-CLONE 0 004b [ 7] lea <rip>(%rip),%rdx # <tomo_db0::serialize_notify_flags[abi:cxx11](unsigned int)::classes+0x70>
++CLONE 0 004b [ 7] lea <rip>(%rip),%rdx # <tomo_db0::serialize_notify_flags[abi:cxx11](unsigned int)::classes+0xa0>
+ CLONE 0 0052 [ 4] movslq (%rdx,%rax,4),%rax
+ CLONE 0 0056 [ 3] add %rdx,%rax
+ CLONE 0 0059 [ 3] notrack jmp *%rax

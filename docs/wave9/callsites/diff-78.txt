@@ -1,0 +1,49 @@
+tomo::(anonymous namespace)::run_eval(tomo::Shard&, tomo::Op&, tomo::Slice, bool, tomo::Slice, bool, bool) [clone .constprop.0]
+--- multifix
+
++++ post
+
+@@ -165,7 +165,7 @@
+
+ CLONE 0 032e [ 2] pop %r14
+ CLONE 0 0330 [ 2] pop %r15
+ CLONE 0 0332 [ 1] pop %rbp
+-CLONE 0 0333 [ 5] jmp <tomo::(anonymous namespace)::reply_text_error(tomo::Op&, std::basic_string_view<char, std::char_traits<char> >, std::basic_string_view<char, std::char_traits<char> >)>
++CLONE 0 0333 [ 5] jmp <tomo::(anonymous namespace)::reply_text_error(tomo::Op&, std::basic_string_view<char, std::char_traits<char> >, std::basic_string_view<char, std::char_traits<char> >, bool) [clone .constprop.0]>
+ CLONE 0 0338 [ 8] nopl 0x0(%rax,%rax,1)
+ CLONE 0 0340 [ 8] mov 0x138(%rsp),%rax
+ CLONE 0 0348 [ 9] sub %fs:0x28,%rax
+@@ -321,7 +321,7 @@
+
+ CLONE 0 0695 [ 8] mov %rbx,0xf0(%rsp)
+ CLONE 0 069d [12] movq $0x0,0xf8(%rsp)
+ CLONE 0 06a9 [ 8] movb $0x0,0x100(%rsp)
+-CLONE 0 06b1 [ 5] call <tomo::(anonymous namespace)::reply_text_error(tomo::Op&, std::basic_string_view<char, std::char_traits<char> >, std::basic_string_view<char, std::char_traits<char> >)>
++CLONE 0 06b1 [ 5] call <tomo::(anonymous namespace)::reply_text_error(tomo::Op&, std::basic_string_view<char, std::char_traits<char> >, std::basic_string_view<char, std::char_traits<char> >, bool) [clone .constprop.0]>
+ CLONE 0 06b6 [ 8] lea 0x110(%rsp),%rdi
+ CLONE 0 06be [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+ CLONE 0 06c3 [ 3] mov %r12,%rdi
+@@ -413,12 +413,16 @@
+
+ CLONE 0 0855 [ 5] call <__stack_chk_fail@plt>
+ CLONE 0 085a [ 4] endbr64
+ CLONE 0 085e [ 3] mov %rax,%rbx
+-CLONE 0 0861 [ 3] vzeroupper
+-CLONE 0 0864 [ 5] jmp <tomo::(anonymous namespace)::run_eval(tomo::Shard&, tomo::Op&, tomo::Slice, bool, tomo::Slice, bool, bool) [clone .constprop.0] [clone .cold]+0xb>
+-CLONE 0 0869 [ 4] endbr64
+-CLONE 0 086d [ 3] mov %rax,%rbx
+-CLONE 0 0870 [ 5] jmp <tomo::(anonymous namespace)::run_eval(tomo::Shard&, tomo::Op&, tomo::Slice, bool, tomo::Slice, bool, bool) [clone .constprop.0] [clone .cold]>
++CLONE 0 0861 [ 5] jmp <tomo::(anonymous namespace)::run_eval(tomo::Shard&, tomo::Op&, tomo::Slice, bool, tomo::Slice, bool, bool) [clone .constprop.0] [clone .cold]>
++CLONE 0 0866 [ 4] endbr64
++CLONE 0 086a [ 3] mov %rax,%rbx
++CLONE 0 086d [ 3] vzeroupper
++CLONE 0 0870 [ 5] jmp <tomo::(anonymous namespace)::run_eval(tomo::Shard&, tomo::Op&, tomo::Slice, bool, tomo::Slice, bool, bool) [clone .constprop.0] [clone .cold]+0x18>
+ CLONE 0 0875 [ 4] endbr64
+ CLONE 0 0879 [ 3] mov %rax,%rbx
+ CLONE 0 087c [ 3] vzeroupper
+-CLONE 0 087f [ 5] jmp <tomo::(anonymous namespace)::run_eval(tomo::Shard&, tomo::Op&, tomo::Slice, bool, tomo::Slice, bool, bool) [clone .constprop.0] [clone .cold]+0x13>
++CLONE 0 087f [ 5] jmp <tomo::(anonymous namespace)::run_eval(tomo::Shard&, tomo::Op&, tomo::Slice, bool, tomo::Slice, bool, bool) [clone .constprop.0] [clone .cold]+0x20>
++CLONE 0 0884 [ 4] endbr64
++CLONE 0 0888 [ 3] mov %rax,%rbx
++CLONE 0 088b [ 3] vzeroupper
++CLONE 0 088e [ 5] jmp <tomo::(anonymous namespace)::run_eval(tomo::Shard&, tomo::Op&, tomo::Slice, bool, tomo::Slice, bool, bool) [clone .constprop.0] [clone .cold]+0x10>

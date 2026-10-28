@@ -1,0 +1,109 @@
+tomo_db0::(anonymous namespace)::blocking_probe_key(tomo_db0::Shard&, tomo_db0::BlockingState&, tomo_db0::BlockingKey&)
+--- headline
+
++++ post
+
+@@ -18,7 +18,7 @@
+
+ CLONE 0 0037 [ 7] lea 0x538(%rbp),%r8
+ CLONE 0 003e [ 5] call <tomo_db0::FlatStore::find_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*)>
+ CLONE 0 0043 [ 3] mov %rax,%r12
+-CLONE 0 0046 [ 5] movzbl 0x40(%r13),%eax
++CLONE 0 0046 [ 5] movzbl 0x58(%r13),%eax
+ CLONE 0 004b [ 3] lea -0x8(%rax),%edx
+ CLONE 0 004e [ 3] cmp $0x1,%dl
+ CLONE 0 0051 [ 6] jbe <+0x110>
+@@ -79,41 +79,41 @@
+
+ CLONE 0 0125 [ 2] jne <+0xf9>
+ CLONE 0 0127 [ 2] cmp $0x8,%al
+ CLONE 0 0129 [ 6] je <+0x1e0>
+-CLONE 0 012f [ 8] cmpb $0x0,0x98(%r13)
+-CLONE 0 0137 [ 4] mov 0x58(%r13),%r8
+-CLONE 0 013b [ 4] mov 0x60(%r13),%r9d
++CLONE 0 012f [ 8] cmpb $0x0,0xb0(%r13)
++CLONE 0 0137 [ 4] mov 0x70(%r13),%r8
++CLONE 0 013b [ 4] mov 0x78(%r13),%r9d
+ CLONE 0 013f [ 4] mov 0x28(%rbx),%rax
+ CLONE 0 0143 [ 4] mov 0x10(%rbx),%rdx
+ CLONE 0 0147 [ 4] mov 0x8(%rbx),%rsi
+ CLONE 0 014b [ 6] jne <+0x2a0>
+-CLONE 0 0151 [ 7] mov 0x80(%r13),%r10d
+-CLONE 0 0158 [ 4] mov 0x78(%r13),%rcx
+-CLONE 0 015c [ 2] xor %ebx,%ebx
+-CLONE 0 015e [10] movabs $0xffffffff00000000,%r11
+-CLONE 0 0168 [ 3] mov %rbx,%rdi
+-CLONE 0 016b [ 2] mov %edx,%edx
+-CLONE 0 016d [ 3] and %r11,%rdi
+-CLONE 0 0170 [ 3] or %r10,%rdi
+-CLONE 0 0173 [ 1] push %rdi
+-CLONE 0 0174 [ 3] mov %rbp,%rdi
+-CLONE 0 0177 [ 1] push %rcx
+-CLONE 0 0178 [ 3] mov %rax,%rcx
+-CLONE 0 017b [ 5] call <tomo_db0::stream_group_prepare_waiter(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, tomo_db0::Slice)>
+-CLONE 0 0180 [ 1] pop %rdx
+-CLONE 0 0181 [ 1] pop %rcx
+-CLONE 0 0182 [ 2] cmp $0x5,%al
+-CLONE 0 0184 [ 6] je <+0x2c5>
+-CLONE 0 018a [ 2] cmp $0x2,%al
+-CLONE 0 018c [ 6] je <+0x2c1>
+-CLONE 0 0192 [ 3] lea -0x3(%rax),%edx
+-CLONE 0 0195 [ 3] cmp $0x1,%dl
+-CLONE 0 0198 [ 6] jbe <+0x390>
+-CLONE 0 019e [ 8] movb $0x1,0x98(%r13)
+-CLONE 0 01a6 [ 2] cmp $0x1,%al
+-CLONE 0 01a8 [ 6] je <+0x270>
+-CLONE 0 01ae [ 2] test %al,%al
+-CLONE 0 01b0 [ 6] jne <+0x28b>
+-CLONE 0 01b6 [10] cs nopw 0x0(%rax,%rax,1)
++CLONE 0 0151 [ 7] mov 0x98(%r13),%r10d
++CLONE 0 0158 [ 7] mov 0x90(%r13),%rcx
++CLONE 0 015f [ 2] xor %ebx,%ebx
++CLONE 0 0161 [10] movabs $0xffffffff00000000,%r11
++CLONE 0 016b [ 3] mov %rbx,%rdi
++CLONE 0 016e [ 2] mov %edx,%edx
++CLONE 0 0170 [ 3] and %r11,%rdi
++CLONE 0 0173 [ 3] or %r10,%rdi
++CLONE 0 0176 [ 1] push %rdi
++CLONE 0 0177 [ 3] mov %rbp,%rdi
++CLONE 0 017a [ 1] push %rcx
++CLONE 0 017b [ 3] mov %rax,%rcx
++CLONE 0 017e [ 5] call <tomo_db0::stream_group_prepare_waiter(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, tomo_db0::Slice)>
++CLONE 0 0183 [ 1] pop %rdx
++CLONE 0 0184 [ 1] pop %rcx
++CLONE 0 0185 [ 2] cmp $0x5,%al
++CLONE 0 0187 [ 6] je <+0x2c5>
++CLONE 0 018d [ 2] cmp $0x2,%al
++CLONE 0 018f [ 6] je <+0x2c1>
++CLONE 0 0195 [ 3] lea -0x3(%rax),%edx
++CLONE 0 0198 [ 3] cmp $0x1,%dl
++CLONE 0 019b [ 6] jbe <+0x390>
++CLONE 0 01a1 [ 8] movb $0x1,0xb0(%r13)
++CLONE 0 01a9 [ 2] cmp $0x1,%al
++CLONE 0 01ab [ 6] je <+0x270>
++CLONE 0 01b1 [ 2] test %al,%al
++CLONE 0 01b3 [ 6] jne <+0x28b>
++CLONE 0 01b9 [ 7] nopl 0x0(%rax)
+ CLONE 0 01c0 [ 2] xor %eax,%eax
+ CLONE 0 01c2 [ 5] jmp <+0xfe>
+ CLONE 0 01c7 [ 9] nopw 0x0(%rax,%rax,1)
+@@ -149,7 +149,7 @@
+
+ CLONE 0 023c [ 3] mov 0x10(%rbx),%edx
+ CLONE 0 023f [ 2] push %r15
+ CLONE 0 0241 [ 1] push %rdi
+-CLONE 0 0242 [ 4] push 0x48(%r13)
++CLONE 0 0242 [ 4] push 0x60(%r13)
+ CLONE 0 0246 [ 3] xor %r9d,%r9d
+ CLONE 0 0249 [ 3] mov %r14,%r8
+ CLONE 0 024c [ 3] mov %rbp,%rdi
+@@ -224,7 +224,7 @@
+
+ CLONE 0 0347 [ 9] nopw 0x0(%rax,%rax,1)
+ CLONE 0 0350 [ 3] mov %r14,%rsi
+ CLONE 0 0353 [ 3] mov %r12,%rdi
+-CLONE 0 0356 [ 5] call <tomo_db0::stream_object_last_id(tomo_db0::KvObj const*, tomo_db0::StreamID&)>
++CLONE 0 0356 [ 5] call <tomo_db0::stream_resolve_xread_id(tomo_db0::KvObj const*, tomo_db0::StreamID&)>
+ CLONE 0 035b [ 2] test %al,%al
+ CLONE 0 035d [ 6] je <+0xf9>
+ CLONE 0 0363 [ 4] movb $0x1,0x59(%rbx)
