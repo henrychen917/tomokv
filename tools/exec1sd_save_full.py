@@ -8,7 +8,7 @@ def main():
     assert os.sched_getaffinity(0)<=set(range(64,96))
     p=argparse.ArgumentParser();p.add_argument('arm');a=p.parse_args()
     arm=next(r for r in json.loads((d.DOCS/'arms.json').read_text()) if r['arm']==a.arm)
-    out=d.OUT/('save-full-attached-'+a.arm);out.mkdir(exist_ok=False)
+    out=d.OUT/('save-full-traceable-'+a.arm);out.mkdir(exist_ok=False)
     observer=out/'observe.gdb'
     observer.write_text('''set pagination off
 set confirm off
@@ -44,7 +44,15 @@ thread apply all bt
         GATE_DIFFER_NET_IO='epoll',GATE_DIFFER_GEOMETRY='split',GATE_DIFFER_PART='split-0',
         GATE_DIFFER_PLAN=str(d.OUT/'epoll-seed22-plan.json'),GATE_LOAD_CORES='80-95',
         GATE_DIFFER_ORACLE_CORES='72-79')
-    cmd=['taskset','-c',d.CPUS,'tests/differ_gate.sh',arm['binary'],'20000','20001','64-71','6:2']
+    # A sibling debugger needs process-local Yama consent. This exec shim keeps
+    # the gate's owned PID and its listener checks intact; no system setting is
+    # changed and the frozen server bytes are unmodified.
+    launcher=out/'traceable-server';code=out/'traceable.c'
+    code.write_text('#include <sys/prctl.h>\n#include <unistd.h>\nint main(int n,char**v){'
+        'if(prctl(PR_SET_PTRACER,PR_SET_PTRACER_ANY,0,0,0))return 125;'
+        'v[0]='+json.dumps(arm['binary'])+';execv(v[0],v);return 126;}\n')
+    subprocess.run(['gcc','-O2',str(code),'-o',str(launcher)],check=True)
+    cmd=['taskset','-c',d.CPUS,'tests/differ_gate.sh',str(launcher),'20000','20001','64-71','6:2']
     attached=[];finished=threading.Event()
     def attach():
         while not finished.wait(.02):
@@ -69,7 +77,7 @@ thread apply all bt
                 except subprocess.TimeoutExpired:process.terminate();process.wait()
     logfile=out/'observer.log';log=logfile.read_text()
     rows=[json.loads(line[len('SAVE_RESULT '):]) for line in log.splitlines() if line.startswith('SAVE_RESULT ')]
-    d.save(d.DOCS/('save-full-attached-'+a.arm+'.json'),dict(arm=arm,command=cmd,returncode=result.returncode,
+    d.save(d.DOCS/('save-full-traceable-'+a.arm+'.json'),dict(arm=arm,command=cmd,returncode=result.returncode,
         plan_sha256=d.sha(d.OUT/'epoll-seed22-plan.json'),observer_sha256=d.sha(observer),
         target_log=str(logfile),target_log_sha256=d.sha(logfile),results=rows,
         observer_errors=[line for line in log.splitlines() if line.startswith('SAVE_OBSERVER_ERROR ')]))
