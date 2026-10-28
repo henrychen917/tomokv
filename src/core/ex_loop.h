@@ -2205,14 +2205,14 @@ private:
         // EXEC/WATCH/group retry and the capture itself waited behind that one lane until the
         // load stopped. Capping each lane returns this owner to its control pass and retry
         // queues every pass; a capped lane is re-flagged and resumes on the next pass. Only the
-        // snapshot path changes: an owner with no snapshot armed keeps drain_tasks().
+        // snapshot path changes: an owner with no snapshot armed keeps the unbounded drains.
         auto take = [&](const Task& task) {
             refresh_command_clock();
             schedule_snapshot_task<IofusedPrivateQueue>(task);
-            return false;
         };
-        const uint32_t n = self_->drain_task_producer_chunks<IofusedPrivateQueue>(
-            BatchOps, take, [] {}, unmasked);
+        const uint32_t n = unmasked
+            ? self_->drain_tasks_unmasked_capped<IofusedPrivateQueue, BatchOps>(take)
+            : self_->drain_tasks_capped<IofusedPrivateQueue, BatchOps>(take);
         self_->sig().ops += n;
         // Retire at least as many deferred Tasks as this drain can add, plus one batch of old debt;
         // otherwise a saturated post-capture owner could remain in Draining forever.
