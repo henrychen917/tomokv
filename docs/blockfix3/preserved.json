@@ -11,5 +11,10 @@
   "tcl_manifest_unchanged": true,
   "expect_constants_unchanged": true,
   "DQ": 0,
-  "DF": 0
+  "DF": 0,
+  "lines": {
+    "  row_begin \"blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK\"": 3805,
+    "collect_job blockfix2": 5673,
+    "if [ \"$TIER\" = quick ]; then": 5837
+  }
 }

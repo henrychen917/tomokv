@@ -30,6 +30,7 @@ def main():
         tier = 'quick'
         env = dict(os.environ, REDIS74_ROOT='/home/user/Projects/redis',
             GATE_DIFFER_ORACLE_BIN='/home/user/Projects/redis74/src/redis-server',
+            GATE_PROOF_NO_RATES='1',
             GATE_LEDGER=str(folder / (label + '.ledger')))
         if stage == 'broad':
             jobs = (ROOT / 'docs/blockfix3/required-jobs.txt').read_text().strip()

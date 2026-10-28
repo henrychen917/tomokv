@@ -1,6 +1,6 @@
 {
   "kind": "A: behaviour twin",
-  "padding_bytes": 2976,
+  "padding_bytes": 3152,
   "arms": {
     "PRE": {
       "path": "build/blockfix3/pre/tomokv",
@@ -13,10 +13,10 @@
       }
     },
     "POST": {
-      "path": "build/tomokv",
-      "sha256": "2fa0c12dced6a5611f399ccefc670050b501a02af713f2603ef0e12cac796829",
+      "path": "build/blockfix3/post/tomokv",
+      "sha256": "943f4ab48b3b5381c57ba9c13ecede6b59a2c9d78cbf34095a610351269bb077",
       "sections": {
-        ".text": 8472711,
+        ".text": 8472887,
         ".bss": 1106440,
         ".data": 19321,
         ".tbss": 520
@@ -24,9 +24,9 @@
     },
     "PAD-A": {
       "path": "build/blockfix3/pad-a/tomokv",
-      "sha256": "fa6acb91ea5bfef7159a82dd04a031668471cd22372aeb5a9ab009e311e80ec4",
+      "sha256": "827f336dea238c3c8b4a2d90d54b709829fa117154a37a75e1096c09258c839f",
       "sections": {
-        ".text": 8472711,
+        ".text": 8472887,
         ".bss": 1106440,
         ".data": 19321,
         ".tbss": 520

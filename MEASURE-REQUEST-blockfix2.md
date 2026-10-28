@@ -97,7 +97,7 @@ Performance benchmarks and `tests/gate.sh iteration`: **NOT RUN**, reserved to t
 
 ## blockfix3
 
-**Verification in progress:** the first full matrix caught an atomic cleanup/recreation race in the initially frozen POST. The final receipts below will be replaced after the additional stream CREATE boundary fix. The original red receipts are retained.
+**Correctness verification in progress:** final PRE/POST/PAD-A arms and all 48 exact instruction comparisons are recorded below. The original red receipts are retained.
 
 Branch `cx-blockfix3`, based on `1932367f7`. No push. This continuation addresses the deletion/recreation boundary and NOGROUP accounting. The two stopped ordering roots remain untouched. No throughput or latency merit claim is made.
 
@@ -113,7 +113,7 @@ The six other blockfix2 directed probes and their row definitions are unchanged.
 
 ### Cost and frozen arms
 
-The first candidate changed db0 SET inlining and added 17 instructions per command (544 per batch of 32). That candidate was rejected. Moving the deletion-publication loop out of the string translation unit restored its original inlining. Intermediate `post-*` count receipts retain that failed trial; `final-*` names the corrected candidate. All **48/48 final comparisons have zero delta**, with identical per-function counts. Production `exec_batch_prefetched` objects are linked directly into the serverless fixture; clocks are fixed, library bodies and fixture glue are excluded. Both namespaces/modes, batches 1/32, and MSET atomic 0/1 are covered. These are instructions, not cycles/op, IPC or rates. `docs/blockfix3/instructions/comparison-final.json`, `results-pre.json`, `results-final.json`, the build receipts and per-case trace digests bind the evidence to the final server hashes.
+The first candidate changed db0 SET inlining and added 17 instructions per command (544 per batch of 32). That candidate was rejected. Moving the deletion-publication loop out of the string translation unit restored its original inlining. Intermediate `post-*` receipts retain that cost failure. The instruction-equal `final-*` candidate subsequently failed the rare cleanup/recreation case and was also rejected. Only `verified-*` binds the final implementation. All **48/48 final comparisons have zero delta**, with identical per-function counts. Production `exec_batch_prefetched` objects are linked directly into the serverless fixture; clocks are fixed, library bodies and fixture glue are excluded. Both namespaces/modes, batches 1/32, and MSET atomic 0/1 are covered. These are instructions, not cycles/op, IPC or rates. `docs/blockfix3/instructions/comparison-verified.json`, `results-pre.json`, `results-verified.json`, the build receipts and per-case trace digests bind the evidence to the final server hashes.
 
 Counts below are total instructions in the production scope per batch; MGET/MSET use eight keys.
 
@@ -135,8 +135,8 @@ Counts below are total instructions in the production scope per batch; MGET/MSET
 | Arm | Binary | SHA-256 | .text bytes |
 |---|---|---|---:|
 | PRE | `build/blockfix3/pre/tomokv` | `207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615` | 8470039 |
-| POST | `build/blockfix3/post/tomokv` | `6880f97f0cb6068840b2c5b259a6118e4c1e50b72360eb41b789f70a4507eb1a` | 8472231 |
-| PAD-A | `build/blockfix3/pad-a/tomokv` | `b470e22f430b629fc849c372057511b3d99ee18f093e77cfd97959f6866c362b` | 8472231 |
+| POST | `build/blockfix3/post/tomokv` | `943f4ab48b3b5381c57ba9c13ecede6b59a2c9d78cbf34095a610351269bb077` | 8472887 |
+| PAD-A | `build/blockfix3/pad-a/tomokv` | `827f336dea238c3c8b4a2d90d54b709829fa117154a37a75e1096c09258c839f` | 8472887 |
 
 PAD-A is **type A, behaviour twin**: PRE behavior with inert POST cold-statistics storage and matching total text size. POST and PAD-A both have 1,106,440 .bss bytes; PRE has 1,106,312. The 16-byte StatBaseline tail and two 8-byte stream counters per namespace are inert in PAD-A. Trailing NOPs preserve the compiler CET note. This controls total section sizes, not each function's address/alignment. `tools/blockfix3_pad.py` and `docs/blockfix3/binary-manifest.json` record construction. No PAD-B is requested. Superseded source trees and step traces are removed after their hashes/counts are recorded; `docs/blockfix3/cleanup.json` records cleanup.
 
@@ -152,4 +152,4 @@ Use the frozen arms above with the gate's quiet-box ABBA instrument. `docs/block
 
 Collect contemporary PRE/PRE and POST/POST nulls, PRE/POST, and PRE/PAD-A. Report completed rate, cycles/op, instructions/op, IPC and the gate's latency scores per cell. Use the gate's existing per-cell null criteria; PAD movement limits attribution. Instruction identity is a cost check, not a throughput claim.
 
-Performance benchmarks and full `tests/gate.sh iteration`: **NOT RUN**, reserved to the maintainer. The two owner-stopped roots BLOCK-WAKE-ORDER-MULTI and BLOCK-CHAIN-ASYNC remain **NOT RUN** as acceptance work; this lane does not change their architecture or exclusions. No push or merge is performed.
+Performance benchmarks and full `tests/gate.sh iteration`: **NOT RUN**, reserved to the maintainer. The selected atomic_batteries job uses the existing `GATE_PROOF_NO_RATES=1` option: its correctness assertions run, and its pipelining speed comparison is explicitly skipped by the driver. That rate assertion is **NOT RUN** under this lane’s correctness-only authorization. The two owner-stopped roots BLOCK-WAKE-ORDER-MULTI and BLOCK-CHAIN-ASYNC remain **NOT RUN** as acceptance work; this lane does not change their architecture or exclusions. No push or merge is performed.

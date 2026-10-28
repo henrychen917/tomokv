@@ -158,6 +158,6 @@
     "-lm",
     "/home/user/Projects/cx-blockfix3/build/blockfix3/commands/verified-normal/probe.o"
   ],
-  "sha256": "98bd7a6aeaaebfc148b63294b6308c0c4dc6dc490a65c0b28987bbf474a8942a",
-  "server_sha256": "2fa0c12dced6a5611f399ccefc670050b501a02af713f2603ef0e12cac796829"
+  "sha256": "908c3d8752745248910095a05d532306bb6bf3a6e28f23d130b50cbdf6059d67",
+  "server_sha256": "943f4ab48b3b5381c57ba9c13ecede6b59a2c9d78cbf34095a610351269bb077"
 }
