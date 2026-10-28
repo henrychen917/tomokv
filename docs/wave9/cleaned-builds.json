@@ -56,5 +56,24 @@
     "path": "build/wave9/commands/pre-normal/probe.o.debug",
     "bytes": 10887048,
     "sha256": "91b31bb39359b5130817a9fe155347f46995a5445d409cb9e593d353bee25e53"
+  },
+  {
+    "path": "build/wave9/pre-source",
+    "files": 572,
+    "bytes": 856849651,
+    "tree_manifest_sha256": "600a70528bc7a136e53e83fb48ffaa4d92f401bbe717510ea260e46997347817",
+    "manifest": "docs/wave9/cleaned-pre-manifest.json.gz",
+    "kept_binary": "build/tomokv-wave9-PRE",
+    "rebuild": "taskset -c 64-95 python3 docs/wave9/prepare_pre.py"
+  },
+  {
+    "path": "build/wave9/selftest-source",
+    "files": 103104,
+    "bytes": 1729606521,
+    "tree_manifest_sha256": "c07bd3c7107156eb66e40030fc41d3afdb6b36af6395fa07ea1652fbe08fb310",
+    "manifest": "docs/wave9/cleaned-selftest-manifest.json.gz",
+    "scheduler_failure_archive": "docs/wave9/scheduler-failures.tar.gz",
+    "scheduler_failure_archive_sha256": "8e75aec76b7585b17fe15b925b0fed5c9b35d3179379869c2a008757dbafc0c2",
+    "functional_source_proof": "docs/wave9/selftest-source-proof.json"
   }
 ]

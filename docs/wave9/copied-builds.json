@@ -20,5 +20,10 @@
     "exit": 0,
     "tests": 17
   },
-  "note": "Compile-only copied-source arms; no lottery nightly or performance run."
+  "note": "Compile-only copied-source arms; no lottery nightly or performance run.",
+  "lottery_runner_controls": {
+    "exit": 0,
+    "log": "docs/wave9/lottery-runner-test.log",
+    "summary": "..LOTTERY battery sha256=2170b1b2743febf20ae3bca57600df1e7b9393347c715bc1abe99038da8f3db7 markers_only=1\n.LOTTERY battery sha256=316c9da2a2d079d702e1828727fc06435f0870089bd0279bf20d01210e71dcf7 markers_only=1\n..............\n----------------------------------------------------------------------\nRan 17 tests in 0.118s\n\nOK\n"
+  }
 }

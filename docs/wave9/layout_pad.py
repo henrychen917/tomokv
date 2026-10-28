@@ -10,7 +10,7 @@ sys.path.insert(0,str(ROOT/'tools'))
 from lbstall_artifacts import Elf
 OUT=ROOT/'build/wave9/pad-a';SRC=OUT/'source';OBJ=OUT/'objects'
 DOC=ROOT/'docs/wave9/pad-a.json'
-PRE=ROOT/'build/wave9/pre-source/build/tomokv';POST=ROOT/'build/tomokv'
+PRE=ROOT/'build/tomokv-wave9-PRE';POST=ROOT/'build/tomokv'
 os.sched_setaffinity(0,set(range(64,96)))
 def sha(p): return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 def text(p):

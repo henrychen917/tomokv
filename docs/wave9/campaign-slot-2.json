@@ -2,5 +2,17 @@
   {
     "name": "final-differ-epoll",
     "exit": 0
+  },
+  {
+    "name": "final-engine-epoll",
+    "exit": 0
+  },
+  {
+    "name": "final-mode-epoll-2s",
+    "exit": 0
+  },
+  {
+    "name": "final-mode-epoll-1s",
+    "exit": 0
   }
 ]

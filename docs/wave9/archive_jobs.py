@@ -19,6 +19,8 @@ def digest(data):
     return hashlib.sha256(data).hexdigest()
 
 
+index_path = ROOT / 'docs/wave9/job-evidence-index.json'
+previous = {x['name']: x for x in json.loads(index_path.read_text())} if index_path.exists() else {}
 index = []
 for receipt_path in sorted((ROOT / 'docs/wave9/jobs').glob('*.json')):
     receipt = json.loads(receipt_path.read_text())
@@ -26,7 +28,13 @@ for receipt_path in sorted((ROOT / 'docs/wave9/jobs').glob('*.json')):
                exit=receipt['exit'], binary_sha256=receipt['binary_sha256'])
     directory = Path(receipt.get('artifacts', '/does-not-exist'))
     if not directory.is_dir():
-        row['note'] = 'Setup failed before a gate artifact directory was created.'
+        old = previous.get(receipt_path.stem, {})
+        if 'archive' in old:
+            assert digest((ROOT / old['archive']).read_bytes()) == old['archive_sha256']
+            assert (old['exit'], old['binary_sha256']) == (row['exit'], row['binary_sha256'])
+            row = dict(old, evidence_directory_removed_after_archive=True)
+        else:
+            row['note'] = 'Setup failed before a gate artifact directory was created.'
         index.append(row)
         continue
     archive = OUT / (receipt_path.stem + '.tar.gz')
@@ -65,7 +73,7 @@ for receipt_path in sorted((ROOT / 'docs/wave9/jobs').glob('*.json')):
                                rows=[dict(zip(('verdict', 'seconds', 'label'), line.split('\t', 2)))
                                      for line in lines]))
     index.append(row)
-(ROOT / 'docs/wave9/job-evidence-index.json').write_text(json.dumps(index, indent=2) + '\n')
+index_path.write_text(json.dumps(index, indent=2) + '\n')
 print(json.dumps(dict(campaigns=len(index), archives=sum('archive' in x for x in index),
                      files=sum(x.get('files', 0) for x in index),
                      uncompressed_bytes=sum(x.get('uncompressed_bytes', 0) for x in index))))

@@ -5212,260 +5212,2039 @@
       "group": "each_engine/uring",
       "campaign": "final-engine-uring",
       "job": "feature-split-0",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "feature-split-0",
+          "done": "0\t34\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "2.490000",
+              "label": "s6 battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.110000",
+              "label": "multi_exec battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.550000",
+              "label": "blocking battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.480000",
+              "label": "blockmulti battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.810000",
+              "label": "stream battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.100000",
+              "label": "streamgroups battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.910000",
+              "label": "pubsub battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "lua_scripting battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "scriptsurf battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "14.890000",
+              "label": "limits battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "resp3 battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "bitfield battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "dumprestore battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "zsetops battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "geo battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.150000",
+              "label": "climon battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.370000",
+              "label": "climon2 battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "13.280000",
+              "label": "tracking battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.070000",
+              "label": "hexpire battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.590000",
+              "label": "servertail battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.180000",
+              "label": "lcs battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.820000",
+              "label": "concur battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.640000",
+              "label": "edgeproto battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.370000",
+              "label": "edgeenc battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.860000",
+              "label": "edgetime battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "arity battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "contarity battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "cmdgap battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "aclsel battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "64.110000",
+              "label": "expwide battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.270000",
+              "label": "infofix battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "5.460000",
+              "label": "pushtear battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "netcmd battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "feature shutdown invariants (atomic 0)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/uring",
       "campaign": "final-engine-uring",
       "job": "feature-split-1",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "feature-split-1",
+          "done": "0\t34\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "2.480000",
+              "label": "s6 battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.120000",
+              "label": "multi_exec battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.530000",
+              "label": "blocking battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.480000",
+              "label": "blockmulti battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.820000",
+              "label": "stream battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "streamgroups battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.900000",
+              "label": "pubsub battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "lua_scripting battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "scriptsurf battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "14.830000",
+              "label": "limits battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "resp3 battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "bitfield battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.090000",
+              "label": "dumprestore battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "zsetops battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "geo battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.150000",
+              "label": "climon battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.300000",
+              "label": "climon2 battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "13.340000",
+              "label": "tracking battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.320000",
+              "label": "hexpire battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.600000",
+              "label": "servertail battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.180000",
+              "label": "lcs battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.870000",
+              "label": "concur battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.600000",
+              "label": "edgeproto battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.370000",
+              "label": "edgeenc battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.850000",
+              "label": "edgetime battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "arity battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "contarity battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "cmdgap battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "aclsel battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "61.750000",
+              "label": "expwide battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.220000",
+              "label": "infofix battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "5.470000",
+              "label": "pushtear battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "netcmd battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "feature shutdown invariants (atomic 1)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/uring",
       "campaign": "final-engine-uring",
       "job": "feature-armed-0",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "feature-armed-0",
+          "done": "0\t35\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.260000",
+              "label": "fused+armed boot line (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.190000",
+              "label": "fused+armed s6 battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.120000",
+              "label": "fused+armed multi_exec battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.560000",
+              "label": "fused+armed blocking battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.490000",
+              "label": "fused+armed blockmulti battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.840000",
+              "label": "fused+armed stream battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "fused+armed streamgroups battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.940000",
+              "label": "fused+armed pubsub battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "fused+armed lua_scripting battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "fused+armed scriptsurf battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "15.410000",
+              "label": "fused+armed limits battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "fused+armed resp3 battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "fused+armed bitfield battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.090000",
+              "label": "fused+armed dumprestore battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "fused+armed zsetops battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "fused+armed geo battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.170000",
+              "label": "fused+armed climon battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.350000",
+              "label": "fused+armed climon2 battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "13.330000",
+              "label": "fused+armed tracking battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.080000",
+              "label": "fused+armed hexpire battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.680000",
+              "label": "fused+armed servertail battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.200000",
+              "label": "fused+armed lcs battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.890000",
+              "label": "fused+armed concur battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.770000",
+              "label": "fused+armed edgeproto battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.420000",
+              "label": "fused+armed edgeenc battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.820000",
+              "label": "fused+armed edgetime battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "fused+armed arity battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "fused+armed contarity battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "fused+armed cmdgap battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "fused+armed aclsel battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "53.480000",
+              "label": "fused+armed expwide battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.230000",
+              "label": "fused+armed infofix battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.010000",
+              "label": "fused+armed pushtear battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "fused+armed netcmd battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.170000",
+              "label": "fused+armed shutdown report + lane fired (hits=N, atomic 0)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/uring",
       "campaign": "final-engine-uring",
       "job": "feature-armed-1",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "feature-armed-1",
+          "done": "0\t35\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.270000",
+              "label": "fused+armed boot line (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.240000",
+              "label": "fused+armed s6 battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.110000",
+              "label": "fused+armed multi_exec battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.660000",
+              "label": "fused+armed blocking battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.480000",
+              "label": "fused+armed blockmulti battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.830000",
+              "label": "fused+armed stream battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "fused+armed streamgroups battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.940000",
+              "label": "fused+armed pubsub battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "fused+armed lua_scripting battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "fused+armed scriptsurf battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "15.470000",
+              "label": "fused+armed limits battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "fused+armed resp3 battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "fused+armed bitfield battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "fused+armed dumprestore battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "fused+armed zsetops battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "fused+armed geo battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.180000",
+              "label": "fused+armed climon battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.380000",
+              "label": "fused+armed climon2 battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "13.280000",
+              "label": "fused+armed tracking battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.070000",
+              "label": "fused+armed hexpire battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.590000",
+              "label": "fused+armed servertail battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.180000",
+              "label": "fused+armed lcs battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.990000",
+              "label": "fused+armed concur battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.720000",
+              "label": "fused+armed edgeproto battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.410000",
+              "label": "fused+armed edgeenc battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.840000",
+              "label": "fused+armed edgetime battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "fused+armed arity battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "fused+armed contarity battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "fused+armed cmdgap battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "fused+armed aclsel battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "54.010000",
+              "label": "fused+armed expwide battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.210000",
+              "label": "fused+armed infofix battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.990000",
+              "label": "fused+armed pushtear battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "fused+armed netcmd battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.170000",
+              "label": "fused+armed shutdown report + lane fired (hits=N, atomic 1)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/uring",
       "campaign": "final-engine-uring",
       "job": "fused-0",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "fused-0",
+          "done": "0\t9\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.260000",
+              "label": "fused boot line (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.210000",
+              "label": "fused s6 battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.110000",
+              "label": "fused multi_exec battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.740000",
+              "label": "fused edgeproto battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "fused atomfix battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.230000",
+              "label": "fused spinprobe battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.160000",
+              "label": "fused shutdown report (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.810000",
+              "label": "fused txn_nx battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "8.950000",
+              "label": "fused txniso battery (atomic 0)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/uring",
       "campaign": "final-engine-uring",
       "job": "fused-1",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "fused-1",
+          "done": "0\t9\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.260000",
+              "label": "fused boot line (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.220000",
+              "label": "fused s6 battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.130000",
+              "label": "fused multi_exec battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.740000",
+              "label": "fused edgeproto battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "fused atomfix battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.230000",
+              "label": "fused spinprobe battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.170000",
+              "label": "fused shutdown report (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.210000",
+              "label": "fused txn_nx battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "9.680000",
+              "label": "fused txniso battery (atomic 1)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/uring",
       "campaign": "final-engine-uring",
       "job": "txn_group_fused",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "txn_group_fused",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "13.010000",
+              "label": "fused txngroup battery (atomic 1)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/uring",
       "campaign": "final-engine-uring",
       "job": "txn_group_split",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "txn_group_split",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "12.780000",
+              "label": "txngroup battery (atomic 1)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/uring",
       "campaign": "final-engine-uring",
       "job": "txnorder-fused-0",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "txnorder-fused-0",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "48.320000",
+              "label": "txnorder battery (fused, atomic 0)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/uring",
       "campaign": "final-engine-uring",
       "job": "txnorder-fused-1",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "txnorder-fused-1",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "48.760000",
+              "label": "txnorder battery (fused, atomic 1)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/uring",
       "campaign": "final-engine-uring",
       "job": "txnorder-split-0",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "txnorder-split-0",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "48.160000",
+              "label": "txnorder battery (split, atomic 0)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/uring",
       "campaign": "final-engine-uring",
       "job": "txnorder-split-1",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "txnorder-split-1",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "48.090000",
+              "label": "txnorder battery (split, atomic 1)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/uring",
       "campaign": "final-engine-uring",
       "job": "replyoff",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "replyoff",
+          "done": "0\t2\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "1.230000",
+              "label": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.230000",
+              "label": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/uring",
       "campaign": "final-engine-uring",
       "job": "wb_policy",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "wb_policy",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "5.920000",
+              "label": "writeback policies 0/1: 22 standard fixtures"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/uring",
       "campaign": "final-engine-uring",
       "job": "multidb-1s-0-0",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "multidb-1s-0-0",
+          "done": "0\t3\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "4.480000",
+              "label": "multidb (1s, read-local 0, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.110000",
+              "label": "multidb (1s, read-local 0, atomic 0) SWAPDB serial order"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.270000",
+              "label": "multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/uring",
       "campaign": "final-engine-uring",
       "job": "multidb-1s-0-1",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "multidb-1s-0-1",
+          "done": "0\t3\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "4.460000",
+              "label": "multidb (1s, read-local 0, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.110000",
+              "label": "multidb (1s, read-local 0, atomic 1) SWAPDB serial order"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.280000",
+              "label": "multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/uring",
       "campaign": "final-engine-uring",
       "job": "multidb-1s-1-0",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "multidb-1s-1-0",
+          "done": "0\t3\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "4.470000",
+              "label": "multidb (1s, read-local 1, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.110000",
+              "label": "multidb (1s, read-local 1, atomic 0) SWAPDB serial order"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.270000",
+              "label": "multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/uring",
       "campaign": "final-engine-uring",
       "job": "multidb-1s-1-1",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "multidb-1s-1-1",
+          "done": "0\t3\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "4.470000",
+              "label": "multidb (1s, read-local 1, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.110000",
+              "label": "multidb (1s, read-local 1, atomic 1) SWAPDB serial order"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.270000",
+              "label": "multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/uring",
       "campaign": "final-engine-uring",
       "job": "multidb-2s-0-0",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "multidb-2s-0-0",
+          "done": "0\t3\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "4.360000",
+              "label": "multidb (2s, read-local 0, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.110000",
+              "label": "multidb (2s, read-local 0, atomic 0) SWAPDB serial order"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.280000",
+              "label": "multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/uring",
       "campaign": "final-engine-uring",
       "job": "multidb-2s-0-1",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "multidb-2s-0-1",
+          "done": "0\t3\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "4.370000",
+              "label": "multidb (2s, read-local 0, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.100000",
+              "label": "multidb (2s, read-local 0, atomic 1) SWAPDB serial order"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.270000",
+              "label": "multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/uring",
       "campaign": "final-engine-uring",
       "job": "multidb-2s-1-0",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "multidb-2s-1-0",
+          "done": "0\t3\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "4.370000",
+              "label": "multidb (2s, read-local 1, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.100000",
+              "label": "multidb (2s, read-local 1, atomic 0) SWAPDB serial order"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.280000",
+              "label": "multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/uring",
       "campaign": "final-engine-uring",
       "job": "multidb-2s-1-1",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "multidb-2s-1-1",
+          "done": "0\t3\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "4.370000",
+              "label": "multidb (2s, read-local 1, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.110000",
+              "label": "multidb (2s, read-local 1, atomic 1) SWAPDB serial order"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.280000",
+              "label": "multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/uring",
       "campaign": "final-engine-uring",
       "job": "respcompat",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "respcompat",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "536.630000",
+              "label": "RESP protocol error compatibility"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/uring/1s",
       "campaign": "final-mode-uring-1s",
       "job": "debug-0",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "debug-0",
+          "done": "0\t16\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "9.170000",
+              "label": "plain-write lost updates (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.170000",
+              "label": "lbsignals battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.490000",
+              "label": "slowlog battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "atomfix battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.140000",
+              "label": "scriptatomic battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "14.470000",
+              "label": "execatomic battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "11.880000",
+              "label": "execiso battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.470000",
+              "label": "execfix battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.130000",
+              "label": "multires battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.770000",
+              "label": "multirace battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "30.640000",
+              "label": "session_monotonic battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.360000",
+              "label": "xacct battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.380000",
+              "label": "xmove battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.270000",
+              "label": "xscript battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.740000",
+              "label": "txn_nx battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "8.420000",
+              "label": "txniso battery (atomic 0)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/uring/1s",
       "campaign": "final-mode-uring-1s",
       "job": "debug-1",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "debug-1",
+          "done": "0\t16\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "7.170000",
+              "label": "plain-write lost updates (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.160000",
+              "label": "lbsignals battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.490000",
+              "label": "slowlog battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "atomfix battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.140000",
+              "label": "scriptatomic battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "14.470000",
+              "label": "execatomic battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "11.880000",
+              "label": "execiso battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.470000",
+              "label": "execfix battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.190000",
+              "label": "multires battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.760000",
+              "label": "multirace battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "30.650000",
+              "label": "session_monotonic battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.360000",
+              "label": "xacct battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.420000",
+              "label": "xmove battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.270000",
+              "label": "xscript battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.290000",
+              "label": "txn_nx battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "8.840000",
+              "label": "txniso battery (atomic 1)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/uring/1s",
       "campaign": "final-mode-uring-1s",
       "job": "script_bounds",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "script_bounds",
+          "done": "0\t2\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "xscript limit control"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.030000",
+              "label": "xscript window control"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/uring/1s",
       "campaign": "final-mode-uring-1s",
       "job": "notify",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "notify",
+          "done": "0\t6\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "2.090000",
+              "label": "MULTI feature battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.700000",
+              "label": "blocking feature battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.890000",
+              "label": "pubsub feature battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "Lua feature battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "46.190000",
+              "label": "keyspace notification battery (atomic 0/1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "feature battery shutdown invariants"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/uring/1s",
       "campaign": "final-mode-uring-1s",
       "job": "asan_batteries",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "asan_batteries",
+          "done": "0\t5\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "6.970000",
+              "label": "torture under ASAN"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.040000",
+              "label": "RYOW under ASAN"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "25.390000",
+              "label": "atomic torn/window under ASAN"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.090000",
+              "label": "atomic RYOW under ASAN"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "ASAN clean"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/uring/1s",
       "campaign": "final-mode-uring-1s",
       "job": "atomic_batteries",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "atomic_batteries",
+          "done": "0\t4\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "25.320000",
+              "label": "atomic torn/window battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.060000",
+              "label": "atomic RYOW/mixed-write battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.240000",
+              "label": "atomic owner-local hazard battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "atomic shutdown invariants"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/uring/1s",
       "campaign": "final-mode-uring-1s",
       "job": "release_batteries",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "release_batteries",
+          "done": "0\t8\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "6.660000",
+              "label": "torture battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.030000",
+              "label": "RYOW battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "ACL category runtime table"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "ACL LOAD/SAVE no-file errors"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.030000",
+              "label": "idle loop ceiling (LBSIGNALS, 1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "shutdown invariants (nothing stuck)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "direct-reply fired (direct=N)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "dispatched==executed (N)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/uring/2s",
       "campaign": "final-mode-uring-2s",
       "job": "debug-0",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "debug-0",
+          "done": "0\t16\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "9.170000",
+              "label": "plain-write lost updates (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.160000",
+              "label": "lbsignals battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.490000",
+              "label": "slowlog battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "atomfix battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.130000",
+              "label": "scriptatomic battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "14.460000",
+              "label": "execatomic battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "11.870000",
+              "label": "execiso battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.450000",
+              "label": "execfix battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.120000",
+              "label": "multires battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.770000",
+              "label": "multirace battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "30.580000",
+              "label": "session_monotonic battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.370000",
+              "label": "xacct battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.310000",
+              "label": "xmove battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.260000",
+              "label": "xscript battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.290000",
+              "label": "txn_nx battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "9.800000",
+              "label": "txniso battery (atomic 0)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/uring/2s",
       "campaign": "final-mode-uring-2s",
       "job": "debug-1",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "debug-1",
+          "done": "0\t16\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "6.160000",
+              "label": "plain-write lost updates (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.170000",
+              "label": "lbsignals battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.490000",
+              "label": "slowlog battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "atomfix battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.130000",
+              "label": "scriptatomic battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "14.470000",
+              "label": "execatomic battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "11.870000",
+              "label": "execiso battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.450000",
+              "label": "execfix battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.110000",
+              "label": "multires battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.780000",
+              "label": "multirace battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "30.590000",
+              "label": "session_monotonic battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.370000",
+              "label": "xacct battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.290000",
+              "label": "xmove battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.260000",
+              "label": "xscript battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.360000",
+              "label": "txn_nx battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "9.120000",
+              "label": "txniso battery (atomic 1)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/uring/2s",
       "campaign": "final-mode-uring-2s",
       "job": "script_bounds",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "script_bounds",
+          "done": "0\t2\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "xscript limit control"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.540000",
+              "label": "xscript window control"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/uring/2s",
       "campaign": "final-mode-uring-2s",
       "job": "notify",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "notify",
+          "done": "0\t6\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "2.070000",
+              "label": "MULTI feature battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.570000",
+              "label": "blocking feature battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.870000",
+              "label": "pubsub feature battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "Lua feature battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "46.420000",
+              "label": "keyspace notification battery (atomic 0/1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "feature battery shutdown invariants"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/uring/2s",
       "campaign": "final-mode-uring-2s",
       "job": "asan_batteries",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "asan_batteries",
+          "done": "0\t5\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "6.960000",
+              "label": "torture under ASAN"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.090000",
+              "label": "RYOW under ASAN"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "25.330000",
+              "label": "atomic torn/window under ASAN"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.090000",
+              "label": "atomic RYOW under ASAN"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "ASAN clean"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/uring/2s",
       "campaign": "final-mode-uring-2s",
       "job": "atomic_batteries",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "atomic_batteries",
+          "done": "0\t4\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "32.860000",
+              "label": "atomic torn/window battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.070000",
+              "label": "atomic RYOW/mixed-write battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.240000",
+              "label": "atomic owner-local hazard battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "atomic shutdown invariants"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/uring/2s",
       "campaign": "final-mode-uring-2s",
       "job": "release_batteries",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "release_batteries",
+          "done": "0\t8\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "6.620000",
+              "label": "torture battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.050000",
+              "label": "RYOW battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "ACL category runtime table"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "ACL LOAD/SAVE no-file errors"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.030000",
+              "label": "idle loop ceiling (LBSIGNALS, 1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "shutdown invariants (nothing stuck)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "direct-reply fired (direct=N)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "dispatched==executed (N)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "differ_each_engine/epoll",
@@ -5542,260 +7321,2039 @@
       "group": "each_engine/epoll",
       "campaign": "final-engine-epoll",
       "job": "feature-split-0",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "feature-split-0",
+          "done": "0\t34\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "2.560000",
+              "label": "s6 battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.120000",
+              "label": "multi_exec battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.590000",
+              "label": "blocking battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.480000",
+              "label": "blockmulti battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.780000",
+              "label": "stream battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "streamgroups battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.930000",
+              "label": "pubsub battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "lua_scripting battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "scriptsurf battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "15.110000",
+              "label": "limits battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "resp3 battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.110000",
+              "label": "bitfield battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.090000",
+              "label": "dumprestore battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "zsetops battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "geo battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.170000",
+              "label": "climon battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.380000",
+              "label": "climon2 battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "13.240000",
+              "label": "tracking battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.070000",
+              "label": "hexpire battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.600000",
+              "label": "servertail battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.180000",
+              "label": "lcs battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.880000",
+              "label": "concur battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.760000",
+              "label": "edgeproto battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.390000",
+              "label": "edgeenc battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.850000",
+              "label": "edgetime battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "arity battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "contarity battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "cmdgap battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "aclsel battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "67.290000",
+              "label": "expwide battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.270000",
+              "label": "infofix battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "5.470000",
+              "label": "pushtear battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "netcmd battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "feature shutdown invariants (atomic 0)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/epoll",
       "campaign": "final-engine-epoll",
       "job": "feature-split-1",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "feature-split-1",
+          "done": "0\t34\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "2.510000",
+              "label": "s6 battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.110000",
+              "label": "multi_exec battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.540000",
+              "label": "blocking battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.480000",
+              "label": "blockmulti battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.790000",
+              "label": "stream battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "streamgroups battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.950000",
+              "label": "pubsub battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "lua_scripting battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "scriptsurf battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "14.790000",
+              "label": "limits battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "resp3 battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "bitfield battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.090000",
+              "label": "dumprestore battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "zsetops battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.100000",
+              "label": "geo battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.150000",
+              "label": "climon battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.360000",
+              "label": "climon2 battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "13.250000",
+              "label": "tracking battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.330000",
+              "label": "hexpire battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.600000",
+              "label": "servertail battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.190000",
+              "label": "lcs battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.830000",
+              "label": "concur battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.610000",
+              "label": "edgeproto battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.390000",
+              "label": "edgeenc battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.960000",
+              "label": "edgetime battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "arity battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "contarity battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "cmdgap battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "aclsel battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "53.170000",
+              "label": "expwide battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.180000",
+              "label": "infofix battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "8.010000",
+              "label": "pushtear battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "netcmd battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "feature shutdown invariants (atomic 1)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/epoll",
       "campaign": "final-engine-epoll",
       "job": "feature-armed-0",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "feature-armed-0",
+          "done": "0\t35\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.270000",
+              "label": "fused+armed boot line (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.200000",
+              "label": "fused+armed s6 battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.130000",
+              "label": "fused+armed multi_exec battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.610000",
+              "label": "fused+armed blocking battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.480000",
+              "label": "fused+armed blockmulti battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.770000",
+              "label": "fused+armed stream battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "fused+armed streamgroups battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.930000",
+              "label": "fused+armed pubsub battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "fused+armed lua_scripting battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "fused+armed scriptsurf battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "15.070000",
+              "label": "fused+armed limits battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "fused+armed resp3 battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "fused+armed bitfield battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.100000",
+              "label": "fused+armed dumprestore battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "fused+armed zsetops battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "fused+armed geo battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.170000",
+              "label": "fused+armed climon battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.330000",
+              "label": "fused+armed climon2 battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "13.280000",
+              "label": "fused+armed tracking battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.080000",
+              "label": "fused+armed hexpire battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.610000",
+              "label": "fused+armed servertail battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.190000",
+              "label": "fused+armed lcs battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.980000",
+              "label": "fused+armed concur battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.750000",
+              "label": "fused+armed edgeproto battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.410000",
+              "label": "fused+armed edgeenc battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.840000",
+              "label": "fused+armed edgetime battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "fused+armed arity battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "fused+armed contarity battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "fused+armed cmdgap battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "fused+armed aclsel battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "67.760000",
+              "label": "fused+armed expwide battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.220000",
+              "label": "fused+armed infofix battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.000000",
+              "label": "fused+armed pushtear battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "fused+armed netcmd battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.170000",
+              "label": "fused+armed shutdown report + lane fired (hits=N, atomic 0)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/epoll",
       "campaign": "final-engine-epoll",
       "job": "feature-armed-1",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "feature-armed-1",
+          "done": "0\t35\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.260000",
+              "label": "fused+armed boot line (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.190000",
+              "label": "fused+armed s6 battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.120000",
+              "label": "fused+armed multi_exec battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.610000",
+              "label": "fused+armed blocking battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.480000",
+              "label": "fused+armed blockmulti battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.820000",
+              "label": "fused+armed stream battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "fused+armed streamgroups battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.960000",
+              "label": "fused+armed pubsub battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "fused+armed lua_scripting battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "fused+armed scriptsurf battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "15.350000",
+              "label": "fused+armed limits battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "fused+armed resp3 battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "fused+armed bitfield battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.090000",
+              "label": "fused+armed dumprestore battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "fused+armed zsetops battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "fused+armed geo battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.160000",
+              "label": "fused+armed climon battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.330000",
+              "label": "fused+armed climon2 battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "13.260000",
+              "label": "fused+armed tracking battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.070000",
+              "label": "fused+armed hexpire battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.590000",
+              "label": "fused+armed servertail battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.180000",
+              "label": "fused+armed lcs battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.920000",
+              "label": "fused+armed concur battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.740000",
+              "label": "fused+armed edgeproto battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.400000",
+              "label": "fused+armed edgeenc battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.850000",
+              "label": "fused+armed edgetime battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "fused+armed arity battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "fused+armed contarity battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "fused+armed cmdgap battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "fused+armed aclsel battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "65.680000",
+              "label": "fused+armed expwide battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.230000",
+              "label": "fused+armed infofix battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.960000",
+              "label": "fused+armed pushtear battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "fused+armed netcmd battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.170000",
+              "label": "fused+armed shutdown report + lane fired (hits=N, atomic 1)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/epoll",
       "campaign": "final-engine-epoll",
       "job": "fused-0",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "fused-0",
+          "done": "0\t9\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.260000",
+              "label": "fused boot line (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.430000",
+              "label": "fused s6 battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.120000",
+              "label": "fused multi_exec battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.730000",
+              "label": "fused edgeproto battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "fused atomfix battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.230000",
+              "label": "fused spinprobe battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.170000",
+              "label": "fused shutdown report (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.670000",
+              "label": "fused txn_nx battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "9.180000",
+              "label": "fused txniso battery (atomic 0)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/epoll",
       "campaign": "final-engine-epoll",
       "job": "fused-1",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "fused-1",
+          "done": "0\t9\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.260000",
+              "label": "fused boot line (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.310000",
+              "label": "fused s6 battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.120000",
+              "label": "fused multi_exec battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.770000",
+              "label": "fused edgeproto battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "fused atomfix battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.230000",
+              "label": "fused spinprobe battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.170000",
+              "label": "fused shutdown report (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.930000",
+              "label": "fused txn_nx battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "9.230000",
+              "label": "fused txniso battery (atomic 1)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/epoll",
       "campaign": "final-engine-epoll",
       "job": "txn_group_fused",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "txn_group_fused",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "12.700000",
+              "label": "fused txngroup battery (atomic 1)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/epoll",
       "campaign": "final-engine-epoll",
       "job": "txn_group_split",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "txn_group_split",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "12.770000",
+              "label": "txngroup battery (atomic 1)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/epoll",
       "campaign": "final-engine-epoll",
       "job": "txnorder-fused-0",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "txnorder-fused-0",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "48.970000",
+              "label": "txnorder battery (fused, atomic 0)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/epoll",
       "campaign": "final-engine-epoll",
       "job": "txnorder-fused-1",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "txnorder-fused-1",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "48.740000",
+              "label": "txnorder battery (fused, atomic 1)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/epoll",
       "campaign": "final-engine-epoll",
       "job": "txnorder-split-0",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "txnorder-split-0",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "48.030000",
+              "label": "txnorder battery (split, atomic 0)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/epoll",
       "campaign": "final-engine-epoll",
       "job": "txnorder-split-1",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "txnorder-split-1",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "47.940000",
+              "label": "txnorder battery (split, atomic 1)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/epoll",
       "campaign": "final-engine-epoll",
       "job": "replyoff",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "replyoff",
+          "done": "0\t2\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "1.230000",
+              "label": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.240000",
+              "label": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/epoll",
       "campaign": "final-engine-epoll",
       "job": "wb_policy",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "wb_policy",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "5.730000",
+              "label": "writeback policies 0/1: 22 standard fixtures"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/epoll",
       "campaign": "final-engine-epoll",
       "job": "multidb-1s-0-0",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "multidb-1s-0-0",
+          "done": "0\t3\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "4.540000",
+              "label": "multidb (1s, read-local 0, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.090000",
+              "label": "multidb (1s, read-local 0, atomic 0) SWAPDB serial order"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.280000",
+              "label": "multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/epoll",
       "campaign": "final-engine-epoll",
       "job": "multidb-1s-0-1",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "multidb-1s-0-1",
+          "done": "0\t3\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "4.520000",
+              "label": "multidb (1s, read-local 0, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.110000",
+              "label": "multidb (1s, read-local 0, atomic 1) SWAPDB serial order"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.280000",
+              "label": "multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/epoll",
       "campaign": "final-engine-epoll",
       "job": "multidb-1s-1-0",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "multidb-1s-1-0",
+          "done": "0\t3\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "4.520000",
+              "label": "multidb (1s, read-local 1, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.100000",
+              "label": "multidb (1s, read-local 1, atomic 0) SWAPDB serial order"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.280000",
+              "label": "multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/epoll",
       "campaign": "final-engine-epoll",
       "job": "multidb-1s-1-1",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "multidb-1s-1-1",
+          "done": "0\t3\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "4.490000",
+              "label": "multidb (1s, read-local 1, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.100000",
+              "label": "multidb (1s, read-local 1, atomic 1) SWAPDB serial order"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.280000",
+              "label": "multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/epoll",
       "campaign": "final-engine-epoll",
       "job": "multidb-2s-0-0",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "multidb-2s-0-0",
+          "done": "0\t3\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "4.420000",
+              "label": "multidb (2s, read-local 0, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.100000",
+              "label": "multidb (2s, read-local 0, atomic 0) SWAPDB serial order"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.270000",
+              "label": "multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/epoll",
       "campaign": "final-engine-epoll",
       "job": "multidb-2s-0-1",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "multidb-2s-0-1",
+          "done": "0\t3\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "4.430000",
+              "label": "multidb (2s, read-local 0, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.100000",
+              "label": "multidb (2s, read-local 0, atomic 1) SWAPDB serial order"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.280000",
+              "label": "multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/epoll",
       "campaign": "final-engine-epoll",
       "job": "multidb-2s-1-0",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "multidb-2s-1-0",
+          "done": "0\t3\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "4.400000",
+              "label": "multidb (2s, read-local 1, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.090000",
+              "label": "multidb (2s, read-local 1, atomic 0) SWAPDB serial order"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.280000",
+              "label": "multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/epoll",
       "campaign": "final-engine-epoll",
       "job": "multidb-2s-1-1",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "multidb-2s-1-1",
+          "done": "0\t3\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "4.440000",
+              "label": "multidb (2s, read-local 1, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.110000",
+              "label": "multidb (2s, read-local 1, atomic 1) SWAPDB serial order"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.280000",
+              "label": "multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_engine/epoll",
       "campaign": "final-engine-epoll",
       "job": "respcompat",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "respcompat",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "541.870000",
+              "label": "RESP protocol error compatibility"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/epoll/1s",
       "campaign": "final-mode-epoll-1s",
       "job": "debug-0",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "debug-0",
+          "done": "0\t16\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "11.170000",
+              "label": "plain-write lost updates (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.170000",
+              "label": "lbsignals battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.490000",
+              "label": "slowlog battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "atomfix battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.130000",
+              "label": "scriptatomic battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "14.470000",
+              "label": "execatomic battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "11.870000",
+              "label": "execiso battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.480000",
+              "label": "execfix battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.120000",
+              "label": "multires battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.770000",
+              "label": "multirace battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "30.700000",
+              "label": "session_monotonic battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.360000",
+              "label": "xacct battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.280000",
+              "label": "xmove battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.270000",
+              "label": "xscript battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.690000",
+              "label": "txn_nx battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "8.820000",
+              "label": "txniso battery (atomic 0)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/epoll/1s",
       "campaign": "final-mode-epoll-1s",
       "job": "debug-1",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "debug-1",
+          "done": "0\t16\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "8.170000",
+              "label": "plain-write lost updates (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.170000",
+              "label": "lbsignals battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.490000",
+              "label": "slowlog battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "atomfix battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.130000",
+              "label": "scriptatomic battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "14.460000",
+              "label": "execatomic battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "11.870000",
+              "label": "execiso battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.520000",
+              "label": "execfix battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.140000",
+              "label": "multires battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.780000",
+              "label": "multirace battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "30.680000",
+              "label": "session_monotonic battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.370000",
+              "label": "xacct battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.270000",
+              "label": "xmove battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.270000",
+              "label": "xscript battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.870000",
+              "label": "txn_nx battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "9.100000",
+              "label": "txniso battery (atomic 1)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/epoll/1s",
       "campaign": "final-mode-epoll-1s",
       "job": "script_bounds",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "script_bounds",
+          "done": "0\t2\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "xscript limit control"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.050000",
+              "label": "xscript window control"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/epoll/1s",
       "campaign": "final-mode-epoll-1s",
       "job": "notify",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "notify",
+          "done": "0\t6\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "2.080000",
+              "label": "MULTI feature battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.570000",
+              "label": "blocking feature battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.920000",
+              "label": "pubsub feature battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "Lua feature battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "46.230000",
+              "label": "keyspace notification battery (atomic 0/1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "feature battery shutdown invariants"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/epoll/1s",
       "campaign": "final-mode-epoll-1s",
       "job": "asan_batteries",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "asan_batteries",
+          "done": "0\t5\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "6.960000",
+              "label": "torture under ASAN"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.140000",
+              "label": "RYOW under ASAN"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "25.400000",
+              "label": "atomic torn/window under ASAN"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.080000",
+              "label": "atomic RYOW under ASAN"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "ASAN clean"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/epoll/1s",
       "campaign": "final-mode-epoll-1s",
       "job": "atomic_batteries",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "atomic_batteries",
+          "done": "0\t4\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "25.360000",
+              "label": "atomic torn/window battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.070000",
+              "label": "atomic RYOW/mixed-write battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.260000",
+              "label": "atomic owner-local hazard battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "atomic shutdown invariants"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/epoll/1s",
       "campaign": "final-mode-epoll-1s",
       "job": "release_batteries",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "release_batteries",
+          "done": "0\t8\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "6.690000",
+              "label": "torture battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.030000",
+              "label": "RYOW battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "ACL category runtime table"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "ACL LOAD/SAVE no-file errors"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.030000",
+              "label": "idle loop ceiling (LBSIGNALS, 1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "shutdown invariants (nothing stuck)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "direct-reply fired (direct=N)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "dispatched==executed (N)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/epoll/2s",
       "campaign": "final-mode-epoll-2s",
       "job": "debug-0",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "debug-0",
+          "done": "0\t16\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "9.180000",
+              "label": "plain-write lost updates (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.170000",
+              "label": "lbsignals battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.490000",
+              "label": "slowlog battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "atomfix battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.140000",
+              "label": "scriptatomic battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "14.470000",
+              "label": "execatomic battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "11.870000",
+              "label": "execiso battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.460000",
+              "label": "execfix battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.110000",
+              "label": "multires battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.800000",
+              "label": "multirace battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "30.620000",
+              "label": "session_monotonic battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.370000",
+              "label": "xacct battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.270000",
+              "label": "xmove battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.270000",
+              "label": "xscript battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.310000",
+              "label": "txn_nx battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "8.880000",
+              "label": "txniso battery (atomic 0)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/epoll/2s",
       "campaign": "final-mode-epoll-2s",
       "job": "debug-1",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "debug-1",
+          "done": "0\t16\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "6.160000",
+              "label": "plain-write lost updates (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.170000",
+              "label": "lbsignals battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.490000",
+              "label": "slowlog battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "atomfix battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.130000",
+              "label": "scriptatomic battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "14.470000",
+              "label": "execatomic battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "11.880000",
+              "label": "execiso battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.470000",
+              "label": "execfix battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.110000",
+              "label": "multires battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.790000",
+              "label": "multirace battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "30.630000",
+              "label": "session_monotonic battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.360000",
+              "label": "xacct battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.280000",
+              "label": "xmove battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.270000",
+              "label": "xscript battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.400000",
+              "label": "txn_nx battery (atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "8.710000",
+              "label": "txniso battery (atomic 1)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/epoll/2s",
       "campaign": "final-mode-epoll-2s",
       "job": "script_bounds",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "script_bounds",
+          "done": "0\t2\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "xscript limit control"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.040000",
+              "label": "xscript window control"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/epoll/2s",
       "campaign": "final-mode-epoll-2s",
       "job": "notify",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "notify",
+          "done": "0\t6\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "2.080000",
+              "label": "MULTI feature battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.570000",
+              "label": "blocking feature battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.890000",
+              "label": "pubsub feature battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "Lua feature battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "46.240000",
+              "label": "keyspace notification battery (atomic 0/1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "feature battery shutdown invariants"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/epoll/2s",
       "campaign": "final-mode-epoll-2s",
       "job": "asan_batteries",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "asan_batteries",
+          "done": "0\t5\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "6.970000",
+              "label": "torture under ASAN"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.030000",
+              "label": "RYOW under ASAN"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "25.370000",
+              "label": "atomic torn/window under ASAN"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.090000",
+              "label": "atomic RYOW under ASAN"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "ASAN clean"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/epoll/2s",
       "campaign": "final-mode-epoll-2s",
       "job": "atomic_batteries",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "atomic_batteries",
+          "done": "0\t4\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "32.810000",
+              "label": "atomic torn/window battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.060000",
+              "label": "atomic RYOW/mixed-write battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.240000",
+              "label": "atomic owner-local hazard battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "atomic shutdown invariants"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "each_mode_engine/epoll/2s",
       "campaign": "final-mode-epoll-2s",
       "job": "release_batteries",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "release_batteries",
+          "done": "0\t8\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "6.690000",
+              "label": "torture battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.050000",
+              "label": "RYOW battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "ACL category runtime table"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "ACL LOAD/SAVE no-file errors"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.030000",
+              "label": "idle loop ceiling (LBSIGNALS, 1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "shutdown invariants (nothing stuck)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "direct-reply fired (direct=N)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "dispatched==executed (N)"
+            }
+          ]
+        }
+      ]
     },
     {
       "group": "deliberately_loaded",
@@ -5873,8 +9431,20 @@
       "group": "selftest_throwaway",
       "campaign": "final-selftest4",
       "job": "abba_selftest",
-      "status": "NOT RUN",
-      "children": []
+      "status": "PASS",
+      "children": [
+        {
+          "name": "abba_selftest",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "385.500000",
+              "label": "ABBA comparison + saturation negative controls"
+            }
+          ]
+        }
+      ]
     }
   ],
   "added_rows": [
@@ -6620,8 +10190,7 @@
     }
   ],
   "summary": {
-    "PASS": 144,
-    "NOT RUN": 75,
+    "PASS": 219,
     "FAIL": 2
   },
   "new_rows_passing": 74,

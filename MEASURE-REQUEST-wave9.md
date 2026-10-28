@@ -8,11 +8,13 @@ order with `--no-ff`; no push. Builds and correctness processes use CPUs 64–95
 listeners 20000–20099. No performance benchmark or full iteration was run.
 
 **The landing is not green:** the promoted Tcl XGROUP DESTROY assertion still
-fails its INFO errorstats check in both modes. The first full Tcl compatibility
+fails its INFO errorstats check in both modes. The final full Tcl compatibility
 run also observed the cross-connection WATCH ordering failure described below.
-Neither assertion was hidden. The remaining correctness campaign is recorded in
-`docs/wave9/jobs`; its final index distinguishes failures, repaired rechecks and
-work still running. Instruction/body proofs and all three requested arms are complete.
+Neither assertion was hidden. All requested correctness runs are complete:
+**219 passing whole-job invocations, two failed Tcl/dependent invocations**;
+all **74 added rows** have passing frozen-POST receipts. The
+[validation index](docs/wave9/validation.md) retains every failed attempt and
+repaired recheck. Instruction/body proofs and all three requested arms are complete.
 
 ### Merges and exact row arithmetic
 
@@ -99,6 +101,8 @@ pre-budget passing build is retained as preliminary evidence only.
   requires zero `script_crossshard_window_refusals`. Every reply must complete;
   BUSY/TRYAGAIN is forbidden. All eight legs pass on final POST. The bounded
   burners perform no server workload and produce no performance claim.
+  The former BUSY text is absent from production sources; the retained refusal
+  counter mutator has no caller. Admission now parks the frame in the FIFO.
 - **MONITOR order:** upstream sends BLPOP on one deferred connection, then polls
   INFO on another. TomoKV observes each connection at IO dispatch and forwards
   MONITOR feeds asynchronously; it provides no cross-connection order that makes
@@ -141,7 +145,9 @@ pre-budget passing build is retained as preliminary evidence only.
   fixtures. It now runs first, followed by the unchanged parallel scenarios.
   Every job, watchdog, negative control and deadline remains. The real-tree
   `gates_test.py` passes all 73 tests; the complete ABBA job uses a throwaway
-  source copy with only its EXPECT assignments changed to 881/898.
+  source copy with only its EXPECT assignments changed to 881/898 and passes
+  in 386.60 seconds. All 1,099 functional source files match after those two
+  replacements: [source proof](docs/wave9/selftest-source-proof.json).
 
 ### Tcl reconciliation and visible failures
 
@@ -171,6 +177,27 @@ Two visible limitations remain:
 
 Exact manifest-known setup errors (unsupported DEBUG/CONFIG setup commands) are
 still separately accounted for and do not explain either required assertion.
+
+### Completed correctness coverage
+
+[coverage.json](docs/wave9/coverage.json) maps all 221 requested whole-job
+invocations and every added label to final-arm evidence. The two failed
+invocations are `redis_tcl` and its dependent `compat2` verdict; every native
+compat2 leg still ran. Both differential standard-seed campaigns pass. Each
+engine's feature/protocol/transaction matrix passes 191 rows; each of the four
+mode/engine debug, scripting, release and ASAN battery sets passes 59 rows.
+Persistence families pass 141 rows in each mode. These totals overlap and are
+not a replacement for the landing's 881/898 count.
+
+R7 and its negative controls, all directed lane jobs, copied-source gate
+consumers, the deliberately loaded execfair job and the complete ABBA selftest
+pass. `make all` succeeds and all **55** recorded production-target freshness
+checks return zero. Binary hashes remain unchanged. Full logs, verdicts,
+failed controls and per-file hashes are archived under
+[job-evidence](docs/wave9/job-evidence); the
+[attempt history](docs/wave9/validation.md) explicitly lists everything NOT RUN.
+The opt-in lottery nightly is outside `gate.sh`; its release/ASAN copy builds
+and both 17-test serverless control suites pass.
 
 ### Compile-only budgets and remaining bodies
 
@@ -234,7 +261,10 @@ POST/PAD `.text` address is 133488, size 8551031; unreachable padding is 94112 b
 **Limitation:** individual function spacing and data sections retain PRE placement;
 this is not an all-cache-line control. Full link/input digests and layout proofs
 are in `docs/wave9/{pad-a,layout-comparison}.json`. Copied arm source/objects and
-superseded trials are removed after recording hashes, keeping build below 40G.
+superseded trials are removed after recording hashes; build is about **31G**.
+The disposable PRE object tree can be recreated with
+`taskset -c 64-95 python3 docs/wave9/prepare_pre.py`. Final listeners on
+20000–20099 are empty. No push was performed.
 
 ### Maintainer measurements — NOT RUN
 
@@ -263,7 +293,7 @@ POST, rebuilt PRE/headline, and the explicitly labelled **PAD-A behaviour twin**
    WATCH aborts reported separately. Require exact final data, zero POST refusals
    and zero atomic_txn_order_violations; retain escalation/FIFO counters.
 6. **Full landing `tests/gate.sh iteration`**, after the owner updates EXPECT to
-   881/898 and resolves the visible mandatory Tcl failure.
+   881/898 and resolves the visible mandatory Tcl failures.
 
 Rate at matched offered load decides merit; cycles/op, IPC and instructions/op
 explain it. Main-command cells must not regress under the gate's existing rules.
