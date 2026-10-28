@@ -1,3 +1,10 @@
+exec1s-c current request: see MEASURE-REQUEST-exec1s.md, section exec1s-c.
+Current worktree: /home/user/Projects/cx-exec1s-c. Hash manifest: docs/exec1s/SHA256SUMS.
+Maintainer: 64-connections EXEC merit, POST/PRE 3 blocks, per-lever 1 block in
+both modes; POST depth sweeps both modes; generic 14 + 2s GET/SET p1/p32 null.
+PAD-A is type A, PRE behaviour in the exact common POST-layout image (larger
+than release POST). No throughput claim. Earlier exec1s receipts are VOID.
+
 ntfix4 integration handoff — current ntfix artifact
 
 See MEASURE-REQUEST-ntfix.md, section ntfix4, for the completed correctness
