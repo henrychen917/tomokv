@@ -725,6 +725,10 @@
         Op& op = client->rob().at(pending.op_id);
         auto sink = op.sink();
 
+        // Subscription confirmations are pushes, including their RESP2 carriage.
+        // CLIENT REPLY has already consumed SKIP; it cannot discard these frames.
+        if (pending.kind == PubSubPendingKind::Modify) op.clear_reply_skip();
+
         // Publications are independent frames. Suppression may discard only the command reply.
         if (op.reply_skip() && !pending.deferred.empty()) {
             wb_.defer_oob(*client, pending.deferred.data(), pending.deferred.size());
@@ -965,7 +969,7 @@
     // that batching window is what a pipelined publisher's coalescing is made of. Out-of-line and
     // cold, so a server with no subscribers pays one bool test per pass and nothing else.
     __attribute__((noinline)) uint32_t pubsub_pass_flush() {
-        uint32_t work = 0;
+        uint32_t work = tracking_bcast_flush();
         for (int guard = 0; guard < 8; guard++) {
             if (!pubsub_local_events_.empty()) work += pubsub_drain_events();
             if (pubsub_outbox_dirty_.empty()) break;
@@ -1112,6 +1116,7 @@
                 pending.items.assign(values.begin(), values.end());
             }
             if (pending.items.empty()) {
+                op.clear_reply_skip();
                 auto sink = op.sink();
                 pubsub_append_ack(sink, pattern, shard, false, nullptr,
                     local_it == pubsub_local_.end()

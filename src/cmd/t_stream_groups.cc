@@ -764,6 +764,8 @@ void cmd_xclaim(Shard& shard, Op& op) {
     if (!create_consumer(*groups, *group, op.arg(3), now, consumer, created)) {
         reply_err(op.sink(), "ERR out of memory"); return;
     }
+    if constexpr (kNotify) if (created)
+        notify_record(shard, op, NOTIFY_STREAM, NotifyEventId::XgroupCreateconsumer, op.arg(1));
     consumer->seen_time = now;
     std::vector<StreamOwnedEntry> claimed;
     try { claimed.reserve(ids.size()); }
@@ -868,6 +870,8 @@ void cmd_xautoclaim(Shard& shard, Op& op) {
     if (!create_consumer(*groups, *group, op.arg(3), now, consumer, created)) {
         reply_err(op.sink(), "ERR out of memory"); return;
     }
+    if constexpr (kNotify) if (created)
+        notify_record(shard, op, NOTIFY_STREAM, NotifyEventId::XgroupCreateconsumer, op.arg(1));
     consumer->seen_time = now;
     std::vector<StreamOwnedEntry> claimed;
     const size_t capacity = std::min<uint64_t>(count, group->pending.size());
@@ -1313,6 +1317,10 @@ StreamGroupProbe stream_group_prepare_waiter(Shard& shard, Slice key, uint64_t h
     StreamConsumer* consumer = nullptr; bool created = false;
     if (!create_consumer(*groups, *group, consumer_name, shard.now_ms(), consumer, created))
         return StreamGroupProbe::Oom;
+    // The blocked command may stay parked indefinitely. Creation is already visible,
+    // so publish on the owner maintenance route instead of waiting for its reply.
+    if (created)
+        notify_record_keyless(shard, NOTIFY_STREAM, NotifyEventId::XgroupCreateconsumer, key);
     consumer->seen_time = shard.now_ms();
     return stream_object_has_live_after(object, group->last_delivered)
         ? StreamGroupProbe::Ready : StreamGroupProbe::Empty;
@@ -1342,6 +1350,8 @@ bool stream_xreadgroup_execute(Shard& shard, Op& op, bool may_block) {
     if (!create_consumer(*groups, *group, op.arg(parsed.consumer_arg), now, consumer, created)) {
         reply_err(op.sink(), "ERR out of memory"); return true;
     }
+    if (created && (op.spec->flags & CmdFlags::NotifySelected))
+        notify_record(shard, op, NOTIFY_STREAM, NotifyEventId::XgroupCreateconsumer, key);
     consumer->seen_time = now;
     const std::string consumer_name(op.arg(parsed.consumer_arg).p,
                                     op.arg(parsed.consumer_arg).n);

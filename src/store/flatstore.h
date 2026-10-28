@@ -1677,6 +1677,29 @@ public:
     }
 
 
+    // Owner maintenance, independent of admission: lowering maxmemory must also
+    // evict on an idle server. No protected command key (the empty key is valid).
+    // Keep the ordinary victim rules, snapshot exclusion and QSBR erase path.
+    [[gnu::noinline]] uint32_t evict_over_limit() {
+        if (!maxmemory_enabled_ || maxmemory_policy_ == MaxmemoryPolicy::NoEviction ||
+            snapshot_active_) return 0;
+        uint32_t removed = 0;
+        for (uint32_t attempt = 0; attempt < kEvictionsPerOp &&
+             accounted_bytes() > maxmemory_limit_; ++attempt) {
+            KvObj* victim = choose_victim<false>(Slice());
+            if (!victim) break; // pinned or sparse: the next owner beat tries again
+            const Slice key = victim->key();
+            const uint64_t hash = hash_key(key);
+            (void)aof_.record_delete(key);
+            const uint32_t before = size();
+            const bool live = erase(hash, key);
+            if (size() == before) break;
+            if (live && evicted_counter_) ++*evicted_counter_;
+            ++removed;
+        }
+        return removed;
+    }
+
     // Takes ownership of `o` only on success; frees anything it displaces.
     InsertResult insert(uint64_t h, KvObj* o) {
         if (__builtin_expect(read_local_enabled_, false)) return insert_read_local(h, o);
@@ -2406,9 +2429,10 @@ private:
         return o;
     }
 
+    template <bool ProtectKey = true>
     KvObj* choose_victim(Slice protected_key) {
         if (__builtin_expect(read_local_enabled_, false))
-            return choose_victim_read_local(protected_key);
+            return choose_victim_read_local<ProtectKey>(protected_key);
         KvObj* best = nullptr;
         KvObj* seen[64];
         uint32_t seen_count = 0;
@@ -2416,7 +2440,8 @@ private:
         for (uint32_t i = 0; i < maxmemory_samples_; i++) {
             KvObj* candidate = maxmemory_policy_is_volatile(maxmemory_policy_)
                 ? random_volatile_candidate() : random_allkeys_candidate();
-            if (!candidate || candidate->key().key_eq(protected_key)) continue;
+            if (!candidate) continue;
+            if constexpr (ProtectKey) if (candidate->key().key_eq(protected_key)) continue;
             if (atomic_needs_version(hash_key(candidate->key()), candidate->key())) continue;
             bool duplicate = false;
             for (uint32_t j = 0; j < seen_count; j++)
@@ -3093,6 +3118,7 @@ private:
         write_eviction_meta_read_local(o, count);
     }
 
+    template <bool ProtectKey = true>
     KvObj* choose_victim_read_local(Slice protected_key) {
         KvObj* best = nullptr;
         KvObj* seen[64];
@@ -3101,7 +3127,8 @@ private:
         for (uint32_t i = 0; i < maxmemory_samples_; i++) {
             KvObj* candidate = maxmemory_policy_is_volatile(maxmemory_policy_)
                 ? random_volatile_candidate() : random_allkeys_candidate();
-            if (!candidate || candidate->key().key_eq(protected_key)) continue;
+            if (!candidate) continue;
+            if constexpr (ProtectKey) if (candidate->key().key_eq(protected_key)) continue;
             if (atomic_needs_version(hash_key(candidate->key()), candidate->key())) continue;
             bool duplicate = false;
             for (uint32_t j = 0; j < seen_count; j++)

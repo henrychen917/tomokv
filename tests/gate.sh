@@ -1129,7 +1129,7 @@ plan_jobs(){
   # Correctness traffic is modest and stays on each slot's two or more physical load cores.
   # Compilers use that slot's server+load cores. The release build alone unlocks release jobs;
   # ASAN and standalone units do not delay boots, and full-only builds start immediately too.
-  JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build)
+  JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build pubtrackfix)
   for MF_MODE in 1s 2s; do for MF_ENGINE in uring epoll; do
     JOB_NAMES+=("multifix-$MF_MODE-$MF_ENGINE")
   done; done
@@ -5322,6 +5322,22 @@ job_multifix(){
   done
 }
 
+# Four directed rows; each runs the oracle and both modes/engines/namespaces,
+# atomic settings and read-local settings. Collected before the quick exit.
+job_pubtrackfix(){
+  local root label
+  for root in TRACK-BCAST-BATCH PUBSUB-REPLY-OFF-PUSH \
+      PUBSUB-IMPLICIT-CONSUMER-EVENT PUBSUB-EVICT-ON-MAXMEMORY; do
+    label="pubtrackfix $root"
+    row_begin "$label"
+    py tests/pubtrackfix.py --case "$root" --binary "$CANDIDATE_BINARY" \
+        --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+        --cores "$CORES" --port "$PORT" --ratio "$GATE_RATIO" \
+        --output "$TMPDIR/$root" >"$TMPDIR/$root.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/$root.log"
+  done
+}
+
 job_redis_tcl(){
   local mode passed=1 label
   for mode in 2s 1s; do
@@ -6002,6 +6018,8 @@ collect_job persistfix2_errors
 for NET_IO in epoll uring; do collect_job "snapshot-$NET_IO"; done
 
 collect_job notify
+# pubtrackfix: DQ=DF=+4 here, before quick exit; EXPECT remains owner-owned.
+collect_job pubtrackfix
 # trackfix CC4.4: one row before the quick exit; EXPECT remains maintainer-owned.
 collect_job trackfix_order
 collect_job trackfix_accounting

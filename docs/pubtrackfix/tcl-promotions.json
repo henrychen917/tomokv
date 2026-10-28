@@ -1,0 +1,129 @@
+{
+  "removed_from_known_failures": [
+    [
+      "unit/pubsub",
+      "Keyspace notifications: evicted events"
+    ],
+    [
+      "unit/pubsub",
+      "Keyspace notifications: stream events test"
+    ],
+    [
+      "unit/pubsub",
+      "Keyspace notifications: we receive keyevent notifications"
+    ],
+    [
+      "unit/pubsub",
+      "Keyspace notifications: we receive keyspace notifications"
+    ],
+    [
+      "unit/pubsub",
+      "PubSub messages with CLIENT REPLY OFF"
+    ],
+    [
+      "unit/tracking",
+      "Able to redirect to a RESP3 client"
+    ],
+    [
+      "unit/tracking",
+      "Adding prefixes to BCAST mode works"
+    ],
+    [
+      "unit/tracking",
+      "After switching from normal tracking to BCAST mode, no invalidation message is produced for pre-BCAST keys"
+    ],
+    [
+      "unit/tracking",
+      "CLIENT TRACKINGINFO provides reasonable results when tracking bcast mode"
+    ],
+    [
+      "unit/tracking",
+      "CLIENT TRACKINGINFO provides reasonable results when tracking off"
+    ],
+    [
+      "unit/tracking",
+      "CLIENT TRACKINGINFO provides reasonable results when tracking on"
+    ],
+    [
+      "unit/tracking",
+      "CLIENT TRACKINGINFO provides reasonable results when tracking on with options"
+    ],
+    [
+      "unit/tracking",
+      "CLIENT TRACKINGINFO provides reasonable results when tracking optin"
+    ],
+    [
+      "unit/tracking",
+      "CLIENT TRACKINGINFO provides reasonable results when tracking optout"
+    ],
+    [
+      "unit/tracking",
+      "Clients can enable the BCAST mode with prefixes"
+    ],
+    [
+      "unit/tracking",
+      "Different clients can redirect to the same connection"
+    ],
+    [
+      "unit/tracking",
+      "Different clients using different protocols can track the same key"
+    ],
+    [
+      "unit/tracking",
+      "Invalidation message sent when using OPTIN option with CLIENT CACHING yes"
+    ],
+    [
+      "unit/tracking",
+      "Invalidation message sent when using OPTOUT option"
+    ],
+    [
+      "unit/tracking",
+      "Invalidations of new keys can be redirected after switching to RESP3"
+    ],
+    [
+      "unit/tracking",
+      "Invalidations of previous keys can be redirected after switching to RESP3"
+    ],
+    [
+      "unit/tracking",
+      "No invalidation message when using OPTIN option"
+    ],
+    [
+      "unit/tracking",
+      "No invalidation message when using OPTOUT option with CLIENT CACHING no"
+    ],
+    [
+      "unit/tracking",
+      "RESP3 Client gets tracking-redir-broken push message after cached key changed when rediretion client is terminated"
+    ],
+    [
+      "unit/tracking",
+      "RESP3 tracking redirection"
+    ],
+    [
+      "unit/tracking",
+      "The connection gets invalidation messages about all the keys"
+    ],
+    [
+      "unit/tracking",
+      "Tracking NOLOOP mode in BCAST mode works"
+    ],
+    [
+      "unit/tracking",
+      "Tracking NOLOOP mode in standard mode works"
+    ],
+    [
+      "unit/tracking",
+      "Tracking gets notification of expired keys"
+    ],
+    [
+      "unit/tracking",
+      "Tracking gets notification of lazy expired keys"
+    ],
+    [
+      "unit/tracking",
+      "hdel deliver invalidate message after response in the same connection"
+    ]
+  ],
+  "held_for_maxkeys_owner_decision": []
+}

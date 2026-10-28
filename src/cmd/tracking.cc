@@ -60,16 +60,6 @@ inline bool track_filter_may_contain(uint64_t hash) {
     return (g_track_filter[word].load(std::memory_order_relaxed) >> (hash & 63)) & 1;
 }
 
-size_t track_prefix_match_count(const std::vector<std::string>& prefixes, Slice key) {
-    if (prefixes.empty()) return 1;   // BCAST with no PREFIX tracks the whole keyspace
-    size_t matches = 0;
-    for (const std::string& prefix : prefixes) {
-        if (prefix.size() > key.n) continue;
-        if (std::memcmp(prefix.data(), key.p, prefix.size()) == 0) matches++;
-    }
-    return matches;
-}
-
 // Explicit BCAST prefixes cannot overlap; adding the implicit empty prefix later is Redis's
 // exception, handled after validation below and with per-prefix delivery above.
 bool track_prefix_overlaps(const std::string& a, const std::string& b) {
@@ -272,6 +262,7 @@ void IoLoop::tracking_forget_client(uint64_t id, ClimonConn& state) {
     for (auto& read : state.tracking_reads) read.second->canceled = true;
     state.tracking_pending.clear();
     state.tracking_enrolled.clear();
+    state.tracking_bcast_pending.clear();
     for (auto it = climon_track_keys_.begin(); it != climon_track_keys_.end();) {
         auto& owners = it->second;
         auto found = std::find(owners.begin(), owners.end(), id);
@@ -352,7 +343,7 @@ bool IoLoop::tracking_migration_install(uint64_t id, const std::vector<std::stri
 // ---- delivery ------------------------------------------------------------------------------
 
 void IoLoop::tracking_emit_invalidation(Client* target, bool redirected, Slice key, bool flush,
-                                       uint64_t source_id, uint64_t generation) {
+                                       uint64_t source_id, uint64_t generation, bool batched) {
     const uint32_t live_io = target->ifid_thread();
     if (live_io != self_->id()) {
         PubSubEvent* event = pubsub_new_event(PubSubEventKind::TrackingDeliver);
@@ -362,6 +353,7 @@ void IoLoop::tracking_emit_invalidation(Client* target, bool redirected, Slice k
         event->caller_id = source_id;
         event->op_id = generation;
         event->subscribe = redirected;
+        event->pattern = batched;
         event->count = flush ? 1 : 0;
         event->channel.assign(key.p, key.n);
         pubsub_post(live_io, event);
@@ -388,6 +380,8 @@ void IoLoop::tracking_emit_invalidation(Client* target, bool redirected, Slice k
         // Oracle-confirmed: RESP3 null (`_`), RESP2 redirect path null BULK (`$-1`).
         if (resp3_push) frame.append("_\r\n", 3);
         else frame.append("$-1\r\n", 5);
+    } else if (batched) {
+        frame.append(key.p, key.n); // an already framed, sorted array of keys
     } else {
         reply_array_header(frame, 1);
         reply_bulk(frame, key);
@@ -409,11 +403,11 @@ void IoLoop::tracking_redirect_broken(ClimonConn& state) {
 }
 
 // owner_id names the TRACKING connection. The frame goes to it, or to its REDIRECT target.
-void IoLoop::tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice key, bool flush) {
+void IoLoop::tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice key, bool flush, bool batched) {
     if (!state.redirect) {
         Client* target = state.client;
         if (!target || target->dead() || target->closing()) return;
-        tracking_emit_invalidation(target, false, key, flush);
+        tracking_emit_invalidation(target, false, key, flush, 0, 0, batched);
         return;
     }
     // REDIRECT: the target may be owned by another io thread.
@@ -437,7 +431,7 @@ void IoLoop::tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice 
             tracking_redirect_broken(state);
             return;
         }
-        tracking_emit_invalidation(target, true, key, flush, owner_id, state.tracking_generation);
+        tracking_emit_invalidation(target, true, key, flush, owner_id, state.tracking_generation, batched);
         return;
     }
     PubSubEvent* event = pubsub_new_event(PubSubEventKind::TrackingDeliver);
@@ -447,6 +441,7 @@ void IoLoop::tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice 
     event->caller_id = owner_id;
     event->op_id = state.tracking_generation;
     event->subscribe = true;
+    event->pattern = batched;
     event->count = flush ? 1 : 0;
     event->channel.assign(key.p, key.n);
     pubsub_post(owner_io, event);
@@ -461,9 +456,12 @@ void IoLoop::tracking_invalidate_local(Slice key, uint64_t writer_id, uint64_t s
         if (!state.tracking_on) continue;
         const bool suppressed = state.noloop && entry.first == writer_id;
         if (state.bcast) {
-            if (!suppressed)
-                for (size_t matches = track_prefix_match_count(state.prefixes, key); matches; --matches)
-                    tracking_deliver_frame(state, entry.first, key, false);
+            for (const auto& prefix : state.prefixes) {
+                if (!name.starts_with(prefix)) continue;
+                auto& changed = state.tracking_bcast_pending[prefix][name];
+                if (stamp >= changed.first) changed = {stamp, writer_id};
+                pubsub_pass_pending_ = true;
+            }
             continue;
         }
         auto pending = state.tracking_pending.find(name);
@@ -491,6 +489,35 @@ void IoLoop::tracking_invalidate_local(Slice key, uint64_t writer_id, uint64_t s
         if (pending != state.tracking_pending.end())
             pending->second.delivered = std::max(pending->second.delivered, stamp);
     }
+}
+
+// The existing cold pub/sub pass boundary runs after command retirement. One
+// frame per prefix carries all keys observed in that pass. Remember suppressed
+// writes too: Redis's NOLOOP decision uses the last writer of each key.
+uint32_t IoLoop::tracking_bcast_flush() {
+    uint32_t work = 0;
+    for (auto& [id, state] : climon_conn_) {
+        auto pending = std::move(state.tracking_bcast_pending);
+        state.tracking_bcast_pending.clear();
+        std::vector<std::string> prefixes;
+        for (const auto& item : pending) prefixes.push_back(item.first);
+        std::sort(prefixes.begin(), prefixes.end());
+        for (const auto& prefix : prefixes) {
+            std::vector<std::string> keys;
+            for (const auto& [key, source] : pending.at(prefix))
+                if (!state.noloop || source.second != id) keys.push_back(key);
+            if (keys.empty()) continue;
+            std::sort(keys.begin(), keys.end());
+            SmallBuf<128> array;
+            reply_array_header(array, keys.size());
+            for (const auto& key : keys)
+                reply_bulk(array, Slice(key.data(), static_cast<uint32_t>(key.size())));
+            tracking_deliver_frame(state, id,
+                Slice(array.data(), static_cast<uint32_t>(array.size())), false, true);
+            ++work;
+        }
+    }
+    return work;
 }
 
 void IoLoop::tracking_broadcast_keys(const std::vector<std::string>& keys, uint64_t writer_id, uint64_t stamp) {
@@ -566,6 +593,7 @@ void IoLoop::tracking_handle_event(PubSubEvent& event) {
                 if (!state.tracking_on) continue;
                 tracking_deliver_frame(state, entry.first, Slice(), true);
                 state.tracking_enrolled.clear();
+                state.tracking_bcast_pending.clear();
                 for (auto& read : state.tracking_reads) read.second->canceled = true;
                 state.tracking_pending.clear();
             }
@@ -607,6 +635,7 @@ void IoLoop::tracking_handle_event(PubSubEvent& event) {
                 forward->caller_id = event.caller_id;
                 forward->op_id = event.op_id;
                 forward->subscribe = event.subscribe;
+                forward->pattern = event.pattern;
                 forward->count = event.count;
                 forward->channel = event.channel;
                 pubsub_post(live_io, forward);
@@ -634,7 +663,7 @@ void IoLoop::tracking_handle_event(PubSubEvent& event) {
             tracking_emit_invalidation(
                 target, event.subscribe,
                 Slice(event.channel.data(), static_cast<uint32_t>(event.channel.size())),
-                event.count != 0, event.caller_id, event.op_id);
+                event.count != 0, event.caller_id, event.op_id, event.pattern);
             break;
         }
         default:
