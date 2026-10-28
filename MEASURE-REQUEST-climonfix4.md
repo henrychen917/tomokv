@@ -6,17 +6,17 @@ Base: `393d6ceb1`, branch `cx-climonfix4`. No push. Correctness work is confined
 
 Six assigned roots have complete fixes; CONNECTED-CLIENTS-LAG is stopped for the ownership-accounting decision below; PAUSE-BLOCKED-COUNT has local fixes but two remaining Tcl obligations need owner decisions. `PAUSE-CLIENT-EXEMPT` is stopped for the owner: the base explicitly documents the CLIENT/RESET/MONITOR exemption as a deliberate divergence, so this lane preserves that policy and its named Tcl failure. It also preserves replacement of ALL by WRITE. The original reproduction still differs from Redis in both modes.
 
-| Root | PRE reproduction, 1s / 2s | Change and directed witness |
-|---|---|---|
-| PAUSE-BLOCKED-COUNT — partial | MATCH / MATCH | Base already counts postponed clients. Fix the remaining `flags=b` omission and release the count synchronously when a paused connection is killed. The directed row fails PRE on the missing flag. A planted removal of pause accounting makes the promoted Tcl assertion fail. Two named assertions remain excluded for the ordering/timer issues below. |
-| PAUSE-CLIENT-EXEMPT | DIFFERENT / DIFFERENT | Deliberate restriction; owner decision required. No change or promoted assertion for this root. |
-| PAUSE-MAY-REPLICATE | DIFFERENT / DIFFERENT | Hold PFCOUNT and PUBLISH/SPUBLISH under PAUSE WRITE; use the same classifier for EXEC children. Check both clients actually become blocked and return exact results after UNPAUSE. |
-| PAUSE-SCRIPT-FLAGS | DIFFERENT / DIFFERENT | Parse Redis's Lua shebang, retain original source hashing and line numbers, enforce `no-writes`, and classify EVAL/EVALSHA/FCALL dynamically for PAUSE, including MULTI. |
-| MONITOR-SCRIPT-CMDS | DIFFERENT / DIFFERENT | Carry nested records back through the existing notification retirement carrier. Preserve script/next-command and transaction-child order; buffer log records while work runs. Include no-call scripts, DISCARD and aborted EXEC. |
-| RESET-CLEARS-LIBNAME | DIFFERENT / DIFFERENT | Retain library name/version across RESET; still clear the connection name. |
-| RESET-MONITOR-ECHO | DIFFERENT / DIFFERENT | Exclude the RESET issuer from its monitor record, including forwarded events; preserve the record for other monitors. |
-| CLIENT-LIST-CMD-NAME | DIFFERENT / DIFFERENT | Capture full child metadata in the existing cold container/local dispatch branch. Check INFO, LIST, SETNAME, CONFIG GET, ordinary PING fallback and ROB wrap. |
-| CONNECTED-CLIENTS-LAG | DIFFERENT / DIFFERENT | STOPPED. The visible count also serves as FLIP’s frozen ownership ledger. Early decrement breaks its conservation guard while a close is pinned. Preserve the original count and named Tcl exclusion until the owner chooses separate visible and ownership accounting. |
+| Root | PRE reproduction, 1s / 2s | POST reproduction, 1s / 2s | Change and directed witness |
+|---|---|---|---|
+| PAUSE-BLOCKED-COUNT — partial | MATCH / MATCH | MATCH / MATCH | Base already counts postponed clients. Fix the remaining `flags=b` omission and release the count synchronously when a paused connection is killed. The directed row fails PRE on the missing flag. A planted removal of pause accounting makes the promoted Tcl assertion fail. Two named assertions remain excluded for the ordering/timer issues below. |
+| PAUSE-CLIENT-EXEMPT | DIFFERENT / DIFFERENT | DIFFERENT / DIFFERENT | Deliberate restriction; owner decision required. No change or promoted assertion for this root. |
+| PAUSE-MAY-REPLICATE | DIFFERENT / DIFFERENT | MATCH / MATCH | Hold PFCOUNT and PUBLISH/SPUBLISH under PAUSE WRITE; use the same classifier for EXEC children. Check both clients actually become blocked and return exact results after UNPAUSE. |
+| PAUSE-SCRIPT-FLAGS | DIFFERENT / DIFFERENT | MATCH / MATCH | Recognize `no-writes` Lua headers while retaining original source hashing and line numbers, enforce `no-writes`, and classify EVAL/EVALSHA/FCALL dynamically for PAUSE, including MULTI. |
+| MONITOR-SCRIPT-CMDS | DIFFERENT / DIFFERENT | MATCH / MATCH | Carry nested records back through the existing notification retirement carrier. Preserve script/next-command and transaction-child order; buffer log records while work runs. Include no-call scripts, DISCARD and aborted EXEC. |
+| RESET-CLEARS-LIBNAME | DIFFERENT / DIFFERENT | MATCH / MATCH | Retain library name/version across RESET; still clear the connection name. |
+| RESET-MONITOR-ECHO | DIFFERENT / DIFFERENT | MATCH / MATCH | Exclude the RESET issuer from its monitor record, including forwarded events; preserve the record for other monitors. |
+| CLIENT-LIST-CMD-NAME | DIFFERENT / DIFFERENT | MATCH / MATCH | Capture full child metadata in the existing cold container/local dispatch branch. Check INFO, LIST, SETNAME, CONFIG GET, ordinary PING fallback and ROB wrap. |
+| CONNECTED-CLIENTS-LAG | DIFFERENT / DIFFERENT | DIFFERENT / DIFFERENT | STOPPED. The visible count also serves as FLIP’s frozen ownership ledger. Early decrement breaks its conservation guard while a close is pinned. Preserve the original count and named Tcl exclusion until the owner chooses separate visible and ownership accounting. |
 
 CONNECTED-CLIENTS-LAG’s early-accounting prototype was withdrawn after the existing `flipfix-plan-race` witness failed: `the plan saw a held close, not a half-removed one`. A close after the IO’s drain acknowledgement remains in the frozen owner vector, while early decrement removes it from `live_clients()`, so `flip_build_client_plan` rejects the valid set. The detached-close guard can also lose its independent count mismatch. [The deterministic witness and rationale](docs/climonfix4/connected-deferred/reason.json) are retained. The final diff leaves connection ownership/reclamation accounting intact; the prototype and its temporary fixture adaptations are not landed.
 
@@ -44,7 +44,7 @@ The four collection sites expand at `tests/gate.sh:5835`, before the quick exit 
 
 ### Validation
 
-Final POST is being rebuilt after withdrawing CONNECTED-CLIENTS-LAG. Earlier campaigns, including the passing io_uring differential and the 15-assertion Tcl run, are superseded evidence and are not final validation of this reduced scope. Final receipts will be recorded below.
+Final POST has been rebuilt after withdrawing CONNECTED-CLIENTS-LAG. All 92 serverless instruction comparisons are zero-delta, all 14 paired Tcl controls satisfy their positive/negative contracts, and final POST/PAD-A original reproductions match the documented root dispositions. Earlier campaigns, including the passing io_uring differential and the 15-assertion Tcl run, are superseded evidence and are not final validation of this reduced scope. Final receipts will be recorded below.
 
 Required affected job selection:
 
@@ -70,7 +70,13 @@ These are finite serverless fixtures linked to production objects. Counts includ
 
 ### Arms
 
-Final PRE/POST/PAD-A hashes will be recorded after the final rebuild. PRE remains `393d6ceb1` ([source identity](docs/climonfix4/pre-source-identity.json)); its binary is `build/climonfix4/tomokv-PRE`. POST is `build/climonfix4/tomokv-POST`; PAD-A is `build/climonfix4/pad-a/tomokv`.
+| Arm | Binary | SHA-256 |
+|---|---|---|
+| PRE | `build/climonfix4/tomokv-PRE` | `935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac` |
+| POST | `build/climonfix4/tomokv-POST` | `ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01` |
+| PAD-A | `build/climonfix4/pad-a/tomokv` | `93545fb26e832eaa3ef64024910671a485ba456fc2d1ba55b593d7960ee72165` |
+
+POST production source is commit `c369ccc41`; subsequent commits record evidence. PRE remains `393d6ceb1` ([source identity](docs/climonfix4/pre-source-identity.json)); its binary is `build/climonfix4/tomokv-PRE`. POST is `build/climonfix4/tomokv-POST`; PAD-A is `build/climonfix4/pad-a/tomokv`.
 
 **PAD-A means (A), behaviour twin:** PRE behaviour with inert candidate ClientMeta, ClimonConn, NotifyBatch and ScriptContext member layouts and POST's `.text` origin/total size. All field offsets and the monitor element layout match in the [offline debug-type check](docs/climonfix4/cold-layouts.json). It does not reproduce every POST function offset or data-section address, so it cannot by itself rule out an effect from individual function alignment. [pad-a.json](docs/climonfix4/pad-a.json) records the exact construction, link-input hashes and text extents. The unchanged harness reproductions verify PRE behaviour. Source/object trees are removed after the final binaries, identities and counts are recorded.
 

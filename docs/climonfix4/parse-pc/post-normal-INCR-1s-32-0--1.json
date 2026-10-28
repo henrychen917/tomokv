@@ -9,7 +9,7 @@
   "steps": 26779,
   "clock_calls": 0,
   "excluded_calls": 5,
-  "pc_trace_sha256": "37fed4819b32a4d7642b04b1a9fb5d9ab4bef7c7f496e3ccc783a297667928ac",
+  "pc_trace_sha256": "550720fe1d234557237c59e1bdb244f3d10b00122d5cae245980b10151e60fcb",
   "pc_trace_entries": 1060,
   "total": 26772,
   "functions": {
@@ -36,5 +36,5 @@
     "tomo::Op* tomo::Rob<64u>::acquire<true>(unsigned char)": 2256,
     "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 8770
   },
-  "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+  "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
 }

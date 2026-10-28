@@ -1,0 +1,50 @@
+{
+  "name": "final14-directed-pre-negative",
+  "exit": 1,
+  "artifacts": "/home/user/Projects/cx-climonfix4/build/gate-run.ru19M9",
+  "replay_argv": [
+    "taskset",
+    "-c",
+    "16-31",
+    "env",
+    "GATE_ONLY_JOBS=release climonfix4-1s-uring climonfix4-1s-epoll climonfix4-2s-uring climonfix4-2s-epoll",
+    "REDIS74_ROOT=/home/user/Projects/redis",
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "24-31",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20260-20269",
+    "--candidate-binary",
+    "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-PRE"
+  ],
+  "env": {
+    "GATE_ONLY_JOBS": "release climonfix4-1s-uring climonfix4-1s-epoll climonfix4-2s-uring climonfix4-2s-epoll",
+    "REDIS74_ROOT": "/home/user/Projects/redis"
+  },
+  "source_commit": "393d6ceb1",
+  "fixture_source_commit": "c369ccc41",
+  "binary_sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+  "gate_sha256": "b7d9f2189e6f89234a68dc1bc70b7e1225a7112b45727a522c25971c25049b22",
+  "manifest_sha256": "c2b8fb0e02ea49030d1083567a3ae5d2bfbfe29a81c9eef2b2470ff278a6dda3",
+  "log": "/home/user/Projects/cx-climonfix4/build/climonfix4/pre-final14-negative.log",
+  "log_sha256": "a8ac6875498698e032d9a145de460eb862c627b49f0cae66f841a7c40f6e293d",
+  "summary": "GATE(PARTIAL): 1 ok, 28 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-climonfix4/build/gate-run.ru19M9/ledger.partial",
+  "passed": 1,
+  "failed": 28,
+  "jobs": [
+    "release",
+    "climonfix4-1s-uring",
+    "climonfix4-1s-epoll",
+    "climonfix4-2s-uring",
+    "climonfix4-2s-epoll"
+  ],
+  "expected": "All 28 directed rows fail on PRE; release provenance passes."
+}

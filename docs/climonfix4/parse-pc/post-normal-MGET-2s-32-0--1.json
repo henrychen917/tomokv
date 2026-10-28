@@ -9,7 +9,7 @@
   "steps": 187458,
   "clock_calls": 32,
   "excluded_calls": 374,
-  "pc_trace_sha256": "ade7ef993cfc1248969c6c7375a2a58889b9f9f7b3f15b8966bc559c4d2a032e",
+  "pc_trace_sha256": "e91856cfcf9fb17fac3de5cecd7c8e7b62cdae716539caf3e9437fb4e316635e",
   "pc_trace_entries": 2418,
   "total": 187451,
   "functions": {
@@ -22,12 +22,12 @@
     "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)": 23702,
     "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 960,
     "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 1120,
-    "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1024,
     "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&)": 192,
     "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 8064,
     "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 13120,
     "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 768,
     "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 864,
+    "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1024,
     "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 192,
     "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 864,
     "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 5632,
@@ -38,5 +38,5 @@
     "tomo::stamp_regular_range(tomo::Op&)": 4096,
     "tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)": 1184
   },
-  "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+  "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
 }

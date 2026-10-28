@@ -9,6 +9,6 @@ test_only_the_exact_post_completion_controller_eof_is_not_an_assertion (__main__
 test_same_shard_arming_cannot_pass_when_no_fresh_boot_opens_it (__main__.Controls.test_same_shard_arming_cannot_pass_when_no_fresh_boot_opens_it) ... ok
 
 ----------------------------------------------------------------------
-Ran 9 tests in 0.037s
+Ran 9 tests in 0.106s
 
 OK

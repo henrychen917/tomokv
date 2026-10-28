@@ -9,7 +9,7 @@
   "steps": 352790,
   "clock_calls": 32,
   "excluded_calls": 577,
-  "pc_trace_sha256": "36b333373519fe8ea234eaed14f3fa6154c227ae55c8cd64dfe878a3223fd026",
+  "pc_trace_sha256": "e346e1d107a39746a90f455b92842beca4158ea6f4eb6d8c8e60a5fd4db95362",
   "pc_trace_entries": 2524,
   "total": 338981,
   "functions": {
@@ -19,7 +19,6 @@
     "tomo::(anonymous namespace)::first_error(tomo::ScatterState const&, tomo::(anonymous namespace)::WorkError&)": 9024,
     "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 640,
     "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 1120,
-    "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1088,
     "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&)": 192,
     "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 16128,
     "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 13120,
@@ -29,6 +28,7 @@
     "tomo::Op::Sink::advance(unsigned long) [clone .isra.0]": 128,
     "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 864,
     "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)": 7168,
+    "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1088,
     "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 960,
     "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 709,
     "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 2816,
@@ -59,5 +59,5 @@
     "tomo::good_size(unsigned long)": 6144,
     "tomo::KvObj::val_ptr()": 4096
   },
-  "probe_sha256": "c880e4886b349487f11225c8fcea889a1c70880584fd2a9406f73201d0cace9d"
+  "probe_sha256": "3e22c94376400b24165175a6639767c6ce7f398ce264a18ddcaa6b0371362375"
 }

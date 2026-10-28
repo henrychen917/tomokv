@@ -9,7 +9,7 @@
   "steps": 6800,
   "clock_calls": 1,
   "excluded_calls": 16,
-  "pc_trace_sha256": "bfdf4f9ef25c3772b635854d5bf768a65b8a3fe1e137a74ea8684c46ffadd46f",
+  "pc_trace_sha256": "df345ae33cbb65eb14bf3b736d5c9e492291e098df3baf7661e129ee627d52c7",
   "pc_trace_entries": 2294,
   "total": 6793,
   "functions": {
@@ -22,12 +22,12 @@
     "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)": 1127,
     "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 20,
     "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 35,
-    "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 34,
     "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&)": 6,
     "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 252,
     "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 410,
     "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 32,
     "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 27,
+    "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 34,
     "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 30,
     "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
     "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 176,
@@ -37,5 +37,5 @@
     "tomo::stamp_regular_range(tomo::Op&)": 128,
     "tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)": 37
   },
-  "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+  "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
 }

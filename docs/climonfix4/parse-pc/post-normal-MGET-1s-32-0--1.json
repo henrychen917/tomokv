@@ -9,7 +9,7 @@
   "steps": 197099,
   "clock_calls": 32,
   "excluded_calls": 373,
-  "pc_trace_sha256": "62bc12ba80dcc93061cadbdc016b665f1ea22cd7d0d2831b0b5912ad5f4df8d0",
+  "pc_trace_sha256": "cd5303e4ed3efd707ade4f5783e4d5ba56572054e90ee7f8c244d040bcdff678",
   "pc_trace_entries": 2567,
   "total": 197092,
   "functions": {
@@ -21,12 +21,12 @@
     "std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > >::~vector()": 736,
     "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 960,
     "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 1120,
-    "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1024,
     "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&)": 192,
     "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 8064,
     "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 13120,
     "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 768,
     "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 864,
+    "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1024,
     "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 192,
     "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 864,
     "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 5632,
@@ -47,5 +47,5 @@
     "tomo::Op* tomo::Rob<64u>::acquire<true>(unsigned char)": 2256,
     "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 27895
   },
-  "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+  "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
 }

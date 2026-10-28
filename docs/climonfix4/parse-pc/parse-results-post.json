@@ -10,7 +10,7 @@
     "steps": 1432,
     "clock_calls": 0,
     "excluded_calls": 2,
-    "pc_trace_sha256": "b5d554ac6c71a5448c30546631de359fa4d5d548436bd934037e4bece1a36a07",
+    "pc_trace_sha256": "00a7ec8726b62887e1ae92332f4a5e6f6cda8e4d7ee247ead3f407c654643312",
     "pc_trace_entries": 1066,
     "total": 1425,
     "functions": {
@@ -37,7 +37,7 @@
       "tomo::Op* tomo::Rob<64u>::acquire<true>(unsigned char)": 294,
       "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 489
     },
-    "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+    "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
   },
   {
     "arm": "post",
@@ -50,7 +50,7 @@
     "steps": 26587,
     "clock_calls": 0,
     "excluded_calls": 5,
-    "pc_trace_sha256": "2b699ed50dfb2ed8a4da4c50dcae08564e6b94a9413d2ac5190433333984504b",
+    "pc_trace_sha256": "fc673fa423f32e6431553df2c97b32bfc8fac23c2876a5fb93e0d70c4bca0af7",
     "pc_trace_entries": 1054,
     "total": 26580,
     "functions": {
@@ -77,7 +77,7 @@
       "tomo::Op* tomo::Rob<64u>::acquire<true>(unsigned char)": 2256,
       "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 8578
     },
-    "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+    "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
   },
   {
     "arm": "post",
@@ -90,7 +90,7 @@
     "steps": 1133,
     "clock_calls": 0,
     "excluded_calls": 2,
-    "pc_trace_sha256": "63886fe5ea1546334604fa0370783b84921f94f4feb002ec304d0670f649b947",
+    "pc_trace_sha256": "232636c7a731be8f8df506eaad545b4ab67ff2a582f67a31d4efd73536302432",
     "pc_trace_entries": 808,
     "total": 1126,
     "functions": {
@@ -103,7 +103,7 @@
       "tomo::stamp_regular_range(tomo::Op&)": 42,
       "tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)": 37
     },
-    "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+    "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
   },
   {
     "arm": "post",
@@ -116,7 +116,7 @@
     "steps": 21355,
     "clock_calls": 0,
     "excluded_calls": 6,
-    "pc_trace_sha256": "3c990e2cbc0711ac49162724667de662ce820bd867652d59cfc2b10cc5ff32ee",
+    "pc_trace_sha256": "81e53f8b1770014dc6abcc4be4438d0af15e576aa25cff760b728058b2e5838b",
     "pc_trace_entries": 809,
     "total": 21348,
     "functions": {
@@ -129,7 +129,7 @@
       "tomo::stamp_regular_range(tomo::Op&)": 1344,
       "tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)": 1184
     },
-    "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+    "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
   },
   {
     "arm": "post",
@@ -142,7 +142,7 @@
     "steps": 1512,
     "clock_calls": 0,
     "excluded_calls": 2,
-    "pc_trace_sha256": "e75479cfd5c4b9d475f84701c6f8eaace578bda41639f5c5d84a7f9b4e776094",
+    "pc_trace_sha256": "1099ec0da380090fd64ca6e267a08c8e10425c8d0d9b391b9037c7a0f528742a",
     "pc_trace_entries": 1075,
     "total": 1505,
     "functions": {
@@ -169,7 +169,7 @@
       "tomo::Op* tomo::Rob<64u>::acquire<true>(unsigned char)": 294,
       "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 498
     },
-    "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+    "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
   },
   {
     "arm": "post",
@@ -182,7 +182,7 @@
     "steps": 29147,
     "clock_calls": 0,
     "excluded_calls": 5,
-    "pc_trace_sha256": "98d2fbbbbba53a735d1878ac632a451951244948dd81b425a31197d75697fc7f",
+    "pc_trace_sha256": "11dacc3d3bd8d5eca1e5aa79063e5252ac3f9ea323af608caf3ed8d471ea9faf",
     "pc_trace_entries": 1063,
     "total": 29140,
     "functions": {
@@ -209,7 +209,7 @@
       "tomo::Op* tomo::Rob<64u>::acquire<true>(unsigned char)": 2256,
       "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 8866
     },
-    "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+    "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
   },
   {
     "arm": "post",
@@ -222,7 +222,7 @@
     "steps": 1205,
     "clock_calls": 0,
     "excluded_calls": 2,
-    "pc_trace_sha256": "53b588e02e6520e0d196c5b32e0dd40800417974a842bbef757fcfe1adf7f1e1",
+    "pc_trace_sha256": "9cf3fe8f1da0095adeb4481627f5e69673f3455c0292daab44617f8d3a47d480",
     "pc_trace_entries": 809,
     "total": 1198,
     "functions": {
@@ -235,7 +235,7 @@
       "tomo::stamp_regular_range(tomo::Op&)": 42,
       "tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)": 37
     },
-    "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+    "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
   },
   {
     "arm": "post",
@@ -248,7 +248,7 @@
     "steps": 23659,
     "clock_calls": 0,
     "excluded_calls": 6,
-    "pc_trace_sha256": "4317ec8518e163885ece3a1b37e8d9ec843e143c0ac20ab6e70fa05d824d5a6c",
+    "pc_trace_sha256": "92937753e2b2d0e44dfd7c22cd562b3008416daf618c3ac8e4934ed72e972fda",
     "pc_trace_entries": 810,
     "total": 23652,
     "functions": {
@@ -261,7 +261,7 @@
       "tomo::stamp_regular_range(tomo::Op&)": 1344,
       "tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)": 1184
     },
-    "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+    "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
   },
   {
     "arm": "post",
@@ -274,7 +274,7 @@
     "steps": 1438,
     "clock_calls": 0,
     "excluded_calls": 2,
-    "pc_trace_sha256": "9c28a8462363e7fa728b8b5a45110b006b674a821f022df858fc6b9975c8b4af",
+    "pc_trace_sha256": "4ce0527afd4751f78bd1cce8d96cc0637bf25b5f9a2763d4051b86abc898798e",
     "pc_trace_entries": 1072,
     "total": 1431,
     "functions": {
@@ -301,7 +301,7 @@
       "tomo::Op* tomo::Rob<64u>::acquire<true>(unsigned char)": 294,
       "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 495
     },
-    "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+    "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
   },
   {
     "arm": "post",
@@ -314,7 +314,7 @@
     "steps": 26779,
     "clock_calls": 0,
     "excluded_calls": 5,
-    "pc_trace_sha256": "37fed4819b32a4d7642b04b1a9fb5d9ab4bef7c7f496e3ccc783a297667928ac",
+    "pc_trace_sha256": "550720fe1d234557237c59e1bdb244f3d10b00122d5cae245980b10151e60fcb",
     "pc_trace_entries": 1060,
     "total": 26772,
     "functions": {
@@ -341,7 +341,7 @@
       "tomo::Op* tomo::Rob<64u>::acquire<true>(unsigned char)": 2256,
       "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 8770
     },
-    "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+    "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
   },
   {
     "arm": "post",
@@ -354,7 +354,7 @@
     "steps": 1138,
     "clock_calls": 0,
     "excluded_calls": 2,
-    "pc_trace_sha256": "6f826a643cc7166a69299d77c4b6485cff9aa5e27c77b8c7f51f15dff817ec89",
+    "pc_trace_sha256": "2ec6cd3111104afd293355d9f874f699b5e53be00dd119f53f0f0c70f178c93f",
     "pc_trace_entries": 813,
     "total": 1131,
     "functions": {
@@ -367,7 +367,7 @@
       "tomo::stamp_regular_range(tomo::Op&)": 42,
       "tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)": 37
     },
-    "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+    "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
   },
   {
     "arm": "post",
@@ -380,7 +380,7 @@
     "steps": 21515,
     "clock_calls": 0,
     "excluded_calls": 6,
-    "pc_trace_sha256": "e2080f5b77aec224e53856687c19cc6c59738f9ed43ddd26a5dd2a1c145992ac",
+    "pc_trace_sha256": "027a3c2aded495635717e629b4f25e3156b62202303d3848f1ce57468838bd96",
     "pc_trace_entries": 814,
     "total": 21508,
     "functions": {
@@ -393,7 +393,7 @@
       "tomo::stamp_regular_range(tomo::Op&)": 1344,
       "tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)": 1184
     },
-    "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+    "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
   },
   {
     "arm": "post",
@@ -406,7 +406,7 @@
     "steps": 6904,
     "clock_calls": 1,
     "excluded_calls": 14,
-    "pc_trace_sha256": "755467308c4a07d166a8d6d8501d5e012479ea436238c8aca74c09bb2bf02ff8",
+    "pc_trace_sha256": "b5f0bc9480599b2069c6d3f336a4adbebd58798eb24c49bc8dc71d1ae83bc0cb",
     "pc_trace_entries": 2541,
     "total": 6897,
     "functions": {
@@ -418,12 +418,12 @@
       "std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > >::~vector()": 23,
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 30,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 35,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 32,
       "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&)": 6,
       "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 252,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 410,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 24,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 27,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 32,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 6,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 176,
@@ -444,7 +444,7 @@
       "tomo::Op* tomo::Rob<64u>::acquire<true>(unsigned char)": 294,
       "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 1237
     },
-    "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+    "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
   },
   {
     "arm": "post",
@@ -457,7 +457,7 @@
     "steps": 197099,
     "clock_calls": 32,
     "excluded_calls": 373,
-    "pc_trace_sha256": "62bc12ba80dcc93061cadbdc016b665f1ea22cd7d0d2831b0b5912ad5f4df8d0",
+    "pc_trace_sha256": "cd5303e4ed3efd707ade4f5783e4d5ba56572054e90ee7f8c244d040bcdff678",
     "pc_trace_entries": 2567,
     "total": 197092,
     "functions": {
@@ -469,12 +469,12 @@
       "std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > >::~vector()": 736,
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 960,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 1120,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1024,
       "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&)": 192,
       "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 8064,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 13120,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 768,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 864,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1024,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 192,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 864,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 5632,
@@ -495,7 +495,7 @@
       "tomo::Op* tomo::Rob<64u>::acquire<true>(unsigned char)": 2256,
       "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 27895
     },
-    "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+    "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
   },
   {
     "arm": "post",
@@ -508,7 +508,7 @@
     "steps": 6350,
     "clock_calls": 1,
     "excluded_calls": 14,
-    "pc_trace_sha256": "c1e0bfa34b088bfae889fa0a195abda370fcf0980ce10f8aa6fa97dfb35cad83",
+    "pc_trace_sha256": "18606efeab8b9645e525cf9ffbb381926693de36f4c7bd1cd595f8265c4f0359",
     "pc_trace_entries": 2379,
     "total": 6343,
     "functions": {
@@ -521,12 +521,12 @@
       "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)": 1124,
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 30,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 35,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 32,
       "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&)": 6,
       "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 252,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 410,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 24,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 27,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 32,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 6,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 176,
@@ -537,7 +537,7 @@
       "tomo::stamp_regular_range(tomo::Op&)": 128,
       "tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)": 37
     },
-    "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+    "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
   },
   {
     "arm": "post",
@@ -550,7 +550,7 @@
     "steps": 187458,
     "clock_calls": 32,
     "excluded_calls": 374,
-    "pc_trace_sha256": "ade7ef993cfc1248969c6c7375a2a58889b9f9f7b3f15b8966bc559c4d2a032e",
+    "pc_trace_sha256": "e91856cfcf9fb17fac3de5cecd7c8e7b62cdae716539caf3e9437fb4e316635e",
     "pc_trace_entries": 2418,
     "total": 187451,
     "functions": {
@@ -563,12 +563,12 @@
       "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)": 23702,
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 960,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 1120,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1024,
       "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&)": 192,
       "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 8064,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 13120,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 768,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 864,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1024,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 192,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 864,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 5632,
@@ -579,7 +579,7 @@
       "tomo::stamp_regular_range(tomo::Op&)": 4096,
       "tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)": 1184
     },
-    "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+    "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
   },
   {
     "arm": "post",
@@ -592,7 +592,7 @@
     "steps": 7536,
     "clock_calls": 1,
     "excluded_calls": 16,
-    "pc_trace_sha256": "15e45846bce8e35653725fa2513eeb072d67e468bc9255e4a0e78605ea08fe08",
+    "pc_trace_sha256": "2c31dcf622b2a578a094ec9ec0d314b8575d08613b71ab5203c0f58d64b22ce6",
     "pc_trace_entries": 2486,
     "total": 7529,
     "functions": {
@@ -604,12 +604,12 @@
       "std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > >::~vector()": 23,
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 20,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 35,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 34,
       "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&)": 6,
       "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 252,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 410,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 32,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 27,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 34,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 30,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 176,
@@ -630,7 +630,7 @@
       "tomo::Op* tomo::Rob<64u>::acquire<true>(unsigned char)": 294,
       "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 1240
     },
-    "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+    "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
   },
   {
     "arm": "post",
@@ -643,7 +643,7 @@
     "steps": 218164,
     "clock_calls": 32,
     "excluded_calls": 453,
-    "pc_trace_sha256": "628c7270042f48cbe653ac4576e65c9a116a122df1291a98ea461411930a68f5",
+    "pc_trace_sha256": "a7446edd4f35348fbd8d03c62ff5fe51d31e0d6b2cb49872b4b98dda552ebed8",
     "pc_trace_entries": 2474,
     "total": 218157,
     "functions": {
@@ -655,12 +655,12 @@
       "std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > >::~vector()": 736,
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 640,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 1120,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1088,
       "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&)": 192,
       "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 8064,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 13120,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 1024,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 864,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1088,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 960,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 864,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 5632,
@@ -681,7 +681,7 @@
       "tomo::Op* tomo::Rob<64u>::acquire<true>(unsigned char)": 2256,
       "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 27991
     },
-    "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+    "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
   },
   {
     "arm": "post",
@@ -694,7 +694,7 @@
     "steps": 6800,
     "clock_calls": 1,
     "excluded_calls": 16,
-    "pc_trace_sha256": "bfdf4f9ef25c3772b635854d5bf768a65b8a3fe1e137a74ea8684c46ffadd46f",
+    "pc_trace_sha256": "df345ae33cbb65eb14bf3b736d5c9e492291e098df3baf7661e129ee627d52c7",
     "pc_trace_entries": 2294,
     "total": 6793,
     "functions": {
@@ -707,12 +707,12 @@
       "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)": 1127,
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 20,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 35,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 34,
       "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&)": 6,
       "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 252,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 410,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 32,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 27,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 34,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 30,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 176,
@@ -722,7 +722,7 @@
       "tomo::stamp_regular_range(tomo::Op&)": 128,
       "tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)": 37
     },
-    "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+    "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
   },
   {
     "arm": "post",
@@ -735,7 +735,7 @@
     "steps": 202699,
     "clock_calls": 32,
     "excluded_calls": 454,
-    "pc_trace_sha256": "06b8dbe6734445af029714f7b84fbc5b629a8c9db0b2946807e79e7cd2ea704a",
+    "pc_trace_sha256": "3cb645266ee2d6e0b0f6d488f1f3826697bf37e83e665a9030c42cedb8001d99",
     "pc_trace_entries": 2295,
     "total": 202692,
     "functions": {
@@ -748,12 +748,12 @@
       "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)": 23798,
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 640,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 1120,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1088,
       "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&)": 192,
       "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 8064,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 13120,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 1024,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 864,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1088,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 960,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 864,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 5632,
@@ -763,7 +763,7 @@
       "tomo::stamp_regular_range(tomo::Op&)": 4096,
       "tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)": 1184
     },
-    "probe_sha256": "128561393812d62950db6f8713d5041e744f2330f29911c33a134467f7f6a690"
+    "probe_sha256": "cae8bec05473eed7b01a413686cb46a0e56006f85853a5cbf0949a383b9509ad"
   },
   {
     "arm": "post",
@@ -776,7 +776,7 @@
     "steps": 1354,
     "clock_calls": 0,
     "excluded_calls": 2,
-    "pc_trace_sha256": "f983ec27a2ba56b1ecd16663b7e814b6dce75a924a8c1ed108b9c2d3a1831c21",
+    "pc_trace_sha256": "fac77872203fb26174090b35a03f834762a54889fd00c47e48879da73736be70",
     "pc_trace_entries": 984,
     "total": 1347,
     "functions": {
@@ -800,7 +800,7 @@
       "tomo_db0::Op* tomo_db0::Rob<64u>::acquire<true>(unsigned char)": 294,
       "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 484
     },
-    "probe_sha256": "da1a672a3878273047768121f2017cc591b8b8df6722af97b3546292a3f9ffd1"
+    "probe_sha256": "3b2861c0d031c7a834cf0934956e6028baad8b92fa8c731d7cf4b1852151373c"
   },
   {
     "arm": "post",
@@ -813,7 +813,7 @@
     "steps": 24059,
     "clock_calls": 0,
     "excluded_calls": 5,
-    "pc_trace_sha256": "5c5842130eb81b5facf34f97ec719aa433efff4c13b0fd9c9c06d2011f1e6646",
+    "pc_trace_sha256": "5aa2ba88c92d47579d3808a14c97c56ea330deea6d22a602867bd890f94a35d2",
     "pc_trace_entries": 972,
     "total": 24052,
     "functions": {
@@ -837,7 +837,7 @@
       "tomo_db0::Op* tomo_db0::Rob<64u>::acquire<true>(unsigned char)": 2256,
       "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 8418
     },
-    "probe_sha256": "da1a672a3878273047768121f2017cc591b8b8df6722af97b3546292a3f9ffd1"
+    "probe_sha256": "3b2861c0d031c7a834cf0934956e6028baad8b92fa8c731d7cf4b1852151373c"
   },
   {
     "arm": "post",
@@ -850,7 +850,7 @@
     "steps": 1055,
     "clock_calls": 0,
     "excluded_calls": 2,
-    "pc_trace_sha256": "46f2e408748f4e35edaf6948cf5028e6124b00e825b346f9ed94f0644d79f503",
+    "pc_trace_sha256": "2e9cd28d5681122203328ef218ba1b9ff44e6626b68106005805774d54572e81",
     "pc_trace_entries": 719,
     "total": 1048,
     "functions": {
@@ -861,7 +861,7 @@
       "tomo_db0::IoLoop::flip_dispatch_paused() const": 9,
       "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)": 639
     },
-    "probe_sha256": "da1a672a3878273047768121f2017cc591b8b8df6722af97b3546292a3f9ffd1"
+    "probe_sha256": "3b2861c0d031c7a834cf0934956e6028baad8b92fa8c731d7cf4b1852151373c"
   },
   {
     "arm": "post",
@@ -874,7 +874,7 @@
     "steps": 18666,
     "clock_calls": 0,
     "excluded_calls": 6,
-    "pc_trace_sha256": "f1dfd422d6a96d3b9fead1cecca9251a5ac31c0a58db04905a0c816051001d5d",
+    "pc_trace_sha256": "bc9f7f25b897f0015ba8be8f11022a44dfe0648386dcda9d9497b97497690ae0",
     "pc_trace_entries": 720,
     "total": 18659,
     "functions": {
@@ -885,7 +885,7 @@
       "tomo_db0::IoLoop::flip_dispatch_paused() const": 9,
       "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)": 8020
     },
-    "probe_sha256": "da1a672a3878273047768121f2017cc591b8b8df6722af97b3546292a3f9ffd1"
+    "probe_sha256": "3b2861c0d031c7a834cf0934956e6028baad8b92fa8c731d7cf4b1852151373c"
   },
   {
     "arm": "post",
@@ -898,7 +898,7 @@
     "steps": 1437,
     "clock_calls": 0,
     "excluded_calls": 2,
-    "pc_trace_sha256": "0fc2e79f6ced8af5e7d100c6377bd0038f6fea790f128f6f0bc2bd3cd2cd3a64",
+    "pc_trace_sha256": "9e921bb5ae7e1e9483b5ac4498c1b118d586f6d8b6e4289e419c26deb6b0b938",
     "pc_trace_entries": 993,
     "total": 1430,
     "functions": {
@@ -922,7 +922,7 @@
       "tomo_db0::Op* tomo_db0::Rob<64u>::acquire<true>(unsigned char)": 294,
       "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 493
     },
-    "probe_sha256": "da1a672a3878273047768121f2017cc591b8b8df6722af97b3546292a3f9ffd1"
+    "probe_sha256": "3b2861c0d031c7a834cf0934956e6028baad8b92fa8c731d7cf4b1852151373c"
   },
   {
     "arm": "post",
@@ -935,7 +935,7 @@
     "steps": 26715,
     "clock_calls": 0,
     "excluded_calls": 5,
-    "pc_trace_sha256": "ca71e0231b95e12b315cb579d0703c8db5a76191f40c101c96ec38960b8dba77",
+    "pc_trace_sha256": "d293ead73d1d55a5c550ebcfedf220ac95d203a102fa159c7e5b8cb063823e3f",
     "pc_trace_entries": 981,
     "total": 26708,
     "functions": {
@@ -959,7 +959,7 @@
       "tomo_db0::Op* tomo_db0::Rob<64u>::acquire<true>(unsigned char)": 2256,
       "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 8706
     },
-    "probe_sha256": "da1a672a3878273047768121f2017cc591b8b8df6722af97b3546292a3f9ffd1"
+    "probe_sha256": "3b2861c0d031c7a834cf0934956e6028baad8b92fa8c731d7cf4b1852151373c"
   },
   {
     "arm": "post",
@@ -972,7 +972,7 @@
     "steps": 1130,
     "clock_calls": 0,
     "excluded_calls": 2,
-    "pc_trace_sha256": "44c7cb24959d9fac094a3dfadca5dda81c512bdb92757d3632c391a3c4a87746",
+    "pc_trace_sha256": "2c048040d9f397bb35104524b7a2b879b14775ac46e18ad2f98fb9b1967d913b",
     "pc_trace_entries": 720,
     "total": 1123,
     "functions": {
@@ -983,7 +983,7 @@
       "tomo_db0::IoLoop::flip_dispatch_paused() const": 9,
       "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)": 640
     },
-    "probe_sha256": "da1a672a3878273047768121f2017cc591b8b8df6722af97b3546292a3f9ffd1"
+    "probe_sha256": "3b2861c0d031c7a834cf0934956e6028baad8b92fa8c731d7cf4b1852151373c"
   },
   {
     "arm": "post",
@@ -996,7 +996,7 @@
     "steps": 21066,
     "clock_calls": 0,
     "excluded_calls": 6,
-    "pc_trace_sha256": "8791abb60a48feb83287236864052f428a7a6ebf2f228bfdacb34dc7a898786d",
+    "pc_trace_sha256": "096ead5edd7cda570049608936d77f2c89eb7ca917bc08d88bec81b84529a7bb",
     "pc_trace_entries": 721,
     "total": 21059,
     "functions": {
@@ -1007,7 +1007,7 @@
       "tomo_db0::IoLoop::flip_dispatch_paused() const": 9,
       "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)": 8052
     },
-    "probe_sha256": "da1a672a3878273047768121f2017cc591b8b8df6722af97b3546292a3f9ffd1"
+    "probe_sha256": "3b2861c0d031c7a834cf0934956e6028baad8b92fa8c731d7cf4b1852151373c"
   },
   {
     "arm": "post",
@@ -1020,7 +1020,7 @@
     "steps": 1360,
     "clock_calls": 0,
     "excluded_calls": 2,
-    "pc_trace_sha256": "b18bac77c5896d82d2412c77f0bdd3e2cc93cf8122f783099102a8679e34eabc",
+    "pc_trace_sha256": "3a3274e15d0772423d5d11a167c3e0d701ec64dea45bd8d5a559d21aabbd9428",
     "pc_trace_entries": 990,
     "total": 1353,
     "functions": {
@@ -1044,7 +1044,7 @@
       "tomo_db0::Op* tomo_db0::Rob<64u>::acquire<true>(unsigned char)": 294,
       "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 490
     },
-    "probe_sha256": "da1a672a3878273047768121f2017cc591b8b8df6722af97b3546292a3f9ffd1"
+    "probe_sha256": "3b2861c0d031c7a834cf0934956e6028baad8b92fa8c731d7cf4b1852151373c"
   },
   {
     "arm": "post",
@@ -1057,7 +1057,7 @@
     "steps": 24251,
     "clock_calls": 0,
     "excluded_calls": 5,
-    "pc_trace_sha256": "7751998eb5eb93d441bf55d260a41f3a2cce6ea3b8bb954011e3d4f407a212ce",
+    "pc_trace_sha256": "eadcc2140c3d060b7001ac2dbec660f750ac2bc5523fe1e5a8de6a0d64a53cef",
     "pc_trace_entries": 978,
     "total": 24244,
     "functions": {
@@ -1081,7 +1081,7 @@
       "tomo_db0::Op* tomo_db0::Rob<64u>::acquire<true>(unsigned char)": 2256,
       "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 8610
     },
-    "probe_sha256": "da1a672a3878273047768121f2017cc591b8b8df6722af97b3546292a3f9ffd1"
+    "probe_sha256": "3b2861c0d031c7a834cf0934956e6028baad8b92fa8c731d7cf4b1852151373c"
   },
   {
     "arm": "post",
@@ -1094,7 +1094,7 @@
     "steps": 1060,
     "clock_calls": 0,
     "excluded_calls": 2,
-    "pc_trace_sha256": "1811a57c4df1f39255ef592de74ee65c08712761eec373ade4199886e79204ed",
+    "pc_trace_sha256": "d0a91e5f579b6a562dbd6238b155d865c0080726eca55c7a1cf237c427e21b97",
     "pc_trace_entries": 724,
     "total": 1053,
     "functions": {
@@ -1105,7 +1105,7 @@
       "tomo_db0::IoLoop::flip_dispatch_paused() const": 9,
       "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)": 644
     },
-    "probe_sha256": "da1a672a3878273047768121f2017cc591b8b8df6722af97b3546292a3f9ffd1"
+    "probe_sha256": "3b2861c0d031c7a834cf0934956e6028baad8b92fa8c731d7cf4b1852151373c"
   },
   {
     "arm": "post",
@@ -1118,7 +1118,7 @@
     "steps": 18826,
     "clock_calls": 0,
     "excluded_calls": 6,
-    "pc_trace_sha256": "bfe36076f77c43b42f226d0a805fda032c3e6c194fc0dc49d6c3198d5eb2b87d",
+    "pc_trace_sha256": "e2ac489c2174e7da90b1cc7fcbbbbef2e723ddc16043fae8a840a9e83e166e0d",
     "pc_trace_entries": 725,
     "total": 18819,
     "functions": {
@@ -1129,7 +1129,7 @@
       "tomo_db0::IoLoop::flip_dispatch_paused() const": 9,
       "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)": 8180
     },
-    "probe_sha256": "da1a672a3878273047768121f2017cc591b8b8df6722af97b3546292a3f9ffd1"
+    "probe_sha256": "3b2861c0d031c7a834cf0934956e6028baad8b92fa8c731d7cf4b1852151373c"
   },
   {
     "arm": "post",
@@ -1142,7 +1142,7 @@
     "steps": 6797,
     "clock_calls": 1,
     "excluded_calls": 14,
-    "pc_trace_sha256": "73f780bae1c5cdadf1a30743f2382461943298c6ce3b81ee319f4bd7d1c37f60",
+    "pc_trace_sha256": "5cedb987a1a849d5f1d445deb052130438d303ca324f30a491bd9d13946f66d3",
     "pc_trace_entries": 2470,
     "total": 6790,
     "functions": {
@@ -1178,7 +1178,7 @@
       "tomo_db0::Op* tomo_db0::Rob<64u>::acquire<true>(unsigned char)": 294,
       "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 1231
     },
-    "probe_sha256": "da1a672a3878273047768121f2017cc591b8b8df6722af97b3546292a3f9ffd1"
+    "probe_sha256": "3b2861c0d031c7a834cf0934956e6028baad8b92fa8c731d7cf4b1852151373c"
   },
   {
     "arm": "post",
@@ -1191,7 +1191,7 @@
     "steps": 193643,
     "clock_calls": 32,
     "excluded_calls": 373,
-    "pc_trace_sha256": "6c2042087c0632596ae33bc06f37921d93bb46515b3ce5a1c70ce1bf9a0a016c",
+    "pc_trace_sha256": "80a9c08513da2fecd8b1137352df74a88dd5c79e4d11d43cb52cb69aea3e3214",
     "pc_trace_entries": 2496,
     "total": 193636,
     "functions": {
@@ -1227,7 +1227,7 @@
       "tomo_db0::Op* tomo_db0::Rob<64u>::acquire<true>(unsigned char)": 2256,
       "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 27703
     },
-    "probe_sha256": "da1a672a3878273047768121f2017cc591b8b8df6722af97b3546292a3f9ffd1"
+    "probe_sha256": "3b2861c0d031c7a834cf0934956e6028baad8b92fa8c731d7cf4b1852151373c"
   },
   {
     "arm": "post",
@@ -1240,7 +1240,7 @@
     "steps": 6246,
     "clock_calls": 1,
     "excluded_calls": 14,
-    "pc_trace_sha256": "2c3ff3a444246b0f2052a151f3529733a5a2c28e292469078a1cb35e756c5a4b",
+    "pc_trace_sha256": "79d2bf95f8414b85ff0b22a48abcb2639662d4f9282a189b8940280526754055",
     "pc_trace_entries": 2304,
     "total": 6239,
     "functions": {
@@ -1267,7 +1267,7 @@
       "tomo_db0::Op::cmd_name() const": 12,
       "tomo_db0::ScatterState::ScatterState()": 91
     },
-    "probe_sha256": "da1a672a3878273047768121f2017cc591b8b8df6722af97b3546292a3f9ffd1"
+    "probe_sha256": "3b2861c0d031c7a834cf0934956e6028baad8b92fa8c731d7cf4b1852151373c"
   },
   {
     "arm": "post",
@@ -1280,7 +1280,7 @@
     "steps": 183937,
     "clock_calls": 32,
     "excluded_calls": 374,
-    "pc_trace_sha256": "973bbf4dedc160f6859df92651588e5abb02a051cc3522ce8a4c3e4ae5b3b365",
+    "pc_trace_sha256": "6aec6ee6bb68434c23933d5f98d78e553c1e7ba7b737173e82a5221091e8cd65",
     "pc_trace_entries": 2343,
     "total": 183930,
     "functions": {
@@ -1307,7 +1307,7 @@
       "tomo_db0::Op::cmd_name() const": 384,
       "tomo_db0::ScatterState::ScatterState()": 2912
     },
-    "probe_sha256": "da1a672a3878273047768121f2017cc591b8b8df6722af97b3546292a3f9ffd1"
+    "probe_sha256": "3b2861c0d031c7a834cf0934956e6028baad8b92fa8c731d7cf4b1852151373c"
   },
   {
     "arm": "post",
@@ -1320,7 +1320,7 @@
     "steps": 7458,
     "clock_calls": 1,
     "excluded_calls": 16,
-    "pc_trace_sha256": "07c896c0a568443735e346b138d14d2f10a29e1a51c198fd3974614a964dffbe",
+    "pc_trace_sha256": "f159175019de4bf179b2b5de86a93cffd451376d327e514c63044d83f8c02535",
     "pc_trace_entries": 2418,
     "total": 7451,
     "functions": {
@@ -1356,7 +1356,7 @@
       "tomo_db0::Op* tomo_db0::Rob<64u>::acquire<true>(unsigned char)": 294,
       "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 1234
     },
-    "probe_sha256": "da1a672a3878273047768121f2017cc591b8b8df6722af97b3546292a3f9ffd1"
+    "probe_sha256": "3b2861c0d031c7a834cf0934956e6028baad8b92fa8c731d7cf4b1852151373c"
   },
   {
     "arm": "post",
@@ -1369,7 +1369,7 @@
     "steps": 215636,
     "clock_calls": 32,
     "excluded_calls": 453,
-    "pc_trace_sha256": "5eaab5adbd2593af065d9249763d898aca24eb035579eb9d465b5626b29efe47",
+    "pc_trace_sha256": "34617ec2dd3fae94aac8d92c5a786bb1fc6419a17bb4b9a8103d678afafa7322",
     "pc_trace_entries": 2406,
     "total": 215629,
     "functions": {
@@ -1405,7 +1405,7 @@
       "tomo_db0::Op* tomo_db0::Rob<64u>::acquire<true>(unsigned char)": 2256,
       "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 27799
     },
-    "probe_sha256": "da1a672a3878273047768121f2017cc591b8b8df6722af97b3546292a3f9ffd1"
+    "probe_sha256": "3b2861c0d031c7a834cf0934956e6028baad8b92fa8c731d7cf4b1852151373c"
   },
   {
     "arm": "post",
@@ -1418,7 +1418,7 @@
     "steps": 6725,
     "clock_calls": 1,
     "excluded_calls": 16,
-    "pc_trace_sha256": "0c5d252e33227ee9f00a3b7e074190ce672a20524d0a98ac2e8f5e85184735f2",
+    "pc_trace_sha256": "9835ba7a5a1f7b1acd57e192c56104f37281d1d08b862be2a28ed0e46f8fdd30",
     "pc_trace_entries": 2222,
     "total": 6718,
     "functions": {
@@ -1444,7 +1444,7 @@
       "tomo_db0::Op::cmd_name() const": 12,
       "tomo_db0::ScatterState::ScatterState()": 91
     },
-    "probe_sha256": "da1a672a3878273047768121f2017cc591b8b8df6722af97b3546292a3f9ffd1"
+    "probe_sha256": "3b2861c0d031c7a834cf0934956e6028baad8b92fa8c731d7cf4b1852151373c"
   },
   {
     "arm": "post",
@@ -1457,7 +1457,7 @@
     "steps": 200106,
     "clock_calls": 32,
     "excluded_calls": 454,
-    "pc_trace_sha256": "abc3562597efe54605bcfca1a6aae30abafc2c8098d1591a794df625d1175813",
+    "pc_trace_sha256": "446f46d2d534e3953007c0436eb1a5c305b7413d8538545d2e236071617685ab",
     "pc_trace_entries": 2223,
     "total": 200099,
     "functions": {
@@ -1483,6 +1483,6 @@
       "tomo_db0::Op::cmd_name() const": 384,
       "tomo_db0::ScatterState::ScatterState()": 2912
     },
-    "probe_sha256": "da1a672a3878273047768121f2017cc591b8b8df6722af97b3546292a3f9ffd1"
+    "probe_sha256": "3b2861c0d031c7a834cf0934956e6028baad8b92fa8c731d7cf4b1852151373c"
   }
 ]

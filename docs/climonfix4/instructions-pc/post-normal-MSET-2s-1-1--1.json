@@ -9,7 +9,7 @@
   "steps": 17154,
   "clock_calls": 1,
   "excluded_calls": 45,
-  "pc_trace_sha256": "7c3ef415922408738a2042c2a04a63db4a9668fe0390cf0ff499fc65c0d3fd18",
+  "pc_trace_sha256": "7d53a8fd8b9c6b08a6b9d6f321409fd5a3fdea3c183ac7d2ef9877d8fe069b0e",
   "pc_trace_entries": 3496,
   "total": 16659,
   "functions": {
@@ -23,7 +23,6 @@
     "tomo::(anonymous namespace)::first_error(tomo::ScatterState const&, tomo::(anonymous namespace)::WorkError&)": 106,
     "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 12,
     "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 35,
-    "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 34,
     "tomo::(anonymous namespace)::complete_owner_record_wave(tomo::ScatterState&, unsigned int)": 176,
     "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&) [clone .part.0]": 294,
     "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&)": 3,
@@ -33,6 +32,7 @@
     "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]": 144,
     "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 27,
     "tomo::FlatStore::atomic_alloc_entry(unsigned int, unsigned long) [clone .isra.0]": 480,
+    "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 34,
     "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 20,
     "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
     "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 88,
@@ -63,5 +63,5 @@
     "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)::{lambda(tomo::KvObj const*, bool)#1}::operator()(tomo::KvObj const*, bool) const": 472,
     "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)": 192
   },
-  "probe_sha256": "c880e4886b349487f11225c8fcea889a1c70880584fd2a9406f73201d0cace9d"
+  "probe_sha256": "3e22c94376400b24165175a6639767c6ce7f398ce264a18ddcaa6b0371362375"
 }
