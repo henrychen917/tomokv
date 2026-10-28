@@ -49,7 +49,7 @@ def main():
  else:raise AssertionError((actual,desired))
  result=dict(kind='A: behaviour twin',behavior='393d6ceb1 with inert candidate ClimonConn broadcast map',
    matched='ClimonConn size and old-member offsets; POST .text origin and total size',
-   limitation='Individual function offsets and data sections retain PRE placement; this controls total text extent and the changed structure layout, not every function address.',
+   limitation='Individual function and data-section addresses are produced by the PRE-behaviour build and linker; they are not matched to POST. This controls total text extent and the changed structure layout only.',
    changes=changes,command=cmd,link=link,padding_bytes=padding,pre_layout_text=before,post_text=desired,pad_text=actual,
    inputs=[dict(path=x,sha256=sha(x)) for x in link if x.endswith('.o')],
    arms={a:dict(path=str(p),sha256=sha(p)) for a,p in [('PRE',PRE),('POST',POST),('PAD-A',output)]})

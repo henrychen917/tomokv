@@ -2,7 +2,7 @@
   "kind": "A: behaviour twin",
   "behavior": "393d6ceb1 with inert candidate ClimonConn broadcast map",
   "matched": "ClimonConn size and old-member offsets; POST .text origin and total size",
-  "limitation": "Individual function offsets and data sections retain PRE placement; this controls total text extent and the changed structure layout, not every function address.",
+  "limitation": "Individual function and data-section addresses are produced by the PRE-behaviour build and linker; they are not matched to POST. This controls total text extent and the changed structure layout only.",
   "changes": [
     {
       "file": "src/cmd/climon.inc",

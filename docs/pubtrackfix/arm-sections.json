@@ -1,0 +1,44 @@
+{
+  "PRE": {
+    ".text": {
+      "address": 133488,
+      "size": 8551031
+    },
+    ".rodata": {
+      "address": 8687616,
+      "size": 170804
+    },
+    ".data": {
+      "address": 9773056,
+      "size": 19321
+    }
+  },
+  "POST": {
+    ".text": {
+      "address": 133520,
+      "size": 8584199
+    },
+    ".rodata": {
+      "address": 8720384,
+      "size": 171020
+    },
+    ".data": {
+      "address": 9814016,
+      "size": 19321
+    }
+  },
+  "PAD-A": {
+    ".text": {
+      "address": 133520,
+      "size": 8584199
+    },
+    ".rodata": {
+      "address": 8720384,
+      "size": 170804
+    },
+    ".data": {
+      "address": 9805824,
+      "size": 19321
+    }
+  }
+}
