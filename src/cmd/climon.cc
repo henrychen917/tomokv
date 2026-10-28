@@ -468,6 +468,7 @@ void IoLoop::client_routing_forward_monitor(const PubSubEvent& event) {
         forward->origin_io = self_->id();
         forward->route_mask = posted;
         forward->blob = event.blob;
+        forward->caller_id = event.caller_id;
         pubsub_post(live_io, forward);
         srv_->monitor_forwarded_stale_added();
     }
@@ -761,16 +762,39 @@ void IoLoop::climon_monitor_feed(Client* client, Op& op) {
     if (command_metadata_skip_monitor(op)) return;
     std::string line;
     climon_monitor_format(client, op, line);
+    // RESET removes its issuer from MONITOR before Redis publishes the command.
+    // Keep the line for other monitors, without queueing an echo to the issuer.
+    climon_monitor_broadcast(std::move(line),
+        op.cmd_name().eq_icase("reset") && op.argc() == 1 ? client->id() : 0);
+}
+
+std::string climon_monitor_script_format(Op& op) {
+    timespec ts;
+    ::clock_gettime(CLOCK_REALTIME, &ts);
+    char head[80];
+    std::snprintf(head, sizeof(head), "+%lld.%06lld [%u lua]",
+        static_cast<long long>(ts.tv_sec), static_cast<long long>(ts.tv_nsec / 1000), op.db);
+    std::string line(head);
+    for (uint32_t i = 0; i < op.argc(); ++i) {
+        line.push_back(' ');
+        climon_quote_arg(multidb_display_argument(op, i), line);
+    }
+    line += "\r\n";
+    return line;
+}
+
+void IoLoop::climon_monitor_broadcast(std::string line, uint64_t excluded) {
     srv_->climon_note_monitor_line();
 
     // Encode once, share the blob with every owner that actually has a monitor.
     auto blob = std::make_shared<const std::string>(std::move(line));
     const ClimonIoMask mask = srv_->climon_monitor_io_mask();
-    if (climon_local_monitors_) climon_monitor_deliver(*blob);
+    if (climon_local_monitors_) climon_monitor_deliver(*blob, excluded);
     PubSubEvent local;
     local.kind = PubSubEventKind::MonitorFeed;
     local.route_mask = mask;
     local.blob = blob;
+    local.caller_id = excluded;
     if (mask.contains(self_->id())) client_routing_forward_monitor(local);
     for (uint32_t io : srv_->placement().ifid_threads()) {
         if (io == self_->id()) continue;
@@ -780,16 +804,17 @@ void IoLoop::climon_monitor_feed(Client* client, Op& op) {
         event->origin_io = self_->id();
         event->route_mask = mask;
         event->blob = blob;
+        event->caller_id = excluded;
         pubsub_post(io, event);
     }
 }
 
-void IoLoop::climon_monitor_deliver(const std::string& line) {
+void IoLoop::climon_monitor_deliver(const std::string& line, uint64_t excluded) {
     for (auto& entry : climon_conn_) {
         ClimonConn& state = entry.second;
         if (!state.monitor || !state.client) continue;
         Client* target = state.client;
-        if (target->dead() || target->closing()) continue;
+        if (target->dead() || target->closing() || target->id() == excluded) continue;
         climon_push_wire(target, line);
     }
 }
@@ -1161,6 +1186,7 @@ void IoLoop::climon_handle_client_request(PubSubEvent& event) {
         result->count = victims.size();
         for (Client* victim : victims) {
             if (victim->id() == event.caller_id) {
+                if (victim->uncount_connection()) srv_->client_released();
                 victim->mark_closing();
                 mark_active(victim);
             } else {
@@ -1228,7 +1254,7 @@ bool IoLoop::climon_handle_event(PubSubEvent& event) {
         }
         case PubSubEventKind::MonitorFeed:
             if (event.blob) {
-                climon_monitor_deliver(*event.blob);
+                climon_monitor_deliver(*event.blob, event.caller_id);
                 client_routing_forward_monitor(event);
             }
             return true;

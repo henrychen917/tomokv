@@ -136,6 +136,8 @@ struct FlatNotifySink {
 
 struct NotifyRecord;
 struct NotifyBatch;
+std::string climon_monitor_script_format(Op& op);
+void notify_monitor_script(Shard& shard, Op& parent, Op& nested);
 
 struct NotifyOut {
     uint32_t routes = 0;

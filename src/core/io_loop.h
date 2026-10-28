@@ -4974,6 +4974,7 @@ ordinary_shard_ready:
         // parked it AGAIN: a double delete, one reap later. Caught by the torture battery's RST
         // churn under ASAN; latent since the first teardown path was written.
         if (c->dead()) return;
+        if (c->uncount_connection()) srv_->client_released();
         if (!c->closing()) {
 #ifdef TOMO_CONNRESET_TRACE
             connreset::note(*c, self_->id(), "close_begin", site);
@@ -5042,7 +5043,6 @@ ordinary_shard_ready:
         // extra iteration retaining Client for late executor inbox messages.
         // reap_dead's idempotent release remains the cleanup fallback.
         release_tls(c);
-        srv_->client_released();
         srv_->lb_forget_client(c->id());
         // NOT delete. An ex-side claimed post may still sit un-consumed in our inbound channels
         // naming this client. Every such entry was pushed BEFORE this point, and channels are FIFO

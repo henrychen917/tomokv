@@ -141,8 +141,9 @@
 
     // ---- MONITOR --------------------------------------------------------------------------------
     void climon_monitor_feed(Client* client, Op& op);
+    void climon_monitor_broadcast(std::string line, uint64_t excluded = 0);
     void climon_monitor_format(Client* client, Op& op, std::string& out);
-    void climon_monitor_deliver(const std::string& line);
+    void climon_monitor_deliver(const std::string& line, uint64_t excluded = 0);
     ClimonStartResult climon_start_monitor(Client* client, Op& op);
     void climon_monitor_stop(Client* client, uint64_t id);
 

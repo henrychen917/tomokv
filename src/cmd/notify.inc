@@ -263,6 +263,8 @@ struct NotifyBatch {
     std::vector<NotifyRecordImpl> spill;
     std::deque<std::string> owned_keys;
     std::shared_ptr<NotifyExpiryCompletion> expiry_completion;
+    // Only scripts with MONITOR armed populate this cold, existing carrier.
+    std::vector<std::string> monitor_lines;
 };
 
 namespace {
@@ -288,6 +290,16 @@ NotifyBatch* notify_get_or_create_batch(Op& carrier) {
 }
 
 }  // namespace
+
+void notify_monitor_script(Shard& shard, Op& parent, Op& nested) {
+    if (!shard.server() || !shard.server()->climon_monitors() ||
+        command_metadata_skip_monitor(nested)) return;
+    Op* carrier = shard.notify_carrier();
+    NotifyBatch* batch = notify_get_or_create_batch(carrier ? *carrier : parent);
+    if (!batch) throw std::bad_alloc();
+    std::lock_guard<std::mutex> lock(batch->mutex);
+    batch->monitor_lines.push_back(climon_monitor_script_format(nested));
+}
 
 void notify_execute_enter(Shard& shard, Op& carrier, Op& source, uint32_t order_base) {
     shard.set_notify_context(&carrier, &source, order_base);
@@ -879,6 +891,11 @@ void notify_retire_batch_entry(IoLoop& loop, NotifyBatch* batch, uint64_t writer
     if (!batch) return;
     std::vector<NotifyRecordImpl> records;
     try {
+        // The issuing IO already fed EVAL/FCALL before dispatch. Retiring its
+        // script lines here preserves that order through the same IO inboxes,
+        // including cross-owner scripts and EXEC children.
+        for (auto& line : batch->monitor_lines)
+            loop.climon_monitor_broadcast(std::move(line));
         records.reserve(batch->total);
         for (uint32_t i = 0; i < batch->inline_size; i++)
             records.push_back(batch->inline_records[i]);

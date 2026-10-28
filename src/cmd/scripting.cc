@@ -672,6 +672,7 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                         LatencyTrackingScriptCall latency(executor, *context->parent, nested);
                         spec->handler(*context->shard, nested);
                     } else spec->handler(*context->shard, nested);
+                    notify_monitor_script(*context->shard, *context->parent, nested);
                 }
                 if (context->notify)
                     notify_execute_source(*context->shard, *context->parent, 0);
