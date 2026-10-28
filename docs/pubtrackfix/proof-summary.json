@@ -358,10 +358,185 @@
           ]
         }
       }
+    },
+    "differ-epoll": {
+      "gate_summary": [
+        "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-pubtrackfix/build/gate-run.IXfG76/ledger.partial"
+      ],
+      "jobs": {
+        "differ-armed-0": {
+          "done": "0\t1\t0\n"
+        },
+        "differ-armed-1": {
+          "done": "0\t1\t0\n"
+        },
+        "differ-equivalence": {
+          "done": "0\t1\t0\n"
+        },
+        "differ-split-0": {
+          "done": "0\t1\t0\n"
+        },
+        "differ-split-1": {
+          "done": "0\t1\t0\n"
+        },
+        "release": {
+          "done": "0\t1\t0\n"
+        }
+      },
+      "differential": {
+        "comparisons": 954,
+        "complete": true,
+        "parts": {
+          "split-0": {
+            "schema": 1,
+            "part": "split-0",
+            "run": "iteration:gate-run.IXfG76",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              22
+            ],
+            "comparisons": 235,
+            "complete": true
+          },
+          "split-1": {
+            "schema": 1,
+            "part": "split-1",
+            "run": "iteration:gate-run.IXfG76",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              22
+            ],
+            "comparisons": 239,
+            "complete": true
+          },
+          "armed-0": {
+            "schema": 1,
+            "part": "armed-0",
+            "run": "iteration:gate-run.IXfG76",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              22
+            ],
+            "comparisons": 230,
+            "complete": true
+          },
+          "armed-1": {
+            "schema": 1,
+            "part": "armed-1",
+            "run": "iteration:gate-run.IXfG76",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              22
+            ],
+            "comparisons": 234,
+            "complete": true
+          },
+          "equivalence": {
+            "schema": 1,
+            "part": "equivalence",
+            "run": "iteration:gate-run.IXfG76",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              22
+            ],
+            "comparisons": 16,
+            "complete": true
+          }
+        },
+        "plan": {
+          "schema": 1,
+          "manifest": {
+            "run": "iteration:gate-run.IXfG76",
+            "permanent": [
+              7,
+              19,
+              20,
+              23
+            ],
+            "failed": [],
+            "rotating": 22,
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              22
+            ],
+            "history": "/home/user/Projects/cx-pubtrackfix/.gate-history/differ"
+          },
+          "suites": [
+            "string",
+            "list",
+            "set",
+            "zset",
+            "hash",
+            "hexpire",
+            "edgetime",
+            "xshard",
+            "xmove",
+            "bitmap",
+            "hll",
+            "bitfield",
+            "cgaps",
+            "stream",
+            "script",
+            "streamgrp",
+            "zsetops",
+            "geo",
+            "doubles",
+            "scan",
+            "multi",
+            "encodingfix",
+            "edgeenc",
+            "edgeproto",
+            "cmdgap",
+            "cmdgap2",
+            "sort",
+            "servertail",
+            "arity",
+            "storeorder",
+            "infofix",
+            "multidb",
+            "blocking",
+            "pubsub",
+            "fanout",
+            "spubsub",
+            "notify",
+            "wiredump",
+            "climon",
+            "compatintro",
+            "aclsel",
+            "aclkeys",
+            "cmdmeta",
+            "s6fix",
+            "ccfix",
+            "psfix",
+            "monitor"
+          ],
+          "repeats": 4,
+          "equivalence_seeds": [
+            22
+          ]
+        }
+      }
     }
   },
   "missing_runs": [
-    "differ-epoll",
     "pre-directed",
     "pad-directed",
     "plant-bcast",

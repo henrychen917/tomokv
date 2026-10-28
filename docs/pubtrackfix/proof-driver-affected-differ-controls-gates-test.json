@@ -36,5 +36,24 @@
     "selected_jobs": "differ-split differ-armed",
     "engine": "uring",
     "log": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/gate-differ-uring.log"
+  },
+  {
+    "name": "differ-epoll",
+    "returncode": 0,
+    "command": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "32-39",
+      "--load-cores",
+      "40-47",
+      "--ports",
+      "20310-20399",
+      "--candidate-binary",
+      "build/tomokv"
+    ],
+    "selected_jobs": "differ-split differ-armed",
+    "engine": "epoll",
+    "log": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/gate-differ-epoll.log"
   }
 ]
