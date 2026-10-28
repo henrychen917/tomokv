@@ -274,6 +274,8 @@ uses a common 10,971,600-byte slotted section plus a 1,844,679-byte ordinary tex
 section. No inverse PAD-B is used; the requested behaviour twin is the comparison
 that isolates changed behavior at matched function addresses. The source/object
 scratch trees are removed after their counts, hashes and recipes are recorded.
+Final `build/` usage is about 14 GB. The delivery hash/freshness and stopped-process
+checks are recorded in [delivery.json](docs/rlfix4/delivery.json).
 
 ### Correctness receipts
 
@@ -313,7 +315,7 @@ binary and digest are recorded in [oracle.json](docs/rlfix4/oracle.json).
 `make -j16 all` and every `job_production_units` build target completed. All **48
 freshness checks** passed: `all`, the 45 named unit targets, `mdbqsbr-live-arms`, and
 the blockfix helper/digest check. See
-[production-freshness.json](docs/rlfix4/production-freshness.json). Generated R7
+[production-freshness-final.json](docs/rlfix4/production-freshness-final.json). Generated R7
 synchronization, tracer failure/REP controls, strict normalizer negative controls,
 and merit-cell grammar checks also passed. Earlier candidate/setup failures and
 an earlier harness-test timeout remain recorded; they are not final-POST passes.
@@ -364,12 +366,16 @@ These are partial-job receipts, not a claim of a complete gate iteration.
 
 ### Maintainer measurement request
 
-Run on the quiet box with the gate's own instrument. Use explicit server CPUs
-**32–39**, load CPUs **40–47**, no load SMT, ports **20300–20399**, 16 shards and
-split ratio **6:2** (fused uses all eight server cores). Do not inherit the ABBA
-driver's default 32-core allocation. Keep the cell's other parameters exact.
-The instrument requests **`--databases 1`**, its single-database paper image; the
-normal namespace was additionally checked in the serverless matrix.
+Run on the quiet box with the gate's own instrument, replaying the placements,
+shard counts and load envelope of the maintainer's section-70 reference runs.
+The correctness geometry above must not silently replace that benchmark geometry.
+The current instrument records a 32-thread **16:16** split ABBA shape, deriving
+128 shards for split and 256 for fused; it has no reviewed eight-thread ABBA split.
+Its explicit paper-image setting is **`--databases 1`**. Record the exact geometry
+in each result and keep it identical between arms. The lane's CPUs 32–47 and ports
+20300–20399 were used only for its authorized correctness/build/instruction work;
+the wider benchmark placement remains the maintainer's separately scheduled work.
+See [measurement-geometry.json](docs/rlfix4/measurement-geometry.json).
 Verify artifact SHA-256s first. Record **three separately identified ABBA blocks**
 for `d32g_l1` and `x9_32_l1` from
 [tests/rlfix4_readlocal_cells.txt](tests/rlfix4_readlocal_cells.txt), for each pair:

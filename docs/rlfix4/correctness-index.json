@@ -1166,7 +1166,7 @@
     }
   },
   "gates_test": "docs/rlfix4/gates-test-final2.json",
-  "production_freshness": "docs/rlfix4/production-freshness.json",
+  "production_freshness": "docs/rlfix4/production-freshness-final.json",
   "failures": [
     "docs/rlfix4/txn-nx-first-failure.json",
     "docs/rlfix4/idle-ceiling-first-failure.json"
