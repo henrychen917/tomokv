@@ -1960,7 +1960,12 @@ public:
     // One hash for the whole server: the router takes its bucket from the low bits and FlatStore
     // mixes for its index, so both must agree and it lives here. Word-at-a-time, because FNV-1a
     // costs one DEPENDENT multiply per byte and a 20-character key is then a 20-long chain.
-    static uint64_t hash_key(Slice k) {
+    // The default hash must not inherit a stack canary when GCC outlines SipHash's
+    // reference-capturing round. Both hash arms use scalar locals, fixed eight-byte
+    // memcpy loads, and reads bounded by the supplied key length; neither has a
+    // local array or a variable-width store. Keep their existing inlining choices
+    // and omit only this helper's redundant frame instrumentation.
+    [[gnu::no_stack_protector]] static uint64_t hash_key(Slice k) {
         if (g_hash_kind == HashKind::SipHash12) return siphash12(k.p, k.n) ^ (uint64_t{k.ns} * 0x9e3779b97f4a7c15ULL);
         return hash_key_mix(k);
     }
