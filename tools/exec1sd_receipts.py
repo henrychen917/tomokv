@@ -18,7 +18,7 @@ def counts():
  local=compare(read('RL-PRE-counts.json'),read('RL-POST-counts.json'))
  idle=compare(read('IDLE-X12-counts.json'),read('IDLE-POST-counts.json'))
  assert len(ordinary)==48 and len(local)==4 and len(idle)==2
- for arm,kinds in [('PRE',['ORD','RL','EXEC']),('POST',['ORD','RL','EXEC','IDLE']),('REUSE',['EXEC'])]:
+ for arm,kinds in [('PRE',['ORD','RL','EXEC']),('POST',['ORD','RL','EXEC','IDLE']),('REUSE',['EXEC'])]+[(a,['EXEC','IDLE']) for a in ('X12','X3','X5','MERGE')]:
   retired=read(arm+'-probe-retirements.json')
   for kind in kinds:
    data=read(kind+'-'+arm+'-counts.json')

@@ -5,7 +5,7 @@ from pathlib import Path
 import exec1sd as d
 import exec1s_proof as inherited
 
-def gate(label, jobs, engine='uring', extra=None):
+def gate(label, jobs, engine='uring', extra=None, candidate=None, ports='20010-20097', server_cores='64-87', load_cores='88-95'):
     inherited.OUT = d.OUT/'proof'
     env = dict(os.environ, GATE_ONLY_JOBS=' '.join(jobs), GATE_DIFFER_NET_IO=engine,
                GATE_PROOF_NO_RATES='1', GATE_TEST_PORT='20098',
@@ -13,13 +13,13 @@ def gate(label, jobs, engine='uring', extra=None):
                GATE_LEDGER=str(inherited.OUT/(label+'.ledger')))
     if extra: env.update(extra)
     return inherited.run(label, ['taskset','-c',d.CPUS,'tests/gate.sh','iteration',
-        '--server-cores','64-87','--load-cores','88-95','--server-smt','','--load-smt','',
-        '--ports','20010-20097','--candidate-binary',str(d.ROOT/'build/tomokv')],env)
+        '--server-cores',server_cores,'--load-cores',load_cores,'--server-smt','','--load-smt','',
+        '--ports',ports,'--candidate-binary',str(candidate or d.ROOT/'build/tomokv')],env)
 
 def main():
     assert os.sched_getaffinity(0)<=set(range(64,96))
     p=argparse.ArgumentParser()
-    p.add_argument('phase',choices=['core','families','supplement','differ','harness'])
+    p.add_argument('phase',choices=['core','families','supplement','differ','harness','lottery'])
     a=p.parse_args();out=[]
     if a.phase=='core':
         out.append(gate('core',['exec1s','txnorder_wound','at412-owner','txnorder_index']+
@@ -46,6 +46,14 @@ def main():
     elif a.phase=='differ':
         for engine in ('uring','epoll'):
             out.append(gate('differ-'+engine,['differ-split','differ-armed'],engine))
+    elif a.phase=='lottery':
+        binary=d.ROOT/'build/lottery/tomokv'
+        subprocess.run(['make','-q','build/lottery/tomokv'],check=True)
+        d.save(d.DOCS/'lottery-build.json',dict(binary=str(binary),sha256=d.sha(binary),
+            production_sha256=d.sha(d.ROOT/'build/tomokv'),
+            copy_patches_sha256=d.sha(d.ROOT/'build/lottery/source/lottery-patches.json'),
+            build_log_sha256=d.sha(d.OUT/'evidence/lottery-final-build.log')))
+        out.append(gate('lottery-copy-smoke',['execfair'],candidate=binary,ports='20002-20009',server_cores='64-71',load_cores='72-95'))
     else:
         env=dict(os.environ,GATE_TEST_PORT='20098')
         inherited.OUT=d.OUT/'proof'
