@@ -1,0 +1,42 @@
+{
+  "name": "final14-mutant-monitor-script-cmds",
+  "exit": 1,
+  "artifacts": "/home/user/Projects/cx-climonfix4/build/gate-run.XHWFKa",
+  "replay_argv": [
+    "taskset",
+    "-c",
+    "16-31",
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "24-31",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20220-20229",
+    "--candidate-binary",
+    "/home/user/Projects/cx-climonfix4/build/climonfix4/root-mutants/MONITOR-SCRIPT-CMDS/tomokv"
+  ],
+  "env": {
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "redis_tcl",
+    "GATE_TCL_MANIFEST": "/home/user/Projects/cx-climonfix4/docs/climonfix4/tcl-controls/MONITOR-SCRIPT-CMDS.json"
+  },
+  "source_commit": "c369ccc41 + isolated mutation",
+  "binary_sha256": "a3ef0a8af5611037a80e5c6bdc59e96c49a82d236b636c582ecb9223c94e8b39",
+  "post_sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+  "gate_sha256": "b7d9f2189e6f89234a68dc1bc70b7e1225a7112b45727a522c25971c25049b22",
+  "manifest_sha256": "99b3d58fc06b201b4b4042ca0430a2bf5ed46d71e650b18f66bc388abc042326",
+  "log": "/home/user/Projects/cx-climonfix4/build/climonfix4/root-mutants/MONITOR-SCRIPT-CMDS/gate.log",
+  "log_sha256": "2444f14ad837871ab3680ce0e3aab3ea9882a49d9824407a73ce41e160260c0b",
+  "expected": "Named witness fails in both modes",
+  "jobs": [
+    "release",
+    "redis_tcl"
+  ]
+}

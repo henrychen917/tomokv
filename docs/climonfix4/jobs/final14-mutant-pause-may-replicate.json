@@ -1,0 +1,42 @@
+{
+  "name": "final14-mutant-pause-may-replicate",
+  "exit": 1,
+  "artifacts": "/home/user/Projects/cx-climonfix4/build/gate-run.nzu3as",
+  "replay_argv": [
+    "taskset",
+    "-c",
+    "16-31",
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "24-31",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20220-20229",
+    "--candidate-binary",
+    "/home/user/Projects/cx-climonfix4/build/climonfix4/root-mutants/PAUSE-MAY-REPLICATE/tomokv"
+  ],
+  "env": {
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "redis_tcl",
+    "GATE_TCL_MANIFEST": "/home/user/Projects/cx-climonfix4/docs/climonfix4/tcl-controls/PAUSE-MAY-REPLICATE.json"
+  },
+  "source_commit": "c369ccc41 + isolated mutation",
+  "binary_sha256": "a95632c7876c6222fd09cfda547c153bd93fe94d5a7d650aeff87fda89423f9a",
+  "post_sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+  "gate_sha256": "b7d9f2189e6f89234a68dc1bc70b7e1225a7112b45727a522c25971c25049b22",
+  "manifest_sha256": "100d39606fb78115ee3112eb02c515af52a9cf4b596af4a08a37b96e61125999",
+  "log": "/home/user/Projects/cx-climonfix4/build/climonfix4/root-mutants/PAUSE-MAY-REPLICATE/gate.log",
+  "log_sha256": "91a4da729314691c7a46dd593b4b222c45b41033d489c48c5890b402ca9e8617",
+  "expected": "Named witness fails in both modes",
+  "jobs": [
+    "release",
+    "redis_tcl"
+  ]
+}

@@ -40,6 +40,8 @@ The four collection sites expand at `tests/gate.sh:5835`, before the quick exit 
 
 [tcl-promotions.json](docs/climonfix4/tcl-promotions.json) lists all 14 promotions. [tcl-control-results.json](docs/climonfix4/tcl-control-results.json) records one named witness per directed root, both modes, with POST and a negative arm. Six negative arms use PRE; PAUSE-BLOCKED-COUNT uses a POST counter-removal mutant because PRE already includes the counter fix. The focused RESET control also enables its upstream SETINFO prerequisite. Timeout controls must reach the named assertion and fail its deadline; they cannot pass by omitting it.
 
+The [isolated regression matrix](docs/climonfix4/isolated-regressions.json) additionally disables exactly one root mechanism on final POST. All seven mutants fail their named upstream witness in both modes, and every matching POST control passes. The six new substitutions are recorded in [root-mutant-results.json](docs/climonfix4/root-mutant-results.json); the seventh is the pause-counter mutant above. A missing or skipped witness cannot satisfy a negative control. Mutant binaries and objects were pruned after hashes and archived gate evidence were recorded.
+
 `GATE_TCL_MANIFEST` is accepted only by the partial-job interface for these focused controls. The complete Tcl gate continues to require the full checked-in manifest. No upstream assertion body is modified.
 
 ### Validation
@@ -51,6 +53,7 @@ Final POST is source `c369ccc41`, after withdrawing CONNECTED-CLIENTS-LAG. Earli
 | Affected gate jobs and prerequisites | **310 passed, 0 failed** | [Campaign receipt](docs/climonfix4/jobs/final14-affected-jobs.json) |
 | New directed rows | 28/28 POST; all 28 fail on PRE; 224 configurations per arm | [PRE negative receipt](docs/climonfix4/jobs/final14-directed-pre-negative.json); POST included above |
 | Full Tcl manifest, 1s and 2s | 1,704 assertions per mode; all 14 promotions reached and passed; no named failures | [Promotion audit](docs/climonfix4/full-tcl-promotions.json) |
+| Planted Tcl regressions | Seven isolated root regressions fail in both modes; matching POST controls pass | [Isolated controls](docs/climonfix4/isolated-regressions.json) |
 | Standard differential, io_uring | All four mode/atomic legs and mode equivalence pass; six public rows including release | [Campaign receipt](docs/climonfix4/jobs/final14-differ-uring.json) |
 | Standard differential, epoll | Running; both split legs have passed | Final receipt pending |
 | Production builds and freshness | 53 named targets, all 58 audit checks pass, including `make all` and `make -q` | [Build audit](docs/climonfix4/production-units.json) |
