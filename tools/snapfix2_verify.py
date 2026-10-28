@@ -108,6 +108,7 @@ def main():
     elif a.phase == 'minimal':
         for arm in ARMS:
             matrix('snapfix2_flush', 'flush-pair', f'isolation/{arm}-minimal-final', arm)
+            matrix('snapfix2_flush', 'flush-only', f'isolation/{arm}-flush-only', arm)
     elif a.phase == 'ingredients':
         for arm in ARMS:
             for mix in ['scripts', 'execs']:

@@ -325,18 +325,16 @@
   },
   "db0/src/core/genthread.o": {
     "functions": 775,
-    "equal": 770,
+    "equal": 771,
     "changed": [
       "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
-      "tomo_db0::ExLoopT<true>::flip_control_pass()",
       "unsigned int tomo_db0::ExLoopT<true>::snapshot_control_pass<32u, false>()",
-      "tomo_db0::FlatStore::choose_victim(tomo_db0::Slice)"
+      "tomo_db0::FlatStore::rehash_step_read_local()"
     ],
     "symbols": [
       "_ZN8tomo_db020kvobj_external_bytesEPKNS_5KvObjE",
-      "_ZN8tomo_db07ExLoopTILb1EE17flip_control_passEv",
       "_ZN8tomo_db07ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv",
-      "_ZN8tomo_db09FlatStore13choose_victimENS_5SliceE"
+      "_ZN8tomo_db09FlatStore22rehash_step_read_localEv"
     ],
     "padding": [],
     "hot": [],
@@ -461,21 +459,17 @@
   },
   "db0/src/core/reorder.o": {
     "functions": 826,
-    "equal": 823,
+    "equal": 824,
     "changed": [
-      "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
       "unsigned int tomo_db0::ExLoopT<true>::snapshot_control_pass<32u, false>()",
       "tomo_db0::FlatStore::atomic_prepare_capacity_read_local(unsigned int)"
     ],
     "symbols": [
-      "_ZN8tomo_db06IoLoop18parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE",
       "_ZN8tomo_db07ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv",
       "_ZN8tomo_db09FlatStore34atomic_prepare_capacity_read_localEj"
     ],
     "padding": [],
-    "hot": [
-      "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)"
-    ],
+    "hot": [],
     "added": [],
     "removed": []
   },
@@ -915,60 +909,35 @@
   },
   "src/core/genthread.o": {
     "functions": 783,
-    "equal": 778,
+    "equal": 781,
     "changed": [
       "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true, false>()",
-      "tomo::IoLoop::pubsub_append_ack(tomo::Op::Sink&, bool, bool, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const*, unsigned long, bool) [clone .isra]",
-      "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
       "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()"
     ],
     "symbols": [
       "_ZN4tomo6IoLoop11flush_readyILb0ELb1ELb1ELb0ELb1ELb0EEEjv",
-      "_ZN4tomo6IoLoop17pubsub_append_ackERNS_2Op4SinkEbbbPKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEmb.isra",
-      "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE",
       "_ZN4tomo7ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv"
     ],
-    "padding": [
-      "_ZN4tomo6IoLoop17pubsub_reply_pingERNS_2OpE.isra"
-    ],
+    "padding": [],
     "hot": [
-      "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true, false>()",
-      "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)"
+      "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true, false>()"
     ],
     "added": [],
     "removed": []
   },
   "src/core/rl2s.o": {
     "functions": 727,
-    "equal": 718,
+    "equal": 725,
     "changed": [
-      "unsigned int tomo::IoLoop::flip_control_pass<true>()",
-      "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
-      "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra]",
-      "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra] [clone .cold]",
-      "bool tomo::IoLoop::finish_client_transfer<false>(tomo::Client*) [clone .isra]",
       "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()",
-      "tomo::FlatStore::maybe_start_shrink()",
-      "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_split_read_local_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
-      "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_split_read_local_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run() [clone .cold]"
+      "tomo::FlatStore::maybe_start_shrink()"
     ],
     "symbols": [
-      "_ZN4tomo6IoLoop17flip_control_passILb1EEEjv",
-      "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
-      "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra",
-      "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.cold",
-      "_ZN4tomo6IoLoop22finish_client_transferILb0EEEbPNS_6ClientE.isra",
       "_ZN4tomo7ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv",
-      "_ZN4tomo9FlatStore18maybe_start_shrinkEv",
-      "_ZNSt6thread11_State_implINS_8_InvokerISt5tupleIJZN4tomo27run_split_read_local_serverERNS3_6ServerEPKNS3_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS3_13AofReplayPlanESt14default_deleteISB_EESaISE_EES8_PNS3_10TlsContextERNS3_16LateUnixListenerERNS3_23ShutdownReportFinalLineEEUlvE0_EEEEE6_M_runEv",
-      "_ZNSt6thread11_State_implINS_8_InvokerISt5tupleIJZN4tomo27run_split_read_local_serverERNS3_6ServerEPKNS3_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS3_13AofReplayPlanESt14default_deleteISB_EESaISE_EES8_PNS3_10TlsContextERNS3_16LateUnixListenerERNS3_23ShutdownReportFinalLineEEUlvE0_EEEEE6_M_runEv.cold"
+      "_ZN4tomo9FlatStore18maybe_start_shrinkEv"
     ],
     "padding": [],
-    "hot": [
-      "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
-      "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra]",
-      "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra] [clone .cold]"
-    ],
+    "hot": [],
     "added": [],
     "removed": []
   },
@@ -1074,24 +1043,16 @@
   },
   "src/core/reorder.o": {
     "functions": 841,
-    "equal": 834,
+    "equal": 838,
     "changed": [
       "tomo::kvobj_external_bytes(tomo::KvObj const*)",
-      "void tomo::IoLoop::r7_run_loop<false, false, false, true, false>()",
       "tomo::IoLoop::pubsub_deliver_one(tomo::PubSubDelivery const&)",
-      "tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)",
-      "tomo::IoLoop::pubsub_handle_home_request(tomo::PubSubEvent&)",
-      "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()",
-      "tomo::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)"
+      "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()"
     ],
     "symbols": [
       "_ZN4tomo20kvobj_external_bytesEPKNS_5KvObjE",
-      "_ZN4tomo6IoLoop11r7_run_loopILb0ELb0ELb0ELb1ELb0EEEvv",
       "_ZN4tomo6IoLoop18pubsub_deliver_oneERKNS_14PubSubDeliveryE",
-      "_ZN4tomo6IoLoop20pubsub_start_commandEPNS_6ClientERNS_2OpE",
-      "_ZN4tomo6IoLoop26pubsub_handle_home_requestERNS_11PubSubEventE",
-      "_ZN4tomo7ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv",
-      "_ZN4tomo9FlatStore26atomic_collapse_read_localEmm"
+      "_ZN4tomo7ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv"
     ],
     "padding": [],
     "hot": [],

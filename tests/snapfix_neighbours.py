@@ -212,6 +212,14 @@ def case_flushall(args, directory, mode, engine, atomic, oracle):
                         observations=observations[0], torn=len(torn),
                         examples=[dict(keys=pair, values=[None if v is None else int(v) for v in (a, b)])
                                   for pair, a, b in torn[:20]], tally=tally, errors=errors)
+        if not oracle:
+            with contextlib.suppress(Exception):
+                st = s.stats(c)
+                evidence['counters'] = {k: v for k, v in st.items()
+                                        if k.startswith(('atomic_txn_', 'snapshot_', 'script_'))}
+        with contextlib.suppress(Exception):
+            evidence['final'] = [None if v is None else int(v)
+                                 for v in c.must('MGET', *spair, *epair)]
         (directory / 'flushall-observations.json').write_text(json.dumps(evidence, indent=2) + '\n')
         assert not errors, errors
         assert observations[0] > 0, 'observer never ran'

@@ -1,0 +1,9 @@
+{
+  "command": [
+    "build/snapfix2/unfloored/build/store-regression",
+    "flush-prepared-capacity"
+  ],
+  "exit": 1,
+  "sha256": "8536508abebe9077605fc80dda925d2ec38fe877e4cf8e3c807e26c5598b6492",
+  "log": "docs/snapfix2/unit/unfloored.log"
+}
