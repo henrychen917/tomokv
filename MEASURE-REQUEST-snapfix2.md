@@ -73,7 +73,7 @@ control retain their old budget.
 | src/reorder | 149134 | 149153 | 122002 → 122021 |
 | db0/reorder | 150113 | 150133 | 121085 → 121104 |
 
-The complete 118-object comparison against BASE has 17,945 functions: 17,929
+The complete 118-object comparison against BASE has 17,945 function bodies across object files: 17,929
 identical, 15 changed, one added function and no removed or padding-only bodies.
 Eight changed bodies are the intended `snapshot_control_pass` instantiations.
 The added body is db0 `service_snapshot_backlogs<false>`, now out of line.
@@ -167,6 +167,17 @@ than the release binary, so compare those twins separately. The generator and
 all object/input digests are recorded in `docs/snapfix2/pad-a.json`.
 
 
+| Arm | Path | SHA-256 |
+|---|---|---|
+| PRE | `build/snapfix2/pre/tomokv` | `da219bf6c15d7f7649e6f6f2758ed7407f8ba6e4456ef48ea2a416ba01de710c` |
+| BASE | `build/snapfix2/base/tomokv` | `dea9309b1ebdf5a46da5fc69d377ed55b26414e7e01d38d3ddfa4b2a8b61db98` |
+| POST | `build/tomokv` | `dd169c2f10040c4b13cb87c3731e4ba1a2dbd74088635008e8512ba64e84021c` |
+| POST-layout | `build/snapfix2/POST-layout` | `e091b35599b3c8ec893facb4132a5d3996fb35a076557303c11174f26df67346` |
+| PAD-A | `build/snapfix2/PAD-A` | `a5f898e5e659944c8f328280654328df4dad60c53fcbf0e6213ce14937303a34` |
+
+Section sizes and merit-cell digests: `docs/snapfix2/arms.json`. POST release
+`.text` is 8,459,175 bytes, **+160 bytes** versus BASE.
+
 ### Maintainer measurement request
 
 Use the gate's own ABBA instrument for the 14 generic cells in
@@ -174,9 +185,14 @@ Use the gate's own ABBA instrument for the 14 generic cells in
 h17, h18, h49, h50). BASE vs POST is the sizing-fix comparison; retain PRE vs POST
 for the combined snapfix change. PAD is **A, behaviour twin**: BASE behaviour in
 the exact POST-layout common image. Compare POST-layout vs PAD-A separately from
-the release binaries. Command counts are expected to be null; matched offered
+the release binaries. Command counts are equal; matched offered
 load, cycles/op and IPC decide any performance effect. No throughput claim here.
 
 On a quiet box, also record RSS and BGSAVE start latency for each of 16 consecutive
-saves, BASE vs POST, idle one-key geometry, both modes/engines. Correctness RSS
-checks in this lane do not establish a latency or throughput result.
+saves, BASE vs POST, idle one-key geometry, both modes/engines, atomic 1. Use 16
+shards, CPUs 0–7, ratio 6:2 in 2s; read-local 1 in 1s and 0 in 2s; databases 16;
+key/client balancing and automatic FLIP off; save rules disabled. Start latency
+is command send to BGSAVE acceptance reply; sample INFO memory RSS after each
+completed save. Plot all 16 save indices. The capacity/RSS growth and start-wait
+curves decide this stability effect. Correctness RSS checks in this lane do not
+establish a latency or throughput result.

@@ -1,0 +1,36 @@
+{
+  "PRE": {
+    "path": "build/snapfix2/pre/tomokv",
+    "sha256": "da219bf6c15d7f7649e6f6f2758ed7407f8ba6e4456ef48ea2a416ba01de710c",
+    "bytes": 218091648,
+    "text_bytes": 8457095
+  },
+  "BASE": {
+    "path": "build/snapfix2/base/tomokv",
+    "sha256": "dea9309b1ebdf5a46da5fc69d377ed55b26414e7e01d38d3ddfa4b2a8b61db98",
+    "bytes": 218116760,
+    "text_bytes": 8459015
+  },
+  "POST": {
+    "path": "build/tomokv",
+    "sha256": "dd169c2f10040c4b13cb87c3731e4ba1a2dbd74088635008e8512ba64e84021c",
+    "bytes": 218115968,
+    "text_bytes": 8459175
+  },
+  "POST-layout": {
+    "path": "build/snapfix2/POST-layout",
+    "sha256": "e091b35599b3c8ec893facb4132a5d3996fb35a076557303c11174f26df67346",
+    "bytes": 423331360,
+    "text_bytes": 16917831
+  },
+  "PAD-A": {
+    "path": "build/snapfix2/PAD-A",
+    "sha256": "a5f898e5e659944c8f328280654328df4dad60c53fcbf0e6213ce14937303a34",
+    "bytes": 423331360,
+    "text_bytes": 16917831
+  },
+  "merit_cells": {
+    "docs/execfair/cells/generic14.txt": "ac3719760fcd07f05a090bcba536162c4d713cdbef3f24e52d886e8d83880311",
+    "tests/headline_cells.txt": "f62b7a4c59cb8a9844d0baafeb19c0328f2e6790ca6103dffb21abb5ee0e20f6"
+  }
+}
