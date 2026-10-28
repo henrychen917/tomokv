@@ -494,7 +494,7 @@ void txn_help(Server& server) {
         auto* state = fixture_allocate_state(server, client, 0, MultiStateKind::Execute);
         require(state != nullptr, "WATCH arrival attempt allocated");
         state->shards = {0, 1};
-        state->database_map = server.databases().capture();
+        state->database_map = std::make_unique<DatabaseMap::Map>(server.databases().capture());
         state->watched = {{a, FlatStore::hash_key(slice(a)), 0, 0, 0},
                           {b, FlatStore::hash_key(slice(b)), 1, 0, 0}};
         state->watch_pending.store(2);
