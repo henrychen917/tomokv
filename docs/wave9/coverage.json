@@ -1,0 +1,6629 @@
+{
+  "post_sha256": "2d1b626ac7ba7769d00bd5c0a16693fb928a9c2b3d0a488d41b3f7c8df51fb40",
+  "job_invocations": [
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "source_identity",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "source_identity",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "124.970000",
+              "label": "production source identity + stable assertion ids"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "lualibs",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "lualibs",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "38.840000",
+              "label": "lualibs CC4.7 vs Redis 7.4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "latencyfix_grammar",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "latencyfix_grammar",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "6.400000",
+              "label": "latencyfix LAT-HIST-1 knob grammar"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "latencyfix_shape",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "latencyfix_shape",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "1.770000",
+              "label": "latencyfix LAT-HIST-1 histogram and latencystats"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "latencyfix_off",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "latencyfix_off",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "13.120000",
+              "label": "latencyfix LAT-HIST-1 zero allocations off"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "iofix-deferred",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "iofix-deferred",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "26.990000",
+              "label": "iofix WB4.1 deferred IO parks"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "iofix-hz",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "iofix-hz",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "44.060000",
+              "label": "iofix IO4.9 Redis hz cron"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "iofix-sleep",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "iofix-sleep",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "34.070000",
+              "label": "iofix IO4.10 global DEBUG SLEEP"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "iofix-signal",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "iofix-signal",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "18.080000",
+              "label": "iofix IO4.17 immediate signal shutdown"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "execfair",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "execfair",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "69.620000",
+              "label": "EXEC fast-lane polls"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "txnorder_index",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "txnorder_index",
+          "done": "0\t2\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "104.230000",
+              "label": "txnorder index oracle"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.740000",
+              "label": "txnorder index complexity"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "txnorder2",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "txnorder2",
+          "done": "0\t16\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "txnorder2 writer episode R1"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "txnorder2 writer episode R2"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "txnorder2 writer episode R3"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "txnorder2 writer episode R4"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "txnorder2 writer episode R5"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "txnorder2 writer episode R6"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "txnorder2 writer episode R7"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.100000",
+              "label": "txnorder2 writer episode R8"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "txnorder2 writer episode R9"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "txnorder2 writer episode R10"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "txnorder2 writer episode R11"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.580000",
+              "label": "txnorder2 writer episode R12"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "txnorder2 direct RENAME owner join"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "22.690000",
+              "label": "txnorder2 WATCH serve"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "30.350000",
+              "label": "txnorder2 WATCH flush"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "28.050000",
+              "label": "txnorder2 WATCH readonly"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "txnorder_wake",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "txnorder_wake",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.000000",
+              "label": "txnorder2 busy owner inbox wake"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "reorder_identity",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "reorder_identity",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "123.260000",
+              "label": "R7 FIFO twin off-path identity + negative controls"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "reorder_sync",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "reorder_sync",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.950000",
+              "label": "R7 generated envelope parity"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "reorder_engagement",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "reorder_engagement",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "15.180000",
+              "label": "R7 production engagement (both database runtimes)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "wb_rule_units",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "wb_rule_units",
+          "done": "0\t4\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.110000",
+              "label": "writeback c12 policy witnesses + negative controls"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "6.130000",
+              "label": "writeback c12 phase witnesses + negative controls"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.730000",
+              "label": "writeback c12 stages witnesses + negative controls"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "5.900000",
+              "label": "writeback c12 split-phase witnesses + negative controls"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "wbland_units",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "wbland_units",
+          "done": "0\t2\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "7.250000",
+              "label": "writeback policy clauses witnesses + negative controls"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.070000",
+              "label": "writeback policy paths witnesses + negative controls"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "scriptfix",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "scriptfix",
+          "done": "0\t8\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.110000",
+              "label": "scriptfix sandbox (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.120000",
+              "label": "scriptfix functions (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.700000",
+              "label": "scriptfix replies (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.920000",
+              "label": "scriptfix dump (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.120000",
+              "label": "scriptfix sandbox (2s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.120000",
+              "label": "scriptfix functions (2s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.710000",
+              "label": "scriptfix replies (2s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.930000",
+              "label": "scriptfix dump (2s)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "atomfix5_watch",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "atomfix5_watch",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "2.110000",
+              "label": "atomfix5 WATCH key count (both modes, both engines, atomic 0/1)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "datafix2_watch",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "datafix2_watch",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "151.060000",
+              "label": "datafix2 CD4.9 write WATCH table vs Redis 7.4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "blockfix_structure",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "blockfix_structure",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "47.390000",
+              "label": "blockfix CC4.19 XINFO structural counts vs Redis 7.4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "blockfix_registry",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "blockfix_registry",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "39.030000",
+              "label": "blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "blockfix_mkstream",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "blockfix_mkstream",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "47.540000",
+              "label": "blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "serverfix_slowlog",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "serverfix_slowlog",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "13.290000",
+              "label": "serverfix SV4.14 disabled slowlog allocation"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "rlfix3_info",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "rlfix3_info",
+          "done": "0\t8\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.850000",
+              "label": "INFO selective collection (1s, epoll, read-local 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.840000",
+              "label": "INFO selective collection (1s, epoll, read-local 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.830000",
+              "label": "INFO selective collection (1s, uring, read-local 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.800000",
+              "label": "INFO selective collection (1s, uring, read-local 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.790000",
+              "label": "INFO selective collection (2s, epoll, read-local 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.820000",
+              "label": "INFO selective collection (2s, epoll, read-local 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.850000",
+              "label": "INFO selective collection (2s, uring, read-local 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.810000",
+              "label": "INFO selective collection (2s, uring, read-local 1)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "compat3",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "compat3",
+          "done": "0\t6\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "34.350000",
+              "label": "compat3 CC4.12 pubsub vs Redis 7.4"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "33.780000",
+              "label": "compat3 CC4.13 pending vs Redis 7.4"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "35.400000",
+              "label": "compat3 CC4.14 history vs Redis 7.4"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "35.220000",
+              "label": "compat3 CC4.16 grammar vs Redis 7.4"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "36.250000",
+              "label": "compat3 CC4.5 glob vs Redis 7.4"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "39.030000",
+              "label": "compat3 CC4.17 flags vs Redis 7.4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "netcmd_units",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "netcmd_units",
+          "done": "0\t16\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.000000",
+              "label": "netcmd regression build"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.360000",
+              "label": "netcmd streams regression"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "netcmd zpop regression"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "netcmd notify-oom regression"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "netcmd notify-retry regression"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.000000",
+              "label": "netcmd flush regression"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.100000",
+              "label": "netcmd output regression"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.000000",
+              "label": "netcmd pubsub regression"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "netcmd receive regression"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "netcmd config regression"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "netcmd wb-small-pipe regression"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "netcmd wb-complete-visits regression"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "netcmd hexpire-oom regression"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.400000",
+              "label": "encodingfix knob"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "encodingfix precedence"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.480000",
+              "label": "NET1 serverless bounds + scan + reclamation"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "atomic-recheck2",
+      "job": "atomic_units",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "atomic_units",
+          "done": "0\t27\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "atomic commit publication catches up at quiescence"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.170000",
+              "label": "flushfix flush witnesses"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "flushfix headers witnesses"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.570000",
+              "label": "multidb serverless owners"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "multidb global namespace boundary"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "12.690000",
+              "label": "storesize published monitoring"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.210000",
+              "label": "MULTI admin command replies"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "EXECABORT releases WATCH reservation"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.000000",
+              "label": "atomic survivors unit build"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: admission"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.000000",
+              "label": "atomic survivor: closure"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.000000",
+              "label": "atomic survivor: script_keys"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: rename_overlay"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: write_latest"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: script_apply"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: post_apply_probe"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: lua_conversion"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.000000",
+              "label": "atomic survivor: watch_parent"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.000000",
+              "label": "atomic survivor: watch_cycle"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: mset_arity"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: watch_oom"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: lua_lines"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: library_limit"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "atomic survivor: stage_flag"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: instruction_limit"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "armed resize retirement: atomic-growth"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "armed resize retirement: flush-prepared"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "splitlocal_units",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "splitlocal_units",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.970000",
+              "label": "splitlocal template forwarding + old-argument controls"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "repair-rechecks",
+      "job": "exbatch_units",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "exbatch_units",
+          "done": "0\t3\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "16.030000",
+              "label": "exbatch publication unit + negative controls"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "41.770000",
+              "label": "exbatch watch unit + negative controls"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "17.340000",
+              "label": "exbatch metadata unit + negative controls"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "moverfix",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "moverfix",
+          "done": "0\t8\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "2.880000",
+              "label": "moverfix conservation (1s, uring, databases 1, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.110000",
+              "label": "moverfix conservation (1s, uring, databases 16, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "9.680000",
+              "label": "moverfix conservation (1s, epoll, databases 1, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.270000",
+              "label": "moverfix conservation (1s, epoll, databases 16, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.670000",
+              "label": "moverfix conservation (2s, uring, databases 1, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.800000",
+              "label": "moverfix conservation (2s, uring, databases 16, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.680000",
+              "label": "moverfix conservation (2s, epoll, databases 1, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.880000",
+              "label": "moverfix conservation (2s, epoll, databases 16, atomic 0)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "core_units",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "core_units",
+          "done": "0\t9\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.390000",
+              "label": "core concurrency watch"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.330000",
+              "label": "core concurrency lifetime"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.110000",
+              "label": "core concurrency drain"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "7.370000",
+              "label": "core concurrency route"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.210000",
+              "label": "core concurrency snapshot"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.190000",
+              "label": "core concurrency config"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.180000",
+              "label": "core concurrency notify"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.820000",
+              "label": "read-local topology demotion (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.580000",
+              "label": "read-local topology demotion (2s)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "wait_units",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "wait_units",
+          "done": "0\t2\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "waits config publication + admission unit"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.230000",
+              "label": "reads never wait for retirement quiescence"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "serverfix_waitaof",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "serverfix_waitaof",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "6.880000",
+              "label": "serverfix SV4.5 WAITAOF wait lifecycle"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "netio-1s",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "netio-1s",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "3.400000",
+              "label": "epoll directed correctness (1s)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "netio-2s",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "netio-2s",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "3.000000",
+              "label": "epoll directed correctness (2s)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "asan",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "asan",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "128.100000",
+              "label": "ASAN build"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "rldbg",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "rldbg",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "77.310000",
+              "label": "read-local ownership-invariant build"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "netfix_query_stats",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "netfix_query_stats",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "1.840000",
+              "label": "netfix NT4.6 query-limit INFO parity"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "ntfix_input",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "ntfix_input",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "5.540000",
+              "label": "INFO received bytes exact (ntfix N1)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "persistfix2_lastsave",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "persistfix2_lastsave",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "8.570000",
+              "label": "persistfix2 LASTSAVE and rewrite INFO"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "racefix_counters",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "racefix_counters",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "1.600000",
+              "label": "INFO command/socket counters (TSan, both modes)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "notify_aof",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "notify_aof",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "13.290000",
+              "label": "local script notification AOF vs Redis 7.4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "notify_order",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "notify_order",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "72.770000",
+              "label": "keyspace lazy-expiry order vs Redis 7.4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "notifycompat",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "notifycompat",
+          "done": "0\t7\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "22.590000",
+              "label": "notification compatibility setbit vs Redis 7.4"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "41.370000",
+              "label": "notification compatibility setpast vs Redis 7.4"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "50.850000",
+              "label": "notification compatibility emptystore vs Redis 7.4"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "42.920000",
+              "label": "notification compatibility writemiss vs Redis 7.4"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "43.820000",
+              "label": "notification compatibility objectmiss vs Redis 7.4"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "144.840000",
+              "label": "notification compatibility expiredstore vs Redis 7.4"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "56.970000",
+              "label": "notification compatibility flush vs Redis 7.4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "exbatch_live",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "exbatch_live",
+          "done": "0\t2\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.280000",
+              "label": "exbatch publication and WATCH lifecycle (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.290000",
+              "label": "exbatch publication and WATCH lifecycle (2s)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "atomfix5_accounting",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "atomfix5_accounting",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "13.990000",
+              "label": "atomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "acl_recheck",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "acl_recheck",
+          "done": "0\t2\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "6.150000",
+              "label": "ACL recheck one-reply battery (2s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "6.250000",
+              "label": "ACL recheck one-reply battery (1s)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "aclfix",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "aclfix",
+          "done": "0\t12\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "aclfix sort (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "aclfix streams-name (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "aclfix save-load (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.060000",
+              "label": "aclfix capacity (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "aclfix wake-pop (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "aclfix wake-scatter (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "aclfix sort (2s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "aclfix streams-name (2s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "aclfix save-load (2s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.860000",
+              "label": "aclfix capacity (2s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "aclfix wake-pop (2s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "aclfix wake-scatter (2s)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "authfix",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "authfix",
+          "done": "0\t5\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.910000",
+              "label": "authfix CG4.1 binary config requirepass"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.490000",
+              "label": "authfix CG4.2 missing config value refuses boot"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.910000",
+              "label": "authfix SV4.2 binary requirepass rewrite restart"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.300000",
+              "label": "authfix SV4.1 slowlog credential redaction (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.300000",
+              "label": "authfix SV4.1 slowlog credential redaction (2s)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "bugs5",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "bugs5",
+          "done": "0\t3\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "62.140000",
+              "label": "bugs5 scancompact (both modes, both engines, atomic 0/1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "34.050000",
+              "label": "bugs5 slowlog_identity (both modes, both engines, atomic 0/1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "27.430000",
+              "label": "bugs5 read_local_lfu (both modes, both engines, atomic 0/1)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "rlcache",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "rlcache",
+          "done": "0\t2\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "25.170000",
+              "label": "armed block-cache churn battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "read-local ownership invariants"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "inline_quoted",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "inline_quoted",
+          "done": "0\t4\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "1.400000",
+              "label": "inline quoted argument decoding (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.390000",
+              "label": "inline quoted argument decoding (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.390000",
+              "label": "inline quoted argument decoding (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.390000",
+              "label": "inline quoted argument decoding (2s, uring)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "crlffix",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "crlffix",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "4.020000",
+              "label": "CRLF line replies match Redis and preserve synchronization"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "multifix-1s-uring",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "multifix-1s-uring",
+          "done": "0\t6\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "11.370000",
+              "label": "multifix RESET-IN-MULTI (1s uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "11.270000",
+              "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "11.740000",
+              "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "15.430000",
+              "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "28.810000",
+              "label": "multifix PAUSE-IN-MULTI (1s uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "12.260000",
+              "label": "multifix PAUSE-EXEC-NOT-HELD (1s uring)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "multifix-1s-epoll",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "multifix-1s-epoll",
+          "done": "0\t6\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "11.190000",
+              "label": "multifix RESET-IN-MULTI (1s epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "11.190000",
+              "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "11.710000",
+              "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "15.570000",
+              "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "28.910000",
+              "label": "multifix PAUSE-IN-MULTI (1s epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "12.080000",
+              "label": "multifix PAUSE-EXEC-NOT-HELD (1s epoll)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "multifix-2s-uring",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "multifix-2s-uring",
+          "done": "0\t6\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "11.170000",
+              "label": "multifix RESET-IN-MULTI (2s uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "11.190000",
+              "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "11.640000",
+              "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "15.440000",
+              "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "28.730000",
+              "label": "multifix PAUSE-IN-MULTI (2s uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "11.980000",
+              "label": "multifix PAUSE-EXEC-NOT-HELD (2s uring)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "multifix-2s-epoll",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "multifix-2s-epoll",
+          "done": "0\t6\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "11.290000",
+              "label": "multifix RESET-IN-MULTI (2s epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "11.310000",
+              "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "11.640000",
+              "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "15.480000",
+              "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "28.780000",
+              "label": "multifix PAUSE-IN-MULTI (2s epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "12.060000",
+              "label": "multifix PAUSE-EXEC-NOT-HELD (2s epoll)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "streamfix",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "streamfix",
+          "done": "0\t6\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "87.440000",
+              "label": "streamfix STREAM-TRIM-APPROX-LIMIT vs Redis 7.4"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "42.500000",
+              "label": "streamfix XREAD-PLUS-LAST vs Redis 7.4"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "35.060000",
+              "label": "streamfix XRANGE-EXCLUSIVE-SENTINEL vs Redis 7.4"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "34.050000",
+              "label": "streamfix STREAM-GROUP-ID-DASH vs Redis 7.4"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "33.810000",
+              "label": "streamfix XAUTOCLAIM-COUNT-RANGE vs Redis 7.4"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "33.880000",
+              "label": "streamfix MPOP-ARG-ERROR-TEXT vs Redis 7.4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "blockfix2",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "blockfix2",
+          "done": "0\t6\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "34.330000",
+              "label": "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "34.120000",
+              "label": "blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "33.690000",
+              "label": "blockfix2 MULTI-XREADGROUP-BLOCK-HANG"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "34.040000",
+              "label": "blockfix2 INFO-TOTAL-BLOCKING-KEYS"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "33.800000",
+              "label": "blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "blockfix2 BLOCK-SERVE-REFUSED-DROP"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "txnorder_wound",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "txnorder_wound",
+          "done": "0\t4\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.100000",
+              "label": "txnorder wound group"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "txnorder wound exec"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "txnorder wound oom"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.110000",
+              "label": "txnorder wound d2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "witness_contracts",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "witness_contracts",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.690000",
+              "label": "witness falsification contracts (testmap + placement)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "rob_portable",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "rob_portable",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "1.030000",
+              "label": "ROB portable completion without BMI"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "slotless",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "slotless",
+          "done": "0\t4\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "4.300000",
+              "label": "slotless remote completions (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.890000",
+              "label": "slotless remote completions (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.480000",
+              "label": "slotless remote completions (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.170000",
+              "label": "slotless remote completions (2s, uring)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "wb_mixed",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "wb_mixed",
+          "done": "0\t4\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "13.350000",
+              "label": "writeback mixed replies and live knob bounds (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "12.510000",
+              "label": "writeback mixed replies and live knob bounds (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "12.720000",
+              "label": "writeback mixed replies and live knob bounds (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "12.570000",
+              "label": "writeback mixed replies and live knob bounds (2s, uring)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "wave8b_off",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "wave8b_off",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "16.180000",
+              "label": "wave8b tracking-off EXEC scans and transitions"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "repair-rechecks",
+      "job": "reorder_bounds",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "reorder_bounds",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "R7 linear scan and lazy construction bounds (both databases)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "trackfix_order",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "trackfix_order",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "220.080000",
+              "label": "tracking delayed-write order vs Redis 7.4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "trackfix_accounting",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "trackfix_accounting",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "54.860000",
+              "label": "tracking-only delivery/drop accounting vs Redis 7.4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "tracking_redirect",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "tracking_redirect",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "36.950000",
+              "label": "tracking REDIRECT close vs Redis 7.4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "aoforder",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "aoforder",
+          "done": "0\t3\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "9.790000",
+              "label": "AOF commit order single"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.660000",
+              "label": "AOF commit order crossing"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "4.690000",
+              "label": "AOF commit order rewrite"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "racefix_climon",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "racefix_climon",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "4.610000",
+              "label": "Climon armed refresh + stale-store suppression control"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "dispatch_arity",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "dispatch_arity",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.880000",
+              "label": "dispatchfix EX4.10 container outer arity"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "dispatch_errors",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "dispatch_errors",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.920000",
+              "label": "dispatchfix EX4.11 container errors"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "dispatch_children",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "dispatch_children",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "1.080000",
+              "label": "dispatchfix EX4.4 advertised children"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "serverfix_lines",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "serverfix_lines",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "8.380000",
+              "label": "serverfix CG4.3 physical config lines"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "serverfix_scalar",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "serverfix_scalar",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "19.750000",
+              "label": "serverfix CG4.4 shared scalar grammar"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "serverfix_hello",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "serverfix_hello",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.780000",
+              "label": "serverfix SV4.7 HELLO canonical protocol"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "serverfix_config",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "serverfix_config",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.970000",
+              "label": "serverfix SV4.6 CONFIG validation matrix"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "bplus",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "bplus",
+          "done": "0\t8\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "2.150000",
+              "label": "B+ held-group GET/MGET filter battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.170000",
+              "label": "read-local lane admission battery"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "read-local MGET fence battery (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.910000",
+              "label": "read-local GET miss battery (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "read-local one-key delete battery (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.340000",
+              "label": "read-local MGET fence battery (2s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.910000",
+              "label": "read-local GET miss battery (2s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.080000",
+              "label": "read-local one-key delete battery (2s)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "repair-rechecks",
+      "job": "at412-T1",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "at412-T1",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "14.880000",
+              "label": "at412 T1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "at412-T2",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "at412-T2",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "26.470000",
+              "label": "at412 T2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "at412-T3",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "at412-T3",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "6.790000",
+              "label": "at412 T3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "at412-T4",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "at412-T4",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "13.120000",
+              "label": "at412 T4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "repair-rechecks",
+      "job": "at412-T5",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "at412-T5",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "134.590000",
+              "label": "at412 T5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "at412-T6",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "at412-T6",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "812.860000",
+              "label": "at412 T6"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "at412-T7",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "at412-T7",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "37.110000",
+              "label": "at412 T7"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "at412-T8",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "at412-T8",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "4.060000",
+              "label": "at412 T8"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "at412-T9",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "at412-T9",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "3.870000",
+              "label": "at412 T9"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "at412-T10",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "at412-T10",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "451.370000",
+              "label": "at412 T10"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "at412-T11a",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "at412-T11a",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "7.160000",
+              "label": "at412 T11a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "at412-T11b",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "at412-T11b",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "21.940000",
+              "label": "at412 T11b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "repair-rechecks",
+      "job": "at412-T12",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "at412-T12",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "14.790000",
+              "label": "at412 T12"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "at412-T13",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "at412-T13",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "122.150000",
+              "label": "at412 T13"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "at412-T14",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "at412-T14",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "5.920000",
+              "label": "at412 T14"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "at412-T15",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "at412-T15",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "109.160000",
+              "label": "at412 T15"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "final-once",
+      "job": "at412-T16",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "at412-T16",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "17.500000",
+              "label": "at412 T16"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "once",
+      "campaign": "atomic-recheck2",
+      "job": "at412-owner",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "at412-owner",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "at412 owner"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "supplemental_once",
+      "campaign": "supplemental-once",
+      "job": "clientfix",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "clientfix",
+          "done": "0\t14\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "1.760000",
+              "label": "clientfix tracking-cap (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "6.860000",
+              "label": "clientfix tracking-pipeline (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "13.720000",
+              "label": "clientfix reply-skip (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.300000",
+              "label": "clientfix pattern-cleanup (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.130000",
+              "label": "clientfix pause-deadline (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.100000",
+              "label": "clientfix geo-count (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.110000",
+              "label": "clientfix geo-store (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.750000",
+              "label": "clientfix tracking-cap (2s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "6.850000",
+              "label": "clientfix tracking-pipeline (2s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "11.620000",
+              "label": "clientfix reply-skip (2s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.300000",
+              "label": "clientfix pattern-cleanup (2s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.130000",
+              "label": "clientfix pause-deadline (2s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.110000",
+              "label": "clientfix geo-count (2s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.110000",
+              "label": "clientfix geo-store (2s)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "supplemental_once",
+      "campaign": "supplemental-once",
+      "job": "respresume-fragment-1s-epoll",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "respresume-fragment-1s-epoll",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "14.740000",
+              "label": "RESP resumable fragment (1s, epoll)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "supplemental_once",
+      "campaign": "supplemental-once",
+      "job": "respresume-fragment-1s-uring",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "respresume-fragment-1s-uring",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "14.890000",
+              "label": "RESP resumable fragment (1s, uring)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "supplemental_once",
+      "campaign": "supplemental-once",
+      "job": "respresume-fragment-2s-epoll",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "respresume-fragment-2s-epoll",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "14.880000",
+              "label": "RESP resumable fragment (2s, epoll)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "supplemental_once",
+      "campaign": "supplemental-once",
+      "job": "respresume-fragment-2s-uring",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "respresume-fragment-2s-uring",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "15.000000",
+              "label": "RESP resumable fragment (2s, uring)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "supplemental_once",
+      "campaign": "supplemental-once",
+      "job": "respresume-cpu-1s-epoll",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "respresume-cpu-1s-epoll",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "2.630000",
+              "label": "RESP resumable cpu (1s, epoll)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "supplemental_once",
+      "campaign": "supplemental-once",
+      "job": "respresume-cpu-1s-uring",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "respresume-cpu-1s-uring",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "2.620000",
+              "label": "RESP resumable cpu (1s, uring)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "supplemental_once",
+      "campaign": "supplemental-once",
+      "job": "respresume-cpu-2s-epoll",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "respresume-cpu-2s-epoll",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "2.620000",
+              "label": "RESP resumable cpu (2s, epoll)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "supplemental_once",
+      "campaign": "supplemental-once",
+      "job": "respresume-cpu-2s-uring",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "respresume-cpu-2s-uring",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "2.620000",
+              "label": "RESP resumable cpu (2s, uring)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "supplemental_once",
+      "campaign": "supplemental-once",
+      "job": "respresume-neighbour-1s-epoll",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "respresume-neighbour-1s-epoll",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.790000",
+              "label": "RESP resumable neighbour (1s, epoll)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "supplemental_once",
+      "campaign": "supplemental-once",
+      "job": "respresume-neighbour-1s-uring",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "respresume-neighbour-1s-uring",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.810000",
+              "label": "RESP resumable neighbour (1s, uring)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "supplemental_once",
+      "campaign": "supplemental-once",
+      "job": "respresume-neighbour-2s-epoll",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "respresume-neighbour-2s-epoll",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.790000",
+              "label": "RESP resumable neighbour (2s, epoll)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "supplemental_once",
+      "campaign": "supplemental-once",
+      "job": "respresume-neighbour-2s-uring",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "respresume-neighbour-2s-uring",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.790000",
+              "label": "RESP resumable neighbour (2s, uring)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "additional_once",
+      "campaign": "final-additional",
+      "job": "perfio_stream",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "perfio_stream",
+          "done": "0\t2\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.400000",
+              "label": "perfio XREADGROUP bounded delivery + Redis metadata (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.390000",
+              "label": "perfio XREADGROUP bounded delivery + Redis metadata (2s)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "additional_once",
+      "campaign": "final-additional",
+      "job": "climonfix",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "climonfix",
+          "done": "0\t7\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "shutdown policy + signal handoff serverless"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.340000",
+              "label": "shutdown persistence (1s, command)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.140000",
+              "label": "shutdown persistence (1s, sigterm)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.130000",
+              "label": "shutdown persistence (1s, sigint)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.340000",
+              "label": "shutdown persistence (2s, command)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.140000",
+              "label": "shutdown persistence (2s, sigterm)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.140000",
+              "label": "shutdown persistence (2s, sigint)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "additional_once",
+      "campaign": "final-additional",
+      "job": "ntnew4_live",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "ntnew4_live",
+          "done": "0\t3\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "1.180000",
+              "label": "NT-new-4 command clock after dequeue (2s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.200000",
+              "label": "NT-new-4 command clock after dequeue (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.180000",
+              "label": "NT-new-4 command clock after dequeue (2s, epoll)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "additional_once",
+      "campaign": "final-additional",
+      "job": "perfex_units",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "perfex_units",
+          "done": "0\t2\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.140000",
+              "label": "perfex clock binary regression"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.130000",
+              "label": "perfex batch binary regression"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "additional_once",
+      "campaign": "final-additional",
+      "job": "perfex_live",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "perfex_live",
+          "done": "0\t2\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "15.270000",
+              "label": "perfex TTL sampler beat (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "15.260000",
+              "label": "perfex TTL sampler beat (2s)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "additional_once",
+      "campaign": "final-additional",
+      "job": "netcap",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "netcap",
+          "done": "0\t4\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.310000",
+              "label": "NET1 inline + query cap (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.310000",
+              "label": "NET1 inline + query cap (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.310000",
+              "label": "NET1 inline + query cap (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.310000",
+              "label": "NET1 inline + query cap (2s, epoll)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "additional_once",
+      "campaign": "final-additional",
+      "job": "netfix_unix",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "netfix_unix",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "1.150000",
+              "label": "netfix NT4.11 Unix pathname parity"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "additional_once",
+      "campaign": "final-additional",
+      "job": "netfix_config",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "netfix_config",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "2.020000",
+              "label": "netfix NT4.8 network CONFIG error parity"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "additional_once",
+      "campaign": "final-additional",
+      "job": "netfix_tls",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "netfix_tls",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "10.100000",
+              "label": "netfix NT4.7 TLS default cipher parity"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "additional_once",
+      "campaign": "final-additional",
+      "job": "netfix_idle_buffers",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "netfix_idle_buffers",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "312.220000",
+              "label": "netfix NT4.19 idle buffer reclamation"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "additional_once",
+      "campaign": "final-additional",
+      "job": "boot_grammar",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "boot_grammar",
+          "done": "0\t7\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "reject --mode (flag deleted)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "reject --spread"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "reject --nodes"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "reject 3-part ratio"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "reject missing conf"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "reject bad conf key"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "reject aclfile + conf user lines"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "additional_once",
+      "campaign": "final-additional",
+      "job": "dbdefault",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "dbdefault",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.180000",
+              "label": "Redis default databases 16 (both modes)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "additional_once",
+      "campaign": "final-additional",
+      "job": "readonly",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "readonly",
+          "done": "0\t4\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "2.070000",
+              "label": "read-only resize split read-local=0"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.070000",
+              "label": "read-only resize split read-local=1"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.560000",
+              "label": "read-only resize fused read-local=0"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.560000",
+              "label": "read-only resize fused read-local=1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "additional_once",
+      "campaign": "final-additional",
+      "job": "hexpread",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "hexpread",
+          "done": "0\t8\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "1.150000",
+              "label": "hexpread torn (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.340000",
+              "label": "hexpread replies (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.150000",
+              "label": "hexpread deferred (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.150000",
+              "label": "hexpread OBJECT expiry (1s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.150000",
+              "label": "hexpread torn (2s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.330000",
+              "label": "hexpread replies (2s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.150000",
+              "label": "hexpread deferred (2s)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.150000",
+              "label": "hexpread OBJECT expiry (2s)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "additional_once",
+      "campaign": "final-additional",
+      "job": "serverfix_hll",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "serverfix_hll",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "6.230000",
+              "label": "serverfix SV4.8 HyperLogLog self-test controls"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "additional_once",
+      "campaign": "final-additional",
+      "job": "serverfix_acllog",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "serverfix_acllog",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "13.700000",
+              "label": "serverfix CC4.26 disabled ACL log allocation"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "additional_once",
+      "campaign": "final-additional",
+      "job": "rlfix3_zc",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "rlfix3_zc",
+          "done": "0\t8\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.280000",
+              "label": "read-local borrow capability (1s, epoll, read-local 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.280000",
+              "label": "read-local borrow capability (1s, epoll, read-local 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.290000",
+              "label": "read-local borrow capability (1s, uring, read-local 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.290000",
+              "label": "read-local borrow capability (1s, uring, read-local 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.290000",
+              "label": "read-local borrow capability (2s, epoll, read-local 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.290000",
+              "label": "read-local borrow capability (2s, epoll, read-local 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.290000",
+              "label": "read-local borrow capability (2s, uring, read-local 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.290000",
+              "label": "read-local borrow capability (2s, uring, read-local 1)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "additional_once",
+      "campaign": "final-additional",
+      "job": "aof_frame",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "aof_frame",
+          "done": "0\t2\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.360000",
+              "label": "AOF control frame never inside a large record (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.350000",
+              "label": "AOF control frame never inside a large record (atomic 1)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "additional_once",
+      "campaign": "final-additional",
+      "job": "sort",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "sort",
+          "done": "0\t2\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.120000",
+              "label": "cross-owner SORT battery (atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.120000",
+              "label": "cross-owner SORT battery (atomic 1)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "each_mode/1s",
+      "campaign": "final-persistence-1s",
+      "job": "aof-epoll",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "aof-epoll",
+          "done": "0\t54\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "configuration reduction + actual geometry (epoll, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.430000",
+              "label": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "AOF writer fired (records=N)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "AOF process-restart script replay (epoll, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "AOF native snapshot streams byte-exact"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "AOF replay fired (records=N skipped=N)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "configuration reduction + actual geometry (epoll, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.410000",
+              "label": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "AOF writer fired (records=N)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "AOF process-restart script replay (epoll, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "AOF native snapshot streams byte-exact"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "AOF replay fired (records=N skipped=N)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "AOF directed group interruption fired"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "AOF atomic-group recovery + writer order"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "AOF group shutdown invariants"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "AOF always sync + reply gate fired"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "AOF always recovery after quiescent SIGKILL"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.890000",
+              "label": "AOF in-window kill recovery (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.160000",
+              "label": "AOF in-window term recovery (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.910000",
+              "label": "AOF in-window kill recovery (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.200000",
+              "label": "AOF in-window term recovery (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.870000",
+              "label": "shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.860000",
+              "label": "shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.040000",
+              "label": "shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.990000",
+              "label": "shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.300000",
+              "label": "AOF everysec write gate + idle sync fired"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "AOF everysec durability window + tail warning"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "AOF no-sync bypassed sync + reply gate"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "5.320000",
+              "label": "AOF rewrite atomic/stage/corruption matrix"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "5.680000",
+              "label": "AOF rewrite triggers + observability matrix"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "AOF-off negative-control seed landed"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "AOF-off negative control lost data"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.430000",
+              "label": "aoffix2 snapshot (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.490000",
+              "label": "aoffix2 filename (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.180000",
+              "label": "aoffix2 error (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.550000",
+              "label": "aoffix2 tickets (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.560000",
+              "label": "aoffix2 exec_tickets (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.560000",
+              "label": "aoffix2 resurrection (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.410000",
+              "label": "aoffix2 rewrite_fail2 (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.340000",
+              "label": "aoffix2 manifest_missing (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.300000",
+              "label": "aoffix2 off-writer acknowledgement everysec (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.300000",
+              "label": "aoffix2 off-writer acknowledgement always (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.440000",
+              "label": "aoffix2 snapshot (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.510000",
+              "label": "aoffix2 filename (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.180000",
+              "label": "aoffix2 error (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.560000",
+              "label": "aoffix2 tickets (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.560000",
+              "label": "aoffix2 exec_tickets (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.570000",
+              "label": "aoffix2 resurrection (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.420000",
+              "label": "aoffix2 rewrite_fail2 (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.310000",
+              "label": "aoffix2 manifest_missing (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.290000",
+              "label": "aoffix2 off-writer acknowledgement everysec (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.290000",
+              "label": "aoffix2 off-writer acknowledgement always (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.350000",
+              "label": "aoffix2 large (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.200000",
+              "label": "aoffix2 large_placed (1s, epoll)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "each_mode/1s",
+      "campaign": "final-persistence-1s",
+      "job": "aof-uring",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "aof-uring",
+          "done": "0\t54\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "configuration reduction + actual geometry (uring, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.410000",
+              "label": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "AOF writer fired (records=N)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "AOF process-restart script replay (uring, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "AOF native snapshot streams byte-exact"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "AOF replay fired (records=N skipped=N)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.090000",
+              "label": "configuration reduction + actual geometry (uring, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.420000",
+              "label": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "AOF writer fired (records=N)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "AOF process-restart script replay (uring, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "AOF native snapshot streams byte-exact"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "AOF replay fired (records=N skipped=N)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "AOF directed group interruption fired"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "AOF atomic-group recovery + writer order"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "AOF group shutdown invariants"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "AOF always sync + reply gate fired"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "AOF always recovery after quiescent SIGKILL"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.890000",
+              "label": "AOF in-window kill recovery (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.750000",
+              "label": "AOF in-window term recovery (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.930000",
+              "label": "AOF in-window kill recovery (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.700000",
+              "label": "AOF in-window term recovery (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.830000",
+              "label": "shutdown cancels AOF rewrite capture (1s, atomic 0, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.920000",
+              "label": "shutdown cancels AOF rewrite capture (1s, atomic 1, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.960000",
+              "label": "shutdown cancels AOF rewrite capture (2s, atomic 0, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.010000",
+              "label": "shutdown cancels AOF rewrite capture (2s, atomic 1, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.300000",
+              "label": "AOF everysec write gate + idle sync fired"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "AOF everysec durability window + tail warning"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "AOF no-sync bypassed sync + reply gate"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "5.240000",
+              "label": "AOF rewrite atomic/stage/corruption matrix"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "5.440000",
+              "label": "AOF rewrite triggers + observability matrix"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "AOF-off negative-control seed landed"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "AOF-off negative control lost data"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.430000",
+              "label": "aoffix2 snapshot (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.500000",
+              "label": "aoffix2 filename (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.180000",
+              "label": "aoffix2 error (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.560000",
+              "label": "aoffix2 tickets (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.560000",
+              "label": "aoffix2 exec_tickets (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.550000",
+              "label": "aoffix2 resurrection (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.420000",
+              "label": "aoffix2 rewrite_fail2 (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.310000",
+              "label": "aoffix2 manifest_missing (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.290000",
+              "label": "aoffix2 off-writer acknowledgement everysec (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.300000",
+              "label": "aoffix2 off-writer acknowledgement always (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.430000",
+              "label": "aoffix2 snapshot (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.480000",
+              "label": "aoffix2 filename (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.180000",
+              "label": "aoffix2 error (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.550000",
+              "label": "aoffix2 tickets (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.550000",
+              "label": "aoffix2 exec_tickets (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.550000",
+              "label": "aoffix2 resurrection (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.330000",
+              "label": "aoffix2 rewrite_fail2 (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.310000",
+              "label": "aoffix2 manifest_missing (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.280000",
+              "label": "aoffix2 off-writer acknowledgement everysec (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.290000",
+              "label": "aoffix2 off-writer acknowledgement always (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.350000",
+              "label": "aoffix2 large (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.210000",
+              "label": "aoffix2 large_placed (1s, uring)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "each_mode/1s",
+      "campaign": "final-persistence-1s",
+      "job": "snapshot-epoll",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "snapshot-epoll",
+          "done": "0\t16\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.650000",
+              "label": "snapshot concurrent cut (epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.220000",
+              "label": "snapshot cut reload (epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.670000",
+              "label": "snapshot never tears a cross-shard MSET group (epoll, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "5.180000",
+              "label": "snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "typed snapshot save (epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "typed snapshot reload (epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.190000",
+              "label": "typed snapshot preimage race (epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "typed snapshot race reload (epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.820000",
+              "label": "shutdown keeps acknowledged writes (1s, sigterm, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.820000",
+              "label": "shutdown keeps acknowledged writes (1s, command, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.020000",
+              "label": "shutdown cancels BGSAVE capture (1s, atomic 0, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.960000",
+              "label": "shutdown cancels BGSAVE capture (1s, atomic 1, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.850000",
+              "label": "shutdown keeps acknowledged writes (2s, sigterm, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.820000",
+              "label": "shutdown keeps acknowledged writes (2s, command, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.060000",
+              "label": "shutdown cancels BGSAVE capture (2s, atomic 0, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.090000",
+              "label": "shutdown cancels BGSAVE capture (2s, atomic 1, epoll)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "each_mode/1s",
+      "campaign": "final-persistence-1s",
+      "job": "snapshot-uring",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "snapshot-uring",
+          "done": "0\t16\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.650000",
+              "label": "snapshot concurrent cut (uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.210000",
+              "label": "snapshot cut reload (uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.670000",
+              "label": "snapshot never tears a cross-shard MSET group (uring, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "5.230000",
+              "label": "snapshot never tears a MULTI/EXEC group (uring, default atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "typed snapshot save (uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "typed snapshot reload (uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.160000",
+              "label": "typed snapshot preimage race (uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "typed snapshot race reload (uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.820000",
+              "label": "shutdown keeps acknowledged writes (1s, sigterm, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.820000",
+              "label": "shutdown keeps acknowledged writes (1s, command, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.970000",
+              "label": "shutdown cancels BGSAVE capture (1s, atomic 0, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.980000",
+              "label": "shutdown cancels BGSAVE capture (1s, atomic 1, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.830000",
+              "label": "shutdown keeps acknowledged writes (2s, sigterm, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.830000",
+              "label": "shutdown keeps acknowledged writes (2s, command, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.080000",
+              "label": "shutdown cancels BGSAVE capture (2s, atomic 0, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.080000",
+              "label": "shutdown cancels BGSAVE capture (2s, atomic 1, uring)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "each_mode/2s",
+      "campaign": "final-persistence-2s",
+      "job": "aof-epoll",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "aof-epoll",
+          "done": "0\t54\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "configuration reduction + actual geometry (epoll, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.430000",
+              "label": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "AOF writer fired (records=N)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "AOF process-restart script replay (epoll, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "AOF native snapshot streams byte-exact"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "AOF replay fired (records=N skipped=N)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "configuration reduction + actual geometry (epoll, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.410000",
+              "label": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "AOF writer fired (records=N)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "AOF process-restart script replay (epoll, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "AOF native snapshot streams byte-exact"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.000000",
+              "label": "AOF replay fired (records=N skipped=N)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "AOF directed group interruption fired"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "AOF atomic-group recovery + writer order"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "AOF group shutdown invariants"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "AOF always sync + reply gate fired"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "AOF always recovery after quiescent SIGKILL"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.930000",
+              "label": "AOF in-window kill recovery (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.320000",
+              "label": "AOF in-window term recovery (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.940000",
+              "label": "AOF in-window kill recovery (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.610000",
+              "label": "AOF in-window term recovery (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.770000",
+              "label": "shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.880000",
+              "label": "shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.970000",
+              "label": "shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.020000",
+              "label": "shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.300000",
+              "label": "AOF everysec write gate + idle sync fired"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "AOF everysec durability window + tail warning"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "AOF no-sync bypassed sync + reply gate"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "5.330000",
+              "label": "AOF rewrite atomic/stage/corruption matrix"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "5.550000",
+              "label": "AOF rewrite triggers + observability matrix"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.000000",
+              "label": "AOF-off negative-control seed landed"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "AOF-off negative control lost data"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.440000",
+              "label": "aoffix2 snapshot (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.490000",
+              "label": "aoffix2 filename (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.180000",
+              "label": "aoffix2 error (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.560000",
+              "label": "aoffix2 tickets (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.560000",
+              "label": "aoffix2 exec_tickets (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.560000",
+              "label": "aoffix2 resurrection (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.420000",
+              "label": "aoffix2 rewrite_fail2 (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.310000",
+              "label": "aoffix2 manifest_missing (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.290000",
+              "label": "aoffix2 off-writer acknowledgement everysec (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.300000",
+              "label": "aoffix2 off-writer acknowledgement always (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.430000",
+              "label": "aoffix2 snapshot (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.500000",
+              "label": "aoffix2 filename (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.180000",
+              "label": "aoffix2 error (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.560000",
+              "label": "aoffix2 tickets (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.560000",
+              "label": "aoffix2 exec_tickets (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.560000",
+              "label": "aoffix2 resurrection (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.410000",
+              "label": "aoffix2 rewrite_fail2 (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.310000",
+              "label": "aoffix2 manifest_missing (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.300000",
+              "label": "aoffix2 off-writer acknowledgement everysec (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.290000",
+              "label": "aoffix2 off-writer acknowledgement always (2s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.350000",
+              "label": "aoffix2 large (1s, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.210000",
+              "label": "aoffix2 large_placed (1s, epoll)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "each_mode/2s",
+      "campaign": "final-persistence-2s",
+      "job": "aof-uring",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "aof-uring",
+          "done": "0\t54\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "configuration reduction + actual geometry (uring, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.440000",
+              "label": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "AOF writer fired (records=N)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "AOF process-restart script replay (uring, atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "AOF native snapshot streams byte-exact"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.000000",
+              "label": "AOF replay fired (records=N skipped=N)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.070000",
+              "label": "configuration reduction + actual geometry (uring, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.430000",
+              "label": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "AOF writer fired (records=N)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "AOF process-restart script replay (uring, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "AOF native snapshot streams byte-exact"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "AOF replay fired (records=N skipped=N)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.270000",
+              "label": "AOF directed group interruption fired"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.040000",
+              "label": "AOF atomic-group recovery + writer order"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "AOF group shutdown invariants"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "AOF always sync + reply gate fired"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "AOF always recovery after quiescent SIGKILL"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.950000",
+              "label": "AOF in-window kill recovery (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "3.080000",
+              "label": "AOF in-window term recovery (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.010000",
+              "label": "AOF in-window kill recovery (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.790000",
+              "label": "AOF in-window term recovery (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.880000",
+              "label": "shutdown cancels AOF rewrite capture (1s, atomic 0, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.960000",
+              "label": "shutdown cancels AOF rewrite capture (1s, atomic 1, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.930000",
+              "label": "shutdown cancels AOF rewrite capture (2s, atomic 0, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.010000",
+              "label": "shutdown cancels AOF rewrite capture (2s, atomic 1, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.300000",
+              "label": "AOF everysec write gate + idle sync fired"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.020000",
+              "label": "AOF everysec durability window + tail warning"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.030000",
+              "label": "AOF no-sync bypassed sync + reply gate"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "5.290000",
+              "label": "AOF rewrite atomic/stage/corruption matrix"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "5.720000",
+              "label": "AOF rewrite triggers + observability matrix"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "AOF-off negative-control seed landed"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.010000",
+              "label": "AOF-off negative control lost data"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.530000",
+              "label": "aoffix2 snapshot (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.700000",
+              "label": "aoffix2 filename (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.190000",
+              "label": "aoffix2 error (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.650000",
+              "label": "aoffix2 tickets (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.620000",
+              "label": "aoffix2 exec_tickets (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.620000",
+              "label": "aoffix2 resurrection (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.470000",
+              "label": "aoffix2 rewrite_fail2 (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.350000",
+              "label": "aoffix2 manifest_missing (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.330000",
+              "label": "aoffix2 off-writer acknowledgement everysec (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.330000",
+              "label": "aoffix2 off-writer acknowledgement always (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.470000",
+              "label": "aoffix2 snapshot (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.670000",
+              "label": "aoffix2 filename (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.210000",
+              "label": "aoffix2 error (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.710000",
+              "label": "aoffix2 tickets (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.740000",
+              "label": "aoffix2 exec_tickets (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.730000",
+              "label": "aoffix2 resurrection (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.530000",
+              "label": "aoffix2 rewrite_fail2 (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.370000",
+              "label": "aoffix2 manifest_missing (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.350000",
+              "label": "aoffix2 off-writer acknowledgement everysec (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.340000",
+              "label": "aoffix2 off-writer acknowledgement always (2s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.390000",
+              "label": "aoffix2 large (1s, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.250000",
+              "label": "aoffix2 large_placed (1s, uring)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "each_mode/2s",
+      "campaign": "final-persistence-2s",
+      "job": "snapshot-epoll",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "snapshot-epoll",
+          "done": "0\t16\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.650000",
+              "label": "snapshot concurrent cut (epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.200000",
+              "label": "snapshot cut reload (epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.780000",
+              "label": "snapshot never tears a cross-shard MSET group (epoll, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "5.310000",
+              "label": "snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "typed snapshot save (epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "typed snapshot reload (epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.180000",
+              "label": "typed snapshot preimage race (epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "typed snapshot race reload (epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.910000",
+              "label": "shutdown keeps acknowledged writes (1s, sigterm, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.900000",
+              "label": "shutdown keeps acknowledged writes (1s, command, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.130000",
+              "label": "shutdown cancels BGSAVE capture (1s, atomic 0, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.010000",
+              "label": "shutdown cancels BGSAVE capture (1s, atomic 1, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.910000",
+              "label": "shutdown keeps acknowledged writes (2s, sigterm, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.890000",
+              "label": "shutdown keeps acknowledged writes (2s, command, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.160000",
+              "label": "shutdown cancels BGSAVE capture (2s, atomic 0, epoll)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.250000",
+              "label": "shutdown cancels BGSAVE capture (2s, atomic 1, epoll)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "each_mode/2s",
+      "campaign": "final-persistence-2s",
+      "job": "snapshot-uring",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "snapshot-uring",
+          "done": "0\t16\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "0.630000",
+              "label": "snapshot concurrent cut (uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.170000",
+              "label": "snapshot cut reload (uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.790000",
+              "label": "snapshot never tears a cross-shard MSET group (uring, atomic 1)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "5.170000",
+              "label": "snapshot never tears a MULTI/EXEC group (uring, default atomic 0)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.060000",
+              "label": "typed snapshot save (uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "typed snapshot reload (uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.170000",
+              "label": "typed snapshot preimage race (uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.050000",
+              "label": "typed snapshot race reload (uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.830000",
+              "label": "shutdown keeps acknowledged writes (1s, sigterm, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.830000",
+              "label": "shutdown keeps acknowledged writes (1s, command, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.030000",
+              "label": "shutdown cancels BGSAVE capture (1s, atomic 0, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.000000",
+              "label": "shutdown cancels BGSAVE capture (1s, atomic 1, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.840000",
+              "label": "shutdown keeps acknowledged writes (2s, sigterm, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "0.840000",
+              "label": "shutdown keeps acknowledged writes (2s, command, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.090000",
+              "label": "shutdown cancels BGSAVE capture (2s, atomic 0, uring)"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "1.080000",
+              "label": "shutdown cancels BGSAVE capture (2s, atomic 1, uring)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "differ_each_engine/uring",
+      "campaign": "final-differ-uring",
+      "job": "differ-split",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "differ-equivalence",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "21.960000",
+              "label": "mode equivalence part (all execution modes and knobs)"
+            }
+          ]
+        },
+        {
+          "name": "differ-split-0",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "540.500000",
+              "label": "Redis 7.4 differential part (split, atomic 0)"
+            }
+          ]
+        },
+        {
+          "name": "differ-split-1",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "537.230000",
+              "label": "Redis 7.4 differential part (split, atomic 1)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "differ_each_engine/uring",
+      "campaign": "final-differ-uring",
+      "job": "differ-armed",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "differ-armed-0",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "527.280000",
+              "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+            }
+          ]
+        },
+        {
+          "name": "differ-armed-1",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "534.270000",
+              "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "each_engine/uring",
+      "campaign": "final-engine-uring",
+      "job": "feature-split-0",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/uring",
+      "campaign": "final-engine-uring",
+      "job": "feature-split-1",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/uring",
+      "campaign": "final-engine-uring",
+      "job": "feature-armed-0",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/uring",
+      "campaign": "final-engine-uring",
+      "job": "feature-armed-1",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/uring",
+      "campaign": "final-engine-uring",
+      "job": "fused-0",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/uring",
+      "campaign": "final-engine-uring",
+      "job": "fused-1",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/uring",
+      "campaign": "final-engine-uring",
+      "job": "txn_group_fused",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/uring",
+      "campaign": "final-engine-uring",
+      "job": "txn_group_split",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/uring",
+      "campaign": "final-engine-uring",
+      "job": "txnorder-fused-0",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/uring",
+      "campaign": "final-engine-uring",
+      "job": "txnorder-fused-1",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/uring",
+      "campaign": "final-engine-uring",
+      "job": "txnorder-split-0",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/uring",
+      "campaign": "final-engine-uring",
+      "job": "txnorder-split-1",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/uring",
+      "campaign": "final-engine-uring",
+      "job": "replyoff",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/uring",
+      "campaign": "final-engine-uring",
+      "job": "wb_policy",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/uring",
+      "campaign": "final-engine-uring",
+      "job": "multidb-1s-0-0",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/uring",
+      "campaign": "final-engine-uring",
+      "job": "multidb-1s-0-1",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/uring",
+      "campaign": "final-engine-uring",
+      "job": "multidb-1s-1-0",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/uring",
+      "campaign": "final-engine-uring",
+      "job": "multidb-1s-1-1",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/uring",
+      "campaign": "final-engine-uring",
+      "job": "multidb-2s-0-0",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/uring",
+      "campaign": "final-engine-uring",
+      "job": "multidb-2s-0-1",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/uring",
+      "campaign": "final-engine-uring",
+      "job": "multidb-2s-1-0",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/uring",
+      "campaign": "final-engine-uring",
+      "job": "multidb-2s-1-1",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/uring",
+      "campaign": "final-engine-uring",
+      "job": "respcompat",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/uring/1s",
+      "campaign": "final-mode-uring-1s",
+      "job": "debug-0",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/uring/1s",
+      "campaign": "final-mode-uring-1s",
+      "job": "debug-1",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/uring/1s",
+      "campaign": "final-mode-uring-1s",
+      "job": "script_bounds",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/uring/1s",
+      "campaign": "final-mode-uring-1s",
+      "job": "notify",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/uring/1s",
+      "campaign": "final-mode-uring-1s",
+      "job": "asan_batteries",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/uring/1s",
+      "campaign": "final-mode-uring-1s",
+      "job": "atomic_batteries",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/uring/1s",
+      "campaign": "final-mode-uring-1s",
+      "job": "release_batteries",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/uring/2s",
+      "campaign": "final-mode-uring-2s",
+      "job": "debug-0",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/uring/2s",
+      "campaign": "final-mode-uring-2s",
+      "job": "debug-1",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/uring/2s",
+      "campaign": "final-mode-uring-2s",
+      "job": "script_bounds",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/uring/2s",
+      "campaign": "final-mode-uring-2s",
+      "job": "notify",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/uring/2s",
+      "campaign": "final-mode-uring-2s",
+      "job": "asan_batteries",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/uring/2s",
+      "campaign": "final-mode-uring-2s",
+      "job": "atomic_batteries",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/uring/2s",
+      "campaign": "final-mode-uring-2s",
+      "job": "release_batteries",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "differ_each_engine/epoll",
+      "campaign": "final-differ-epoll",
+      "job": "differ-split",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "differ-equivalence",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "21.740000",
+              "label": "mode equivalence part (all execution modes and knobs)"
+            }
+          ]
+        },
+        {
+          "name": "differ-split-0",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "530.280000",
+              "label": "Redis 7.4 differential part (split, atomic 0)"
+            }
+          ]
+        },
+        {
+          "name": "differ-split-1",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "532.470000",
+              "label": "Redis 7.4 differential part (split, atomic 1)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "differ_each_engine/epoll",
+      "campaign": "final-differ-epoll",
+      "job": "differ-armed",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "differ-armed-0",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "524.590000",
+              "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+            }
+          ]
+        },
+        {
+          "name": "differ-armed-1",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "532.240000",
+              "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "each_engine/epoll",
+      "campaign": "final-engine-epoll",
+      "job": "feature-split-0",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/epoll",
+      "campaign": "final-engine-epoll",
+      "job": "feature-split-1",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/epoll",
+      "campaign": "final-engine-epoll",
+      "job": "feature-armed-0",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/epoll",
+      "campaign": "final-engine-epoll",
+      "job": "feature-armed-1",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/epoll",
+      "campaign": "final-engine-epoll",
+      "job": "fused-0",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/epoll",
+      "campaign": "final-engine-epoll",
+      "job": "fused-1",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/epoll",
+      "campaign": "final-engine-epoll",
+      "job": "txn_group_fused",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/epoll",
+      "campaign": "final-engine-epoll",
+      "job": "txn_group_split",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/epoll",
+      "campaign": "final-engine-epoll",
+      "job": "txnorder-fused-0",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/epoll",
+      "campaign": "final-engine-epoll",
+      "job": "txnorder-fused-1",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/epoll",
+      "campaign": "final-engine-epoll",
+      "job": "txnorder-split-0",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/epoll",
+      "campaign": "final-engine-epoll",
+      "job": "txnorder-split-1",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/epoll",
+      "campaign": "final-engine-epoll",
+      "job": "replyoff",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/epoll",
+      "campaign": "final-engine-epoll",
+      "job": "wb_policy",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/epoll",
+      "campaign": "final-engine-epoll",
+      "job": "multidb-1s-0-0",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/epoll",
+      "campaign": "final-engine-epoll",
+      "job": "multidb-1s-0-1",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/epoll",
+      "campaign": "final-engine-epoll",
+      "job": "multidb-1s-1-0",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/epoll",
+      "campaign": "final-engine-epoll",
+      "job": "multidb-1s-1-1",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/epoll",
+      "campaign": "final-engine-epoll",
+      "job": "multidb-2s-0-0",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/epoll",
+      "campaign": "final-engine-epoll",
+      "job": "multidb-2s-0-1",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/epoll",
+      "campaign": "final-engine-epoll",
+      "job": "multidb-2s-1-0",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/epoll",
+      "campaign": "final-engine-epoll",
+      "job": "multidb-2s-1-1",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_engine/epoll",
+      "campaign": "final-engine-epoll",
+      "job": "respcompat",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/epoll/1s",
+      "campaign": "final-mode-epoll-1s",
+      "job": "debug-0",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/epoll/1s",
+      "campaign": "final-mode-epoll-1s",
+      "job": "debug-1",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/epoll/1s",
+      "campaign": "final-mode-epoll-1s",
+      "job": "script_bounds",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/epoll/1s",
+      "campaign": "final-mode-epoll-1s",
+      "job": "notify",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/epoll/1s",
+      "campaign": "final-mode-epoll-1s",
+      "job": "asan_batteries",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/epoll/1s",
+      "campaign": "final-mode-epoll-1s",
+      "job": "atomic_batteries",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/epoll/1s",
+      "campaign": "final-mode-epoll-1s",
+      "job": "release_batteries",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/epoll/2s",
+      "campaign": "final-mode-epoll-2s",
+      "job": "debug-0",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/epoll/2s",
+      "campaign": "final-mode-epoll-2s",
+      "job": "debug-1",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/epoll/2s",
+      "campaign": "final-mode-epoll-2s",
+      "job": "script_bounds",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/epoll/2s",
+      "campaign": "final-mode-epoll-2s",
+      "job": "notify",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/epoll/2s",
+      "campaign": "final-mode-epoll-2s",
+      "job": "asan_batteries",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/epoll/2s",
+      "campaign": "final-mode-epoll-2s",
+      "job": "atomic_batteries",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "each_mode_engine/epoll/2s",
+      "campaign": "final-mode-epoll-2s",
+      "job": "release_batteries",
+      "status": "NOT RUN",
+      "children": []
+    },
+    {
+      "group": "deliberately_loaded",
+      "campaign": "execfair-loaded",
+      "job": "execfair",
+      "status": "PASS",
+      "children": [
+        {
+          "name": "execfair",
+          "done": "0\t1\t0",
+          "rows": [
+            {
+              "verdict": "ok",
+              "seconds": "72.640000",
+              "label": "EXEC fast-lane polls"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "tcl_both_modes",
+      "campaign": "final-tcl",
+      "job": "redis_tcl",
+      "status": "FAIL",
+      "children": [
+        {
+          "name": "redis_tcl",
+          "done": "0\t0\t2",
+          "rows": [
+            {
+              "verdict": "FAIL",
+              "seconds": "195.380000",
+              "label": "Redis 7.4.10 Tcl passing subset (2s)"
+            },
+            {
+              "verdict": "FAIL",
+              "seconds": "197.460000",
+              "label": "Redis 7.4.10 Tcl passing subset (1s)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "tcl_dependency_and_native_legs",
+      "campaign": "final-tcl",
+      "job": "compat2",
+      "status": "FAIL",
+      "children": [
+        {
+          "name": "compat2",
+          "done": "0\t2\t1",
+          "rows": [
+            {
+              "verdict": "FAIL",
+              "seconds": "2.080000",
+              "label": "compat2 autharity"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "6.840000",
+              "label": "compat2 expire_notify"
+            },
+            {
+              "verdict": "ok",
+              "seconds": "2.470000",
+              "label": "compat2 ktls_lifetime"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "selftest_throwaway",
+      "campaign": "final-selftest4",
+      "job": "abba_selftest",
+      "status": "NOT RUN",
+      "children": []
+    }
+  ],
+  "added_rows": [
+    {
+      "lane": "woundfix",
+      "label": "txnorder wound group",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "txnorder_wound"
+        }
+      ]
+    },
+    {
+      "lane": "woundfix",
+      "label": "txnorder wound exec",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "txnorder_wound"
+        }
+      ]
+    },
+    {
+      "lane": "woundfix",
+      "label": "txnorder wound oom",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "txnorder_wound"
+        }
+      ]
+    },
+    {
+      "lane": "woundfix",
+      "label": "txnorder wound d2",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "txnorder_wound"
+        }
+      ]
+    },
+    {
+      "lane": "gaterows5",
+      "label": "witness falsification contracts (testmap + placement)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "witness_contracts"
+        }
+      ]
+    },
+    {
+      "lane": "gaterows5",
+      "label": "R7 linear scan and lazy construction bounds (both databases)",
+      "passing_receipts": [
+        {
+          "campaign": "repair-rechecks",
+          "job": "reorder_bounds"
+        }
+      ]
+    },
+    {
+      "lane": "gaterows5",
+      "label": "ROB portable completion without BMI",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "rob_portable"
+        }
+      ]
+    },
+    {
+      "lane": "gaterows5",
+      "label": "slotless remote completions (1s, epoll)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "slotless"
+        }
+      ]
+    },
+    {
+      "lane": "gaterows5",
+      "label": "slotless remote completions (1s, uring)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "slotless"
+        }
+      ]
+    },
+    {
+      "lane": "gaterows5",
+      "label": "slotless remote completions (2s, epoll)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "slotless"
+        }
+      ]
+    },
+    {
+      "lane": "gaterows5",
+      "label": "slotless remote completions (2s, uring)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "slotless"
+        }
+      ]
+    },
+    {
+      "lane": "gaterows5",
+      "label": "writeback mixed replies and live knob bounds (1s, epoll)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "wb_mixed"
+        }
+      ]
+    },
+    {
+      "lane": "gaterows5",
+      "label": "writeback mixed replies and live knob bounds (1s, uring)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "wb_mixed"
+        }
+      ]
+    },
+    {
+      "lane": "gaterows5",
+      "label": "writeback mixed replies and live knob bounds (2s, epoll)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "wb_mixed"
+        }
+      ]
+    },
+    {
+      "lane": "gaterows5",
+      "label": "writeback mixed replies and live knob bounds (2s, uring)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "wb_mixed"
+        }
+      ]
+    },
+    {
+      "lane": "protofix",
+      "label": "inline quoted argument decoding (1s, epoll)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "inline_quoted"
+        }
+      ]
+    },
+    {
+      "lane": "protofix",
+      "label": "inline quoted argument decoding (1s, uring)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "inline_quoted"
+        }
+      ]
+    },
+    {
+      "lane": "protofix",
+      "label": "inline quoted argument decoding (2s, epoll)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "inline_quoted"
+        }
+      ]
+    },
+    {
+      "lane": "protofix",
+      "label": "inline quoted argument decoding (2s, uring)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "inline_quoted"
+        }
+      ]
+    },
+    {
+      "lane": "crlffix",
+      "label": "CRLF line replies match Redis and preserve synchronization",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "crlffix"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix RESET-IN-MULTI (1s uring)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-1s-uring"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s uring)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-1s-uring"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s uring)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-1s-uring"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-1s-uring"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix PAUSE-IN-MULTI (1s uring)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-1s-uring"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix PAUSE-EXEC-NOT-HELD (1s uring)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-1s-uring"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix RESET-IN-MULTI (1s epoll)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-1s-epoll"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s epoll)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-1s-epoll"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s epoll)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-1s-epoll"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-1s-epoll"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix PAUSE-IN-MULTI (1s epoll)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-1s-epoll"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix PAUSE-EXEC-NOT-HELD (1s epoll)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-1s-epoll"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix RESET-IN-MULTI (2s uring)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-2s-uring"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s uring)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-2s-uring"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s uring)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-2s-uring"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-2s-uring"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix PAUSE-IN-MULTI (2s uring)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-2s-uring"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix PAUSE-EXEC-NOT-HELD (2s uring)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-2s-uring"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix RESET-IN-MULTI (2s epoll)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-2s-epoll"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s epoll)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-2s-epoll"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s epoll)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-2s-epoll"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-2s-epoll"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix PAUSE-IN-MULTI (2s epoll)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-2s-epoll"
+        }
+      ]
+    },
+    {
+      "lane": "multifix",
+      "label": "multifix PAUSE-EXEC-NOT-HELD (2s epoll)",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "multifix-2s-epoll"
+        }
+      ]
+    },
+    {
+      "lane": "streamfix",
+      "label": "streamfix STREAM-TRIM-APPROX-LIMIT vs Redis 7.4",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "streamfix"
+        }
+      ]
+    },
+    {
+      "lane": "streamfix",
+      "label": "streamfix XREAD-PLUS-LAST vs Redis 7.4",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "streamfix"
+        }
+      ]
+    },
+    {
+      "lane": "streamfix",
+      "label": "streamfix XRANGE-EXCLUSIVE-SENTINEL vs Redis 7.4",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "streamfix"
+        }
+      ]
+    },
+    {
+      "lane": "streamfix",
+      "label": "streamfix STREAM-GROUP-ID-DASH vs Redis 7.4",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "streamfix"
+        }
+      ]
+    },
+    {
+      "lane": "streamfix",
+      "label": "streamfix XAUTOCLAIM-COUNT-RANGE vs Redis 7.4",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "streamfix"
+        }
+      ]
+    },
+    {
+      "lane": "streamfix",
+      "label": "streamfix MPOP-ARG-ERROR-TEXT vs Redis 7.4",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "streamfix"
+        }
+      ]
+    },
+    {
+      "lane": "blockfix2",
+      "label": "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "blockfix2"
+        }
+      ]
+    },
+    {
+      "lane": "blockfix2",
+      "label": "blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "blockfix2"
+        }
+      ]
+    },
+    {
+      "lane": "blockfix2",
+      "label": "blockfix2 MULTI-XREADGROUP-BLOCK-HANG",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "blockfix2"
+        }
+      ]
+    },
+    {
+      "lane": "blockfix2",
+      "label": "blockfix2 INFO-TOTAL-BLOCKING-KEYS",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "blockfix2"
+        }
+      ]
+    },
+    {
+      "lane": "blockfix2",
+      "label": "blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "blockfix2"
+        }
+      ]
+    },
+    {
+      "lane": "blockfix2",
+      "label": "blockfix2 BLOCK-SERVE-REFUSED-DROP",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "blockfix2"
+        }
+      ]
+    },
+    {
+      "lane": "at412c",
+      "label": "at412 T1",
+      "passing_receipts": [
+        {
+          "campaign": "repair-rechecks",
+          "job": "at412-T1"
+        }
+      ]
+    },
+    {
+      "lane": "at412c",
+      "label": "at412 T2",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "at412-T2"
+        }
+      ]
+    },
+    {
+      "lane": "at412c",
+      "label": "at412 T3",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "at412-T3"
+        }
+      ]
+    },
+    {
+      "lane": "at412c",
+      "label": "at412 T4",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "at412-T4"
+        }
+      ]
+    },
+    {
+      "lane": "at412c",
+      "label": "at412 T5",
+      "passing_receipts": [
+        {
+          "campaign": "repair-rechecks",
+          "job": "at412-T5"
+        }
+      ]
+    },
+    {
+      "lane": "at412c",
+      "label": "at412 T6",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "at412-T6"
+        }
+      ]
+    },
+    {
+      "lane": "at412c",
+      "label": "at412 T7",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "at412-T7"
+        }
+      ]
+    },
+    {
+      "lane": "at412c",
+      "label": "at412 T8",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "at412-T8"
+        }
+      ]
+    },
+    {
+      "lane": "at412c",
+      "label": "at412 T9",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "at412-T9"
+        }
+      ]
+    },
+    {
+      "lane": "at412c",
+      "label": "at412 T10",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "at412-T10"
+        }
+      ]
+    },
+    {
+      "lane": "at412c",
+      "label": "at412 T11a",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "at412-T11a"
+        }
+      ]
+    },
+    {
+      "lane": "at412c",
+      "label": "at412 T11b",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "at412-T11b"
+        }
+      ]
+    },
+    {
+      "lane": "at412c",
+      "label": "at412 T12",
+      "passing_receipts": [
+        {
+          "campaign": "repair-rechecks",
+          "job": "at412-T12"
+        }
+      ]
+    },
+    {
+      "lane": "at412c",
+      "label": "at412 T13",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "at412-T13"
+        }
+      ]
+    },
+    {
+      "lane": "at412c",
+      "label": "at412 T14",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "at412-T14"
+        }
+      ]
+    },
+    {
+      "lane": "at412c",
+      "label": "at412 T15",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "at412-T15"
+        }
+      ]
+    },
+    {
+      "lane": "at412c",
+      "label": "at412 T16",
+      "passing_receipts": [
+        {
+          "campaign": "final-once",
+          "job": "at412-T16"
+        }
+      ]
+    },
+    {
+      "lane": "at412c",
+      "label": "at412 owner",
+      "passing_receipts": [
+        {
+          "campaign": "atomic-recheck2",
+          "job": "at412-owner"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "PASS": 144,
+    "NOT RUN": 75,
+    "FAIL": 2
+  },
+  "new_rows_passing": 74,
+  "note": "Whole-job verdicts; repeated prerequisite/public rows are not summed into a landing gate count."
+}

@@ -136,6 +136,12 @@ pre-budget passing build is retained as preliminary evidence only.
   instead of asserting its old lane allocation. Variant hashes are in
   [copied-builds.json](docs/wave9/copied-builds.json); gate-owned copied-build
   jobs retain their own build/run logs.
+- **Scheduler selftest:** the complete one-slot fixture exhausted its unchanged
+  45-second deadline when run alongside three independent full-inventory
+  fixtures. It now runs first, followed by the unchanged parallel scenarios.
+  Every job, watchdog, negative control and deadline remains. The real-tree
+  `gates_test.py` passes all 73 tests; the complete ABBA job uses a throwaway
+  source copy with only its EXPECT assignments changed to 881/898.
 
 ### Tcl reconciliation and visible failures
 

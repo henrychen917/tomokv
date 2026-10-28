@@ -51,7 +51,7 @@
     ],
     "exit": 0,
     "output": "",
-    "sha256": "dfb117a5e0163dce99898e54739a3dfba7e757d8b8ec4732313a47c7baaedfb9"
+    "sha256": "500dadd19feabe28f6a00076a5fc2ff0eb385b2181a7d6ff3f5d75d9217a1eb9"
   },
   {
     "target": "build/atomic-survivors-unit",
@@ -62,17 +62,13 @@
     ],
     "exit": 0,
     "output": "",
-    "sha256": "fdabea20cc76a6f9d294fa15fd4f59d98535f77de19e791682cb7a802cbcc371"
+    "sha256": "c81b390556cce88e7dea06aa4bed158e8cfb1b51604fce006c49617e0e12ed02"
   },
   {
     "target": "build/blockfix-cost",
     "argv": [
       "make",
       "-q",
-      "-f",
-      "Makefile",
-      "-f",
-      "tools/blockfix_cost.mk",
       "build/blockfix-cost"
     ],
     "exit": 0,
@@ -84,30 +80,22 @@
     "argv": [
       "make",
       "-q",
-      "-f",
-      "Makefile",
-      "-f",
-      "tools/blockfix2.mk",
       "build/blockfix2-db0-unit"
     ],
     "exit": 0,
     "output": "",
-    "sha256": "8b26c1f2638d9aa93254da674a6c924fafcfad6f6c5bb73bc2cb79c1e032d66c"
+    "sha256": "6536aeb514320ffca8557de155a8ade6ab0183475c30cde9bd9de6ef2fb8d1a2"
   },
   {
     "target": "build/blockfix2-unit",
     "argv": [
       "make",
       "-q",
-      "-f",
-      "Makefile",
-      "-f",
-      "tools/blockfix2.mk",
       "build/blockfix2-unit"
     ],
     "exit": 0,
     "output": "",
-    "sha256": "7d74f32a4aa5f766d71af64ba9a100f7ab326b264d80e9efe4fcd0766e00e236"
+    "sha256": "46a4effbb0cb08476945680c0fa6327731a64eb744a107e67f6ded948c5ae1c6"
   },
   {
     "target": "build/core-concurrency-unit",
@@ -455,10 +443,6 @@
     "argv": [
       "make",
       "-q",
-      "-f",
-      "Makefile",
-      "-f",
-      "tools/blockfix_cost.mk",
       "build/tomokv.blockfix-cost.sha256"
     ],
     "exit": 0,
@@ -474,7 +458,7 @@
     ],
     "exit": 0,
     "output": "",
-    "sha256": "8b8208250392ec44e036e04da341fb9bf3893ad5c25de8735905de760fff5e44"
+    "sha256": "eefd0bc18fe6e6235d704f749852c6358fd8d9181cd7cfcb748c7485b431072b"
   },
   {
     "target": "build/txnorder-episodes-debug",
@@ -485,7 +469,7 @@
     ],
     "exit": 0,
     "output": "",
-    "sha256": "9e4db177b6eaa8baae27c0aea9dbea3d6d3285d857d25e404b1d1b666937b1d7"
+    "sha256": "21314ab0ca0316a1963007c8e49697be0e6a273d7d2787beadb291585551fcbf"
   },
   {
     "target": "build/txnorder-index-db0-unit",
@@ -496,7 +480,7 @@
     ],
     "exit": 0,
     "output": "",
-    "sha256": "68770397fb07541f9dad27be648e065cce3fb526c190a30ccad96a0fc6e14f7e"
+    "sha256": "3e3ad20a72acf269da4642b566fd9c033f1627fc58a1bbe7eaae1d70ea29c4de"
   },
   {
     "target": "build/txnorder-index-unit",
@@ -507,7 +491,7 @@
     ],
     "exit": 0,
     "output": "",
-    "sha256": "84e2d5aa597bac1719513393cff81c9dee3e6982a15466bba53073b5116e4306"
+    "sha256": "a92718be74352d6496c2f71594dcf0e0f510c9f0af010218b98ec8bef9ef90f1"
   },
   {
     "target": "build/txnorder-retry-unit",
@@ -540,7 +524,7 @@
     ],
     "exit": 0,
     "output": "",
-    "sha256": "67cec6fbe557267665cd670e853f0a1d322571560dfb90cc897c8c00a5c9b80c"
+    "sha256": "9cbb9bd4e7f2f17cf2a28db04e0a72d3e862f0157023fd2907acd3856ba3797c"
   },
   {
     "target": "build/txnorder-watch-unit",
@@ -551,7 +535,7 @@
     ],
     "exit": 0,
     "output": "",
-    "sha256": "a933061060fb232d6b46d0f11cbdfc91356e98f1610d6ef924e27ca8ca93c73d"
+    "sha256": "808ee66ff3e70cf46e13f65618b8eb643ef54ceadb94d5454009d3957e3742b9"
   },
   {
     "target": "build/txnorder-wound-db0-unit",
@@ -562,7 +546,7 @@
     ],
     "exit": 0,
     "output": "",
-    "sha256": "3e130ce7b96a3b5392380bd657f3a5441d02dcc8ffdce035b8d79ac9935c7899"
+    "sha256": "5de414e72efcf527c3d1d3f596631e1a8721e902d9adc6d835c123869b1f16dc"
   },
   {
     "target": "build/txnorder-wound-unit",
@@ -573,7 +557,7 @@
     ],
     "exit": 0,
     "output": "",
-    "sha256": "f66bcf285211088cfd04e41b5b8791f2c6be0f57e14390adff63498b90845463"
+    "sha256": "c05e1c3a6b31354ad8a65a8289cd9c4e06e71b8ed892bac281f57ea006a69338"
   },
   {
     "target": "build/waits-unit",

@@ -897,7 +897,7 @@ collect_job(){
         pool = ThreadPoolExecutor(max_workers=workers)
         cls.addClassCleanup(pool.shutdown, wait=True, cancel_futures=True)
         scenarios = [
-            {}, dict(reverse=True), dict(slots=3, ordered=False), dict(slots=1),
+            {}, dict(reverse=True), dict(slots=3, ordered=False),
             dict(slots=3, ordered=False, failure='core_tsan_build', behavior='before-affinity'),
             *(dict(failure='flipctl', behavior=kind) for kind in ('empty', 'red', 'return')),
             dict(failure=cls.canonical[-1], behavior='crash'),
@@ -909,8 +909,18 @@ collect_job(){
             dict(slots=2, ordered=False, dependency_probe=True, add_asan_dependency=True),
         ]
         probe = cls('test_one_slot_uses_the_same_queue_without_losing_coverage')
-        cls.fixtures = {tuple(sorted(options.items())): pool.submit(probe.prepare_fixture, options)
-                        for options in scenarios}
+        # This control deliberately serializes the complete inventory, including
+        # every real budget/watchdog/history process. Three other full fixtures
+        # beside it made that serial critical path exceed 45s after wave9's
+        # inventory grew. Run it first on owned CPUs; retain its deadline, all
+        # rows and every concurrently scheduled negative control below. Waiting
+        # through exception() preserves a failure for its test without skipping
+        # the remaining scenarios.
+        single_slot = pool.submit(probe._run_scheduler, slots=1, _cpus=cpus[-4:])
+        single_slot.exception()
+        cls.fixtures = {(('slots', 1),): single_slot}
+        cls.fixtures.update({tuple(sorted(options.items())): pool.submit(probe.prepare_fixture, options)
+                             for options in scenarios})
 
     def prepare_fixture(self, options):
         cpus = self.cpu_groups.get()

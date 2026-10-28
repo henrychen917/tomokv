@@ -46,5 +46,15 @@
     "files": 190,
     "bytes": 5197229,
     "tree_manifest_sha256": "d34e86ab70e2e74eaa21dc88e350829fabfcf3b895606c2a5ac56c0e2ff16a81"
+  },
+  {
+    "path": "build/wave9/commands/pre-normal/probe-debug",
+    "bytes": 221360120,
+    "sha256": "656ea9aec743b588eed904066efbc97f99f272cd1edb2632d533e3b1714a1c54"
+  },
+  {
+    "path": "build/wave9/commands/pre-normal/probe.o.debug",
+    "bytes": 10887048,
+    "sha256": "91b31bb39359b5130817a9fe155347f46995a5445d409cb9e593d353bee25e53"
   }
 ]

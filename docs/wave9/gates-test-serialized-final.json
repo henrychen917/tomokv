@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "88-95",
+    "env",
+    "GATE_TEST_PORT=20098",
+    "python3",
+    "tests/gates_test.py"
+  ],
+  "exit": 0,
+  "source_sha256": "057e2c9bb0e8c4e848bc7af14a5c5cc65c3f0a61e21d69881fc7a6edbecde4cd",
+  "deadline_seconds": 45,
+  "all_scenarios_retained": true
+}

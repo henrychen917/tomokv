@@ -11,6 +11,7 @@ p.add_argument('--binary', default='build/tomokv'); p.add_argument('--root', typ
 p.add_argument('--port', type=int, default=20020)
 p.add_argument('--server-start', type=int, choices=(64,72,80,88))
 p.add_argument('--asan-binary', type=Path)
+p.add_argument('--load-cores')
 a=p.parse_args()
 assert 20000 <= a.port <= 20080
 if a.server_start is not None:
@@ -18,6 +19,13 @@ if a.server_start is not None:
 server_cores = ('64-71' if a.single_slot else '64-87') if a.server_start is None else f'{a.server_start}-{a.server_start+7}'
 load_cores = ('72-95' if a.single_slot else '88-95') if a.server_start is None else ','.join(
     str(c) for c in range(64,96) if not a.server_start <= c <= a.server_start+7)
+if a.load_cores is not None:
+    from sys import path as module_path
+    module_path.insert(0,str(ROOT/'tests'))
+    from _gate_process import cpus
+    assert set(cpus(a.load_cores)) <= set(range(64,96))
+    assert not set(cpus(a.load_cores)) & set(cpus(server_cores))
+    load_cores=a.load_cores
 os.sched_setaffinity(0, set(range(64,96)))
 output=ROOT/'docs/wave9/jobs';output.mkdir(parents=True,exist_ok=True)
 log=output/(a.name+'.log'); assert not log.exists(), 'preserve the earlier attempt'
