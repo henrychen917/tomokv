@@ -1,0 +1,2431 @@
+{
+  "binary": "/home/user/Projects/cx-infofix/build/tomokv",
+  "sha256": "63d57541078450bb987820d425577d502c25120406e57f94febcb00869eb0455",
+  "checks": [
+    {
+      "label": "1s-uring explicit default deviation",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "no"
+      ]
+    },
+    {
+      "label": "1s-uring percentiles default",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "50 99 99.9"
+      ]
+    },
+    {
+      "label": "latency-tracking:0",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking",
+          "yes"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:1",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:2",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking",
+          "yes"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:3",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:4",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking') - argument must be 'yes' or 'no'"
+        },
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:5",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking') - argument must be 'yes' or 'no'"
+        },
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:6",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking') - argument must be 'yes' or 'no'"
+        },
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:7",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking') - argument must be 'yes' or 'no'"
+        },
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:8",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking') - argument must be 'yes' or 'no'"
+        },
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:9",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking",
+          "yes"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:0",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:1",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          ""
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:2",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "100 0 50 50 99.123457"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:3",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "-0 0 10 4"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:4",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:5",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:6",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:7",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:8",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:9",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - latency-tracking-info-percentiles parameters should sit between [0.0,100.0]"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:10",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - latency-tracking-info-percentiles parameters should sit between [0.0,100.0]"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:11",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - latency-tracking-info-percentiles parameters should sit between [0.0,100.0]"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:12",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:13",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "0"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:14",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:15",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "0"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:16",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "0"
+        ]
+      ]
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'LATENCY-TRACKING-INFO-PERCENTILES', '2')",
+      "passed": true,
+      "actual": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'LATENCY-TRACKING-INFO-PERCENTILES') - duplicate parameter"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'timeout', 'bad')",
+      "passed": true,
+      "actual": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '50', '99')",
+      "passed": true,
+      "actual": {
+        "error": "ERR syntax error"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking', 'bad', 'no-such-knob', 'x')",
+      "passed": true,
+      "actual": {
+        "error": "ERR Unknown option or number of arguments for CONFIG SET - 'no-such-knob'"
+      }
+    },
+    {
+      "label": "1s-uring file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "1s-uring file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "50 99 99.9"
+      ]
+    },
+    {
+      "label": "1s-uring rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-uring file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "1s-uring file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "50 99 99.9"
+      ]
+    },
+    {
+      "label": "1s-uring rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-uring rewrite directive",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "1s-uring file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "100 0 25.125 25.125"
+      ]
+    },
+    {
+      "label": "1s-uring rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-uring file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "1s-uring file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "100 0 25.125 25.125"
+      ]
+    },
+    {
+      "label": "1s-uring rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-uring rewrite directive",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "1s-uring file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        ""
+      ]
+    },
+    {
+      "label": "1s-uring rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-uring file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "1s-uring file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        ""
+      ]
+    },
+    {
+      "label": "1s-uring rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-uring rewrite directive",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "1s-uring file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        ""
+      ]
+    },
+    {
+      "label": "1s-uring rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-uring file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "1s-uring file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        ""
+      ]
+    },
+    {
+      "label": "1s-uring rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-uring rewrite directive",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "1s-uring file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "50 99.123457"
+      ]
+    },
+    {
+      "label": "1s-uring rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-uring file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "1s-uring file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "50 99.123457"
+      ]
+    },
+    {
+      "label": "1s-uring rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-uring rewrite directive",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll explicit default deviation",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "no"
+      ]
+    },
+    {
+      "label": "1s-epoll percentiles default",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "50 99 99.9"
+      ]
+    },
+    {
+      "label": "latency-tracking:0",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking",
+          "yes"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:1",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:2",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking",
+          "yes"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:3",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:4",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking') - argument must be 'yes' or 'no'"
+        },
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:5",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking') - argument must be 'yes' or 'no'"
+        },
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:6",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking') - argument must be 'yes' or 'no'"
+        },
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:7",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking') - argument must be 'yes' or 'no'"
+        },
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:8",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking') - argument must be 'yes' or 'no'"
+        },
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:9",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking",
+          "yes"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:0",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:1",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          ""
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:2",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "100 0 50 50 99.123457"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:3",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "-0 0 10 4"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:4",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:5",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:6",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:7",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:8",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:9",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - latency-tracking-info-percentiles parameters should sit between [0.0,100.0]"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:10",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - latency-tracking-info-percentiles parameters should sit between [0.0,100.0]"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:11",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - latency-tracking-info-percentiles parameters should sit between [0.0,100.0]"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:12",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:13",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "0"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:14",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:15",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "0"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:16",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "0"
+        ]
+      ]
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'LATENCY-TRACKING-INFO-PERCENTILES', '2')",
+      "passed": true,
+      "actual": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'LATENCY-TRACKING-INFO-PERCENTILES') - duplicate parameter"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'timeout', 'bad')",
+      "passed": true,
+      "actual": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '50', '99')",
+      "passed": true,
+      "actual": {
+        "error": "ERR syntax error"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking', 'bad', 'no-such-knob', 'x')",
+      "passed": true,
+      "actual": {
+        "error": "ERR Unknown option or number of arguments for CONFIG SET - 'no-such-knob'"
+      }
+    },
+    {
+      "label": "1s-epoll file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "1s-epoll file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "50 99 99.9"
+      ]
+    },
+    {
+      "label": "1s-epoll rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-epoll file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "1s-epoll file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "50 99 99.9"
+      ]
+    },
+    {
+      "label": "1s-epoll rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-epoll rewrite directive",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "1s-epoll file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "100 0 25.125 25.125"
+      ]
+    },
+    {
+      "label": "1s-epoll rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-epoll file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "1s-epoll file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "100 0 25.125 25.125"
+      ]
+    },
+    {
+      "label": "1s-epoll rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-epoll rewrite directive",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "1s-epoll file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        ""
+      ]
+    },
+    {
+      "label": "1s-epoll rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-epoll file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "1s-epoll file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        ""
+      ]
+    },
+    {
+      "label": "1s-epoll rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-epoll rewrite directive",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "1s-epoll file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        ""
+      ]
+    },
+    {
+      "label": "1s-epoll rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-epoll file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "1s-epoll file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        ""
+      ]
+    },
+    {
+      "label": "1s-epoll rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-epoll rewrite directive",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "1s-epoll file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "50 99.123457"
+      ]
+    },
+    {
+      "label": "1s-epoll rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-epoll file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "1s-epoll file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "50 99.123457"
+      ]
+    },
+    {
+      "label": "1s-epoll rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-epoll rewrite directive",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring explicit default deviation",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "no"
+      ]
+    },
+    {
+      "label": "2s-uring percentiles default",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "50 99 99.9"
+      ]
+    },
+    {
+      "label": "latency-tracking:0",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking",
+          "yes"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:1",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:2",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking",
+          "yes"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:3",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:4",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking') - argument must be 'yes' or 'no'"
+        },
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:5",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking') - argument must be 'yes' or 'no'"
+        },
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:6",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking') - argument must be 'yes' or 'no'"
+        },
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:7",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking') - argument must be 'yes' or 'no'"
+        },
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:8",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking') - argument must be 'yes' or 'no'"
+        },
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:9",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking",
+          "yes"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:0",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:1",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          ""
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:2",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "100 0 50 50 99.123457"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:3",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "-0 0 10 4"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:4",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:5",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:6",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:7",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:8",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:9",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - latency-tracking-info-percentiles parameters should sit between [0.0,100.0]"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:10",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - latency-tracking-info-percentiles parameters should sit between [0.0,100.0]"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:11",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - latency-tracking-info-percentiles parameters should sit between [0.0,100.0]"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:12",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:13",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "0"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:14",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:15",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "0"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:16",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "0"
+        ]
+      ]
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'LATENCY-TRACKING-INFO-PERCENTILES', '2')",
+      "passed": true,
+      "actual": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'LATENCY-TRACKING-INFO-PERCENTILES') - duplicate parameter"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'timeout', 'bad')",
+      "passed": true,
+      "actual": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '50', '99')",
+      "passed": true,
+      "actual": {
+        "error": "ERR syntax error"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking', 'bad', 'no-such-knob', 'x')",
+      "passed": true,
+      "actual": {
+        "error": "ERR Unknown option or number of arguments for CONFIG SET - 'no-such-knob'"
+      }
+    },
+    {
+      "label": "2s-uring file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "2s-uring file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "50 99 99.9"
+      ]
+    },
+    {
+      "label": "2s-uring rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-uring file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "2s-uring file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "50 99 99.9"
+      ]
+    },
+    {
+      "label": "2s-uring rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-uring rewrite directive",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "2s-uring file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "100 0 25.125 25.125"
+      ]
+    },
+    {
+      "label": "2s-uring rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-uring file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "2s-uring file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "100 0 25.125 25.125"
+      ]
+    },
+    {
+      "label": "2s-uring rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-uring rewrite directive",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "2s-uring file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        ""
+      ]
+    },
+    {
+      "label": "2s-uring rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-uring file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "2s-uring file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        ""
+      ]
+    },
+    {
+      "label": "2s-uring rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-uring rewrite directive",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "2s-uring file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        ""
+      ]
+    },
+    {
+      "label": "2s-uring rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-uring file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "2s-uring file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        ""
+      ]
+    },
+    {
+      "label": "2s-uring rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-uring rewrite directive",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "2s-uring file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "50 99.123457"
+      ]
+    },
+    {
+      "label": "2s-uring rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-uring file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "2s-uring file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "50 99.123457"
+      ]
+    },
+    {
+      "label": "2s-uring rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-uring rewrite directive",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll explicit default deviation",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "no"
+      ]
+    },
+    {
+      "label": "2s-epoll percentiles default",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "50 99 99.9"
+      ]
+    },
+    {
+      "label": "latency-tracking:0",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking",
+          "yes"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:1",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:2",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking",
+          "yes"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:3",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:4",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking') - argument must be 'yes' or 'no'"
+        },
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:5",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking') - argument must be 'yes' or 'no'"
+        },
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:6",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking') - argument must be 'yes' or 'no'"
+        },
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:7",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking') - argument must be 'yes' or 'no'"
+        },
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:8",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking') - argument must be 'yes' or 'no'"
+        },
+        [
+          "latency-tracking",
+          "no"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking:9",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking",
+          "yes"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:0",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:1",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          ""
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:2",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "100 0 50 50 99.123457"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:3",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "-0 0 10 4"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:4",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:5",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:6",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:7",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:8",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:9",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - latency-tracking-info-percentiles parameters should sit between [0.0,100.0]"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:10",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - latency-tracking-info-percentiles parameters should sit between [0.0,100.0]"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:11",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - latency-tracking-info-percentiles parameters should sit between [0.0,100.0]"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:12",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:13",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "0"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:14",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR CONFIG SET failed (possibly related to argument 'latency-tracking-info-percentiles') - Invalid latency-tracking-info-percentiles parameters"
+        },
+        [
+          "latency-tracking-info-percentiles",
+          "50 99 99.9"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:15",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "0"
+        ]
+      ]
+    },
+    {
+      "label": "latency-tracking-info-percentiles:16",
+      "passed": true,
+      "actual": [
+        "OK",
+        [
+          "latency-tracking-info-percentiles",
+          "0"
+        ]
+      ]
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'LATENCY-TRACKING-INFO-PERCENTILES', '2')",
+      "passed": true,
+      "actual": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'LATENCY-TRACKING-INFO-PERCENTILES') - duplicate parameter"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'timeout', 'bad')",
+      "passed": true,
+      "actual": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking-info-percentiles', '50', '99')",
+      "passed": true,
+      "actual": {
+        "error": "ERR syntax error"
+      }
+    },
+    {
+      "label": "('CONFIG', 'SET', 'latency-tracking', 'bad', 'no-such-knob', 'x')",
+      "passed": true,
+      "actual": {
+        "error": "ERR Unknown option or number of arguments for CONFIG SET - 'no-such-knob'"
+      }
+    },
+    {
+      "label": "2s-epoll file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "2s-epoll file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "50 99 99.9"
+      ]
+    },
+    {
+      "label": "2s-epoll rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-epoll file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "2s-epoll file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "50 99 99.9"
+      ]
+    },
+    {
+      "label": "2s-epoll rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-epoll rewrite directive",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "2s-epoll file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "100 0 25.125 25.125"
+      ]
+    },
+    {
+      "label": "2s-epoll rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-epoll file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "2s-epoll file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "100 0 25.125 25.125"
+      ]
+    },
+    {
+      "label": "2s-epoll rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-epoll rewrite directive",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "2s-epoll file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        ""
+      ]
+    },
+    {
+      "label": "2s-epoll rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-epoll file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "2s-epoll file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        ""
+      ]
+    },
+    {
+      "label": "2s-epoll rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-epoll rewrite directive",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "2s-epoll file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        ""
+      ]
+    },
+    {
+      "label": "2s-epoll rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-epoll file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "2s-epoll file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        ""
+      ]
+    },
+    {
+      "label": "2s-epoll rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-epoll rewrite directive",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "2s-epoll file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "50 99.123457"
+      ]
+    },
+    {
+      "label": "2s-epoll rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-epoll file tracking",
+      "passed": true,
+      "actual": [
+        "latency-tracking",
+        "yes"
+      ]
+    },
+    {
+      "label": "2s-epoll file percentiles",
+      "passed": true,
+      "actual": [
+        "latency-tracking-info-percentiles",
+        "50 99.123457"
+      ]
+    },
+    {
+      "label": "2s-epoll rewrite",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-epoll rewrite directive",
+      "passed": true,
+      "actual": true
+    }
+  ],
+  "slowlog": {}
+}

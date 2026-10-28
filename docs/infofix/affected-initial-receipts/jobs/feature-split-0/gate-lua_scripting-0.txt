@@ -1,0 +1,15 @@
+atomic boundary entry=0
+  ok   EVAL status/int/bulk/array/nil conversions values=b'OK'/1/b'bulk'/[b'a', b'b', b'c']/None
+  ok   EVAL and SCRIPT LOAD arm EVALSHA cache
+  ok   two declared KEYS are accepted [b'lua:test:444930:route:0', b'lua:test:444930:route:1']
+  ok   instruction hook aborts runaway script with BUSY BUSY script exceeded the 100000 instruction limit
+  ok   server remains responsive after hook abort
+  ok   redis.call errors propagate WRONGTYPE Operation against a key holding the wrong kind of value script: 435c2d08bbff8bfab578f76fd0e02865a0003164, on @user_script:1.
+  ok   redis.call rejects undeclared keys ERR Script attempted to access an undeclared key script: 2932c47b37b911cfbcb9bb1a43a41b6eb1aa9e58, on @user_script:1.
+  ok   atomic 0 retains partial effects (redis semantics) 'ERR user_script:1: boom script: 67714efe7df6d9905aa824012707de605b6081e3, on @user_script:1.' b'partial'
+  ok   atomic 0 retains effects of a killed script 'BUSY script exceeded the 100000 instruction limit' b'after'
+  ok   atomic 1 retains partial effects (redis semantics) 'ERR user_script:1: boom script: 67714efe7df6d9905aa824012707de605b6081e3, on @user_script:1.' b'partial'
+  ok   atomic 1 retains effects of a killed script 'BUSY script exceeded the 100000 instruction limit' b'after'
+  ok   SCRIPT FLUSH clears cache
+LUA SCRIPTING: 0 FAIL
+atomic boundary restored=0

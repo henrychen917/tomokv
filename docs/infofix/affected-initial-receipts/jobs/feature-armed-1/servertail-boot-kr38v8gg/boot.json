@@ -1,0 +1,26 @@
+{
+  "port": 20402,
+  "cores": "48,49,50,51",
+  "config": null,
+  "binary": "/home/user/Projects/cx-infofix/build/tomokv",
+  "reason": "ready",
+  "argv": [
+    "taskset",
+    "-c",
+    "48,49,50,51",
+    "/home/user/Projects/cx-infofix/build/tomokv",
+    "--databases",
+    "1",
+    "--port",
+    "20402",
+    "--bind",
+    "127.0.0.1",
+    "--enable-debug-command",
+    "yes",
+    "--shards",
+    "2",
+    "--dir",
+    "/home/user/Projects/cx-infofix/build/gate-run.nsS18G/jobs/feature-armed-1/tomokv-servertail-f8fffktm"
+  ],
+  "pid": 577793
+}

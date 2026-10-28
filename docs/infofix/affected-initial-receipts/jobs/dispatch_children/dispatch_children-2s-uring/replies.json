@@ -1,0 +1,263 @@
+[
+  {
+    "argv": [
+      "ACL",
+      "DRYRUN"
+    ],
+    "target": "-ERR wrong number of arguments for 'acl|dryrun' command\r\n",
+    "oracle": "-ERR wrong number of arguments for 'acl|dryrun' command\r\n"
+  },
+  {
+    "argv": [
+      "ACL",
+      "DRYRUN",
+      "default"
+    ],
+    "target": "-ERR wrong number of arguments for 'acl|dryrun' command\r\n",
+    "oracle": "-ERR wrong number of arguments for 'acl|dryrun' command\r\n"
+  },
+  {
+    "argv": [
+      "ACL",
+      "DRYRUN",
+      "absent",
+      "GET",
+      "key"
+    ],
+    "target": "-ERR User 'absent' not found\r\n",
+    "oracle": "-ERR User 'absent' not found\r\n"
+  },
+  {
+    "argv": [
+      "ACL",
+      "DRYRUN",
+      "default",
+      "NOSUCHCOMMAND"
+    ],
+    "target": "-ERR Command 'NOSUCHCOMMAND' not found\r\n",
+    "oracle": "-ERR Command 'NOSUCHCOMMAND' not found\r\n"
+  },
+  {
+    "argv": [
+      "ACL",
+      "DRYRUN",
+      "default",
+      "CONFIG",
+      "NOSUCHSUB"
+    ],
+    "target": "-ERR Command 'CONFIG' not found\r\n",
+    "oracle": "-ERR Command 'CONFIG' not found\r\n"
+  },
+  {
+    "argv": [
+      "ACL",
+      "DRYRUN",
+      "default",
+      "GET"
+    ],
+    "target": "-ERR wrong number of arguments for 'get' command\r\n",
+    "oracle": "-ERR wrong number of arguments for 'get' command\r\n"
+  },
+  {
+    "argv": [
+      "ACL",
+      "DRYRUN",
+      "default",
+      "CONFIG",
+      "GET"
+    ],
+    "target": "-ERR wrong number of arguments for 'config|get' command\r\n",
+    "oracle": "-ERR wrong number of arguments for 'config|get' command\r\n"
+  },
+  {
+    "argv": [
+      "ACL",
+      "DRYRUN",
+      "default",
+      "GET",
+      "key"
+    ],
+    "target": "OK",
+    "oracle": "OK"
+  },
+  {
+    "argv": [
+      "ACL",
+      "DRYRUN",
+      "reader",
+      "GET",
+      "allowed:key"
+    ],
+    "target": "OK",
+    "oracle": "OK"
+  },
+  {
+    "argv": [
+      "ACL",
+      "DRYRUN",
+      "reader",
+      "GET",
+      "denied:key"
+    ],
+    "target": "User reader has no permissions to access the 'denied:key' key",
+    "oracle": "User reader has no permissions to access the 'denied:key' key"
+  },
+  {
+    "argv": [
+      "ACL",
+      "DRYRUN",
+      "reader",
+      "DEL",
+      "allowed:key"
+    ],
+    "target": "User reader has no permissions to run the 'del' command",
+    "oracle": "User reader has no permissions to run the 'del' command"
+  },
+  {
+    "argv": [
+      "ACL",
+      "DRYRUN",
+      "reader",
+      "SET",
+      "allowed:key",
+      "after"
+    ],
+    "target": "OK",
+    "oracle": "OK"
+  },
+  {
+    "argv": [
+      "ACL",
+      "DRYRUN",
+      "reader",
+      "SUBSCRIBE",
+      "allowed:a",
+      "denied:b"
+    ],
+    "target": "User reader has no permissions to access the 'denied:b' channel",
+    "oracle": "User reader has no permissions to access the 'denied:b' channel"
+  },
+  {
+    "argv": [
+      "ACL",
+      "DRYRUN",
+      "reader",
+      "PSUBSCRIBE",
+      "allowed:*"
+    ],
+    "target": "OK",
+    "oracle": "OK"
+  },
+  {
+    "argv": [
+      "ACL",
+      "DRYRUN",
+      "reader",
+      "PSUBSCRIBE",
+      "allowed:a"
+    ],
+    "target": "User reader has no permissions to access the 'allowed:a' channel",
+    "oracle": "User reader has no permissions to access the 'allowed:a' channel"
+  },
+  {
+    "argv": [
+      "ACL",
+      "DRYRUN",
+      "reader",
+      "PUBLISH",
+      "denied:a",
+      "payload"
+    ],
+    "target": "User reader has no permissions to access the 'denied:a' channel",
+    "oracle": "User reader has no permissions to access the 'denied:a' channel"
+  },
+  {
+    "argv": [
+      "GET",
+      "allowed:key"
+    ],
+    "target": "before",
+    "oracle": "before"
+  },
+  {
+    "argv": [
+      "LATENCY",
+      "HISTOGRAM",
+      "NOSUCHCOMMAND"
+    ],
+    "target": [],
+    "oracle": []
+  },
+  {
+    "argv": [
+      "LATENCY",
+      "HISTOGRAM",
+      "NOSUCHCOMMAND",
+      "ANOTHER"
+    ],
+    "target": [],
+    "oracle": []
+  },
+  {
+    "protocol": 2,
+    "argv": [
+      "LATENCY",
+      "HISTOGRAM"
+    ],
+    "target": [],
+    "oracle": []
+  },
+  {
+    "protocol": 2,
+    "argv": [
+      "LATENCY",
+      "HISTOGRAM",
+      "GET"
+    ],
+    "target": [],
+    "oracle": []
+  },
+  {
+    "protocol": 2,
+    "argv": [
+      "LATENCY",
+      "HISTOGRAM",
+      "ping",
+      "config|get",
+      "NOSUCHCOMMAND"
+    ],
+    "target": [],
+    "oracle": []
+  },
+  {
+    "protocol": 3,
+    "argv": [
+      "LATENCY",
+      "HISTOGRAM"
+    ],
+    "target": {},
+    "oracle": {}
+  },
+  {
+    "protocol": 3,
+    "argv": [
+      "LATENCY",
+      "HISTOGRAM",
+      "GET"
+    ],
+    "target": {},
+    "oracle": {}
+  },
+  {
+    "protocol": 3,
+    "argv": [
+      "LATENCY",
+      "HISTOGRAM",
+      "ping",
+      "config|get",
+      "NOSUCHCOMMAND"
+    ],
+    "target": {},
+    "oracle": {}
+  }
+]

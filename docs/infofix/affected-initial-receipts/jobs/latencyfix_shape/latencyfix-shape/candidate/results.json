@@ -1,0 +1,1475 @@
+{
+  "binary": "/home/user/Projects/cx-infofix/build/tomokv",
+  "sha256": "63d57541078450bb987820d425577d502c25120406e57f94febcb00869eb0455",
+  "checks": [
+    {
+      "label": "1s-uring reset",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "basic:2",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ],
+        [
+          "incr",
+          32
+        ],
+        [
+          "set",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "duplicate:2",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ],
+        [
+          "get",
+          32
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:2:client",
+      "passed": true,
+      "actual": [
+        [
+          "client|getname",
+          1
+        ],
+        [
+          "client|id",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:2:CLIENT|ID",
+      "passed": true,
+      "actual": [
+        [
+          "client|id",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:2:command|count",
+      "passed": true,
+      "actual": [
+        [
+          "command|count",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:2:config|get",
+      "passed": true,
+      "actual": [
+        [
+          "config|get",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-uring reset",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "basic:3",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ],
+        [
+          "incr",
+          32
+        ],
+        [
+          "set",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "duplicate:3",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ],
+        [
+          "get",
+          32
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:3:client",
+      "passed": true,
+      "actual": [
+        [
+          "client|getname",
+          1
+        ],
+        [
+          "client|id",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:3:CLIENT|ID",
+      "passed": true,
+      "actual": [
+        [
+          "client|id",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:3:command|count",
+      "passed": true,
+      "actual": [
+        [
+          "command|count",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:3:config|get",
+      "passed": true,
+      "actual": [
+        [
+          "config|get",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-uring nested script is a command",
+      "passed": true,
+      "actual": {
+        "eval": 1,
+        "get": 1
+      }
+    },
+    {
+      "label": "1s-uring EXEC child commands",
+      "passed": true,
+      "actual": {
+        "get": 1,
+        "incr": 1,
+        "exec": 1
+      }
+    },
+    {
+      "label": "path:cross",
+      "passed": true,
+      "actual": [
+        [
+          "dbsize",
+          1
+        ],
+        [
+          "exists",
+          1
+        ],
+        [
+          "keys",
+          1
+        ],
+        [
+          "mget",
+          1
+        ],
+        [
+          "mset",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:blocking-timeout",
+      "passed": true,
+      "actual": [
+        [
+          "blpop",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:wait-timeout",
+      "passed": true,
+      "actual": [
+        [
+          "wait",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:exec-cross",
+      "passed": true,
+      "actual": [
+        [
+          "exec",
+          1
+        ],
+        [
+          "mget",
+          1
+        ],
+        [
+          "mset",
+          1
+        ],
+        [
+          "multi",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:exec-controls",
+      "passed": true,
+      "actual": [
+        [
+          "client|id",
+          1
+        ],
+        [
+          "echo",
+          1
+        ],
+        [
+          "exec",
+          1
+        ],
+        [
+          "multi",
+          1
+        ],
+        [
+          "ping",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:transaction-controls",
+      "passed": true,
+      "actual": [
+        [
+          "discard",
+          1
+        ],
+        [
+          "multi",
+          1
+        ],
+        [
+          "unwatch",
+          1
+        ],
+        [
+          "watch",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:local-read",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          2
+        ],
+        [
+          "mget",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:enable-command",
+      "passed": true,
+      "actual": [
+        [
+          "config|set",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-uring enable pipeline counts every command",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ]
+      ]
+    },
+    {
+      "label": "1s-uring disable pipeline adds no samples",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ]
+      ]
+    },
+    {
+      "label": "path:blocking-ready",
+      "passed": true,
+      "actual": [
+        [
+          "blpop",
+          1
+        ],
+        [
+          "lpush",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:blocking-wake",
+      "passed": true,
+      "actual": [
+        [
+          "blpop",
+          1
+        ],
+        [
+          "lpush",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-epoll reset",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "basic:2",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ],
+        [
+          "incr",
+          32
+        ],
+        [
+          "set",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "duplicate:2",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ],
+        [
+          "get",
+          32
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:2:client",
+      "passed": true,
+      "actual": [
+        [
+          "client|getname",
+          1
+        ],
+        [
+          "client|id",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:2:CLIENT|ID",
+      "passed": true,
+      "actual": [
+        [
+          "client|id",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:2:command|count",
+      "passed": true,
+      "actual": [
+        [
+          "command|count",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:2:config|get",
+      "passed": true,
+      "actual": [
+        [
+          "config|get",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-epoll reset",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "basic:3",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ],
+        [
+          "incr",
+          32
+        ],
+        [
+          "set",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "duplicate:3",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ],
+        [
+          "get",
+          32
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:3:client",
+      "passed": true,
+      "actual": [
+        [
+          "client|getname",
+          1
+        ],
+        [
+          "client|id",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:3:CLIENT|ID",
+      "passed": true,
+      "actual": [
+        [
+          "client|id",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:3:command|count",
+      "passed": true,
+      "actual": [
+        [
+          "command|count",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:3:config|get",
+      "passed": true,
+      "actual": [
+        [
+          "config|get",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-epoll nested script is a command",
+      "passed": true,
+      "actual": {
+        "eval": 1,
+        "get": 1
+      }
+    },
+    {
+      "label": "1s-epoll EXEC child commands",
+      "passed": true,
+      "actual": {
+        "get": 1,
+        "incr": 1,
+        "exec": 1
+      }
+    },
+    {
+      "label": "path:cross",
+      "passed": true,
+      "actual": [
+        [
+          "dbsize",
+          1
+        ],
+        [
+          "exists",
+          1
+        ],
+        [
+          "keys",
+          1
+        ],
+        [
+          "mget",
+          1
+        ],
+        [
+          "mset",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:blocking-timeout",
+      "passed": true,
+      "actual": [
+        [
+          "blpop",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:wait-timeout",
+      "passed": true,
+      "actual": [
+        [
+          "wait",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:exec-cross",
+      "passed": true,
+      "actual": [
+        [
+          "exec",
+          1
+        ],
+        [
+          "mget",
+          1
+        ],
+        [
+          "mset",
+          1
+        ],
+        [
+          "multi",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:exec-controls",
+      "passed": true,
+      "actual": [
+        [
+          "client|id",
+          1
+        ],
+        [
+          "echo",
+          1
+        ],
+        [
+          "exec",
+          1
+        ],
+        [
+          "multi",
+          1
+        ],
+        [
+          "ping",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:transaction-controls",
+      "passed": true,
+      "actual": [
+        [
+          "discard",
+          1
+        ],
+        [
+          "multi",
+          1
+        ],
+        [
+          "unwatch",
+          1
+        ],
+        [
+          "watch",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:local-read",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          2
+        ],
+        [
+          "mget",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:enable-command",
+      "passed": true,
+      "actual": [
+        [
+          "config|set",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-epoll enable pipeline counts every command",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ]
+      ]
+    },
+    {
+      "label": "1s-epoll disable pipeline adds no samples",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ]
+      ]
+    },
+    {
+      "label": "path:blocking-ready",
+      "passed": true,
+      "actual": [
+        [
+          "blpop",
+          1
+        ],
+        [
+          "lpush",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:blocking-wake",
+      "passed": true,
+      "actual": [
+        [
+          "blpop",
+          1
+        ],
+        [
+          "lpush",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-uring reset",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "basic:2",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ],
+        [
+          "incr",
+          32
+        ],
+        [
+          "set",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "duplicate:2",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ],
+        [
+          "get",
+          32
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:2:client",
+      "passed": true,
+      "actual": [
+        [
+          "client|getname",
+          1
+        ],
+        [
+          "client|id",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:2:CLIENT|ID",
+      "passed": true,
+      "actual": [
+        [
+          "client|id",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:2:command|count",
+      "passed": true,
+      "actual": [
+        [
+          "command|count",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:2:config|get",
+      "passed": true,
+      "actual": [
+        [
+          "config|get",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-uring reset",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "basic:3",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ],
+        [
+          "incr",
+          32
+        ],
+        [
+          "set",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "duplicate:3",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ],
+        [
+          "get",
+          32
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:3:client",
+      "passed": true,
+      "actual": [
+        [
+          "client|getname",
+          1
+        ],
+        [
+          "client|id",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:3:CLIENT|ID",
+      "passed": true,
+      "actual": [
+        [
+          "client|id",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:3:command|count",
+      "passed": true,
+      "actual": [
+        [
+          "command|count",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:3:config|get",
+      "passed": true,
+      "actual": [
+        [
+          "config|get",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-uring nested script is a command",
+      "passed": true,
+      "actual": {
+        "eval": 1,
+        "get": 1
+      }
+    },
+    {
+      "label": "2s-uring EXEC child commands",
+      "passed": true,
+      "actual": {
+        "get": 1,
+        "incr": 1,
+        "exec": 1
+      }
+    },
+    {
+      "label": "path:cross",
+      "passed": true,
+      "actual": [
+        [
+          "dbsize",
+          1
+        ],
+        [
+          "exists",
+          1
+        ],
+        [
+          "keys",
+          1
+        ],
+        [
+          "mget",
+          1
+        ],
+        [
+          "mset",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:blocking-timeout",
+      "passed": true,
+      "actual": [
+        [
+          "blpop",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:wait-timeout",
+      "passed": true,
+      "actual": [
+        [
+          "wait",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:exec-cross",
+      "passed": true,
+      "actual": [
+        [
+          "exec",
+          1
+        ],
+        [
+          "mget",
+          1
+        ],
+        [
+          "mset",
+          1
+        ],
+        [
+          "multi",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:exec-controls",
+      "passed": true,
+      "actual": [
+        [
+          "client|id",
+          1
+        ],
+        [
+          "echo",
+          1
+        ],
+        [
+          "exec",
+          1
+        ],
+        [
+          "multi",
+          1
+        ],
+        [
+          "ping",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:transaction-controls",
+      "passed": true,
+      "actual": [
+        [
+          "discard",
+          1
+        ],
+        [
+          "multi",
+          1
+        ],
+        [
+          "unwatch",
+          1
+        ],
+        [
+          "watch",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:local-read",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          2
+        ],
+        [
+          "mget",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:enable-command",
+      "passed": true,
+      "actual": [
+        [
+          "config|set",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-uring enable pipeline counts every command",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ]
+      ]
+    },
+    {
+      "label": "2s-uring disable pipeline adds no samples",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ]
+      ]
+    },
+    {
+      "label": "path:blocking-ready",
+      "passed": true,
+      "actual": [
+        [
+          "blpop",
+          1
+        ],
+        [
+          "lpush",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:blocking-wake",
+      "passed": true,
+      "actual": [
+        [
+          "blpop",
+          1
+        ],
+        [
+          "lpush",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-epoll reset",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "basic:2",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ],
+        [
+          "incr",
+          32
+        ],
+        [
+          "set",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "duplicate:2",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ],
+        [
+          "get",
+          32
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:2:client",
+      "passed": true,
+      "actual": [
+        [
+          "client|getname",
+          1
+        ],
+        [
+          "client|id",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:2:CLIENT|ID",
+      "passed": true,
+      "actual": [
+        [
+          "client|id",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:2:command|count",
+      "passed": true,
+      "actual": [
+        [
+          "command|count",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:2:config|get",
+      "passed": true,
+      "actual": [
+        [
+          "config|get",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-epoll reset",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "basic:3",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ],
+        [
+          "incr",
+          32
+        ],
+        [
+          "set",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "duplicate:3",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ],
+        [
+          "get",
+          32
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:3:client",
+      "passed": true,
+      "actual": [
+        [
+          "client|getname",
+          1
+        ],
+        [
+          "client|id",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:3:CLIENT|ID",
+      "passed": true,
+      "actual": [
+        [
+          "client|id",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:3:command|count",
+      "passed": true,
+      "actual": [
+        [
+          "command|count",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "subcommand:3:config|get",
+      "passed": true,
+      "actual": [
+        [
+          "config|get",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-epoll nested script is a command",
+      "passed": true,
+      "actual": {
+        "eval": 1,
+        "get": 1
+      }
+    },
+    {
+      "label": "2s-epoll EXEC child commands",
+      "passed": true,
+      "actual": {
+        "get": 1,
+        "incr": 1,
+        "exec": 1
+      }
+    },
+    {
+      "label": "path:cross",
+      "passed": true,
+      "actual": [
+        [
+          "dbsize",
+          1
+        ],
+        [
+          "exists",
+          1
+        ],
+        [
+          "keys",
+          1
+        ],
+        [
+          "mget",
+          1
+        ],
+        [
+          "mset",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:blocking-timeout",
+      "passed": true,
+      "actual": [
+        [
+          "blpop",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:wait-timeout",
+      "passed": true,
+      "actual": [
+        [
+          "wait",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:exec-cross",
+      "passed": true,
+      "actual": [
+        [
+          "exec",
+          1
+        ],
+        [
+          "mget",
+          1
+        ],
+        [
+          "mset",
+          1
+        ],
+        [
+          "multi",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:exec-controls",
+      "passed": true,
+      "actual": [
+        [
+          "client|id",
+          1
+        ],
+        [
+          "echo",
+          1
+        ],
+        [
+          "exec",
+          1
+        ],
+        [
+          "multi",
+          1
+        ],
+        [
+          "ping",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:transaction-controls",
+      "passed": true,
+      "actual": [
+        [
+          "discard",
+          1
+        ],
+        [
+          "multi",
+          1
+        ],
+        [
+          "unwatch",
+          1
+        ],
+        [
+          "watch",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:local-read",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          2
+        ],
+        [
+          "mget",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:enable-command",
+      "passed": true,
+      "actual": [
+        [
+          "config|set",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "2s-epoll enable pipeline counts every command",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ]
+      ]
+    },
+    {
+      "label": "2s-epoll disable pipeline adds no samples",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ]
+      ]
+    },
+    {
+      "label": "path:blocking-ready",
+      "passed": true,
+      "actual": [
+        [
+          "blpop",
+          1
+        ],
+        [
+          "lpush",
+          1
+        ]
+      ]
+    },
+    {
+      "label": "path:blocking-wake",
+      "passed": true,
+      "actual": [
+        [
+          "blpop",
+          1
+        ],
+        [
+          "lpush",
+          1
+        ]
+      ]
+    }
+  ],
+  "slowlog": {}
+}

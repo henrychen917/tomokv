@@ -8,7 +8,8 @@
     "threshold": -1,
     "pre": 936,
     "post": 936,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "normal",
@@ -19,7 +20,8 @@
     "threshold": -1,
     "pre": 18482,
     "post": 18482,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "normal",
@@ -30,7 +32,8 @@
     "threshold": -1,
     "pre": 1556,
     "post": 1556,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "normal",
@@ -41,7 +44,8 @@
     "threshold": -1,
     "pre": 18327,
     "post": 18327,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "normal",
@@ -52,7 +56,8 @@
     "threshold": -1,
     "pre": 1060,
     "post": 1060,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "normal",
@@ -63,7 +68,8 @@
     "threshold": -1,
     "pre": 22450,
     "post": 22450,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "normal",
@@ -74,7 +80,8 @@
     "threshold": -1,
     "pre": 1680,
     "post": 1680,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "normal",
@@ -85,7 +92,8 @@
     "threshold": -1,
     "pre": 22295,
     "post": 22295,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "normal",
@@ -96,7 +104,8 @@
     "threshold": -1,
     "pre": 1522,
     "post": 1522,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "normal",
@@ -107,7 +116,8 @@
     "threshold": -1,
     "pre": 37763,
     "post": 37763,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "normal",
@@ -118,7 +128,8 @@
     "threshold": -1,
     "pre": 2142,
     "post": 2142,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "normal",
@@ -129,7 +140,8 @@
     "threshold": -1,
     "pre": 37608,
     "post": 37608,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "normal",
@@ -140,7 +152,8 @@
     "threshold": -1,
     "pre": 10190,
     "post": 10177,
-    "delta": -13
+    "delta": -13,
+    "functions_equal": false
   },
   {
     "namespace": "normal",
@@ -151,7 +164,8 @@
     "threshold": -1,
     "pre": 324902,
     "post": 324486,
-    "delta": -416
+    "delta": -416,
+    "functions_equal": false
   },
   {
     "namespace": "normal",
@@ -162,7 +176,8 @@
     "threshold": -1,
     "pre": 10190,
     "post": 10177,
-    "delta": -13
+    "delta": -13,
+    "functions_equal": false
   },
   {
     "namespace": "normal",
@@ -173,7 +188,8 @@
     "threshold": -1,
     "pre": 324902,
     "post": 324486,
-    "delta": -416
+    "delta": -416,
+    "functions_equal": false
   },
   {
     "namespace": "normal",
@@ -184,7 +200,8 @@
     "threshold": -1,
     "pre": 10780,
     "post": 10779,
-    "delta": -1
+    "delta": -1,
+    "functions_equal": false
   },
   {
     "namespace": "normal",
@@ -195,7 +212,8 @@
     "threshold": -1,
     "pre": 16991,
     "post": 16980,
-    "delta": -11
+    "delta": -11,
+    "functions_equal": false
   },
   {
     "namespace": "normal",
@@ -206,7 +224,8 @@
     "threshold": -1,
     "pre": 344805,
     "post": 344773,
-    "delta": -32
+    "delta": -32,
+    "functions_equal": false
   },
   {
     "namespace": "normal",
@@ -217,7 +236,8 @@
     "threshold": -1,
     "pre": 961926,
     "post": 961574,
-    "delta": -352
+    "delta": -352,
+    "functions_equal": false
   },
   {
     "namespace": "normal",
@@ -228,7 +248,8 @@
     "threshold": -1,
     "pre": 10598,
     "post": 10597,
-    "delta": -1
+    "delta": -1,
+    "functions_equal": false
   },
   {
     "namespace": "normal",
@@ -239,7 +260,8 @@
     "threshold": -1,
     "pre": 16659,
     "post": 16648,
-    "delta": -11
+    "delta": -11,
+    "functions_equal": false
   },
   {
     "namespace": "normal",
@@ -250,7 +272,8 @@
     "threshold": -1,
     "pre": 338981,
     "post": 338949,
-    "delta": -32
+    "delta": -32,
+    "functions_equal": false
   },
   {
     "namespace": "normal",
@@ -261,7 +284,8 @@
     "threshold": -1,
     "pre": 951302,
     "post": 950950,
-    "delta": -352
+    "delta": -352,
+    "functions_equal": false
   },
   {
     "namespace": "db0",
@@ -272,7 +296,8 @@
     "threshold": -1,
     "pre": 818,
     "post": 818,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "db0",
@@ -283,7 +308,8 @@
     "threshold": -1,
     "pre": 18705,
     "post": 18705,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "db0",
@@ -294,7 +320,8 @@
     "threshold": -1,
     "pre": 1051,
     "post": 1051,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "db0",
@@ -305,7 +332,8 @@
     "threshold": -1,
     "pre": 18163,
     "post": 18163,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "db0",
@@ -316,7 +344,8 @@
     "threshold": -1,
     "pre": 926,
     "post": 926,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "db0",
@@ -327,7 +356,8 @@
     "threshold": -1,
     "pre": 22161,
     "post": 22161,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "db0",
@@ -338,7 +368,8 @@
     "threshold": -1,
     "pre": 1159,
     "post": 1159,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "db0",
@@ -349,7 +380,8 @@
     "threshold": -1,
     "pre": 21619,
     "post": 21619,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "db0",
@@ -360,7 +392,8 @@
     "threshold": -1,
     "pre": 1308,
     "post": 1308,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "db0",
@@ -371,7 +404,8 @@
     "threshold": -1,
     "pre": 34914,
     "post": 34914,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "db0",
@@ -382,7 +416,8 @@
     "threshold": -1,
     "pre": 1541,
     "post": 1541,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "db0",
@@ -393,7 +428,8 @@
     "threshold": -1,
     "pre": 34372,
     "post": 34372,
-    "delta": 0
+    "delta": 0,
+    "functions_equal": true
   },
   {
     "namespace": "db0",
@@ -404,7 +440,8 @@
     "threshold": -1,
     "pre": 10334,
     "post": 10320,
-    "delta": -14
+    "delta": -14,
+    "functions_equal": false
   },
   {
     "namespace": "db0",
@@ -415,7 +452,8 @@
     "threshold": -1,
     "pre": 329510,
     "post": 329062,
-    "delta": -448
+    "delta": -448,
+    "functions_equal": false
   },
   {
     "namespace": "db0",
@@ -426,7 +464,8 @@
     "threshold": -1,
     "pre": 10334,
     "post": 10320,
-    "delta": -14
+    "delta": -14,
+    "functions_equal": false
   },
   {
     "namespace": "db0",
@@ -437,7 +476,8 @@
     "threshold": -1,
     "pre": 329510,
     "post": 329062,
-    "delta": -448
+    "delta": -448,
+    "functions_equal": false
   },
   {
     "namespace": "db0",
@@ -448,7 +488,8 @@
     "threshold": -1,
     "pre": 11017,
     "post": 11014,
-    "delta": -3
+    "delta": -3,
+    "functions_equal": false
   },
   {
     "namespace": "db0",
@@ -459,7 +500,8 @@
     "threshold": -1,
     "pre": 16428,
     "post": 16419,
-    "delta": -9
+    "delta": -9,
+    "functions_equal": false
   },
   {
     "namespace": "db0",
@@ -470,7 +512,8 @@
     "threshold": -1,
     "pre": 352389,
     "post": 352293,
-    "delta": -96
+    "delta": -96,
+    "functions_equal": false
   },
   {
     "namespace": "db0",
@@ -481,7 +524,8 @@
     "threshold": -1,
     "pre": 952094,
     "post": 951806,
-    "delta": -288
+    "delta": -288,
+    "functions_equal": false
   },
   {
     "namespace": "db0",
@@ -492,7 +536,8 @@
     "threshold": -1,
     "pre": 10835,
     "post": 10824,
-    "delta": -11
+    "delta": -11,
+    "functions_equal": false
   },
   {
     "namespace": "db0",
@@ -503,7 +548,8 @@
     "threshold": -1,
     "pre": 16096,
     "post": 16079,
-    "delta": -17
+    "delta": -17,
+    "functions_equal": false
   },
   {
     "namespace": "db0",
@@ -514,7 +560,8 @@
     "threshold": -1,
     "pre": 346565,
     "post": 346213,
-    "delta": -352
+    "delta": -352,
+    "functions_equal": false
   },
   {
     "namespace": "db0",
@@ -525,6 +572,7 @@
     "threshold": -1,
     "pre": 941470,
     "post": 940926,
-    "delta": -544
+    "delta": -544,
+    "functions_equal": false
   }
 ]

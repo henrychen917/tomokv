@@ -1,31 +1,156 @@
 ## infofix
 
-Work in progress on `cx-infofix`, base `393d6ceb129d8c99dffd70959d6a19267c525fe0`.
-CPUs 48–63 only; correctness listeners 20400–20499. No push or throughput claim.
-The seven stored reproductions differ on frozen PRE versus Redis 7.4.10 in both
-modes: `docs/infofix/pre-repros.json`. Binary hashes: `docs/infofix/pre-sha256.txt`.
+Branch `cx-infofix`, PRE `393d6ceb129d8c99dffd70959d6a19267c525fe0`.
+Production implementation is through `27a6821a8`; subsequent commits contain
+batteries and evidence. No push. This is a partial compatibility result, not a
+claim that all eight roots or the full Tcl job are green.
 
-Owner decisions pending:
+### Root dispositions
 
-- INFO-CMDSTAT-FIELDS: the root report and renderer explicitly document the
-  omission of unmeasured timing. Exact always-on `usec` conflicts with zero
-  added hot-path instructions. Stopped under the task's deliberate-restriction rule.
-- DEBUG-RELOAD-OPTIONS: snapshot plans/format contain keys and database mapping,
-  but no function libraries. The assigned Tcl assertions require function save,
-  duplicate detection and merge semantics. This requires a persistence architecture
-  extension; stopped under the task's architecture rule. No superficial option parser
-  is presented as a fix.
+| Root | Result | Evidence / remaining boundary |
+|---|---|---|
+| INFO-MISSING-FIELDS | Implemented | CPU section in default/all/explicit selection; six real CPU counters; own git SHA, dirty bit, and 64-bit hexadecimal build identity. Directed oracle + 8 candidate legs pass. |
+| COMMAND-DOCS-INCOMPLETE | Registered-command fix; Tcl closure blocked | Metadata-generated arguments, nested blocks/oneof, flags, history, and subcommands match Redis in RESP2/RESP3. The promoted CLI test still requires MIGRATE, absent from TomoKV's registry. |
+| SLOWLOG-MAXLEN-PER-THREAD | Implemented | One lazy global ring; global cap and descending publication IDs; disabled logging retains history; subsequent armed completion trims it; discarded entries cannot return after growing the cap. |
+| DEBUG-LOADAOF-AOF-OFF | Implemented | Offline rewrite/reload works while appendonly remains no; absent AOF flushes keys and returns Redis's exact error. Enabled writers still drain before reload. |
+| LAT-HIST-2 | Candidate; performance verdict pending | Homogeneous GET batches share metadata resolution and one histogram lock. Individual command timers and recording before completion publication remain exact. No averaging of outliers. |
+| INFO-ERRORSTATS | STOPPED: architecture boundary | Exact accounting needs an accepted-attempt error journal. A generic error formatter hook counts discarded/replayed script attempts and cannot distinguish rejected from failed calls correctly. The exploratory hook was removed. |
+| INFO-CMDSTAT-FIELDS | STOPPED: deliberate restriction | The root report and renderer explicitly omit unmeasured timing and unimplemented failed_calls. Always-on exact usec requires timing successful commands, conflicting with the zero-added-instructions requirement. |
+| DEBUG-RELOAD-OPTIONS | STOPPED: architecture boundary | The assigned Tcl assertions persist/merge function libraries. Native snapshot plans contain keys/database mapping, with no function-library persistence. An option parser alone would not implement those semantics. |
 
-- INFO-ERRORSTATS: no accepted-attempt error journal exists. A generic reply-error
-  hook counts rejected/replayed script attempts and misses the distinction between
-  rejected and failed calls. Exact accounting needs transaction/script lifecycle
-  integration; stopped under the architecture rule. The exploratory hook was removed.
-- LAT-HIST-2: exact per-command samples are retained. The candidate amortizes
-  metadata lookup, histogram locking, and commit flushing across a homogeneous GET
-  batch; it does not replace each duration with a batch mean. Whether the measured
-  13% loss is recovered remains for the maintainer. Literal clock amortization would
-  need a ruling about changed histogram duration semantics.
+Owner decisions: whether to extend accepted-attempt error accounting, permit
+always-on command timing, persist function libraries, and expose/implement the
+missing MIGRATE command. Those roots' unresolved named skips are retained;
+no false counters or superficial success replies were added.
 
-Implementation and validation receipts will be finalized here. Performance and
-full iteration stay with the maintainer. Five directed collector rows currently
-sit before the quick exit (DQ=+5, DF=+5); EXPECT constants are unchanged.
+LAT-HIST-2 preserves two clock reads per individual execution. This candidate
+amortizes histogram bookkeeping and redundant commit flushing, not the duration
+measurement itself. Literal batch-duration amortization would change Redis's
+per-command distribution; that tradeoff needs an owner ruling. The reported 13%
+loss has **not** been measured or claimed recovered here.
+
+CPU process/children times use getrusage. Main-thread user/system times come from
+Linux's main-TID stat counters (clock-tick precision), rather than incorrectly
+reporting the INFO worker as the main thread. Build identity identifies TomoKV,
+not the Redis oracle.
+
+### Reproductions and falsification
+
+`docs/infofix/pre-repros.json` replays the seven stored scripts unchanged against
+PRE and Redis 7.4.10 at 16 shards, ratio 6:2, both modes. Every PRE verdict differs.
+`post-repros.json` contains the corresponding frozen POST replay: DOCS, global
+slowlog and offline LOADAOF are SAME in both modes. CPU text remains byte-different
+because CPU numbers are volatile; the directed row checks its exact field schema,
+format, selection, monotonicity and RESETSTAT behavior. Errorstats, commandstats,
+and reload options remain DIFFERENT as reported above. LAT-HIST-2 has no stored
+protocol reproduction; its performance reproduction is reserved to the maintainer.
+
+All correctness listeners are 20400–20499, all work inherits CPUs 48–63, and builds
+use `-j16`. Gate slots use server CPUs 48–55 and load CPUs 56–63, with explicit empty
+load-SMT selection. Oracle SHA-256:
+`ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b`.
+`/home/user/Projects/redis/src/redis-server` and the requested redis74 oracle have
+that same digest.
+
+The new rows run through `GATE_ONLY_JOBS` in `tests/gate.sh`:
+
+- `infofix_compat-{missing,docs,slowlog,loadaof}` each run Redis plus 1s/2s ×
+  uring/epoll × databases 1/16. PRE fails all four rows; frozen POST passes all four.
+- `infofix_latency` checks both executor modes, tracking off/on, and batch 1/32.
+  It requires one histogram lock per tracked GET batch, one exact sample per
+  command, alternating 1 us/16 ms durations through the real executor, separate histogram bins,
+  exactly two clocks per tracked command, and zero clocks/histogram allocation off.
+  PRE and a POST mutant with `get_batch=false` both fail the batch witness; a
+  shared-duration mutant must fail the same row at its per-command distribution check.
+- A cold-root regression arm links POST with PRE t_server/cmdmeta/slowlog/xshard
+  objects in both namespaces. Its four directed rows fail, and the promoted Tcl
+  cases fail in both modes. This arm is only a negative control.
+
+Receipts: `docs/infofix/{pre-directed-final,post-directed-final,regression,
+latency-regression}.log`, `directed-receipts/`, and `tcl-receipts/`.
+POST's new rows plus release and metadata validation: **7 pass, 0 fail**.
+PRE: **1 pass, 5 intended failures**. Cold-root regression: **1 pass, 6 intended
+failures** (four directed rows and two Tcl mode rows). Latency regression:
+**1 pass, 1 intended failure**.
+
+The Tcl manifest promotes the repaired slowlog/reload/CLI cases, adds all three
+`unit/info-command` assertions, and requires `unit/printver`'s successful body
+output. Missing, duplicate, incomplete and failed printver execution cannot pass.
+Its harness self-test passes all 10 tests. Existing LATENCY HISTOGRAM assertions
+were already required; there was no LAT-HIST-2 skip to remove. They are semantic
+checks; the new serverless row discriminates the batching mechanism.
+
+### Hot-path instruction budget
+
+`docs/infofix/command-counts.tsv` and `counts/results-final.json` retain every
+PRE/POST count and per-function detail with latency tracking and slowlog off: 48 paired cases across both database
+runtimes, both thread modes, batches 1/32, GET/SET/INCR/MGET/MSET, and MSET atomic
+0/1. **24 identical, 24 lower, zero increases.** GET/SET/INCR are identical in
+every case. MGET/MSET have no increase.
+
+The fixture is `tests/txnorder_command_scope.cc`, linked to each arm's production
+objects. `tools/infofix_scope.py` single-steps only an owned, finite serverless
+child; counts all selected production namespace instructions including NOPs;
+excludes external library bodies; freezes clock_gettime; and requires the exact
+reply/data checks to pass. These are command-scope counts, not cycles/IPC or a
+throughput verdict. Initial positive scatter deltas are retained in
+`counts-initial.json`; isolating AOF recovery as a cold function removed them.
+
+### Build and gate proof
+
+Final affected jobs, standard differential matrices, final Tcl and gate-harness
+self-test receipts are still being collected. No earlier failure is discarded.
+The initial affected run was 311 pass / 16 fail: eight stale INFO DEFAULT section
+expectations, four stale LOADAOF error strings, and four downstream snapshot
+checks after those interrupted recovery batteries. The expected replies were
+updated to Redis's grammar; no assertion was removed.
+
+Five public rows are collected at gate.sh lines 5981–5982, above the quick exit at
+line 6113. **DQ=+5, DF=+5**. EXPECT_QUICK/EXPECT_FULL were not edited; the maintainer
+should change **881→886** and **898→903**. Extending existing Tcl/metadata jobs
+adds no public row.
+
+### Frozen arms
+
+| Arm | Binary | SHA-256 |
+|---|---|---|
+| PRE | `build/infofix/pre/tomokv` | `5285c0225adbdb8e1204548b010d68238c3358e242d5fab932f4c28a5369dd76` |
+| POST | `build/infofix/post/tomokv` | `63d57541078450bb987820d425577d502c25120406e57f94febcb00869eb0455` |
+| PAD-A | `build/infofix/pad-a/tomokv` | `61a8fac6150b41eed17d710cc525126653d1aedbaf7c14915d92c9daf7e0364a` |
+
+PAD is **kind A: behaviour twin**: unmodified PRE production objects plus
+unreachable padding, matching POST's .text start and total size, with additive
+.rodata padding. Individual function/data placement is not identical to POST;
+this is a text-size/layout control with that explicit limitation, not an exact
+symbol-placement twin. `docs/infofix/arms.json` records section sizes, commands,
+and regression-arm digest. `tools/infofix_arms.py` recreates the links.
+Superseded arm sources and step traces were deleted after their hashes/counts
+were recorded in `retired-artifacts.json`. PRE objects and frozen binaries remain.
+
+### Maintainer merit request
+
+Performance benchmarks and full `tests/gate.sh iteration`: **NOT RUN**, reserved
+to the maintainer. No throughput or latency improvement claim.
+
+Use the gate's own quiet-box ABBA instrument, matched offered load, with PRE vs
+POST, PRE vs PAD-A, and contemporaneous PRE/PRE controls. Record every arm's hash,
+configuration, rate, cycles/op, instructions/op and IPC; keep the depth-1 latency
+result. The off-path verdict must be null under the gate's normal criteria.
+
+- `docs/infofix/generic14.cells.txt`: exact generic 14 (`h05 h06 p8g p8s d1g_l0
+  d1s_l0 m8g_l0 v1g_l0 d128g_l0 d32g_l1 d8s_l1 d32s_l1 x9_32_l1 x9_32_l0`),
+  latency tracking off.
+- `null2s.cells.txt`: `h17 h18 h49 h50`, 2s GET/SET at p32/p1, tracking off, null.
+- `scatter8.cells.txt`: MGET/MSET p1/p32 in both modes, since the AOF preparation
+  change shares scatter dispatch. Run database runtimes 1 and 16 for this set.
+- `armed8.cells.txt`: GET/SET p1/p32 in both modes with tracking yes on every arm.
+  The decisive LAT-HIST-2 cell is **h17 (2s GET p32)**. Compare with the matching
+  tracking-off cells to quantify armed cost. Preserve the exact histogram witnesses.
+- `slowlog8.cells.txt`: GET/SET p1/p32 in both modes with threshold zero and max-len
+  128, to quantify the global retention mutex while verifying the cap.
+- `info-poll.cells.txt`: p32 GET in both modes with the existing INFO polling probe,
+  covering the newly populated introspection fields.
+
+Cold COMMAND DOCS and DEBUG replies/data are covered by the oracle rows, not
+represented as throughput wins. A lower instruction count alone cannot decide
+merit; if POST and PAD move together, investigate layout before crediting behavior.

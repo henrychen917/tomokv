@@ -1,0 +1,25 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "48-55",
+    "/home/user/Projects/redis/src/redis-server",
+    "/home/user/Projects/cx-infofix/build/gate-run.nsS18G/jobs/latencyfix_grammar/latencyfix-grammar/oracle/redis-redis-file-3.conf",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "20400",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-infofix/build/gate-run.nsS18G/jobs/latencyfix_grammar/latencyfix-grammar/oracle/redis-redis-file-3-1-port0/data",
+    "--protected-mode",
+    "no"
+  ],
+  "pid": 896346,
+  "booted": true,
+  "exit": 0,
+  "port_closed": true
+}

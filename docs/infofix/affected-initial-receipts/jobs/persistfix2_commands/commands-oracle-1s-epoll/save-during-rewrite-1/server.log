@@ -1,0 +1,20 @@
+601729:C 28 Oct 2026 23:46:51.011 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+601729:C 28 Oct 2026 23:46:51.011 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+601729:C 28 Oct 2026 23:46:51.011 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=601729, just started
+601729:C 28 Oct 2026 23:46:51.011 * Configuration loaded
+601729:M 28 Oct 2026 23:46:51.011 * monotonic clock: POSIX clock_gettime
+601729:M 28 Oct 2026 23:46:51.012 * Running mode=standalone, port=20400.
+601729:M 28 Oct 2026 23:46:51.012 * Server initialized
+601729:M 28 Oct 2026 23:46:51.012 * Creating AOF base file appendonly.aof.1.base.rdb on server start
+601729:M 28 Oct 2026 23:46:51.012 * Creating AOF incr file appendonly.aof.1.incr.aof on server start
+601729:M 28 Oct 2026 23:46:51.012 * Ready to accept connections tcp
+601729:M 28 Oct 2026 23:46:51.090 * Creating AOF incr file appendonly.aof.2.incr.aof on background rewrite
+601729:M 28 Oct 2026 23:46:51.090 * Background append only file rewriting started by pid 601747
+601747:C 28 Oct 2026 23:46:53.199 * Successfully created the temporary AOF base file temp-rewriteaof-bg-601747.aof
+601729:M 28 Oct 2026 23:46:53.199 * DB saved on disk
+601747:C 28 Oct 2026 23:46:53.199 * Fork CoW for AOF rewrite: current 0 MB, peak 0 MB, average 0 MB
+601729:M 28 Oct 2026 23:46:53.200 * User requested shutdown...
+601729:M 28 Oct 2026 23:46:53.200 # There is a child rewriting the AOF. Killing it!
+601729:M 28 Oct 2026 23:46:53.200 * Killing running AOF rewrite child: 601747
+601729:M 28 Oct 2026 23:46:53.200 * Calling fsync() on the AOF file.
+601729:M 28 Oct 2026 23:46:53.200 # Redis is now ready to exit, bye bye...

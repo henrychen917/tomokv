@@ -1,0 +1,68 @@
+  row budget: 900s; median=-s; no-history-conservative-default; s6 battery (atomic 1)
+  s6 battery (atomic 1)                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; multi_exec battery (atomic 1)
+  multi_exec battery (atomic 1)                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; blocking battery (atomic 1)
+  blocking battery (atomic 1)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockmulti battery (atomic 1)
+  blockmulti battery (atomic 1)                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; stream battery (atomic 1)
+  stream battery (atomic 1)                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; streamgroups battery (atomic 1)
+  streamgroups battery (atomic 1)                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; pubsub battery (atomic 1)
+  pubsub battery (atomic 1)                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; lua_scripting battery (atomic 1)
+  lua_scripting battery (atomic 1)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptsurf battery (atomic 1)
+  scriptsurf battery (atomic 1)                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; limits battery (atomic 1)
+  limits battery (atomic 1)                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; resp3 battery (atomic 1)
+  resp3 battery (atomic 1)                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; bitfield battery (atomic 1)
+  bitfield battery (atomic 1)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; dumprestore battery (atomic 1)
+  dumprestore battery (atomic 1)                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; zsetops battery (atomic 1)
+  zsetops battery (atomic 1)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; geo battery (atomic 1)
+  geo battery (atomic 1)                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; climon battery (atomic 1)
+  climon battery (atomic 1)                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; climon2 battery (atomic 1)
+  climon2 battery (atomic 1)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; tracking battery (atomic 1)
+  tracking battery (atomic 1)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpire battery (atomic 1)
+  hexpire battery (atomic 1)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; servertail battery (atomic 1)
+  servertail battery (atomic 1)                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; lcs battery (atomic 1)
+  lcs battery (atomic 1)                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; concur battery (atomic 1)
+  concur battery (atomic 1)                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; edgeproto battery (atomic 1)
+  edgeproto battery (atomic 1)                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; edgeenc battery (atomic 1)
+  edgeenc battery (atomic 1)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; edgetime battery (atomic 1)
+  edgetime battery (atomic 1)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; arity battery (atomic 1)
+  arity battery (atomic 1)                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; contarity battery (atomic 1)
+  contarity battery (atomic 1)                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; cmdgap battery (atomic 1)
+  cmdgap battery (atomic 1)                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; aclsel battery (atomic 1)
+  aclsel battery (atomic 1)                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; expwide battery (atomic 1)
+  expwide battery (atomic 1)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; infofix battery (atomic 1)
+  infofix battery (atomic 1)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; pushtear battery (atomic 1)
+  pushtear battery (atomic 1)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; netcmd battery (atomic 1)
+  netcmd battery (atomic 1)                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature shutdown invariants (atomic 1)
+  feature shutdown invariants (atomic 1)               ok

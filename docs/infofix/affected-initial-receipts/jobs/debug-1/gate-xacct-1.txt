@@ -1,0 +1,12 @@
+  ok   stream detector negative control has PEL=0
+  ok   stream detector fired with PEL=10000
+  ok   XADD cost growth is bounded across a 10k PEL shallow=2.614us deep=2.631us ratio=1.01x bound<4.00x
+  ok   WATCH abort detector negative control reports no abort
+  ok   dirty WATCH fired before writes in every measured EXEC small=5/5 large=5/5
+  ok   MULTI prepare growth is bounded for 5x queued write keys 2k=1787.699us 10k=17937.216us ratio=10.03x bound<15.00x
+  ok   write-key hash dedup preserves transaction order and replies
+  ok   DEBUG recomputation oracle is armed [b'enable-debug-command', b'yes']
+  ok   stream-accounting delta control is zero delta=0
+  ok   pending delete/reassignment accounting paths fired deleted=[b'6-0', [], [b'5-0']] pending=3/3
+  ok   MEMORY USAGE group bytes equal cold recomputation before=1434 after=1434 reload=b'OK'
+XACCT directed battery passed

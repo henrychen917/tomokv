@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; no-history-conservative-default; latencyfix LAT-HIST-1 histogram and latencystats
+  latencyfix LAT-HIST-1 histogram and latencystats     ok

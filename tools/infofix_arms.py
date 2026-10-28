@@ -3,6 +3,7 @@
 
 No servers or benchmarks are launched. All input objects stay in this worktree.
 """
+import argparse
 import hashlib
 import json
 from pathlib import Path
@@ -26,17 +27,22 @@ def section(path, name):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--tag', default='')
+    args = parser.parse_args()
+    suffix = '-' + args.tag if args.tag else ''
     link = json.loads((REPORT / 'pre-link.json').read_text())
-    post = ARM / 'post/tomokv'
+    post = ARM / ('post' + suffix) / 'tomokv'
     post.parent.mkdir(exist_ok=True)
     import shutil
-    shutil.copy2(ROOT / 'build/tomokv', post)
+    if not post.exists() or digest(post) != digest(ROOT / 'build/tomokv'):
+        shutil.copy2(ROOT / 'build/tomokv', post)
     pre = ARM / 'pre/tomokv'
     wanted = section(post, '.text')
     previous = section(pre, '.text')
     rodata = max(0, section(post, '.rodata')['size'] - section(pre, '.rodata')['size'])
     padding = wanted['size'] - previous['size']
-    pad = ARM / 'pad-a/tomokv'
+    pad = ARM / ('pad-a' + suffix) / 'tomokv'
     pad.parent.mkdir(exist_ok=True)
     asm, obj = pad.parent / 'padding.S', pad.parent / 'padding.o'
     cmd = [str(ARM / 'pre' / x.removeprefix('build/')) if x.endswith('.o') and x.startswith('build/') else x for x in link]
@@ -63,7 +69,7 @@ def main():
             raise RuntimeError((actual, wanted))
         padding += wanted['size'] - actual['size']
     assert section(pad, '.text') == wanted
-    mutant = ARM / 'regression/tomokv'
+    mutant = ARM / ('regression' + suffix) / 'tomokv'
     mutant.parent.mkdir(exist_ok=True)
     restored = ('/cmd/t_server.o', '/cmd/cmdmeta.o', '/cmd/slowlog.o', '/cmd/xshard.o')
     regression = [str(ARM / 'pre' / x.removeprefix('build/'))
@@ -80,7 +86,7 @@ def main():
                        text=section(path,'.text'), rodata=section(path,'.rodata'))
               for name,path in [('PRE',pre),('POST',post),('PAD-A',pad),('REGRESSION',mutant)]},
         pad_link=cmd, regression_link=regression)
-    (REPORT / 'arms.json').write_text(json.dumps(report,indent=2)+'\n')
+    (REPORT / ('arms' + suffix + '.json')).write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps({k: v for k,v in report.items() if not k.endswith('_link')},indent=2))
 
 

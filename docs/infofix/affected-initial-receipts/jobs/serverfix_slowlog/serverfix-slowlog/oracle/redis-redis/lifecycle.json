@@ -1,0 +1,30 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "48-55",
+    "/home/user/Projects/redis/src/redis-server",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "20400",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-infofix/build/gate-run.nsS18G/jobs/serverfix_slowlog/serverfix-slowlog/oracle/redis-redis/data",
+    "--protected-mode",
+    "no",
+    "--slowlog-log-slower-than",
+    "-1",
+    "--latency-monitor-threshold",
+    "0",
+    "--acllog-max-len",
+    "0"
+  ],
+  "pid": 901230,
+  "booted": true,
+  "exit": 0,
+  "port_closed": true
+}

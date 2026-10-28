@@ -1,0 +1,27 @@
+atomic boundary entry=1
+-- zc-min=16384 (boot default), value=16384B, borrowing=True
+-- zc-min=1 (forced borrow), value=64B, borrowing=True
+-- zc-min=0 (borrow disabled), value=16384B, borrowing=False
+
+CELL MAP (a pattern, not an aggregate -- the pattern IS the diagnosis):
+  pubsub/resp3/16384B                      ok   40 probes, seg+0 def+40
+  tracking/self/resp3/16384B               ok   40 probes, inval+40 def+40
+  monitor/resp3/16384B                     ok   40 probes, feed+120 seg+0 def+47
+  monitor/resp2/16384B                     ok   40 probes, feed+120 seg+0 def+40
+  tracking/no-loss/16384B                  ok   24 produced, 24 delivered, stream intact
+  xshard-mget/16384B                       ok   16 shards, 4 keys, def+10
+  pubsub/resp3/64B                         ok   40 probes, seg+0 def+40
+  tracking/self/resp3/64B                  ok   40 probes, inval+40 def+40
+  monitor/resp3/64B                        ok   40 probes, feed+120 seg+0 def+50
+  monitor/resp2/64B                        ok   40 probes, feed+120 seg+0 def+48
+  tracking/no-loss/64B                     ok   21 produced, 21 delivered, stream intact
+  xshard-mget/64B                          ok   16 shards, 4 keys, def+10
+  pubsub/resp3/16384B                      ok   40 probes, seg+0 def+40
+  tracking/self/resp3/16384B               ok   40 probes, inval+40 def+40
+  monitor/resp3/16384B                     ok   40 probes, feed+120 seg+0 def+44
+  monitor/resp2/16384B                     ok   40 probes, feed+121 seg+0 def+47
+  blocking/push-then-timeout               ok   push delivered immediately (seg+1) and BLPOP timeout still emitted
+  control/copying/64B                      ok   40 probes clean (expected on both trees)
+
+pushtear: 18 ok, 0 FAIL
+atomic boundary restored=1

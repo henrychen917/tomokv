@@ -1,0 +1,3 @@
+atomic boundary entry=1
+bitfield: PASS (195 checks; all widths, overflow, RO, #, accounting/admission fired)
+atomic boundary restored=1

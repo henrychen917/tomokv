@@ -1,0 +1,33 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "48-55",
+    "/home/user/Projects/cx-infofix/build/tomokv",
+    "/home/user/Projects/cx-infofix/build/gate-run.nsS18G/jobs/latencyfix_grammar/latencyfix-grammar/candidate/1s-uring-file-1.conf",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "20400",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-infofix/build/gate-run.nsS18G/jobs/latencyfix_grammar/latencyfix-grammar/candidate/1s-uring-file-1-0-port0/data",
+    "--protected-mode",
+    "no",
+    "--databases",
+    "1",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16",
+    "--net-io",
+    "uring"
+  ],
+  "pid": 898336,
+  "booted": true,
+  "exit": 0,
+  "port_closed": true
+}

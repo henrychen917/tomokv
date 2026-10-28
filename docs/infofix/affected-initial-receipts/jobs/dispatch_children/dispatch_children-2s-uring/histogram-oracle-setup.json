@@ -1,0 +1,18 @@
+[
+  {
+    "argv": [
+      "CONFIG",
+      "SET",
+      "latency-tracking",
+      "no"
+    ],
+    "oracle": "OK"
+  },
+  {
+    "argv": [
+      "CONFIG",
+      "RESETSTAT"
+    ],
+    "oracle": "OK"
+  }
+]

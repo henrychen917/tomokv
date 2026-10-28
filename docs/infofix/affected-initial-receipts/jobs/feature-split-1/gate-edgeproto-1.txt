@@ -1,0 +1,3 @@
+atomic boundary entry=1
+edgeproto: 379 checks, 0 failures -> PASS
+atomic boundary restored=1

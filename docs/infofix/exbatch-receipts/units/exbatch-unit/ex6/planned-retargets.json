@@ -1,0 +1,46 @@
+{
+  "kind": "A: PRE behaviour for the selected item(s), exact POST text size and function layout",
+  "group": "ex6",
+  "source_sha256": "3fd42239d91138b8ca790137f7856698b6b1edab6ddff142bb506e34e3e075e1",
+  "inventory": {
+    "3": 79,
+    "30": 10,
+    "6": 3,
+    "1": 1
+  },
+  "patches": [
+    {
+      "address": 3659278,
+      "offset": 3659278,
+      "target": 3659342,
+      "item": 6,
+      "before": "0f1f440000",
+      "after": "e93b000000",
+      "functions": [
+        "_ZN4tomo12_GLOBAL__N_111child_countERKNS_15CommandMetadataE"
+      ]
+    },
+    {
+      "address": 3660577,
+      "offset": 3660577,
+      "target": 3660752,
+      "item": 6,
+      "before": "0f1f440000",
+      "after": "e9aa000000",
+      "functions": [
+        "_ZN4tomo23command_metadata_lookupENS_5SliceE"
+      ]
+    },
+    {
+      "address": 3668519,
+      "offset": 3668519,
+      "target": 3668608,
+      "item": 6,
+      "before": "0f1f440000",
+      "after": "e954000000",
+      "functions": [
+        "_ZN4tomo24command_metadata_resolveERNS_2OpEj"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "binary": "/home/user/Projects/redis/src/redis-server",
+  "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "checks": [
+    {
+      "label": "redis-redis reset",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "redis-redis reset",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "redis-redis nested script is a command",
+      "passed": true,
+      "actual": {
+        "eval": 1,
+        "get": 1
+      }
+    },
+    {
+      "label": "redis-redis EXEC child commands",
+      "passed": true,
+      "actual": {
+        "get": 1,
+        "incr": 1,
+        "exec": 1
+      }
+    },
+    {
+      "label": "redis-redis enable pipeline counts every command",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ]
+      ]
+    },
+    {
+      "label": "redis-redis disable pipeline adds no samples",
+      "passed": true,
+      "actual": [
+        [
+          "get",
+          32
+        ]
+      ]
+    }
+  ],
+  "slowlog": {}
+}

@@ -1,0 +1,107 @@
+atomic boundary entry=0
+[1] SCRIPT LOAD / EXISTS across connections and executor threads
+  ok   SCRIPT LOAD returns a 40-char sha b'efd5fbeacea04f1af8cb22dbe513464b1a604400'
+  ok   SCRIPT LOAD is idempotent
+  ok   SCRIPT EXISTS sees it on ANOTHER connection
+  ok   EVALSHA from a second connection over 32 shard-spread keys 32
+  ok   script chunk cache counters fired (vacuous-check) hits=29 misses=21
+  ok   number_of_cached_scripts counts the store 1
+[2] SCRIPT FLUSH generation
+  ok   SCRIPT FLUSH ASYNC ok
+  ok   flush generation advanced 2 -> 3
+  ok   store emptied
+  ok   EXISTS now 0 on both connections
+  ok   EVALSHA after flush is NOSCRIPT
+  ok   prime the chunk before flush
+  ok   same-owner chunk cache is armed
+  ok   second SCRIPT FLUSH ok
+  ok   EVAL still works after flush
+  ok   compiled chunk invalidated after flush
+[3] SCRIPT KILL / DEBUG / HELP / errors
+  ok   SCRIPT KILL is NOTBUSY
+  ok   SCRIPT DEBUG NO accepted
+  ok   SCRIPT DEBUG YES refused (documented divergence)
+  ok   SCRIPT DEBUG SYNC refused
+  ok   SCRIPT HELP is a status array
+[4] EVAL_RO / EVALSHA_RO read-only gate
+  ok   EVAL_RO refuses every write form (29)
+  ok   value untouched by the refused writes
+  ok   read-only rejection counter fired 0 -> 29
+  ok   EVAL_RO allows every read form (negative control)
+  ok   EVALSHA_RO enforces the same gate
+  ok   EVALSHA (not _RO) of the same sha still writes
+  ok   EVALSHA_RO unknown sha is NOSCRIPT
+  ok   redis.pcall surfaces the gate as a table error
+[5] FUNCTION lifecycle
+  ok   FUNCTION LOAD returns the library name
+  ok   duplicate FUNCTION LOAD is refused
+  ok   FUNCTION LOAD REPLACE succeeds
+  ok   FUNCTION LOAD of a second library
+  ok   function generation advanced per mutation 1 -> 4
+  ok   library/function counts published libs=2 fns=5
+  ok   FUNCTION LIST reports both libraries
+  ok   library entry carries name/engine/functions
+  ok   FUNCTION LIST omits code unless asked
+  ok   FUNCTION LIST WITHCODE echoes the source byte-exactly
+  ok   FUNCTION LIST LIBRARYNAME filters
+  ok   descriptions round-trip
+  ok   flags round-trip
+  ok   FUNCTION STATS shape [b'running_script', None, b'engines', [b'LUA', [b'libraries_count', 2, b'functions_count', 5]]]
+[6] FCALL / FCALL_RO
+  ok   FCALL passes keys and args positionally
+  ok   FCALL_RO runs a no-writes function
+  ok   FCALL_RO refuses a function without no-writes
+  ok   FCALL_RO rejection counter fired
+  ok   plain FCALL of a no-writes function is still read-only
+  ok   the refused no-writes write did not land
+  ok   plain FCALL of a writing function does write
+  ok   function_calls counter fired
+  ok   FCALL over 32 shard-spread keys from another connection
+  ok   thread materializations happened 8
+  ok   no rebuild without a generation change (negative control) 8
+  ok   generation change forces a rebuild 8 -> 12
+[7] FUNCTION error matrix
+  ok   FUNCTION LOAD refuses: missing shebang b'-ERR Missing library metadata\r\n'
+  ok   FUNCTION LOAD refuses: unknown engine b"-ERR Engine 'py' not found\r\n"
+  ok   FUNCTION LOAD refuses: no library name b'-ERR Library name was not given\r\n'
+  ok   FUNCTION LOAD refuses: illegal library name b'-ERR Library names can only contain letters, numbers, or underscores(_) and must be at lea'
+  ok   FUNCTION LOAD refuses: unknown metadata field b'-ERR Invalid metadata value given: zz=1\r\n'
+  ok   FUNCTION LOAD refuses: no functions registered b'-ERR No functions registered\r\n'
+  ok   FUNCTION LOAD refuses: body syntax error b"-ERR Error compiling function: user_function:2: unexpected symbol near '<eof>'\r\n"
+  ok   FUNCTION LOAD refuses: redis.call at load time b'-ERR Error registering functions: ERR user_function:2: Script attempted to access nonexist'
+  ok   FUNCTION LOAD refuses: register_function single non-table b'-ERR Error registering functions: ERR calling redis.register_function with a single argume'
+  ok   FUNCTION LOAD refuses: register_function 3 args b'-ERR Error registering functions: ERR wrong number of arguments to redis.register_function'
+  ok   FUNCTION LOAD refuses: register_function missing name b'-ERR Error registering functions: ERR redis.register_function must get a function name arg'
+  ok   FUNCTION LOAD refuses: register_function missing callback b'-ERR Error registering functions: ERR redis.register_function must get a callback argument'
+  ok   FUNCTION LOAD refuses: register_function callback not a function b'-ERR Error registering functions: ERR callback argument given to redis.register_function m'
+  ok   FUNCTION LOAD refuses: register_function unknown key b'-ERR Error registering functions: ERR unknown argument given to redis.register_function\r\n'
+  ok   FUNCTION LOAD refuses: register_function unknown flag b'-ERR Error registering functions: ERR unknown flag given\r\n'
+  ok   FUNCTION LOAD refuses: register_function flags not a table b'-ERR Error registering functions: ERR flags argument to redis.register_function must be a '
+  ok   FUNCTION LOAD refuses: duplicate function inside one library b'-ERR Error registering functions: ERR Function already exists in the library\r\n'
+  ok   FUNCTION LOAD refuses: duplicate function across libraries b'-ERR Function ssget already exists\r\n'
+  ok   no failed library leaked into the registry 2
+  ok   FUNCTION HELP is a status array
+  ok   failed library registers nothing
+[8] FUNCTION DUMP / RESTORE round trip
+  ok   DUMP payload is framed and non-trivial 720
+  ok   RESTORE APPEND onto a colliding registry is refused
+  ok   registry untouched by the refused restore
+  ok   RESTORE REPLACE succeeds
+  ok   RESTORE bad policy is refused
+  ok   RESTORE detects a corrupted payload
+  ok   RESTORE detects a truncated payload
+  ok   FUNCTION FLUSH clears everything
+  ok   registry empty after flush
+  ok   FCALL after flush is Function not found
+  ok   RESTORE into an empty registry
+  ok   round trip restored both libraries and every function
+  ok   restored function runs on a fresh connection
+  ok   restored FUNCTION LIST WITHCODE matches the original source
+  ok   FUNCTION DELETE removes one library
+  ok   its function is gone
+  ok   the other library still runs
+[9] keyspace notifications through FCALL
+  ok   FCALL write emitted the keyevent notification [b'message', b'__keyevent@0__:set', b'ss:485265:10']
+  ok   notify counter fired
+SCRIPTSURF: 95 checks, 0 FAIL (no oracle: error shapes not byte-compared)
+atomic boundary restored=0

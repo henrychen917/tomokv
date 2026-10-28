@@ -1,0 +1,11 @@
+608987:C 28 Oct 2026 23:46:57.127 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+608987:C 28 Oct 2026 23:46:57.127 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+608987:C 28 Oct 2026 23:46:57.127 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=608987, just started
+608987:C 28 Oct 2026 23:46:57.127 * Configuration loaded
+608987:M 28 Oct 2026 23:46:57.127 * monotonic clock: POSIX clock_gettime
+608987:M 28 Oct 2026 23:46:57.128 * Running mode=standalone, port=20400.
+608987:M 28 Oct 2026 23:46:57.128 * Server initialized
+608987:M 28 Oct 2026 23:46:57.128 * Ready to accept connections tcp
+608987:M 28 Oct 2026 23:46:57.206 # Error moving temp DB file temp-608987.rdb on the final destination dump.rdb (in server root dir /home/user/Projects/cx-infofix/build/gate-run.nsS18G/jobs/persistfix2_commands/commands-oracle-1s-uring/save-error/data): Is a directory
+608987:M 28 Oct 2026 23:46:57.206 * User requested shutdown...
+608987:M 28 Oct 2026 23:46:57.206 # Redis is now ready to exit, bye bye...

@@ -1,0 +1,42 @@
+[
+  {
+    "binary": "build/exbatch-unit",
+    "selection": "publication",
+    "rc": 0,
+    "expected_failure": null,
+    "stdout": "PASS exbatch publication: zero unchanged stores; all four gauges; non-last shard\nlayouts Op=336 Client=1984 ThreadCtx=1408 Shard=1440 FlatStore=944 Rob=192 AtomicEntry=144 Config=624\n",
+    "stdout_sha256": "851f5c3b76bac87e569125dd751d3416498b63098f488d9acfb0d53f2e6bd639",
+    "stdout_bytes": 183,
+    "stderr": ""
+  },
+  {
+    "binary": "build/exbatch/units/exbatch-unit/ex1/unit",
+    "selection": "publication",
+    "rc": 1,
+    "expected_failure": "unchanged publication must issue zero stores",
+    "stdout": "",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_bytes": 0,
+    "stderr": "FAIL exbatch: unchanged publication must issue zero stores (read-only page)\n"
+  },
+  {
+    "binary": "build/exbatch-db0-unit",
+    "selection": "publication",
+    "rc": 0,
+    "expected_failure": null,
+    "stdout": "PASS exbatch publication: zero unchanged stores; all four gauges; non-last shard\nlayouts Op=336 Client=1984 ThreadCtx=1408 Shard=1440 FlatStore=944 Rob=192 AtomicEntry=144 Config=624\n",
+    "stdout_sha256": "851f5c3b76bac87e569125dd751d3416498b63098f488d9acfb0d53f2e6bd639",
+    "stdout_bytes": 183,
+    "stderr": ""
+  },
+  {
+    "binary": "build/exbatch/units/exbatch-db0-unit/ex1/unit",
+    "selection": "publication",
+    "rc": 1,
+    "expected_failure": "unchanged publication must issue zero stores",
+    "stdout": "",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_bytes": 0,
+    "stderr": "FAIL exbatch: unchanged publication must issue zero stores (read-only page)\n"
+  }
+]

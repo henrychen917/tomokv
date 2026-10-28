@@ -1,0 +1,35 @@
+{
+  "kind": "Serverless mechanism control; not a measurement PAD arm",
+  "group": "watch-no-add",
+  "source_sha256": "dec2f207c18274e3b9b1fe74231c810e979bfa134dab6b21d29e281998355e93",
+  "inventory": {
+    "3": 157,
+    "30": 20,
+    "6": 6,
+    "1": 2
+  },
+  "patches": [
+    {
+      "address": 877038,
+      "offset": 877038,
+      "target": 876816,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e91dffffff",
+      "functions": [
+        "_ZN8tomo_db05Shard9watch_addENS_5SliceEPNS_6ClientEmt"
+      ]
+    },
+    {
+      "address": 4578169,
+      "offset": 4578169,
+      "target": 4577952,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e922ffffff",
+      "functions": [
+        "_ZN4tomo5Shard9watch_addENS_5SliceEPNS_6ClientEmt"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+/home/user/Projects/cx-infofix/tests/serverfix_alloc.cc: In function 'void trace(char, void*, size_t)':
+/home/user/Projects/cx-infofix/tests/serverfix_alloc.cc:36:31: warning: ignoring return value of 'ssize_t write(int, const void*, size_t)' declared with attribute 'warn_unused_result' [-Wunused-result]
+   36 |     if (fd >= 0) { (void)write(fd, record, used); close(fd); }
+      |                          ~~~~~^~~~~~~~~~~~~~~~~~
+__main__: 0 failed checks; evidence /home/user/Projects/cx-infofix/build/gate-run.nsS18G/jobs/serverfix_slowlog/serverfix-slowlog

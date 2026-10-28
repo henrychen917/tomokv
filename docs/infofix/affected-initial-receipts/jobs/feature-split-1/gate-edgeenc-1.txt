@@ -1,0 +1,15 @@
+atomic boundary entry=1
+== 1. compact -> expanded promotion, ENTRY-count axis (all four collection types)
+== 2. compact -> expanded promotion, VALUE-size axis
+== 3. the 192-byte KvObj embed line (kEmbedThreshold)
+== 4. the collection tail-embed line, swept over KEY length
+== 5. the zero-copy borrow cutover (--zc-min) and the gather cutover
+== 6. segmented send: small replies AFTER a large one, on one connection
+== 7. integer encoding and the INT64 edges
+== 8. DUMP/RESTORE round-trip across every boundary
+== 9. snapshot round-trip across the same boundaries (DEBUG RELOAD)
+== 10. boundary sizes over a key set that provably spans shards
+
+SKIPPED: list entry-axis promotion: list entry limit is 4294967295 (no entry threshold)
+edgeenc: 1338 checks, 0 failures -> PASS
+atomic boundary restored=1

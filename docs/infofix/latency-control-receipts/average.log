@@ -1,0 +1,8 @@
+PASS infofix latency 1s tracking=0 batch=1 samples=0 locks=0
+PASS infofix latency 1s tracking=0 batch=32 samples=0 locks=0
+PASS infofix latency 1s tracking=1 batch=1 samples=1 locks=0
+FAIL real batch preserves short commands and long outliers separately
+PASS infofix latency 2s tracking=0 batch=1 samples=0 locks=0
+PASS infofix latency 2s tracking=0 batch=32 samples=0 locks=0
+PASS infofix latency 2s tracking=1 batch=1 samples=1 locks=0
+FAIL real batch preserves short commands and long outliers separately
