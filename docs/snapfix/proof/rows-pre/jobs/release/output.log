@@ -1,2 +1,2 @@
-  row budget: 900s; median=0.03s; correctness-plan-fallback; release build (+footprint locks)
+  row budget: 900s; median=0.01s; correctness-plan-fallback; release build (+footprint locks)
   release build (+footprint locks)                     ok
