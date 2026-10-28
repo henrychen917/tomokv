@@ -666,7 +666,8 @@ bool function_thread_sync(lua_State* state, std::string& error) {
         }
         if (reuse) {
             for (const FunctionDef& fn : library.functions) {
-                lua_pushlstring(state, fn.name.data(), fn.name.size());
+                const std::string lookup = function_key(fn.name);
+                lua_pushlstring(state, lookup.data(), lookup.size());
                 lua_pushvalue(state, -1);
                 lua_rawget(state, previous_functions);
                 lua_rawset(state, functions);

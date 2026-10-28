@@ -150,6 +150,9 @@ def extras(root):
     elif root == 'FCALL-NAME-CASE':
         load("redis.register_function{function_name='MiXeD',callback=function() return 42 end,flags={'no-writes'}}")
         commands += [['fcall', 'MIXED', 0], ['fcall_ro', 'mixed', 0]]
+        load("redis.register_function('unrelated',function() return 1 end)", 'unrelated')
+        commands += [['fcall', 'mIxEd', 0], ['function', 'delete', 'unrelated'],
+                     ['fcall_ro', 'MIXED', 0]]
         load("redis.register_function('mixed',function() return 0 end)", 'collision')
         load("redis.register_function('DUP',function() end) redis.register_function('dup',function() end)", 'duplicate')
         commands += [['function', 'delete', 'extra'], ['fcall', 'mIxEd', 0]]
@@ -240,7 +243,9 @@ def main():
                   oracle_sha256=hashlib.sha256(args.oracle.read_bytes()).hexdigest(), rows=[])
     with server(args) as (target, target_argv), server(args, True) as (oracle, oracle_argv):
         report.update(target_argv=target_argv, oracle_argv=oracle_argv)
-        for root in ([args.root] if args.root else ROOTS):
+        selected = ROOTS if args.reproduce else [root for root in ROOTS if root not in
+                   ('FUNCTION-LOAD-DENYOOM', 'ACL-SCRIPTS-NEED-ALLCOMMANDS')]
+        for root in ([args.root] if args.root else selected):
             steps = original['A-' + root]['steps'] + ([] if args.reproduce else extras(root))
             row = dict(root=root, steps=[], differences=0)
             conns = {}
