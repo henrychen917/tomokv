@@ -82,6 +82,14 @@ The `trackfix_order` scheduling-copy build also failed before any live leg: its
 copy omitted `tools/assert_map.py`, now required by `make all`. The copy helper
 is repaired without changing its hooks or assertions; the complete job rerun is
 pending. Both original failures remain in the run ledger.
+**Unresolved differential failure:** epoll, split, atomic 0, seed 22, `psfix`:
+SAVE returned `Background save already in progress` after the both-peer idle
+barrier, so the suite correctly refused to compare the reply. SAVE/INFO and the
+snapshot-admission logic are unchanged from PRE; the same error also represents
+a placement-transition refusal. The actual Busy reason was not captured. This
+is neither classified as a confirmed lane regression nor waived as a harmless
+retry. The epoll proof is failed, with its original log and source comparison in
+`docs/exec1s/epoll-psfix-failure.json`; the remaining requested legs continue.
 The Redis Tcl dependency passed both modes against the unchanged PRE manifest:
 all 70 file/mode assertion inventories match. Its existing named `appendonly`
 block-setup error remains visible in the raw logs and is checked exactly, not
