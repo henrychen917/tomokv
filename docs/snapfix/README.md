@@ -21,11 +21,11 @@ of absence. Failures retain the original exception and process exit.
 
 | Directory | Contents | Produced by |
 |---|---|---|
-| `pre/`, `post/` | at412 diagnostics, 5 × 30 s per cell, on PRE and on the final POST | `tools/snapfix_reproduce.py` |
+| `pre/`, `post-ee7461ab/` | at412 diagnostics, 5 × 30 s per cell, on PRE and on the delivered POST | `tools/snapfix_reproduce.py` |
 | `stacks/` | PRE stacks of the shutdown abort, the snapshot wait and an EXEC storm | `tools/snapfix_stacks.py` |
-| `rootcause/` | gdb scripts and their output: intents at the XS-SHUT-1 abort; two live SNAP-STORM-1 EXEC cores (stall state, inbox lanes, placement blockers, live INFO deltas, socket queues) | `tools/snapfix_storm_capture.py`, `rootcause/gdb/` |
+| `rootcause/` | gdb scripts and their output: intents at the XS-SHUT-1 abort; two live SNAP-STORM-1 EXEC cores; the BGSAVE-loop Preparing stall and table-doubling measurements | `tools/snapfix_storm_capture.py`, `rootcause/gdb/` |
 | `rows-pre-post/` | `tests/snapfix.py` results per case, PRE and the first POST | `tests/snapfix.py` |
-| `attribution/` | the three cases against single-fix arms | `build/snapfix/attr-*.sh` (scripts recorded in the report) |
+| `attribution/` | the three cases against single-fix arms (first shapes; arms and SHA-256 in `arms.json`) | `tests/snapfix.py --atomics 1 --no-oracle` per arm |
 | `proof/<run>/` | gate-interface receipts: partial ledger, per-job verdicts, command line, binary SHA-256 | `tools/snapfix_record.py` |
 | `neighbours/<arm>/` | SHUTDOWN SAVE, SIGTERM, FLUSHALL, BGSAVE + FLIP and AOF-rewrite storms | `tests/snapfix_neighbours.py` |
 | `instructions/` | serverless command-scope traces, PRE vs POST | `tools/snapfix_scope.py` |
@@ -33,3 +33,5 @@ of absence. Failures retain the original exception and process exit.
 | `identity/` | whole-link function-body identity, PRE vs final POST | `tools/snapfix_identity.py` |
 | `unit/` | the teardown unit check and its negative control | `build/atomic-survivors-unit txn_intents` |
 | `pad-a.json` | PAD-A twin and POST-layout image digests | `tools/snapfix_pad.py` |
+| `long-storm/` | the EXEC + writer storm at 6/30/60 s, delivered POST and with the follow-up patch | `tests/snapfix.py --seconds N --stall 30` |
+| `followup/` | the table-sizing fix and its row check, NOT in the delivered POST | `git show 3dd076c29`, `27b14f4bb` |
