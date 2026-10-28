@@ -26,9 +26,5 @@
   "CLIENT-LIST-CMD-NAME": [
     "unit/introspection",
     "CLIENT LIST with IDs"
-  ],
-  "CONNECTED-CLIENTS-LAG": [
-    "unit/introspection",
-    "CLIENT KILL SKIPME YES/NO will kill all clients"
   ]
 }

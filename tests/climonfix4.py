@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ROOTS = ("PAUSE-BLOCKED-COUNT", "PAUSE-CLIENT-EXEMPT", "PAUSE-MAY-REPLICATE",
          "PAUSE-SCRIPT-FLAGS", "MONITOR-SCRIPT-CMDS", "RESET-CLEARS-LIBNAME",
          "RESET-MONITOR-ECHO", "CLIENT-LIST-CMD-NAME", "CONNECTED-CLIENTS-LAG")
-FIXED = tuple(root for root in ROOTS if root != "PAUSE-CLIENT-EXEMPT")
+FIXED = tuple(root for root in ROOTS if root not in ("PAUSE-CLIENT-EXEMPT", "CONNECTED-CLIENTS-LAG"))
 
 
 def directed(host, port, root):

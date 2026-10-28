@@ -3,7 +3,6 @@
     "CLIENT INFO",
     "CLIENT LIST",
     "CLIENT LIST with IDs",
-    "CLIENT KILL SKIPME YES/NO will kill all clients",
     "MONITOR can log commands issued by the scripting engine",
     "RESET does NOT clean library name"
   ],

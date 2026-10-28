@@ -630,13 +630,6 @@ public:
     // Torn down but not yet freed: still legal to READ while outstanding CQEs retire (it sits on
     // the io thread's deferred-free list), but no longer part of any working set.
     bool dead() const { return dead_; }
-    // Socket liveness ends before ROB/QSBR reclamation. This teardown-only bit
-    // makes early accounting idempotent, including pre-marked QUIT/KILL closes.
-    bool uncount_connection() {
-        if (connection_flags_ & kUncounted) return false;
-        connection_flags_ |= kUncounted;
-        return true;
-    }
     void mark_dead() { dead_ = true; inline_scanned_ = 0; multibulk_.finish(); }
     bool closing() const { return closing_; }
     void mark_closing() { closing_ = true; inline_scanned_ = 0; multibulk_.finish(); }
@@ -860,7 +853,6 @@ private:
     static constexpr uint8_t kBlocked = 1u << 7;
     static constexpr uint8_t kResp3 = 1u << 2;
     static constexpr uint8_t kNoTouch = 1u << 4;
-    static constexpr uint8_t kUncounted = 1u << 5;
     uint8_t   connection_flags_ = 0;
     // Output accounting is rewritten on every reply append while a client output limit is armed.
     // It sits here, on the io-private hot line, so that write never invalidates the executor-

@@ -170,7 +170,7 @@ void IoLoop::shutdown_clients_after_join() {
             }
             command_client_disconnected(c);
             ::close(c->fd());
-            if (c->uncount_connection()) srv_->client_released();
+            srv_->client_released();
         }
         release_tls(c);
         latency_tracking_forget_client(*c);

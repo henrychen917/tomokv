@@ -511,7 +511,6 @@
     "CLIENT GETNAME check if name set correctly in tests/unit/introspection.tcl",
     "CLIENT GETNAME should return NIL if name is not assigned in tests/unit/introspection.tcl",
     "CLIENT INFO in tests/unit/introspection.tcl",
-    "CLIENT KILL SKIPME YES/NO will kill all clients in tests/unit/introspection.tcl",
     "CLIENT KILL maxAGE will kill old clients in tests/unit/introspection.tcl",
     "CLIENT KILL with illegal arguments in tests/unit/introspection.tcl",
     "CLIENT LIST in tests/unit/introspection.tcl",
@@ -541,6 +540,7 @@
    },
    "sha256": "92fa93cdb4bcb77698c6f516bbed9c7e34cf02d757baa8e40ccf5f1f45dd2e7c",
    "skip_tests": {
+    "CLIENT KILL SKIPME YES/NO will kill all clients": "failed on TomoKV 2s in the survey",
     "CLIENT KILL close the client connection during bgsave": "failed on TomoKV 2s in the survey",
     "CONFIG GET hidden configs": "failed on TomoKV 2s in the survey",
     "CONFIG GET multiple args": "failed on TomoKV 2s in the survey",

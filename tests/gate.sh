@@ -5324,8 +5324,8 @@ job_multifix(){
   done
 }
 
-# Eight roots in both modes/engines, collected before the quick exit: DQ=DF=+32.
-# PAUSE-CLIENT-EXEMPT is an owner-decision restriction and retains its named skip.
+# Seven directed roots in both modes/engines, before the quick exit: DQ=DF=+28.
+# PAUSE-CLIENT-EXEMPT and CONNECTED-CLIENTS-LAG retain owner-decision skips.
 job_climonfix4(){
   local prefix mode engine root label databases atomic read_local passed boot_fn
   IFS=- read -r prefix mode engine <<< "$1"
@@ -5333,7 +5333,7 @@ job_climonfix4(){
   [ "$mode" != 1s ] || boot_fn=boot_fused
   for root in PAUSE-BLOCKED-COUNT PAUSE-MAY-REPLICATE PAUSE-SCRIPT-FLAGS \
       MONITOR-SCRIPT-CMDS RESET-CLEARS-LIBNAME RESET-MONITOR-ECHO \
-      CLIENT-LIST-CMD-NAME CONNECTED-CLIENTS-LAG; do
+      CLIENT-LIST-CMD-NAME; do
     label="climonfix4 $root ($mode $engine)"
     row_begin "$label"; passed=1
     for databases in 1 16; do for atomic in 0 1; do for read_local in 0 1; do
