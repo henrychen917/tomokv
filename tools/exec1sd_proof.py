@@ -67,7 +67,7 @@ def main():
         for mode in ('0','1'):
             for engine in ('uring','epoll'):
                 out.append(gate('zc-'+mode+'-'+engine,['zc'],engine,extra={
-                    'GATE_TXN_FUSED':mode,'GATE_TXN_ATOMIC':'0','GATE_ZC_NET_IO':engine},
+                    'GATE_TXN_FUSED':mode,'GATE_ZC_NET_IO':engine},
                     ports='20002-20009',server_cores='64-71',load_cores='72-95'))
     elif a.phase=='lottery':
         binary=d.ROOT/'build/lottery/tomokv'
