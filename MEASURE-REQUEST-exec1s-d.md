@@ -116,6 +116,11 @@ Each EXEC arm has 72 scopes: the 48 combinations of 1/2/4 children, same/cross
 shard, atomic 0/1, mode and namespace, plus 24 two-child depth scopes with
 0/16/64 older pending versions. Complete per-arm matrices are named
 `docs/exec1s-d/EXEC-<ARM>-counts.json`.
+The children in this matrix are INCRs. Same-shard repeats one key; cross-shard
+uses one key per child on distinct shards. Consequently the one-child cross
+label is the same single-shard control, not a scatter child. A one-child EXEC
+containing a cross-shard MSET was **NOT RUN** in this attribution matrix; these
+receipts must not be read as covering that different command shape.
 
 The normal-namespace 2s, atomic-0 two-child depth counts are:
 

@@ -84,6 +84,12 @@ struct CoreConcurrencyTest {
    std::string key="execfair-dispatch:"+std::to_string(k);Slice s(key.data(),key.size());
    if(server.router().shard_of(FlatStore::hash_key(s))==sid){keys.push_back(key);break;}
   }
+  const bool scatter_case = command.starts_with("EXEC-scatter-");
+  const bool scatter_cross = command == "EXEC-scatter-cross";
+  if(scatter_case)for(unsigned k=0;;k++){
+   std::string key="execfair-dispatch:"+std::to_string(k);Slice s(key.data(),key.size());
+   if(key!=keys[0]&&server.router().shard_of(FlatStore::hash_key(s))==0){keys.push_back(key);break;}
+  }
   const std::string value = (command == "INCR" || command.starts_with("EXEC")) ? "0" : std::string(64,'v');
   for(const auto& key:keys){
    Op op;op.reset();need(op.push_arg(Slice("SET")));need(op.push_arg({key.data(),uint32_t(key.size())}));need(op.push_arg({value.data(),uint32_t(value.size())}));
@@ -143,12 +149,27 @@ struct CoreConcurrencyTest {
    };
    scope_begin();
    local("MULTI",nullptr);
-   for(unsigned i=0;i<n;i++)local("INCR",&keys[command=="EXEC-cross"?i:0]);
+   for(unsigned i=0;i<n;i++){
+    if(!scatter_case){local("INCR",&keys[command=="EXEC-cross"?i:0]);continue;}
+    Op op;op.reset();need(op.push_arg(Slice("MSET")));
+    const std::string next=std::to_string(i+1);
+    for(unsigned index:{0u,scatter_cross?1u:8u}){
+     need(op.push_arg({keys[index].data(),uint32_t(keys[index].size())}));
+     need(op.push_arg({next.data(),uint32_t(next.size())}));
+    }
+    op.spec=command_lookup(op.arg(0));MultiExecState* unused=nullptr;
+    need(multi_handle_io(server,client,op,io,unused)==MultiIoAction::LocalDone);
+    need(std::string(op.reply.data(),op.reply.size())=="+QUEUED\r\n");
+   }
    MultiExecState* state=nullptr;
    need(multi_handle_io(server,client,*carrier,io,state)==MultiIoAction::Dispatch&&state);
    carrier->attach_multi_state(state);client.atomic_group_started();multi_dispatch_started(client,state);
    std::vector<int32_t> remaining;
    for(unsigned i=0;i<multi_dispatch_count(state);i++)remaining.push_back(multi_dispatch_shard(state,i));
+   if(scatter_case){
+    need(remaining.size()==(scatter_cross?2u:1u));
+    if(scatter_cross)need(server.worker_of_shard(remaining[0])!=server.worker_of_shard(remaining[1]));
+   }
    for(unsigned pass=0;!remaining.empty()&&pass<128;pass++){
     for(size_t i=0;i<remaining.size();){
      const auto sid=remaining[i];const auto owner=server.worker_of_shard(sid);
@@ -169,8 +190,15 @@ struct CoreConcurrencyTest {
    multi_reap_deferred(deferred);need(deferred.empty());
    if(!depth_case) scope_end();
    std::string expected="*"+std::to_string(n)+"\r\n";
-   for(unsigned i=0;i<n;i++)expected+=":"+std::to_string(command=="EXEC-cross"?1:i+1)+"\r\n";
+   for(unsigned i=0;i<n;i++)expected+=scatter_case?"+OK\r\n":":"+std::to_string(command=="EXEC-cross"?1:i+1)+"\r\n";
    need(std::string(carrier->reply.data(),carrier->reply.size())==expected);
+   if(scatter_case)for(unsigned index:{0u,scatter_cross?1u:8u}){
+    Op op;op.reset();need(op.push_arg(Slice("GET")));
+    need(op.push_arg({keys[index].data(),uint32_t(keys[index].size())}));
+    op.spec=command_lookup(op.arg(0));op.hash=FlatStore::hash_key(op.arg(1));
+    op.spec->handler(server.shard(server.router().shard_of(op.hash)),op);
+    need(std::string(op.reply.data(),op.reply.size())=="$1\r\n"+std::to_string(n)+"\r\n");
+   }
 #ifdef TOMO_LATENCY_SCAN_WITNESS
    need(wave8b_tracking ? wave8b_scans > 0 : wave8b_scans == 0);
    uint64_t samples = 0;
