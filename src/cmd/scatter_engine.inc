@@ -3618,24 +3618,20 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
     }
 }
 
+// An activation's last owner-side step (every ScatterFinish::Final of xshard_complete_script()),
+// on the executor that drove its final wave. APPLY is its only record-installing wave, so from
+// here on it has installed and decided every record it ever will, or none at all: it can no longer
+// straddle a snapshot cut. It therefore also closes the apply window here, as the ordinary group
+// arm's final() does (the slot index only spreads the counters; any thread's slot is correct).
+// Leaving that close to xshard_destroy() at reply retirement made a SAVE/BGSAVE whose IO thread
+// had admitted the activation wait in drain_atomic_groups() for a retirement that only the
+// waiting thread itself could perform (SNAP-STORM-1, script storms). The retirement-time close
+// stays as the idempotent backstop for states torn down before dispatch.
 void script_snapshot_done(Server& server, ScatterState& state) {
     if (state.snapshot_registered &&
         !state.snapshot_complete.exchange(true, std::memory_order_acq_rel))
         server.note_atomic_snapshot_complete(state.owner_io);
-}
-
-// An activation's last owner-side step, on the executor that drove its final wave. APPLY is its
-// only record-installing wave, so from here on it has installed and decided every record it ever
-// will, or none at all: it can no longer straddle a snapshot cut. Close the apply window HERE, as
-// the ordinary group arm's final() does. Leaving the close to xshard_destroy() at reply
-// retirement made a SAVE/BGSAVE whose IO thread had admitted the activation wait in
-// drain_atomic_groups() for a retirement that only the waiting thread itself could perform
-// (SNAP-STORM-1, script storms). The retirement-time close stays as the idempotent backstop for
-// states torn down before dispatch.
-ScatterFinish script_finish(Server& server, ThreadCtx& self, ScatterState& state) {
-    script_snapshot_done(server, state);
-    server.atomic_apply_close(self.id(), state.apply_open);
-    return ScatterFinish::Final;
+    server.atomic_apply_close(state.owner_io, state.apply_open);
 }
 
 void script_engine_error_reply(Op& op, ScatterState& state, WorkError error) {
@@ -3845,7 +3841,8 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                     state.script_ticket_live = false;
                     server.note_script_activation();
                 }
-                return script_finish(server, self, state);
+                script_snapshot_done(server, state);
+                return ScatterFinish::Final;
 
             case ScriptPhase::Apply: {
                 WorkError error = state.final_error;
@@ -3880,7 +3877,8 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                         op.clear_reply();
                         reply_err(op.sink(), "TRYAGAIN Cross-shard script conflicted, retry");
                     } else script_engine_error_reply(op, state, error);
-                    return script_finish(server, self, state);
+                    script_snapshot_done(server, state);
+                    return ScatterFinish::Final;
                 }
                 if (!state.script_ticket_live) std::abort();
                 server.atomic_commit_publish();
@@ -3893,7 +3891,8 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                 server.note_script_group_commit();
                 if (__builtin_expect(server.blocking_waiters() != 0, false))
                     blocking_atomic_published(server, self, ring, state);
-                return script_finish(server, self, state);
+                script_snapshot_done(server, state);
+                return ScatterFinish::Final;
             }
             case ScriptPhase::None:
                 std::abort();
