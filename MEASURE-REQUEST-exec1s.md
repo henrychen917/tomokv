@@ -96,6 +96,20 @@ the `atomic_ryow` rate assertion is disabled with the gate’s existing
 remain enabled. Full iteration, performance merit and load generators remain
 with the maintainer. No missing performance leg is reported as a correctness pass.
 
+### Design acceptance checks
+
+Fresh complete allocation scope, two Local INCRs and two participants, both
+namespaces (`docs/exec1s/allocation-comparison.json`):
+
+| Check | PRE | POST | Verdict |
+| --- | ---: | ---: | --- |
+| 1s, 64 shards, bytes | 13,514 | 4,490 | FAIL: 0.332×, target <=0.25× |
+| POST 2s/16 → 1s/64 shards, bytes | 4,315 | 4,490 | PASS: 1.041×, target <=1.2× |
+
+The initial allocation alone is not substituted for this complete scope; POST
+allocates participant arrays after discovery. The instruction-based acceptance
+checks are still pending the fresh traces.
+
 ### Gate row accounting
 
 This continuation adds no scored row: **DQ=0, DF=0**. The inherited exec1s feature

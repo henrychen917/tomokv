@@ -89,6 +89,12 @@ def main():
                 dest=ROOT/'build'/('exec1s-'+twin);shutil.move(OUT/twin,dest)
                 record(twin,dest,control='A: PRE behaviour / POST behaviour in the same common image; larger than release',
                        source_commit=commit if twin=='PAD-A' else git('rev-parse',COMMITS['POST']))
+            control=json.loads((DOCS/'pad-a.json').read_text())
+            control['post_layout']=str(ROOT/'build/exec1s-POST-layout')
+            control['pad_a']=str(ROOT/'build/exec1s-PAD-A')
+            scope.save(DOCS/'pad-a.json',control)
+            for allocation in OUT.glob('*-allocation-*'):
+                if allocation.is_file():allocation.unlink()
             shutil.rmtree(OUT/'pad-objects')
             for ns in ('normal','db0'):
                 shutil.rmtree(scope.BUILD/('POST-layout-'+ns))

@@ -23,7 +23,7 @@ JOBS='''exec1s txnorder_index txnorder2 txnorder_wake txnorder-fused-0 txnorder-
  atomic_batteries feature-split-0 feature-split-1 feature-armed-0 feature-armed-1
  script_bounds scriptfix lualibs sort auth authfix dump_restore blockfix_registry blockfix_structure blockfix_mkstream
  wait_units notify notifycompat notify_order notify_aof tracking_redirect trackfix_order trackfix_accounting
- flip fliplisten flipctl flip_unit flipfix_units moverfix lbplanner_units
+ flip fliplisten flipctl flip_unit flipfix_units moverfix lbplanner_units lb-stationary-1s lb-stationary-2s
  core_units splitlocal_units rlfix3_zc rlfix3_info rlcache rldbg ring_unit filter_unit hexpread
  climonfix clientfix racefix_counters racefix_climon storage_units perfex_units perfex_live ntnew4_live ntfix_input perfio_stream netio-1s netio-2s
  wb_rule_units wbland_units wb_policy iofix-deferred iofix-hz iofix-sleep iofix-signal
