@@ -9,7 +9,7 @@
   "steps": 10635,
   "clock_calls": 1,
   "excluded_calls": 34,
-  "pc_trace_sha256": "b4dcc8d19c42d52e69fb4220368254e98431caea2f3d5c295f698340c289a5b2",
+  "pc_trace_sha256": "9db1143204fa2005588a684bceeb24c89121756e1be50ca8c094ce0b4b0988e3",
   "pc_trace_entries": 2744,
   "total": 10190,
   "functions": {
@@ -54,5 +54,5 @@
     "tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const": 23,
     "tomo::ScatterFinish tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 383
   },
-  "probe_sha256": "24519f18d14d791e7febf378be014ec076680930a6037b00d2caf42a8d6262f5"
+  "probe_sha256": "c880e4886b349487f11225c8fcea889a1c70880584fd2a9406f73201d0cace9d"
 }

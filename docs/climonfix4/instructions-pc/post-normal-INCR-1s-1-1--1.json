@@ -9,7 +9,7 @@
   "steps": 1532,
   "clock_calls": 1,
   "excluded_calls": 3,
-  "pc_trace_sha256": "1f130673cd98ae2b714fdf0bd071cb70723bff7e53e541ad9a60abe7b03b0d7d",
+  "pc_trace_sha256": "5a40a2cd8d5d42891bec48470d49ca895bb4f5437531a0a92dee37f5ecc5c239",
   "pc_trace_entries": 1369,
   "total": 1522,
   "functions": {
@@ -43,5 +43,5 @@
     "tomo::FlatStore::publish_database_counts() const": 147,
     "tomo::Shard::publish_size()": 58
   },
-  "probe_sha256": "24519f18d14d791e7febf378be014ec076680930a6037b00d2caf42a8d6262f5"
+  "probe_sha256": "c880e4886b349487f11225c8fcea889a1c70880584fd2a9406f73201d0cace9d"
 }

@@ -32,7 +32,7 @@ def main():
          '    std::shared_ptr<NotifyExpiryCompletion> expiry_completion;\n    std::vector<std::string> monitor_lines;')
  replace('src/cmd/climon.inc', '    struct ClimonConn {',
          '    struct ClimonConn {\n'
-         '        struct MonitorPending { uint64_t id, excluded; bool script; std::string line; };')
+         '        struct MonitorPending { uint64_t id, excluded; bool script; uint32_t multi_order; std::string line; };')
  replace('src/cmd/climon.inc', '        uint64_t tracking_generation = 0;',
          '        uint64_t tracking_generation = 0;\n'
          '        uint64_t monitor_script_id = UINT64_MAX;\n'

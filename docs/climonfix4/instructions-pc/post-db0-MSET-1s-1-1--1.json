@@ -9,7 +9,7 @@
   "steps": 16920,
   "clock_calls": 1,
   "excluded_calls": 45,
-  "pc_trace_sha256": "8f42a9ed98f77b9e70dc5dac0d6337d1777d126a374b68f5fc72147eddcff4aa",
+  "pc_trace_sha256": "a83241e6b8d855a0e50fc51c20bd27a57bb830660e43e89671d2e1549ae5db5f",
   "pc_trace_entries": 3503,
   "total": 16428,
   "functions": {
@@ -23,6 +23,7 @@
     "tomo_db0::(anonymous namespace)::first_error(tomo_db0::ScatterState const&, tomo_db0::(anonymous namespace)::WorkError&)": 106,
     "tomo_db0::(anonymous namespace)::has_status(tomo_db0::(anonymous namespace)::Kind, bool)": 12,
     "tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)": 35,
+    "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)": 34,
     "tomo_db0::(anonymous namespace)::complete_owner_record_wave(tomo_db0::ScatterState&, unsigned int)": 224,
     "tomo_db0::(anonymous namespace)::initialize_owner_completion(tomo_db0::ScatterState&) [clone .part.0]": 390,
     "tomo_db0::(anonymous namespace)::initialize_owner_completion(tomo_db0::ScatterState&)": 3,
@@ -33,7 +34,6 @@
     "tomo_db0::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 27,
     "tomo_db0::FlatStore::atomic_alloc_entry(unsigned int, unsigned long) [clone .isra.0]": 480,
     "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]": 763,
-    "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)": 34,
     "tomo_db0::(anonymous namespace)::arm_debug_off_hop_delay(tomo_db0::ScatterState&, tomo_db0::Op const&) [clone .isra.0]": 20,
     "tomo_db0::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
     "tomo_db0::xshard_dispatch_shard(tomo_db0::ScatterDispatch const&, unsigned int)": 88,
@@ -63,5 +63,5 @@
     "tomo_db0::FlatStore::atomic_acquire_value_block(unsigned long)": 248,
     "tomo_db0::l4prebuild_policy(unsigned int)": 28
   },
-  "probe_sha256": "a0589754109325a6e504a7bd33677a8ae620894484e5926b2727ec68b986a88f"
+  "probe_sha256": "1c60797ff391028c8530bb6a1a21c3e23a8d49f2674650531ac3fd3668752586"
 }

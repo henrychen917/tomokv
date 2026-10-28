@@ -811,7 +811,6 @@
    "extra_args": [],
    "known_setup_errors": [],
    "passed_tests": [
-    "CLIENT UNBLOCK is not allow to unblock client blocked by CLIENT PAUSE in tests/unit/pause.tcl",
     "Test RO scripts are not blocked by pause RO in tests/unit/pause.tcl",
     "Test both active and passive expires are skipped during client pause in tests/unit/pause.tcl",
     "Test clients with syntax errors will get responses immediately in tests/unit/pause.tcl",
@@ -834,6 +833,7 @@
    },
    "sha256": "ab08200bf658762cbe77f8a910ff7f25d224d5581200a328a2cca72fc798bc95",
    "skip_tests": {
+    "CLIENT UNBLOCK is not allow to unblock client blocked by CLIENT PAUSE": "failed on TomoKV 2s in the survey",
     "Test may-replicate commands are rejected in RO scripts": "failed on TomoKV 2s in the survey",
     "Test old pause-all takes precedence over new pause-write (less restrictive)": "failed on TomoKV 2s in the survey"
    }
@@ -1567,7 +1567,6 @@
     "BRPOPLPUSH with zero timeout should block indefinitely in tests/unit/type/list.tcl",
     "Basic LPOP/RPOP/LMPOP - listpack in tests/unit/type/list.tcl",
     "Basic LPOP/RPOP/LMPOP - quicklist in tests/unit/type/list.tcl",
-    "Blocking timeout following PAUSE should honor the timeout in tests/unit/type/list.tcl",
     "Check if list is still ok after a DEBUG RELOAD - listpack in tests/unit/type/list.tcl",
     "Check if list is still ok after a DEBUG RELOAD - listpack in tests/unit/type/list.tcl",
     "Check if list is still ok after a DEBUG RELOAD - quicklist in tests/unit/type/list.tcl",
@@ -1737,6 +1736,7 @@
     "BRPOPLPUSH timeout": "failed on TomoKV 2s in the survey",
     "Blocking command accounted only once in commandstats": "failed on TomoKV 2s in the survey",
     "Blocking command accounted only once in commandstats after timeout": "failed on TomoKV 2s in the survey",
+    "Blocking timeout following PAUSE should honor the timeout": "failed on TomoKV 2s in the survey",
     "Circular BRPOPLPUSH": "failed on TomoKV 2s in the survey",
     "Command being unblocked cause another command to get unblocked execution order test": "failed on TomoKV 2s in the survey",
     "Crash due to delete entry from a compress quicklist node": "failed on TomoKV 2s in the survey",

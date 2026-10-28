@@ -9,7 +9,7 @@
   "steps": 2356,
   "clock_calls": 0,
   "excluded_calls": 5,
-  "pc_trace_sha256": "c5ccac82d4b9128878bd6c43d75d706f0cf627a024e8ba36904ad4b0bbc202a9",
+  "pc_trace_sha256": "df31d677899915ca5d76b51a72eaf7c042c5a2900914cae3b1e73f7bf2762d44",
   "pc_trace_entries": 1955,
   "total": 2340,
   "functions": {
@@ -40,5 +40,5 @@
     "tomo_db0::IoLoop::r7_ReadLocalDemotionPlan::cancel()": 10,
     "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)": 893
   },
-  "probe_sha256": "a0589754109325a6e504a7bd33677a8ae620894484e5926b2727ec68b986a88f"
+  "probe_sha256": "1c60797ff391028c8530bb6a1a21c3e23a8d49f2674650531ac3fd3668752586"
 }

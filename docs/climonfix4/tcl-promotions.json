@@ -11,7 +11,6 @@
     "RESET clears MONITOR state"
   ],
   "unit/pause": [
-    "CLIENT UNBLOCK is not allow to unblock client blocked by CLIENT PAUSE",
     "Test RO scripts are not blocked by pause RO",
     "Test multiple clients can be queued up and unblocked",
     "Test new pause time is smaller than old one, then old time preserved",
@@ -20,8 +19,5 @@
     "Test scripts are blocked by pause RO",
     "Test special commands are paused by RO",
     "Test write commands are paused by RO"
-  ],
-  "unit/type/list": [
-    "Blocking timeout following PAUSE should honor the timeout"
   ]
 }

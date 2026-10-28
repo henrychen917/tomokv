@@ -79,8 +79,13 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument('--arms', default='pre,post')
     p.add_argument('--smoke', action='store_true')
-    p.add_argument('--kind',choices=('commands','exec','local'),default='commands')
+    p.add_argument('--kind',choices=('commands','exec','local','parse'),default='commands')
     args = p.parse_args()
+    if args.kind == 'parse':
+        global OUT
+        OUT = scope.ROOT / 'docs/climonfix4/parse-pc'
+        OUT.mkdir(exist_ok=True)
+        scope.BUILD = scope.ROOT / 'build/climonfix4/parse-commands'
     arms = args.arms.split(',')
     prepared = {(arm, ns): prepare(arm, ns) for arm in arms for ns in ('normal', 'db0')}
     cases = [(arm, ns, command, mode, batch, atomic, -1) for arm in arms
@@ -94,6 +99,9 @@ def main():
     if args.kind == 'local':
         cases = [(a,n,'READLOCAL-GET','1s',b,1,-1) for a in arms
                  for n in ('normal','db0') for b in (1,32)]
+    if args.kind == 'parse':
+        cases = [(a,n,c,m,b,0,-1) for a in arms for n in ('normal','db0')
+                 for c in ('GET','SET','INCR','MGET','MSET') for m in ('1s','2s') for b in (1,32)]
     if args.smoke: cases = [c for c in cases if c[2:6] == ('GET', '1s', 1, 1)]
     with concurrent.futures.ThreadPoolExecutor(8) as pool:
         rows = list(pool.map(lambda case: run(case, prepared), cases))

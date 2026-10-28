@@ -9,7 +9,7 @@
   "steps": 11460,
   "clock_calls": 1,
   "excluded_calls": 19,
-  "pc_trace_sha256": "fc1829ad72a1fe5a7c0888ac563a83316d751df74c92ced94befd4fd56a0e190",
+  "pc_trace_sha256": "bc9f1519e77a3de7ea64fdd0e0bc6c75db12adbafe1f3bff5d33c02794e67a22",
   "pc_trace_entries": 2598,
   "total": 11017,
   "functions": {
@@ -19,6 +19,7 @@
     "tomo_db0::(anonymous namespace)::first_error(tomo_db0::ScatterState const&, tomo_db0::(anonymous namespace)::WorkError&)": 282,
     "tomo_db0::(anonymous namespace)::has_status(tomo_db0::(anonymous namespace)::Kind, bool)": 20,
     "tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)": 35,
+    "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)": 34,
     "tomo_db0::(anonymous namespace)::initialize_owner_completion(tomo_db0::ScatterState&)": 6,
     "tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)": 504,
     "tomo_db0::(anonymous namespace)::build_initial_groups(tomo_db0::ScatterState&)": 410,
@@ -29,7 +30,6 @@
     "tomo_db0::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 27,
     "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)": 224,
     "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]": 763,
-    "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)": 34,
     "tomo_db0::(anonymous namespace)::arm_debug_off_hop_delay(tomo_db0::ScatterState&, tomo_db0::Op const&) [clone .isra.0]": 30,
     "tomo_db0::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
     "tomo_db0::xshard_dispatch_shard(tomo_db0::ScatterDispatch const&, unsigned int)": 88,
@@ -60,5 +60,5 @@
     "tomo_db0::KvObj::val_ptr()": 128,
     "tomo_db0::l4prebuild_policy(unsigned int)": 28
   },
-  "probe_sha256": "a0589754109325a6e504a7bd33677a8ae620894484e5926b2727ec68b986a88f"
+  "probe_sha256": "1c60797ff391028c8530bb6a1a21c3e23a8d49f2674650531ac3fd3668752586"
 }

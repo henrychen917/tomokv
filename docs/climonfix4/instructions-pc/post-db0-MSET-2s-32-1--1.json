@@ -9,7 +9,7 @@
   "steps": 956110,
   "clock_calls": 32,
   "excluded_calls": 1176,
-  "pc_trace_sha256": "30d51da0fe3710ce8cd59ef9d28a11d0ca0820894638ecae6782469ed2198b10",
+  "pc_trace_sha256": "0738e021f0bdf26b85402f44c523408248da289ae8f974868bb387c7970b6d1c",
   "pc_trace_entries": 3706,
   "total": 941470,
   "functions": {
@@ -23,6 +23,7 @@
     "tomo_db0::(anonymous namespace)::first_error(tomo_db0::ScatterState const&, tomo_db0::(anonymous namespace)::WorkError&)": 3392,
     "tomo_db0::(anonymous namespace)::has_status(tomo_db0::(anonymous namespace)::Kind, bool)": 384,
     "tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)": 1120,
+    "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)": 1088,
     "tomo_db0::(anonymous namespace)::complete_owner_record_wave(tomo_db0::ScatterState&, unsigned int)": 5632,
     "tomo_db0::(anonymous namespace)::initialize_owner_completion(tomo_db0::ScatterState&) [clone .part.0]": 9408,
     "tomo_db0::(anonymous namespace)::initialize_owner_completion(tomo_db0::ScatterState&)": 96,
@@ -33,7 +34,6 @@
     "tomo_db0::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 864,
     "tomo_db0::FlatStore::atomic_alloc_entry(unsigned int, unsigned long) [clone .isra.0]": 15360,
     "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]": 24416,
-    "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)": 1088,
     "tomo_db0::(anonymous namespace)::arm_debug_off_hop_delay(tomo_db0::ScatterState&, tomo_db0::Op const&) [clone .isra.0]": 640,
     "tomo_db0::ScatterArenaPool::acquire(unsigned long, bool&)": 864,
     "tomo_db0::xshard_dispatch_shard(tomo_db0::ScatterDispatch const&, unsigned int)": 2816,
@@ -65,5 +65,5 @@
     "tomo_db0::xshard_make_atomic_string(tomo_db0::Shard&, tomo_db0::Slice, tomo_db0::Slice, long, bool, bool)": 35072,
     "tomo_db0::FlatStore::atomic_acquire_value_block(unsigned long)": 7936
   },
-  "probe_sha256": "a0589754109325a6e504a7bd33677a8ae620894484e5926b2727ec68b986a88f"
+  "probe_sha256": "1c60797ff391028c8530bb6a1a21c3e23a8d49f2674650531ac3fd3668752586"
 }

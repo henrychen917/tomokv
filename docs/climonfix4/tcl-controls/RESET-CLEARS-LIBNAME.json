@@ -5,6 +5,7 @@
    "extra_args": [],
    "known_setup_errors": [],
    "passed_tests": [
+    "CLIENT SETINFO can set a library name to this connection in tests/unit/introspection.tcl",
     "RESET does NOT clean library name in tests/unit/introspection.tcl"
    ],
    "seconds": {
@@ -28,7 +29,6 @@
     "CLIENT REPLY ON: unset SKIP flag": "Excluded only in this named negative-control manifest",
     "CLIENT REPLY SKIP: skip the next command reply": "Excluded only in this named negative-control manifest",
     "CLIENT SETINFO can clear library name": "Excluded only in this named negative-control manifest",
-    "CLIENT SETINFO can set a library name to this connection": "Excluded only in this named negative-control manifest",
     "CLIENT SETINFO invalid args": "Excluded only in this named negative-control manifest",
     "CLIENT SETNAME can assign a name to this connection": "Excluded only in this named negative-control manifest",
     "CLIENT SETNAME can change the name of an existing connection": "Excluded only in this named negative-control manifest",
@@ -188,5 +188,6 @@
    "prior_reason": "failed on TomoKV 2s in the survey"
   }
  ],
- "climonfix4_control": "RESET-CLEARS-LIBNAME"
+ "climonfix4_control": "RESET-CLEARS-LIBNAME",
+ "climonfix4_control_setup": "The upstream RESET assertion inherits the library identity from this preceding SETINFO test; keep that prerequisite enabled."
 }

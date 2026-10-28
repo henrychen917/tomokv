@@ -27,7 +27,7 @@ def save(path, value):
     path.write_text(json.dumps(value, indent=2) + "\n")
 
 
-def build(arm, ns):
+def build(arm, ns, fixture=None):
     source, objects = ARMS[arm]
     dest = BUILD / (arm + "-" + ns)
     dest.mkdir(exist_ok=True)
@@ -37,7 +37,7 @@ def build(arm, ns):
     flags = ["g++", "-std=c++20", "-O2", "-g", "-march=native", "-pthread", "-DTOMO_JEMALLOC", "-I" + str(source)]
     if ns == "db0":
         flags += ["-DTOMO_SINGLE_DATABASE=1", "-Dtomo=tomo_db0"]
-    compile_cmd = flags + ["-c", str(ROOT / "tests/wave9_scope.cc"), "-o", str(dest / "probe.o")]
+    compile_cmd = flags + ["-c", str(fixture or ROOT / "tests/wave9_scope.cc"), "-o", str(dest / "probe.o")]
     # main.o supplies the actual split executor instantiation. Keep both main
     # objects in their production link order and rename only the program entry.
     # Put fixture COMDATs last so production definitions keep precedence.

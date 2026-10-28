@@ -9,7 +9,7 @@
   "steps": 358549,
   "clock_calls": 32,
   "excluded_calls": 577,
-  "pc_trace_sha256": "6476b86cb374564c0788d9797dd5a18f450931bfde549b0449b1e5e2f346644c",
+  "pc_trace_sha256": "cadf24d96b1a8f6703a48bcf9292e02049368393336ee3e382f715d1910fc371",
   "pc_trace_entries": 2554,
   "total": 344805,
   "functions": {
@@ -60,5 +60,5 @@
     "tomo::KvObj::val_ptr()": 4096,
     "tomo::l4prebuild_policy(unsigned int)": 896
   },
-  "probe_sha256": "24519f18d14d791e7febf378be014ec076680930a6037b00d2caf42a8d6262f5"
+  "probe_sha256": "c880e4886b349487f11225c8fcea889a1c70880584fd2a9406f73201d0cace9d"
 }

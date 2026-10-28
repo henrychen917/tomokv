@@ -17,7 +17,7 @@
     {
       "file": "src/cmd/climon.inc",
       "before": "    struct ClimonConn {",
-      "after": "    struct ClimonConn {\n        struct MonitorPending { uint64_t id, excluded; bool script; std::string line; };"
+      "after": "    struct ClimonConn {\n        struct MonitorPending { uint64_t id, excluded; bool script; uint32_t multi_order; std::string line; };"
     },
     {
       "file": "src/cmd/climon.inc",
@@ -170,23 +170,23 @@
     "-lm",
     "-Wl,--section-start=.text=0x20970"
   ],
-  "padding_bytes": 16608,
+  "padding_bytes": 35952,
   "pre_layout_text": {
     "address": 133488,
     "size": 8550967
   },
   "post_text": {
     "address": 133488,
-    "size": 8567575
+    "size": 8586919
   },
   "pad_text": {
     "address": 133488,
-    "size": 8567575
+    "size": 8586919
   },
   "inputs": [
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/db0/src/main.o",
-      "sha256": "65ec31959f0ae389f9348b63a59b2af4bf9f0c51d116ad43012cc1249c35e6e4"
+      "sha256": "d0fe451bf8494a730b1e8f608e60b2e47157af177acd81bfd9b15b9177519741"
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/db0/src/net/tls.o",
@@ -202,11 +202,11 @@
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/db0/src/cmd/xshard.o",
-      "sha256": "b62dbda2337e00378a165192cc13c0f2ce8d7707630204660c5995474edfb24d"
+      "sha256": "ba699dee9b2448e3d82f7fc264d32aca9d55983d880591153708ef01a6cbb0ed"
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/db0/src/cmd/acl.o",
-      "sha256": "a1950748e95f4a2a437cd93acf6265da420e2e0027356bccb69d619055381530"
+      "sha256": "7d7d3305a7e3c8b2a933303f26cece92601dc83eff08adfe3693f30c492a4920"
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/db0/src/cmd/hll.o",
@@ -282,11 +282,11 @@
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/db0/src/cmd/climon.o",
-      "sha256": "6d075e48afaacd4242cf844d431345b0482dd2c47e0cc023442205b59e070bdf"
+      "sha256": "ae00d7ff02d57d876c55f138fbcc6a8512b966b1e6c37bd1ceacfa0ace176808"
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/db0/src/cmd/tracking.o",
-      "sha256": "0eb07c0389086d4106a2b8c40f16946353c90550f2500c0419f96d5b77300139"
+      "sha256": "b1f7ca2e538595e9c09959b353b1a1ee6bcec1d1fe33a8e15de5890db232b343"
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/db0/src/cmd/server_tail.o",
@@ -314,11 +314,11 @@
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/db0/src/core/genthread.o",
-      "sha256": "96a162d75023790930592e0f28ae793946bc168ebedfeac03cd79fbc812ddc9f"
+      "sha256": "b257b2ebac64d89cf802028edf1173e1b60ae42120e786f49ded5bcda93d3a58"
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/db0/src/core/rl2s.o",
-      "sha256": "10f6d62c04f8ef3b16c3ae6927356bf90c6e2660a8469259134a4292a760dd5a"
+      "sha256": "1c244a87bee1dec2bcda88a4c97ff3022654cffdc35a957fb30c374806baae6f"
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/db0/src/core/lbstall.o",
@@ -326,7 +326,7 @@
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/db0/src/core/lbplanner.o",
-      "sha256": "0d6bf552f36b45742870b71ec3573948c04c1aa6fccee21d2a09cb91bd34b29c"
+      "sha256": "9e375ca3a15fc27933254715fd5b11a7d6b3f760775888a7ae0d542d0fc70939"
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/db0/src/cmd/l4prebuild.o",
@@ -362,7 +362,7 @@
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/db0/src/core/reorder.o",
-      "sha256": "4588386ea5a7b4a7ca0ec9c1678018387b74c72bab3e49c20244fd90fa6340aa"
+      "sha256": "a7d85a52a4f5f2a370d90a86a57c4639c47da8338bf9f26988aa4bf6b0ce4178"
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/db0/src/cmd/geo_store.o",
@@ -394,11 +394,11 @@
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/db0/src/core/fliplisten.o",
-      "sha256": "63d25a157315cbb9763f96cd4dec3a8fe97c6e5497e0881795ff4f5f2768e04d"
+      "sha256": "13aeaeeb51146dba064f7075377fc9c84a15f772d1573034644a167be4e03d34"
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/db0/src/core/shutdown.o",
-      "sha256": "265e9599697e3b64f7f179675ab038263741df2aea858df3f8697ace2df9c1b2"
+      "sha256": "f5195c7ed4a18c1764c1d3b51ccd95339b6683782260a30838cbf6d4bd056dc0"
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/db0/src/cmd/latency_tracking.o",
@@ -410,7 +410,7 @@
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/src/main.o",
-      "sha256": "d7064bc3dfb07ff0664f7c60eef433b73151b1b4a07058030e581b5a6bb452e9"
+      "sha256": "5657b8b6f9e6acce4065ded6ac40dc6fc659f43f0289c45b995b9d220b944943"
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/src/net/tls.o",
@@ -426,11 +426,11 @@
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/src/cmd/xshard.o",
-      "sha256": "f0eb5bf8cee26d7a9dc34fb2550566efdb9e9ef048aa6b5c7e15cea7995687aa"
+      "sha256": "f71623e3a1d1b1b0e58aab43dce73c4ed59b9cf79b6da7f6276b1a38f5521a27"
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/src/cmd/acl.o",
-      "sha256": "f733b4c99633edea1afd00da55365db6705c154a288e53e7a5844a40d028b7cf"
+      "sha256": "4fbf665aec320df578b74bf67c681c23be7ca13bd5df9426c18d449cad016665"
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/src/cmd/hll.o",
@@ -506,11 +506,11 @@
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/src/cmd/climon.o",
-      "sha256": "e7cb7cc319fd7b5ddd05c5fe58b2ea01e80fa3ff8bad9bce9bfe659b0840331c"
+      "sha256": "5de64fcf37af820b220eb2ea17de7881f0cb8fde6ab1fc6357e5639143f16d1c"
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/src/cmd/tracking.o",
-      "sha256": "233d56332a6c49a9a00d41c05e918039d1fee7252ac65b36a97c92fe64c0481f"
+      "sha256": "9f05e96ed1c76198737da724e530ebdce271716f8a1c6fc12f7de770cfe2a896"
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/src/cmd/server_tail.o",
@@ -538,11 +538,11 @@
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/src/core/genthread.o",
-      "sha256": "18c3eb4cdd8dbddf4f46ed58a75786a6b7c73aab9b5dbdcac4b69cb132fa0068"
+      "sha256": "e6b9c3693b59af0973d05a86c9506250ff41aeea06063d7311894a37f478040e"
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/src/core/rl2s.o",
-      "sha256": "02b9426b25a6ce1c35a62fe713bc0813ac17b9b37a6a5424e1d021ad05905aa3"
+      "sha256": "956c2c873b4dc2a5d1d6ee4c55ba447512291c7c4c6597974f796b8d48d4935a"
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/src/core/lbstall.o",
@@ -550,7 +550,7 @@
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/src/core/lbplanner.o",
-      "sha256": "0d3803a84c32ddbabcd062853fcd20d4e1604a3e9614e6c0dd25da5339f546a2"
+      "sha256": "ce3b9d82e59dfbc2e59d123370dde18e070df7b1719b196dd23bbc572b05d421"
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/src/cmd/l4prebuild.o",
@@ -586,7 +586,7 @@
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/src/core/reorder.o",
-      "sha256": "c86549542ce35a06dac7443f2e6f995b12d96f9b33d8942823d35ec7aee35844"
+      "sha256": "8988da7e8ab8cbcc9c093892fbdcc92b06a87278d9516fe39c272a8d9f0f0d55"
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/src/cmd/geo_store.o",
@@ -618,11 +618,11 @@
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/src/core/fliplisten.o",
-      "sha256": "057dd788c659715096d882f117f28169b5dd783a1097c926e4a947881930f7c6"
+      "sha256": "951b130c5a261b7dab425c0a818b24819313954922d87a9e4950e5341555b119"
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/src/core/shutdown.o",
-      "sha256": "9fd1a9980d0b704d766ffc124fa73e5b39dc050384fac300705e2e3ee0332217"
+      "sha256": "f1b6735d9f150b0f3963253d18227ca0dbfa96213d7a3e7f0014e5f697cb0717"
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects/src/cmd/latency_tracking.o",
@@ -658,7 +658,7 @@
     },
     {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/padding.o",
-      "sha256": "bd292fa2f93f909f6a3c36ef1efb6a450c3f890216a315734e95d437a266223b"
+      "sha256": "c1d3031e744557626f4e31317b3771fb9a6ad2f0713b5cd76486ebf65d3eab71"
     }
   ],
   "arms": {
@@ -668,11 +668,11 @@
     },
     "POST": {
       "path": "/home/user/Projects/cx-climonfix4/build/tomokv",
-      "sha256": "b82d89848162eff48815a5e1ab276c95ba9e36421a494d05dd0021f5553ac2a8"
+      "sha256": "3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8"
     },
     "PAD-A": {
       "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/tomokv",
-      "sha256": "ae3f9f03af88413324608326512d6010a0b360c3276c9c12d6b3e08ff8608d97"
+      "sha256": "9d5a27dfa78bc29844aeb1ce72cce2862459d02a9f7170352ce55f4751fd3dea"
     }
   }
 }

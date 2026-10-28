@@ -1,0 +1,324 @@
+Starting test server at port 20221
+[ready]: 1962291
+[1;37;49mTesting unit/type/list[0m
+[[0;31;49merr[0m]: n option or number of arguments for CONFIG SET - 'list-compress-depth'
+ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'
+    while executing
+"[srv $level "client"] {*}$args"
+    (procedure "r" line 7)
+    invoked from within
+"r config set list-compress-depth 2"
+    ("uplevel" body line 2)
+    invoked from within
+"uplevel 2 $code"
+[[0;33;49mskip[0m]: Test LPUSH and LPOP on plain nodes
+[[0;33;49mskip[0m]: Test LINDEX and LINSERT on plain nodes
+[[0;33;49mskip[0m]: Test LTRIM on plain nodes
+[[0;33;49mskip[0m]: Test LREM on plain nodes
+[[0;33;49mskip[0m]: Test LPOS on plain nodes
+[[0;33;49mskip[0m]: Test LMOVE on plain nodes
+[[0;33;49mskip[0m]: Test LSET with packed / plain combinations
+[[0;33;49mskip[0m]: Test LSET with packed is split in the middle
+[[0;33;49mskip[0m]: Test LSET with packed consist only one item
+[[0;33;49mskip[0m]: Crash due to delete entry from a compress quicklist node
+[[0;33;49mskip[0m]: Crash due to split quicklist node wrongly
+[[0;33;49mskip[0m]: Test LPUSH and LPOP on plain nodes
+[[0;33;49mskip[0m]: Test LINDEX and LINSERT on plain nodes
+[[0;33;49mskip[0m]: Test LTRIM on plain nodes
+[[0;33;49mskip[0m]: Test LREM on plain nodes
+[[0;33;49mskip[0m]: Test LPOS on plain nodes
+[[0;33;49mskip[0m]: Test LMOVE on plain nodes
+[[0;33;49mskip[0m]: Test LSET with packed / plain combinations
+[[0;33;49mskip[0m]: Test LSET with packed is split in the middle
+[[0;33;49mskip[0m]: Test LSET with packed consist only one item
+[[0;33;49mskip[0m]: Crash due to delete entry from a compress quicklist node
+[[0;33;49mskip[0m]: Crash due to split quicklist node wrongly
+[[0;36;49mignore[0m]: Test LPUSH and LPOP on plain nodes over 4GB: large memory flag not provided
+[[0;36;49mignore[0m]: Test LINDEX and LINSERT on plain nodes over 4GB: large memory flag not provided
+[[0;36;49mignore[0m]: Test LTRIM on plain nodes over 4GB: large memory flag not provided
+[[0;36;49mignore[0m]: Test LREM on plain nodes over 4GB: large memory flag not provided
+[[0;36;49mignore[0m]: Test LSET on plain nodes over 4GB: large memory flag not provided
+[[0;36;49mignore[0m]: Test LSET on plain nodes with large elements under packed_threshold over 4GB: large memory flag not provided
+[[0;36;49mignore[0m]: Test LSET splits a quicklist node, and then merge: large memory flag not provided
+[[0;36;49mignore[0m]: Test LSET splits a LZF compressed quicklist node, and then merge: large memory flag not provided
+[[0;36;49mignore[0m]: Test LMOVE on plain nodes over 4GB: large memory flag not provided
+[[0;32;49mok[0m]: LPOS basic usage - quicklist (41 ms)
+[[0;32;49mok[0m]: LPOS RANK (positive, negative and zero rank) option (0 ms)
+[[0;32;49mok[0m]: LPOS COUNT option (0 ms)
+[[0;32;49mok[0m]: LPOS COUNT + RANK option (0 ms)
+[[0;32;49mok[0m]: LPOS non existing key (0 ms)
+[[0;32;49mok[0m]: LPOS no match (0 ms)
+[[0;32;49mok[0m]: LPOS MAXLEN (0 ms)
+[[0;32;49mok[0m]: LPOS when RANK is greater than matches (0 ms)
+[[0;32;49mok[0m]: LPUSH, RPUSH, LLENGTH, LINDEX, LPOP - quicklist (82 ms)
+[[0;32;49mok[0m]: LPOP/RPOP with wrong number of arguments (1 ms)
+[[0;32;49mok[0m]: RPOP/LPOP with the optional count argument - quicklist (41 ms)
+[[0;32;49mok[0m]: LPOS basic usage - listpack (0 ms)
+[[0;32;49mok[0m]: LPOS RANK (positive, negative and zero rank) option (0 ms)
+[[0;32;49mok[0m]: LPOS COUNT option (0 ms)
+[[0;32;49mok[0m]: LPOS COUNT + RANK option (0 ms)
+[[0;32;49mok[0m]: LPOS non existing key (0 ms)
+[[0;32;49mok[0m]: LPOS no match (0 ms)
+[[0;32;49mok[0m]: LPOS MAXLEN (0 ms)
+[[0;32;49mok[0m]: LPOS when RANK is greater than matches (0 ms)
+[[0;32;49mok[0m]: LPUSH, RPUSH, LLENGTH, LINDEX, LPOP - listpack (0 ms)
+[[0;32;49mok[0m]: LPOP/RPOP with wrong number of arguments (1 ms)
+[[0;32;49mok[0m]: RPOP/LPOP with the optional count argument - listpack (0 ms)
+[[0;32;49mok[0m]: LPOP/RPOP with the count 0 returns an empty array in RESP3 (0 ms)
+[[0;32;49mok[0m]: LPOP/RPOP against non existing key in RESP3 (0 ms)
+[[0;32;49mok[0m]: LPOP/RPOP with <count> against non existing key in RESP3 (0 ms)
+[[0;32;49mok[0m]: LPOP/RPOP with the count 0 returns an empty array in RESP2 (1 ms)
+[[0;32;49mok[0m]: LPOP/RPOP against non existing key in RESP2 (0 ms)
+[[0;32;49mok[0m]: LPOP/RPOP with <count> against non existing key in RESP2 (0 ms)
+[[0;32;49mok[0m]: Variadic RPUSH/LPUSH (1 ms)
+[[0;32;49mok[0m]: DEL a list (0 ms)
+[[0;32;49mok[0m]: BLPOP: single existing list - quicklist (41 ms)
+[[0;32;49mok[0m]: BLPOP: multiple existing lists - quicklist (82 ms)
+[[0;32;49mok[0m]: BLPOP: second list has an entry - quicklist (41 ms)
+[[0;32;49mok[0m]: BLMPOP_LEFT: single existing list - quicklist (41 ms)
+[[0;32;49mok[0m]: BLMPOP_LEFT: multiple existing lists - quicklist (82 ms)
+[[0;32;49mok[0m]: BLMPOP_LEFT: second list has an entry - quicklist (41 ms)
+[[0;32;49mok[0m]: BRPOPLPUSH - quicklist (43 ms)
+[[0;32;49mok[0m]: BLMOVE left left - quicklist (42 ms)
+[[0;32;49mok[0m]: BLMOVE left right - quicklist (41 ms)
+[[0;32;49mok[0m]: BLMOVE right left - quicklist (41 ms)
+[[0;32;49mok[0m]: BLMOVE right right - quicklist (41 ms)
+[[0;32;49mok[0m]: BLPOP: single existing list - listpack (1 ms)
+[[0;32;49mok[0m]: BLPOP: multiple existing lists - listpack (1 ms)
+[[0;32;49mok[0m]: BLPOP: second list has an entry - listpack (0 ms)
+[[0;32;49mok[0m]: BLMPOP_LEFT: single existing list - listpack (1 ms)
+[[0;32;49mok[0m]: BLMPOP_LEFT: multiple existing lists - listpack (1 ms)
+[[0;32;49mok[0m]: BLMPOP_LEFT: second list has an entry - listpack (0 ms)
+[[0;32;49mok[0m]: BRPOPLPUSH - listpack (0 ms)
+[[0;32;49mok[0m]: BLMOVE left left - listpack (1 ms)
+[[0;32;49mok[0m]: BLMOVE left right - listpack (0 ms)
+[[0;32;49mok[0m]: BLMOVE right left - listpack (0 ms)
+[[0;32;49mok[0m]: BLMOVE right right - listpack (1 ms)
+[[0;32;49mok[0m]: BLPOP, LPUSH + DEL should not awake blocked client (1 ms)
+[[0;32;49mok[0m]: BLPOP, LPUSH + DEL + SET should not awake blocked client (1 ms)
+[[0;32;49mok[0m]: BLMPOP_LEFT, LPUSH + DEL should not awake blocked client (1 ms)
+[[0;32;49mok[0m]: BLMPOP_LEFT, LPUSH + DEL + SET should not awake blocked client (1 ms)
+[[0;32;49mok[0m]: BLPOP with same key multiple times should work (issue #801) (1 ms)
+[[0;32;49mok[0m]: MULTI/EXEC is isolated from the point of view of BLPOP (1 ms)
+[[0;32;49mok[0m]: BLPOP with variadic LPUSH (1 ms)
+[[0;32;49mok[0m]: MULTI/EXEC is isolated from the point of view of BLMPOP_LEFT (1 ms)
+[[0;32;49mok[0m]: BLMPOP_LEFT with variadic LPUSH (0 ms)
+[[0;32;49mok[0m]: BRPOPLPUSH with zero timeout should block indefinitely (1 ms)
+[[0;32;49mok[0m]: BLMOVE left left with zero timeout should block indefinitely (1 ms)
+[[0;32;49mok[0m]: BLMOVE left right with zero timeout should block indefinitely (0 ms)
+[[0;32;49mok[0m]: BLMOVE right left with zero timeout should block indefinitely (0 ms)
+[[0;32;49mok[0m]: BLMOVE right right with zero timeout should block indefinitely (1 ms)
+[[0;32;49mok[0m]: BLMOVE (left, left) with a client BLPOPing the target list (1 ms)
+[[0;32;49mok[0m]: BLMOVE (left, right) with a client BLPOPing the target list (1 ms)
+[[0;32;49mok[0m]: BLMOVE (right, left) with a client BLPOPing the target list (0 ms)
+[[0;32;49mok[0m]: BLMOVE (right, right) with a client BLPOPing the target list (0 ms)
+[[0;32;49mok[0m]: BRPOPLPUSH with wrong source type (0 ms)
+[[0;32;49mok[0m]: BRPOPLPUSH with wrong destination type (1 ms)
+[[0;32;49mok[0m]: BRPOPLPUSH maintains order of elements after failure (1 ms)
+[[0;32;49mok[0m]: BRPOPLPUSH with multiple blocked clients (1 ms)
+[[0;33;49mskip[0m]: BLMPOP with multiple blocked clients
+[[0;33;49mskip[0m]: Linked LMOVEs
+[[0;33;49mskip[0m]: Circular BRPOPLPUSH
+[[0;33;49mskip[0m]: Self-referential BRPOPLPUSH
+[[0;32;49mok[0m]: BRPOPLPUSH inside a transaction (1 ms)
+[[0;32;49mok[0m]: PUSH resulting from BRPOPLPUSH affect WATCH (1 ms)
+[[0;32;49mok[0m]: BRPOPLPUSH does not affect WATCH while still blocked (1 ms)
+[[0;33;49mskip[0m]: BRPOPLPUSH timeout
+[[0;36;49mignore[0m]: SWAPDB awakes blocked client: Not supported on singledb
+[[0;36;49mignore[0m]: SWAPDB wants to wake blocked client, but the key already expired: Not supported on singledb
+[[0;36;49mignore[0m]: MULTI + LPUSH + EXPIRE + DEBUG SLEEP on blocked client, key already expired: Not supported on singledb
+[[0;33;49mskip[0m]: BLPOP unblock but the key is expired and then block again - reprocessing command
+[[0;32;49mok[0m]: BLPOP when new key is moved into place (0 ms)
+[[0;32;49mok[0m]: BLPOP when result key is created by SORT..STORE (0 ms)
+[[0;32;49mok[0m]: BLMPOP_LEFT when new key is moved into place (1 ms)
+[[0;32;49mok[0m]: BLMPOP_LEFT when result key is created by SORT..STORE (1 ms)
+[[0;32;49mok[0m]: BLPOP: timeout value out of range (0 ms)
+[[0;32;49mok[0m]: BLPOP: with single empty list argument (1 ms)
+[[0;32;49mok[0m]: BLPOP: with negative timeout (0 ms)
+[[0;32;49mok[0m]: BLPOP: with non-integer timeout (0 ms)
+[[0;32;49mok[0m]: BLPOP: with zero timeout should block indefinitely (0 ms)
+[[0;33;49mskip[0m]: BLPOP: with 0.001 timeout should not block indefinitely
+[[0;32;49mok[0m]: BLPOP: second argument is not a list (0 ms)
+[[0;32;49mok[0m]: BLPOP: timeout (1035 ms)
+[[0;32;49mok[0m]: BLPOP: arguments are empty (1 ms)
+[[0;32;49mok[0m]: BRPOP: with single empty list argument (1 ms)
+[[0;32;49mok[0m]: BRPOP: with negative timeout (0 ms)
+[[0;32;49mok[0m]: BRPOP: with non-integer timeout (1 ms)
+[[0;32;49mok[0m]: BRPOP: with zero timeout should block indefinitely (0 ms)
+[[0;33;49mskip[0m]: BRPOP: with 0.001 timeout should not block indefinitely
+[[0;32;49mok[0m]: BRPOP: second argument is not a list (0 ms)
+[[0;32;49mok[0m]: BRPOP: timeout (1021 ms)
+[[0;32;49mok[0m]: BRPOP: arguments are empty (1 ms)
+[[0;32;49mok[0m]: BLMPOP_LEFT: with single empty list argument (1 ms)
+[[0;32;49mok[0m]: BLMPOP_LEFT: with negative timeout (0 ms)
+[[0;32;49mok[0m]: BLMPOP_LEFT: with non-integer timeout (0 ms)
+[[0;32;49mok[0m]: BLMPOP_LEFT: with zero timeout should block indefinitely (0 ms)
+[[0;33;49mskip[0m]: BLMPOP_LEFT: with 0.001 timeout should not block indefinitely
+[[0;32;49mok[0m]: BLMPOP_LEFT: second argument is not a list (0 ms)
+[[0;32;49mok[0m]: BLMPOP_LEFT: timeout (1011 ms)
+[[0;32;49mok[0m]: BLMPOP_LEFT: arguments are empty (1 ms)
+[[0;32;49mok[0m]: BLMPOP_RIGHT: with single empty list argument (1 ms)
+[[0;32;49mok[0m]: BLMPOP_RIGHT: with negative timeout (0 ms)
+[[0;32;49mok[0m]: BLMPOP_RIGHT: with non-integer timeout (0 ms)
+[[0;32;49mok[0m]: BLMPOP_RIGHT: with zero timeout should block indefinitely (0 ms)
+[[0;33;49mskip[0m]: BLMPOP_RIGHT: with 0.001 timeout should not block indefinitely
+[[0;32;49mok[0m]: BLMPOP_RIGHT: second argument is not a list (1 ms)
+[[0;32;49mok[0m]: BLMPOP_RIGHT: timeout (1008 ms)
+[[0;32;49mok[0m]: BLMPOP_RIGHT: arguments are empty (1 ms)
+[[0;32;49mok[0m]: BLPOP inside a transaction (1 ms)
+[[0;32;49mok[0m]: BLMPOP_LEFT inside a transaction (0 ms)
+[[0;33;49mskip[0m]: BLMPOP propagate as pop with count command to replica
+[[0;32;49mok[0m]: LPUSHX, RPUSHX - generic (0 ms)
+[[0;32;49mok[0m]: LPUSHX, RPUSHX - quicklist (41 ms)
+[[0;32;49mok[0m]: LINSERT - quicklist (41 ms)
+[[0;32;49mok[0m]: LPUSHX, RPUSHX - listpack (0 ms)
+[[0;32;49mok[0m]: LINSERT - listpack (1 ms)
+[[0;32;49mok[0m]: LINSERT raise error on bad syntax (0 ms)
+[[0;32;49mok[0m]: LINSERT against non-list value error (0 ms)
+[[0;32;49mok[0m]: LINSERT against non existing key (0 ms)
+[[0;32;49mok[0m]: LINDEX consistency test - listpack (17 ms)
+[[0;32;49mok[0m]: LINDEX random access - listpack (12 ms)
+[[0;32;49mok[0m]: Check if list is still ok after a DEBUG RELOAD - listpack (27 ms)
+[[0;32;49mok[0m]: LINDEX consistency test - listpack (35 ms)
+[[0;32;49mok[0m]: LINDEX random access - listpack (25 ms)
+[[0;32;49mok[0m]: Check if list is still ok after a DEBUG RELOAD - listpack (51 ms)
+[[0;32;49mok[0m]: LINDEX consistency test - quicklist (18 ms)
+[[0;32;49mok[0m]: LINDEX random access - quicklist (12 ms)
+[[0;32;49mok[0m]: Check if list is still ok after a DEBUG RELOAD - quicklist (25 ms)
+[[0;32;49mok[0m]: LINDEX consistency test - quicklist (34 ms)
+[[0;32;49mok[0m]: LINDEX random access - quicklist (25 ms)
+[[0;32;49mok[0m]: Check if list is still ok after a DEBUG RELOAD - quicklist (50 ms)
+[[0;32;49mok[0m]: LLEN against non-list value error (0 ms)
+[[0;32;49mok[0m]: LLEN against non existing key (0 ms)
+[[0;32;49mok[0m]: LINDEX against non-list value error (0 ms)
+[[0;32;49mok[0m]: LINDEX against non existing key (0 ms)
+[[0;32;49mok[0m]: LPUSH against non-list value error (0 ms)
+[[0;32;49mok[0m]: RPUSH against non-list value error (1 ms)
+[[0;32;49mok[0m]: RPOPLPUSH base case - quicklist (41 ms)
+[[0;32;49mok[0m]: LMOVE left left base case - quicklist (42 ms)
+[[0;32;49mok[0m]: LMOVE left right base case - quicklist (41 ms)
+[[0;32;49mok[0m]: LMOVE right left base case - quicklist (41 ms)
+[[0;32;49mok[0m]: LMOVE right right base case - quicklist (41 ms)
+[[0;32;49mok[0m]: RPOPLPUSH with the same list as src and dst - quicklist (42 ms)
+[[0;32;49mok[0m]: LMOVE left left with the same list as src and dst - quicklist (41 ms)
+[[0;32;49mok[0m]: LMOVE left right with the same list as src and dst - quicklist (41 ms)
+[[0;32;49mok[0m]: LMOVE right left with the same list as src and dst - quicklist (41 ms)
+[[0;32;49mok[0m]: LMOVE right right with the same list as src and dst - quicklist (41 ms)
+[[0;32;49mok[0m]: RPOPLPUSH with quicklist source and existing target quicklist (83 ms)
+[[0;32;49mok[0m]: LMOVE left left with quicklist source and existing target quicklist (82 ms)
+[[0;32;49mok[0m]: LMOVE left right with quicklist source and existing target quicklist (83 ms)
+[[0;32;49mok[0m]: LMOVE right left with quicklist source and existing target quicklist (82 ms)
+[[0;32;49mok[0m]: LMOVE right right with quicklist source and existing target quicklist (82 ms)
+[[0;32;49mok[0m]: RPOPLPUSH with quicklist source and existing target listpack (41 ms)
+[[0;32;49mok[0m]: LMOVE left left with quicklist source and existing target listpack (41 ms)
+[[0;32;49mok[0m]: LMOVE left right with quicklist source and existing target listpack (41 ms)
+[[0;32;49mok[0m]: LMOVE right left with quicklist source and existing target listpack (41 ms)
+[[0;32;49mok[0m]: LMOVE right right with quicklist source and existing target listpack (41 ms)
+[[0;32;49mok[0m]: RPOPLPUSH base case - listpack (1 ms)
+[[0;32;49mok[0m]: LMOVE left left base case - listpack (0 ms)
+[[0;32;49mok[0m]: LMOVE left right base case - listpack (1 ms)
+[[0;32;49mok[0m]: LMOVE right left base case - listpack (0 ms)
+[[0;32;49mok[0m]: LMOVE right right base case - listpack (1 ms)
+[[0;32;49mok[0m]: RPOPLPUSH with the same list as src and dst - listpack (0 ms)
+[[0;32;49mok[0m]: LMOVE left left with the same list as src and dst - listpack (1 ms)
+[[0;32;49mok[0m]: LMOVE left right with the same list as src and dst - listpack (0 ms)
+[[0;32;49mok[0m]: LMOVE right left with the same list as src and dst - listpack (1 ms)
+[[0;32;49mok[0m]: LMOVE right right with the same list as src and dst - listpack (0 ms)
+[[0;32;49mok[0m]: RPOPLPUSH with listpack source and existing target quicklist (41 ms)
+[[0;32;49mok[0m]: LMOVE left left with listpack source and existing target quicklist (41 ms)
+[[0;32;49mok[0m]: LMOVE left right with listpack source and existing target quicklist (41 ms)
+[[0;32;49mok[0m]: LMOVE right left with listpack source and existing target quicklist (41 ms)
+[[0;32;49mok[0m]: LMOVE right right with listpack source and existing target quicklist (41 ms)
+[[0;32;49mok[0m]: RPOPLPUSH with listpack source and existing target listpack (1 ms)
+[[0;32;49mok[0m]: LMOVE left left with listpack source and existing target listpack (0 ms)
+[[0;32;49mok[0m]: LMOVE left right with listpack source and existing target listpack (1 ms)
+[[0;32;49mok[0m]: LMOVE right left with listpack source and existing target listpack (0 ms)
+[[0;32;49mok[0m]: LMOVE right right with listpack source and existing target listpack (0 ms)
+[[0;32;49mok[0m]: RPOPLPUSH against non existing key (0 ms)
+[[0;32;49mok[0m]: RPOPLPUSH against non list src key (0 ms)
+[[0;32;49mok[0m]: RPOPLPUSH against non list dst key - quicklist (41 ms)
+[[0;32;49mok[0m]: RPOPLPUSH against non list dst key - listpack (0 ms)
+[[0;32;49mok[0m]: RPOPLPUSH against non existing src key (0 ms)
+[[0;32;49mok[0m]: Basic LPOP/RPOP/LMPOP - quicklist (82 ms)
+[[0;32;49mok[0m]: Basic LPOP/RPOP/LMPOP - listpack (1 ms)
+[[0;32;49mok[0m]: LPOP/RPOP/LMPOP against empty list (0 ms)
+[[0;32;49mok[0m]: LPOP/RPOP/LMPOP NON-BLOCK or BLOCK against non list value (1 ms)
+[[0;32;49mok[0m]: Mass RPOP/LPOP - listpack (12 ms)
+[[0;32;49mok[0m]: Mass RPOP/LPOP - listpack (25 ms)
+[[0;32;49mok[0m]: LMPOP with illegal argument (1 ms)
+[[0;32;49mok[0m]: LMPOP single existing list - quicklist (123 ms)
+[[0;32;49mok[0m]: LMPOP multiple existing lists - quicklist (164 ms)
+[[0;32;49mok[0m]: LMPOP single existing list - listpack (1 ms)
+[[0;32;49mok[0m]: LMPOP multiple existing lists - listpack (1 ms)
+[[0;33;49mskip[0m]: LMPOP propagate as pop with count command to replica
+[[0;32;49mok[0m]: LRANGE basics - quicklist (41 ms)
+[[0;32;49mok[0m]: LRANGE inverted indexes - quicklist (41 ms)
+[[0;32;49mok[0m]: LRANGE out of range indexes including the full list - quicklist (41 ms)
+[[0;32;49mok[0m]: LRANGE out of range negative end index - quicklist (41 ms)
+[[0;32;49mok[0m]: LRANGE basics - listpack (1 ms)
+[[0;32;49mok[0m]: LRANGE inverted indexes - listpack (0 ms)
+[[0;32;49mok[0m]: LRANGE out of range indexes including the full list - listpack (1 ms)
+[[0;32;49mok[0m]: LRANGE out of range negative end index - listpack (0 ms)
+[[0;32;49mok[0m]: LRANGE against non existing key (0 ms)
+[[0;32;49mok[0m]: LRANGE with start > end yields an empty array for backward compatibility (1 ms)
+[[0;32;49mok[0m]: LTRIM basics - quicklist (492 ms)
+[[0;32;49mok[0m]: LTRIM out of range negative end index - quicklist (82 ms)
+[[0;32;49mok[0m]: LSET - quicklist (41 ms)
+[[0;32;49mok[0m]: LSET out of range index - quicklist (0 ms)
+[[0;32;49mok[0m]: LTRIM basics - listpack (2 ms)
+[[0;32;49mok[0m]: LTRIM out of range negative end index - listpack (0 ms)
+[[0;32;49mok[0m]: LSET - listpack (1 ms)
+[[0;32;49mok[0m]: LSET out of range index - listpack (0 ms)
+[[0;32;49mok[0m]: LSET against non existing key (0 ms)
+[[0;32;49mok[0m]: LSET against non list value (0 ms)
+[[0;32;49mok[0m]: LREM remove all the occurrences - quicklist (41 ms)
+[[0;32;49mok[0m]: LREM remove the first occurrence - quicklist (0 ms)
+[[0;32;49mok[0m]: LREM remove non existing element - quicklist (0 ms)
+[[0;32;49mok[0m]: LREM starting from tail with negative count - quicklist (41 ms)
+[[0;32;49mok[0m]: LREM starting from tail with negative count (2) - quicklist (0 ms)
+[[0;32;49mok[0m]: LREM deleting objects that may be int encoded - quicklist (41 ms)
+[[0;32;49mok[0m]: LREM remove all the occurrences - listpack (0 ms)
+[[0;32;49mok[0m]: LREM remove the first occurrence - listpack (0 ms)
+[[0;32;49mok[0m]: LREM remove non existing element - listpack (0 ms)
+[[0;32;49mok[0m]: LREM starting from tail with negative count - listpack (1 ms)
+[[0;32;49mok[0m]: LREM starting from tail with negative count (2) - listpack (0 ms)
+[[0;32;49mok[0m]: LREM deleting objects that may be int encoded - listpack (0 ms)
+[[0;33;49mskip[0m]: Regression for bug 593 - chaining BRPOPLPUSH with other blocking cmds
+[[0;33;49mskip[0m]: BLPOP/BLMOVE should increase dirty
+[[0;32;49mok[0m]: client unblock tests (3 ms)
+[[0;32;49mok[0m]: client unblock tests (1 ms)
+[[0;33;49mskip[0m]: List listpack -> quicklist encoding conversion
+[[0;33;49mskip[0m]: List listpack -> quicklist encoding conversion
+[[0;32;49mok[0m]: List quicklist -> listpack encoding conversion (206 ms)
+[[0;32;49mok[0m]: List encoding conversion when RDB loading (4 ms)
+[[0;33;49mskip[0m]: List invalid list-max-listpack-size config
+[[0;32;49mok[0m]: List of various encodings (127 ms)
+[[0;32;49mok[0m]: List of various encodings - sanitize dump (1 ms)
+[[0;33;49mskip[0m]: Unblock fairness is kept while pipelining
+[[0;33;49mskip[0m]: Unblock fairness is kept during nested unblock
+[[0;33;49mskip[0m]: Blocking command accounted only once in commandstats
+[[0;33;49mskip[0m]: Blocking command accounted only once in commandstats after timeout
+[[0;33;49mskip[0m]: Command being unblocked cause another command to get unblocked execution order test
+[[0;31;49merr[0m]: Blocking timeout following PAUSE should honor the timeout in tests/unit/type/list.tcl
+Timeout waiting for blocked clients
+[1/1 [0;33;49mdone[0m]: unit/type/list (9 seconds)
+
+                   The End
+
+Execution time of different units:
+  9 seconds - unit/type/list
+
+[1;31;49m!!! WARNING[0m The following tests failed:
+
+*** [[0;31;49merr[0m]: n option or number of arguments for CONFIG SET - 'list-compress-depth'
+ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'
+    while executing
+"[srv $level "client"] {*}$args"
+    (procedure "r" line 7)
+    invoked from within
+"r config set list-compress-depth 2"
+    ("uplevel" body line 2)
+    invoked from within
+"uplevel 2 $code"
+*** [[0;31;49merr[0m]: Blocking timeout following PAUSE should honor the timeout in tests/unit/type/list.tcl
+Timeout waiting for blocked clients

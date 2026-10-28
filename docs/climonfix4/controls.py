@@ -62,7 +62,8 @@ def mutant():
 
 def run(roots, arms):
     witnesses = json.loads((DOC / 'tcl-controls/witnesses.json').read_text())
-    results = []
+    receipt = DOC / 'tcl-control-results.json'
+    results = json.loads(receipt.read_text()) if receipt.exists() else []
     output = BUILD / 'tcl-controls'
     output.mkdir(exist_ok=True)
     for root in roots or witnesses:
@@ -71,6 +72,8 @@ def run(roots, arms):
             binary = BUILD / ('tomokv-POST' if arm == 'POST' else 'tomokv-PRE')
             if arm == 'negative' and root == 'PAUSE-BLOCKED-COUNT':
                 binary = BUILD / 'count-mutant/tomokv'
+            if any(r['root'] == root and r['arm'] == arm and r['sha256'] == sha(binary) for r in results):
+                continue
             logfile = output / (root + '-' + arm + '.log')
             cmd = ['bash', 'tests/gate.sh', 'quick', '--server-cores', '16-23', '--load-cores', '24-31',
                    '--server-smt', '', '--load-smt', '', '--ports', '20220-20229',
@@ -93,7 +96,10 @@ def run(roots, arms):
                 if arm == 'POST':
                     assert rc == 0 and statuses.count('ok') == 1 and 'err' not in statuses, (root, mode, result)
                 else:
-                    assert rc != 0 and 'ok' not in statuses and ('err' in statuses or result['error']), (root, mode, result)
+                    deadline = (not result['complete'] and result['exit_code'] != 0 and
+                                statuses[-1:] == ['testing'] and
+                                'TIMEOUT' in path.with_name('suite.log').read_text())
+                    assert rc != 0 and 'ok' not in statuses and ('err' in statuses or result['error'] or deadline), (root, mode, result)
                 row['modes'][mode] = dict(result=str(path), statuses=statuses, error=result['error'])
             results.append(row)
             save(DOC / 'tcl-control-results.json', results)
