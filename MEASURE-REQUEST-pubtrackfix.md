@@ -70,12 +70,28 @@ The driver [run-proof.py](docs/pubtrackfix/run-proof.py) invokes only explicitly
 selected jobs; its `iteration` invocations select the standard differential
 jobs only and report `GATE(PARTIAL)`, with no ABBA, NIC or full-tier run.
 
-<!-- PROOF-STATUS -->
 - Final affected-job run: **245 passed, 0 failed**, 36 selected jobs including prerequisites. Includes all 160 directed candidate legs and five oracle legs, 138 feature-matrix rows, all eight eviction legs, clientfix, compat2 and the focused notification/tracking/stream jobs.
 - Tcl subset: both modes pass 35 selected files (36 result records) and all 31 promoted assertions. Fused mode uses the existing one-time MONITOR ordering retry; the original failure and retry receipts are retained. The promoted assertions pass without retries.
-- Final make all, every production-unit target and all 56 freshness queries pass. All 52 command-scope comparisons add zero instructions.
-- Standard differential runs: PASS on both engines, 954 comparisons each including equivalence. io_uring seeds: 7/19/20/23/21; epoll: 7/19/20/23/22. PRE and PAD-A each fail all 160 directed candidate legs for the intended defects; all five oracle legs pass in each run. Four Tcl regression plants and isolated gates_test: RUNNING; replace before handoff.
-<!-- /PROOF-STATUS -->
+- Standard differential runs: **954 comparisons passed per engine**, including equivalence. io_uring seeds: 7/19/20/23/21; epoll: 7/19/20/23/22. Each run uses the unchanged standard seeds and suite selection.
+- PRE and PAD-A each fail **all 160 directed candidate legs for the intended defects**; all five oracle legs pass in each run. The wire transcripts and exception counts establish the reason for every failure.
+- All four regression plants make the Tcl job fail in **both modes** at their promoted root witness, as detailed below.
+- `python3 tests/gates_test.py`: **73 tests passed**, plus its nested 14-test persistence check, in the isolated final run. Earlier failed runs remain archived; no timeout or assertion was weakened.
+- `make all`, every production-unit target and **all 56 final make-q freshness queries pass**. All **52 command-scope comparisons add zero instructions**.
+
+[proof-summary.json](docs/pubtrackfix/proof-summary.json) summarizes the nine
+gate runs, seed plans, directed matrices and named Tcl witnesses. Directed and
+Tcl receipts include binary SHA-256s; the differential plans name the unchanged
+POST binary path. [proof-verification.json](docs/pubtrackfix/proof-verification.json)
+records **114 passing completeness and identity checks**; the verifier covers
+only the four implemented roots. The isolated gate-driver receipt is
+[gates-test-final.json](docs/pubtrackfix/gates-test-final.json).
+
+| Planted regression | Promoted Tcl witness | Observed failure in both modes |
+|---|---|---|
+| Individual BCAST frames | The connection gets invalidation messages about all the keys | Explicit assertion: one key received instead of the three-key array. |
+| Suppressed subscribe confirmations | PubSub messages with CLIENT REPLY OFF | Test starts but cannot complete while awaiting the missing confirmation; the job rejects the incomplete file. |
+| Missing implicit-consumer events | Keyspace notifications: stream events test | Explicit assertion: xgroup-delconsumer arrives where xgroup-createconsumer was expected. |
+| Disabled background eviction | Keyspace notifications: evicted events | Test starts but cannot complete while awaiting the missing eviction event; the job rejects the incomplete file. |
 
 **NOT RUN:** positive POST regression rows and Tcl promotions for the three
 stopped roots, because their fixes require the owner decisions above.
@@ -156,7 +172,7 @@ selection against the promoted required names.
 
 Superseded arm source/object trees and instruction step traces were removed
 after their hashes and counts were recorded. Production targets remain available
-for freshness checks. Build-directory use is kept below approximately 25 GB.
+for freshness checks. Final build-directory use is approximately 20 GB, below the 25 GB budget.
 
 ### Maintainer merit request — NOT RUN in this lane
 
