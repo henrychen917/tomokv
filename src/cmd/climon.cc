@@ -242,6 +242,8 @@ void IoLoop::climon_refresh_armed() {
         for (auto& [id, state] : climon_conn_) {
             if (state.client && state.client->rob().flush_id())
                 climon_monitor_flush(state, state.client->rob().flush_id() - 1);
+            if (state.monitor_script_id != UINT64_MAX || !state.monitor_pending.empty())
+                climon_armed_cached_ |= kClimonRefreshPending;
         }
     }
     if ((before & Server::kClimonMonitor) && !(climon_armed_cached_ & Server::kClimonMonitor)) {
@@ -257,7 +259,7 @@ void IoLoop::climon_refresh_armed() {
     // off). A CLIENT subcommand that arms or disarms the lane therefore invalidates the cache of
     // the very pass it is running in -- a pipelined `CLIENT REPLY OFF; PING` would otherwise
     // answer the PING. Flag it; the cold dispatch branches end the pass so the next one re-reads.
-    if (climon_armed_cached_ != before) climon_armed_dirty_ = true;
+    if ((climon_armed_cached_ ^ before) & ~kClimonRefreshPending) climon_armed_dirty_ = true;
     notify_armed_ = notify_config_armed_ || save_config_armed_ ||
                     climon_armed_cached_ != 0;
     climon_pause_deadline_ms_ = srv_->climon_pause_end_ms();
@@ -415,6 +417,8 @@ bool IoLoop::client_routing_install(void* opaque, Client* client, uint32_t sourc
         auto inserted = climon_conn_.insert(std::move(routing->climon));
         if (!inserted.inserted) return false;
         const ClimonConn& state = inserted.position->second;
+        if (state.monitor_script_id != UINT64_MAX || !state.monitor_pending.empty())
+            climon_armed_cached_ |= kClimonRefreshPending;
         if (state.monitor) climon_local_monitors_++;
         if (state.tracking_on || state.tracking_draining) climon_local_trackers_++;
         if (state.reply_mode != kClimonReplyOn) climon_local_reply_++;
@@ -490,6 +494,9 @@ void IoLoop::climon_untrack_client(Client* client) {
     auto found = climon_conn_.find(id);
     if (found == climon_conn_.end()) return;
     ClimonConn& state = found->second;
+    std::erase_if(state.monitor_pending, [](const auto& pending) {
+        return pending.id == UINT64_MAX;
+    });
     climon_monitor_flush(state, UINT64_MAX);
     if (state.monitor) climon_monitor_stop(client, id);
     if (state.tracking_on || state.bcast) tracking_forget_client(id, state);
@@ -797,18 +804,38 @@ void IoLoop::climon_monitor_feed(Client* client, Op& op) {
     auto& state = climon_conn_get(client);
     const uint64_t id = client->rob().dispatch_id();
     const bool script = (op.spec->flags & CmdFlags::ScriptRoute) != 0;
-    if (state.monitor_script_id != UINT64_MAX) {
-        state.monitor_pending.push_back({id, excluded, script, std::move(line)});
+    if (multi_session_active(*client)) {
+        if (op.cmd_name().eq_icase("exec")) {
+            for (auto& pending : state.monitor_pending)
+                if (pending.id == UINT64_MAX) pending.id = id;
+        } else if (op.cmd_name().eq_icase("discard") || op.cmd_name().eq_icase("reset")) {
+            std::erase_if(state.monitor_pending, [](const auto& pending) {
+                return pending.id == UINT64_MAX;
+            });
+        } else if (!op.cmd_name().eq_icase("multi")) {
+            // QUEUED is not execution. Keep the transaction's records until its
+            // EXEC retires, when nested script records can be interleaved by child.
+            state.monitor_pending.push_back({UINT64_MAX, excluded, script,
+                multi_session_queue_size(*client), std::move(line)});
+            climon_armed_cached_ |= kClimonRefreshPending;
+            return;
+        }
+    }
+    if (state.monitor_script_id != UINT64_MAX || !state.monitor_pending.empty()) {
+        state.monitor_pending.push_back({id, excluded, script, UINT32_MAX, std::move(line)});
     } else {
         climon_monitor_broadcast(std::move(line), excluded);
         if (script) state.monitor_script_id = id;
     }
+    if (state.monitor_script_id != UINT64_MAX || !state.monitor_pending.empty())
+        climon_armed_cached_ |= kClimonRefreshPending;
 }
 
 void IoLoop::climon_monitor_flush(ClimonConn& state, uint64_t completed, bool before_script) {
     if (state.monitor_script_id <= completed) state.monitor_script_id = UINT64_MAX;
     while (state.monitor_script_id == UINT64_MAX && !state.monitor_pending.empty()) {
         auto& pending = state.monitor_pending.front();
+        if (pending.multi_order != UINT32_MAX && pending.id > completed) break;
         if (before_script && pending.id > completed) break;
         climon_monitor_broadcast(std::move(pending.line), pending.excluded);
         if (pending.script && pending.id > completed) state.monitor_script_id = pending.id;
@@ -816,13 +843,38 @@ void IoLoop::climon_monitor_flush(ClimonConn& state, uint64_t completed, bool be
     }
 }
 
-void IoLoop::climon_monitor_script_deliver(uint64_t writer_id, std::vector<std::string>& lines) {
+void IoLoop::climon_monitor_multi_abort(Client& client, uint64_t id) {
+    auto* state = climon_conn_find(client.id());
+    if (!state) return;
+    std::erase_if(state->monitor_pending, [id](const auto& pending) {
+        return pending.id == id && pending.multi_order != UINT32_MAX;
+    });
+}
+
+void IoLoop::climon_monitor_script_deliver(uint64_t writer_id, std::vector<MonitorScriptLine>& lines) {
     if (lines.empty()) return;
     auto* state = climon_conn_find(writer_id);
     // Called by the ordinary ROB retirement callback, before flush_id advances.
     const uint64_t id = state && state->client ? state->client->rob().flush_id() : 0;
-    if (state) climon_monitor_flush(*state, id, true);
-    for (auto& line : lines) climon_monitor_broadcast(std::move(line));
+    if (state && lines.front().multi_order != UINT32_MAX) {
+        if (id) climon_monitor_flush(*state, id - 1, true);
+        std::stable_sort(lines.begin(), lines.end(), [](const auto& a, const auto& b) {
+            return a.multi_order < b.multi_order;
+        });
+        size_t next = 0;
+        while (!state->monitor_pending.empty()) {
+            auto& pending = state->monitor_pending.front();
+            if (pending.id != id || pending.multi_order == UINT32_MAX) break;
+            climon_monitor_broadcast(std::move(pending.line), pending.excluded);
+            while (next < lines.size() && lines[next].multi_order <= pending.multi_order)
+                climon_monitor_broadcast(std::move(lines[next++].line));
+            state->monitor_pending.erase(state->monitor_pending.begin());
+        }
+        while (next < lines.size()) climon_monitor_broadcast(std::move(lines[next++].line));
+    } else {
+        if (state) climon_monitor_flush(*state, id, true);
+        for (auto& line : lines) climon_monitor_broadcast(std::move(line.line));
+    }
     if (state) climon_monitor_flush(*state, id);
 }
 

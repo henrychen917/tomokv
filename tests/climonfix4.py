@@ -111,6 +111,33 @@ def directed(host, port, root):
             assert all(isinstance(line, str) for line in lines), lines
             assert '] "EVAL" ' in lines[0] and '[0 lua] "set"' in lines[1], lines
             assert '[0 lua] "get"' in lines[2] and '] "PING"' in lines[3], lines
+            assert a.cmd("MULTI") == b"OK"
+            assert a.cmd("EVAL", script, 1, "mon", "first") == b"QUEUED"
+            assert a.cmd("PING") == b"QUEUED"
+            assert a.cmd("EVAL", script, 1, "mon", "second") == b"QUEUED"
+            assert '] "MULTI"' in read(m, 1)
+            assert read(m, .05) == {"timeout": True}, "MONITOR logged a queued command before EXEC"
+            assert a.cmd("EXEC") == [b"first", b"PONG", b"second"]
+            lines = [read(m, 1) for _ in range(8)]
+            expected = ['] "EVAL"', '[0 lua] "set"', '[0 lua] "get"', '] "PING"',
+                        '] "EVAL"', '[0 lua] "set"', '[0 lua] "get"', '] "EXEC"']
+            assert all(isinstance(line, str) and part in line for line, part in zip(lines, expected)), lines
+            assert a.cmd("MULTI") == b"OK"
+            assert a.cmd("EVAL", "return 42", 0) == b"QUEUED"
+            assert a.cmd("EXEC") == [42]
+            lines = [read(m, 1) for _ in range(3)]
+            assert all(part in line for line, part in zip(lines, ['] "MULTI"', '] "EVAL"', '] "EXEC"'])), lines
+            assert a.cmd("MULTI") == b"OK"
+            assert a.cmd("EVAL", script, 1, "mon", "discarded") == b"QUEUED"
+            assert a.cmd("DISCARD") == b"OK"
+            assert '] "MULTI"' in read(m, 1) and '] "DISCARD"' in read(m, 1)
+            assert read(m, .05) == {"timeout": True}, "MONITOR logged a discarded command"
+            assert a.cmd("MULTI") == b"OK"
+            assert a.cmd("EVAL", script, 1, "mon", "aborted") == b"QUEUED"
+            assert isinstance(a.cmd("not-a-command"), RespError)
+            assert isinstance(a.cmd("EXEC"), RespError)
+            assert '] "MULTI"' in read(m, 1) and '] "EXEC"' in read(m, 1)
+            assert read(m, .05) == {"timeout": True}, "MONITOR logged an aborted command"
         elif root == "RESET-CLEARS-LIBNAME":
             assert a.cmd("CLIENT", "SETINFO", "lib-name", "redis.py") == b"OK"
             assert a.cmd("CLIENT", "SETINFO", "lib-ver", "1.0") == b"OK"

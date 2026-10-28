@@ -264,7 +264,7 @@ struct NotifyBatch {
     std::deque<std::string> owned_keys;
     std::shared_ptr<NotifyExpiryCompletion> expiry_completion;
     // Only scripts with MONITOR armed populate this cold, existing carrier.
-    std::vector<std::string> monitor_lines;
+    std::vector<MonitorScriptLine> monitor_lines;
 };
 
 namespace {
@@ -291,14 +291,14 @@ NotifyBatch* notify_get_or_create_batch(Op& carrier) {
 
 }  // namespace
 
-void notify_monitor_script(Shard& shard, Op& parent, Op& nested) {
+void notify_monitor_script(Shard& shard, Op& parent, Op& nested, uint32_t multi_order) {
     if (!shard.server() || !shard.server()->climon_monitors() ||
         command_metadata_skip_monitor(nested)) return;
     Op* carrier = shard.notify_carrier();
     NotifyBatch* batch = notify_get_or_create_batch(carrier ? *carrier : parent);
     if (!batch) throw std::bad_alloc();
     std::lock_guard<std::mutex> lock(batch->mutex);
-    batch->monitor_lines.push_back(climon_monitor_script_format(nested));
+    batch->monitor_lines.push_back({multi_order, climon_monitor_script_format(nested)});
 }
 
 void notify_execute_enter(Shard& shard, Op& carrier, Op& source, uint32_t order_base) {

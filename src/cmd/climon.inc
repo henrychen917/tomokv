@@ -11,6 +11,10 @@
 
     enum class ClimonStartResult : uint8_t { NotHandled, Sync, Async };
     enum class ClimonPendingKind : uint8_t { ClientList, ClientKill, ClientUnblock };
+    // Private cache invalidation bit: the existing per-batch comparison keeps
+    // servicing pending monitor records until their ROB entries retire. It is
+    // never published in Server's feature mask or read by an unarmed operation.
+    static constexpr uint32_t kClimonRefreshPending = 1u << 31;
 
     struct ClimonPending {
         ClimonPendingKind kind = ClimonPendingKind::ClientList;
@@ -53,6 +57,7 @@
             uint64_t id;
             uint64_t excluded;
             bool script;
+            uint32_t multi_order;
             std::string line;
         };
         Client* client = nullptr;
@@ -154,7 +159,8 @@
     void climon_unpark_paused(Client* client);
     void climon_monitor_broadcast(std::string line, uint64_t excluded = 0);
     void climon_monitor_flush(ClimonConn& state, uint64_t completed, bool before_script = false);
-    void climon_monitor_script_deliver(uint64_t writer_id, std::vector<std::string>& lines);
+    void climon_monitor_multi_abort(Client& client, uint64_t id);
+    void climon_monitor_script_deliver(uint64_t writer_id, std::vector<MonitorScriptLine>& lines);
     void climon_monitor_format(Client* client, Op& op, std::string& out);
     void climon_monitor_deliver(const std::string& line, uint64_t excluded = 0);
     ClimonStartResult climon_start_monitor(Client* client, Op& op);

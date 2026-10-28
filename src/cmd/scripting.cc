@@ -339,6 +339,7 @@ struct ScriptContext {
     uint32_t key_count = 0;
     uint64_t instructions = 0;
     uint32_t call_index = 0;
+    uint32_t monitor_multi_order = UINT32_MAX;
     bool timed_out = false;
     uint8_t script_resp = 2;
     // Set per call from the handler variant that entered (clean vs notify registry row). The
@@ -712,7 +713,8 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                         LatencyTrackingScriptCall latency(executor, *context->parent, nested);
                         spec->handler(*context->shard, nested);
                     } else spec->handler(*context->shard, nested);
-                    notify_monitor_script(*context->shard, *context->parent, nested);
+                    notify_monitor_script(*context->shard, *context->parent, nested,
+                                          context->monitor_multi_order);
                 }
                 if (context->notify)
                     notify_execute_source(*context->shard, *context->parent, 0);
@@ -1331,6 +1333,8 @@ void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
     LuaEngine& engine = t_lua_engine;
     lua_State* state = engine.state;
     ScriptContext context{&shard, &op, call.key_first, call.key_count};
+    if (auto* carrier = shard.notify_carrier(); carrier && carrier->cmd_name().eq_icase("exec"))
+        context.monitor_multi_order = shard.notify_order_base() / 0x10000u;
     if (t_script_cross.op == &op) {
         context.cross_access = t_script_cross.access;
         context.cross_access_count = t_script_cross.count;
