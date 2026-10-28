@@ -2446,6 +2446,8 @@ job_cmd_metadata(){
 # command is at fault. Static, so it fires before any server starts.
 row_begin "cmdmeta covers every registered command"
 py tests/cmdmeta_coverage.py --redis-root "$REDIS74_ROOT" >$TMPDIR/gate-cmdmeta-coverage.txt 2>&1 \
+    && py tools/gen_cmddocs.py --redis-root "$REDIS74_ROOT" --check \
+        >>$TMPDIR/gate-cmdmeta-coverage.txt 2>&1 \
     && ok "cmdmeta covers every registered command" \
     || bad "cmdmeta covers every registered command" "see $TMPDIR/gate-cmdmeta-coverage.txt"
 }
