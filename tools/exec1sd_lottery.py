@@ -3,9 +3,12 @@
 import json
 import os
 import subprocess
+import sys
 import uuid
 
 import exec1sd as d
+sys.path.insert(0,str(d.ROOT/'tests'))
+from lottery_runner import run_child
 
 
 def main():
@@ -25,15 +28,17 @@ def main():
                  '--output',str(folder),'--nonce',uuid.uuid4().hex,
                  '--binary',saved['binary'],'--production-binary',str(d.ROOT/'build/tomokv'),
                  '--port','20002','--server-cpus','64-71','--client-cpus','72-95']
-            with (folder/'run.log').open('w') as log:
-                result=subprocess.run(cmd,stdout=log,stderr=subprocess.STDOUT,timeout=180)
-            receipt=json.loads((folder/'receipt.json').read_text())
-            correct=(result.returncode==0 and receipt['completed'] and
-                     receipt['passed'] and receipt['evidence_complete'])
+            rc,expired=run_child(cmd,folder/'run.log',180)
+            path=folder/'receipt.json'
+            receipt=json.loads(path.read_text()) if path.exists() else {}
+            correct=(not expired and rc==0 and receipt.get('completed') is True and
+                     receipt.get('passed') is True and receipt.get('evidence_complete') is True and
+                     receipt.get('row')==row['id'] and receipt.get('nonce')==cmd[cmd.index('--nonce')+1] and
+                     all(type(receipt.get('counters',{}).get(w)) is int for w in row['requires']))
             hit=correct and all(receipt['counters'].get(w,0)>0 for w in row['requires'])
-            attempts.append(dict(command=cmd,returncode=result.returncode,correct=correct,hit=hit,
-                receipt=str(folder/'receipt.json'),receipt_sha256=d.sha(folder/'receipt.json'),
-                counters=receipt['counters']))
+            attempts.append(dict(command=cmd,returncode=rc,timed_out=expired,correct=correct,hit=hit,
+                receipt=str(path),receipt_sha256=d.sha(path) if path.exists() else None,
+                counters=receipt.get('counters',{})))
             # A failed assertion is final evidence. Only a correct attempt
             # without a witnessed window can re-arm on fresh state.
             if hit or not correct:break
