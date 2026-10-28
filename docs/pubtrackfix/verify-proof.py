@@ -36,6 +36,10 @@ def main():
    check(name+' '+root+' binary binding',candidate['sha256']==ARMS[arm][1])
    oracle_legs=2 if legs==64 else 1
    check(name+' '+root+' oracle',oracle['legs']==oracle_legs and oracle['passed']==oracle_legs and oracle['sha256']==ORACLE)
+ for name in ('pre-directed','pad-directed'):
+  for root,legs in ROOTS.items():
+   w=runs[name]['negative_failure_witnesses'][root]
+   check(name+' '+root+' intended failure in every leg',w['legs']==legs and w['wire_witnesses']==legs and w['expected_exceptions']==legs)
  affected=runs['post-affected-final']
  done=[list(map(int,r['done'].split())) for r in affected['jobs'].values()]
  check('affected 36 jobs and 245 passing rows',len(done)==36 and sum(r[1] for r in done)==245)

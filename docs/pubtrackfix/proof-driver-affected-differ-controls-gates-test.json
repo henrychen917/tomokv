@@ -55,5 +55,24 @@
     "selected_jobs": "differ-split differ-armed",
     "engine": "epoll",
     "log": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/gate-differ-epoll.log"
+  },
+  {
+    "name": "pre-directed",
+    "returncode": 1,
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "32-39",
+      "--load-cores",
+      "40-47",
+      "--ports",
+      "20310-20399",
+      "--candidate-binary",
+      "build/pubtrackfix/pre/tomokv"
+    ],
+    "selected_jobs": "pubtrackfix",
+    "engine": "uring",
+    "log": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/gate-pre-directed.log"
   }
 ]

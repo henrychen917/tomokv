@@ -534,10 +534,262 @@
           ]
         }
       }
+    },
+    "pre-directed": {
+      "gate_summary": [
+        "GATE(PARTIAL): 1 ok, 4 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-pubtrackfix/build/gate-run.BUHUDI/ledger.partial"
+      ],
+      "jobs": {
+        "pubtrackfix": {
+          "done": "0\t0\t4\n"
+        },
+        "release": {
+          "done": "0\t1\t0\n"
+        }
+      },
+      "directed": {
+        "TRACK-BCAST-BATCH oracle": {
+          "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+          "legs": 1,
+          "passed": 1,
+          "failed_labels": []
+        },
+        "TRACK-BCAST-BATCH candidate": {
+          "sha256": "0cac9819e46cfdcb7836fd04d5ab55ef9a49e92403b13212d9d3edea8427d16f",
+          "legs": 32,
+          "passed": 0,
+          "failed_labels": [
+            "1s-uring-db1-a0-r0",
+            "1s-uring-db1-a0-r1",
+            "1s-uring-db1-a1-r0",
+            "1s-uring-db1-a1-r1",
+            "1s-uring-db16-a0-r0",
+            "1s-uring-db16-a0-r1",
+            "1s-uring-db16-a1-r0",
+            "1s-uring-db16-a1-r1",
+            "1s-epoll-db1-a0-r0",
+            "1s-epoll-db1-a0-r1",
+            "1s-epoll-db1-a1-r0",
+            "1s-epoll-db1-a1-r1",
+            "1s-epoll-db16-a0-r0",
+            "1s-epoll-db16-a0-r1",
+            "1s-epoll-db16-a1-r0",
+            "1s-epoll-db16-a1-r1",
+            "2s-uring-db1-a0-r0",
+            "2s-uring-db1-a0-r1",
+            "2s-uring-db1-a1-r0",
+            "2s-uring-db1-a1-r1",
+            "2s-uring-db16-a0-r0",
+            "2s-uring-db16-a0-r1",
+            "2s-uring-db16-a1-r0",
+            "2s-uring-db16-a1-r1",
+            "2s-epoll-db1-a0-r0",
+            "2s-epoll-db1-a0-r1",
+            "2s-epoll-db1-a1-r0",
+            "2s-epoll-db1-a1-r1",
+            "2s-epoll-db16-a0-r0",
+            "2s-epoll-db16-a0-r1",
+            "2s-epoll-db16-a1-r0",
+            "2s-epoll-db16-a1-r1"
+          ]
+        },
+        "PUBSUB-REPLY-OFF-PUSH oracle": {
+          "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+          "legs": 1,
+          "passed": 1,
+          "failed_labels": []
+        },
+        "PUBSUB-REPLY-OFF-PUSH candidate": {
+          "sha256": "0cac9819e46cfdcb7836fd04d5ab55ef9a49e92403b13212d9d3edea8427d16f",
+          "legs": 32,
+          "passed": 0,
+          "failed_labels": [
+            "1s-uring-db1-a0-r0",
+            "1s-uring-db1-a0-r1",
+            "1s-uring-db1-a1-r0",
+            "1s-uring-db1-a1-r1",
+            "1s-uring-db16-a0-r0",
+            "1s-uring-db16-a0-r1",
+            "1s-uring-db16-a1-r0",
+            "1s-uring-db16-a1-r1",
+            "1s-epoll-db1-a0-r0",
+            "1s-epoll-db1-a0-r1",
+            "1s-epoll-db1-a1-r0",
+            "1s-epoll-db1-a1-r1",
+            "1s-epoll-db16-a0-r0",
+            "1s-epoll-db16-a0-r1",
+            "1s-epoll-db16-a1-r0",
+            "1s-epoll-db16-a1-r1",
+            "2s-uring-db1-a0-r0",
+            "2s-uring-db1-a0-r1",
+            "2s-uring-db1-a1-r0",
+            "2s-uring-db1-a1-r1",
+            "2s-uring-db16-a0-r0",
+            "2s-uring-db16-a0-r1",
+            "2s-uring-db16-a1-r0",
+            "2s-uring-db16-a1-r1",
+            "2s-epoll-db1-a0-r0",
+            "2s-epoll-db1-a0-r1",
+            "2s-epoll-db1-a1-r0",
+            "2s-epoll-db1-a1-r1",
+            "2s-epoll-db16-a0-r0",
+            "2s-epoll-db16-a0-r1",
+            "2s-epoll-db16-a1-r0",
+            "2s-epoll-db16-a1-r1"
+          ]
+        },
+        "PUBSUB-IMPLICIT-CONSUMER-EVENT oracle": {
+          "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+          "legs": 1,
+          "passed": 1,
+          "failed_labels": []
+        },
+        "PUBSUB-IMPLICIT-CONSUMER-EVENT candidate": {
+          "sha256": "0cac9819e46cfdcb7836fd04d5ab55ef9a49e92403b13212d9d3edea8427d16f",
+          "legs": 32,
+          "passed": 0,
+          "failed_labels": [
+            "1s-uring-db1-a0-r0",
+            "1s-uring-db1-a0-r1",
+            "1s-uring-db1-a1-r0",
+            "1s-uring-db1-a1-r1",
+            "1s-uring-db16-a0-r0",
+            "1s-uring-db16-a0-r1",
+            "1s-uring-db16-a1-r0",
+            "1s-uring-db16-a1-r1",
+            "1s-epoll-db1-a0-r0",
+            "1s-epoll-db1-a0-r1",
+            "1s-epoll-db1-a1-r0",
+            "1s-epoll-db1-a1-r1",
+            "1s-epoll-db16-a0-r0",
+            "1s-epoll-db16-a0-r1",
+            "1s-epoll-db16-a1-r0",
+            "1s-epoll-db16-a1-r1",
+            "2s-uring-db1-a0-r0",
+            "2s-uring-db1-a0-r1",
+            "2s-uring-db1-a1-r0",
+            "2s-uring-db1-a1-r1",
+            "2s-uring-db16-a0-r0",
+            "2s-uring-db16-a0-r1",
+            "2s-uring-db16-a1-r0",
+            "2s-uring-db16-a1-r1",
+            "2s-epoll-db1-a0-r0",
+            "2s-epoll-db1-a0-r1",
+            "2s-epoll-db1-a1-r0",
+            "2s-epoll-db1-a1-r1",
+            "2s-epoll-db16-a0-r0",
+            "2s-epoll-db16-a0-r1",
+            "2s-epoll-db16-a1-r0",
+            "2s-epoll-db16-a1-r1"
+          ]
+        },
+        "PUBSUB-EVICT-ON-MAXMEMORY oracle": {
+          "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+          "legs": 2,
+          "passed": 2,
+          "failed_labels": []
+        },
+        "PUBSUB-EVICT-ON-MAXMEMORY candidate": {
+          "sha256": "0cac9819e46cfdcb7836fd04d5ab55ef9a49e92403b13212d9d3edea8427d16f",
+          "legs": 64,
+          "passed": 0,
+          "failed_labels": [
+            "1s-uring-db1-a0-r0-foo",
+            "1s-uring-db1-a0-r0-empty-key",
+            "1s-uring-db1-a0-r1-foo",
+            "1s-uring-db1-a0-r1-empty-key",
+            "1s-uring-db1-a1-r0-foo",
+            "1s-uring-db1-a1-r0-empty-key",
+            "1s-uring-db1-a1-r1-foo",
+            "1s-uring-db1-a1-r1-empty-key",
+            "1s-uring-db16-a0-r0-foo",
+            "1s-uring-db16-a0-r0-empty-key",
+            "1s-uring-db16-a0-r1-foo",
+            "1s-uring-db16-a0-r1-empty-key",
+            "1s-uring-db16-a1-r0-foo",
+            "1s-uring-db16-a1-r0-empty-key",
+            "1s-uring-db16-a1-r1-foo",
+            "1s-uring-db16-a1-r1-empty-key",
+            "1s-epoll-db1-a0-r0-foo",
+            "1s-epoll-db1-a0-r0-empty-key",
+            "1s-epoll-db1-a0-r1-foo",
+            "1s-epoll-db1-a0-r1-empty-key",
+            "1s-epoll-db1-a1-r0-foo",
+            "1s-epoll-db1-a1-r0-empty-key",
+            "1s-epoll-db1-a1-r1-foo",
+            "1s-epoll-db1-a1-r1-empty-key",
+            "1s-epoll-db16-a0-r0-foo",
+            "1s-epoll-db16-a0-r0-empty-key",
+            "1s-epoll-db16-a0-r1-foo",
+            "1s-epoll-db16-a0-r1-empty-key",
+            "1s-epoll-db16-a1-r0-foo",
+            "1s-epoll-db16-a1-r0-empty-key",
+            "1s-epoll-db16-a1-r1-foo",
+            "1s-epoll-db16-a1-r1-empty-key",
+            "2s-uring-db1-a0-r0-foo",
+            "2s-uring-db1-a0-r0-empty-key",
+            "2s-uring-db1-a0-r1-foo",
+            "2s-uring-db1-a0-r1-empty-key",
+            "2s-uring-db1-a1-r0-foo",
+            "2s-uring-db1-a1-r0-empty-key",
+            "2s-uring-db1-a1-r1-foo",
+            "2s-uring-db1-a1-r1-empty-key",
+            "2s-uring-db16-a0-r0-foo",
+            "2s-uring-db16-a0-r0-empty-key",
+            "2s-uring-db16-a0-r1-foo",
+            "2s-uring-db16-a0-r1-empty-key",
+            "2s-uring-db16-a1-r0-foo",
+            "2s-uring-db16-a1-r0-empty-key",
+            "2s-uring-db16-a1-r1-foo",
+            "2s-uring-db16-a1-r1-empty-key",
+            "2s-epoll-db1-a0-r0-foo",
+            "2s-epoll-db1-a0-r0-empty-key",
+            "2s-epoll-db1-a0-r1-foo",
+            "2s-epoll-db1-a0-r1-empty-key",
+            "2s-epoll-db1-a1-r0-foo",
+            "2s-epoll-db1-a1-r0-empty-key",
+            "2s-epoll-db1-a1-r1-foo",
+            "2s-epoll-db1-a1-r1-empty-key",
+            "2s-epoll-db16-a0-r0-foo",
+            "2s-epoll-db16-a0-r0-empty-key",
+            "2s-epoll-db16-a0-r1-foo",
+            "2s-epoll-db16-a0-r1-empty-key",
+            "2s-epoll-db16-a1-r0-foo",
+            "2s-epoll-db16-a1-r0-empty-key",
+            "2s-epoll-db16-a1-r1-foo",
+            "2s-epoll-db16-a1-r1-empty-key"
+          ]
+        }
+      },
+      "negative_failure_witnesses": {
+        "TRACK-BCAST-BATCH": {
+          "legs": 32,
+          "wire_witnesses": 32,
+          "expected_exception": "AssertionError",
+          "expected_exceptions": 32
+        },
+        "PUBSUB-REPLY-OFF-PUSH": {
+          "legs": 32,
+          "wire_witnesses": 32,
+          "expected_exception": "TimeoutError",
+          "expected_exceptions": 32
+        },
+        "PUBSUB-IMPLICIT-CONSUMER-EVENT": {
+          "legs": 32,
+          "wire_witnesses": 32,
+          "expected_exception": "TimeoutError",
+          "expected_exceptions": 32
+        },
+        "PUBSUB-EVICT-ON-MAXMEMORY": {
+          "legs": 64,
+          "wire_witnesses": 64,
+          "expected_exception": "TimeoutError",
+          "expected_exceptions": 64
+        }
+      }
     }
   },
   "missing_runs": [
-    "pre-directed",
     "pad-directed",
     "plant-bcast",
     "plant-reply-off",

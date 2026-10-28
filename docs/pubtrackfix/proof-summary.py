@@ -38,6 +38,29 @@ def main():
        'passed':sum(c['passed'] for c in d['checks']),
        'failed_labels':[c['label'] for c in d['checks'] if not c['passed']]}
     entry['directed']=rows
+    if name.endswith('-directed'):
+     witnesses={}
+     for root in ROOTS:
+      d=read(f'pubtrackfix/{root}/candidate/results.json');verified=[]
+      for c in d['checks']:
+       w=read(f"pubtrackfix/{root}/candidate/{c['label']}-wire.json")
+       if root=='TRACK-BCAST-BATCH':
+        got=bytes.fromhex(w[-1].get('reply_hex',''));want=bytes.fromhex(w[-1].get('expected_hex',''))
+        ok=got.startswith(b'>2\r\n$10\r\ninvalidate\r\n*1\r\n') and b'*3\r\n' in want
+       elif root=='PUBSUB-REPLY-OFF-PUSH':
+        ok=w==[{'send':[repr(x) for x in ('CLIENT','REPLY','OFF')]},
+               {'send':[repr(x) for x in ('SUBSCRIBE','ch')]}]
+       elif root=='PUBSUB-IMPLICIT-CONSUMER-EVENT':
+        ok=w[-2].get('send')==[repr(x) for x in ('XREADGROUP','GROUP','g','Alice','STREAMS','s','>')] and bytes.fromhex(w[-1].get('reply_hex','')).startswith(b'*1\r\n*2\r\n$1\r\ns\r\n')
+       else:
+        ok=w[-2].get('send')==[repr(x) for x in ('CONFIG','SET','maxmemory',1)] and w[-1].get('reply_hex')==b'+OK\r\n'.hex()
+       verified.append(ok and not c['passed'])
+      log=t.extractfile(f'pubtrackfix/{root}.log').read().decode()
+      bcast=root=='TRACK-BCAST-BATCH'
+      witnesses[root]={'legs':len(verified),'wire_witnesses':sum(verified),
+       'expected_exception':'AssertionError' if bcast else 'TimeoutError',
+       'expected_exceptions':log.count('AssertionError:' if bcast else 'TimeoutError: timed out')}
+     entry['negative_failure_witnesses']=witnesses
    if name=='post-affected-final' or name.startswith('plant-'):
     modes={}
     for mode in ('1s','2s'):
