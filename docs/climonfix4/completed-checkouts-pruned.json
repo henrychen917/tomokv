@@ -538,5 +538,89 @@
     "bytes": 63537368,
     "archive": "docs/climonfix4/job-evidence/superseded-connected-affected.tar.gz",
     "archive_sha256": "8a88131932017634f363677b568dcc2e42226be19a5974ac71788bff35857e8d"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.FBTG13/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537368,
+    "archive": "docs/climonfix4/job-evidence/final14-affected-jobs.tar.gz",
+    "archive_sha256": "8e8d7ab90568a0d15fdb73cc4635eed46ef9dd5d50a5bd43da061d603fff6640"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.FBTG13/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537368,
+    "archive": "docs/climonfix4/job-evidence/final14-affected-jobs.tar.gz",
+    "archive_sha256": "8e8d7ab90568a0d15fdb73cc4635eed46ef9dd5d50a5bd43da061d603fff6640"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.cFun5o/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-client-list-cmd-name.tar.gz",
+    "archive_sha256": "584398e5802d5614992135270b4e40e64a00349fce518dbe64e3520a00bb8c07"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.cFun5o/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-client-list-cmd-name.tar.gz",
+    "archive_sha256": "584398e5802d5614992135270b4e40e64a00349fce518dbe64e3520a00bb8c07"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.XHWFKa/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-monitor-script-cmds.tar.gz",
+    "archive_sha256": "fef413879629f088b384e06266dfd6b04bbac00a35fbd86c2283485730fa969e"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.XHWFKa/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-monitor-script-cmds.tar.gz",
+    "archive_sha256": "fef413879629f088b384e06266dfd6b04bbac00a35fbd86c2283485730fa969e"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.nzu3as/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-pause-may-replicate.tar.gz",
+    "archive_sha256": "475b0cd4256aa5aeb60930134c5adc4c4bbdf1b6fc676430acfd031d44f30b03"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.nzu3as/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-pause-may-replicate.tar.gz",
+    "archive_sha256": "475b0cd4256aa5aeb60930134c5adc4c4bbdf1b6fc676430acfd031d44f30b03"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.6ODJIc/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-pause-script-flags.tar.gz",
+    "archive_sha256": "90a4befee9a4ef25ecaa7051489c9c31503c1ff4c0ec3f25c948e453a478e410"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.6ODJIc/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-pause-script-flags.tar.gz",
+    "archive_sha256": "90a4befee9a4ef25ecaa7051489c9c31503c1ff4c0ec3f25c948e453a478e410"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.B71B8v/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-reset-clears-libname.tar.gz",
+    "archive_sha256": "f8e497baf4fb1eb75854818078de1f27a30eb734bc13f2b403e3d9aa71ec0559"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.B71B8v/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-reset-clears-libname.tar.gz",
+    "archive_sha256": "f8e497baf4fb1eb75854818078de1f27a30eb734bc13f2b403e3d9aa71ec0559"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.jm8coH/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-reset-monitor-echo.tar.gz",
+    "archive_sha256": "c2a3fa1e9cf8b750b64ce9ed35f66ac6adf64d8dafb573867264aa8d6cf0decf"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.jm8coH/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-reset-monitor-echo.tar.gz",
+    "archive_sha256": "c2a3fa1e9cf8b750b64ce9ed35f66ac6adf64d8dafb573867264aa8d6cf0decf"
   }
 ]

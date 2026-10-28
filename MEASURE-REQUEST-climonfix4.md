@@ -52,10 +52,10 @@ Final POST is source `c369ccc41`, after withdrawing CONNECTED-CLIENTS-LAG. Earli
 |---|---|---|
 | Affected gate jobs and prerequisites | **310 passed, 0 failed** | [Campaign receipt](docs/climonfix4/jobs/final14-affected-jobs.json) |
 | New directed rows | 28/28 POST; all 28 fail on PRE; 224 configurations per arm | [PRE negative receipt](docs/climonfix4/jobs/final14-directed-pre-negative.json); POST included above |
-| Full Tcl manifest, 1s and 2s | 1,704 assertions per mode; all 14 promotions reached and passed; no named failures | [Promotion audit](docs/climonfix4/full-tcl-promotions.json) |
+| Tcl passing-subset job, 1s and 2s | 1,704 assertions per mode; all 14 promotions reached and passed; no named failures | [Promotion audit](docs/climonfix4/full-tcl-promotions.json) |
 | Planted Tcl regressions | Seven isolated root regressions fail in both modes; matching POST controls pass | [Isolated controls](docs/climonfix4/isolated-regressions.json) |
 | Standard differential, io_uring | All four mode/atomic legs and mode equivalence pass; six public rows including release | [Campaign receipt](docs/climonfix4/jobs/final14-differ-uring.json) |
-| Standard differential, epoll | Running; both split legs have passed | Final receipt pending |
+| Standard differential, epoll | All four mode/atomic legs and mode equivalence pass; six public rows including release | [Campaign receipt](docs/climonfix4/jobs/final14-differ-epoll.json) |
 | Production builds and freshness | 53 named targets, all 58 audit checks pass, including `make all` and `make -q` | [Build audit](docs/climonfix4/production-units.json) |
 | Harness self-tests | `gates_test.py`: 73 pass; `redis_tcl_test.py`: nine pass | [Self-test receipts](docs/climonfix4/self-tests.json) |
 | Hot-command instruction scopes | All 92 PRE/POST pairs: delta 0, equal per-function counts | [Counts](docs/climonfix4/instruction-counts.md) |
@@ -74,7 +74,7 @@ cmd_metadata release_batteries fused-0 fused-1
 feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 flip
 ```
 
-The prerequisite `production_units` built all 53 named targets. The [independent audit](docs/climonfix4/production-units.json) passed `make all`, all readiness markers, every `make -q` dependency graph, and the blockfix binary binding. Differential runs select `differ-split` and `differ-armed`, which include mode equivalence, with the standard seed allocator and no suite/seed overrides, separately for uring and epoll. Redis source/Tcl root is `/home/user/Projects/redis`; the differential oracle is `/home/user/Projects/redis74/src/redis-server` (Redis 7.4.10). The source-tree oracle path used by neighboring gate jobs has the identical binary hash ([identity](docs/climonfix4/oracle-identity.json)).
+The prerequisite `production_units` built all 53 named targets. The [independent audit](docs/climonfix4/production-units.json) passed `make all`, all readiness markers, every `make -q` dependency graph, and the blockfix binary binding. A [final freshness recheck](docs/climonfix4/final-freshness.json) passes all 57 query/binding checks after the isolated mutant builds. [Artifact integrity](docs/climonfix4/artifact-integrity.json) binds the three retained arms and the unchanged production/test source to this proof. Differential runs select `differ-split` and `differ-armed`, which include mode equivalence, with the standard seed allocator and no suite/seed overrides, separately for uring and epoll. The gate’s standard armed-fused matrix skips `sort`, whose fixture requires split 6:2; both split arms run it. Redis source/Tcl root is `/home/user/Projects/redis`; the differential oracle is `/home/user/Projects/redis74/src/redis-server` (Redis 7.4.10). The source-tree oracle path used by neighboring gate jobs has the identical binary hash ([identity](docs/climonfix4/oracle-identity.json)).
 
 An unchanged upstream PUBSUB assertion, `PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments`, failed intermittently during an earlier complete Tcl run. The [bounded full-file recheck](docs/climonfix4/pubsub-recheck-results.json) reproduced that same named failure on PRE as well as the early-accounting prototype. The preceding test closes two subscribers without waiting for cross-owner disconnect processing. The assertion remained enabled and passed in both final Tcl jobs. Its earlier failure receipts remain available rather than being discarded.
 
@@ -96,7 +96,11 @@ POST production source is commit `c369ccc41`; subsequent commits record evidence
 
 **PAD-A means (A), behaviour twin:** PRE behaviour with inert candidate ClientMeta, ClimonConn, NotifyBatch and ScriptContext member layouts and POST's `.text` origin/total size. All field offsets and the monitor element layout match in the [offline debug-type check](docs/climonfix4/cold-layouts.json). It does not reproduce every POST function offset or data-section address, so it cannot by itself rule out an effect from individual function alignment. [pad-a.json](docs/climonfix4/pad-a.json) records the exact construction, link-input hashes and text extents. The unchanged harness reproductions verify PRE behaviour. Source/object trees are removed after the final binaries, identities and counts are recorded.
 
+The final [cleanup check](docs/climonfix4/cleanup.json) found no lane servers and no listeners on ports 20200–20299. Build artifacts remain below 25 GiB. The [archive audit](docs/climonfix4/archive-integrity.json) verifies every retained evidence member against its recorded hash.
+
 ### Maintainer merit request — NOT RUN here
+
+Performance benchmarks and the full `tests/gate.sh iteration` are **NOT RUN**, as the lane authorization reserves them for the maintainer on a quiet box. All requested correctness campaigns above completed.
 
 Use the gate's own instrument on the quiet box, with PRE/PRE null, PRE/POST and PRE/PAD-A arms, matching offered loads and affinity. Run the 14 generic cells and four required split GET/SET p1/p32 null companions exactly as listed in [measure-cells.txt](docs/climonfix4/measure-cells.txt). Keep the instrument's defaults for key/value distribution, concurrency, atomic mode and read-local mode specified there.
 

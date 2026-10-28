@@ -173,5 +173,10 @@
     "-lssl",
     "-lcrypto",
     "-lm"
-  ]
+  ],
+  "object_sha256": {
+    "/home/user/Projects/cx-climonfix4/build/climonfix4/count-mutant/normal.o": "7f6c0530e0716481a281e429b6538578bf289ced18552b59003068391bd2775d",
+    "/home/user/Projects/cx-climonfix4/build/climonfix4/count-mutant/db0.o": "b709e59c3f0c9c8427277e51b22fd3984e10afaa9cbe861785d58bd728ea617e"
+  },
+  "binary_and_objects_pruned": true
 }
