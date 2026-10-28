@@ -41,7 +41,8 @@ not current execution receipts.
 
 Worktree `/home/user/Projects/cx-exec1s-c`, branch `cx-exec1s-c`, starting at
 `bd90f09de`; no push. Builds use `taskset -c 48-63`, `make -j16`. Correctness
-servers use CPUs 48–55, clients 56–63 and ports 20400–20499. Individual gate jobs
+servers use CPUs 48–55, clients 56–63 and ports 20400–20499. The harness socket
+fixture uses `GATE_TEST_PORT=20498`. Individual gate jobs
 retain their own explicit geometry overrides; ordinary boots use 16 shards and
 6 IO / 2 executor threads. No performance workload or full gate iteration runs
 in this lane.
@@ -68,7 +69,10 @@ release comparison; do not label PAD-A an exact-size twin of release POST.
 ### Replacement proof receipts
 
 X2 directed proof, all ordinary counts and all 52 lever scopes are complete.
-POST live proof is in progress.
+POST live proof is in progress. Its first selected-family attempt was cancelled
+while correcting the harness socket’s default ephemeral port; no receipt from
+that interrupted attempt counts toward this proof. The complete inventory was
+restarted with the fixed port and cached builds, retaining the original logs.
 
 - X2: production TSAN owner-word helper, the old overlapping-write negative
   control, actual 256-live-group wrap/decrement checks, pinned-floor cleanup,

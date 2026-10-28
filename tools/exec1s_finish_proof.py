@@ -54,7 +54,7 @@ def main():
     for fused_mode in ('0','1'):
         outcomes.append(proof.gate('POST-aof-cq-'+fused_mode,candidate,['aof-uring','aof_frame'],extra_env={
             'GATE_TXN_FUSED':fused_mode,'LD_PRELOAD':str(instrument),'EXEC1S_CQ_WATCH':'1'}))
-    outcomes.append(proof.run('gates-test',['taskset','-c','48-63','python3','tests/gates_test.py']))
+    outcomes.append(proof.run('gates-test',['taskset','-c','48-63','python3','tests/gates_test.py'],os.environ.copy()))
     outcomes.append(freshness())
     receipts=[json.loads(p.read_text())|dict(receipt=str(p)) for p in sorted(proof.OUT.glob('*.json'))]
     summary=dict(production_binary=str(candidate),production_sha256=sha(candidate),receipts=receipts,

@@ -63,7 +63,7 @@ def run(label,cmd,env=None):
     row.update(started_utc=started,ended_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
         candidate_sha256=before,candidate_unchanged=(not binary or sha(binary)==before),
         proof_environment={k:v for k,v in (env or {}).items() if k in (
-            'GATE_TXN_FUSED','GATE_TXN_ATOMIC','GATE_EXEC1S_WB','GATE_DIFFER_NET_IO','GATE_PROOF_NO_RATES','LD_PRELOAD')})
+            'GATE_TXN_FUSED','GATE_TXN_ATOMIC','GATE_EXEC1S_WB','GATE_DIFFER_NET_IO','GATE_PROOF_NO_RATES','GATE_TEST_PORT','LD_PRELOAD')})
     found=re.search(r'^  artifacts: (.+)$',log.read_text(),re.M)
     if found:row['artifacts']=found[1]
     if env and env.get('EXEC1S_CQ_WATCH')=='1':
