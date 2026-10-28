@@ -3107,6 +3107,7 @@ job_execfair(){
       py tests/wave7.py "$PORT" >"$log-wave7.log" 2>&1 || passed=0
       py tests/wave8.py "$PORT" >"$log-wave8.log" 2>&1 || passed=0
       py tests/wave8b.py "$PORT" >"$log-wave8b.log" 2>&1 || passed=0
+      py tests/wave9.py "$PORT" >"$log-wave9.log" 2>&1 || passed=0
     else passed=0; fi
     stop
     shutdown_clean || passed=0

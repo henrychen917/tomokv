@@ -70,3 +70,17 @@ storm and full landing gate are NOT RUN here: maintainer-owned measurements.
 - Variant builds: trackfix, notifycompat and aoforder now stage the selected
   source's `tools/assert_map.py`, including reference archives. The other three
   schedule/build consumers (publishfix, lottery, racefix) already copy it.
+
+### Directed lane interactions (first merged build)
+
+The whole `execfair` job passed all eight mode/atomic/engine legs on SHA-256
+`b7618f4089cb88a1c0c921c9f13d342024065b3d1813cd5fc89f4403844d4c6c`.
+`tests/wave9.py` joins that existing row (no row delta). It asserts exact replies
+and state for repeated-key EXEC list publication, an actually conflicted and
+escalated script's list publication, a fifth same-IO FIFO script held by PAUSE
+WRITE, and stream-node trimming followed by sequential stream removal. The
+removal uses CR/LF in the key and group name and requires one sanitized NOGROUP
+reply followed by an intact PING frame. The first four FIFO occupants are
+read-only scripts; they drain under PAUSE while the queued write stays pending.
+Receipts: `docs/wave9/jobs/integration-first.{json,log,tsv.partial}`. This preliminary
+build does not substitute for rerunning the job on the frozen landing POST.
