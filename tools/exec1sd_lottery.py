@@ -27,7 +27,7 @@ def main():
             cmd=['python3','tests/lottery_attempt.py','--row',row['id'],
                  '--output',str(folder),'--nonce',uuid.uuid4().hex,
                  '--binary',saved['binary'],'--production-binary',str(d.ROOT/'build/tomokv'),
-                 '--port','20002','--server-cpus','64-71','--client-cpus','72-95']
+                 '--port','20002','--server-cpus','64-71','--client-cpus','72-79']
             rc,expired=run_child(cmd,folder/'run.log',180)
             path=folder/'receipt.json'
             receipt=json.loads(path.read_text()) if path.exists() else {}

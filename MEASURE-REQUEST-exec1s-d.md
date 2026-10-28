@@ -184,9 +184,11 @@ observer: all 15 SAVE/BGSAVE starts returned Started in each arm. The observer
 does change timing. Native full-plan replays on C-PRE and MERGE also passed all 235 legs each.
 The harness bytes match exec1s-c and the oracle is Redis 7.4.10; see
 [save-reproduction-environment.json](docs/exec1s-d/save-reproduction-environment.json).
-The earlier POST (`22d10835…`, before the watched-EXECABORT repair) also
-passed 235/235. These successful replays do not prove the historical failure
-fixed or pre-existing.
+Both the earlier POST (`22d10835…`, before the watched-EXECABORT repair)
+and final POST (`4111f5c6…`) also passed 235/235. The final native replay retained
+the original seed-22 plan and used no debugger; see
+[save-full-native-POST-final.json](docs/exec1s-d/save-full-native-POST-final.json).
+These successful replays do not prove the historical failure fixed or pre-existing.
 
 Bounded native repeats of unchanged `tests/differ.py ... psfix 22` reproduce a
 different failure on both C-PRE and MERGE: repeats 0–5 pass, then repeat 6
@@ -250,12 +252,20 @@ persistence/SAVE, writeback, execindex oracle/complexity, all at412 stages and
 woundfix. It includes copied-source trackfix_order, aoforder, notifycompat,
 publishfix and racefix. Lottery has no `tests/gate.sh` job; its copied witness
 build and bounded gate smoke are recorded separately from its nightly campaign.
+Its seven existing EXEC occurrence cases also passed on their first fresh
+attempt, each with a positive W16 witness. This covers split/fused, atomic 0/1,
+armed read-local and notification shapes. The attempts use the existing driver
+and process-group cleanup with lane CPU/port arguments; no assertion changed.
+[lottery-witness.json](docs/exec1s-d/lottery-witness.json) records each command,
+binary identity and required counters. This is a witness smoke, not the nightly
+campaign's statistical verdict.
 
 NOT RUN: full `iteration`, performance/load generators, `flip_saturated`,
 `atomic_floor`, and the rate assertion in `atomic_ryow`. Those are reserved for
 the maintainer. `GATE_PROOF_NO_RATES=1` is the existing partial-job interface;
-finite atomic correctness schedules still run. The lottery nightly runner's
-fixed CPUs 112–127 and ports 253xx are outside this lane's authorization.
+finite atomic correctness schedules still run. The full lottery nightly campaign includes a memtier-driven row, and its runner
+also restricts CPUs to 112–127 and ports to 253xx. The seven bounded EXEC
+attempts use its separate attempt interface on this lane's authorized resources.
 
 **DQ=+4, DF=+4 relative to headline; this continuation adds no new aggregate
 row.** `collect_job exec1s` is line 6008, before the quick exit at line 6119.
