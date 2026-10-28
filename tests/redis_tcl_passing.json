@@ -2066,7 +2066,6 @@
     "XGROUP CREATE: with ENTRIESREAD parameter in tests/unit/type/stream-cgroups.tcl",
     "XGROUP CREATECONSUMER: create consumer if does not exist in tests/unit/type/stream-cgroups.tcl",
     "XGROUP CREATECONSUMER: group must exist in tests/unit/type/stream-cgroups.tcl",
-    "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl",
     "XINFO FULL output in tests/unit/type/stream-cgroups.tcl",
     "XPENDING can return single consumer items in tests/unit/type/stream-cgroups.tcl",
     "XPENDING is able to return pending items in tests/unit/type/stream-cgroups.tcl",
@@ -2087,7 +2086,8 @@
    "skip_tests": {
     "Consumer seen-time and active-time": "failed on TomoKV 2s in the survey",
     "XREADGROUP from PEL does not change dirty": "failed on TomoKV 2s in the survey",
-    "XREADGROUP of multiple entries changes dirty by one": "failed on TomoKV 2s in the survey"
+    "XREADGROUP of multiple entries changes dirty by one": "failed on TomoKV 2s in the survey",
+    "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP": "INFO errorstats NOGROUP count missing (remainder of BLOCK-STREAM-REMOVED-NO-UNBLOCK), owned by lane blockfix3; restored to the known failures by the maintainer on 2026-10-28 because blockfix2 promoted it while it still failed (34/36)"
    }
   },
   "unit/type/string": {

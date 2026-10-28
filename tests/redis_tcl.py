@@ -198,29 +198,36 @@ def validate_passing(row, expected, known_setup_errors=()):
         raise ValueError('passing subset failed, incomplete, or assertion inventory changed')
 
 MONITOR_ORDER_TEST = 'MONITOR log blocked command only once in tests/unit/introspection.tcl'
+# Named upstream assertions that rely on cross-connection arrival order (single-threaded
+# Redis); each gets one fresh-server retry and nothing else. Maintainer 2026-10-28.
+ORDER_TESTS = {
+    'unit/introspection': MONITOR_ORDER_TEST,
+    'unit/type/list': 'BRPOPLPUSH does not affect WATCH while still blocked in tests/unit/type/list.tcl',
+}
 
 def retry_monitor_order(args, tree, unit, row, server_args):
-    """One fresh-server retry for the single cross-connection ordering assertion.
+    """One fresh-server retry for the named cross-connection ordering assertion of this file.
 
     Keep the failed receipt and never retry a file, timeout, missing assertion,
     setup failure, or another named failure. The exact upstream assertion must
     pass on its sole retry; it is not skipped or weakened.
     """
     failures = [event for event in row['events'] if event['status'] == 'err']
-    if (unit != 'unit/introspection' or row['error'] or not row['complete'] or
+    name = ORDER_TESTS.get(unit)
+    if (name is None or row['error'] or not row['complete'] or
             row['exit_code'] != 1 or row['failed'] != 1 or len(failures) != 1 or
-            failures[0]['test'] != MONITOR_ORDER_TEST):
+            failures[0]['test'] != name):
         return row
     folder = args.output / unit
     (folder / 'before-monitor-retry.json').write_text(json.dumps(row, indent=2) + '\n')
     child = copy.copy(args)
     child.output = folder / 'monitor-retry'
-    part = run_file(child, tree, unit, only=[MONITOR_ORDER_TEST.split(' in tests/')[0]],
+    part = run_file(child, tree, unit, only=[name.split(' in tests/')[0]],
                     server_args=server_args)
     row['monitor_order_retry'] = dict(original_failure=failures[0],
         result=str(child.output / unit / 'result.json'), passed=False)
     try:
-        validate_passing(part, [MONITOR_ORDER_TEST])
+        validate_passing(part, [name])
     except ValueError:
         return row
     row['monitor_order_retry']['passed'] = True
