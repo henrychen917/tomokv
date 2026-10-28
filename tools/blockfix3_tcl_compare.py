@@ -13,6 +13,7 @@ CASES = {
     'unit/introspection': 'MONITOR log blocked command only once',
     'unit/pubsub': 'PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments',
     'unit/slowlog': 'SLOWLOG - Rewritten commands are logged as their original command',
+    'unit/type/list': 'PUSH resulting from BRPOPLPUSH affect WATCH',
 }
 
 

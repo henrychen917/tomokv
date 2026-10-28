@@ -10,7 +10,17 @@
     "build/blockfix2/controls/rename/source",
     "build/blockfix3/commands/pre-normal",
     "build/blockfix3/commands/pre-db0",
-    "build/blockfix3/commands"
+    "build/blockfix3/commands",
+    "build/blockfix3/post-repro-final/checkout",
+    "build/blockfix3/post-repro-v4/checkout",
+    "build/blockfix3/post-repro-v3/checkout",
+    "build/blockfix3/post-repro-v2/checkout",
+    "build/blockfix3/post-repro/checkout",
+    "build/blockfix3/post-repro-cleanup/checkout",
+    "build/blockfix3/post-repro-land/checkout",
+    "build/blockfix3/post-repro-revised/checkout",
+    "build/blockfix3/post-repro-rename/checkout",
+    "build/blockfix3/tcl-comparison-land/checkout"
   ],
   "reason": "Frozen binary and probe SHA-256s and PRE counts recorded; sources and superseded probe objects are reconstructible from git and recipes."
 }
