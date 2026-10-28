@@ -52,7 +52,7 @@
     "arm": "REUSE",
     "source_commit": "393d6ceb129d8c99dffd70959d6a19267c525fe0",
     "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/REUSE",
-    "sha256": "13ff93444b3f2f23711c16937b59e0dff283ce1e7f86a29bdc17cd98c689abdc",
-    "bytes": 220087840
+    "sha256": "196fa795a956afd6bd0aa5e0d8980e9fcc4ec1e849d1d866317dc87d93039d53",
+    "bytes": 220095600
   }
 ]

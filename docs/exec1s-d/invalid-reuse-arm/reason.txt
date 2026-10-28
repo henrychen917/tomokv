@@ -1,0 +1,1 @@
+INVALID: nested git apply silently skipped both patches. This arm had PRE behaviour and cannot attribute the reuse fix. Rebuilt with explicit source assertions.

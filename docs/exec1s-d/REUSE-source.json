@@ -1,7 +1,7 @@
 {
   "base": "393d6ceb129d8c99dffd70959d6a19267c525fe0",
   "patch": "/home/user/Projects/cx-exec1s-d/docs/exec1s-d/REUSE.patch",
-  "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "patch_sha256": "28c2ee681c13e8beff139d6d9d4da85670b39f815036ea2a88823a2226108c8b",
   "files": {
     "src/README.md": "907089128272efc77e2077339b9fbd406896d05be48ebc5a39efcc01959ac499",
     "src/base/README.md": "27a3fd822e8fe41ae91e993bef7262cf617cf67c639b1aedfd956c51cff5fec7",
@@ -56,7 +56,7 @@
     "src/cmd/lcs.h": "b756f5148166a5f367700400692d2c0f49d2f1b25daf33831c2534326695bd37",
     "src/cmd/lookup_notouch.h": "4a6d0b833014a04036e7b6b752086b64b00e88b1612e70945314c47fdd2bc4a2",
     "src/cmd/multi.h": "196404f9b8423099b35076034fb65066b50540f593a7378e82d0684bc87d63f7",
-    "src/cmd/multi.inc": "812a7ef8cc0c070d49581ee50dbbbda296c9c7404f54ec8017fbdf28cea20150",
+    "src/cmd/multi.inc": "d31ae420b4adfe748f80c8bbc1ec548e24d670143af4d2279f5fb2701e448bf3",
     "src/cmd/multi_admin.cc": "9c855e344a6380fb8aa84597fdbf6babd377556ba7bfc123a2e75cbcd93059c0",
     "src/cmd/multi_execute.inc": "2c681b281b8e09c2af967d397b21a6bc76359497f8687e8c5d17d31a8261ff9a",
     "src/cmd/multidb.cc": "aa7caf3609f402ec49a29d77328db4184ec20ca11b16420859cbf8be1d2b8ef3",
@@ -183,7 +183,7 @@
     "src/store/atomic_mvcc.h": "97a62bb59bce511d304451d0dd6d091af86f6bd9499f96c151bcff4bf6d14682",
     "src/store/eviction.h": "b78962ecb0d0fb67735b466220b47f548761d1bd1d5553e8e61cb3af403a5445",
     "src/store/flatstore.h": "2e7a97267871b231a74594c4fe3e38270f683a64e13f6dd9e2f13a313eecfe27",
-    "src/store/flatstore_atomic.inc": "ca02c792c043fddc46d8fea3b3a5c1b0fdc51e79ac781fc178ed80129643f7d7",
+    "src/store/flatstore_atomic.inc": "85e0c17a5ab5b24c1f567fd7500a6e8d7c508d0b3355d58631120663b9e2ce7d",
     "src/store/foreign_read_safety.h": "707339d1770dad857c95098a1cfddcde6a079752d499028bacbca6e33919b1b2",
     "src/store/kv_block_cache.h": "adf67570dcce3a88114b9e7fd9c707873785c25b4aa2a8db684e4d9fa5c7e871",
     "src/store/kvobj.h": "a1586aed715a6a7c314fd901327d078d3d3d72bcf2efba86154226aeea3b1bcc",

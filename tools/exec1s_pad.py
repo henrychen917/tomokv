@@ -53,12 +53,12 @@ def build(pre, source, output, receipt):
     with (output/'pad-link.log').open('w') as log:
         subprocess.run(link,stdout=log,stderr=subprocess.STDOUT,check=True)
     elf=Elf(post); functions=elf.functions()
-    source=functions['main']; target=functions['exec1s_pre_main']
-    section=elf.sections[source['sec']]
-    offset=section[4]+source['value']-section[3]; pc=source['value']
+    entry=functions['main']; target=functions['exec1s_pre_main']
+    section=elf.sections[entry['sec']]
+    offset=section[4]+entry['value']-section[3]; pc=entry['value']
     raw=bytearray(elf.data)
     if raw[offset:offset+4]==b'\xf3\x0f\x1e\xfa': offset+=4; pc+=4
-    assert source['size']>=pc-source['value']+5
+    assert entry['size']>=pc-entry['value']+5
     branch=b'\xe9'+struct.pack('<i',target['value']-(pc+5))
     old_bytes=raw[offset:offset+5].hex();raw[offset:offset+5]=branch
     pad.write_bytes(raw);pad.chmod(0o755)
@@ -71,7 +71,7 @@ def build(pre, source, output, receipt):
         post_layout=str(post),post_sha256=sha(post),pad_a=str(pad),pad_sha256=sha(pad),
         matching_sections=True,matching_symbols=True,patch_offset=offset,
         before=old_bytes,after=branch.hex(),changed_bytes=len(changes),
-        entry_source=source,entry_target=target,link=link,
+        entry_source=entry,entry_target=target,link=link,
         pre_objects={str(p):sha(p) for p in objects},
         limitation='The exact twin is POST-layout, not the smaller release image. Measure the release null separately.')
     receipt.write_text(json.dumps(record,indent=2)+'\n')

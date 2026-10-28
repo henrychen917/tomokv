@@ -92,12 +92,23 @@ def main():
         # Keep PRE objects until the final common-image PAD-A link, then retire them.
     else:
         source,ref=d.snapshot('393d6ceb1',arm)
-        patch=subprocess.check_output(['git','show','--format=','5fb8dc7b0','--','src'],cwd=d.ROOT,text=True)
-        # This arm predates X5's slot mapping and X0's visit instrumentation.
-        patch=patch.replace('state.shard_aborted[state.slot(shard.id())]','state.shard_aborted[shard.id()]')
-        patch=patch.replace('+            TOMO_EXEC1S_VISIT();\n','')
-        result=subprocess.run(['git','apply','--recount','--unsafe-paths','-'],input=patch,text=True,cwd=source,capture_output=True)
-        assert result.returncode==0,result.stderr
+        # git apply from a nested snapshot silently filters repository-relative
+        # paths. Build the two source edits explicitly and assert their presence.
+        current=(d.ROOT/'src/store/flatstore_atomic.inc').read_text()
+        start=current.index('    // Owner-only newest-match lookup')
+        end=current.index('    // A conservative blind-group count:',start)
+        helper=current[start:end].replace('            TOMO_EXEC1S_VISIT();\n','')
+        path=source/'src/store/flatstore_atomic.inc'
+        anchor='    template <typename Visit>\n    void atomic_visit_unit_records('
+        replace(path,anchor,helper+anchor)
+        path=source/'src/cmd/multi.inc';text=path.read_text()
+        start=text.index('    bool private_head = false;')
+        end=text.index('    if (private_head) {',start)
+        text=text[:start]+'''    const bool private_head = shard.store().atomic_reuses_transaction(
+        hash, key, &state.decision.epoch, &state.shard_aborted[shard.id()]);
+'''+text[end:]
+        path.write_text(text)
+        assert 'atomic_reuses_transaction(' in path.read_text()
         finish(arm,source,ref,'EXEC')
 
 if __name__=='__main__':main()

@@ -2879,6 +2879,13 @@ void xshard_visit_task_hashes(const Task& task, void* context,
         visit(context, state.keys[state.key_order[group->begin + i]].hash);
 }
 
+// EXEC helpers share this translation unit. Keep the normal-namespace MSET
+// fall-through free of extra executed alignment NOPs when those helpers move.
+// This changes jump padding only; the complete command scopes cover both DB
+// variants and the release/PAD merit request checks the resulting code layout.
+#if !TOMO_SINGLE_DATABASE
+__attribute__((optimize("align-jumps=16:8")))
+#endif
 ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                                  uint32_t owner_thread_id) {
     // DB0's ordinary read path does not use this atomic-arm argument. Keeping
