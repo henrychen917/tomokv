@@ -17,7 +17,7 @@ Source and Tcl files come from `/home/user/Projects/redis`.
 
 | Root | Result | Implementation or reason stopped |
 |---|---|---|
-| TRACK-BCAST-BATCH | Fixed | Cold connection state accumulates keys by prefix and publication stamp; the pass boundary emits one sorted, deduplicated array per prefix. NOLOOP uses the last writer. RESP2 redirection retains the array. The state moves with the existing connection-routing node and rearms the destination's pass flag. |
+| TRACK-BCAST-BATCH | Fixed | Cold connection state accumulates keys by prefix and publication stamp; the pass boundary emits one sorted, deduplicated array per prefix. NOLOOP uses the last writer. RESP2 redirection retains the array. The state moves with the existing connection-routing node and rearms the destination's pass flag. Whole-cache invalidation preserves the pending prefix arrays. |
 | PUBSUB-REPLY-OFF-PUSH | Fixed | Successful subscribe/unsubscribe confirmations clear the operation's consumed reply-suppression flag. Published frames retain their ordering relative to confirmations. Covers SUBSCRIBE, PSUBSCRIBE and SSUBSCRIBE, OFF/SKIP, RESP2/RESP3 and empty unsubscribe. |
 | PUBSUB-IMPLICIT-CONSUMER-EVENT | Fixed | XREADGROUP, XCLAIM and XAUTOCLAIM emit xgroup-createconsumer only when they create a consumer. A blocked XREADGROUP emits at waiter preparation, before being woken. Consumer metadata emits no tracking invalidation; a real XADD is the positive tracking control. |
 | PUBSUB-EVICT-ON-MAXMEMORY | Fixed | Bounded owner maintenance enforces the live memory budget without requiring another write. It uses the existing eviction selector, immutable/QSBR erase, notification and AOF paths, respects pinned versions and snapshots, and also evicts the empty-string key. Redis's updateMaxmemory schedules its eviction time procedure; this uses the existing owner millisecond beat. |
@@ -57,21 +57,21 @@ new assertion; POST passes. See
 This was added after a directed redirect timeout exposed a real pending-flag
 hazard in the first implementation; that interrupted run is retained.
 
-The final directed matrix and both Tcl modes pass on the final binary. Both Tcl
+The directed matrix and both Tcl modes passed before the final BCAST flush
+preservation correction. The revised unit fails on the previous candidate and
+passes after the correction; the final full proof is being refreshed. Both Tcl
 modes cover all 36 selected files and all 31 promoted names, without using the
 pre-existing named ordering retries. The complete
 selected affected-job list is [proof-jobs.txt](docs/pubtrackfix/proof-jobs.txt),
-with `clientfix` and the public `compat2` verdict in the additional
-`post-neighbors` run.
+including `clientfix` and the public `compat2` verdict in the same run.
 The driver [run-proof.py](docs/pubtrackfix/run-proof.py) invokes only explicitly
 selected jobs; its `iteration` invocations select the standard differential
 jobs only and report `GATE(PARTIAL)`, with no ABBA, NIC or full-tier run.
 
 <!-- PROOF-STATUS -->
-- POST directed job: 4/4 rows, all 160 candidate legs and five oracle legs pass.
-- Tcl job: PASS in 1s and 2s on the final binary, all 31 promoted names and 36 selected files per mode. Existing named skips and approved file-setup exceptions are unchanged; no named ordering retry was needed.
-- Builds: final make all and every production-unit target passed. All 56 make -q freshness queries pass on the final POST hash; see freshness.json.
-- Other affected jobs, standard differential seeds, PRE/PAD directed negatives, Tcl regression plants and isolated gates_test: RUNNING; replace before handoff.
+- Before the final flush-preservation correction: 228 selected affected-job rows passed, including all directed geometries and both Tcl modes. That run is retained under proof/post-before-flush-preservation.
+- The new pass-boundary assertion fails on the prior candidate and passes after the correction; see bcast-flush-control.json.
+- Final arms, counts, freshness and full selected proof: REFRESHING; replace before handoff.
 <!-- /PROOF-STATUS -->
 
 **NOT RUN:** positive POST regression rows and Tcl promotions for the three
@@ -89,7 +89,8 @@ publication correctness from their passing result.
 
 ### Command instruction proof
 
-All **52 comparisons add zero instructions**. The command fixture calls linked
+All **52 comparisons add zero instructions**, including after the final
+BCAST flush preservation correction. The command fixture calls linked
 production routines in both namespaces and both modes, at batches 1 and 32:
 GET, SET, INCR, MGET, and MSET (both atomic settings for MSET). Four additional
 fused read-local GET scopes cover both namespaces and both batches. The
@@ -120,12 +121,12 @@ counts are retained in `superseded-command-comparison.json`.
 | Arm | Binary | SHA-256 |
 |---|---|---|
 | PRE | `build/pubtrackfix/pre/tomokv` | `0cac9819e46cfdcb7836fd04d5ab55ef9a49e92403b13212d9d3edea8427d16f` |
-| POST | `build/tomokv` | `dd675721d0f862c424b6d73719afbe9921607a9a1f1fd95df6ecac3a93cfb19f` |
-| PAD-A | `build/pubtrackfix/pad-a/tomokv` | `e941b2be5981ddb339f146cd80e3e0a721759378b622d101c8db5465ddf94060` |
+| POST | `build/tomokv` | `faef9b9099cf0777685dd914571fda687ecc0f5c356191d11c02af6841f45b84` |
+| PAD-A | `build/pubtrackfix/pad-a/tomokv` | `f44826532e0afe1ddbc315ac1d8d7cd721e67983ac53ca119e76d91e6ad592f9` |
 
 PAD is **kind A: behavior twin**. It runs PRE behavior with the candidate's
 inert ClimonConn map member and unreachable padding matching POST's `.text`
-origin and total extent: address 133520, size 8584199 bytes. Individual function and data-section addresses come from this PRE-behavior
+origin and total extent: address 133520, size 8584231 bytes. Individual function and data-section addresses come from this PRE-behavior
 build and its linker; they are **not** individually matched to POST. This
 limitation matters when interpreting a layout effect.
 The recipe, link inputs and hashes are in [pad-a.json](docs/pubtrackfix/pad-a.json);

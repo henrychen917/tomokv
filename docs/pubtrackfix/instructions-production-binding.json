@@ -1,12 +1,12 @@
 {
-  "post_sha256": "dd675721d0f862c424b6d73719afbe9921607a9a1f1fd95df6ecac3a93cfb19f",
+  "post_sha256": "faef9b9099cf0777685dd914571fda687ecc0f5c356191d11c02af6841f45b84",
   "pre_sha256": "0cac9819e46cfdcb7836fd04d5ab55ef9a49e92403b13212d9d3edea8427d16f",
   "comparisons": 52,
   "all_instruction_deltas": 0,
   "scope": "Linked production routines in selected namespace. External library callees and fixture glue excluded; NOPs included; clock_gettime frozen. Command scopes at batches 1/32, 1s/2s, normal/DB0; plus four fused read-local GET scopes.",
   "probes": {
     "normal": {
-      "probe_sha256": "56a1daa93f9a17e56278c24f343f9a95850dbd042b3e076c667ed7a1afb1eb4d",
+      "probe_sha256": "eb1666c1efc90f54c25b1db6b3774fe56e745b406eb2c6ca61de56014dfc3751",
       "inputs": [
         {
           "path": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/counts/post-normal/original-main.o",
@@ -110,7 +110,7 @@
         },
         {
           "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/tracking.o",
-          "sha256": "e8a8cb5ba127136cea9208d18a67a18e3ee6f1835831b7057068ccc89f567ada"
+          "sha256": "6e54ded1813a822914e7df9598dae5276bed9e40c0767e65ad3239f5c4e1649c"
         },
         {
           "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/server_tail.o",
@@ -338,7 +338,7 @@
         },
         {
           "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/tracking.o",
-          "sha256": "d4a7871b1e4f723414ecae6897b8894f96c2cde4c8b08c721ccdd5cfaa011750"
+          "sha256": "fb5f1607f67a6e0c39cc4cafc4c6b1ef89ed4d59f4a104480627738405099489"
         },
         {
           "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/server_tail.o",
@@ -495,7 +495,7 @@
       ]
     },
     "db0": {
-      "probe_sha256": "b3e7dd873866685599364d9f727be510e88fc62d33a3010c5a49635d8f57a53f",
+      "probe_sha256": "cf6bddd66aa5a22b07281d1bcd757f05d9d4174cbf1a815c0f541561f80e5484",
       "inputs": [
         {
           "path": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/counts/post-db0/original-main.o",
@@ -599,7 +599,7 @@
         },
         {
           "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/tracking.o",
-          "sha256": "e8a8cb5ba127136cea9208d18a67a18e3ee6f1835831b7057068ccc89f567ada"
+          "sha256": "6e54ded1813a822914e7df9598dae5276bed9e40c0767e65ad3239f5c4e1649c"
         },
         {
           "path": "/home/user/Projects/cx-pubtrackfix/build/db0/src/cmd/server_tail.o",
@@ -827,7 +827,7 @@
         },
         {
           "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/tracking.o",
-          "sha256": "d4a7871b1e4f723414ecae6897b8894f96c2cde4c8b08c721ccdd5cfaa011750"
+          "sha256": "fb5f1607f67a6e0c39cc4cafc4c6b1ef89ed4d59f4a104480627738405099489"
         },
         {
           "path": "/home/user/Projects/cx-pubtrackfix/build/src/cmd/server_tail.o",

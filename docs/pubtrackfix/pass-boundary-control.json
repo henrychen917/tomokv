@@ -102,13 +102,13 @@
   "rows": [
     {
       "arm": "POST",
-      "sha256": "d89d81a04cc29616d9d4fa3166399ddc4173b4df1026ca22d7a1ab8954b7129a",
+      "sha256": "53b3c7ae5cbcec09512fe60bfa44c5540165250cc4ec00f4b7fad607419a0580",
       "returncode": 0,
       "output": "ok: netcmd pubsub\n"
     },
     {
       "arm": "EARLY-FLUSH",
-      "sha256": "055396bc7827d0bc347e49de600fc52eba237c0862453b22d3dcd4fe141c159c",
+      "sha256": "49e8159c6957f1414ec8fe971a6c051817abbe299107394892187dd6d6e98d50",
       "returncode": 1,
       "output": "FAIL: pass drained every newly enrolled BCAST key\n"
     }

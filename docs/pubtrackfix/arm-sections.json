@@ -16,7 +16,7 @@
   "POST": {
     ".text": {
       "address": 133520,
-      "size": 8584199
+      "size": 8584231
     },
     ".rodata": {
       "address": 8720384,
@@ -30,7 +30,7 @@
   "PAD-A": {
     ".text": {
       "address": 133520,
-      "size": 8584199
+      "size": 8584231
     },
     ".rodata": {
       "address": 8720384,

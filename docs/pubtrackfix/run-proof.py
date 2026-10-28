@@ -6,12 +6,10 @@ ROOT=Path(__file__).resolve().parents[2]
 OUT=ROOT/'build/pubtrackfix'
 def main():
  assert os.sched_getaffinity(0)<=set(range(32,48))
- p=argparse.ArgumentParser();p.add_argument('--stages',default='affected,neighbors,differ,controls,gates-test');a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('--stages',default='affected,differ,controls,gates-test');a=p.parse_args()
  stages=a.stages.split(',');cases=[]
  if 'affected' in stages:
   cases.append(('post-affected-final','quick',(ROOT/'docs/pubtrackfix/proof-jobs.txt').read_text(),'build/tomokv','uring'))
- if 'neighbors' in stages:
-  cases.append(('post-neighbors','quick','clientfix compat2','build/tomokv','uring'))
  if 'differ' in stages:
   for engine in ('uring','epoll'):
    cases.append(('differ-'+engine,'iteration','differ-split differ-armed','build/tomokv',engine))

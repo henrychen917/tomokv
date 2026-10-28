@@ -29,3 +29,5 @@ evict-lfu-split-1
 evict-lfu-armed-0
 evict-lfu-armed-1
 source_identity
+clientfix
+compat2

@@ -1,5 +1,5 @@
 {
-  "binary_sha256": "e941b2be5981ddb339f146cd80e3e0a721759378b622d101c8db5465ddf94060",
+  "binary_sha256": "f44826532e0afe1ddbc315ac1d8d7cd721e67983ac53ca119e76d91e6ad592f9",
   "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
   "cases": {
     "TRACK-BCAST-BATCH": {
