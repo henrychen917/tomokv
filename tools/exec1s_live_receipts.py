@@ -53,7 +53,11 @@ def main():
     record = dict(production_sha256=proof['production_sha256'],
                   proof_sha256=sha(DOCS / 'live-proof.json'),
                   gate_source_sha256=sha(ROOT / 'tests/gate.sh'),
-                  runs=runs, passed=proof['passed'], not_run=proof['not_run'])
+                  runs=runs,
+                  all_invocations_passed=all(receipt['success'] for receipt in proof['receipts']),
+                  required_coverage_passed=proof.get('required_coverage_passed', proof['passed']),
+                  resolved_failures=proof.get('resolved_failures', []),
+                  not_run=proof['not_run'])
     (DOCS / 'live-job-results.json').write_text(json.dumps(record, indent=2) + '\n')
     print(len(runs), 'completed invocations;',
           sum(run.get('passed_rows', 0) for run in runs), 'passing rows;',
