@@ -50,5 +50,44 @@
     "uncompressed_bytes": 1026361,
     "source": "build/gate-run.nQFM2G",
     "note": "Superseded run: retained text/JSON evidence; removed recovery datasets."
+  },
+  {
+    "archive": "docs/infofix/evidence/latency-control-average-final.tar.gz",
+    "sha256": "e8143a4690deb9f05cb4b725fdae4f4ef6d38ef458a2aea8631f6051492b66ad",
+    "note": "Final latency negative-control gate artifacts."
+  },
+  {
+    "archive": "docs/infofix/evidence/latency-control-empty-entry-final.tar.gz",
+    "sha256": "1c1a67589e553201c00ea0286d0b5671e4d67b992eca3dc93dcf8a4cc1952355",
+    "note": "Final latency negative-control gate artifacts."
+  },
+  {
+    "archive": "docs/infofix/evidence/latency-control-no-batch-final.tar.gz",
+    "sha256": "519df4a941b119fcadeb724eb11d89b7d737fd7161cec5573c76aa56c09179e4",
+    "note": "Final latency negative-control gate artifacts."
+  },
+  {
+    "archive": "docs/infofix/evidence/latency-control-pre-final.tar.gz",
+    "sha256": "d7af78cd3ab856d0c0fb930ed91e647111229604df9a4c3de0497f79bc19835c",
+    "note": "Final latency negative-control gate artifacts."
+  },
+  {
+    "archive": "docs/infofix/evidence/exbatch-final.tar.gz",
+    "sha256": "9105415dca9b9cd9f5a2dd7cf2d076e6586dde361d6c5f1d84b52e366ca247a1",
+    "note": "Final exbatch checks, control maps and trace summaries; unit binary identities are in exbatch-identities-final.json."
+  },
+  {
+    "archive": "docs/infofix/evidence/affected-post-final.tar.gz",
+    "sha256": "177a22f05646c8022e298381669ce68b21014330f1a4406832b696e811b0b494",
+    "files": 1299,
+    "source": "build/gate-run.A0Vltg",
+    "note": "Completed final gate-job evidence; recovery data files retired."
+  },
+  {
+    "archive": "docs/infofix/evidence/regression-directed-final.tar.gz",
+    "sha256": "4e32c427331e0047e3fa0bc8e686b84523abfae2654cb03d61081b4a4be95b76",
+    "files": 112,
+    "source": "build/gate-run.7GPeoM",
+    "note": "Completed final gate-job evidence; recovery data files retired."
   }
 ]

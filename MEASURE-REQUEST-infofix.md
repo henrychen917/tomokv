@@ -49,7 +49,9 @@ protocol reproduction; its performance reproduction is reserved to the maintaine
 
 All correctness listeners are 20400–20499, all work inherits CPUs 48–63, and builds
 use `-j16`. Gate slots use server CPUs 48–55 and load CPUs 56–63, with explicit empty
-load-SMT selection. Oracle SHA-256:
+load-SMT selection. The final epoll differential matrix reverses these two groups,
+so the engines have disjoint eight-core servers and share only protocol-client
+work with the opposite engine. Tcl and harness self-tests run after both finish. Oracle SHA-256:
 `ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b`.
 `/home/user/Projects/redis/src/redis-server` and the requested redis74 oracle have
 that same digest.
@@ -92,6 +94,17 @@ runtimes, both thread modes, batches 1/32, GET/SET/INCR/MGET/MSET, and MSET atom
 0/1. **24 identical, 24 lower, zero increases.** GET/SET/INCR are identical in
 every case. MGET/MSET have no increase.
 
+Example PRE/POST instruction totals for a 32-command scope in the normal database
+runtime (MSET uses atomic=1; all 48 pairs are in the TSV):
+
+| Command | 1s PRE | 1s POST | 2s PRE | 2s POST |
+|---|---:|---:|---:|---:|
+| GET | 18482 | 18482 | 18327 | 18327 |
+| SET | 22450 | 22450 | 22295 | 22295 |
+| INCR | 37763 | 37763 | 37608 | 37608 |
+| MGET | 324902 | 324486 | 324902 | 324486 |
+| MSET | 961926 | 961574 | 951302 | 950950 |
+
 The fixture is `tests/txnorder_command_scope.cc`, linked to each arm's production
 objects. `tools/infofix_scope.py` single-steps only an owned, finite serverless
 child; counts all selected production namespace instructions including NOPs;
@@ -99,14 +112,19 @@ excludes external library bodies; freezes clock_gettime; and requires the exact
 reply/data checks to pass. These are command-scope counts, not cycles/IPC or a
 throughput verdict. Initial positive scatter deltas are retained in
 `counts-initial.json`; isolating AOF recovery as a cold function removed them.
+The zero-added-instructions claim is for tracking/slowlog off. Armed GET/SET
+performance, including the extra batch-context check in the generic armed
+recorder, remains part of the merit request.
 
 ### Build and gate proof
 
 Every gate invocation is a selected correctness job run. These are partial proof
 records, not a full-gate or performance receipt.
 
-Final affected jobs, standard differential matrices, final Tcl and gate-harness
-self-test receipts are still being collected. `make all` and every production-unit
+**Final affected jobs: 335 pass, 0 fail**, including all five new rows.
+`affected-post-final.log` and `evidence/affected-post-final.tar.gz` retain the
+complete result. Standard differential matrices, final Tcl and gate-harness
+self-test results are still being collected. `make all` and every production-unit
 prerequisite rebuilt through the gate; all **56** target-specific `make -q` checks
 pass in `production-freshness-final.json`. No earlier failure is discarded.
 The initial affected run was 311 pass / 16 fail: eight stale INFO DEFAULT section

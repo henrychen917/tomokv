@@ -1,0 +1,42 @@
+[
+  {
+    "arm": "pre",
+    "failures": [
+      "FAIL one histogram lock per GET batch",
+      "FAIL one histogram lock per GET batch"
+    ],
+    "passes": 6,
+    "gate_summary": "GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: docs/infofix/latency-control-pre-final.ledger.partial",
+    "sha256": "5531e7bdb5d98fab45d99a6325c9fcb67710e658e67650d9e14d5f8ec49a3836"
+  },
+  {
+    "arm": "no-batch",
+    "failures": [
+      "FAIL one histogram lock per GET batch",
+      "FAIL one histogram lock per GET batch"
+    ],
+    "passes": 6,
+    "gate_summary": "GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: docs/infofix/latency-control-no-batch-final.ledger.partial",
+    "sha256": "5531e7bdb5d98fab45d99a6325c9fcb67710e658e67650d9e14d5f8ec49a3836"
+  },
+  {
+    "arm": "average",
+    "failures": [
+      "FAIL real batch preserves short commands and long outliers separately",
+      "FAIL real batch preserves short commands and long outliers separately"
+    ],
+    "passes": 6,
+    "gate_summary": "GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: docs/infofix/latency-control-average-final.ledger.partial",
+    "sha256": "2feae8b844247d186488f2ec4d19d0196a103e59d87d0cfd1962751381c6ecfd"
+  },
+  {
+    "arm": "empty-entry",
+    "failures": [
+      "FAIL no completed commands means no histogram entry",
+      "FAIL no completed commands means no histogram entry"
+    ],
+    "passes": 6,
+    "gate_summary": "GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: docs/infofix/latency-control-empty-entry-final.ledger.partial",
+    "sha256": "9894de57966decc031b69b3b4c51058d7e0241c49086d65095f08f6a7d69b1a4"
+  }
+]
