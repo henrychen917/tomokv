@@ -19,5 +19,12 @@
     "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/POST",
     "sha256": "893bf7e6d8adcdf924a5181dd0e94e4ba0e7401de7c6c17cc75b666ca51d8c3c",
     "bytes": 220116456
+  },
+  {
+    "arm": "X12",
+    "source_commit": "393d6ceb129d8c99dffd70959d6a19267c525fe0",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/X12",
+    "sha256": "20d40ac975b49935500a75b9b2959d7058c03f54ededcb3b4131e27ef8edbec6",
+    "bytes": 220018024
   }
 ]
