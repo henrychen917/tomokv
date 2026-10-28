@@ -64,7 +64,8 @@ release comparison; do not label PAD-A an exact-size twin of release POST.
 
 ### Replacement proof receipts
 
-X2 directed proof is complete. Instruction and live proof remain in progress.
+X2 directed proof and the PRE/POST ordinary instruction proof are complete.
+PAD-A, lever instructions and live proof remain in progress.
 
 - X2: production TSAN owner-word helper, the old overlapping-write negative
   control, actual 256-live-group wrap/decrement checks, pinned-floor cleanup,
@@ -78,7 +79,8 @@ X2 directed proof is complete. Instruction and live proof remain in progress.
   MSET, batches 1/32, 1s/2s, both namespaces, MSET atomic 0/1. Counts include
   named linked production bodies; library callees and fixture glue are excluded.
   Exact data assertions are mandatory. No surrounding network or WB cost is
-  implied by an ordinary-command result.
+  implied by an ordinary-command result. **POST PASS, 48/48, max delta 0**
+  against fresh PRE; PAD-A remains in progress (`docs/exec1s/command-counts.json`).
 - Lever scopes: X1 idle rotation and EXEC owner; X2 eight same-shard EXECs through
   the linked production batch; X3 clear-hint idle rotation; X4 the parsed EXEC
   block’s WB decision after the ordinary visit allowance; X5 preparation/dispatch.

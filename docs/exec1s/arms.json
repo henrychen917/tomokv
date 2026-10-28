@@ -68,5 +68,60 @@
     ],
     "build_macro": "",
     "source_snapshot": "/home/user/Projects/cx-exec1s-c/build/exec1s/x1-current-source"
+  },
+  {
+    "arm": "X2",
+    "binary": "/home/user/Projects/cx-exec1s-c/build/exec1s-X2",
+    "sha256": "7944540161ab1c53b82766d48769a460649727e995d039803e6d3a40239b684b",
+    "bytes": 218139328,
+    "source_commit": "96624237aa50d8adf457512499d9a7cdd200ad78",
+    "production_source_tree": "7df9318dbe14f1fcb8d939470a8e2028198e5a8c",
+    "makefile_blob": "ff310af23ca4e4177f49823feeb2bb2d648555da",
+    "command": [
+      "make",
+      "-C",
+      "/home/user/Projects/cx-exec1s-c/build/exec1s/x2-current-source",
+      "-j16",
+      "all"
+    ],
+    "build_macro": "",
+    "source_snapshot": "/home/user/Projects/cx-exec1s-c/build/exec1s/x2-current-source"
+  },
+  {
+    "arm": "X3",
+    "binary": "/home/user/Projects/cx-exec1s-c/build/exec1s-X3",
+    "sha256": "51bf1eafea870b59742236fb3862aeaa0418f956d6dec3af293628f305affc0e",
+    "bytes": 218098152,
+    "source_commit": "2022b5374ffbbecb7c6de5473425b05f571aa1f6",
+    "production_source_tree": "1bd95e65a60302fd13ba46e4b5626d26f03e144e",
+    "makefile_blob": "ff310af23ca4e4177f49823feeb2bb2d648555da",
+    "command": [
+      "make",
+      "-C",
+      "/home/user/Projects/cx-exec1s-c/build/exec1s/x3-current-source",
+      "-j16",
+      "all"
+    ],
+    "build_macro": "",
+    "source_snapshot": "/home/user/Projects/cx-exec1s-c/build/exec1s/x3-current-source"
+  },
+  {
+    "arm": "X4",
+    "binary": "/home/user/Projects/cx-exec1s-c/build/exec1s-X4",
+    "sha256": "9a9f5312502280cff511319bedff0a464d12087c3d0e480ee6b19052b49ebe5b",
+    "bytes": 218096928,
+    "source_commit": "a8829929a10885d991d53c66432f0f598e5896e9",
+    "production_source_tree": "a092d9a805b3211f5545a43075be9fb236c7e636",
+    "makefile_blob": "ff310af23ca4e4177f49823feeb2bb2d648555da",
+    "command": [
+      "make",
+      "-C",
+      "/home/user/Projects/cx-exec1s-c/build/exec1s/x4-current-source",
+      "-j16",
+      "all",
+      "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_EXEC1S_WB"
+    ],
+    "build_macro": "TOMO_EXEC1S_WB",
+    "source_snapshot": "/home/user/Projects/cx-exec1s-c/build/exec1s/x4-current-source"
   }
 ]
