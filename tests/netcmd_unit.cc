@@ -227,6 +227,7 @@ struct NetcmdRegression {
     }
 
     static void bcast_pass_boundary() {
+      for (bool whole_cache : {false, true}) {
         Sender sender;
         Server server; ThreadCtx self; self.init(0, Role::Ifid, 1, 0, 0);
         IoLoop loop; loop.srv_ = &server; loop.self_ = &self; sender.bind(loop.wb_);
@@ -239,14 +240,18 @@ struct NetcmdRegression {
         event->items.push_back(PubSubEventItem{0, false, stamp, "b"});
         event->items.push_back(PubSubEventItem{0, false, stamp, "a"});
         loop.pubsub_post(0, event);
+        if (whole_cache)
+            loop.pubsub_post(0, loop.pubsub_new_event(PubSubEventKind::TrackingFlush));
         check(loop.pubsub_pass_pending_ && state.tracking_bcast_pending.empty() &&
               client.fill_buf().empty(), "invalidation is queued before the pass drain");
         loop.pubsub_pass_flush();
         check(state.tracking_bcast_pending.empty() && !loop.pubsub_pass_pending_ &&
               loop.pubsub_local_events_.empty(), "pass drained every newly enrolled BCAST key");
         check(std::string(client.fill_buf().data(), client.fill_buf().size()) ==
+                  std::string(whole_cache ? ">2\r\n$10\r\ninvalidate\r\n_\r\n" : "") +
                   ">2\r\n$10\r\ninvalidate\r\n*2\r\n$1\r\na\r\n$1\r\nb\r\n",
-              "late invalidation produced one sorted frame in the same pass");
+              "pass preserves its sorted BCAST keys after a whole-cache invalidation");
+      }
     }
 
     // clientfix routes CLIENT TRACKING connections through the cold suppressing drain so that even

@@ -593,7 +593,8 @@ void IoLoop::tracking_handle_event(PubSubEvent& event) {
                 if (!state.tracking_on) continue;
                 tracking_deliver_frame(state, entry.first, Slice(), true);
                 state.tracking_enrolled.clear();
-                state.tracking_bcast_pending.clear();
+                // A whole-cache invalidation does not clear Redis's pending
+                // prefix keys: the pass still emits its BCAST arrays afterward.
                 for (auto& read : state.tracking_reads) read.second->canceled = true;
                 state.tracking_pending.clear();
             }

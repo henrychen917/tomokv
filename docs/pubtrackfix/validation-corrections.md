@@ -45,3 +45,17 @@ failures; there is no performance result in these receipts.
   eviction is now armed on a fresh server, so the row independently proves both
   ordinary and empty keys without depending on a previous reset. The failed
   reset observation remains an open finding, not a passing result.
+
+- A final Redis-source audit found that a whole-cache invalidation leaves the
+  per-prefix BCAST key sets intact. The candidate incorrectly cleared pending
+  keys. A deterministic unit queues key invalidation and whole-cache invalidation
+  in the same pass: the earlier binary fails; the correction emits null followed
+  by the sorted key array (`bcast-flush-control.json`). The earlier full affected
+  run is retained as `proof/post-before-flush-preservation` (228 passes).
+- The accompanying live probe (`bcast-flush-audit.json`) also records inherited
+  differences: PRE and the earlier candidate reject FLUSHDB inside MULTI, and
+  their SET/FLUSHDB pipeline produces a key push before the null push, while
+  Redis produces null then the key push. A TCP pipeline does not establish a
+  common event-loop pass across these different execution architectures. The
+  unit explicitly establishes that pass boundary; this lane does not broaden
+  transaction command admission or claim identical pass partitioning.
