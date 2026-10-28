@@ -25,6 +25,10 @@ def main():
         if receipt.get('artifacts'):
             root = Path(receipt['artifacts'])
             run['plan_sha256'] = sha(root / 'plan.sh')
+            differ_plan = root / 'differ-plan.json'
+            if differ_plan.exists():
+                run['differ_plan'] = json.loads(differ_plan.read_text())
+                run['differ_plan_sha256'] = sha(differ_plan)
             for folder in sorted((root / 'jobs').iterdir()):
                 rc, passed, failed = map(int, (folder / 'done').read_text().split())
                 ledger = folder / 'ledger'
