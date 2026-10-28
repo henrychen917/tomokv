@@ -11,7 +11,7 @@ claim that all eight roots or the full Tcl job are green.
 |---|---|---|
 | INFO-MISSING-FIELDS | Implemented | CPU section in default/all/explicit selection; six real CPU counters; own git SHA, dirty bit, and 64-bit hexadecimal build identity. Directed oracle + 8 candidate legs pass. |
 | COMMAND-DOCS-INCOMPLETE | Registered-command fix; Tcl closure blocked | Metadata-generated arguments, nested blocks/oneof, flags, history, and subcommands match Redis in RESP2/RESP3. The promoted CLI test still requires MIGRATE, absent from TomoKV's registry. |
-| SLOWLOG-MAXLEN-PER-THREAD | Implemented | One lazy global ring; global cap and descending publication IDs; disabled logging retains history; subsequent armed completion trims it; discarded entries cannot return after growing the cap. |
+| SLOWLOG-MAXLEN-PER-THREAD | Semantics implemented; concurrency review open | One lazy global ring; global cap and descending publication IDs; disabled logging retains history; subsequent armed completion trims it; discarded entries cannot return after growing the cap. Armed completion can wait on the shared ring mutex; see below. |
 | DEBUG-LOADAOF-AOF-OFF | Implemented | Offline rewrite/reload works while appendonly remains no; absent AOF flushes keys and returns Redis's exact error. Enabled writers still drain before reload. |
 | LAT-HIST-2 | Candidate; performance verdict pending | Homogeneous GET batches share metadata resolution and one histogram lock. Individual command timers and recording before completion publication remain exact. No averaging of outliers. |
 | INFO-ERRORSTATS | STOPPED: architecture boundary | Exact accounting needs an accepted-attempt error journal. A generic error formatter hook counts discarded/replayed script attempts and cannot distinguish rejected from failed calls correctly. The exploratory hook was removed. |
@@ -24,6 +24,14 @@ Owner decisions: whether to extend accepted-attempt error accounting, permit
 always-on command timing, persist function libraries, and expose/implement the
 missing MIGRATE command. Those roots' unresolved named skips are retained;
 no false counters or superficial success replies were added.
+
+**No-obstruction-law review:** with slowlog armed, `slowlog_finish` serializes
+history publication across owners. A GET completion can therefore wait for the
+ring mutex held by another owner recording a SET. The default disarmed path does
+not enter this mutex. This is a concrete cross-owner wait in optional logging,
+and must be reviewed against the no-write-obstructed-read law before accepting
+this root. The armed slowlog merit cells measure its cost; a rate result alone
+cannot authorize an exception to that law.
 
 LAT-HIST-2 preserves two clock reads per individual execution. This candidate
 amortizes histogram bookkeeping and redundant commit flushing, not the duration

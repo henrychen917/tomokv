@@ -71,3 +71,13 @@ separate histogram samples. Replacing those observations with one shared batch
 duration fails the real-executor negative control. Whether this candidate recovers
 the reported armed cost is for the requested quiet-box measurement; it has not
 been measured here.
+
+## SLOWLOG no-obstruction-law review
+
+The global retention ring passes the Redis reply/data/order checks, but its
+mutex is shared by all recording owners. With slowlog armed, a GET completion
+can wait behind a SET's log publication in `slowlog_finish`. The disarmed path
+never enters this mutex. This optional-logging wait is explicitly submitted for
+review against the no-write-obstructed-read law; no exemption is assumed here.
+A requirement that the law cover log completion too would require a different
+retention/publication design before this root can be accepted.
