@@ -7,8 +7,9 @@ Tcl manifest and assertions are unchanged.
 
 All **192 scripting comparisons are at or below the headline**, and all **96 ordinary
 command comparisons are exactly PRE**. These are serverless instruction counts within
-the scopes described below, not throughput measurements. The main selected-job proof passes 249 rows; the remaining engine and persistence
-receipts are still being collected.
+the scopes described below, not throughput measurements. The final selected-job proof
+has **775 passing POST row executions and zero failures**; PRE and PAD-A each pass
+their nine-row behavior check.
 
 ### Production change
 
@@ -103,13 +104,34 @@ is in `docs/scriptfix3/instruction-sites/`.
 All work uses CPUs 32–47. Builds use `-j16`; gate jobs use server CPUs 32–39 and
 load/oracle CPUs 40–47, ports 20300–20309, 16 shards and ratio 6:2. The oracle is
 Redis 7.4.10, SHA-256 `ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b`.
-`LC_ALL=C` is
-inherited by every server and oracle. Selected jobs use gate.sh's `GATE_ONLY_JOBS`
+The additional oracle witnesses use ports 20320/20321; the gate self-tests use 20398.
+`LC_ALL=C` is inherited by every server and oracle. Selected jobs use gate.sh's `GATE_ONLY_JOBS`
 interface with `GATE_PROOF_NO_RATES=1`; no full iteration or performance job is selected.
 The wrapper records argv, environment, binary hash, source state, exit and original ledger.
 
-* Main selected-job run: **249 passed rows, zero failures**. This includes all five
-  io_uring differential parts and the full scripting/compatibility selection.
+The [final verification receipt](docs/scriptfix3/proof.json) binds every run to its
+unchanged delivered binary and rechecks source preservation and build freshness.
+[Archived raw logs and inventories](docs/scriptfix3/proof-archives.json) retain every
+selected job's exact arguments and assertions. These are repeated row executions,
+including release-build checks, rather than a full-gate EXPECT tally.
+
+| POST selection | Passed row executions | Failures |
+|---|---:|---:|
+| Main io_uring jobs | 249 | 0 |
+| Main epoll jobs | 184 | 0 |
+| Fused debug/bounds/notify, io_uring | 41 | 0 |
+| Fused debug/bounds/notify, epoll | 41 | 0 |
+| Atomic=0 bounds, both modes and engines | 12 | 0 |
+| Script persistence, split boot | 139 | 0 |
+| Script persistence, fused boot | 109 | 0 |
+| **Total** | **775** | **0** |
+
+The selections include `lua_scripting`, `scriptsurf`, `scriptatomic` and its strict
+witness, `xscript`, SCRIPT bounds, FUNCTION flags, scriptfix/scriptfix2, Lua libraries,
+notifications, replay and snapshot script paths. Debug and feature batteries cover
+both atomic settings; the supplemental runs complete the fused/engine bounds matrix.
+PRE and PAD-A separately pass all nine `scriptfix`/release rows each.
+
 * Differential jobs: **all five parts pass on both io_uring and epoll**, 1,908 seeded
   suite/equivalence runs. Permanent seeds 7/19/20/23 plus rotating 21 (uring) and
   22 (epoll); stock fused SORT exclusion unchanged.
@@ -118,11 +140,19 @@ The wrapper records argv, environment, binary hash, source state, exit and origi
 * `python3 tests/gates_test.py`: **73/73 pass**.
 * Additional warm spelling/environment/flush oracle witnesses: **32/32 legs**, **1,360
   exact wire comparisons**, no differences; both modes, engines, namespaces and atomic settings.
-* `make all` and every `job_production_units` target built; **56 make -q invocations
-  pass**, including the recursive mdbqsbr alias and both extra makefiles.
+* `make all` and every `job_production_units` target built; the closing verification
+  confirms **56 make -q invocations pass**, including the recursive mdbqsbr alias and
+  both extra makefiles.
 * Final Tcl job: **37 files and 1,803 passed assertions per mode**, including 130 scripting
-  and 86 FUNCTION assertions. Each mode retains five exact, manifest-approved setup
-  exceptions (two in scripting). Remaining selected gate jobs are **PENDING**.
+  and 86 FUNCTION assertions. Coverage follows the unchanged gate manifest. Each mode
+  records 116 scripting skips and 14 FUNCTION skips, plus five exact approved setup
+  exceptions: two unsupported DEBUG commands in scripting, two list-compression
+  configuration failures and one immutable appendonly configuration failure.
+
+Tcl assertions excluded by the existing manifest or upstream skip conditions are
+**NOT RUN** for those existing compatibility reasons; no exclusions were added.
+[Coverage limits and exact setup errors](docs/scriptfix3/tcl-coverage-limits.json)
+record the counts and replies. Full per-test events remain in the raw archive.
 
 The earlier candidate's compatibility run passed 65 rows and failed the fused Tcl row
 on a `unit/tracking` timeout after ten assertions. This was not a scripting/FUNCTION
@@ -153,7 +183,9 @@ or data layout.** Do not interpret it as eliminating every layout effect.
 
 Superseded arm trees/probes were removed after preserving hashes, counts and visited-site
 disassembly (`pruned-arms.json`, `pruned-probes.json`). PRE objects remain available to
-rebuild PAD-A. Current build usage is about 17 GiB.
+rebuild PAD-A. Archived persistence run directories were removed after every archived
+file hash was verified. Final build usage is 17.0 GiB. All proof processes have exited,
+and no listeners remain on the lane's ports 20300–20399.
 
 ### Maintainer measurement request — NOT RUN in this lane
 

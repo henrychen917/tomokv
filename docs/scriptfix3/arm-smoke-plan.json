@@ -1,0 +1,26 @@
+[
+  {
+    "name": "pre-behavior",
+    "argv": [
+      "python3",
+      "tools/scriptfix3_jobs.py",
+      "pre-behavior",
+      "scriptfix",
+      "--binary",
+      "build/scriptfix3/pre/tomokv"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "pad-a-behavior",
+    "argv": [
+      "python3",
+      "tools/scriptfix3_jobs.py",
+      "pad-a-behavior",
+      "scriptfix",
+      "--binary",
+      "build/scriptfix3/tomokv-pad-a"
+    ],
+    "exit": 0
+  }
+]

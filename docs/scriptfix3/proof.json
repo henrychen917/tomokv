@@ -1,0 +1,175 @@
+{
+  "jobs": [
+    {
+      "name": "final-uring",
+      "arm": "POST",
+      "passed": 249,
+      "failed": 0,
+      "exit": 0
+    },
+    {
+      "name": "final-epoll",
+      "arm": "POST",
+      "passed": 184,
+      "failed": 0,
+      "exit": 0
+    },
+    {
+      "name": "final-fused-uring",
+      "arm": "POST",
+      "passed": 41,
+      "failed": 0,
+      "exit": 0
+    },
+    {
+      "name": "final-fused-epoll",
+      "arm": "POST",
+      "passed": 41,
+      "failed": 0,
+      "exit": 0
+    },
+    {
+      "name": "bounds-1s-uring-a0",
+      "arm": "POST",
+      "passed": 3,
+      "failed": 0,
+      "exit": 0
+    },
+    {
+      "name": "bounds-1s-epoll-a0",
+      "arm": "POST",
+      "passed": 3,
+      "failed": 0,
+      "exit": 0
+    },
+    {
+      "name": "bounds-2s-uring-a0",
+      "arm": "POST",
+      "passed": 3,
+      "failed": 0,
+      "exit": 0
+    },
+    {
+      "name": "bounds-2s-epoll-a0",
+      "arm": "POST",
+      "passed": 3,
+      "failed": 0,
+      "exit": 0
+    },
+    {
+      "name": "script-persistence-split",
+      "arm": "POST",
+      "passed": 139,
+      "failed": 0,
+      "exit": 0
+    },
+    {
+      "name": "script-persistence-fused",
+      "arm": "POST",
+      "passed": 109,
+      "failed": 0,
+      "exit": 0
+    },
+    {
+      "name": "pre-behavior",
+      "arm": "PRE",
+      "passed": 9,
+      "failed": 0,
+      "exit": 0
+    },
+    {
+      "name": "pad-a-behavior",
+      "arm": "PAD-A",
+      "passed": 9,
+      "failed": 0,
+      "exit": 0
+    }
+  ],
+  "post_passed_row_executions": 775,
+  "final_failed_rows": 0,
+  "differ": [
+    {
+      "name": "final-uring",
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "parts": [
+        {
+          "part": "split-0",
+          "comparisons": 235
+        },
+        {
+          "part": "split-1",
+          "comparisons": 239
+        },
+        {
+          "part": "armed-0",
+          "comparisons": 230
+        },
+        {
+          "part": "armed-1",
+          "comparisons": 234
+        },
+        {
+          "part": "equivalence",
+          "comparisons": 16
+        }
+      ],
+      "fused_sort": "unchanged stock exclusion; this suite requires split 6:2"
+    },
+    {
+      "name": "final-epoll",
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        22
+      ],
+      "parts": [
+        {
+          "part": "split-0",
+          "comparisons": 235
+        },
+        {
+          "part": "split-1",
+          "comparisons": 239
+        },
+        {
+          "part": "armed-0",
+          "comparisons": 230
+        },
+        {
+          "part": "armed-1",
+          "comparisons": 234
+        },
+        {
+          "part": "equivalence",
+          "comparisons": 16
+        }
+      ],
+      "fused_sort": "unchanged stock exclusion; this suite requires split 6:2"
+    }
+  ],
+  "freshness_checks": 56,
+  "freshness_failures": 0,
+  "intermediate_failure": "compatibility: fused Tcl unit/tracking timeout; preserved separately, final Tcl job passed both modes",
+  "source_verification": {
+    "production_commit": "6277e7313",
+    "production_files": 3,
+    "unchanged_gate_and_compatibility_files": [
+      "tests/gate.sh",
+      "tests/scriptfix2.py",
+      "tests/redis_tcl_passing.json",
+      "tests/redis_tcl.py"
+    ],
+    "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b"
+  },
+  "DQ": 0,
+  "DF": 0,
+  "performance": "NOT RUN: maintainer-owned"
+}

@@ -24,6 +24,30 @@
     "files": 22
   },
   {
+    "name": "bounds-2s-epoll-a0",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 3 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-scriptfix3/docs/scriptfix3/jobs/bounds-2s-epoll-a0.tsv.partial"
+    ],
+    "binary_sha256": "d9f883e8babf349d9d7f3435bb0e27b0a2973cdd307fd67830923b18475abe01",
+    "binary_unchanged": true,
+    "archive": "docs/scriptfix3/job-archives/bounds-2s-epoll-a0.tar.gz",
+    "sha256": "82a20f96ec82f7b1643b57689376b32659ba19b2e81c5b809da1652571022ed7",
+    "files": 22
+  },
+  {
+    "name": "bounds-2s-uring-a0",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 3 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-scriptfix3/docs/scriptfix3/jobs/bounds-2s-uring-a0.tsv.partial"
+    ],
+    "binary_sha256": "d9f883e8babf349d9d7f3435bb0e27b0a2973cdd307fd67830923b18475abe01",
+    "binary_unchanged": true,
+    "archive": "docs/scriptfix3/job-archives/bounds-2s-uring-a0.tar.gz",
+    "sha256": "86c6324b374aeaf51a274326e68c19f24e40cce2244a2b258253b197bf1dd546",
+    "files": 22
+  },
+  {
     "name": "compatibility",
     "exit": 1,
     "summary": [
@@ -82,5 +106,53 @@
     "archive": "docs/scriptfix3/job-archives/final-uring.tar.gz",
     "sha256": "fd7a07be1679c3e955f2d022b2709a8e166bf8a29b584ef500352a682c6c6e4d",
     "files": 4283
+  },
+  {
+    "name": "pad-a-behavior",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 9 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-scriptfix3/docs/scriptfix3/jobs/pad-a-behavior.tsv.partial"
+    ],
+    "binary_sha256": "b6f8cef931a3d68867b8dc5cd8458ae947f38e33d4c0da3eeaceec4659797e6f",
+    "binary_unchanged": true,
+    "archive": "docs/scriptfix3/job-archives/pad-a-behavior.tar.gz",
+    "sha256": "71f4be14b136b4a0c23719aee0c902168fa05ad3fc9b8e02ef4b65b9067f9f1e",
+    "files": 40
+  },
+  {
+    "name": "pre-behavior",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 9 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-scriptfix3/docs/scriptfix3/jobs/pre-behavior.tsv.partial"
+    ],
+    "binary_sha256": "c9bbca0a9b578889f9d20514be543db45f2758e0cffa0ef726d6970d28b8d946",
+    "binary_unchanged": true,
+    "archive": "docs/scriptfix3/job-archives/pre-behavior.tar.gz",
+    "sha256": "f44a1f33b4dbe9fa6c5614a62146289715289bab63e77ff997faccf71051fd6b",
+    "files": 40
+  },
+  {
+    "name": "script-persistence-fused",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 109 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-scriptfix3/docs/scriptfix3/jobs/script-persistence-fused.tsv.partial"
+    ],
+    "binary_sha256": "d9f883e8babf349d9d7f3435bb0e27b0a2973cdd307fd67830923b18475abe01",
+    "binary_unchanged": true,
+    "archive": "docs/scriptfix3/job-archives/script-persistence-fused.tar.gz",
+    "sha256": "bdda8946a52284cb8408592e2587ce4fd2cea581c5860ad06be84f013569e1f4",
+    "files": 805
+  },
+  {
+    "name": "script-persistence-split",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 139 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-scriptfix3/docs/scriptfix3/jobs/script-persistence-split.tsv.partial"
+    ],
+    "binary_sha256": "d9f883e8babf349d9d7f3435bb0e27b0a2973cdd307fd67830923b18475abe01",
+    "binary_unchanged": true,
+    "archive": "docs/scriptfix3/job-archives/script-persistence-split.tar.gz",
+    "sha256": "2fb7dc9a76af6980069247f9c4d6ea88384d8a75b946ab4fa7b57f0d9d5f6b81",
+    "files": 1168
   }
 ]

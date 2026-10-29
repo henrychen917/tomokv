@@ -1,0 +1,29 @@
+[
+  {
+    "name": "script-persistence-split",
+    "argv": [
+      "python3",
+      "tools/scriptfix3_jobs.py",
+      "script-persistence-split",
+      "atomic_units",
+      "notify_aof",
+      "aof-uring",
+      "aof-epoll",
+      "snapfix_shutdown",
+      "snapfix_bgsave_script"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "script-persistence-fused",
+    "argv": [
+      "python3",
+      "tools/scriptfix3_jobs.py",
+      "script-persistence-fused",
+      "aof-uring",
+      "aof-epoll",
+      "--fused"
+    ],
+    "exit": 0
+  }
+]

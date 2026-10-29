@@ -1,0 +1,10 @@
+PARTIAL	0	GATE_ONLY_JOBS=scriptfix; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+ok	0.110000	scriptfix sandbox (1s)
+ok	0.110000	scriptfix functions (1s)
+ok	0.700000	scriptfix replies (1s)
+ok	1.480000	scriptfix dump (1s)
+ok	0.110000	scriptfix sandbox (2s)
+ok	0.110000	scriptfix functions (2s)
+ok	0.700000	scriptfix replies (2s)
+ok	1.430000	scriptfix dump (2s)

@@ -6,5 +6,17 @@
   {
     "path": "build/gate-run.SQ5Rxu",
     "archive": "docs/scriptfix3/job-archives/compatibility.tar.gz"
+  },
+  {
+    "path": "build/gate-run.3eTYM3",
+    "archive": "docs/scriptfix3/job-archives/script-persistence-split.tar.gz",
+    "archive_sha256": "2fb7dc9a76af6980069247f9c4d6ea88384d8a75b946ab4fa7b57f0d9d5f6b81",
+    "verified_files": 1168
+  },
+  {
+    "path": "build/gate-run.9GK7wX",
+    "archive": "docs/scriptfix3/job-archives/script-persistence-fused.tar.gz",
+    "archive_sha256": "bdda8946a52284cb8408592e2587ce4fd2cea581c5860ad06be84f013569e1f4",
+    "verified_files": 805
   }
 ]

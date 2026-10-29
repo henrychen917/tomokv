@@ -1,0 +1,143 @@
+{
+  "reason": "Existing gate manifest and upstream skip conditions; manifest unchanged from PRE.",
+  "modes": [
+    {
+      "mode": "1s",
+      "rows": [
+        {
+          "file": "unit/functions",
+          "passed": 86,
+          "failed": 0,
+          "skipped": 14,
+          "setup_errors": [],
+          "error": null
+        },
+        {
+          "file": "unit/scripting",
+          "passed": 130,
+          "failed": 2,
+          "skipped": 116,
+          "setup_errors": [
+            {
+              "command": "r debug set-disable-deny-scripts 1",
+              "reply": "ERR unknown subcommand or wrong number of arguments for 'debug' command",
+              "count": 2
+            }
+          ],
+          "error": null
+        },
+        {
+          "file": "unit/type/list",
+          "passed": 232,
+          "failed": 1,
+          "skipped": 57,
+          "setup_errors": [
+            {
+              "command": "r config set list-compress-depth 2",
+              "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+              "count": 1
+            }
+          ],
+          "error": null
+        },
+        {
+          "file": "unit/type/list-3",
+          "passed": 2,
+          "failed": 1,
+          "skipped": 4,
+          "setup_errors": [
+            {
+              "command": "config_set list-compress-depth $comp",
+              "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+              "count": 1
+            }
+          ],
+          "error": null
+        },
+        {
+          "file": "unit/type/stream-cgroups",
+          "passed": 49,
+          "failed": 1,
+          "skipped": 5,
+          "setup_errors": [
+            {
+              "command": "r config set $param $val",
+              "reply": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config",
+              "count": 1
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "mode": "2s",
+      "rows": [
+        {
+          "file": "unit/functions",
+          "passed": 86,
+          "failed": 0,
+          "skipped": 14,
+          "setup_errors": [],
+          "error": null
+        },
+        {
+          "file": "unit/scripting",
+          "passed": 130,
+          "failed": 2,
+          "skipped": 116,
+          "setup_errors": [
+            {
+              "command": "r debug set-disable-deny-scripts 1",
+              "reply": "ERR unknown subcommand or wrong number of arguments for 'debug' command",
+              "count": 2
+            }
+          ],
+          "error": null
+        },
+        {
+          "file": "unit/type/list",
+          "passed": 232,
+          "failed": 1,
+          "skipped": 57,
+          "setup_errors": [
+            {
+              "command": "r config set list-compress-depth 2",
+              "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+              "count": 1
+            }
+          ],
+          "error": null
+        },
+        {
+          "file": "unit/type/list-3",
+          "passed": 2,
+          "failed": 1,
+          "skipped": 4,
+          "setup_errors": [
+            {
+              "command": "config_set list-compress-depth $comp",
+              "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+              "count": 1
+            }
+          ],
+          "error": null
+        },
+        {
+          "file": "unit/type/stream-cgroups",
+          "passed": 49,
+          "failed": 1,
+          "skipped": 5,
+          "setup_errors": [
+            {
+              "command": "r config set $param $val",
+              "reply": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config",
+              "count": 1
+            }
+          ],
+          "error": null
+        }
+      ]
+    }
+  ]
+}
