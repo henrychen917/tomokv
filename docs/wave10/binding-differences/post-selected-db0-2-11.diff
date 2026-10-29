@@ -1,0 +1,54 @@
+--- server tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+
++++ probe tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+
+@@ -8,7 +8,7 @@
+
+ 002a [ 7] xor <rip>(%rip),%rdx # <tomo_db0::g_hash_seed> | 48 33 15 ?? ?? ?? ??
+ 0031 [ 3] xor %rax,%rdx | 48 31 c2
+ 0034 [ 3] cmp $0x7,%esi | 83 fe 07
+-0037 [ 6] jbe <+0x2c0> | 0f 86 83 02 00 00
++0037 [ 6] jbe <+0x2e0> | 0f 86 a3 02 00 00
+ 003d [ 3] lea -0x8(%rsi),%eax | 8d 46 f8
+ 0040 [10] movabs $0xc4ceb9fe1a85ec53,%r9 | 49 b9 53 ec 85 1a fe b9 ce c4
+ 004a [ 3] shr $0x3,%eax | c1 e8 03
+@@ -149,16 +149,25 @@
+
+ 027c [ 4] xor %r9,(%rsp) | 4c 31 0c 24
+ 0280 [ 9] xorq $0xff,0x10(%rsp) | 48 81 74 24 10 ff 00 00 00
+ 0289 [ 5] call <tomo_db0::siphash12(char const*, unsigned long)::{lambda()#1}::operator()() const [clone .isra.0]> | e8 ?? ?? ?? ??
+-028e [ 3] mov %r8,%rdx | 4c 89 c2
+-0291 [ 5] call <tomo_db0::siphash12(char const*, unsigned long)::{lambda()#1}::operator()() const [clone .isra.0]> | e8 ?? ?? ?? ??
+-0296 [ 4] mov (%rsp),%rax | 48 8b 04 24
+-029a [ 5] mov 0x10(%rsp),%rdx | 48 8b 54 24 10
+-029f [ 5] xor 0x8(%rsp),%rax | 48 33 44 24 08
+-02a4 [ 5] xor 0x18(%rsp),%rdx | 48 33 54 24 18
+-02a9 [ 4] add $0x20,%rsp | 48 83 c4 20
+-02ad [ 3] xor %rdx,%rax | 48 31 d0
+-02b0 [ 1] ret | c3
+-02b1 [11] data16 cs nopw 0x0(%rax,%rax,1) | 66 66 2e 0f 1f 84 00 00 00 00 00
+-02bc [ 4] nopl 0x0(%rax) | 0f 1f 40 00
+-02c0 [ 3] mov %rcx,%r8 | 49 89 c8
+-02c3 [ 5] jmp <+0x95> | e9 cd fd ff ff
++028e [ 5] mov 0x8(%rsp),%rax | 48 8b 44 24 08
++0293 [ 4] mov (%rsp),%rdx | 48 8b 14 24
++0297 [ 5] mov 0x10(%rsp),%rsi | 48 8b 74 24 10
++029c [ 3] add %rax,%rdx | 48 01 c2
++029f [ 6] rorx $0x33,%rax,%rax | c4 e3 fb f0 c0 33
++02a5 [ 3] xor %rax,%rdx | 48 31 c2
++02a8 [ 5] mov 0x18(%rsp),%rax | 48 8b 44 24 18
++02ad [ 4] add $0x20,%rsp | 48 83 c4 20
++02b1 [ 3] add %rax,%rsi | 48 01 c6
++02b4 [ 6] rorx $0x30,%rax,%rax | c4 e3 fb f0 c0 30
++02ba [ 4] lea (%rdx,%rsi,1),%rcx | 48 8d 0c 32
++02be [ 3] xor %rsi,%rax | 48 31 f0
++02c1 [ 6] rorx $0x2f,%rdx,%rdx | c4 e3 fb f0 d2 2f
++02c7 [ 6] rorx $0x2b,%rax,%rax | c4 e3 fb f0 c0 2b
++02cd [ 3] xor %rcx,%rax | 48 31 c8
++02d0 [ 6] rorx $0x20,%rcx,%rcx | c4 e3 fb f0 c9 20
++02d6 [ 3] xor %rcx,%rdx | 48 31 ca
++02d9 [ 3] xor %rdx,%rax | 48 31 d0
++02dc [ 1] ret | c3
++02dd [ 3] nopl (%rax) | 0f 1f 00
++02e0 [ 3] mov %rcx,%r8 | 49 89 c8
++02e3 [ 5] jmp <+0x95> | e9 ad fd ff ff

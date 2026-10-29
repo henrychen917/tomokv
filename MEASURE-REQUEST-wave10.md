@@ -152,6 +152,17 @@ climonfix4, flushfix2, execfifo and lineshare-a/b are not merged.
   requires Redis's exact missing-file error, deletion of a seeded key and
   appendonly staying disabled. No assertion or row is removed.
 
+- The broad whole-job campaign exposed two stale atomic-survivor assertions: the
+  registration closure now uses scriptfix2's Redis-compatible error, and pcall is
+  absent during FUNCTION LOAD. The repaired fixture checks that public boundary,
+  rollback after a partial registration, and the caught-timeout terminal rule
+  through the real internal library-call seam. No production code changes.
+- The reorder identity inventory still named snapfix's four removed unbounded
+  snapshot drains. The wave10 inventory substitutes all eight actual capped
+  masked/unmasked bodies, comparing 326 bodies and adding eight missing-body
+  negative controls. The snapfix POST has the same substitutions; this is not
+  permission to omit the replacement code. Whole-job reruns are pending.
+
 ### Compile-only budgets and remaining bodies
 
 All 31 budgeted units were compiled at inherited values and at headline budget

@@ -5,6 +5,10 @@
 #define TOMO_STORE_REGRESSION_TEST
 #include "src/cmd/xshard.cc"
 #include "src/core/read_local.h"
+extern "C" {
+#include "third_party/lua/lua.h"
+#include "third_party/lua/lauxlib.h"
+}
 #include <cstdio>
 #include <type_traits>
 
@@ -870,7 +874,8 @@ void lua_case(Server& server, const std::string& name) {
              "reg('retained',function() reg('late',function() return 1 end); return 42 end)"}) ==
              "$8\r\nretained\r\n", "retained closure library loaded");
         const auto reply = call({"FCALL", "retained", "0"});
-        require(reply.starts_with("-") && reply.find("not available here") != std::string::npos,
+        require(reply == "-ERR redis.register_function can only be called on FUNCTION LOAD command "
+                         "script: retained, on @user_function:3.\r\n",
                 "escaped registration closure is revoked after materialization");
     } else if (name == "lua_conversion") {
         for (const char* body : {"error('conversion failed')", "while true do end"}) {
@@ -883,14 +888,37 @@ void lua_case(Server& server, const std::string& name) {
         require(call({"EVAL", "return {ok='OK\\r\\n:42'}", "0"}) == "+OK  :42\r\n", "status has exactly one frame");
         require(call({"EVAL", "return {err='ERR bad\\r\\n:42'}", "0"}) == "-ERR bad  :42\r\n", "error has exactly one frame");
     } else if (name == "library_limit") {
-        for (const char* body : {"while true do end", "pcall(function() while true do end end); "
-                               "redis.register_function('late',function() return 1 end)"}) {
+        for (const char* body : {"while true do end", "redis.register_function('late',function() return 1 end); "
+                               "while true do end"}) {
             const auto before = function_stats().libraries;
             const auto reply = call({"FUNCTION", "LOAD", std::string("#!lua name=spin\n") + body});
             require(reply.starts_with("-") && reply.find("instruction limit") != std::string::npos,
-                    "FUNCTION LOAD budget failure is terminal even when caught");
+                    "FUNCTION LOAD budget failure rejects the entire library");
             require(function_stats().libraries == before, "timed out library was not registered");
         }
+        // scriptfix2 correctly removes pcall from the registration environment.
+        // Check that public boundary, then keep the caught-timeout regression at
+        // the real library-call seam with a sandbox that exposes pcall.
+        const auto before = function_stats().libraries;
+        const auto reply = call({"FUNCTION", "LOAD", "#!lua name=spin\n"
+            "pcall(function() while true do end end); "
+            "redis.register_function('late',function() return 1 end)"});
+        require(reply.starts_with("-ERR Error registering functions:") &&
+                reply.find("nonexistent global variable 'pcall'") != std::string::npos,
+                "FUNCTION LOAD cannot access pcall");
+        require(function_stats().libraries == before, "invalid registration environment leaves no library");
+        lua_State* state = script_new_sandbox_state();
+        require(state != nullptr, "library timeout sandbox allocated");
+        require(luaL_loadstring(state,
+            "local ok=pcall(function() while true do end end); return 42") == 0,
+            "caught library timeout chunk compiled");
+        require(script_pcall_library(state) == LUA_ERRRUN && lua_gettop(state) == 1 &&
+                std::string(lua_tostring(state, -1)) == "ERR function library exceeded the instruction limit",
+                "library-call budget failure is terminal even when caught");
+        lua_settop(state, 0);
+        require(luaL_loadstring(state, "return 7") == 0 && script_pcall_library(state) == 0 &&
+                lua_gettop(state) == 0, "library-call context and stack recover after timeout");
+        lua_close(state);
     } else if (name == "instruction_limit") {
         require(call({"EVAL", "local ok=pcall(function() while true do end end); return 42", "0"}).starts_with("-BUSY"),
                 "caught instruction-limit error still fails the activation");

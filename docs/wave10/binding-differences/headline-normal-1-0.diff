@@ -1,0 +1,14 @@
+--- server tomo::(anonymous namespace)::append_lua_result(lua_State*, int, tomo::SmallBuf<96ul>&, unsigned int, unsigned int&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, bool, unsigned char) [clone .constprop.0]
+
++++ probe tomo::(anonymous namespace)::append_lua_result(lua_State*, int, tomo::SmallBuf<96ul>&, unsigned int, unsigned int&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, bool, unsigned char) [clone .constprop.0]
+
+@@ -164,7 +164,7 @@
+
+ 02a0 [ 2] mov %ebx,%esi | 89 de
+ 02a2 [ 3] mov %r15,%rdi | 4c 89 ff
+ 02a5 [ 5] call <lua_tonumber> | e8 ?? ?? ?? ??
+-02aa [ 8] vandpd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418> | c5 f9 54 0d ?? ?? ?? ??
++02aa [ 8] vandpd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x428> | c5 f9 54 0d ?? ?? ?? ??
+ 02b2 [ 8] vmovsd <rip>(%rip),%xmm2 # <literal-load-ffffffffffffef7f> | c5 fb 10 15 ?? ?? ?? ??
+ 02ba [ 4] vucomisd %xmm1,%xmm2 | c5 f9 2e d1
+ 02be [ 2] jb <+0x2f0> | 72 30

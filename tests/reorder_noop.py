@@ -116,7 +116,8 @@ def category(name):
     if re.search(r'::cmd_(get|set)(?:<|\(|_tls\(|_notify\()',name): return 'commands'
     if any(n in name for n in ['xshard_prepare(', 'xshard_execute(', 'xshard_retire(', 'prepare_captured_local_mget(', 'cmd_xshard_only(']): return 'multi-key commands'
     if 'ExLoopT<' in name and any(n in name for n in [
-        '::drain_tasks<','::drain_tasks_read_local_interleaved<',
+        '::drain_tasks<','::drain_tasks_capped<','::drain_tasks_unmasked_capped<',
+        '::drain_tasks_read_local_interleaved<',
         '::exec_batch<','::exec_batch_prefetched<','::execute<','::fused_pass_impl<',
         '::fused_sweep_impl<','::fused_baseline_sweep()','::fused_owner_turn<',
         '::prefetch_overlap_batch(', '::prefetch_owner_batch(', '::sweep<','::run()']): return 'scheduler'

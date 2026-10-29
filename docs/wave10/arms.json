@@ -1,0 +1,38 @@
+[
+  {
+    "arm": "PAD-A",
+    "path": "/home/user/Projects/cx-wave10/build/wave10/arms/PAD-A",
+    "sha256": "7b6ffed04ddb2f689e479d1bc4e4107c2accad49b60b3689eacb74f57f94cc16",
+    "bytes": 430057112
+  },
+  {
+    "arm": "POST",
+    "path": "/home/user/Projects/cx-wave10/build/wave10/arms/POST",
+    "sha256": "ed88bd649b62eeec920e23aa21f360470e67df968f02f8e351340b8aad2a2173",
+    "bytes": 223189312
+  },
+  {
+    "arm": "POST-layout",
+    "path": "/home/user/Projects/cx-wave10/build/wave10/arms/POST-layout",
+    "sha256": "3e893b618c154c1b38963c1e95944f28d9639ef2dad204be07eba16315174fd1",
+    "bytes": 430057112
+  },
+  {
+    "arm": "POST-minus-rlfix4",
+    "path": "/home/user/Projects/cx-wave10/build/wave10/arms/POST-minus-rlfix4",
+    "sha256": "890ef8f74f30f830ee5a64fd8f55f8d200a60b0e61ce7bfc1752341fe69217a3",
+    "bytes": 223179048
+  },
+  {
+    "arm": "POST-without-rlfix4-current",
+    "path": "/home/user/Projects/cx-wave10/build/wave10/arms/POST-without-rlfix4-current",
+    "sha256": "d18d9e64d3e8f5ac2f9ec35f1f1b4e3d1f539218f18bc5c7972fc9a2693d4ed7",
+    "bytes": 223180320
+  },
+  {
+    "arm": "PRE",
+    "path": "/home/user/Projects/cx-wave10/build/wave10/arms/PRE",
+    "sha256": "80e48ae961e1e290b46bbbace613509aaefc9a59a6c9df5ec68ea972ddca938e",
+    "bytes": 220087808
+  }
+]

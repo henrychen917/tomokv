@@ -1,0 +1,1854 @@
+{
+  "function_groups": 10109,
+  "unchanged": 8377,
+  "changed": 1732,
+  "lane_equal": 1332,
+  "residual": 400,
+  "hot_groups": 724,
+  "hot_headline": 427,
+  "hot_lane": 208,
+  "command_hot_groups": 86,
+  "command_hot_headline": 54,
+  "command_hot_lane": 20,
+  "hot_residual": [
+    {
+      "name": "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4234
+      ],
+      "post_sizes": [
+        4267
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo::ExLoopT<false>::execute_latency<false, false>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2822
+      ],
+      "post_sizes": [
+        2832
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo::ExLoopT<false>::execute_timed<false, false>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2852
+      ],
+      "post_sizes": [
+        2862
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3824
+      ],
+      "post_sizes": [
+        3838
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3657
+      ],
+      "post_sizes": [
+        3671
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute<true, false>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3824
+      ],
+      "post_sizes": [
+        3838
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute<true, true>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3657
+      ],
+      "post_sizes": [
+        3671
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute_latency<false, false>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3288
+      ],
+      "post_sizes": [
+        3298
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute_latency<false, true>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3094
+      ],
+      "post_sizes": [
+        3104
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute_latency<true, false>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3288
+      ],
+      "post_sizes": [
+        3298
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute_latency<true, true>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3094
+      ],
+      "post_sizes": [
+        3104
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3325
+      ],
+      "post_sizes": [
+        3335
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute_timed<false, true>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3146
+      ],
+      "post_sizes": [
+        3156
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute_timed<true, false>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3325
+      ],
+      "post_sizes": [
+        3335
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute_timed<true, true>(tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3146
+      ],
+      "post_sizes": [
+        3156
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4233
+      ],
+      "post_sizes": [
+        4235
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<false>::execute_latency<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2821
+      ],
+      "post_sizes": [
+        2831
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<false>::execute_timed<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2851
+      ],
+      "post_sizes": [
+        2861
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3823
+      ],
+      "post_sizes": [
+        3837
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3656
+      ],
+      "post_sizes": [
+        3670
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute<true, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3823
+      ],
+      "post_sizes": [
+        3837
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute<true, true>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3656
+      ],
+      "post_sizes": [
+        3670
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_latency<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3287
+      ],
+      "post_sizes": [
+        3297
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_latency<false, true>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3093
+      ],
+      "post_sizes": [
+        3103
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_latency<true, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3287
+      ],
+      "post_sizes": [
+        3297
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_latency<true, true>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3093
+      ],
+      "post_sizes": [
+        3103
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_timed<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3324
+      ],
+      "post_sizes": [
+        3334
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_timed<false, true>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3145
+      ],
+      "post_sizes": [
+        3155
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_timed<true, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3324
+      ],
+      "post_sizes": [
+        3334
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_timed<true, true>(tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3145
+      ],
+      "post_sizes": [
+        3155
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::ExLoopT<false>::run()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        8650
+      ],
+      "post_sizes": [
+        9101
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "snapfix2",
+        "exec1sd",
+        "pubtrackfix"
+      ],
+      "reason": "Composition of snapfix2, exec1sd, pubtrackfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2249
+      ],
+      "post_sizes": [
+        2249
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix2",
+        "exec1sd"
+      ],
+      "reason": "Composition of scriptfix2, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::run()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        8430
+      ],
+      "post_sizes": [
+        8578
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "snapfix2",
+        "exec1sd"
+      ],
+      "reason": "Composition of snapfix2, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        12975
+      ],
+      "post_sizes": [
+        12897
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "pubtrackfix",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, pubtrackfix, infofix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        19438
+      ],
+      "post_sizes": [
+        19515
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "pubtrackfix",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, pubtrackfix, infofix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        19879
+      ],
+      "post_sizes": [
+        19672
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, infofix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        280
+      ],
+      "post_sizes": [
+        280
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        20194
+      ],
+      "post_sizes": [
+        19961
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "pubtrackfix",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, pubtrackfix, infofix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        13065
+      ],
+      "post_sizes": [
+        12939
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "pubtrackfix",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, pubtrackfix, infofix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        10662,
+        11430,
+        10604,
+        11656
+      ],
+      "post_sizes": [
+        10676,
+        11227,
+        10572,
+        12404
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "pubtrackfix",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, pubtrackfix, infofix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        166,
+        248,
+        166,
+        248
+      ],
+      "post_sizes": [
+        166,
+        244,
+        166,
+        244
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "pubtrackfix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, pubtrackfix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        19418
+      ],
+      "post_sizes": [
+        19450
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, infofix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        20078,
+        19821
+      ],
+      "post_sizes": [
+        19897,
+        20713
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, infofix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        294,
+        279
+      ],
+      "post_sizes": [
+        291,
+        282
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        20245
+      ],
+      "post_sizes": [
+        20031
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, infofix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        19052
+      ],
+      "post_sizes": [
+        19141
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, infofix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18931
+      ],
+      "post_sizes": [
+        19004
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, infofix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&>(unsigned int, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1861
+      ],
+      "post_sizes": [
+        1861
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "infofix"
+      ],
+      "reason": "infofix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        21993
+      ],
+      "post_sizes": [
+        21069
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "infofix"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, infofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int) [clone .cold]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        587
+      ],
+      "post_sizes": [
+        585
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "infofix"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, infofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<false>::run()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        8335
+      ],
+      "post_sizes": [
+        8824
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "snapfix2",
+        "exec1sd",
+        "pubtrackfix"
+      ],
+      "reason": "Composition of snapfix2, exec1sd, pubtrackfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::run()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        8142
+      ],
+      "post_sizes": [
+        8580
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "snapfix2",
+        "exec1sd"
+      ],
+      "reason": "Composition of snapfix2, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        12815
+      ],
+      "post_sizes": [
+        12847
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, infofix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        19211
+      ],
+      "post_sizes": [
+        19277
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, infofix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21528
+      ],
+      "post_sizes": [
+        21104
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, infofix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        275
+      ],
+      "post_sizes": [
+        280
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        22017
+      ],
+      "post_sizes": [
+        21507
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, infofix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        12953
+      ],
+      "post_sizes": [
+        13171
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, infofix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        10546,
+        12412,
+        10546,
+        11511
+      ],
+      "post_sizes": [
+        10562,
+        12501,
+        10562,
+        12192
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "pubtrackfix",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, pubtrackfix, infofix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        166,
+        248,
+        166,
+        247
+      ],
+      "post_sizes": [
+        166,
+        244,
+        166,
+        244
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "pubtrackfix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, pubtrackfix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        19180
+      ],
+      "post_sizes": [
+        19219
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, infofix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21693,
+        19695
+      ],
+      "post_sizes": [
+        21198,
+        20576
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, infofix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        289,
+        279
+      ],
+      "post_sizes": [
+        284,
+        283
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21993
+      ],
+      "post_sizes": [
+        21407
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, infofix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        19014
+      ],
+      "post_sizes": [
+        18978
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, infofix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18792
+      ],
+      "post_sizes": [
+        18770
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, infofix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        22723
+      ],
+      "post_sizes": [
+        22920
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "infofix"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, infofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        526
+      ],
+      "post_sizes": [
+        473
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "infofix"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, infofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        18067
+      ],
+      "post_sizes": [
+        17676
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "infofix"
+      ],
+      "reason": "Composition of blockfix3, infofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*) [clone .cold]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        279
+      ],
+      "post_sizes": [
+        346
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "infofix"
+      ],
+      "reason": "Composition of blockfix3, infofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::xshard_prepare_script(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        5499
+      ],
+      "post_sizes": [
+        5499
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "infofix"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, infofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3640
+      ],
+      "post_sizes": [
+        3552
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2551
+      ],
+      "post_sizes": [
+        2385
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "snapfix2",
+        "blockfix3",
+        "exec1sd",
+        "pubtrackfix",
+        "rlfix4"
+      ],
+      "reason": "Composition of snapfix2, blockfix3, exec1sd, pubtrackfix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, true>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2551
+      ],
+      "post_sizes": [
+        2385
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3399
+      ],
+      "post_sizes": [
+        3223
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3399
+      ],
+      "post_sizes": [
+        3223
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3742
+      ],
+      "post_sizes": [
+        3758
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd"
+      ],
+      "reason": "Composition of blockfix3, exec1sd; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        1446
+      ],
+      "post_sizes": [
+        1452
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, false, false, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5064
+      ],
+      "post_sizes": [
+        5280
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "exec1sd"
+      ],
+      "reason": "exec1sd changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, false, true, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5181
+      ],
+      "post_sizes": [
+        5608
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "exec1sd"
+      ],
+      "reason": "exec1sd changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        16299
+      ],
+      "post_sizes": [
+        16299
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "pubtrackfix",
+        "infofix"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, pubtrackfix, infofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        17436
+      ],
+      "post_sizes": [
+        17436
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "pubtrackfix",
+        "infofix"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, pubtrackfix, infofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, false, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5151
+      ],
+      "post_sizes": [
+        5709
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "exec1sd"
+      ],
+      "reason": "exec1sd changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, true, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5245
+      ],
+      "post_sizes": [
+        5543
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "exec1sd",
+        "pubtrackfix"
+      ],
+      "reason": "Composition of exec1sd, pubtrackfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, true, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5245
+      ],
+      "post_sizes": [
+        5543
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "pubtrackfix"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, pubtrackfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, true, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5246
+      ],
+      "post_sizes": [
+        5556
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "exec1sd"
+      ],
+      "reason": "exec1sd changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, true, true, true, false>()",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5246
+      ],
+      "post_sizes": [
+        5556
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "exec1sd"
+      ],
+      "reason": "exec1sd changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        16054
+      ],
+      "post_sizes": [
+        16136
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "pubtrackfix",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, pubtrackfix, infofix, rlfix4; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        17476
+      ],
+      "post_sizes": [
+        17476
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "blockfix3",
+        "exec1sd",
+        "pubtrackfix",
+        "infofix",
+        "rlfix4"
+      ],
+      "reason": "Composition of blockfix3, exec1sd, pubtrackfix, infofix, rlfix4; residual instructions/layout require merit review."
+    }
+  ],
+  "references": {
+    "headline": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-393d6ceb1",
+      "sha256": "80e48ae961e1e290b46bbbace613509aaefc9a59a6c9df5ec68ea972ddca938e"
+    },
+    "snapfix2": {
+      "path": "/home/user/Projects/bins/snapfix2-post-dd169c2f",
+      "sha256": "dd169c2f10040c4b13cb87c3731e4ba1a2dbd74088635008e8512ba64e84021c"
+    },
+    "blockfix3": {
+      "path": "/home/user/Projects/bins/blockfix3-post-e18acab2",
+      "sha256": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1"
+    },
+    "scriptfix2": {
+      "path": "/home/user/Projects/bins/scriptfix2-post-cb5dbeae",
+      "sha256": "cb5dbeae537f1171a54171ddc37f7b2517500360bd6fc8c9208763a75994a317"
+    },
+    "exec1sd": {
+      "path": "/home/user/Projects/bins/exec1sd-post-4111f5c6",
+      "sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18"
+    },
+    "pubtrackfix": {
+      "path": "/home/user/Projects/bins/pubtrackfix-post-faef9b90",
+      "sha256": "faef9b9099cf0777685dd914571fda687ecc0f5c356191d11c02af6841f45b84"
+    },
+    "infofix": {
+      "path": "/home/user/Projects/bins/infofix-post-28faa60c",
+      "sha256": "28faa60c3196fc531aa99b0a4d54947a46ae6533fcbd013ea9da852b9522da35"
+    },
+    "rlfix4": {
+      "path": "/home/user/Projects/bins/rlfix4-post-5a903fd8",
+      "sha256": "5a903fd856e7cccfcb27df13da666be6381f3c0ae3a0a9428bb01f542ab0cb97"
+    },
+    "baseline_snapfix2": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-a214652ec",
+      "sha256": "5235008bfab65401b335b67b4aff93fbb8cb76e7496d32edd73216885616be4d"
+    },
+    "baseline_scriptfix2": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-a214652ec",
+      "sha256": "5235008bfab65401b335b67b4aff93fbb8cb76e7496d32edd73216885616be4d"
+    },
+    "baseline_rlfix4": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-a214652ec",
+      "sha256": "5235008bfab65401b335b67b4aff93fbb8cb76e7496d32edd73216885616be4d"
+    }
+  },
+  "post": {
+    "path": "/home/user/Projects/cx-wave10/build/tomokv",
+    "sha256": "af988c19fc61a709aea77c968943e1a5c42c865856b50f9e296f289029920b4f"
+  }
+}
