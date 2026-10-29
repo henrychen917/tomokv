@@ -15,7 +15,7 @@ from wave7 import selected_fields
 
 
 SECTIONS = ("server", "clients", "memory", "persistence", "stats", "replication",
-            "cpu", "commandstats", "latencystats", "cluster", "keyspace", "writeback", "lb", "flipctl")
+            "cpu", "commandstats", "latencystats", "errorstats", "cluster", "keyspace", "writeback", "lb", "flipctl")
 DEFAULT = set(SECTIONS) - {"commandstats", "latencystats", "lb"}
 
 

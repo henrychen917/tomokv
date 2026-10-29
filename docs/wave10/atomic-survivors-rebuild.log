@@ -1,0 +1,57 @@
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. tests/atomic_survivors_unit.cc \
+  build/src/net/tls.o build/src/cmd/commands.o build/src/cmd/glob.o build/src/cmd/acl.o build/src/cmd/hll.o build/src/cmd/t_server.o build/src/cmd/t_string.o build/src/cmd/t_string_notify.o build/src/cmd/t_hash.o build/src/cmd/t_hash_ttl.o build/src/cmd/t_list.o build/src/cmd/t_set.o build/src/cmd/t_zset.o build/src/cmd/t_zset_ops.o build/src/cmd/geo.o build/src/cmd/t_stream.o build/src/cmd/t_stream_groups.o build/src/cmd/scripting.o build/src/cmd/functions.o build/src/cmd/serialize.o build/src/snapshot/snapshot.o build/src/persist/aof.o build/src/cmd/climon.o build/src/cmd/tracking.o build/src/cmd/server_tail.o build/src/cmd/slowlog.o build/src/cmd/lcs.o build/src/cmd/info_stats.o build/src/cmd/lbsignals.o build/src/core/flipctl.o build/src/core/genthread.o build/src/core/rl2s.o build/src/core/lbstall.o build/src/core/lbplanner.o build/src/cmd/l4prebuild.o build/src/cmd/cmdgap.o build/src/cmd/pfdebug.o build/src/cmd/cmdmeta.o build/src/cmd/t_sort.o build/src/cmd/multidb.o build/src/cmd/storesize.o build/src/cmd/multi_admin.o build/src/core/reorder.o build/src/cmd/geo_store.o build/src/persist/aof_frame_debug.o build/src/cmd/aclkeys.o build/src/cmd/blocking_debug.o build/src/cmd/objectpread.o build/src/cmd/hexpread.o build/src/cmd/autharity.o build/src/core/fliplisten.o build/src/core/shutdown.o build/src/cmd/latency_tracking.o build/src/cmd/eviction.o build/third_party/lua/helpers/lua_cjson.o build/third_party/lua/helpers/lua_cmsgpack.o build/third_party/lua/helpers/lua_bit.o build/third_party/lua/helpers/lua_struct.o build/third_party/lua/helpers/strbuf.o build/third_party/lua/helpers/fpconv.o -o build/atomic-survivors-unit -ljemalloc -luring -pthread -lssl -lcrypto -lm
+In file included from ./src/cmd/xshard.cc:64,
+                 from tests/atomic_survivors_unit.cc:6:
+./src/cmd/multi.inc: In function ‘void tomo::{anonymous}::txn_add_claim(std::vector<tomo::TxnClaim>&, tomo::Slice, tomo::TxnClaimMode, bool)’:
+./src/cmd/multi.inc:852:21: warning: missing initializer for member ‘tomo::TxnClaim::waiter’ [-Wmissing-field-initializers]
+  852 |     claims.push_back({std::move(owned), whole ? 0 : FlatStore::hash_key(key), mode});
+      |     ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./src/cmd/multi.inc: In function ‘void tomo::{anonymous}::txn_cap_claims(std::vector<tomo::TxnClaim>&)’:
+./src/cmd/multi.inc:861:21: warning: missing initializer for member ‘tomo::TxnClaim::waiter’ [-Wmissing-field-initializers]
+  861 |     claims.push_back({{}, 0, mode});
+      |     ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+In file included from ./src/cmd/xshard.cc:69:
+./src/cmd/notify.inc: In function ‘void tomo::notify_elapsed_set(Shard&, Op&, Slice)’:
+./src/cmd/notify.inc:583:78: warning: narrowing conversion of ‘key.tomo::Slice::ns’ from ‘uint32_t’ {aka ‘unsigned int’} to ‘uint8_t’ {aka ‘unsigned char’} [-Wnarrowing]
+  583 |         pending.push_back(NotifyPendingExpiry{std::string(key.p, key.n), key.ns, std::move(ready)});
+      |                                                                          ~~~~^~
+In file included from ./src/cmd/../store/kv_block_cache.h:31,
+                 from ./src/cmd/../store/flatstore.h:82,
+                 from ./src/cmd/lookup_notouch.h:2,
+                 from ./src/cmd/xshard.cc:1:
+./src/cmd/../store/kvobj.h: In instantiation of ‘size_t tomo::kvobj_external_bytes(const KvObj*, const void*) [with bool Retiring = true; size_t = long unsigned int]’:
+./src/cmd/../store/flatstore.h:3304:41:   required from here
+./src/cmd/../store/kvobj.h:1123:21: warning: the address of ‘void tomo::blocking_stream_removed(const void*, Slice)’ will never be NULL [-Waddress]
+ 1123 |                 if (blocking_stream_removed) blocking_stream_removed(store, o->key());
+      |                     ^~~~~~~~~~~~~~~~~~~~~~~
+In file included from ./src/cmd/xshard.cc:63:
+./src/cmd/blocking.inc:1359:6: note: ‘void tomo::blocking_stream_removed(const void*, Slice)’ declared here
+ 1359 | void blocking_stream_removed(const void* store, Slice) {
+      |      ^~~~~~~~~~~~~~~~~~~~~~~
+In function ‘void operator delete(void*, const std::nothrow_t&)’,
+    inlined from ‘tomo::NotifyBatch* tomo::{anonymous}::notify_get_or_create_batch(tomo::Op&)’ at ./src/cmd/notify.inc:274:44:
+tests/atomic_survivors_unit.cc:45:74: warning: ‘void free(void*)’ called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
+   45 | void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
+      |                                                                 ~~~~~~~~~^~~
+./src/cmd/notify.inc: In function ‘tomo::NotifyBatch* tomo::{anonymous}::notify_get_or_create_batch(tomo::Op&)’:
+./src/cmd/notify.inc:274:44: note: returned from ‘void* operator new(std::size_t, const std::nothrow_t&)’
+  274 |         auto* created = new (std::nothrow) NotifyBatch;
+      |                                            ^~~~~~~~~~~
+In function ‘void operator delete(void*, const std::nothrow_t&)’,
+    inlined from ‘tomo::NotifyBatch* tomo::{anonymous}::notify_get_or_create_batch(tomo::Op&)’ at ./src/cmd/notify.inc:285:38:
+tests/atomic_survivors_unit.cc:45:74: warning: ‘void free(void*)’ called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
+   45 | void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
+      |                                                                 ~~~~~~~~~^~~
+./src/cmd/notify.inc: In function ‘tomo::NotifyBatch* tomo::{anonymous}::notify_get_or_create_batch(tomo::Op&)’:
+./src/cmd/notify.inc:285:38: note: returned from ‘void* operator new(std::size_t, const std::nothrow_t&)’
+  285 |     auto* batch = new (std::nothrow) NotifyBatch;
+      |                                      ^~~~~~~~~~~
+In function ‘void operator delete(void*, const std::nothrow_t&)’,
+    inlined from ‘bool tomo::notify_record_keyless_slow(Shard&, uint32_t, uint32_t, NotifyEventId, Slice)’ at ./src/cmd/notify.inc:515:39:
+tests/atomic_survivors_unit.cc:45:74: warning: ‘void free(void*)’ called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
+   45 | void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
+      |                                                                 ~~~~~~~~~^~~
+./src/cmd/notify.inc: In function ‘bool tomo::notify_record_keyless_slow(Shard&, uint32_t, uint32_t, NotifyEventId, Slice)’:
+./src/cmd/notify.inc:515:39: note: returned from ‘void* operator new(std::size_t, const std::nothrow_t&)’
+  515 |         slot.reset(new (std::nothrow) NotifyShardState);
+      |                                       ^~~~~~~~~~~~~~~~

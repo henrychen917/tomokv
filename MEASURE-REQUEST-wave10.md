@@ -163,6 +163,11 @@ climonfix4, flushfix2, execfifo and lineshare-a/b are not merged.
   negative controls. The snapfix POST has the same substitutions; this is not
   permission to omit the replacement code. Whole-job reruns are pending.
 
+- Blockfix3 adds the default/explicit ERRORSTATS heading while infofix adds CPU.
+  The INFO section-union fixture now includes both; its exact-set equality and
+  protected-memory native checks remain intact. The initial eight section-union
+  failures are retained; no generic error-accounting hook is introduced.
+
 ### Compile-only budgets and remaining bodies
 
 All 31 budgeted units were compiled at inherited values and at headline budget
@@ -296,8 +301,23 @@ rescheduled; completed jobs and the cancellation are retained in
 
 ### Frozen arms and storage
 
-Final delivery hashes and the post-rebuild path will be consolidated after the
-active jobs finish. The required literal pre-rlfix4 arm is commit `ba2130b37`
+The delivery binaries are frozen under `build/wave10/arms/`. Full SHA-256s and
+paths are also in [arms.json](docs/wave10/arms.json) and [arms.sha256](docs/wave10/arms.sha256).
+
+| Arm | SHA-256 |
+|---|---|
+| `PRE` | `80e48ae961e1e290b46bbbace613509aaefc9a59a6c9df5ec68ea972ddca938e` |
+| `POST` | `844cf188071bae335a80e8ae15c2acaec2d1f583f235edf4bf4496421299660e` |
+| `POST-minus-rlfix4` | `890ef8f74f30f830ee5a64fd8f55f8d200a60b0e61ce7bfc1752341fe69217a3` |
+| `POST-without-rlfix4-current` | `d18d9e64d3e8f5ac2f9ec35f1f1b4e3d1f539218f18bc5c7972fc9a2693d4ed7` |
+| `POST-layout` | `3e893b618c154c1b38963c1e95944f28d9639ef2dad204be07eba16315174fd1` |
+| `PAD-A` | `7b6ffed04ddb2f689e479d1bc4e4107c2accad49b60b3689eacb74f57f94cc16` |
+
+Historical POST receipts bind `ed88bd64…`, now retained as
+`POST-before-source-labels`; the delivered `POST` is `844cf188…`. Their strict
+executable/data bridge is recorded above and path history is retained.
+
+The required literal pre-rlfix4 arm is commit `ba2130b37`
 (production-identical to `e98831c81`). It predates the later cold CRLF repair and
 DB0 budget selection. `POST-without-rlfix4-current` additionally reverses only
 rlfix4's production diff from integrated POST, giving a fair current-layout
@@ -313,7 +333,7 @@ No PAD-B is supplied.
 Superseded trial objects, arm source trees and step traces were removed only after
 hashes/counts were recorded. Digests are retained in `pruned-artifacts.json.gz`,
 `pruned-trial-receipts.json.gz` and `pruned-traces.json.gz`. Counts and final binding
-receipts remain. Build storage is currently about 26G, below the 40G limit.
+receipts remain. Build storage remains below the 40G limit; the final size will be recorded after cleanup.
 
 ### Maintainer measurement plan — NOT RUN
 
