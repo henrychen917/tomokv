@@ -1,0 +1,19 @@
+{
+  "receipt": "docs/wave10/jobs/final-survivors-reorder-fixed.json",
+  "binary_sha256": "844cf188071bae335a80e8ae15c2acaec2d1f583f235edf4bf4496421299660e",
+  "artifacts": "/home/user/Projects/cx-wave10/build/gate-run.JAFSBY",
+  "reorder_audit": "/home/user/Projects/cx-wave10/build/gate-run.JAFSBY/jobs/reorder_identity/receipt/identity/audit.json",
+  "reorder_audit_sha256": "1744d66c15007c6883c23eebebb5f8428593342bd166999057ee88f40323c0f9",
+  "strict_noop": true,
+  "bodies": 326,
+  "equal": 326,
+  "atomic_rows": 27,
+  "info_exec": {
+    "receipt": "docs/wave10/jobs/final-info-exec-harness-fixed.json",
+    "artifacts": "/home/user/Projects/cx-wave10/build/gate-run.VfumvX",
+    "summary": [
+      "GATE(PARTIAL): 13 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave10/docs/wave10/jobs/final-info-exec-harness-fixed.tsv.partial"
+    ],
+    "binary_sha256": "844cf188071bae335a80e8ae15c2acaec2d1f583f235edf4bf4496421299660e"
+  }
+}

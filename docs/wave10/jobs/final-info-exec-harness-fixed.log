@@ -1,0 +1,31 @@
+GATE(full): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-wave10/build/gate-run.VfumvX
+PARTIAL jobs (including prerequisites): release production_units rlfix3_info exec1s
+PARTIAL jobs (including prerequisites): release production_units rlfix3_info exec1s
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; correctness-plan-fallback; INFO selective collection (1s, epoll, read-local 0)
+  INFO selective collection (1s, epoll, read-local 0)  ok
+  row budget: 900s; median=-s; correctness-plan-fallback; INFO selective collection (1s, epoll, read-local 1)
+  INFO selective collection (1s, epoll, read-local 1)  ok
+  row budget: 900s; median=-s; correctness-plan-fallback; INFO selective collection (1s, uring, read-local 0)
+  INFO selective collection (1s, uring, read-local 0)  ok
+  row budget: 900s; median=-s; correctness-plan-fallback; INFO selective collection (1s, uring, read-local 1)
+  INFO selective collection (1s, uring, read-local 1)  ok
+  row budget: 900s; median=-s; correctness-plan-fallback; INFO selective collection (2s, epoll, read-local 0)
+  INFO selective collection (2s, epoll, read-local 0)  ok
+  row budget: 900s; median=-s; correctness-plan-fallback; INFO selective collection (2s, epoll, read-local 1)
+  INFO selective collection (2s, epoll, read-local 1)  ok
+  row budget: 900s; median=-s; correctness-plan-fallback; INFO selective collection (2s, uring, read-local 0)
+  INFO selective collection (2s, uring, read-local 0)  ok
+  row budget: 900s; median=-s; correctness-plan-fallback; INFO selective collection (2s, uring, read-local 1)
+  INFO selective collection (2s, uring, read-local 1)  ok
+  row budget: 900s; median=22.13s; correctness-plan-fallback; exec1s refinements (1s, atomic 0)
+  exec1s refinements (1s, atomic 0)                    ok
+  row budget: 900s; median=19.88s; correctness-plan-fallback; exec1s refinements (1s, atomic 1)
+  exec1s refinements (1s, atomic 1)                    ok
+  row budget: 900s; median=2.92s; correctness-plan-fallback; exec1s refinements (2s, atomic 0)
+  exec1s refinements (2s, atomic 0)                    ok
+  row budget: 900s; median=19.89s; correctness-plan-fallback; exec1s refinements (2s, atomic 1)
+  exec1s refinements (2s, atomic 1)                    ok
+GATE(PARTIAL): 13 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave10/docs/wave10/jobs/final-info-exec-harness-fixed.tsv.partial

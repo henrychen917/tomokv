@@ -160,13 +160,15 @@ climonfix4, flushfix2, execfifo and lineshare-a/b are not merged.
 - The reorder identity inventory still named snapfix's four removed unbounded
   snapshot drains. The wave10 inventory substitutes all eight actual capped
   masked/unmasked bodies, comparing 326 bodies and adding eight missing-body
-  negative controls. The snapfix POST has the same substitutions; this is not
-  permission to omit the replacement code. Whole-job reruns are pending.
+  negative controls. The snapfix POST has the same substitutions. The complete
+  repaired atomic-unit and reorder-identity jobs pass 29/0 including prerequisites;
+  all 326 compared bodies are identical. See `harness-composition-proof.json`.
 
 - Blockfix3 adds the default/explicit ERRORSTATS heading while infofix adds CPU.
   The INFO section-union fixture now includes both; its exact-set equality and
   protected-memory native checks remain intact. The initial eight section-union
-  failures are retained; no generic error-accounting hook is introduced.
+  failures are retained. The complete INFO and rebuilt exec1s jobs pass 13/0;
+  no generic error-accounting hook is introduced.
 
 ### Compile-only budgets and remaining bodies
 
@@ -334,6 +336,24 @@ Superseded trial objects, arm source trees and step traces were removed only aft
 hashes/counts were recorded. Digests are retained in `pruned-artifacts.json.gz`,
 `pruned-trial-receipts.json.gz` and `pruned-traces.json.gz`. Counts and final binding
 receipts remain. Build storage remains below the 40G limit; the final size will be recorded after cleanup.
+
+### Verification boundaries — NOT RUN
+
+- Performance benchmarks, the full gate iteration and all ABBA/NIC merit cells
+  remain with the maintainer. In partial correctness jobs, the atomic MGET/MSET
+  throughput floor, RYOW rate assertions and stream/xmove release timing ratios
+  are explicitly omitted. Data, window and mechanism checks still run.
+- Lottery nightly has no public landing-gate job. Its disposable server was
+  built and smoke-checked through the netio jobs; the nightly campaign was not run.
+- The legacy `tests/publishfix_e2e.py` hard-codes CPUs 96–111 and ports 258xx,
+  outside this lane allocation. Its scheduler builder and public atomic unit
+  were exercised; that standalone driver was not run.
+- `tools/exec1s_build.py` targets historical frozen revisions and hard-codes CPUs
+  48–63; it has no landing-gate consumer. Wave10 arms were built with the
+  allocation-correct integration helpers instead.
+
+All `_schedule.py`/`_build.py` entry points and their gate/Makefile consumers
+are listed in [builder-consumers.json](docs/wave10/builder-consumers.json).
 
 ### Maintainer measurement plan — NOT RUN
 
