@@ -292,7 +292,7 @@ def prepare(output):
             event->kind == PubSubEventKind::TrackingDeliver)
             lottery::event(lottery::bit(13), "tracking_post", lottery::ptr(event), target_io);''')
     after('src/cmd/tracking.cc',
-          'void IoLoop::tracking_emit_invalidation(Client* target, bool redirected, Slice key, bool flush,\n                                       uint64_t source_id, uint64_t generation) {',
+          'void IoLoop::tracking_emit_invalidation(Client* target, bool redirected, Slice key, bool flush,\n                                       uint64_t source_id, uint64_t generation, bool batched) {',
           '    lottery::event(lottery::bit(13), "tracking_emit", target->id());')
     # W11 reads EXISTING per-thread state at the admitted FLIP request and at
     # its completion: the ClientWorkScope epoch (odd = inside client work) and

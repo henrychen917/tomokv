@@ -154,3 +154,8 @@ assertions too. This retains the original assertion and its one-retry bound.
 Concurrent-build Tcl runs also timed out in the Lua GC assertion before reaching
 the planted uppercase-SHA regression; those attempts do not prove falsification.
 They are retained and Tcl will run again without concurrent compilation.
+
+Harness: the lottery disposable-source builder rejected pubtrackfix’s new
+`tracking_emit_invalidation(..., bool batched)` signature. Update its exact-count
+anchor; the observation stays at the same entry point and no production hook
+is introduced. The rejected build log is retained before the complete rebuild.
