@@ -110,6 +110,9 @@ The wrapper records argv, environment, binary hash, source state, exit and origi
 
 * Main selected-job run: **249 passed rows, zero failures**. This includes all five
   io_uring differential parts and the full scripting/compatibility selection.
+* Differential jobs: **all five parts pass on both io_uring and epoll**, 1,908 seeded
+  suite/equivalence runs. Permanent seeds 7/19/20/23 plus rotating 21 (uring) and
+  22 (epoll); stock fused SORT exclusion unchanged.
 * Original scriptfix2 rows: **48/48 pass**, **192 geometry legs**, **3,584 exact wire
   comparisons**, zero differences. The gate and original battery files match PRE.
 * `python3 tests/gates_test.py`: **73/73 pass**.
