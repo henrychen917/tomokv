@@ -1,0 +1,1290 @@
+[
+  {
+    "arm": "pre",
+    "attempt": 0,
+    "command": [
+      "taskset",
+      "-c",
+      "0-15",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-7",
+      "--load-cores",
+      "8-15",
+      "--load-smt",
+      "",
+      "--ports",
+      "20196-20198",
+      "--candidate-binary",
+      "/home/user/Projects/cx-flushfix2/build/flushfix2/pre/tomokv"
+    ],
+    "status": 0,
+    "artifacts": "/home/user/Projects/cx-flushfix2/build/gate-run.x9unq5",
+    "results": [
+      {
+        "case": "T9",
+        "leg": "redis-redis-0-EVAL",
+        "value": {
+          "values": [
+            "M",
+            "M"
+          ]
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "redis-redis-0-EVALSHA",
+        "value": {
+          "values": [
+            "S",
+            "S"
+          ]
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "redis-redis-0-FCALL",
+        "value": {
+          "values": [
+            "M",
+            "M"
+          ]
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-0-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 12,
+          "wounds": 16,
+          "escalated_commits": 396
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-0-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 8,
+          "wounds": 6,
+          "escalated_commits": 394
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-0-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 14,
+          "wounds": 1,
+          "escalated_commits": 397
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-1-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 9,
+          "wounds": 18,
+          "escalated_commits": 389
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-1-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 18,
+          "wounds": 20,
+          "escalated_commits": 373
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-1-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 21,
+          "wounds": 3,
+          "escalated_commits": 397
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-0-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 19,
+          "wounds": 1,
+          "escalated_commits": 393
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-0-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 19,
+          "wounds": 8,
+          "escalated_commits": 375
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-0-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 13,
+          "wounds": 28,
+          "escalated_commits": 390
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-1-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 11,
+          "wounds": 1,
+          "escalated_commits": 398
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-1-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 14,
+          "wounds": 8,
+          "escalated_commits": 400
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-1-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 17,
+          "wounds": 3,
+          "escalated_commits": 399
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-0-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 3,
+          "wounds": 2,
+          "escalated_commits": 400
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-0-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 9,
+          "wounds": 0,
+          "escalated_commits": 400
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-0-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 5,
+          "wounds": 3,
+          "escalated_commits": 398
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-1-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 8,
+          "wounds": 0,
+          "escalated_commits": 396
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-1-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 6,
+          "wounds": 0,
+          "escalated_commits": 398
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-1-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 4,
+          "wounds": 1,
+          "escalated_commits": 400
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-0-EVAL",
+        "value": {
+          "rounds": 2,
+          "blind_restarts": 2,
+          "wounds": 2,
+          "escalated_commits": 754
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-0-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 3,
+          "wounds": 1,
+          "escalated_commits": 351
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-0-FCALL",
+        "value": {
+          "rounds": 2,
+          "blind_restarts": 5,
+          "wounds": 5,
+          "escalated_commits": 706
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-1-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 8,
+          "wounds": 0,
+          "escalated_commits": 387
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-1-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 4,
+          "wounds": 1,
+          "escalated_commits": 399
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-1-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 5,
+          "wounds": 2,
+          "escalated_commits": 388
+        },
+        "pass": true
+      }
+    ]
+  },
+  {
+    "arm": "pre",
+    "attempt": 1,
+    "command": [
+      "taskset",
+      "-c",
+      "0-15",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-7",
+      "--load-cores",
+      "8-15",
+      "--load-smt",
+      "",
+      "--ports",
+      "20196-20198",
+      "--candidate-binary",
+      "/home/user/Projects/cx-flushfix2/build/flushfix2/pre/tomokv"
+    ],
+    "status": 0,
+    "artifacts": "/home/user/Projects/cx-flushfix2/build/gate-run.aP0KZF",
+    "results": [
+      {
+        "case": "T9",
+        "leg": "redis-redis-0-EVAL",
+        "value": {
+          "values": [
+            "M",
+            "M"
+          ]
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "redis-redis-0-EVALSHA",
+        "value": {
+          "values": [
+            "M",
+            "M"
+          ]
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "redis-redis-0-FCALL",
+        "value": {
+          "values": [
+            "M",
+            "M"
+          ]
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-0-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 6,
+          "wounds": 22,
+          "escalated_commits": 391
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-0-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 7,
+          "wounds": 17,
+          "escalated_commits": 389
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-0-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 23,
+          "wounds": 19,
+          "escalated_commits": 383
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-1-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 17,
+          "wounds": 10,
+          "escalated_commits": 398
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-1-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 26,
+          "wounds": 14,
+          "escalated_commits": 399
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-1-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 24,
+          "wounds": 3,
+          "escalated_commits": 399
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-0-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 10,
+          "wounds": 3,
+          "escalated_commits": 399
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-0-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 11,
+          "wounds": 5,
+          "escalated_commits": 396
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-0-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 25,
+          "wounds": 1,
+          "escalated_commits": 398
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-1-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 24,
+          "wounds": 4,
+          "escalated_commits": 398
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-1-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 18,
+          "wounds": 3,
+          "escalated_commits": 400
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-1-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 21,
+          "wounds": 9,
+          "escalated_commits": 398
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-0-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 11,
+          "wounds": 0,
+          "escalated_commits": 398
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-0-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 14,
+          "wounds": 4,
+          "escalated_commits": 398
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-0-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 11,
+          "wounds": 4,
+          "escalated_commits": 391
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-1-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 7,
+          "wounds": 1,
+          "escalated_commits": 400
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-1-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 15,
+          "wounds": 4,
+          "escalated_commits": 399
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-1-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 8,
+          "wounds": 1,
+          "escalated_commits": 355
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-0-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 5,
+          "wounds": 0,
+          "escalated_commits": 366
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-0-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 4,
+          "wounds": 1,
+          "escalated_commits": 386
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-0-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 8,
+          "wounds": 0,
+          "escalated_commits": 375
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-1-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 9,
+          "wounds": 0,
+          "escalated_commits": 382
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-1-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 14,
+          "wounds": 3,
+          "escalated_commits": 364
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-1-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 5,
+          "wounds": 3,
+          "escalated_commits": 396
+        },
+        "pass": true
+      }
+    ]
+  },
+  {
+    "arm": "pre",
+    "attempt": 2,
+    "command": [
+      "taskset",
+      "-c",
+      "0-15",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-7",
+      "--load-cores",
+      "8-15",
+      "--load-smt",
+      "",
+      "--ports",
+      "20196-20198",
+      "--candidate-binary",
+      "/home/user/Projects/cx-flushfix2/build/flushfix2/pre/tomokv"
+    ],
+    "status": 0,
+    "artifacts": "/home/user/Projects/cx-flushfix2/build/gate-run.TtXzSK",
+    "results": [
+      {
+        "case": "T9",
+        "leg": "redis-redis-0-EVAL",
+        "value": {
+          "values": [
+            "M",
+            "M"
+          ]
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "redis-redis-0-EVALSHA",
+        "value": {
+          "values": [
+            "M",
+            "M"
+          ]
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "redis-redis-0-FCALL",
+        "value": {
+          "values": [
+            "M",
+            "M"
+          ]
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-0-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 5,
+          "wounds": 4,
+          "escalated_commits": 384
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-0-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 8,
+          "wounds": 6,
+          "escalated_commits": 396
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-0-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 6,
+          "wounds": 1,
+          "escalated_commits": 394
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-1-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 24,
+          "wounds": 14,
+          "escalated_commits": 394
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-1-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 23,
+          "wounds": 7,
+          "escalated_commits": 396
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-1-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 8,
+          "wounds": 4,
+          "escalated_commits": 392
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-0-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 14,
+          "wounds": 6,
+          "escalated_commits": 388
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-0-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 6,
+          "wounds": 2,
+          "escalated_commits": 385
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-0-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 9,
+          "wounds": 7,
+          "escalated_commits": 362
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-1-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 12,
+          "wounds": 12,
+          "escalated_commits": 387
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-1-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 14,
+          "wounds": 2,
+          "escalated_commits": 395
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-1-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 9,
+          "wounds": 5,
+          "escalated_commits": 397
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-0-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 4,
+          "wounds": 1,
+          "escalated_commits": 397
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-0-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 1,
+          "wounds": 2,
+          "escalated_commits": 388
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-0-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 3,
+          "wounds": 3,
+          "escalated_commits": 395
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-1-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 11,
+          "wounds": 1,
+          "escalated_commits": 382
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-1-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 8,
+          "wounds": 3,
+          "escalated_commits": 381
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-1-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 5,
+          "wounds": 1,
+          "escalated_commits": 351
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-0-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 1,
+          "wounds": 0,
+          "escalated_commits": 332
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-0-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 11,
+          "wounds": 1,
+          "escalated_commits": 362
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-0-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 1,
+          "wounds": 2,
+          "escalated_commits": 355
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-1-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 5,
+          "wounds": 0,
+          "escalated_commits": 377
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-1-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 7,
+          "wounds": 2,
+          "escalated_commits": 392
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-1-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 8,
+          "wounds": 4,
+          "escalated_commits": 390
+        },
+        "pass": true
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "attempt": 0,
+    "command": [
+      "taskset",
+      "-c",
+      "0-15",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-7",
+      "--load-cores",
+      "8-15",
+      "--load-smt",
+      "",
+      "--ports",
+      "20196-20198",
+      "--candidate-binary",
+      "/home/user/Projects/cx-flushfix2/build/flushfix2/post-v2/tomokv"
+    ],
+    "status": 0,
+    "artifacts": "/home/user/Projects/cx-flushfix2/build/gate-run.rd7uYV",
+    "results": [
+      {
+        "case": "T9",
+        "leg": "redis-redis-0-EVAL",
+        "value": {
+          "values": [
+            "S",
+            "S"
+          ]
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "redis-redis-0-EVALSHA",
+        "value": {
+          "values": [
+            "M",
+            "M"
+          ]
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "redis-redis-0-FCALL",
+        "value": {
+          "values": [
+            "M",
+            "M"
+          ]
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-0-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 19,
+          "wounds": 4,
+          "escalated_commits": 398
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-0-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 22,
+          "wounds": 4,
+          "escalated_commits": 397
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-0-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 5,
+          "wounds": 2,
+          "escalated_commits": 390
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-1-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 5,
+          "wounds": 2,
+          "escalated_commits": 388
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-1-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 13,
+          "wounds": 3,
+          "escalated_commits": 398
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-uring-1-FCALL",
+        "value": {
+          "rounds": 2,
+          "blind_restarts": 7,
+          "wounds": 31,
+          "escalated_commits": 751
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-0-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 7,
+          "wounds": 3,
+          "escalated_commits": 389
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-0-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 9,
+          "wounds": 4,
+          "escalated_commits": 365
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-0-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 11,
+          "wounds": 1,
+          "escalated_commits": 389
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-1-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 14,
+          "wounds": 2,
+          "escalated_commits": 395
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-1-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 6,
+          "wounds": 3,
+          "escalated_commits": 393
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "1s-epoll-1-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 15,
+          "wounds": 5,
+          "escalated_commits": 383
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-0-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 1,
+          "wounds": 4,
+          "escalated_commits": 364
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-0-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 3,
+          "wounds": 0,
+          "escalated_commits": 347
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-0-FCALL",
+        "value": {
+          "rounds": 2,
+          "blind_restarts": 3,
+          "wounds": 0,
+          "escalated_commits": 705
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-1-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 3,
+          "wounds": 1,
+          "escalated_commits": 396
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-1-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 1,
+          "wounds": 0,
+          "escalated_commits": 391
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-uring-1-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 4,
+          "wounds": 0,
+          "escalated_commits": 400
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-0-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 4,
+          "wounds": 0,
+          "escalated_commits": 395
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-0-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 4,
+          "wounds": 0,
+          "escalated_commits": 388
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-0-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 1,
+          "wounds": 0,
+          "escalated_commits": 393
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-1-EVAL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 6,
+          "wounds": 3,
+          "escalated_commits": 351
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-1-EVALSHA",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 10,
+          "wounds": 2,
+          "escalated_commits": 371
+        },
+        "pass": true
+      },
+      {
+        "case": "T9",
+        "leg": "2s-epoll-1-FCALL",
+        "value": {
+          "rounds": 1,
+          "blind_restarts": 11,
+          "wounds": 2,
+          "escalated_commits": 343
+        },
+        "pass": true
+      }
+    ]
+  }
+]

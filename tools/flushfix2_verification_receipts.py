@@ -76,6 +76,9 @@ def main():
     result = dict(binary=ref(args.binary.resolve()),
                   gate_source=ref(ROOT/'tests/gate.sh'), differ_source=ref(ROOT/'tests/differ_gate.sh'),
                   runs=primary+armed, topology_run=json.loads((RUN/'topology-run.json').read_text()),
+                  notifycompat_run=json.loads((RUN/'notifycompat-run.json').read_text()),
+                  t9_rechecks=json.loads((ROOT/'docs/flushfix2/t9-rechecks.json').read_text()),
+                  flip_failure=ref(ROOT/'docs/flushfix2/flip-failure.json'),
                   gates=gates, differential=[differ(r['phase']) for r in primary+armed
                                              if r['phase'].startswith('differ-')])
     OUT.write_text(json.dumps(result, indent=2)+'\n')
