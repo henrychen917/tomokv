@@ -1,0 +1,26 @@
+[
+  {
+    "path": "docs/wave10/gates-test.log",
+    "sha256": "77cfaf4f625d8bd7e419338fccc93e569b9217d325ec50da86e5c39d06a4d009"
+  },
+  {
+    "path": "docs/wave10/gates-test-final.log",
+    "sha256": "1b3fca864ae02c828cfde2aefd574af61c3af8ef3cd280cb2012f0d2458b7c74"
+  },
+  {
+    "path": "docs/wave10/tcl-harness-restored.log",
+    "sha256": "80fba738992a199a3a0900f03e22917a61296846361b9ed1018260480f7526cb"
+  },
+  {
+    "path": "docs/wave10/lottery-build.log",
+    "sha256": "3b58a00b18a28c667ed96c1fa42128aa7751c44d5e2c2baaff30bb1dc6fd0658"
+  },
+  {
+    "path": "docs/wave10/lottery-build-final.log",
+    "sha256": "073f329c01e268dc0d9a68f0ca430d696e90a78d48a2b09a82d15a33d3bcfa73"
+  },
+  {
+    "path": "docs/wave10/publishfix-build.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

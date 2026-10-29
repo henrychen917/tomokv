@@ -189,3 +189,15 @@ Remove that entry as part of the global-ring exclusion; the collector/fixture
 inventory remains 946/963. The initial concurrent standalone/selftest attempts
 also collided on reserved port 20098. Preserve those failures and rerun these
 controls sequentially; no timeout or assertion is relaxed.
+
+The repaired real-tree `python3 tests/gates_test.py` passes all **73 tests**.
+The earlier 15 failures comprise the stale slowlog queue entry, scheduler
+deadlines under concurrent selftests, and the shared-port collision; those logs
+are retained. The final run is sequential with the other selftest campaign.
+
+Both disposable lottery and publishfix schedule builds succeeded and are fresh
+under `make -q`; hashes and exact commands are in `variant-builds.json`.
+The separately delivered current-layout no-rlfix4 control removes only rlfix4’s
+production diff from final POST. This supplements the requested literal
+pre-rlfix4-merge arm, which predates the later cold CR/LF repair and DB0 budget
+selection. It gives the maintainer a direct integrated-layout inclusion control.
