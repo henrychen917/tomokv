@@ -144,6 +144,19 @@ def main():
         scopes(*args.rest)
     elif args.phase == 'identity':
         identity = references()
+        # Resolve the actual long-double/SIMD literals and checked switch
+        # tables also used to bind counted probes to their production bodies.
+        # Keep a separate cache: compile-trial receipts used the older strict
+        # normalizer and must remain reproducible.
+        from wave10_normalize import install
+        install(identity.audit)
+        identity.OUT = BUILD / 'identity-resolved'
+        for label in ('headline-final', 'post-final'):
+            counted = DOC / 'instructions' / label / 'counts.json'
+            if counted.exists():
+                for row in json.loads(counted.read_text())['rows']:
+                    identity.COUNTED_HOT.update(identity.audit.canonical(name)
+                                               for name in row['functions'])
         sys.argv = ['identity', str(ROOT / 'build/tomokv'),
                     'docs/wave10/' + (args.rest[0] if args.rest else 'identity')]
         identity.main()

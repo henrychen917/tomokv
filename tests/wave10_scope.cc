@@ -133,13 +133,15 @@ struct CoreConcurrencyTest {
     const auto id=client.rob().dispatch_id();auto* op=client.rob().template acquire<false>();need(op);
     for(const auto& arg:args)need(op->push_arg(Slice(arg)));
     op->spec=command_lookup(op->arg(0));op->state.store(OpState::Issued);
+    // Match the ordinary command scopes: pre-parsed key/hash are fixture setup.
+    // Keep the fixture's private hash clone outside the production census.
+    if(command=="EVAL-single") { op->hash=FlatStore::hash_key(op->arg(3));op->shard=0; }
     if(activation)scope_begin();
     ScatterDispatch dispatch;
     const auto prepared=xshard_prepare(server,*op,pool,io,client.id(),dispatch,false,&client);
     if(command=="EVAL-single") {
      need(prepared==ScatterPrepare::NotScatter);
      need(command_prepare_script_route(server,*op));
-     op->hash=FlatStore::hash_key(op->arg(3));op->shard=0;
      client.rob().publish();const Task task{&client,id,-1,nullptr};
      const auto owner=server.worker_of_shard(0);
      if constexpr(Fused)production_fused(&loops[owner],&task,1);

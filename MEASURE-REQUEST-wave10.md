@@ -159,3 +159,26 @@ Harness: the lottery disposable-source builder rejected pubtrackfix’s new
 `tracking_emit_invalidation(..., bool batched)` signature. Update its exact-count
 anchor; the observation stays at the same entry point and no production hook
 is introduced. The rejected build log is retained before the complete rebuild.
+
+### Final serverless instruction evidence
+
+`docs/wave10/instructions/comparison.md` contains all 116 PRE/POST cells.
+GET and SET are exactly flat; INCR is flat in DB0 and -11 per operation in the
+normal namespace. MGET/MSET have no positive total. EXEC totals fall by
+1,924–4,044 instructions; read-local GET falls by 10/23 at batch 1 and 320/612
+at batch 32 (normal/DB0). EVAL single-shard adds 686/637 and cross-shard adds
+283/266 (normal/DB0), principally scriptfix2’s case-normalized SHA lookup and
+protected invocation environment. These are instruction counts, not rate claims.
+
+The 47 positive body subtotals in EXEC/EVAL/read-local all have lane/commit
+attribution in `comparison.json`; both signs are retained, including changes
+in outlined function signatures. The only integration production repair is the
+FUNCTION LOAD error suffix, outside these scopes. Every counted body binds to
+its same-arm server: PRE 547/547 and POST 551/551, zero mismatches. PRE binds
+to the supplied frozen headline, not merely the local source rebuild.
+
+The final normalizer resolves actual 10-byte x87 and 16-byte SIMD constants
+and checked switch-table destinations. It preserves opcodes, registers,
+immediates, member offsets, padding and branch destinations. Moving the fixture’s
+preparsed EVAL hash before the scope removed a private fixture clone from counts;
+the earlier counts and their mismatches remain marked as superseded evidence.
