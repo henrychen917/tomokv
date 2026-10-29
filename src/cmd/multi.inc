@@ -1448,28 +1448,32 @@ bool command_has_owner_work(const MultiCommand& command) {
 bool prepare_local_write_keys(Server& server, MultiExecState& state, MultiCommand& command,
                               Shard& shard, uint32_t owner_thread_id) {
     if (!(command.queued.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) return true;
-    // The common one-key command needs no duplicate-index allocation. Keep the
-    // full preflight-before-install order for the less common multi-key handler.
-    const uint32_t single = command.key_args.empty() ? 0 : command.key_args.front();
+    auto prepare = [&](uint32_t arg) {
+        const Slice key = command.op->arg(arg);
+        const MultiPrepareWrite result = prepare_write_key(
+            server, state, shard, key, FlatStore::hash_key(key), owner_thread_id,
+            nullptr, nullptr, !has_name(command.queued, "xreadgroup"));
+        if (result == MultiPrepareWrite::Error)
+            state.decision.aborted.store(true, std::memory_order_release);
+        return result == MultiPrepareWrite::Ready;
+    };
+    // One key needs neither the duplicate-index vector nor its exception
+    // cleanup. prepare_write_key performs its full preflight before installing.
+    if (command.key_args.size() == 1)
+        return command.key_shards.front() != shard.id() || prepare(command.key_args.front());
     std::vector<uint32_t> storage;
-    const uint32_t* unique = &single;
-    size_t count = command.key_args.size();
-    if (count == 1) {
-        if (command.key_shards.front() != shard.id()) return true;
-    } else {
-        try { storage.reserve(count); }
-        catch (const std::bad_alloc&) { state.decision.aborted.store(true, std::memory_order_release); return false; }
-        for (size_t i = 0; i < command.key_args.size(); i++) {
-            if (command.key_shards[i] != shard.id()) continue;
-            const uint32_t arg = command.key_args[i];
-            bool duplicate = false;
-            for (uint32_t prior : storage)
-                duplicate |= command.op->arg(prior).key_mem_eq(command.op->arg(arg));
-            if (!duplicate) storage.push_back(arg);
-        }
-        unique = storage.data();
-        count = storage.size();
+    try { storage.reserve(command.key_args.size()); }
+    catch (const std::bad_alloc&) { state.decision.aborted.store(true, std::memory_order_release); return false; }
+    for (size_t i = 0; i < command.key_args.size(); i++) {
+        if (command.key_shards[i] != shard.id()) continue;
+        const uint32_t arg = command.key_args[i];
+        bool duplicate = false;
+        for (uint32_t prior : storage)
+            duplicate |= command.op->arg(prior).key_mem_eq(command.op->arg(arg));
+        if (!duplicate) storage.push_back(arg);
     }
+    const uint32_t* unique = storage.data();
+    const size_t count = storage.size();
     // Multi-key handlers must preflight every key before the first install.
     // For one key, prepare_write_key already performs these checks before its
     // only install, including the ordering falsifiers and snapshot retry.
@@ -1485,18 +1489,8 @@ bool prepare_local_write_keys(Server& server, MultiExecState& state, MultiComman
             return false;
         }
     }
-    for (size_t i = 0; i < count; ++i) {
-        const uint32_t arg = unique[i];
-        const Slice key = command.op->arg(arg);
-        const MultiPrepareWrite result = prepare_write_key(
-            server, state, shard, key, FlatStore::hash_key(key), owner_thread_id,
-            nullptr, nullptr, !has_name(command.queued, "xreadgroup"));
-        if (result == MultiPrepareWrite::Retry) return false;
-        if (result == MultiPrepareWrite::Error) {
-            state.decision.aborted.store(true, std::memory_order_release);
-            return false;
-        }
-    }
+    for (size_t i = 0; i < count; ++i)
+        if (!prepare(unique[i])) return false;
     return true;
 }
 
