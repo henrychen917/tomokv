@@ -55,6 +55,17 @@ if a.final:
     for arm in arm_hashes.values():
         assert hashlib.sha256((ROOT / arm['path']).read_bytes()).hexdigest() == arm['sha256']
     assert hashlib.sha256((ROOT / 'build/tomokv').read_bytes()).hexdigest() == arm_hashes['POST']['sha256']
+    source_proof = json.loads((ROOT / 'docs/scriptfix3/production-source.json').read_text())
+    for file in source_proof['files']:
+        current = (ROOT / file['path']).read_bytes()
+        assert hashlib.sha256(current).hexdigest() == file['sha256']
+        assert current == subprocess.check_output(['git', 'show',
+            source_proof['last_production_commit'] + ':' + file['path']], cwd=ROOT)
+    for file in source_proof['preserved_gate_and_compatibility_files']:
+        assert (ROOT / file).read_bytes() == subprocess.check_output(['git', 'show',
+            source_proof['base'] + ':' + file], cwd=ROOT)
+    oracle = source_proof['oracle']
+    assert hashlib.sha256(Path(oracle['path']).read_bytes()).hexdigest() == oracle['sha256']
     completed = []
     for name in required:
         row = by_name[name]
@@ -84,6 +95,10 @@ if a.final:
         final_failed_rows=sum(row['failed'] for row in completed), differ=differ,
         freshness_checks=len(fresh), freshness_failures=sum(row['exit'] != 0 for row in fresh),
         intermediate_failure='compatibility: fused Tcl unit/tracking timeout; preserved separately, final Tcl job passed both modes',
+        source_verification=dict(production_commit=source_proof['last_production_commit'],
+            production_files=len(source_proof['files']),
+            unchanged_gate_and_compatibility_files=source_proof['preserved_gate_and_compatibility_files'],
+            oracle_sha256=oracle['sha256']),
         DQ=0, DF=0, performance='NOT RUN: maintainer-owned')
     (ROOT / 'docs/scriptfix3/proof.json').write_text(json.dumps(proof, indent=2) + '\n')
     print(json.dumps(proof, indent=2))

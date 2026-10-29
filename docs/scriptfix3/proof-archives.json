@@ -1,5 +1,29 @@
 [
   {
+    "name": "bounds-1s-epoll-a0",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 3 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-scriptfix3/docs/scriptfix3/jobs/bounds-1s-epoll-a0.tsv.partial"
+    ],
+    "binary_sha256": "d9f883e8babf349d9d7f3435bb0e27b0a2973cdd307fd67830923b18475abe01",
+    "binary_unchanged": true,
+    "archive": "docs/scriptfix3/job-archives/bounds-1s-epoll-a0.tar.gz",
+    "sha256": "65522e4bcdcb9ce3ce9ab76aaeb1a596656b35e8607fc7039561e0736ed41ff1",
+    "files": 22
+  },
+  {
+    "name": "bounds-1s-uring-a0",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 3 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-scriptfix3/docs/scriptfix3/jobs/bounds-1s-uring-a0.tsv.partial"
+    ],
+    "binary_sha256": "d9f883e8babf349d9d7f3435bb0e27b0a2973cdd307fd67830923b18475abe01",
+    "binary_unchanged": true,
+    "archive": "docs/scriptfix3/job-archives/bounds-1s-uring-a0.tar.gz",
+    "sha256": "bd2bb48df44efcc58783f853db2c0009174813f1857db373230843ded1152358",
+    "files": 22
+  },
+  {
     "name": "compatibility",
     "exit": 1,
     "summary": [
@@ -10,6 +34,42 @@
     "archive": "docs/scriptfix3/job-archives/compatibility.tar.gz",
     "sha256": "ddeb753325c54358da4996734d3283a9c8f1f8af0342219653ecb97806b4601e",
     "files": 1607
+  },
+  {
+    "name": "final-epoll",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 184 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-scriptfix3/docs/scriptfix3/jobs/final-epoll.tsv.partial"
+    ],
+    "binary_sha256": "d9f883e8babf349d9d7f3435bb0e27b0a2973cdd307fd67830923b18475abe01",
+    "binary_unchanged": true,
+    "archive": "docs/scriptfix3/job-archives/final-epoll.tar.gz",
+    "sha256": "1de4b12b2f5f5d0d7a7ad65744939be1ab45fdae1fbbc6d7b27d3e663d55a34a",
+    "files": 2685
+  },
+  {
+    "name": "final-fused-epoll",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 41 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-scriptfix3/docs/scriptfix3/jobs/final-fused-epoll.tsv.partial"
+    ],
+    "binary_sha256": "d9f883e8babf349d9d7f3435bb0e27b0a2973cdd307fd67830923b18475abe01",
+    "binary_unchanged": true,
+    "archive": "docs/scriptfix3/job-archives/final-fused-epoll.tar.gz",
+    "sha256": "df34a8d3a6e689df0f835dc3e62c7dcc7e812796e3e7087c559d14f62f750f43",
+    "files": 190
+  },
+  {
+    "name": "final-fused-uring",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 41 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-scriptfix3/docs/scriptfix3/jobs/final-fused-uring.tsv.partial"
+    ],
+    "binary_sha256": "d9f883e8babf349d9d7f3435bb0e27b0a2973cdd307fd67830923b18475abe01",
+    "binary_unchanged": true,
+    "archive": "docs/scriptfix3/job-archives/final-fused-uring.tar.gz",
+    "sha256": "ad6808428e6968c23a29b7f27a9e372c848161a9e0a83359df9011b43ea7fc0c",
+    "files": 190
   },
   {
     "name": "final-uring",
