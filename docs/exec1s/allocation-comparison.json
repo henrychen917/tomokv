@@ -1,0 +1,22 @@
+[
+  {
+    "namespace": "normal",
+    "PRE_1s_64": 13514,
+    "POST_1s_64": 4490,
+    "POST_2s_16": 4315,
+    "geometry_ratio": 1.040556199304751,
+    "geometry_pass": true,
+    "pre_ratio": 0.33224803907059347,
+    "quarter_pass": false
+  },
+  {
+    "namespace": "db0",
+    "PRE_1s_64": 13514,
+    "POST_1s_64": 4490,
+    "POST_2s_16": 4315,
+    "geometry_ratio": 1.040556199304751,
+    "geometry_pass": true,
+    "pre_ratio": 0.33224803907059347,
+    "quarter_pass": false
+  }
+]

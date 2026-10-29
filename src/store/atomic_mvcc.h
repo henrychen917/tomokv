@@ -6,8 +6,10 @@
 // boundary.
 #pragma once
 #include <atomic>
+#include <bit>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include "kv_block_cache.h"
 #include "kvobj.h"
 
@@ -141,13 +143,33 @@ struct AtomicPendingState {
     // Owner-task-only: an install span has physical candidates but is not linked yet. Eviction
     // cannot resolve their ownership until publication. Uses existing padding; offsets stay put.
     bool group_installing = false;
+    // Modulo count in the remaining alignment hole. The zero fast exit also
+    // requires live < 256, so wrapping can never hide a grouped record.
+    uint8_t group_records = 0;
+    uint8_t group_padding = 0; // Keep construction one four-byte header clear.
     uint64_t cleanup_fast = 0;
     uint64_t cleanup_slow = 0;
     size_t cached_entry_bytes = 0;
     size_t cached_value_bytes = 0;
+
+    __attribute__((always_inline)) void finish_group_install() {
+        // These two bytes are owner-only. Never widen this update over
+        // read_local_extended: foreign readers inspect that immutable byte.
+        uint16_t flags;
+        auto* flags_at = reinterpret_cast<char*>(this) + offsetof(AtomicPendingState, group_installing);
+        std::memcpy(&flags, flags_at, sizeof(flags));
+        flags += 0xffu; // installed flag 1 -> 0, group count +1 modulo 256
+        std::memcpy(flags_at, &flags, sizeof(flags));
+    }
 };
 
 static_assert(sizeof(AtomicPendingState) == 1352);
+static_assert(std::endian::native == std::endian::little);
+static_assert(offsetof(AtomicPendingState, group_installing) ==
+              offsetof(AtomicPendingState, read_local_extended) + 1);
+static_assert(offsetof(AtomicPendingState, group_records) ==
+              offsetof(AtomicPendingState, read_local_extended) + 2);
+
 static_assert(offsetof(AtomicPendingState, read_local_extended) == 1316);
 
 struct AtomicResolved {

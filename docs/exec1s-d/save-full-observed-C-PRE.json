@@ -1,0 +1,27 @@
+{
+  "arm": {
+    "arm": "C-PRE",
+    "source_commit": "83e0b809d0fdeb4bf43647bd0cada7a4f14f241d",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/C-PRE",
+    "sha256": "47c4cc498a212922433220c57efca3b7e249e3c23889623a0c7de0e0feeb043b",
+    "bytes": 218187712
+  },
+  "command": [
+    "taskset",
+    "-c",
+    "64-95",
+    "tests/differ_gate.sh",
+    "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-full-observed-C-PRE/observed-server",
+    "20000",
+    "20001",
+    "64-71",
+    "6:2"
+  ],
+  "returncode": 1,
+  "plan_sha256": "691f4ca97536166577ea77321b44f34853f690a70251f7290597768397f41157",
+  "observer_sha256": "44fb39cb1343a9633f08d40c1ba6bbca36e251ef8a3cb031962e2c0df12f4737",
+  "target_log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-full-observed-C-PRE/differ/target-atomic-0.log",
+  "target_log_sha256": "01312b41d02f3d1c6a709074c51b7008341198c0b275008efb206fd906fc6286",
+  "results": [],
+  "observer_errors": []
+}

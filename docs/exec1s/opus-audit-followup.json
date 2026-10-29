@@ -1,0 +1,16 @@
+{
+  "model": [
+    "claude-opus-5-5"
+  ],
+  "effort": "max",
+  "provider": "firstParty",
+  "is_error": false,
+  "permission_denials": [],
+  "num_turns": 145,
+  "request_sha256": "d1d26bb512862aeac45e7750ed85f2a00487a1a121b5fade5e768699d2ccf104",
+  "result_sha256": "4043e1220ceeb2efe76bac16071ff5b526dfcf5884d2a6dd0d278664711df799",
+  "repair_diff_sha256": "7dcf7c3db2aaa0a03547bb98bd11fb57f1423e6b3f2356a0d216152dbc00c3d9",
+  "requested_head": "5d019214a15ee4b7e7fd4aff06e3153d183aff51",
+  "observed_head": "c7ca4f0bf",
+  "status": "C1-C4 repairs accepted; TSAN dependencies and nonvacuous retirement assertions strengthened after review; final small-diff audit pending"
+}

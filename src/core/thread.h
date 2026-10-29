@@ -322,6 +322,7 @@ public:
     void init(uint32_t id, Role r, uint32_t nthreads, uint32_t age_sample_rate,
               uint32_t flip_work_window) {
         id_ = id;
+        exec1s_counters[id_] = {};
         role_.store(r, std::memory_order_relaxed);
         nchan_     = nthreads;
         client_in_ = std::make_unique<ClientChan[]>(nthreads);
@@ -856,6 +857,9 @@ public:
     uint32_t client_count() const { return client_count_.load(std::memory_order_acquire); }
     void add_client(Client* client) {
         clients_.push_back(client);
+        auto& counts = exec1s_counters[id_];
+        counts.clients_live = clients_.size();
+        counts.clients_peak = std::max(counts.clients_peak, counts.clients_live);
         client_count_.fetch_add(1, std::memory_order_release);
     }
     bool remove_client(Client* client) {
@@ -863,6 +867,7 @@ public:
         if (found == clients_.end()) return false;
         *found = clients_.back();
         clients_.pop_back();
+        exec1s_counters[id_].clients_live = clients_.size();
         if (client_count_.fetch_sub(1, std::memory_order_release) == 0) std::abort();
         return true;
     }

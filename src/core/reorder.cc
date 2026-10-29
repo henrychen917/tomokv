@@ -500,6 +500,7 @@ template <uint32_t BatchOps, bool ConsumeTasks,
           bool IofusedPrivateQueue, bool InterleaveLocalReads>
 uint32_t ExLoopT<Fused>::r7_fused_pass_impl() {
     TOMO_R7_PATH();
+    ++exec1s_counters[self_->id()].owner_passes;
     Server::ClientWorkScope client_work(*srv_, self_->id());
     struct RotationBoundary {
         bool enabled;
@@ -626,8 +627,14 @@ uint32_t ExLoopT<Fused>::r7_fused_pass_impl() {
             read_local_impl().lane_admit_cap = want;
     }
     if (!lb_frozen) did += owner_control_tail();
-    if (did) {
+    // Incoming deferred task work and outstanding IO do not require any
+    // owner task to have progressed first. Keep the fused loop active until
+    // those CQEs can be reaped on its next pass.
+    if (ring_.completion_service_needed()) {
         ring_.submit_and_reap();
+        ++did;
+    }
+    if (did) {
         fused_idle_spins_ = 0;
         return did;
     }
@@ -642,7 +649,7 @@ uint32_t ExLoopT<Fused>::r7_fused_pass_impl() {
     } else {
         did = r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
     }
-    if (did) ring_.submit_and_reap();
+    if (ring_.completion_service_needed()) { ring_.submit_and_reap(); ++did; }
     return did;
 }
 
@@ -661,6 +668,7 @@ template <uint32_t BatchOps, bool ConsumeTasks,
           bool IofusedPrivateQueue, bool InterleaveLocalReads>
 uint32_t ExLoopT<Fused>::r7_fused_sweep_impl() {
     TOMO_R7_PATH();
+    ++exec1s_counters[self_->id()].owner_passes;
     if (lb_controller_armed_ && srv_->lb_dispatch_paused())
         return r7_fused_pass_impl<BatchOps, ConsumeTasks,
                                IofusedPrivateQueue>();
@@ -694,7 +702,7 @@ uint32_t ExLoopT<Fused>::r7_fused_sweep_impl() {
             r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
     }
     if (read_local_enabled()) did += read_local_impl().deferred.drain_ready();
-    if (did) ring_.submit_and_reap();
+    if (ring_.completion_service_needed()) { ring_.submit_and_reap(); ++did; }
     return did;
 }
 
@@ -761,6 +769,11 @@ void IoLoop::r7_run_loop() {
                     client, probed, fallbacks, count, demoted);
             });
 
+    Ring::RegisteredFd registered_io(Fused && !SplitLocal ? &ring_ : nullptr);
+    Ring::RegisteredFd registered_ex(Fused && !SplitLocal && fused_executor_ ? &fused_executor_->ring() : nullptr);
+    // Thread identity is fixed for this run. Hoist hint addressing out of
+    // both boundaries rather than rediscovering it through the executor.
+    const auto* const owner_bell = &fused_owner_bells[self_->id()];
     wb_rule::IdleWindow wb_idle;
     Server::DebugSleepWorker sleep_worker(srv_->debug_sleep_coordinator(), self_->id());
     if constexpr (Fused) {
@@ -867,6 +880,10 @@ void IoLoop::r7_run_loop() {
             did += drain_client_transfers<kEp>();
             did += scatter_pool_.refresh_snapshot_floor(*srv_, self_->id());
             if constexpr (HasUnix) did += flush_handoffs();
+            if constexpr (Fused && !SplitLocal) {
+                if (owner_bell->runnable.load(std::memory_order_relaxed))
+                    did += fused_executor_->fused_owner_turn<true>();
+            }
             did += multi_owner_pass_entry(*this);
             if (aof_writer_bound())
                 did += srv_->aof().writer_pass(*self_, ring_);
@@ -892,6 +909,10 @@ void IoLoop::r7_run_loop() {
                 if (__builtin_expect(!routing_forward_.empty(), false))
                     client_routing_cleanup_pass();
                 did += r7_flush_ready<HasTls, kEp>();
+            }
+            if constexpr (Fused && !SplitLocal) {
+                if (owner_bell->runnable.load(std::memory_order_relaxed))
+                    did += fused_executor_->fused_owner_turn<true>();
             }
             did += flip_control_pass<kEp>();
             if (__builtin_expect(client_lb_signal_armed &&

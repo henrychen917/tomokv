@@ -1,0 +1,214 @@
+{
+  "source_commit": "9db5f2fbb8c3192cbff6a176e761f9a24988b1c9",
+  "production_sha256": "4ccee1eb58d6dfe19279c0e9289c306e0e5c33283c89d3c1b9d29570cb2bf474",
+  "positive_unit_sha256": "eee03d20ef3ab5f6950da53c1bc41f78e7e5991c0a427c16b1c2f6ac6d07e02f",
+  "positive": [
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "/home/user/Projects/cx-exec1s-c/build/exec1s-unit",
+        "publication",
+        "1s",
+        "0"
+      ],
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-c/build/exec1s-evidence/directed/publication-1s-0.log",
+      "log_sha256": "e510d64e79efa87ce0d5f1593e63d7dedaf7e9f15745f3b286ca6e538191dec6"
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "/home/user/Projects/cx-exec1s-c/build/exec1s-unit",
+        "publication",
+        "1s",
+        "1"
+      ],
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-c/build/exec1s-evidence/directed/publication-1s-1.log",
+      "log_sha256": "e510d64e79efa87ce0d5f1593e63d7dedaf7e9f15745f3b286ca6e538191dec6"
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "/home/user/Projects/cx-exec1s-c/build/exec1s-unit",
+        "publication",
+        "2s",
+        "0"
+      ],
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-c/build/exec1s-evidence/directed/publication-2s-0.log",
+      "log_sha256": "e510d64e79efa87ce0d5f1593e63d7dedaf7e9f15745f3b286ca6e538191dec6"
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "/home/user/Projects/cx-exec1s-c/build/exec1s-unit",
+        "publication",
+        "2s",
+        "1"
+      ],
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-c/build/exec1s-evidence/directed/publication-2s-1.log",
+      "log_sha256": "e510d64e79efa87ce0d5f1593e63d7dedaf7e9f15745f3b286ca6e538191dec6"
+    }
+  ],
+  "negative": [
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "/home/user/Projects/cx-exec1s-c/build/exec1s-unit-old-publication",
+        "publication",
+        "1s",
+        "0"
+      ],
+      "returncode": 1,
+      "log": "/home/user/Projects/cx-exec1s-c/build/exec1s-evidence/directed/old-publication-1s-0.log",
+      "log_sha256": "5438d51f7becb3965100449c71654d08f773d3951b44810de2dfa975f74c91ba",
+      "expected_failure": true
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "/home/user/Projects/cx-exec1s-c/build/exec1s-unit-old-publication",
+        "publication",
+        "1s",
+        "1"
+      ],
+      "returncode": 1,
+      "log": "/home/user/Projects/cx-exec1s-c/build/exec1s-evidence/directed/old-publication-1s-1.log",
+      "log_sha256": "5438d51f7becb3965100449c71654d08f773d3951b44810de2dfa975f74c91ba",
+      "expected_failure": true
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "/home/user/Projects/cx-exec1s-c/build/exec1s-unit-old-publication",
+        "publication",
+        "2s",
+        "0"
+      ],
+      "returncode": 1,
+      "log": "/home/user/Projects/cx-exec1s-c/build/exec1s-evidence/directed/old-publication-2s-0.log",
+      "log_sha256": "5438d51f7becb3965100449c71654d08f773d3951b44810de2dfa975f74c91ba",
+      "expected_failure": true
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "/home/user/Projects/cx-exec1s-c/build/exec1s-unit-old-publication",
+        "publication",
+        "2s",
+        "1"
+      ],
+      "returncode": 1,
+      "log": "/home/user/Projects/cx-exec1s-c/build/exec1s-evidence/directed/old-publication-2s-1.log",
+      "log_sha256": "5438d51f7becb3965100449c71654d08f773d3951b44810de2dfa975f74c91ba",
+      "expected_failure": true
+    }
+  ],
+  "negative_unit_sha256": "0b8533b230b03499d519a61acb560078b06bde787bb5fc519dfbc81f95259c1c",
+  "control_build": {
+    "command": [
+      "g++",
+      "-I/home/user/Projects/cx-exec1s-c/build/exec1s-evidence/directed/old-publication-source",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "tests/exec1s_unit.cc",
+      "build/src/net/tls.o",
+      "build/src/cmd/commands.o",
+      "build/src/cmd/glob.o",
+      "build/src/cmd/acl.o",
+      "build/src/cmd/hll.o",
+      "build/src/cmd/t_server.o",
+      "build/src/cmd/t_string.o",
+      "build/src/cmd/t_string_notify.o",
+      "build/src/cmd/t_hash.o",
+      "build/src/cmd/t_hash_ttl.o",
+      "build/src/cmd/t_list.o",
+      "build/src/cmd/t_set.o",
+      "build/src/cmd/t_zset.o",
+      "build/src/cmd/t_zset_ops.o",
+      "build/src/cmd/geo.o",
+      "build/src/cmd/t_stream.o",
+      "build/src/cmd/t_stream_groups.o",
+      "build/src/cmd/scripting.o",
+      "build/src/cmd/functions.o",
+      "build/src/cmd/serialize.o",
+      "build/src/snapshot/snapshot.o",
+      "build/src/persist/aof.o",
+      "build/src/cmd/climon.o",
+      "build/src/cmd/tracking.o",
+      "build/src/cmd/server_tail.o",
+      "build/src/cmd/slowlog.o",
+      "build/src/cmd/lcs.o",
+      "build/src/cmd/info_stats.o",
+      "build/src/cmd/lbsignals.o",
+      "build/src/core/flipctl.o",
+      "build/src/core/genthread.o",
+      "build/src/core/rl2s.o",
+      "build/src/core/lbstall.o",
+      "build/src/core/lbplanner.o",
+      "build/src/cmd/l4prebuild.o",
+      "build/src/cmd/cmdgap.o",
+      "build/src/cmd/pfdebug.o",
+      "build/src/cmd/cmdmeta.o",
+      "build/src/cmd/t_sort.o",
+      "build/src/cmd/multidb.o",
+      "build/src/cmd/storesize.o",
+      "build/src/cmd/multi_admin.o",
+      "build/src/core/reorder.o",
+      "build/src/cmd/geo_store.o",
+      "build/src/persist/aof_frame_debug.o",
+      "build/src/cmd/aclkeys.o",
+      "build/src/cmd/blocking_debug.o",
+      "build/src/cmd/objectpread.o",
+      "build/src/cmd/hexpread.o",
+      "build/src/cmd/autharity.o",
+      "build/src/core/fliplisten.o",
+      "build/src/core/shutdown.o",
+      "build/src/cmd/latency_tracking.o",
+      "build/third_party/lua/helpers/lua_cjson.o",
+      "build/third_party/lua/helpers/lua_cmsgpack.o",
+      "build/third_party/lua/helpers/lua_bit.o",
+      "build/third_party/lua/helpers/lua_struct.o",
+      "build/third_party/lua/helpers/strbuf.o",
+      "build/third_party/lua/helpers/fpconv.o",
+      "-o",
+      "/home/user/Projects/cx-exec1s-c/build/exec1s-unit-old-publication",
+      "-ljemalloc",
+      "-luring",
+      "-pthread",
+      "-lssl",
+      "-lcrypto",
+      "-lm"
+    ],
+    "returncode": 0,
+    "log": "/home/user/Projects/cx-exec1s-c/build/exec1s-evidence/directed/old-publication-build.log",
+    "log_sha256": "6f78e06f45ea9f5efabf32f2dfc0c1e5e77f5def1d21f14fbc88d525a7a79b44"
+  },
+  "control_source_sha256": "ccaefd23cc502d90c2d2b2664152116981fc6569f633c96827a1a7e34a4e0264",
+  "control": "Restore only the old size-equality publication guard in a temporary source overlay."
+}

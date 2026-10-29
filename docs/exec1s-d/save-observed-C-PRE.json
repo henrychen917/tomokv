@@ -1,0 +1,111 @@
+{
+  "arm": {
+    "arm": "C-PRE",
+    "source_commit": "83e0b809d0fdeb4bf43647bd0cada7a4f14f241d",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/C-PRE",
+    "sha256": "47c4cc498a212922433220c57efca3b7e249e3c23889623a0c7de0e0feeb043b",
+    "bytes": 218187712
+  },
+  "commands": [
+    [
+      "taskset",
+      "-c",
+      "64-71",
+      "gdb",
+      "-nx",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-observed-C-PRE/observe.gdb",
+      "--args",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/C-PRE",
+      "--port",
+      "20000",
+      "--bind",
+      "127.0.0.1",
+      "--shards",
+      "16",
+      "--ratio",
+      "6:2",
+      "--net-io",
+      "epoll",
+      "--databases",
+      "16",
+      "--atomic",
+      "0",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-observed-C-PRE/target",
+      "--enable-debug-command",
+      "yes"
+    ],
+    [
+      "taskset",
+      "-c",
+      "72-79",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "20001",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-observed-C-PRE/oracle"
+    ]
+  ],
+  "seed": 22,
+  "suite": "psfix",
+  "mode": "2s",
+  "engine": "epoll",
+  "atomic": 0,
+  "results": [
+    {
+      "repeat": 0,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-observed-C-PRE/psfix-a0-s22-repeat-000.log",
+      "sha256": "922261cc564b1c5b78fc39db8a04f0311592fd4fd42b2491c3afd90da05683e6"
+    },
+    {
+      "repeat": 1,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-observed-C-PRE/psfix-a0-s22-repeat-001.log",
+      "sha256": "71e365013aca0d635ec741fe43f9690e86b7c09efb031ed762611d44afcf489e"
+    },
+    {
+      "repeat": 2,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-observed-C-PRE/psfix-a0-s22-repeat-002.log",
+      "sha256": "c5a753bd7a577d1eb5ab3c2ba0d9d035ebce2ef37532aa8e28b11ccb35a78507"
+    },
+    {
+      "repeat": 3,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-observed-C-PRE/psfix-a0-s22-repeat-003.log",
+      "sha256": "96e2bf792f62813f2c7eb4376e949f02d7783a285e4a78bc33f04b4d3049329c"
+    },
+    {
+      "repeat": 4,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-observed-C-PRE/psfix-a0-s22-repeat-004.log",
+      "sha256": "9814e59c2e220103bd0cadaa5c23e35f931b82db49295729c55c47defaba5303"
+    },
+    {
+      "repeat": 5,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-observed-C-PRE/psfix-a0-s22-repeat-005.log",
+      "sha256": "c22dccee335ac319337e881dda0c9646ffea5221412e303d584cbd43e2f32998"
+    },
+    {
+      "repeat": 6,
+      "returncode": 1,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-observed-C-PRE/psfix-a0-s22-repeat-006.log",
+      "sha256": "f0eb4a3056b94ed316a0690a9eb4eb27bd3440233f2632a323e8890bc723d793"
+    }
+  ],
+  "admissions": [],
+  "observer_sha256": "40b214e5b47b0a104446ee5ba03f873e617dcf2ec8b8a189a8d3c49e7e16a696",
+  "server_log_sha256": "ee9ad0b7fee0daf19e00adf9c4aac0db90ce0993846edf89cca471d06554e277"
+}

@@ -1,0 +1,48 @@
+{
+  "arm": {
+    "arm": "MERGE",
+    "source_commit": "d602c8c3641436b992ed4ddf1410ad2d0f557e54",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/MERGE",
+    "sha256": "462c49e4806e9c208162f0ac9ef688077f3dc909edc7592cc7a88be747292f1c",
+    "bytes": 220032464
+  },
+  "command": [
+    "taskset",
+    "-c",
+    "64-95",
+    "tests/differ_gate.sh",
+    "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-full-busy-only-MERGE/traceable-server",
+    "20000",
+    "20001",
+    "64-71",
+    "6:2"
+  ],
+  "returncode": 0,
+  "observer_kind": "Busy reply only",
+  "busy_results": [],
+  "armed": [
+    {
+      "locations": 2
+    }
+  ],
+  "busy_sites": [
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_116snapshot_commandERNS_2OpEb",
+      "offset": 336,
+      "elf_address": 6077360,
+      "assembly_sha256": "a88f773338bef248e84580683e60c52dfd6f1a91b61aaacb231746b5c12269d2"
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_116snapshot_commandERNS_2OpEb",
+      "offset": 336,
+      "elf_address": 2016240,
+      "assembly_sha256": "f09ec3d9ebb220a3c748d4408ee107df0a2b5fb211ec7f5e86cb61ed06bf2b0b"
+    }
+  ],
+  "plan_sha256": "691f4ca97536166577ea77321b44f34853f690a70251f7290597768397f41157",
+  "observer_sha256": "eb558679f0e1a6033b29d9108bfb85ee1221abaf6faffb3622d8e9e3ce42b2a6",
+  "target_log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-full-busy-only-MERGE/observer.log",
+  "target_log_sha256": "86bedce1e5450fd32d719d918bd3a6fa5cb3c35eba377255fd034ef15048a89c",
+  "results": [],
+  "observer_errors": []
+}

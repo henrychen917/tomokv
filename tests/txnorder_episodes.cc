@@ -22,7 +22,7 @@ struct EpisodeUnit {
     std::string watched;
     EpisodeUnit(Server& s, bool g = false) : server(s), is_group(g) {
         client.set_id(g ? 992 : 991);
-        exec.reset(allocate_state(server, client, 0, MultiStateKind::Execute));
+        exec.reset(fixture_allocate_state(server, client, 0, MultiStateKind::Execute));
         require(exec != nullptr, "episode state allocated");
         group.server = &server;
         group.watch_refs.store(ScatterState::kGroupAttemptRef);

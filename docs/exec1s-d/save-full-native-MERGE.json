@@ -1,0 +1,25 @@
+{
+  "arm": {
+    "arm": "MERGE",
+    "source_commit": "d602c8c3641436b992ed4ddf1410ad2d0f557e54",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/MERGE",
+    "sha256": "462c49e4806e9c208162f0ac9ef688077f3dc909edc7592cc7a88be747292f1c",
+    "bytes": 220032464
+  },
+  "command": [
+    "taskset",
+    "-c",
+    "64-95",
+    "tests/differ_gate.sh",
+    "/home/user/Projects/cx-exec1s-d/build/exec1s-d/MERGE",
+    "20000",
+    "20001",
+    "64-71",
+    "6:2"
+  ],
+  "returncode": 0,
+  "plan_sha256": "691f4ca97536166577ea77321b44f34853f690a70251f7290597768397f41157",
+  "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-full-native-MERGE/run.log",
+  "log_sha256": "0371d4799b5900cb79ee4276d114d09cd5e41b6a9e030f52f9d820b90595ba0f",
+  "observer": false
+}

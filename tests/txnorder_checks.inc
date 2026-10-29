@@ -11,7 +11,7 @@ void txnorder_checks(Server& server, const std::string& name) {
     std::atomic<uint32_t> refs{0};
     if (name == "txnorder_placement") {
         auto make = [&](uint64_t age) {
-            std::unique_ptr<MultiExecState> p(allocate_state(server, client, 0, MultiStateKind::Execute));
+            std::unique_ptr<MultiExecState> p(fixture_allocate_state(server, client, 0, MultiStateKind::Execute));
             p->decision.age_ns = age;
             txn_add_claim(p->claims[0], slice(src), TxnClaimMode::Write);
             return p;
@@ -90,7 +90,7 @@ void txnorder_checks(Server& server, const std::string& name) {
         require(!older->watch_refs.load() && !middle->watch_refs.load() &&
                 !younger->watch_refs.load() && !shard.has_watches(), "execfair all pins drained");
     } else if (name == "txnorder_claims") {
-        std::unique_ptr<MultiExecState> state(allocate_state(server, client, 0, MultiStateKind::Execute));
+        std::unique_ptr<MultiExecState> state(fixture_allocate_state(server, client, 0, MultiStateKind::Execute));
         std::vector<MultiQueuedCommand> queue;
         for (auto args : {std::vector<std::string>{"GET", src},
                           std::vector<std::string>{"SORT", src, "STORE", dst},
@@ -123,7 +123,7 @@ void txnorder_checks(Server& server, const std::string& name) {
         server.atomic_publish_quiescent();
         const auto cut = server.atomic_snapshot();
         require(local(server, {"SET", src, "new"}) == "+OK\r\n", "new version installed");
-        std::unique_ptr<MultiExecState> state(allocate_state(server, client, 0, MultiStateKind::Execute));
+        std::unique_ptr<MultiExecState> state(fixture_allocate_state(server, client, 0, MultiStateKind::Execute));
         std::vector<MultiQueuedCommand> queue;
         for (const auto& key : {src, remote}) {
             Request request({"GET", key});
@@ -151,7 +151,7 @@ void txnorder_checks(Server& server, const std::string& name) {
         const auto hash = FlatStore::hash_key(slice(dst));
         require(shard.store().atomic_script_pin(hash, slice(dst)), "F2 force versioned writer");
         require(local(server, {"SET", dst, "new"}) == "+OK\r\n", "F2 foreign version committed");
-        std::unique_ptr<MultiExecState> holder(allocate_state(server, client, 0, MultiStateKind::Execute));
+        std::unique_ptr<MultiExecState> holder(fixture_allocate_state(server, client, 0, MultiStateKind::Execute));
         holder->read_only = false;
         holder->watched.push_back({src, FlatStore::hash_key(slice(src)), 0, 0, 0});
         require(shard.watch_append_reservation(watch_key_string(slice(src)),
@@ -242,7 +242,7 @@ void txnorder_checks(Server& server, const std::string& name) {
                 "F8 WATCH starts after blind decision");
         shard.watch_remove(slice(src), &client, client.watch_generation());
     } else if (name == "txnorder_f6") {
-        std::unique_ptr<MultiExecState> state(allocate_state(server, client, 0, MultiStateKind::Execute));
+        std::unique_ptr<MultiExecState> state(fixture_allocate_state(server, client, 0, MultiStateKind::Execute));
         require(state != nullptr, "F6 attempt allocated");
         shard.blocking_waiter_added();
         shard.take_blocking_dirty();

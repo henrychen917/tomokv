@@ -50,6 +50,9 @@ int main(int argc,char **argv) {
     while(fgets(line,sizeof(line),f))if(strstr(line,argv[3])){unsigned long offset;char perm[8];if(sscanf(line,"%lx-%*x %7s %lx",&base,perm,&offset)!=3||offset)fail("base");break;}
     fclose(f);if(!base)fail("missing executable map");
     until(base+begin);
+    const char *trace_path=getenv("TOMO_SCOPE_PC_TRACE");
+    FILE *trace=trace_path?fopen(trace_path,"w"):NULL;
+    if(trace_path&&!trace)fail("PC trace");
     uint64_t steps=0,clocks=0,excluded=0;unsigned long previous=0;
     for(;steps<10000000;steps++) {
         struct user_regs_struct r=regs();if(r.rip==base+end)break;
@@ -61,6 +64,7 @@ int main(int argc,char **argv) {
             excluded++;until(ret);continue;
         }
         previous=i->pc;
+        if(trace&&i->fn)fprintf(trace,"%lx %u\n",i->pc,i->fn);
         if(i->fn)counts[i->fn]++;
         if(i->kind==2) {
             // Same deterministic clock as the established GDB fixture.
@@ -72,6 +76,7 @@ int main(int argc,char **argv) {
         } else resume(PTRACE_SINGLESTEP);
     }
     if(steps==10000000)fail("trace bound");
+    if(trace)fclose(trace);
     if(ptrace(PTRACE_CONT,child,0,0))fail("finish");
     int status;
     if(waitpid(child,&status,0)!=child||!WIFEXITED(status)||WEXITSTATUS(status))fail("fixture exact-data check");

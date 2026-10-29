@@ -1,0 +1,359 @@
+{
+  "reason": "Retire generated large persistence data only after successful job completion; retain logs, ledgers, and JSON receipts.",
+  "retired_utc": "2026-10-28T04:44:04.819747+00:00",
+  "files": [
+    {
+      "path": "build/gate-run.OqQ6P5/jobs/aof-uring/savefix-rewrite-1s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "size": 135366493,
+      "sha256": "6e020fc976208e1eddf9bd7d5bd87639a40f5522aa6eab207bc1ee02c13372bc",
+      "job_done": [
+        0,
+        54,
+        0
+      ],
+      "job_ledger_sha256": "959eff20be51d036e08aa2644fe077952b05547ec20245f73a61f50555d1a582"
+    },
+    {
+      "path": "build/gate-run.OqQ6P5/jobs/aof-uring/savefix-rewrite-1s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "size": 135412830,
+      "sha256": "4c487279f395c5f824fa0df3b65d8ed9f06f24418356f227ecbb178dfc459d52",
+      "job_done": [
+        0,
+        54,
+        0
+      ],
+      "job_ledger_sha256": "959eff20be51d036e08aa2644fe077952b05547ec20245f73a61f50555d1a582"
+    },
+    {
+      "path": "build/gate-run.OqQ6P5/jobs/aof-uring/savefix-rewrite-2s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "size": 135350335,
+      "sha256": "e14cf579a7faefbc72b94edd28e7d250367521e1fe4349ff5fd3b45e01064807",
+      "job_done": [
+        0,
+        54,
+        0
+      ],
+      "job_ledger_sha256": "959eff20be51d036e08aa2644fe077952b05547ec20245f73a61f50555d1a582"
+    },
+    {
+      "path": "build/gate-run.OqQ6P5/jobs/aof-uring/savefix-rewrite-2s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "size": 135412269,
+      "sha256": "9c74cb5476904b7f13519ca08f89d61cba475f66ee557dd61fa832131a8d1096",
+      "job_done": [
+        0,
+        54,
+        0
+      ],
+      "job_ledger_sha256": "959eff20be51d036e08aa2644fe077952b05547ec20245f73a61f50555d1a582"
+    },
+    {
+      "path": "build/gate-run.OqQ6P5/jobs/aof-epoll/savefix-rewrite-1s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "size": 135372919,
+      "sha256": "8cb2fe622236cfdcf616b618d8543493ff7eaee4c55551d925355dbe04dd77c4",
+      "job_done": [
+        0,
+        54,
+        0
+      ],
+      "job_ledger_sha256": "435aacb452b4f4a8d961243a85391e455c1dcb05bc8efcf3fe92e44d52b1bb09"
+    },
+    {
+      "path": "build/gate-run.OqQ6P5/jobs/aof-epoll/savefix-rewrite-1s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "size": 135414885,
+      "sha256": "949ee65d67bf6366ad9f981583b4ad4678f602d07a04ceec1a2470d41913a0a8",
+      "job_done": [
+        0,
+        54,
+        0
+      ],
+      "job_ledger_sha256": "435aacb452b4f4a8d961243a85391e455c1dcb05bc8efcf3fe92e44d52b1bb09"
+    },
+    {
+      "path": "build/gate-run.OqQ6P5/jobs/aof-epoll/savefix-rewrite-2s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "size": 135357754,
+      "sha256": "fb37bc40886e4a9ddcc7c81aa8b75c7cda394018cf2af14592bf1ab48ab25942",
+      "job_done": [
+        0,
+        54,
+        0
+      ],
+      "job_ledger_sha256": "435aacb452b4f4a8d961243a85391e455c1dcb05bc8efcf3fe92e44d52b1bb09"
+    },
+    {
+      "path": "build/gate-run.OqQ6P5/jobs/aof-epoll/savefix-rewrite-2s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "size": 135415221,
+      "sha256": "bcaecd8a277b22d8a1ae185d405e501073b15894aed823fc88518bc3f9b842e2",
+      "job_done": [
+        0,
+        54,
+        0
+      ],
+      "job_ledger_sha256": "435aacb452b4f4a8d961243a85391e455c1dcb05bc8efcf3fe92e44d52b1bb09"
+    },
+    {
+      "path": "build/gate-run.OqQ6P5/jobs/snapshot-uring/savefix-acks-1s-command/attempt-1/dump.tomo",
+      "size": 32673650,
+      "sha256": "8a1305af623dfa54f7e521865edc1fd261abcbc0f0eaa2469fa3f9c9ce31ae62",
+      "job_done": [
+        0,
+        16,
+        0
+      ],
+      "job_ledger_sha256": "b45a0f195b31ae18d8fa5793766cc1ebad17a1e84b46a8968995bef579000415"
+    },
+    {
+      "path": "build/gate-run.OqQ6P5/jobs/snapshot-uring/savefix-acks-1s-sigterm/attempt-1/dump.tomo",
+      "size": 32673650,
+      "sha256": "835015736f2846509a309deed484510b82679186d0931777e2d93897b681bb22",
+      "job_done": [
+        0,
+        16,
+        0
+      ],
+      "job_ledger_sha256": "b45a0f195b31ae18d8fa5793766cc1ebad17a1e84b46a8968995bef579000415"
+    },
+    {
+      "path": "build/gate-run.OqQ6P5/jobs/snapshot-uring/savefix-acks-2s-command/attempt-1/dump.tomo",
+      "size": 32673618,
+      "sha256": "f507cf9c2c7d849cb87fa0f0d6999e2dd8119caf07709f67004ec2cbab36f697",
+      "job_done": [
+        0,
+        16,
+        0
+      ],
+      "job_ledger_sha256": "b45a0f195b31ae18d8fa5793766cc1ebad17a1e84b46a8968995bef579000415"
+    },
+    {
+      "path": "build/gate-run.OqQ6P5/jobs/snapshot-uring/savefix-acks-2s-sigterm/attempt-1/dump.tomo",
+      "size": 32673618,
+      "sha256": "fa0e0093fa55bd58f8bd72bea5bcb8ee6f0fa687764b72e741a1f3bc5599221b",
+      "job_done": [
+        0,
+        16,
+        0
+      ],
+      "job_ledger_sha256": "b45a0f195b31ae18d8fa5793766cc1ebad17a1e84b46a8968995bef579000415"
+    },
+    {
+      "path": "build/gate-run.OqQ6P5/jobs/snapshot-epoll/savefix-acks-1s-command/attempt-1/dump.tomo",
+      "size": 32673650,
+      "sha256": "1b4d709453e20f2a15eab48447ca74297c65e919a7b1ae72d516ca99c90f1c40",
+      "job_done": [
+        0,
+        16,
+        0
+      ],
+      "job_ledger_sha256": "45e89c07591e314bb39207047c5b2f3ab13344a6039b981058a451f99dd561de"
+    },
+    {
+      "path": "build/gate-run.OqQ6P5/jobs/snapshot-epoll/savefix-acks-1s-sigterm/attempt-1/dump.tomo",
+      "size": 32673682,
+      "sha256": "16591f20555d130535c309829af7ad7c7736975354eb93c77b701ff173d54aa6",
+      "job_done": [
+        0,
+        16,
+        0
+      ],
+      "job_ledger_sha256": "45e89c07591e314bb39207047c5b2f3ab13344a6039b981058a451f99dd561de"
+    },
+    {
+      "path": "build/gate-run.OqQ6P5/jobs/snapshot-epoll/savefix-acks-2s-command/attempt-1/dump.tomo",
+      "size": 32673618,
+      "sha256": "1428d57cdccb6bba0a6af5ee0fd5c3e0062f7f9fe07a407b6db9fe96cd351603",
+      "job_done": [
+        0,
+        16,
+        0
+      ],
+      "job_ledger_sha256": "45e89c07591e314bb39207047c5b2f3ab13344a6039b981058a451f99dd561de"
+    },
+    {
+      "path": "build/gate-run.OqQ6P5/jobs/snapshot-epoll/savefix-acks-2s-sigterm/attempt-1/dump.tomo",
+      "size": 32673618,
+      "sha256": "cbe2c064740c00aebd2b3fed1c44849f0b51e1334a319da8307e383ef6ef2c68",
+      "job_done": [
+        0,
+        16,
+        0
+      ],
+      "job_ledger_sha256": "45e89c07591e314bb39207047c5b2f3ab13344a6039b981058a451f99dd561de"
+    },
+    {
+      "path": "build/gate-run.7W3VYF/jobs/aof-uring/savefix-rewrite-1s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "size": 135352609,
+      "sha256": "b422da8b82122490355150750187706cc916812aeb0aee5ae316dc5b07dfc25c",
+      "job_done": [
+        0,
+        54,
+        0
+      ],
+      "job_ledger_sha256": "6e3dcb94149cf2fab02acc75033e3776bf59b889358e53796b9cff8e6010887a"
+    },
+    {
+      "path": "build/gate-run.7W3VYF/jobs/aof-uring/savefix-rewrite-1s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "size": 135411576,
+      "sha256": "24fd9a0e70789d3b4d8fa015b65a7fdf107bedf910d32f4bb7e6baa65a5b5c5f",
+      "job_done": [
+        0,
+        54,
+        0
+      ],
+      "job_ledger_sha256": "6e3dcb94149cf2fab02acc75033e3776bf59b889358e53796b9cff8e6010887a"
+    },
+    {
+      "path": "build/gate-run.7W3VYF/jobs/aof-uring/savefix-rewrite-2s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "size": 135374605,
+      "sha256": "45afc0be61623c649bf956f8204b985169a25e526531306224962e8ad73cce10",
+      "job_done": [
+        0,
+        54,
+        0
+      ],
+      "job_ledger_sha256": "6e3dcb94149cf2fab02acc75033e3776bf59b889358e53796b9cff8e6010887a"
+    },
+    {
+      "path": "build/gate-run.7W3VYF/jobs/aof-uring/savefix-rewrite-2s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "size": 135415728,
+      "sha256": "ea2005ec213ba97fddb1f16d8414b9c5909ac4cac9c5feb4915d6c961fe36711",
+      "job_done": [
+        0,
+        54,
+        0
+      ],
+      "job_ledger_sha256": "6e3dcb94149cf2fab02acc75033e3776bf59b889358e53796b9cff8e6010887a"
+    },
+    {
+      "path": "build/gate-run.7W3VYF/jobs/aof-epoll/savefix-rewrite-1s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "size": 135351499,
+      "sha256": "d7961ccf1060cfd9d5e9f8a9c8bb7b7760ea104b6fd5ec5aa393adca15939e00",
+      "job_done": [
+        0,
+        54,
+        0
+      ],
+      "job_ledger_sha256": "9c65c390979b8c4aad1fcccf9a165bdda6083734704b8e1512b878fdb5f191d4"
+    },
+    {
+      "path": "build/gate-run.7W3VYF/jobs/aof-epoll/savefix-rewrite-1s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "size": 135419283,
+      "sha256": "388c32dce2683243922abfbea6bc3e37c038a969fab9ae8ae5ed503d42083ddb",
+      "job_done": [
+        0,
+        54,
+        0
+      ],
+      "job_ledger_sha256": "9c65c390979b8c4aad1fcccf9a165bdda6083734704b8e1512b878fdb5f191d4"
+    },
+    {
+      "path": "build/gate-run.7W3VYF/jobs/aof-epoll/savefix-rewrite-2s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "size": 135367618,
+      "sha256": "8de1aa174ca0bae89dfdc5432d829fe2df623c11eacb7171683e9101620a5e4f",
+      "job_done": [
+        0,
+        54,
+        0
+      ],
+      "job_ledger_sha256": "9c65c390979b8c4aad1fcccf9a165bdda6083734704b8e1512b878fdb5f191d4"
+    },
+    {
+      "path": "build/gate-run.7W3VYF/jobs/aof-epoll/savefix-rewrite-2s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "size": 135418851,
+      "sha256": "f2bdb6d4c5292e45c5ad959d20ee68df8d340e9493b2b0585db02c245755b46d",
+      "job_done": [
+        0,
+        54,
+        0
+      ],
+      "job_ledger_sha256": "9c65c390979b8c4aad1fcccf9a165bdda6083734704b8e1512b878fdb5f191d4"
+    },
+    {
+      "path": "build/gate-run.7W3VYF/jobs/snapshot-uring/savefix-acks-1s-command/attempt-1/dump.tomo",
+      "size": 32673650,
+      "sha256": "e7c8c19c53d5b920832c3fd04ca7d89cf6910a03280dd9bff1aed40202f31d8b",
+      "job_done": [
+        0,
+        16,
+        0
+      ],
+      "job_ledger_sha256": "fd64993dbe1e76ec383fef8f0b42639bf1b422d5e5d61604a473ed18c01c626b"
+    },
+    {
+      "path": "build/gate-run.7W3VYF/jobs/snapshot-uring/savefix-acks-1s-sigterm/attempt-1/dump.tomo",
+      "size": 32673682,
+      "sha256": "d6c634a94397423b56e27d52ef39eae263ad8e386636c65978010b2a993b4d88",
+      "job_done": [
+        0,
+        16,
+        0
+      ],
+      "job_ledger_sha256": "fd64993dbe1e76ec383fef8f0b42639bf1b422d5e5d61604a473ed18c01c626b"
+    },
+    {
+      "path": "build/gate-run.7W3VYF/jobs/snapshot-uring/savefix-acks-2s-command/attempt-1/dump.tomo",
+      "size": 32673586,
+      "sha256": "14d4b0ee23d96cf69dd5b0b2c9f7e945563aee02447ec9197448555c5764b093",
+      "job_done": [
+        0,
+        16,
+        0
+      ],
+      "job_ledger_sha256": "fd64993dbe1e76ec383fef8f0b42639bf1b422d5e5d61604a473ed18c01c626b"
+    },
+    {
+      "path": "build/gate-run.7W3VYF/jobs/snapshot-uring/savefix-acks-2s-sigterm/attempt-1/dump.tomo",
+      "size": 32673650,
+      "sha256": "e5c57d922a62b6234b06868f2372ef551946996220ce17e40410d8324467dfbd",
+      "job_done": [
+        0,
+        16,
+        0
+      ],
+      "job_ledger_sha256": "fd64993dbe1e76ec383fef8f0b42639bf1b422d5e5d61604a473ed18c01c626b"
+    },
+    {
+      "path": "build/gate-run.7W3VYF/jobs/snapshot-epoll/savefix-acks-1s-command/attempt-1/dump.tomo",
+      "size": 32673586,
+      "sha256": "3763bf5f6a18c64e0013484de7283a84ea615a64850631ac55dba175381e2624",
+      "job_done": [
+        0,
+        16,
+        0
+      ],
+      "job_ledger_sha256": "e8ca46e8339c403ce06cb1ae7d7d89fcdd1e7543bb439a4e16a3b8d1379ea6cf"
+    },
+    {
+      "path": "build/gate-run.7W3VYF/jobs/snapshot-epoll/savefix-acks-1s-sigterm/attempt-1/dump.tomo",
+      "size": 32673650,
+      "sha256": "d7d50ce017b12c1508f9f082c67178caea52b85160e68e7b1e80823437d49db1",
+      "job_done": [
+        0,
+        16,
+        0
+      ],
+      "job_ledger_sha256": "e8ca46e8339c403ce06cb1ae7d7d89fcdd1e7543bb439a4e16a3b8d1379ea6cf"
+    },
+    {
+      "path": "build/gate-run.7W3VYF/jobs/snapshot-epoll/savefix-acks-2s-command/attempt-1/dump.tomo",
+      "size": 32673618,
+      "sha256": "e883e9cf986207318ae5285c3aacbbfeb1f11fd0c28c94744553b650ecbcb916",
+      "job_done": [
+        0,
+        16,
+        0
+      ],
+      "job_ledger_sha256": "e8ca46e8339c403ce06cb1ae7d7d89fcdd1e7543bb439a4e16a3b8d1379ea6cf"
+    },
+    {
+      "path": "build/gate-run.7W3VYF/jobs/snapshot-epoll/savefix-acks-2s-sigterm/attempt-1/dump.tomo",
+      "size": 32673618,
+      "sha256": "5a7ad455dc2ff1454ef267294cbf5778ba8ce72fb5a639869e1714bda79083bf",
+      "job_done": [
+        0,
+        16,
+        0
+      ],
+      "job_ledger_sha256": "e8ca46e8339c403ce06cb1ae7d7d89fcdd1e7543bb439a4e16a3b8d1379ea6cf"
+    }
+  ],
+  "bytes": 2688992619
+}

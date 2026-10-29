@@ -1,0 +1,669 @@
+--- a/src/cmd/multi.inc
++++ b/src/cmd/multi.inc
+@@ -1318,6 +1318,11 @@
+ enum class TxnBlind : uint8_t { Clear, Completing, Crossing };
+ TxnBlind txn_blind_scan(Shard& shard, const std::vector<TxnClaim>& claims,
+                         const void* own = nullptr) {
++    if (!shard.store().atomic_may_have_blind_records()) {
++        if (auto* server = shard.server())
++            ++exec1s_counters[server->worker_of_shard(shard.id())].blind_clear;
++        return TxnBlind::Clear;
++    }
+     TxnBlind result = TxnBlind::Clear;
+     for (const auto& claim : claims)
+         shard.store().atomic_visit_unit_records(claim.hash, txn_claim_slice(claim),
+@@ -1476,9 +1481,10 @@
+     for (size_t i = 0; count > 1 && i < count; ++i) {
+         const uint32_t arg = unique[i];
+         const Slice key = command.op->arg(arg);
+-        if (!multi_touch_key(state, shard, FlatStore::hash_key(key), key, true) ||
++        const uint64_t hash = FlatStore::hash_key(key);
++        if (!multi_touch_key(state, shard, hash, key, true) ||
+             !shard.watch_txn_write_ready(key, state)) return false;
+-        const auto snapshot = shard.store().snapshot_prepare_write(FlatStore::hash_key(key), key);
++        const auto snapshot = shard.store().snapshot_prepare_write(hash, key);
+         if (snapshot == FlatStore::SnapshotWriteResult::Pending) return false;
+         if (snapshot == FlatStore::SnapshotWriteResult::Error) {
+             state.decision.aborted.store(true, std::memory_order_release);
+@@ -1489,7 +1495,8 @@
+         const uint32_t arg = unique[i];
+         const Slice key = command.op->arg(arg);
+         const MultiPrepareWrite result = prepare_write_key(
+-            server, state, shard, key, FlatStore::hash_key(key), owner_thread_id,
++            server, state, shard, key, command.key_args.size() == 1
++                ? command.op->hash : FlatStore::hash_key(key), owner_thread_id,
+             nullptr, nullptr, !has_name(command.queued, "xreadgroup"));
+         if (result == MultiPrepareWrite::Retry) return false;
+         if (result == MultiPrepareWrite::Error) {
+--- a/src/core/ex_execute.inc
++++ b/src/core/ex_execute.inc
+@@ -55,11 +55,10 @@
+                 shard.set_no_touch(no_touch);
+                 if (no_touch) srv_->climon_note_no_touch();
+             }
+-            const MultiTaskResult result = execute_multi_unit(t, shard,
++            const MultiTaskResult result = finish_multi_store(shard, execute_multi_unit(t, shard,
+                 [](void* loop, MultiOwnerRetryNode& next) {
+                     static_cast<ExLoopT*>(loop)->promote_multi_retry(next);
+-                });
+-            shard.publish_size();
++                }));
+             if (result == MultiTaskResult::RetrySoon) {
+                 queue_fast_multi_retry(t);
+                 return true;
+--- a/src/core/ex_loop.h
++++ b/src/core/ex_loop.h
+@@ -193,7 +193,11 @@
+                 read_local_.impl = std::move(impl);
+             }
+         }
++        if constexpr (Fused) {
++            if (srv_->thread_mode() == ThreadMode::Fused) ring_.track_owned_completions();
++        }
+         if (!ring_.init(1024)) return false;
++        ring_.bind_entry_counters(self_->id(), true);
+         if (!srv_->databases().watch_wake(self_->id(), ring_)) return false;
+         initialized_ = true;
+         if (!dormant) activate();
+@@ -368,6 +372,7 @@
+     template <uint32_t BatchOps, bool ConsumeTasks,
+               bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
+     uint32_t fused_pass_impl() {
++        ++exec1s_counters[self_->id()].owner_passes;
+         Server::ClientWorkScope client_work(*srv_, self_->id());
+         struct RotationBoundary {
+             bool enabled;
+@@ -494,8 +499,14 @@
+                 read_local_impl().lane_admit_cap = want;
+         }
+         if (!lb_frozen) did += owner_control_tail();
++        // Incoming deferred task work and outstanding IO do not require any
++        // owner task to have progressed first. Keep the fused loop active until
++        // those CQEs can be reaped on its next pass.
++        if (ring_.completion_service_needed()) {
++            ring_.submit_and_reap();
++            ++did;
++        }
+         if (did) {
+-            ring_.submit_and_reap();
+             fused_idle_spins_ = 0;
+             return did;
+         }
+@@ -510,7 +521,7 @@
+         } else {
+             did = sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+         }
+-        if (did) ring_.submit_and_reap();
++        if (ring_.completion_service_needed()) { ring_.submit_and_reap(); ++did; }
+         return did;
+     }
+ 
+@@ -525,6 +536,7 @@
+     template <uint32_t BatchOps, bool ConsumeTasks,
+               bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
+     uint32_t fused_sweep_impl() {
++        ++exec1s_counters[self_->id()].owner_passes;
+         if (lb_controller_armed_ && srv_->lb_dispatch_paused())
+             return fused_pass_impl<BatchOps, ConsumeTasks,
+                                    IofusedPrivateQueue>();
+@@ -558,7 +570,7 @@
+                 sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+         }
+         if (read_local_enabled()) did += read_local_impl().deferred.drain_ready();
+-        if (did) ring_.submit_and_reap();
++        if (ring_.completion_service_needed()) { ring_.submit_and_reap(); ++did; }
+         return did;
+     }
+ 
+@@ -609,6 +621,7 @@
+             // the otherwise-cold configuration refresh path.
+             if (!placement_frozen) refresh_live_config();
+             sig.iterations++;
++            ++exec1s_counters[self_->id()].owner_passes;
+ 
+             uint32_t did = 0;
+             uint64_t pass_ns = 0;
+@@ -2437,10 +2450,34 @@
+         (void)owned[lb_bytes_shard_cursor_++]->lb_scan_bucket_bytes(64);
+     }
+ 
++    // Four two-key EXECs amortize a prefix collapse against eight-record walks.
++    // Only transaction completion reaches this helper; ordinary command paths
++    // do not acquire a cleanup clock/floor or update new per-operation state.
++    __attribute__((noinline)) void reclaim_multi_prefix(Shard& shard) {
++        if (shard.store().atomic_live_records() < 8) return;
++        const uint64_t cutoff = srv_->atomic_snapshot(); // must precede floor
++        const uint64_t floor = srv_->atomic_read_floor();
++        if (xshard_cleanup_shard_at(shard, floor, cutoff, 8))
++            ++exec1s_counters[self_->id()].eager_collapses;
++    }
++
++    // Keep completion bookkeeping inside the transaction branch without
++    // extending its result's live range across calls in ordinary dispatch.
++    __attribute__((noinline)) MultiTaskResult finish_multi_store(Shard& shard, MultiTaskResult result) {
++        if (result == MultiTaskResult::Complete || result == MultiTaskResult::Final)
++            reclaim_multi_prefix(shard);
++        // Expiry/object-byte statistics may change while the key count stays fixed.
++        shard.publish_size();
++        return result;
++    }
++
+     __attribute__((noinline)) MultiTaskResult execute_multi_unit(
+         const Task& task, Shard& shard, void (*promote)(void*, MultiOwnerRetryNode&)) {
+         AofOwnerContext context{self_->id(), &ring_, &self_->sig()};
+         const MultiRetryPromoter promoter{this, promote};
++#ifdef TOMO_EXEC1S_DEBUG
++        Exec1sVisitScope visits(self_->id());
++#endif
+         return multi_execute_task(*srv_, task, shard, self_->id(), self_->domain(),
+                                   aof_manager_ ? &context : nullptr, &promoter);
+     }
+--- /dev/null
++++ b/src/core/exec1s.h
+@@ -0,0 +1,48 @@
++// EXEC refinement telemetry. Owner-written, read only after worker join.
++// Keep cold observations outside all footprint-locked hot structures.
++#pragma once
++#include <array>
++#include <cstdint>
++#include <cstdio>
++namespace tomo {
++struct alignas(64) Exec1sCounters {
++    uint64_t clients_live = 0, clients_peak = 0;
++    uint64_t io_enters = 0, ex_enters = 0;
++    uint64_t io_waits = 0, ex_waits = 0;
++    uint64_t owner_passes = 0, extra_passes = 0;
++    uint64_t eager_collapses = 0, wb_exec_holds = 0;
++    uint64_t blind_clear = 0, record_visits = 0;
++};
++inline std::array<Exec1sCounters, 128> exec1s_counters{};
++// Each ring has one issuer. Adjacent thread IDs must not share counter lines.
++struct alignas(64) Exec1sRingCounters { uint64_t enters = 0, waits = 0; };
++inline std::array<Exec1sRingCounters, 256> exec1s_ring_counters{};
++inline void exec1s_print(const Exec1sCounters& c, bool json) {
++    if (json) std::printf("\"exec1s\":{");
++    else std::printf("exec1s ");
++#define TOMO_EXEC1S_FIELD(field) \
++    std::printf(json ? "\"" #field "\":%llu," : #field "=%llu ", \
++                static_cast<unsigned long long>(c.field))
++    TOMO_EXEC1S_FIELD(clients_live); TOMO_EXEC1S_FIELD(clients_peak);
++    TOMO_EXEC1S_FIELD(io_enters); TOMO_EXEC1S_FIELD(ex_enters);
++    TOMO_EXEC1S_FIELD(io_waits); TOMO_EXEC1S_FIELD(ex_waits);
++    TOMO_EXEC1S_FIELD(owner_passes); TOMO_EXEC1S_FIELD(extra_passes);
++    TOMO_EXEC1S_FIELD(eager_collapses); TOMO_EXEC1S_FIELD(wb_exec_holds);
++    TOMO_EXEC1S_FIELD(blind_clear);
++#undef TOMO_EXEC1S_FIELD
++    std::printf(json ? "\"record_visits\":%llu}," : "record_visits=%llu\n",
++                static_cast<unsigned long long>(c.record_visits));
++}
++#ifdef TOMO_EXEC1S_DEBUG
++inline thread_local Exec1sCounters* exec1s_debug_counter = nullptr;
++struct Exec1sVisitScope {
++    Exec1sCounters* old = exec1s_debug_counter;
++    explicit Exec1sVisitScope(uint32_t tid) { exec1s_debug_counter = &exec1s_counters[tid]; }
++    ~Exec1sVisitScope() { exec1s_debug_counter = old; }
++};
++#define TOMO_EXEC1S_VISIT() do { if (::tomo::exec1s_debug_counter) \
++    ++::tomo::exec1s_debug_counter->record_visits; } while (0)
++#else
++#define TOMO_EXEC1S_VISIT() ((void)0)
++#endif
++} // namespace tomo
+--- a/src/core/fliplisten.cc
++++ b/src/core/fliplisten.cc
+@@ -7,6 +7,7 @@
+ namespace {
+ constexpr UrKind kListenerAccept = static_cast<UrKind>(18);
+ constexpr UrKind kListenerCancel = static_cast<UrKind>(19);
++static_assert(UrKind::WakeSent != kListenerAccept && UrKind::WakeSent != kListenerCancel);
+ constexpr uint32_t kListeners = 3 * kMaxThreads;
+ constexpr UrKind kinds[] = {UrKind::Accept, UrKind::TlsAccept, UrKind::UnixAccept};
+ 
+--- a/src/core/io_loop.h
++++ b/src/core/io_loop.h
+@@ -103,6 +103,7 @@
+         client_lb_signal_armed_ = srv_->client_lb_signals_enabled();
+         lb_controller_armed_ = srv_->lb_controller_enabled();
+         if (!ring_.init(4096)) return false;
++        ring_.bind_entry_counters(self_->id(), false);
+         if (!srv_->databases().watch_wake(self_->id(), ring_)) return false;
+         if (epoll_ && !init_epoll()) return false;
+         wb_.bind(&ring_, this, [](void* ctx, int32_t shard, const char* ptr) {
+@@ -523,6 +524,8 @@
+         static_assert(!SplitLocal || Fused);
+         LoopSignals& sig = self_->sig();
+         IoTenure tenure(sig);
++        Ring::RegisteredFd registered_io(Fused && !SplitLocal ? &ring_ : nullptr);
++        Ring::RegisteredFd registered_ex(Fused && !SplitLocal && fused_executor_ ? &fused_executor_->ring() : nullptr);
+         wb_rule::IdleWindow wb_idle;
+         Server::DebugSleepWorker sleep_worker(srv_->debug_sleep_coordinator(), self_->id());
+         if constexpr (Fused) {
+--- a/src/core/reorder.cc
++++ b/src/core/reorder.cc
+@@ -500,6 +500,7 @@
+           bool IofusedPrivateQueue, bool InterleaveLocalReads>
+ uint32_t ExLoopT<Fused>::r7_fused_pass_impl() {
+     TOMO_R7_PATH();
++    ++exec1s_counters[self_->id()].owner_passes;
+     Server::ClientWorkScope client_work(*srv_, self_->id());
+     struct RotationBoundary {
+         bool enabled;
+@@ -626,8 +627,14 @@
+             read_local_impl().lane_admit_cap = want;
+     }
+     if (!lb_frozen) did += owner_control_tail();
++    // Incoming deferred task work and outstanding IO do not require any
++    // owner task to have progressed first. Keep the fused loop active until
++    // those CQEs can be reaped on its next pass.
++    if (ring_.completion_service_needed()) {
++        ring_.submit_and_reap();
++        ++did;
++    }
+     if (did) {
+-        ring_.submit_and_reap();
+         fused_idle_spins_ = 0;
+         return did;
+     }
+@@ -642,7 +649,7 @@
+     } else {
+         did = r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+     }
+-    if (did) ring_.submit_and_reap();
++    if (ring_.completion_service_needed()) { ring_.submit_and_reap(); ++did; }
+     return did;
+ }
+ 
+@@ -661,6 +668,7 @@
+           bool IofusedPrivateQueue, bool InterleaveLocalReads>
+ uint32_t ExLoopT<Fused>::r7_fused_sweep_impl() {
+     TOMO_R7_PATH();
++    ++exec1s_counters[self_->id()].owner_passes;
+     if (lb_controller_armed_ && srv_->lb_dispatch_paused())
+         return r7_fused_pass_impl<BatchOps, ConsumeTasks,
+                                IofusedPrivateQueue>();
+@@ -694,7 +702,7 @@
+             r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+     }
+     if (read_local_enabled()) did += read_local_impl().deferred.drain_ready();
+-    if (did) ring_.submit_and_reap();
++    if (ring_.completion_service_needed()) { ring_.submit_and_reap(); ++did; }
+     return did;
+ }
+ 
+@@ -761,6 +769,8 @@
+                     client, probed, fallbacks, count, demoted);
+             });
+ 
++    Ring::RegisteredFd registered_io(Fused && !SplitLocal ? &ring_ : nullptr);
++    Ring::RegisteredFd registered_ex(Fused && !SplitLocal && fused_executor_ ? &fused_executor_->ring() : nullptr);
+     wb_rule::IdleWindow wb_idle;
+     Server::DebugSleepWorker sleep_worker(srv_->debug_sleep_coordinator(), self_->id());
+     if constexpr (Fused) {
+--- a/src/core/shutdown_report.h
++++ b/src/core/shutdown_report.h
+@@ -53,6 +53,7 @@
+         uint64_t cpu_ns = 0;
+         uint64_t wakes_sent = 0;
+         uint64_t wakes_recv = 0;
++        Exec1sCounters exec1s;
+         uint32_t tid = 0;
+         ThreadRole role = ThreadRole::Idle;
+         std::vector<IoTenureRecord> io_tenures;
+@@ -161,6 +162,11 @@
+         row.cpu_ns = signals.cpu_ns;
+         row.wakes_sent = signals.wakes_sent;
+         row.wakes_recv = signals.wakes_recv;
++        row.exec1s = exec1s_counters[tid];
++        row.exec1s.io_enters = exec1s_ring_counters[2 * tid].enters;
++        row.exec1s.ex_enters = exec1s_ring_counters[2 * tid + 1].enters;
++        row.exec1s.io_waits = exec1s_ring_counters[2 * tid].waits;
++        row.exec1s.ex_waits = exec1s_ring_counters[2 * tid + 1].waits;
+         row.io_tenures = server.io_tenures(tid);
+         if (report.mode_ == ShutdownReport::Mode::Fused) {
+             row.role = ShutdownReport::ThreadRole::Fused;
+@@ -285,6 +291,8 @@
+                     row.busy_ns / 1e6, row.idle_ns / 1e6, row.cpu_ns / 1e6,
+                     static_cast<unsigned long long>(row.wakes_sent),
+                     static_cast<unsigned long long>(row.wakes_recv));
++        std::printf("t%u ", row.tid);
++        exec1s_print(row.exec1s, false);
+         for (size_t tenure = 0; tenure < row.io_tenures.size(); ++tenure) {
+             const auto& t = row.io_tenures[tenure];
+             std::printf("io_tenure t%u/%zu busy_ns=%llu idle_ns=%llu entry_ns=%llu "
+@@ -392,7 +400,9 @@
+     for (uint32_t index = 0; index < report.thread_count_; index++) {
+         const ShutdownReport::ThreadRow& row = report.threads_[index];
+         if (index) std::putchar(',');
+-        std::printf("{\"tid\":%u,\"role\":\"%s\",\"ops\":%llu,\"iterations\":%llu,"
++        std::putchar('{');
++        exec1s_print(row.exec1s, true);
++        std::printf("\"tid\":%u,\"role\":\"%s\",\"ops\":%llu,\"iterations\":%llu,"
+                     "\"busy_ns\":%llu,\"idle_ns\":%llu,\"cpu_ns\":%llu,"
+                     "\"wake_tx\":%llu,\"wake_rx\":%llu,\"io_tenures\":[",
+                     row.tid, shutdown_thread_role_json(row.role),
+--- a/src/core/signal.h
++++ b/src/core/signal.h
+@@ -27,6 +27,7 @@
+ #include "../exec/exqueue.h"
+ #include "../exec/masked_queue.h"
+ #include "../net/uring.h"
++#include "exec1s.h"
+ 
+ namespace tomo {
+ 
+--- a/src/core/thread.h
++++ b/src/core/thread.h
+@@ -322,6 +322,7 @@
+     void init(uint32_t id, Role r, uint32_t nthreads, uint32_t age_sample_rate,
+               uint32_t flip_work_window) {
+         id_ = id;
++        exec1s_counters[id_] = {};
+         role_.store(r, std::memory_order_relaxed);
+         nchan_     = nthreads;
+         client_in_ = std::make_unique<ClientChan[]>(nthreads);
+@@ -791,6 +792,9 @@
+     uint32_t client_count() const { return client_count_.load(std::memory_order_acquire); }
+     void add_client(Client* client) {
+         clients_.push_back(client);
++        auto& counts = exec1s_counters[id_];
++        counts.clients_live = clients_.size();
++        counts.clients_peak = std::max(counts.clients_peak, counts.clients_live);
+         client_count_.fetch_add(1, std::memory_order_release);
+     }
+     bool remove_client(Client* client) {
+@@ -798,6 +802,7 @@
+         if (found == clients_.end()) return false;
+         *found = clients_.back();
+         clients_.pop_back();
++        exec1s_counters[id_].clients_live = clients_.size();
+         if (client_count_.fetch_sub(1, std::memory_order_release) == 0) std::abort();
+         return true;
+     }
+--- a/src/net/uring.h
++++ b/src/net/uring.h
+@@ -49,6 +49,7 @@
+ #include <vector>
+ 
+ #include "../core/signal_doorbell.h"
++#include "../core/exec1s.h"
+ 
+ namespace tomo {
+ 
+@@ -74,6 +75,8 @@
+     TlsReadPoll = 14,
+     TlsWritePoll = 15,
+     MigrateCancel = 16, // source-ring cancellation request; original Recv CQE is the fence
++    // 18/19 are fliplisten's accept/cancel tags.
++    WakeSent = 20,      // issuer-side completion, distinct from a peer notification
+     DatabaseWake = 17,  // physical-worker database grace/boundary eventfd
+ };
+ 
+@@ -108,6 +111,10 @@
+         // later SQE in the batch -- including recv re-arms belonging to unrelated connections -- and
+         // present as one connection's fault stalling several others.
+         p.flags = IORING_SETUP_SINGLE_ISSUER | IORING_SETUP_DEFER_TASKRUN | IORING_SETUP_SUBMIT_ALL;
++        // Fused EX rings skip idle enters. Peer MSG_RING and permanent polls
++        // can enqueue deferred task work without an owned SQE: the kernel flag
++        // is the service request for that incoming work.
++        if (track_owned_) p.flags |= IORING_SETUP_TASKRUN_FLAG;
+         int rc = io_uring_queue_init_params(entries, &r_, &p);
+         if (rc < 0) {
+             // Fall back rather than refuse to boot: an older kernel should still run, just slower.
+@@ -154,8 +161,41 @@
+         send_pending_ = false;
+     }
+ 
++    // Registration is task-local. The guard ends on the issuer, before the
++    // post-join teardown can call liburing from the coordinator thread.
++    class RegisteredFd {
++        Ring* ring_ = nullptr;
++    public:
++        explicit RegisteredFd(Ring* ring) {
++            if (ring && ring->inited_ && io_uring_register_ring_fd(&ring->r_) == 1)
++                ring_ = ring;
++        }
++        ~RegisteredFd() {
++            if (ring_ && io_uring_unregister_ring_fd(&ring_->r_) != 1) std::abort();
++        }
++        RegisteredFd(const RegisteredFd&) = delete;
++        RegisteredFd& operator=(const RegisteredFd&) = delete;
++    };
++
++    // Only fused executor rings opt in. Permanent shutdown/database polls do
++    // not represent outstanding data work; IO continues entering every rotation.
++    void track_owned_completions() { track_owned_ = true; }
++    void note_owned_completion() { if (track_owned_) ++owned_completions_; }
++    unsigned owned_completions() const { return owned_completions_; }
++    bool completion_service_needed() const {
++        return inited_ && (sq_ready() || owned_completions_ ||
++            (IO_URING_READ_ONCE(*r_.sq.kflags) &
++             (IORING_SQ_TASKRUN | IORING_SQ_CQ_OVERFLOW)));
++    }
++
+     bool shutdown_complete() const { return !inited_ && wake_fd_ < 0; }
+ 
++    // enter counts are submit/get-events entries; waits are separate because liburing
++    // may satisfy a wait from an already populated CQ without entering the kernel.
++    void bind_entry_counters(uint32_t tid, bool executor) {
++        counter_slot_ = 2 * tid + executor;
++        exec1s_ring_counters[counter_slot_] = {};
++    }
+     io_uring* raw() { return &r_; }
+     bool deferred() const { return deferred_; }
+ 
+@@ -214,6 +254,8 @@
+ 
+     int submit() {
+         if (__builtin_expect(wake_fd_ >= 0, false)) return 0;
++        if (counter_slot_ < 256 && io_uring_sq_ready(&r_))
++            ++exec1s_ring_counters[counter_slot_].enters;
+         return io_uring_submit(&r_);
+     }
+ 
+@@ -232,6 +274,7 @@
+     int submit_and_reap() {
+         if constexpr (ClearSendClassification) send_pending_ = false;
+         if (__builtin_expect(wake_fd_ >= 0, false)) return 0;
++        if (counter_slot_ < 256) ++exec1s_ring_counters[counter_slot_].enters;
+         return io_uring_submit_and_get_events(&r_);
+     }
+ 
+@@ -259,6 +302,7 @@
+             if (n > 0 && (waits[0].revents & POLLIN)) drain_wake_fd();
+             return n < 0 ? 0 : n;
+         }
++        if (counter_slot_ < 256) ++exec1s_ring_counters[counter_slot_].waits;
+         __kernel_timespec ts{};
+         ts.tv_sec  = timeout_ms / 1000;
+         ts.tv_nsec = static_cast<long long>(timeout_ms % 1000) * 1000000LL;
+@@ -287,6 +331,7 @@
+         io_uring_for_each_cqe(&r_, head, cqe) {
+             raw++;
+             raw_callback_index_ = raw;
++            account_owned_completion(cqe);
+             fn(cqe);
+             if (raw_callback_taken_) break;
+         }
+@@ -327,6 +372,7 @@
+         io_uring_cqe* cqe;
+         unsigned head, raw = 0;
+         io_uring_for_each_cqe(&r_, head, cqe) {
++            account_owned_completion(cqe);
+             if (fn(cqe)) consumed++;
+             else deferred_cqes_.push_back(*cqe);
+             raw++;
+@@ -359,11 +405,21 @@
+         io_uring_sqe* s = sqe();
+         if (!s) return false;
+         io_uring_prep_msg_ring(s, target.r_.ring_fd, 0, tag, 0);
+-        s->user_data = ur_tag(UrKind::Wake, nullptr);
++        s->user_data = ur_tag(track_owned_ ? UrKind::WakeSent : UrKind::Wake, nullptr);
++        note_owned_completion();
+         return true;
+     }
+ 
+ private:
++    void account_owned_completion(io_uring_cqe* cqe) {
++        const auto kind = ur_kind(cqe->user_data);
++        if (track_owned_ && (kind == UrKind::WakeSent || kind == UrKind::AofIo ||
++                             kind == UrKind::SnapshotIo)) {
++            if (!owned_completions_) std::abort();
++            --owned_completions_;
++            if (kind == UrKind::WakeSent) cqe->user_data = ur_tag(UrKind::Wake, nullptr);
++        }
++    }
+     // The epoll-mode doorbell. PAYLOAD FIRST, THEN THE BELL -- the same push-then-flag order the
+     // channel mesh uses, and for the same reason: a consumer woken by the bell must be able to see
+     // everything the bell was rung for. The mutex is only ever contended by a peer that found this
+@@ -399,9 +455,12 @@
+     bool     inited_   = false;
+     bool     deferred_ = true;
+     bool     send_pending_ = false;
++    bool     track_owned_ = false; // existing five-byte hole
++    uint32_t owned_completions_ = 0;
+     std::vector<io_uring_cqe> deferred_cqes_;
+     bool raw_callback_active_ = false;
+     bool raw_callback_taken_ = false;
++    uint16_t counter_slot_ = 256; // pre-existing two-byte alignment hole
+     unsigned raw_callback_index_ = 0;
+     // Epoll-mode doorbell state. -1 in uring mode, which is the single test every method above
+     // branches on; the vector and mutex are never constructed into use there.
+--- a/src/persist/aof.cc
++++ b/src/persist/aof.cc
+@@ -101,6 +101,7 @@
+     io_uring_prep_writev(sqe, request.fd, vectors + request.vector_index,
+                          static_cast<unsigned>(request.vector_count), request.offset);
+     sqe->user_data = ur_tag(UrKind::AofIo, &request);
++    ring.note_owned_completion();
+     return sqe;
+ }
+ 
+@@ -113,6 +114,7 @@
+     // tail sync without a current write targets only the already-completed written frontier.
+     (void)drain;
+     sqe->user_data = ur_tag(UrKind::AofIo, &request);
++    ring.note_owned_completion();
+     return sqe;
+ }
+ 
+--- a/src/snapshot/snapshot.cc
++++ b/src/snapshot/snapshot.cc
+@@ -95,6 +95,7 @@
+     io_uring_prep_writev(sqe, request.fd, request.vectors,
+                          static_cast<unsigned>(request.vector_count), request.offset);
+     sqe->user_data = ur_tag(UrKind::SnapshotIo, &request);
++    ring.note_owned_completion();
+     return true;
+ }
+ 
+@@ -784,6 +785,7 @@
+     io_uring_prep_fsync(sqe, fd,
+                         role == SnapshotIoDirectorySync ? 0 : IORING_FSYNC_DATASYNC);
+     sqe->user_data = ur_tag(UrKind::SnapshotIo, request);
++    ring.note_owned_completion();
+     io_inflight_++;
+     return true;
+ }
+--- a/src/store/atomic_mvcc.h
++++ b/src/store/atomic_mvcc.h
+@@ -6,8 +6,10 @@
+ // boundary.
+ #pragma once
+ #include <atomic>
++#include <bit>
+ #include <cstddef>
+ #include <cstdint>
++#include <cstring>
+ #include "kv_block_cache.h"
+ #include "kvobj.h"
+ 
+@@ -141,13 +143,33 @@
+     // Owner-task-only: an install span has physical candidates but is not linked yet. Eviction
+     // cannot resolve their ownership until publication. Uses existing padding; offsets stay put.
+     bool group_installing = false;
++    // Modulo count in the remaining alignment hole. The zero fast exit also
++    // requires live < 256, so wrapping can never hide a grouped record.
++    uint8_t group_records = 0;
++    uint8_t group_padding = 0; // Keep construction one four-byte header clear.
+     uint64_t cleanup_fast = 0;
+     uint64_t cleanup_slow = 0;
+     size_t cached_entry_bytes = 0;
+     size_t cached_value_bytes = 0;
++
++    __attribute__((always_inline)) void finish_group_install() {
++        // These two bytes are owner-only. Never widen this update over
++        // read_local_extended: foreign readers inspect that immutable byte.
++        uint16_t flags;
++        auto* flags_at = reinterpret_cast<char*>(this) + offsetof(AtomicPendingState, group_installing);
++        std::memcpy(&flags, flags_at, sizeof(flags));
++        flags += 0xffu; // installed flag 1 -> 0, group count +1 modulo 256
++        std::memcpy(flags_at, &flags, sizeof(flags));
++    }
+ };
+ 
+ static_assert(sizeof(AtomicPendingState) == 1352);
++static_assert(std::endian::native == std::endian::little);
++static_assert(offsetof(AtomicPendingState, group_installing) ==
++              offsetof(AtomicPendingState, read_local_extended) + 1);
++static_assert(offsetof(AtomicPendingState, group_records) ==
++              offsetof(AtomicPendingState, read_local_extended) + 2);
++
+ static_assert(offsetof(AtomicPendingState, read_local_extended) == 1316);
+ 
+ struct AtomicResolved {
+--- a/src/store/flatstore.h
++++ b/src/store/flatstore.h
+@@ -60,6 +60,7 @@
+ // kilo-slot runs. Measured at ~6,600 probes per lookup. slot_start() mixes again before taking the
+ // index; that alone was worth 2.5-2.7x.
+ #pragma once
++#include "../core/exec1s.h"
+ #include <algorithm>
+ #include <atomic>
+ #include "../base/tomo_assert.h"
+--- a/src/store/flatstore_atomic.inc
++++ b/src/store/flatstore_atomic.inc
+@@ -97,6 +97,7 @@
+         const uint64_t bit = atomic_membership_bit(hash);
+         uint64_t ticket = 0;
+         for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
++            TOMO_EXEC1S_VISIT();
+             if (!(entry->membership & bit)) continue;
+             for (uint32_t i = 0; i < entry->count; i++) {
+                 if (atomic_entry_hash(*entry, i) != hash || !atomic_entry_key(*entry, i).key_eq(key))
+@@ -260,11 +261,18 @@
+                 bytes_equal(intent->key_data(), key.p, key.n))) visit(*intent);
+         }
+     }
++    uint32_t atomic_live_records() const { return atomic_pending_ ? atomic_pending_->live : 0; }
++    // A conservative blind-group count: includes script/TO-B/EXEC children.
++    // Those extra positives cost a scan, never remove a required one.
++    bool atomic_may_have_blind_records() const {
++        return atomic_pending_ && (atomic_pending_->group_records || atomic_pending_->live >= 256);
++    }
+     template <typename Visit>
+     void atomic_visit_unit_records(uint64_t hash, Slice key, bool wildcard, Visit&& visit) {
+         if (!atomic_pending_) return;
+         const uint64_t bit = atomic_membership_bit(hash);
+         for (auto* entry = atomic_pending_->head; entry; entry = entry->next) {
++            TOMO_EXEC1S_VISIT();
+             if (wildcard) { visit(*entry); continue; }
+             if (!(entry->membership & bit)) continue;
+             for (uint32_t i = 0; i < entry->count; ++i)
+@@ -518,7 +526,7 @@
+         auto* entry = static_cast<AtomicEntry*>(opaque);
+         if (!entry || !entry->count || entry->linked) std::abort();
+         atomic_link_entry(*entry);
+-        atomic_pending_->group_installing = false;
++        atomic_pending_->finish_group_install();
+     }
+ 
+ 
+@@ -1184,6 +1192,7 @@
+     }
+ 
+     void atomic_unlink_conn(AtomicEntry& entry) {
++        if (entry.group) --atomic_pending_->group_records;
+         const uint32_t bucket = static_cast<uint32_t>(mix64(entry.origin_conn_id)) & 63;
+         if (entry.conn_prev) entry.conn_prev->conn_next = entry.conn_next;
+         else {

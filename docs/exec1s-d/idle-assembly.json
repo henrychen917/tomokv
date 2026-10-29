@@ -1,0 +1,9 @@
+{
+  "production_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+  "symbols": [
+    "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb0ELb1ELb0EEEvv",
+    "_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb1ELb0EEEvv"
+  ],
+  "path": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/evidence/idle-final.asm",
+  "sha256": "4aae2fb81d1e0b484fc2e63bd9af2193f505b1d0acf6a49206bcbe438e9a94dc"
+}

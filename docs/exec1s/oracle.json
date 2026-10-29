@@ -1,0 +1,8 @@
+{
+  "path": "/home/user/Projects/redis/src/redis-server",
+  "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "version": "Redis server v=7.4.10 sha=f103d127:0 malloc=jemalloc-5.3.0 bits=64 build=f39586913084a746",
+  "source_root": "/home/user/Projects/redis",
+  "source_commit": "f103d127b9747965e28f20615ef790332661fc68",
+  "affinity": "48-63"
+}

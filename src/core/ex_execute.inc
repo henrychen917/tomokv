@@ -55,11 +55,10 @@
                 shard.set_no_touch(no_touch);
                 if (no_touch) srv_->climon_note_no_touch();
             }
-            const MultiTaskResult result = execute_multi_unit(t, shard,
+            const MultiTaskResult result = finish_multi_store(shard, execute_multi_unit(t, shard,
                 [](void* loop, MultiOwnerRetryNode& next) {
                     static_cast<ExLoopT*>(loop)->promote_multi_retry(next);
-                });
-            shard.publish_size();
+                }));
             if (result == MultiTaskResult::RetrySoon) {
                 queue_fast_multi_retry(t);
                 return true;

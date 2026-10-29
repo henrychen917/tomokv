@@ -1,0 +1,358 @@
+{
+  "binary_sha256": "efed1f73bee7660334d07b3488d262a307698d2fee5eff2602c51fa6bf318992",
+  "production_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+  "nightly_verdict": false,
+  "rows": [
+    {
+      "row": {
+        "id": "131",
+        "name": "multi_exec battery (atomic 0)",
+        "job": "feature-split-0",
+        "family": "multi_exec",
+        "primitives": [
+          "W16"
+        ],
+        "requires": [
+          "W16"
+        ],
+        "observable": "witness"
+      },
+      "passed": true,
+      "attempts": [
+        {
+          "command": [
+            "python3",
+            "tests/lottery_attempt.py",
+            "--row",
+            "131",
+            "--output",
+            "/home/user/Projects/cx-exec1s-d/build/exec1s-d/lottery-witness/131/0",
+            "--nonce",
+            "aa85e58f994f470588575e0df4e70775",
+            "--binary",
+            "/home/user/Projects/cx-exec1s-d/build/lottery/tomokv",
+            "--production-binary",
+            "/home/user/Projects/cx-exec1s-d/build/tomokv",
+            "--port",
+            "20002",
+            "--server-cpus",
+            "64-71",
+            "--client-cpus",
+            "72-79"
+          ],
+          "returncode": 0,
+          "timed_out": false,
+          "correct": true,
+          "hit": true,
+          "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/lottery-witness/131/0/receipt.json",
+          "receipt_sha256": "1e845655a974cecce41712d49aa180a8666ac55f27e444d71d28620129801f5d",
+          "counters": {
+            "W16": 21,
+            "W16.installing": 232
+          }
+        }
+      ]
+    },
+    {
+      "row": {
+        "id": "165",
+        "name": "multi_exec battery (atomic 1)",
+        "job": "feature-split-1",
+        "family": "multi_exec",
+        "primitives": [
+          "W16"
+        ],
+        "requires": [
+          "W16"
+        ],
+        "observable": "witness"
+      },
+      "passed": true,
+      "attempts": [
+        {
+          "command": [
+            "python3",
+            "tests/lottery_attempt.py",
+            "--row",
+            "165",
+            "--output",
+            "/home/user/Projects/cx-exec1s-d/build/exec1s-d/lottery-witness/165/0",
+            "--nonce",
+            "1564245ea70046939ec59a361f3d0fc6",
+            "--binary",
+            "/home/user/Projects/cx-exec1s-d/build/lottery/tomokv",
+            "--production-binary",
+            "/home/user/Projects/cx-exec1s-d/build/tomokv",
+            "--port",
+            "20002",
+            "--server-cpus",
+            "64-71",
+            "--client-cpus",
+            "72-79"
+          ],
+          "returncode": 0,
+          "timed_out": false,
+          "correct": true,
+          "hit": true,
+          "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/lottery-witness/165/0/receipt.json",
+          "receipt_sha256": "2ef97979dd5247fd6a04b43455cd73a0f45d1fc7f71ecd56d234a33180277755",
+          "counters": {
+            "W16": 60,
+            "W16.installing": 177
+          }
+        }
+      ]
+    },
+    {
+      "row": {
+        "id": "200",
+        "name": "fused multi_exec battery (atomic 0)",
+        "job": "fused-0",
+        "family": "multi_exec",
+        "primitives": [
+          "W16"
+        ],
+        "requires": [
+          "W16"
+        ],
+        "observable": "witness"
+      },
+      "passed": true,
+      "attempts": [
+        {
+          "command": [
+            "python3",
+            "tests/lottery_attempt.py",
+            "--row",
+            "200",
+            "--output",
+            "/home/user/Projects/cx-exec1s-d/build/exec1s-d/lottery-witness/200/0",
+            "--nonce",
+            "e9278023b63c4d4eb2162a6b3f0cccdd",
+            "--binary",
+            "/home/user/Projects/cx-exec1s-d/build/lottery/tomokv",
+            "--production-binary",
+            "/home/user/Projects/cx-exec1s-d/build/tomokv",
+            "--port",
+            "20002",
+            "--server-cpus",
+            "64-71",
+            "--client-cpus",
+            "72-79"
+          ],
+          "returncode": 0,
+          "timed_out": false,
+          "correct": true,
+          "hit": true,
+          "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/lottery-witness/200/0/receipt.json",
+          "receipt_sha256": "3a1eef5a1f9b9764cd6afc86058d9a707b2659ce34c55952e1474c57c3f08736",
+          "counters": {
+            "W16": 153,
+            "W16.installing": 1734
+          }
+        }
+      ]
+    },
+    {
+      "row": {
+        "id": "207",
+        "name": "fused multi_exec battery (atomic 1)",
+        "job": "fused-1",
+        "family": "multi_exec",
+        "primitives": [
+          "W16"
+        ],
+        "requires": [
+          "W16"
+        ],
+        "observable": "witness"
+      },
+      "passed": true,
+      "attempts": [
+        {
+          "command": [
+            "python3",
+            "tests/lottery_attempt.py",
+            "--row",
+            "207",
+            "--output",
+            "/home/user/Projects/cx-exec1s-d/build/exec1s-d/lottery-witness/207/0",
+            "--nonce",
+            "c81e17c7cb8544a7a4fb88353f0d68b6",
+            "--binary",
+            "/home/user/Projects/cx-exec1s-d/build/lottery/tomokv",
+            "--production-binary",
+            "/home/user/Projects/cx-exec1s-d/build/tomokv",
+            "--port",
+            "20002",
+            "--server-cpus",
+            "64-71",
+            "--client-cpus",
+            "72-79"
+          ],
+          "returncode": 0,
+          "timed_out": false,
+          "correct": true,
+          "hit": true,
+          "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/lottery-witness/207/0/receipt.json",
+          "receipt_sha256": "3d75ea90b0f1292044f5d04bfcb4e73357c797fab7be0dc19850239e84cc6b35",
+          "counters": {
+            "W16": 106,
+            "W16.installing": 2423
+          }
+        }
+      ]
+    },
+    {
+      "row": {
+        "id": "214",
+        "name": "fused+armed multi_exec battery (atomic 0)",
+        "job": "feature-armed-0",
+        "family": "multi_exec",
+        "primitives": [
+          "W16"
+        ],
+        "requires": [
+          "W16"
+        ],
+        "observable": "witness"
+      },
+      "passed": true,
+      "attempts": [
+        {
+          "command": [
+            "python3",
+            "tests/lottery_attempt.py",
+            "--row",
+            "214",
+            "--output",
+            "/home/user/Projects/cx-exec1s-d/build/exec1s-d/lottery-witness/214/0",
+            "--nonce",
+            "cfee56ffcc94406ab4428f061e0d1608",
+            "--binary",
+            "/home/user/Projects/cx-exec1s-d/build/lottery/tomokv",
+            "--production-binary",
+            "/home/user/Projects/cx-exec1s-d/build/tomokv",
+            "--port",
+            "20002",
+            "--server-cpus",
+            "64-71",
+            "--client-cpus",
+            "72-79"
+          ],
+          "returncode": 0,
+          "timed_out": false,
+          "correct": true,
+          "hit": true,
+          "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/lottery-witness/214/0/receipt.json",
+          "receipt_sha256": "2a8a6f342e4bc7a80f6e4883a7a2e2cbd72faab96969ff68f6c204f447dcca58",
+          "counters": {
+            "W16": 207,
+            "W16.installing": 2353
+          }
+        }
+      ]
+    },
+    {
+      "row": {
+        "id": "249",
+        "name": "fused+armed multi_exec battery (atomic 1)",
+        "job": "feature-armed-1",
+        "family": "multi_exec",
+        "primitives": [
+          "W16"
+        ],
+        "requires": [
+          "W16"
+        ],
+        "observable": "witness"
+      },
+      "passed": true,
+      "attempts": [
+        {
+          "command": [
+            "python3",
+            "tests/lottery_attempt.py",
+            "--row",
+            "249",
+            "--output",
+            "/home/user/Projects/cx-exec1s-d/build/exec1s-d/lottery-witness/249/0",
+            "--nonce",
+            "e0eb86dc4a1546c9aaf6838e638d8297",
+            "--binary",
+            "/home/user/Projects/cx-exec1s-d/build/lottery/tomokv",
+            "--production-binary",
+            "/home/user/Projects/cx-exec1s-d/build/tomokv",
+            "--port",
+            "20002",
+            "--server-cpus",
+            "64-71",
+            "--client-cpus",
+            "72-79"
+          ],
+          "returncode": 0,
+          "timed_out": false,
+          "correct": true,
+          "hit": true,
+          "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/lottery-witness/249/0/receipt.json",
+          "receipt_sha256": "56559a6b79833e2988145c617aaf8f6f9fb8c1010cece507b9548ac950044046",
+          "counters": {
+            "W16": 92,
+            "W16.installing": 1690
+          }
+        }
+      ]
+    },
+    {
+      "row": {
+        "id": "357",
+        "name": "MULTI feature battery",
+        "job": "notify",
+        "family": "multi_exec",
+        "primitives": [
+          "W16"
+        ],
+        "requires": [
+          "W16"
+        ],
+        "observable": "witness"
+      },
+      "passed": true,
+      "attempts": [
+        {
+          "command": [
+            "python3",
+            "tests/lottery_attempt.py",
+            "--row",
+            "357",
+            "--output",
+            "/home/user/Projects/cx-exec1s-d/build/exec1s-d/lottery-witness/357/0",
+            "--nonce",
+            "5832439fca5741d08f48e26ad5c3cc9f",
+            "--binary",
+            "/home/user/Projects/cx-exec1s-d/build/lottery/tomokv",
+            "--production-binary",
+            "/home/user/Projects/cx-exec1s-d/build/tomokv",
+            "--port",
+            "20002",
+            "--server-cpus",
+            "64-71",
+            "--client-cpus",
+            "72-79"
+          ],
+          "returncode": 0,
+          "timed_out": false,
+          "correct": true,
+          "hit": true,
+          "receipt": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/lottery-witness/357/0/receipt.json",
+          "receipt_sha256": "9c9b78ecf6690b4be6fcdcab86463d8245f88c3197cbfa589bac52e2957d5e28",
+          "counters": {
+            "W16": 32,
+            "W16.installing": 139
+          }
+        }
+      ]
+    }
+  ],
+  "passed": true
+}
