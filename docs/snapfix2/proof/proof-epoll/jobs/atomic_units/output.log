@@ -1,0 +1,54 @@
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic commit publication catches up at quiescence
+  atomic commit publication catches up at quiescence   ok
+  row budget: 900s; median=2.45s; correctness-plan-fallback; flushfix flush witnesses
+  flushfix flush witnesses                             ok
+  row budget: 900s; median=0.2s; correctness-plan-fallback; flushfix headers witnesses
+  flushfix headers witnesses                           ok
+  row budget: 900s; median=3.8s; correctness-plan-fallback; multidb serverless owners
+  multidb serverless owners                            ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; multidb global namespace boundary
+  multidb global namespace boundary                    ok
+  row budget: 900s; median=12.8s; correctness-plan-fallback; storesize published monitoring
+  storesize published monitoring                       ok
+  row budget: 900s; median=0.23s; correctness-plan-fallback; MULTI admin command replies
+  MULTI admin command replies                          ok
+  row budget: 900s; median=0.1s; correctness-plan-fallback; EXECABORT releases WATCH reservation
+  EXECABORT releases WATCH reservation                 ok
+  row budget: 900s; median=0s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); atomic survivors unit build
+  atomic survivors unit build                          ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: admission
+  atomic survivor: admission                           ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: closure
+  atomic survivor: closure                             ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: script_keys
+  atomic survivor: script_keys                         ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: rename_overlay
+  atomic survivor: rename_overlay                      ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: write_latest
+  atomic survivor: write_latest                        ok
+  row budget: 900s; median=0s; correctness-plan-fallback; atomic survivor: script_apply
+  atomic survivor: script_apply                        ok
+  row budget: 900s; median=0s; correctness-plan-fallback; atomic survivor: post_apply_probe
+  atomic survivor: post_apply_probe                    ok
+  row budget: 900s; median=0s; correctness-plan-fallback; atomic survivor: lua_conversion
+  atomic survivor: lua_conversion                      ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: watch_parent
+  atomic survivor: watch_parent                        ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: watch_cycle
+  atomic survivor: watch_cycle                         ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: mset_arity
+  atomic survivor: mset_arity                          ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: watch_oom
+  atomic survivor: watch_oom                           ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: lua_lines
+  atomic survivor: lua_lines                           ok
+  row budget: 900s; median=0s; correctness-plan-fallback; atomic survivor: library_limit
+  atomic survivor: library_limit                       ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: stage_flag
+  atomic survivor: stage_flag                          ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; atomic survivor: instruction_limit
+  atomic survivor: instruction_limit                   ok
+  row budget: 900s; median=0.19s; correctness-plan-fallback; armed resize retirement: atomic-growth
+  armed resize retirement: atomic-growth               ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; armed resize retirement: flush-prepared
+  armed resize retirement: flush-prepared              ok

@@ -1,0 +1,411 @@
+{
+  "run": "/home/user/Projects/cx-snapfix/build/gate-run.X0v5yV",
+  "command": "GATE_ONLY_JOBS='snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec' REDIS74_ROOT=/home/user/Projects/redis taskset -c 16-31 tests/gate.sh iteration --server-cores 16-23 --load-cores 24-31 --server-smt '' --load-smt '' --ports 20200-20299",
+  "binary": "/home/user/Projects/cx-snapfix/build/tomokv",
+  "binary_sha256": "13f3d45c88a0835498e38596ee1c057f1d68a501abac0640f9c40b7156c6c141",
+  "files": {
+    "ledger.partial": "1aa86170741132c0f3e410725f0164ecfc00970dce6ca5ab585f0cefb8ade168",
+    "ledger.partial.timings": "bcd763f82c96f979c0148e5e992142f2878af21c2c14211ec7ff43849729aabe",
+    "plan.sh": "982e0111bb6afb3587f70f8183a2c127f4e879673ed1d17bc532efa6d942bcc3",
+    "phases.tsv": "daf51334bdbd5b3b5feb0598d42db22417354c5afb7fa35aa2de998872518930",
+    "families.tsv": "33b2c14087d6c5d0e0edd55b30643328691eeff029bd413a6842f5b71f22de02",
+    "row-timeouts.json": "68caad87a0aa8616eb1f79e6a5863bc2da8e888a76d90b3215842bd8c5a2f5f7",
+    "gate-output.log": "32f383bb305f6ba41a60c8bcf6a797de6a7a3a773976078ad82025afbc0be504",
+    "jobs/release/family.tsv": "aa8fcc4d23a4137f0e583c88f368f3ae4176aa2c1d8f58e5475daa04d09e7a59",
+    "jobs/release/gate-build.txt": "68c5f548009ee20966e380682cc0b78f39bea9c8895af0403577a7204fef2e99",
+    "jobs/release/output.log": "409abba14aa74aa6bd5150ce2a9b4b6ed5b6d17bb0bc367f33ddb04c2f33dee2",
+    "jobs/snapfix_bgsave_exec/family.tsv": "5d66a37c3028da71c5622556c268c1a8a49c9cbc20dc8b1ddee3993d1cda1bc1",
+    "jobs/snapfix_bgsave_exec/output.log": "69ffddca285a9abb86d65285dde92ea20712d3778a50c06081ed79233fd7ae82",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-epoll-0/exec-reload.argv.json": "8b73aa446f7fe2206b08f9cd7e03c557b26b35d0546716d5a60acdac7fafa293",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-epoll-0/exec-reload.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-epoll-0/exec-reload.log": "ddd09d77ddcd91d19f104d61739f5d1a92f0bcc46db97e4d503e096a58193ac3",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-epoll-0/server.argv.json": "8b73aa446f7fe2206b08f9cd7e03c557b26b35d0546716d5a60acdac7fafa293",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-epoll-0/server.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-epoll-0/server.log": "c808366c19c649097ad71b495de7d66393fc310f75f42012e43d1ac8ebff9cdc",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-epoll-1/exec-reload.argv.json": "32d535adcba84e46f00ab891f6d1b50d3dd31fccd592169c8fd3e2f13892e9e3",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-epoll-1/exec-reload.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-epoll-1/exec-reload.log": "cda32bf480a019c1cb6cdd1787a8b4c29220ddef17e4788e8c4c14df655fa5d5",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-epoll-1/server.argv.json": "32d535adcba84e46f00ab891f6d1b50d3dd31fccd592169c8fd3e2f13892e9e3",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-epoll-1/server.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-epoll-1/server.log": "9a5380282bea79362a4c10f8edc0b55aa0295639150bcc812d963d1f0bbebbc7",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-uring-0/exec-reload.argv.json": "484bef24150b4dedcf39133335e197d2e1ccec6a498a4179a8e6e1a410c74091",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-uring-0/exec-reload.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-uring-0/exec-reload.log": "6367247d296516b12dddb525594fed4ba82cbfb92df44ca07fccd1ef9a2edaaf",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-uring-0/server.argv.json": "484bef24150b4dedcf39133335e197d2e1ccec6a498a4179a8e6e1a410c74091",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-uring-0/server.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-uring-0/server.log": "30916c7b40d83d2ffea38aaba5f26ecb6278cc691f84fb97a689d0c2fb1283f7",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-uring-1/exec-reload.argv.json": "cd9de76402ad709109fbfdb7081111faa83f9dc19bf94d2805a9376603d8ea38",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-uring-1/exec-reload.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-uring-1/exec-reload.log": "c406783cc04e8a8fd41090e58cbb19eb8fa5a1d021ce122307acb140685833b3",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-uring-1/server.argv.json": "cd9de76402ad709109fbfdb7081111faa83f9dc19bf94d2805a9376603d8ea38",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-uring-1/server.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-uring-1/server.log": "045781fc420c572ab6ef4928e05c0c50ed57ecf7db9a4a7a342695b21c7d6722",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-epoll-0/exec-reload.argv.json": "e28f26f9796713fa6216b8fe09d8534ed0edd4aa733ccc2c6fdc772a494b3ca0",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-epoll-0/exec-reload.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-epoll-0/exec-reload.log": "54d2729f61565e08175e79234018acfd7e99507fe39f94905eb264b8d970a072",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-epoll-0/server.argv.json": "e28f26f9796713fa6216b8fe09d8534ed0edd4aa733ccc2c6fdc772a494b3ca0",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-epoll-0/server.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-epoll-0/server.log": "940826dcf0f9bc139baa806e9e65bdddd311c68dabfbfb894009343192a265b1",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-epoll-1/exec-reload.argv.json": "4c8556e3bc2fa31536e8529a40f764c9d22df64f03e38ecf842f903c51b2151e",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-epoll-1/exec-reload.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-epoll-1/exec-reload.log": "d965a977d9d87ab9656c4de14e2d6d2d11307b0e1cad20f631a71a6cac96a1c0",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-epoll-1/server.argv.json": "4c8556e3bc2fa31536e8529a40f764c9d22df64f03e38ecf842f903c51b2151e",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-epoll-1/server.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-epoll-1/server.log": "709b88943c67d7912247232a42ffaa5541b89fe2658d598cce955c6cdf2ea12c",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-uring-0/exec-reload.argv.json": "80e4b38bbe08b06835da9e5b795e84d61d07e02e07fb8afadfdf1b868eeb0eb1",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-uring-0/exec-reload.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-uring-0/exec-reload.log": "d5bfda6462e2c7a24f801d379c28e38f2b1b4d1ae91e87b376ee9d4d8a7cf880",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-uring-0/server.argv.json": "80e4b38bbe08b06835da9e5b795e84d61d07e02e07fb8afadfdf1b868eeb0eb1",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-uring-0/server.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-uring-0/server.log": "e155fa4d2a5856d074cc90f8d1ae32a336839bbc024a75b0867095168b7d7ea1",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-uring-1/exec-reload.argv.json": "9c8356e3bc4ec26da10461e6cf460436a9c52ef4e5999bc2db203d31279204e3",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-uring-1/exec-reload.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-uring-1/exec-reload.log": "f9ee4ac2d66ce663c8aa9d4c301f2caf1a45defaf66d56c4a077a80cee03213c",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-uring-1/server.argv.json": "9c8356e3bc4ec26da10461e6cf460436a9c52ef4e5999bc2db203d31279204e3",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-uring-1/server.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-uring-1/server.log": "db4a4ff406f11b79d3a0072087e68655e4dc1358e66c8a33a8fe24942d73979f",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/redis-redis-0/exec-reload.argv.json": "b9b870dd938aeb2771a0bc4073d003b281b238ae7c782f2af7dc500596ce8cc5",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/redis-redis-0/exec-reload.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/redis-redis-0/exec-reload.log": "a9d2cd21a686e5ba4d5fd67d3675a03e12e9c4779b4841cc41f5147b90aa3d64",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/redis-redis-0/server.argv.json": "b9b870dd938aeb2771a0bc4073d003b281b238ae7c782f2af7dc500596ce8cc5",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/redis-redis-0/server.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/redis-redis-0/server.log": "8986fa5f7f6df5a133ea03de301db6bc79c310ef7fb0dda8b55fa5ae96c71516",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/results.json": "ef4aa3657d6d0a32289f3039edd7f02a35e2fd41bf35c17db8195f554f9d68e7",
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec.log": "d83b4558996e38b70e5a8918b26fbafa4fc32bdf73dfcf44f9bdf05c60169bac",
+    "jobs/snapfix_bgsave_script/family.tsv": "2795b7181e48aa4f59ff90f43f956e01820a44f691de1d5c2c241501c5671bce",
+    "jobs/snapfix_bgsave_script/output.log": "b42483d491881d41a0889f0916314dc5ee3f7c454fb9b0e52d803201d25dc3ed",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-epoll-0/parked/parked.argv.json": "be17db5b509e99c040676349964c3ba291fdb37495161dea97da38534d5323b5",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-epoll-0/parked/parked.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-epoll-0/parked/parked.log": "58108d14f9fce0bc9e337b0ae8768df7a762e55253da806866ad74b047952ff0",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-epoll-0/storm/storm-reload.argv.json": "44165b043af510671b80b5248cb14b3b2842c8da865c929ebcd1a6c41e1189df",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-epoll-0/storm/storm-reload.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-epoll-0/storm/storm-reload.log": "b5289e284022fd6953ed5ea501139f59aa8d5620ca4ef602a8edb8e920d981d4",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-epoll-0/storm/storm.argv.json": "44165b043af510671b80b5248cb14b3b2842c8da865c929ebcd1a6c41e1189df",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-epoll-0/storm/storm.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-epoll-0/storm/storm.log": "c15df905ce54a572097d3f3cff6542129b387a26da8c018604deb4a29b661e4f",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-epoll-1/parked/parked.argv.json": "6d220434b152a240b4d84176141c1c806633821e02385e912c388f5de11049ea",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-epoll-1/parked/parked.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-epoll-1/parked/parked.log": "c6c76b59c8d44829aa3f4fec78db9a2a4ddf3d0e1b1841d2b009eddc8d4bc9ba",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-epoll-1/storm/storm-reload.argv.json": "cec0879f6f2a64c60747d5cbed250988746bfc8c2b2c6a8fe7baa51f7ab01c3e",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-epoll-1/storm/storm-reload.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-epoll-1/storm/storm-reload.log": "5c9f32a5d4414dafa372083a09733071c34f085f2d00e881ce5accda66a979d2",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-epoll-1/storm/storm.argv.json": "cec0879f6f2a64c60747d5cbed250988746bfc8c2b2c6a8fe7baa51f7ab01c3e",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-epoll-1/storm/storm.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-epoll-1/storm/storm.log": "caf5b71ff4388495b078f88686704acd3752e0fc9ec0409fe9e8da0d1394984e",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-uring-0/parked/parked.argv.json": "178744d503020ecf87487a43dbcb09a8e7b6ed53487ab65f9c2fc195784e765f",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-uring-0/parked/parked.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-uring-0/parked/parked.log": "31b0615338c645a1ac965e46fe3839c26388c1d7e604ab415efc3073f0475f10",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-uring-0/storm/storm-reload.argv.json": "2cfc8907639a583535a7e33692d2b676e1e223d552352c6be1d933730a35d377",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-uring-0/storm/storm-reload.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-uring-0/storm/storm-reload.log": "2ebbaa63a1e27085391f0deacf015b79a4d6c5d8b555c0eaf8cb3318e79408e5",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-uring-0/storm/storm.argv.json": "2cfc8907639a583535a7e33692d2b676e1e223d552352c6be1d933730a35d377",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-uring-0/storm/storm.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-uring-0/storm/storm.log": "98c1b77858119798113dacde1c4596e4870fb9c6040c0f38f9558dceae23f9ee",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-uring-1/parked/parked.argv.json": "f243d952359f9cb652ca7d8f641fb33bec615feb85d03c3e46936f948ec01c9f",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-uring-1/parked/parked.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-uring-1/parked/parked.log": "36ca7360b6cdc86f69e21f5e2880c58a1c00ae79c36f3b972f109b75cb655299",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-uring-1/storm/storm-reload.argv.json": "e72d5f5320f515d893031c36f259e69a3f3114f96df43082c2de34434952c5e0",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-uring-1/storm/storm-reload.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-uring-1/storm/storm-reload.log": "ea54c0a4b701eab601ca2bc70b1889eac8566c466c103d8ed8926234107335c5",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-uring-1/storm/storm.argv.json": "e72d5f5320f515d893031c36f259e69a3f3114f96df43082c2de34434952c5e0",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-uring-1/storm/storm.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-uring-1/storm/storm.log": "3b3e06aae79feac22267a2ef5038e8b4b38e0c685c89ab28fac770ab6005d4c3",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-epoll-0/parked/parked.argv.json": "f98840939d725b14c59b09bc5a1f127a8d1610d5518f231d39fd2c59a1befdde",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-epoll-0/parked/parked.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-epoll-0/parked/parked.log": "395d789f03a9227d290785c0881322c4107db8e3944963da2bfd81358ec536f7",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-epoll-0/storm/storm-reload.argv.json": "f43c7658ddcf0b7bc1dc6ac17b7ecee779ff818608febaba44b68b99babe17b8",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-epoll-0/storm/storm-reload.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-epoll-0/storm/storm-reload.log": "5ea5602639df34b9afb3ddc26a1aef3c88ce7fca030f422b59f77cb1006d0b39",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-epoll-0/storm/storm.argv.json": "f43c7658ddcf0b7bc1dc6ac17b7ecee779ff818608febaba44b68b99babe17b8",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-epoll-0/storm/storm.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-epoll-0/storm/storm.log": "85ab81ffaeb8966015fb2223bad647af345cde931f19c34ba1ca3d2465af33cb",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-epoll-1/parked/parked.argv.json": "0d0335b8e99c6ff010238db18795773c22dfdbed348dcbe120dac4f1d4c08cde",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-epoll-1/parked/parked.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-epoll-1/parked/parked.log": "3a20be336dd92857acdfc05235fa60c428af478e5ae051973d9f972acc54e281",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-epoll-1/storm/storm-reload.argv.json": "32c19b2633130f03d71771a1896e7d28b8bda7cf8b8a9a8aee15980e44b95343",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-epoll-1/storm/storm-reload.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-epoll-1/storm/storm-reload.log": "99e496f5b44216542537c5fceebd41858d274161547c0e400449fe407a51e7cf",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-epoll-1/storm/storm.argv.json": "32c19b2633130f03d71771a1896e7d28b8bda7cf8b8a9a8aee15980e44b95343",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-epoll-1/storm/storm.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-epoll-1/storm/storm.log": "60f5eb42206066324705c6f079d70c5099df350401f06061fb34b974112b62a0",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-uring-0/parked/parked.argv.json": "d423bc4f7f7b3dec3e8c8b4ab29e37bca5275ec16358f4706d7a6846b8733748",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-uring-0/parked/parked.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-uring-0/parked/parked.log": "7a1e00be8714e1781240050a8ce7654e930707ca1b62d004015bf539604b512c",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-uring-0/storm/storm-reload.argv.json": "6e0353fe52d20ef42e3f51893f901d9d5fdef29204dcccb99d1ffc44bc65c656",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-uring-0/storm/storm-reload.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-uring-0/storm/storm-reload.log": "9755b3dfa02bf3ad17cdaf7da499d6a16ed664956d667caa4dac79563c2e2378",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-uring-0/storm/storm.argv.json": "6e0353fe52d20ef42e3f51893f901d9d5fdef29204dcccb99d1ffc44bc65c656",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-uring-0/storm/storm.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-uring-0/storm/storm.log": "f875b05cd3338fb6369ac9c1f7d5a8a432b075d75a231b0f7ca430bfa28cd16d",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-uring-1/parked/parked.argv.json": "d5abc72e64c7f5ad6159f19ea847b7c56d9f6257b72e71d92edebd5811a412a0",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-uring-1/parked/parked.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-uring-1/parked/parked.log": "fd4b68076f3692d73ee4ff6a6d862e79218237aab64526dace488f1904d0e11a",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-uring-1/storm/storm-reload.argv.json": "2e511b695bfa9b0c1f4be4dfc2801a333f579c68a1c5a710ebcafae8f6d385e0",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-uring-1/storm/storm-reload.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-uring-1/storm/storm-reload.log": "dc8cf5d1439646de6c0d444c0ed981d604e200d11899cb25d07f9c046b9638dc",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-uring-1/storm/storm.argv.json": "2e511b695bfa9b0c1f4be4dfc2801a333f579c68a1c5a710ebcafae8f6d385e0",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-uring-1/storm/storm.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-uring-1/storm/storm.log": "e81b089a6228216daed0cee98b2259d77c07ec3888c928e37da983629761777a",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/redis-redis-0/parked/parked.argv.json": "694e726b816fe3d48950e7f4a9865e04b428964845d3cb0de0e56673180e078b",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/redis-redis-0/parked/parked.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/redis-redis-0/parked/parked.log": "20692d99d057218cc4320b83599f113a27a2eb77002dbf8716cc7cce0acbf22f",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/redis-redis-0/storm/storm-reload.argv.json": "942ff4d12de11c1e867676aaf74dfd7e966d520368f80b74b2428eacfc81f3fe",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/redis-redis-0/storm/storm-reload.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/redis-redis-0/storm/storm-reload.log": "6ed133be1724437662a81ad88158037d9e1a0750d8672a923b185fc93a01b3c3",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/redis-redis-0/storm/storm.argv.json": "942ff4d12de11c1e867676aaf74dfd7e966d520368f80b74b2428eacfc81f3fe",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/redis-redis-0/storm/storm.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/redis-redis-0/storm/storm.log": "1be571f7e404bfb08d69682cd627988c7aae88df0ffab2a38b4eecc66756b6f0",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/results.json": "14ee3b5d4a4740ec104d4647614c25b70c674736f100af8d5c25180008959768",
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script.log": "1b3ef404aa5a909048d7813f9dfe7bc6cd8e143ae0adc426ebe69f2961eff996",
+    "jobs/snapfix_shutdown/family.tsv": "add0da0976bb7d5c7e41c5b9e3d2ae44a7cf26ef75d00589b789b380fb8b624c",
+    "jobs/snapfix_shutdown/output.log": "0294956cefa56a636224a19e754241aae324cc7f4a97453bf5deb03d24d44096",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-epoll-0/restart.argv.json": "ef1f8726487c309d91d475c87c9499f52f50bbe7767bd440765319bcf958f886",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-epoll-0/restart.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-epoll-0/restart.log": "1f03e27ba5e906b3ede6665c650c7297efbf2115433ab0e636ce965149531e81",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-epoll-0/server.argv.json": "ef1f8726487c309d91d475c87c9499f52f50bbe7767bd440765319bcf958f886",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-epoll-0/server.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-epoll-0/server.log": "4dbad570ea422f12c4400cb69b6bf583c3b8fee8bbb03ca197deed07b04d850a",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-epoll-1/restart.argv.json": "d6ca97281142523f121c2c0ed4925e31d776ec1e6c4e9d75510ca4b7912e8c16",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-epoll-1/restart.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-epoll-1/restart.log": "f9e5e4211fad5a40390c29ea034c280f20a8326924f28e86bffb29acaffdfeec",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-epoll-1/server.argv.json": "d6ca97281142523f121c2c0ed4925e31d776ec1e6c4e9d75510ca4b7912e8c16",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-epoll-1/server.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-epoll-1/server.log": "7af472254321c8876b1c745376c548ce2a12eb1bb63a62d1203f0232c73c1d72",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-uring-0/restart.argv.json": "501bc5fd9820983adb528bdd0906266d85420ad603cfeb22fbfd8ed08a16f683",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-uring-0/restart.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-uring-0/restart.log": "3f38dd145a68c3ccc5a3856f5ab350a4e9b8e4c77c9cf09d2822dfe1f8ebc47d",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-uring-0/server.argv.json": "501bc5fd9820983adb528bdd0906266d85420ad603cfeb22fbfd8ed08a16f683",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-uring-0/server.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-uring-0/server.log": "0cf4453afa5af905a734a1630135b0f824ad924a5b65fc0c25697b0f089698b2",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-uring-1/restart.argv.json": "b130c58989e6c398b13166acdee07cf5dfc037ca80155b14c669c3abce5df16d",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-uring-1/restart.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-uring-1/restart.log": "a318450aeedd5b800ff2a92eb5f6c1c1c96b9826c3e981002b50a0ab1cf9f0a8",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-uring-1/server.argv.json": "b130c58989e6c398b13166acdee07cf5dfc037ca80155b14c669c3abce5df16d",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-uring-1/server.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-uring-1/server.log": "4fff9bdd87c0e36fb67ec6688ccbfafccd2e6b88534ac730b55dc6ab51570176",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-epoll-0/restart.argv.json": "81863c187d77150e93620ed21c2f3a7d8b273bc276e67065c760bd30346c4180",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-epoll-0/restart.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-epoll-0/restart.log": "ff16b41d7c20e8c0e63d513f2798adbbeb4b37b37afd28a1f37daf87d6ee3f9c",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-epoll-0/server.argv.json": "81863c187d77150e93620ed21c2f3a7d8b273bc276e67065c760bd30346c4180",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-epoll-0/server.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-epoll-0/server.log": "ec98621750513963c477a93c2c7ac80c4621aaf5c341fd0eaee37af1f4eb8fbb",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-epoll-1/restart.argv.json": "b3db5354af472e2da4560f4e399e40fee84976bdbac62906703e3ed757bad927",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-epoll-1/restart.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-epoll-1/restart.log": "7ac4289ee6f08aeb5ee2fcde76ccae4f16c5b6173df6203bc676fe22ae806f14",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-epoll-1/server.argv.json": "b3db5354af472e2da4560f4e399e40fee84976bdbac62906703e3ed757bad927",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-epoll-1/server.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-epoll-1/server.log": "126357c3a3a6adeebdf4ee4653353159827378499de5b0baa86348b8dcaf0f5b",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-uring-0/restart.argv.json": "acd99dc834f369686c159ba4b508b82625f1e5f463624e3ac5c750870b9ef417",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-uring-0/restart.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-uring-0/restart.log": "9d5a4657e2cabcd18466d8a307682d163dadae7191bf90a5b37a3c828e6bdbe7",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-uring-0/server.argv.json": "acd99dc834f369686c159ba4b508b82625f1e5f463624e3ac5c750870b9ef417",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-uring-0/server.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-uring-0/server.log": "5718522e4a8e88bb247857baa9bc469d892a1705d80b4663c2198c49a24f3611",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-uring-1/restart.argv.json": "fe6236610bc6c78f0a3b5077060bb25bf32bbf4fd4c3079703513ec68db2f4f3",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-uring-1/restart.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-uring-1/restart.log": "b5ca35d6c8309c05476f6a5868f436f8ae3107959661221cd14a8012c100f86d",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-uring-1/server.argv.json": "fe6236610bc6c78f0a3b5077060bb25bf32bbf4fd4c3079703513ec68db2f4f3",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-uring-1/server.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-uring-1/server.log": "e70647f174ae3efc86305f17b641bc37789e4f496db3b391394f1070ab4b8d87",
+    "jobs/snapfix_shutdown/snapfix-shutdown/redis-redis-0/restart.argv.json": "fa11355a9fb228acb59ca50fb6d21752a8ebc0375f4ec3b3c263cab664deb427",
+    "jobs/snapfix_shutdown/snapfix-shutdown/redis-redis-0/restart.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_shutdown/snapfix-shutdown/redis-redis-0/restart.log": "bae2e4c43b4cbb598fd3ae215b1db5915b1ee52dbf7851f5de88333bc65e7e27",
+    "jobs/snapfix_shutdown/snapfix-shutdown/redis-redis-0/server.argv.json": "fa11355a9fb228acb59ca50fb6d21752a8ebc0375f4ec3b3c263cab664deb427",
+    "jobs/snapfix_shutdown/snapfix-shutdown/redis-redis-0/server.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix_shutdown/snapfix-shutdown/redis-redis-0/server.log": "6189fcca69be5fa45d32c4affe86d23b312f946ee6dc2aa22ac1747a1db9a7d2",
+    "jobs/snapfix_shutdown/snapfix-shutdown/results.json": "761ae1605aee9f9d8c97dafc0528d1d85d04412f5d24a71d743dddcbfb697cb7",
+    "jobs/snapfix_shutdown/snapfix-shutdown.log": "62b510afc08609ecbd7ba6c71da6df9763788656c38ce834aac1fc1ec70eeb5f"
+  },
+  "referenced": {
+    "jobs/release/row-timeout-2400185.2400185.480963628.1.cancel": {
+      "bytes": 63,
+      "sha256": "124cb5401d0bb9f7b3ee92e468db5aca0b88560f5b1d4619b083dbe217074756"
+    },
+    "jobs/snapfix_bgsave_exec/row-timeout-2464587.2464587.480969702.1.cancel": {
+      "bytes": 63,
+      "sha256": "9e7037c76a2e62e5d5582fe1889b69398eb843fafa2386bad2abae66f5487526"
+    },
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-epoll-0/dump.tomo": {
+      "bytes": 1970234,
+      "sha256": "466489ee8040a39bb9d6f1fe661c91eb8891b7b4591aa7c538a385730cf90aa4"
+    },
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-epoll-1/dump.tomo": {
+      "bytes": 1970233,
+      "sha256": "d065649f7998358eec147fa3a6b90de502640825c91872773402e0cb3c0575f5"
+    },
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-uring-0/dump.tomo": {
+      "bytes": 1970233,
+      "sha256": "dac514f939de89220371ffc1c9f3369de0c6dfbe93063c63f360bd24bfafe1e4"
+    },
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/1s-uring-1/dump.tomo": {
+      "bytes": 1970233,
+      "sha256": "627d4a72a6f00f264735710adab2ba4f840fe6b316f7d2635ec04557ffa9d3c5"
+    },
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-epoll-0/dump.tomo": {
+      "bytes": 1970233,
+      "sha256": "d883ee0c166cc94cbed6afb1754f7ada35a7aff64f3737aee2cd4660abac9892"
+    },
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-epoll-1/dump.tomo": {
+      "bytes": 1970233,
+      "sha256": "fa87d9ac364ee8ad04edca11f5626116cbc45d38b5129c35792c9883099c72f1"
+    },
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-uring-0/dump.tomo": {
+      "bytes": 1970233,
+      "sha256": "a8c87ddae01b750d57d8ccd6c2d7b72e414067934988b16c8e67b4745583e1ae"
+    },
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/2s-uring-1/dump.tomo": {
+      "bytes": 1970233,
+      "sha256": "8e3cfca9d0defd49036c76ed45ba222e950a8a606e3cf0d8899b8eb8eda28f33"
+    },
+    "jobs/snapfix_bgsave_exec/snapfix-bgsave-exec/redis-redis-0/dump.rdb": {
+      "bytes": 1099065,
+      "sha256": "adfd416d55147b81d56ca7ac9cc1574feb5dccf9fdf592c1af92f2602dfae6cc"
+    },
+    "jobs/snapfix_bgsave_script/row-timeout-2403301.2403301.480963770.1.cancel": {
+      "bytes": 63,
+      "sha256": "bf2e49bb62b039215b843ac4e3f099421defaaa16ac75df72d56ceb2a0d49c38"
+    },
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-epoll-0/parked/dump.tomo": {
+      "bytes": 732,
+      "sha256": "5da4e5c7e45adadec4b9d2f528916918a8ce701be4280740fa36484927a27fc0"
+    },
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-epoll-0/storm/dump.tomo": {
+      "bytes": 844,
+      "sha256": "2415b40e9d8d08348c763059286700b055b843c16eb6513a125b298d78fc4e86"
+    },
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-epoll-1/parked/dump.tomo": {
+      "bytes": 732,
+      "sha256": "9032302746ded631479898c7691cb0c4a96680fecfb2643a11e5eddfd7164c46"
+    },
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-epoll-1/storm/dump.tomo": {
+      "bytes": 843,
+      "sha256": "c7feafce58dc63d438d20a4cad3406863a21d5b82600f41b55f2a46c9964dace"
+    },
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-uring-0/parked/dump.tomo": {
+      "bytes": 732,
+      "sha256": "272943abb29d81149c2249e956f6a540a6090cd4c193be93f82034bb2ed99be7"
+    },
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-uring-0/storm/dump.tomo": {
+      "bytes": 842,
+      "sha256": "db8e18223c57c70bd25422a612567264ce7539df76279b7c71577832be2d4747"
+    },
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-uring-1/parked/dump.tomo": {
+      "bytes": 732,
+      "sha256": "6a7da440d7cc9841a10733a182421382f698498b9da82e529c54b8eb4f29ed93"
+    },
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/1s-uring-1/storm/dump.tomo": {
+      "bytes": 843,
+      "sha256": "1ea7fe0049e02cbe1ce1e6bfa59629b5075a74a08987a99ae6ae9b617507aa0b"
+    },
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-epoll-0/parked/dump.tomo": {
+      "bytes": 732,
+      "sha256": "ccdc6cfb8fb2e8db5c390a2aadb649efddac5b3d95df6292eaec3fbcb67c8025"
+    },
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-epoll-0/storm/dump.tomo": {
+      "bytes": 842,
+      "sha256": "10db052bc4106d2383f2e3989bffdff10c0a55b652f9c412a17ce8ac726fbc0a"
+    },
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-epoll-1/parked/dump.tomo": {
+      "bytes": 732,
+      "sha256": "a95fbba8edfcd87d7ae220b48ed4e4f61413b3a05e555d484450a886e349800f"
+    },
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-epoll-1/storm/dump.tomo": {
+      "bytes": 842,
+      "sha256": "61c6f8c4f619a67a4f879338f24c0ad2ab70ab73be97b1aa904ea640bda1c040"
+    },
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-uring-0/parked/dump.tomo": {
+      "bytes": 732,
+      "sha256": "9140a3bbf65399742d5a7be41f7e025d8142b98812e87cc8e01e2223e17eb608"
+    },
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-uring-0/storm/dump.tomo": {
+      "bytes": 842,
+      "sha256": "d27c2628d55cef89d7c6cf8383f71864bc942ec7a8d2e811e744e64c58b5cd6c"
+    },
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-uring-1/parked/dump.tomo": {
+      "bytes": 732,
+      "sha256": "8ee6f6211b3b69ed56ec56a80bdd44e35637df262b95edaeb9c996095bf4594a"
+    },
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/2s-uring-1/storm/dump.tomo": {
+      "bytes": 842,
+      "sha256": "efbfb292ea7cbddecb81544d93456092dba300cbac3177604d393c0ff90705ed"
+    },
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/redis-redis-0/parked/dump.rdb": {
+      "bytes": 130,
+      "sha256": "e49a7a2a460ee62f44769804e7bbb453b780eee147b766a64484d4500003ff2b"
+    },
+    "jobs/snapfix_bgsave_script/snapfix-bgsave-script/redis-redis-0/storm/dump.rdb": {
+      "bytes": 190,
+      "sha256": "cd948171afe0e5583036ca59f97e16c1be6d99f64797626bfd3c8ec1b1d79eb4"
+    },
+    "jobs/snapfix_shutdown/row-timeout-2400911.2400911.480963669.1.cancel": {
+      "bytes": 63,
+      "sha256": "013087648f5cbe1195ff24141d6c8ae0ac1ededa13b76980618f3cd9c0d586e8"
+    },
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-epoll-0/appendonlydir/appendonly.aof.1.incr.tomo": {
+      "bytes": 26732,
+      "sha256": "3ec2bfbbdefc44fa380e584cb3da08003c311b8cb3bd6078e101f271507b41da"
+    },
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-epoll-1/appendonlydir/appendonly.aof.1.incr.tomo": {
+      "bytes": 10112,
+      "sha256": "b91eb75049f4dceef501fa917ee26097a5bf881b65db986209b4b4a30b3b1fca"
+    },
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-uring-0/appendonlydir/appendonly.aof.1.incr.tomo": {
+      "bytes": 21260,
+      "sha256": "0fe5d2d5eb529dd7aeacbdf7d326eabaab2d2ffbf19cbaf6ffb2309a5c9a8f1d"
+    },
+    "jobs/snapfix_shutdown/snapfix-shutdown/1s-uring-1/appendonlydir/appendonly.aof.1.incr.tomo": {
+      "bytes": 12240,
+      "sha256": "ecbf8a49c3f7a3edfd1f2166b02a08d453827a813294c11b119f07994c447bb5"
+    },
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-epoll-0/appendonlydir/appendonly.aof.1.incr.tomo": {
+      "bytes": 23996,
+      "sha256": "894569883448392254b1c022183a3ee8f17415fee7cb0ed5b84c959d72e79bcb"
+    },
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-epoll-1/appendonlydir/appendonly.aof.1.incr.tomo": {
+      "bytes": 30480,
+      "sha256": "50ef7175972b0bb51181dfbd7e4f23a732bd77bcd84bb956dc5f649ec640edd3"
+    },
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-uring-0/appendonlydir/appendonly.aof.1.incr.tomo": {
+      "bytes": 24604,
+      "sha256": "1727702cf91cea7efecb973fa762b4605807a3881fc13c0480562030b7b07b48"
+    },
+    "jobs/snapfix_shutdown/snapfix-shutdown/2s-uring-1/appendonlydir/appendonly.aof.1.incr.tomo": {
+      "bytes": 27744,
+      "sha256": "fda571b1d654acff6e23055c6e9ab87b3b160cac23cc242c06cc7e2ca0d98765"
+    },
+    "jobs/snapfix_shutdown/snapfix-shutdown/redis-redis-0/appendonlydir/appendonly.aof.1.base.rdb": {
+      "bytes": 89,
+      "sha256": "da9347170d2bbab297b62bcf551125177dc285ebeb5fbedd8c9a786187be2ff3"
+    },
+    "jobs/snapfix_shutdown/snapfix-shutdown/redis-redis-0/appendonlydir/appendonly.aof.1.incr.aof": {
+      "bytes": 14250,
+      "sha256": "5534a4b5c29e56ee600d1963a82a9db614a11e4b4d3daac7ca083321ee396790"
+    },
+    "jobs/snapfix_shutdown/snapfix-shutdown/redis-redis-0/appendonlydir/appendonly.aof.manifest": {
+      "bytes": 88,
+      "sha256": "ca465c5845ad4d4c0a2b4cda8853efeb9423cb4242a4eaaa5ecbaa00a4e75492"
+    }
+  },
+  "jobs": {
+    "release": {
+      "ledger": "ok\t0.030000\trelease build (+footprint locks)\n",
+      "done": "0\t1\t0\n",
+      "timings": "ok\t0.030000\trelease build (+footprint locks)\n"
+    },
+    "snapfix_bgsave_exec": {
+      "ledger": "ok\t55.680000\tsnapfix SNAP-STORM-1 BGSAVE under EXEC + writer storm (both modes, both engines, atomic 0/1)\n",
+      "done": "0\t1\t0\n",
+      "timings": "ok\t55.680000\tsnapfix SNAP-STORM-1 BGSAVE under EXEC + writer storm (both modes, both engines, atomic 0/1)\n"
+    },
+    "snapfix_bgsave_script": {
+      "ledger": "ok\t58.970000\tsnapfix SNAP-STORM-1 BGSAVE under script storm (both modes, both engines, atomic 0/1)\n",
+      "done": "0\t1\t0\n",
+      "timings": "ok\t58.970000\tsnapfix SNAP-STORM-1 BGSAVE under script storm (both modes, both engines, atomic 0/1)\n"
+    },
+    "snapfix_shutdown": {
+      "ledger": "ok\t0.640000\tsnapfix XS-SHUT-1 SHUTDOWN NOSAVE in script storm (both modes, both engines, atomic 0/1)\n",
+      "done": "0\t1\t0\n",
+      "timings": "ok\t0.640000\tsnapfix XS-SHUT-1 SHUTDOWN NOSAVE in script storm (both modes, both engines, atomic 0/1)\n"
+    }
+  }
+}

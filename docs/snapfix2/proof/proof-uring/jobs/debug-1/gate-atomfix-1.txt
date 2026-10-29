@@ -1,0 +1,25 @@
+atomfix: atomic=on
+  ok   atomic_scan_order_holds baseline = 0
+  ok   DEBUG ATOMIC-DIRECT-DEFER 0 accepted
+  ok   seed SET 0
+  ok   seeded 96 source keys
+  ok   KEYS listed all 96 destinations that answered +OK
+  ok   second round (overwrite then re-RENAME) listed every destination
+  ok   trailing MSET replied
+  ok   KEYS between DEL and MSET listed neither the deleted nor the not-yet-written values
+  ok   unarmed control passed, holds fired 0x
+  ok   DEBUG ATOMIC-DIRECT-DEFER 64 accepted
+  ok   seed SET 0
+  ok   seeded 96 source keys
+  ok   KEYS listed all 96 destinations that answered +OK
+  ok   second round (overwrite then re-RENAME) listed every destination
+  ok   trailing MSET replied
+  ok   KEYS between DEL and MSET listed neither the deleted nor the not-yet-written values
+  ok   held source seeded
+  ok   directed hold armed
+  ok   directed hold released
+  ok   held RENAME completed
+  ok   source-complete hold and same-connection walker ordering witnessed
+  ok   armed run forced the interleave, holds fired 0x
+  note armed holds 0 did not exceed unarmed 0; the window was already open naturally
+atomfix: PASS

@@ -1,0 +1,8 @@
+[
+  {
+    "defect": "SNAP-STORM-1",
+    "attempt": 0,
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix/tests/at412_diagnostics.py\", line 91, in main\n    row['value'] = a.storm(c, port, keys, call, args.redis, args.seconds, bgsave=True,\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix/tests/at412.py\", line 463, in storm\n    reply = c.cmd('BGSAVE')\n            ^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-snapfix/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+  }
+]

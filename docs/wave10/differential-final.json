@@ -1,0 +1,238 @@
+[
+  {
+    "engine": "uring",
+    "plan": {
+      "schema": 1,
+      "manifest": {
+        "run": "full:gate-run.UIRjtt",
+        "permanent": [
+          7,
+          19,
+          20,
+          23
+        ],
+        "failed": [],
+        "rotating": 22,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          22
+        ],
+        "history": "/home/user/Projects/cx-wave10/.gate-history/wave10-differ-uring"
+      },
+      "suites": [
+        "string",
+        "list",
+        "set",
+        "zset",
+        "hash",
+        "hexpire",
+        "edgetime",
+        "xshard",
+        "xmove",
+        "bitmap",
+        "hll",
+        "bitfield",
+        "cgaps",
+        "stream",
+        "script",
+        "streamgrp",
+        "zsetops",
+        "geo",
+        "doubles",
+        "scan",
+        "multi",
+        "encodingfix",
+        "edgeenc",
+        "edgeproto",
+        "cmdgap",
+        "cmdgap2",
+        "sort",
+        "servertail",
+        "arity",
+        "storeorder",
+        "infofix",
+        "multidb",
+        "blocking",
+        "pubsub",
+        "fanout",
+        "spubsub",
+        "notify",
+        "wiredump",
+        "climon",
+        "compatintro",
+        "aclsel",
+        "aclkeys",
+        "cmdmeta",
+        "s6fix",
+        "ccfix",
+        "psfix",
+        "monitor"
+      ],
+      "repeats": 4,
+      "equivalence_seeds": [
+        22
+      ]
+    },
+    "seed22_save_checks": [
+      {
+        "path": "build/gate-run.UIRjtt/jobs/differ-armed-0/differ/psfix-a0-s22.txt.coverage.json",
+        "sha256": "1d4f2d43220f4916cb51d63a7fe45fad88db5039fe5f9d25d22d9bd0c9d62293",
+        "SAVE": 4,
+        "BGSAVE": 2,
+        "checks": [
+          "rdb_saves advances exactly once after completion"
+        ]
+      },
+      {
+        "path": "build/gate-run.UIRjtt/jobs/differ-armed-1/differ/psfix-a1-s22.txt.coverage.json",
+        "sha256": "1d4f2d43220f4916cb51d63a7fe45fad88db5039fe5f9d25d22d9bd0c9d62293",
+        "SAVE": 4,
+        "BGSAVE": 2,
+        "checks": [
+          "rdb_saves advances exactly once after completion"
+        ]
+      },
+      {
+        "path": "build/gate-run.UIRjtt/jobs/differ-split-0/differ/psfix-a0-s22.txt.coverage.json",
+        "sha256": "1d4f2d43220f4916cb51d63a7fe45fad88db5039fe5f9d25d22d9bd0c9d62293",
+        "SAVE": 4,
+        "BGSAVE": 2,
+        "checks": [
+          "rdb_saves advances exactly once after completion"
+        ]
+      },
+      {
+        "path": "build/gate-run.UIRjtt/jobs/differ-split-1/differ/psfix-a1-s22.txt.coverage.json",
+        "sha256": "1d4f2d43220f4916cb51d63a7fe45fad88db5039fe5f9d25d22d9bd0c9d62293",
+        "SAVE": 4,
+        "BGSAVE": 2,
+        "checks": [
+          "rdb_saves advances exactly once after completion"
+        ]
+      }
+    ],
+    "SAVE_comparisons": 16,
+    "result": "All whole split/armed differential jobs and mode-equivalence jobs passed; historical seed-22 SAVE failure not reproduced."
+  },
+  {
+    "engine": "epoll",
+    "plan": {
+      "schema": 1,
+      "manifest": {
+        "run": "full:gate-run.xsxs39",
+        "permanent": [
+          7,
+          19,
+          20,
+          23
+        ],
+        "failed": [],
+        "rotating": 22,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          22
+        ],
+        "history": "/home/user/Projects/cx-wave10/.gate-history/wave10-differ-epoll"
+      },
+      "suites": [
+        "string",
+        "list",
+        "set",
+        "zset",
+        "hash",
+        "hexpire",
+        "edgetime",
+        "xshard",
+        "xmove",
+        "bitmap",
+        "hll",
+        "bitfield",
+        "cgaps",
+        "stream",
+        "script",
+        "streamgrp",
+        "zsetops",
+        "geo",
+        "doubles",
+        "scan",
+        "multi",
+        "encodingfix",
+        "edgeenc",
+        "edgeproto",
+        "cmdgap",
+        "cmdgap2",
+        "sort",
+        "servertail",
+        "arity",
+        "storeorder",
+        "infofix",
+        "multidb",
+        "blocking",
+        "pubsub",
+        "fanout",
+        "spubsub",
+        "notify",
+        "wiredump",
+        "climon",
+        "compatintro",
+        "aclsel",
+        "aclkeys",
+        "cmdmeta",
+        "s6fix",
+        "ccfix",
+        "psfix",
+        "monitor"
+      ],
+      "repeats": 4,
+      "equivalence_seeds": [
+        22
+      ]
+    },
+    "seed22_save_checks": [
+      {
+        "path": "build/gate-run.xsxs39/jobs/differ-armed-0/differ/psfix-a0-s22.txt.coverage.json",
+        "sha256": "1d4f2d43220f4916cb51d63a7fe45fad88db5039fe5f9d25d22d9bd0c9d62293",
+        "SAVE": 4,
+        "BGSAVE": 2,
+        "checks": [
+          "rdb_saves advances exactly once after completion"
+        ]
+      },
+      {
+        "path": "build/gate-run.xsxs39/jobs/differ-armed-1/differ/psfix-a1-s22.txt.coverage.json",
+        "sha256": "1d4f2d43220f4916cb51d63a7fe45fad88db5039fe5f9d25d22d9bd0c9d62293",
+        "SAVE": 4,
+        "BGSAVE": 2,
+        "checks": [
+          "rdb_saves advances exactly once after completion"
+        ]
+      },
+      {
+        "path": "build/gate-run.xsxs39/jobs/differ-split-0/differ/psfix-a0-s22.txt.coverage.json",
+        "sha256": "1d4f2d43220f4916cb51d63a7fe45fad88db5039fe5f9d25d22d9bd0c9d62293",
+        "SAVE": 4,
+        "BGSAVE": 2,
+        "checks": [
+          "rdb_saves advances exactly once after completion"
+        ]
+      },
+      {
+        "path": "build/gate-run.xsxs39/jobs/differ-split-1/differ/psfix-a1-s22.txt.coverage.json",
+        "sha256": "1d4f2d43220f4916cb51d63a7fe45fad88db5039fe5f9d25d22d9bd0c9d62293",
+        "SAVE": 4,
+        "BGSAVE": 2,
+        "checks": [
+          "rdb_saves advances exactly once after completion"
+        ]
+      }
+    ],
+    "SAVE_comparisons": 16,
+    "result": "All whole split/armed differential jobs and mode-equivalence jobs passed; historical seed-22 SAVE failure not reproduced."
+  }
+]

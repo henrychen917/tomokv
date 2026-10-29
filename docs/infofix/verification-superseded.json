@@ -1,0 +1,19 @@
+{
+  "cancelled": [
+    {
+      "driver_pid": 878819,
+      "reason": "Queued old-binary Tcl and self-test after final histogram correction; replaced by final immutable-arm jobs."
+    },
+    {
+      "driver_pid": 558796,
+      "gate_pid": 1571596,
+      "reason": "Epoll run used old binary and a legacy DOCS assertion that rejected oracle-identical output; replaced by complete standard-seed final runs."
+    }
+  ],
+  "preserved_logs": [
+    "docs/infofix/differ-uring.log",
+    "docs/infofix/differ-epoll.log",
+    "docs/infofix/affected-final.log"
+  ],
+  "note": "The old uring matrix completed with cmdmeta failures. The old epoll matrix was interrupted, not passed."
+}

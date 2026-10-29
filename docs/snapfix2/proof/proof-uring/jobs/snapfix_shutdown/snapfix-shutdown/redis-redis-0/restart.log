@@ -1,0 +1,22 @@
+591329:C 28 Oct 2026 23:46:09.936 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+591329:C 28 Oct 2026 23:46:09.936 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+591329:C 28 Oct 2026 23:46:09.936 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=591329, just started
+591329:C 28 Oct 2026 23:46:09.936 * Configuration loaded
+591329:M 28 Oct 2026 23:46:09.936 * monotonic clock: POSIX clock_gettime
+591329:M 28 Oct 2026 23:46:09.937 * Running mode=standalone, port=20101.
+591329:M 28 Oct 2026 23:46:09.937 * Server initialized
+591329:M 28 Oct 2026 23:46:09.937 * Reading RDB base file on AOF loading...
+591329:M 28 Oct 2026 23:46:09.937 * Loading RDB produced by version 7.4.10
+591329:M 28 Oct 2026 23:46:09.937 * RDB age 0 seconds
+591329:M 28 Oct 2026 23:46:09.937 * RDB memory usage when created 0.91 Mb
+591329:M 28 Oct 2026 23:46:09.937 * RDB is base AOF
+591329:M 28 Oct 2026 23:46:09.937 * Done loading RDB, keys loaded: 0, keys expired: 0.
+591329:M 28 Oct 2026 23:46:09.937 * DB loaded from base file appendonly.aof.1.base.rdb: 0.000 seconds
+591329:M 28 Oct 2026 23:46:09.937 * DB loaded from incr file appendonly.aof.1.incr.aof: 0.000 seconds
+591329:M 28 Oct 2026 23:46:09.937 * DB loaded from append only file: 0.000 seconds
+591329:M 28 Oct 2026 23:46:09.937 * Opening AOF incr file appendonly.aof.1.incr.aof on server start
+591329:M 28 Oct 2026 23:46:09.937 * Ready to accept connections tcp
+591329:signal-handler (1793202369) Received SIGTERM scheduling shutdown...
+591329:M 28 Oct 2026 23:46:10.039 * User requested shutdown...
+591329:M 28 Oct 2026 23:46:10.039 * Calling fsync() on the AOF file.
+591329:M 28 Oct 2026 23:46:10.039 # Redis is now ready to exit, bye bye...

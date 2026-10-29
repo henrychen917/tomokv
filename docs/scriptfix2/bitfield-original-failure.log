@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-scriptfix2/tests/bitfield.py", line 207, in <module>
+    expect(client.cmd("BITFIELD", "bf:oom", "SET", "u8", "#100000", "1"),
+  File "/home/user/Projects/cx-scriptfix2/tests/bitfield.py", line 58, in expect
+    raise AssertionError("%s: expected %r, got %r" % (label, expected, actual))
+AssertionError: growth admission: expected b"-OOM command not allowed when used memory > 'maxmemory'.", got [0]

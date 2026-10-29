@@ -9,6 +9,7 @@
 #include "auth.h"
 #include "notify.h"
 #include "scripting.h"
+#include "../base/numeric.h"
 
 #include <algorithm>
 #include <array>
@@ -18,6 +19,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <ctime>
 #include <limits>
 #include <mutex>
 #include <new>
@@ -129,6 +131,12 @@ std::string sha1_hex(const char* input, size_t length) {
 
 std::string sha1_hex(Slice input) { return sha1_hex(input.p, input.n); }
 
+std::string sha_key(Slice sha) {
+    std::string key(sha.p, sha.n);
+    for (char& ch : key) if (ch >= 'A' && ch <= 'Z') ch += 'a' - 'A';
+    return key;
+}
+
 class ScriptCache {
 public:
     bool store(Slice body, std::string& sha) {
@@ -146,7 +154,7 @@ public:
     bool find(Slice sha, std::string& source) const {
         try {
             std::lock_guard<std::mutex> lock(mu_);
-            const auto it = scripts_.find(std::string(sha.p, sha.n));
+            const auto it = scripts_.find(sha_key(sha));
             if (it == scripts_.end()) return false;
             source = it->second;
             return true;
@@ -158,7 +166,7 @@ public:
     bool exists(Slice sha) const {
         try {
             std::lock_guard<std::mutex> lock(mu_);
-            return scripts_.find(std::string(sha.p, sha.n)) != scripts_.end();
+            return scripts_.find(sha_key(sha)) != scripts_.end();
         } catch (const std::bad_alloc&) {
             return false;
         }
@@ -227,15 +235,59 @@ std::string clean_error(const char* text, size_t length) {
 // compatible error text starts here.
 constexpr const char* kEvalChunkName = "@user_script";
 
-// EXEC's pause regression includes Redis's plain engine header. Hash/cache
-// the original source, but let Lua compile starting with its newline so error
-// line numbers retain the original source coordinates. Headers with metadata
-// continue through the existing validation path; flag support is separate.
-Slice eval_compile_source(Slice source) {
-    if (source.n >= 5 && std::memcmp(source.p, "#!lua", 5) == 0 &&
-        (source.n == 5 || source.p[5] == '\n'))
-        return Slice(source.p + 5, source.n - 5);
-    return source;
+enum EvalFlags : uint32_t {
+    EvalNoWrites = 1, EvalAllowOom = 2, EvalAllowStale = 4,
+    EvalNoCluster = 8, EvalCrossSlot = 16, EvalLegacy = 32,
+};
+
+// The first line follows the same quoted-token grammar as configuration. Keep
+// its newline in the compiled body so Lua's source positions remain exact.
+bool eval_header(Slice source, Slice& body, uint32_t& flags, std::string& error) {
+    body = source;
+    flags = EvalLegacy;
+    if (source.n < 2 || source.p[0] != '#' || source.p[1] != '!') return true;
+    uint32_t end = 0;
+    while (end < source.n && source.p[end] && source.p[end] != '\n') ++end;
+    if (end == source.n || source.p[end] != '\n') {
+        error = "Invalid script shebang"; return false;
+    }
+    std::vector<std::string> tokens;
+    const std::string header(source.p, end);
+    if (!cfg_split_args(header.c_str(), tokens) || tokens.empty()) {
+        error = "Invalid engine in script shebang"; return false;
+    }
+    if (tokens[0] != "#!lua") {
+        error = "Unexpected engine in script shebang: " + clean_error(tokens[0].c_str(), std::strlen(tokens[0].c_str()));
+        return false;
+    }
+    flags = 0;
+    static constexpr const char* names[] = {
+        "no-writes", "allow-oom", "allow-stale", "no-cluster", "allow-cross-slot-keys"};
+    for (size_t i = 1; i < tokens.size(); ++i) {
+        const std::string& token = tokens[i];
+        if (!token.starts_with("flags=")) {
+            error = "Unknown lua shebang option: " + clean_error(token.c_str(), std::strlen(token.c_str()));
+            return false;
+        }
+        if (token.size() == 6) continue;
+        size_t first = 6;
+        do {
+            size_t last = token.find(',', first);
+            if (last == std::string::npos) last = token.size();
+            const std::string flag = token.substr(first, last - first);
+            uint32_t bit = 0;
+            for (uint32_t j = 0; j < std::size(names); ++j)
+                if (flag == names[j]) bit = 1u << j;
+            if (!bit) {
+                error = "Unexpected flag in script shebang: " + clean_error(flag.c_str(), std::strlen(flag.c_str()));
+                return false;
+            }
+            flags |= bit;
+            first = last + 1;
+        } while (first <= token.size());
+    }
+    body = Slice(source.p + end, source.n - end);
+    return true;
 }
 
 bool validate_source(Slice source, std::string& error) {
@@ -244,17 +296,20 @@ bool validate_source(Slice source, std::string& error) {
         return false;
     }
     if (source.n && static_cast<uint8_t>(source.p[0]) == 0x1b) {
-        error = "binary chunks are not allowed";
+        error = "Error compiling script (new function): binary chunks are not allowed";
         return false;
     }
+    Slice body;
+    uint32_t flags;
+    if (!eval_header(source, body, flags, error)) return false;
     lua_State* state = luaL_newstate();
     if (!state) { error = "out of memory"; return false; }
-    const int status = luaL_loadbuffer(state, eval_compile_source(source).p,
-                                             eval_compile_source(source).n, kEvalChunkName);
+    const int status = luaL_loadbuffer(state, body.p, body.n, kEvalChunkName);
     if (status != 0) {
         size_t length = 0;
         const char* detail = lua_tolstring(state, -1, &length);
-        error = clean_error(detail ? detail : "compile error", detail ? length : 13);
+        error = "Error compiling script (new function): " +
+            clean_error(detail ? detail : "compile error", detail ? length : 13);
     }
     lua_close(state);
     return status == 0;
@@ -592,19 +647,38 @@ int redis_dispatch(lua_State* state, bool protected_call) {
         const int argc = lua_gettop(state);
         Op nested;
         if (!context || argc < 1) {
-            std::snprintf(deferred_error, sizeof(deferred_error), "ERR redis.call requires a command name");
+            std::snprintf(deferred_error, sizeof(deferred_error), "ERR Please specify at least one argument for this redis lib call");
             failed = true;
         } else {
             for (int i = 1; i <= argc && !failed; i++) {
                 const int type = lua_type(state, i);
                 if (type != LUA_TSTRING && type != LUA_TNUMBER) {
                     std::snprintf(deferred_error, sizeof(deferred_error),
-                                  "ERR Lua redis() command arguments must be strings or integers");
+                                  "ERR Lua redis lib command arguments must be strings or integers");
                     failed = true;
                     break;
                 }
                 size_t length = 0;
-                const char* value = lua_tolstring(state, i, &length);
+                char number[kDoubleTextMax];
+                const char* value;
+                if (type == LUA_TNUMBER) {
+                    const double n = lua_tonumber(state, i);
+                    // Command arguments use the entire signed-64-bit integral
+                    // range (including -0 -> 0), unlike RESP double rendering.
+                    if (n >= -0x1p63 && n < 0x1p63 && std::trunc(n) == n) {
+                        const auto converted = std::to_chars(number, number + sizeof(number),
+                                                              static_cast<int64_t>(n));
+                        length = converted.ptr - number;
+                    } else if (std::isnan(n) && std::signbit(n)) {
+                        std::memcpy(number, "-nan", 4); length = 4;
+                    } else length = redis_double_text(number, sizeof(number), n);
+                    // Op arguments are borrowed slices. Give each conversion
+                    // its own Lua-owned string before reusing the scratch buffer
+                    // for the next argument; the VM stack roots it through dispatch.
+                    lua_pushlstring(state, number, length);
+                    lua_replace(state, i);
+                    value = lua_tolstring(state, i, &length);
+                } else value = lua_tolstring(state, i, &length);
                 if (length > UINT32_MAX || !nested.push_arg(
                         Slice(value, static_cast<uint32_t>(length)))) {
                     std::snprintf(deferred_error, sizeof(deferred_error), "ERR out of memory");
@@ -616,7 +690,7 @@ int redis_dispatch(lua_State* state, bool protected_call) {
         const CommandSpec* spec = failed ? nullptr : command_lookup(nested.cmd_name());
         if (!failed && (!spec || !command_arity_ok(*spec, nested.argc()))) {
             std::snprintf(deferred_error, sizeof(deferred_error),
-                          spec ? "ERR wrong number of arguments for command from script"
+                          spec ? "ERR Wrong number of args calling Redis command from script"
                                : "ERR Unknown Redis command called from script");
             failed = true;
         }
@@ -817,6 +891,113 @@ int redis_sha1hex(lua_State* state) {
     return 1;
 }
 
+// Helpers raise tables, preserving Redis's bare C-API message and source tail.
+int redis_api_error(lua_State* state, const char* message, bool raise) {
+    lua_newtable(state);
+    lua_pushstring(state, message);
+    lua_setfield(state, -2, "err");
+    return raise ? lua_error(state) : 1;
+}
+
+int redis_error_reply(lua_State* state) {
+    if (lua_gettop(state) != 1 || lua_type(state, 1) != LUA_TSTRING)
+        return redis_api_error(state, "ERR wrong number or type of arguments", false);
+    // This API uses a C string in Redis (embedded NUL terminates the message).
+    const char* begin = lua_tostring(state, 1);
+    if (*begin == '-') ++begin;
+    const char* space = std::strchr(begin, ' ');
+    const char* message = space ? space + 1 : begin;
+    const char* end = message + std::strlen(message);
+    while (message < end && (*message == '\r' || *message == '\n')) ++message;
+    while (end > message && (end[-1] == '\r' || end[-1] == '\n')) --end;
+    lua_newtable(state);
+    if (space) lua_pushlstring(state, begin, space - begin);
+    else lua_pushliteral(state, "ERR");
+    lua_pushliteral(state, " ");
+    lua_pushlstring(state, message, end - message);
+    lua_concat(state, 3);
+    lua_setfield(state, -2, "err");
+    return 1;
+}
+
+int redis_status_reply(lua_State* state) {
+    if (lua_gettop(state) != 1 || lua_type(state, 1) != LUA_TSTRING)
+        return redis_api_error(state, "ERR wrong number or type of arguments", false);
+    lua_newtable(state);
+    lua_pushvalue(state, 1);
+    lua_setfield(state, -2, "ok");
+    return 1;
+}
+
+int redis_log(lua_State* state) {
+    const int count = lua_gettop(state);
+    if (count < 2) return redis_api_error(state, "ERR redis.log() requires two arguments or more.", true);
+    if (!lua_isnumber(state, 1))
+        return redis_api_error(state, "ERR First argument must be a number (log level).", true);
+    const double value = lua_tonumber(state, 1);
+    if (!std::isfinite(value) || value <= -1 || value >= 4)
+        return redis_api_error(state, "ERR Invalid log level.", true);
+    const int level = static_cast<int>(value);
+    if (level < 2) return 0; // The server's default logging threshold is notice.
+    flockfile(stderr);
+    std::fputs("Lua: ", stderr);
+    for (int i = 2; i <= count; ++i) {
+        size_t length = 0;
+        const char* text = lua_tolstring(state, i, &length);
+        if (!text) continue;
+        if (i != 2) std::fputc(' ', stderr);
+        std::fwrite(text, 1, length, stderr);
+    }
+    std::fputc('\n', stderr);
+    funlockfile(stderr);
+    return 0;
+}
+
+int redis_replicate_commands(lua_State* state) {
+    lua_pushboolean(state, 1);
+    return 1;
+}
+
+int script_clock(lua_State* state) {
+    lua_pushnumber(state, static_cast<double>(std::clock()) / CLOCKS_PER_SEC);
+    return 1;
+}
+
+// A process-wide POSIX 48-bit LCG matches the oracle's seeded sequence. Only
+// explicit Lua draws/seed changes take this mutex; shard ownership is untouched.
+std::mutex g_random_mutex;
+uint64_t g_random_state = 0x1234abcd330eULL;
+int script_random(lua_State* state) {
+    double fraction;
+    {
+        std::lock_guard<std::mutex> lock(g_random_mutex);
+        g_random_state = (g_random_state * 0x5deece66dULL + 11) & ((1ULL << 48) - 1);
+        fraction = double((g_random_state >> 17) % 0x7fffffff) / 0x7fffffff;
+    }
+    const int count = lua_gettop(state);
+    if (count == 0) lua_pushnumber(state, fraction);
+    else if (count == 1) {
+        const int upper = luaL_checkint(state, 1);
+        luaL_argcheck(state, upper >= 1, 1, "interval is empty");
+        lua_pushnumber(state, std::floor(fraction * upper) + 1);
+    } else if (count == 2) {
+        const int lower = luaL_checkint(state, 1), upper = luaL_checkint(state, 2);
+        luaL_argcheck(state, lower <= upper, 2, "interval is empty");
+        // The reference's interval arithmetic is a 32-bit int on this target.
+        // Spell the wrap explicitly instead of invoking signed-overflow UB.
+        const int32_t width = static_cast<int32_t>(uint32_t(upper) - uint32_t(lower) + 1);
+        lua_pushnumber(state, std::floor(fraction * width) + lower);
+    } else return luaL_error(state, "wrong number of arguments");
+    return 1;
+}
+
+int script_randomseed(lua_State* state) {
+    const uint32_t seed = static_cast<uint32_t>(luaL_checkint(state, 1));
+    std::lock_guard<std::mutex> lock(g_random_mutex);
+    g_random_state = (uint64_t(seed) << 16) | 0x330e;
+    return 0;
+}
+
 // One cold registration seam for both EVAL and FUNCTION. The redis table is on
 // top. Its tables and helper tables
 // are frozen by the existing sandbox traversal after registration. Keeping this
@@ -867,25 +1048,33 @@ void create_sandbox_static(lua_State* state, ScriptContext** slot) {
     open_library(state, luaopen_string, LUA_STRLIBNAME);
     open_library(state, luaopen_math, LUA_MATHLIBNAME);
     remove_global(state, "dofile");
-    remove_global(state, "load");
     remove_global(state, "loadfile");
-    remove_global(state, "loadstring");
     // Replacing a function/thread environment would bypass the readonly globals table.
     remove_global(state, "getfenv");
     remove_global(state, "setfenv");
     remove_global(state, "print");
     remove_global(state, "newproxy");
-    remove_global(state, "collectgarbage");
-    remove_global(state, "coroutine");
-    lua_getglobal(state, "string");
-    lua_pushnil(state); lua_setfield(state, -2, "dump");
-    lua_pop(state, 1);
     lua_getglobal(state, "math");
-    lua_pushnil(state); lua_setfield(state, -2, "random");
-    lua_pushnil(state); lua_setfield(state, -2, "randomseed");
+    lua_pushcfunction(state, script_random); lua_setfield(state, -2, "random");
+    lua_pushcfunction(state, script_randomseed); lua_setfield(state, -2, "randomseed");
     lua_pop(state, 1);
 
-    lua_createtable(state, 0, 3);
+    lua_newtable(state);
+    lua_pushcfunction(state, script_clock);
+    lua_setfield(state, -2, "clock");
+    lua_setglobal(state, "os");
+
+    lua_createtable(state, 0, 16);
+    lua_pushcfunction(state, redis_error_reply); lua_setfield(state, -2, "error_reply");
+    lua_pushcfunction(state, redis_status_reply); lua_setfield(state, -2, "status_reply");
+    lua_pushcfunction(state, redis_log); lua_setfield(state, -2, "log");
+    lua_pushcfunction(state, redis_replicate_commands); lua_setfield(state, -2, "replicate_commands");
+    const char* levels[] = {"LOG_DEBUG", "LOG_VERBOSE", "LOG_NOTICE", "LOG_WARNING"};
+    for (int i = 0; i < 4; ++i) {
+        lua_pushinteger(state, i); lua_setfield(state, -2, levels[i]);
+    }
+    lua_pushliteral(state, "7.4.10"); lua_setfield(state, -2, "REDIS_VERSION");
+    lua_pushinteger(state, 0x07040a); lua_setfield(state, -2, "REDIS_VERSION_NUM");
     lua_pushlightuserdata(state, slot);
     lua_pushcclosure(state, redis_call, 1);
     lua_setfield(state, -2, "call");
@@ -896,6 +1085,19 @@ void create_sandbox_static(lua_State* state, ScriptContext** slot) {
     lua_pushcclosure(state, redis_setresp, 1);
     lua_setfield(state, -2, "setresp");
     open_helper_libraries(state);
+    lua_pushvalue(state, -1);
+    lua_setfield(state, LUA_REGISTRYINDEX, "tomo_eval_redis");
+    lua_newtable(state);
+    lua_pushnil(state);
+    while (lua_next(state, -3)) {
+        lua_pushvalue(state, -2);
+        lua_pushvalue(state, -2);
+        lua_rawset(state, -5);
+        lua_pop(state, 1);
+    }
+    lua_pushnil(state); lua_setfield(state, -2, "replicate_commands");
+    freeze_table(state, -1);
+    lua_setfield(state, LUA_REGISTRYINDEX, "tomo_function_redis");
     lua_setglobal(state, "redis");
 
     lua_pushlightuserdata(state, &g_hook_context_key);
@@ -957,7 +1159,10 @@ void result_raw_field(lua_State* state, int index, const char* field) {
 bool append_lua_result(lua_State* state, int index, SmallBuf<kInlineReply>& output,
                        uint32_t depth, uint32_t& elements, std::string& error,
                        bool outer_resp3, uint8_t script_resp) {
-    if (depth > kReplyMaxDepth) { error = "script reply nesting is too deep"; return false; }
+    if (!lua_checkstack(state, 4)) {
+        reply_err(output, "ERR reached lua stack limit");
+        return true;
+    }
     index = index < 0 ? lua_gettop(state) + index + 1 : index;
     const int type = lua_type(state, index);
     if (type == LUA_TNIL) {
@@ -1158,7 +1363,9 @@ std::string script_runtime_error(lua_State* state, const ScriptContext& context,
     if (!from_table) {
         size_t length = 0;
         const char* text = lua_tolstring(state, -1, &length);
-        message = "ERR " + clean_error(text ? text : "runtime error", text ? length : 13);
+        const char* fallback = lua_isnil(state, -1) ? "nil" :
+            lua_isboolean(state, -1) ? (lua_toboolean(state, -1) ? "true" : "false") : "unknown error";
+        message = "ERR " + clean_error(text ? text : fallback, text ? length : std::strlen(fallback));
     }
     char tail[1024];
     std::snprintf(tail, sizeof(tail), " script: %.*s, on @%s:%d.",
@@ -1296,9 +1503,12 @@ void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
     }
     context.notify = call.notify;
     context.readonly = call.readonly;
-    context.function_admitted = call.style == ScriptArgStyle::Params;
+    context.function_admitted = call.style == ScriptArgStyle::Params || call.memory_admitted;
     engine.current = &context;
-    select_cjson_environment(state, context.function_admitted);
+    select_cjson_environment(state, call.style == ScriptArgStyle::Params);
+    lua_getfield(state, LUA_REGISTRYINDEX, call.style == ScriptArgStyle::Params
+        ? "tomo_function_redis" : "tomo_eval_redis");
+    set_global_raw(state, "redis");
 
     ScriptEvictionGuard eviction_guard(shard);
     FunctionMemoryScope memory_scope(shard.store(), context.function_admitted);
@@ -1379,12 +1589,29 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_h
         return;
     }
 
+    Slice body;
+    uint32_t flags;
+    std::string header_error;
+    if (!eval_header(source, body, flags, header_error)) {
+        reply_text_error(op, "ERR", header_error); return;
+    }
+    if (!(flags & (EvalLegacy | EvalNoWrites)) && readonly) {
+        reply_text_error(op, "ERR", "Can not execute a script with write flag using *_ro command.");
+        return;
+    }
+    if (!(flags & (EvalLegacy | EvalNoWrites | EvalAllowOom)) &&
+        !FunctionMemoryScope::admit(shard, key_count ? op.arg(key_first) : Slice{})) {
+        reply_text_error(op, "OOM", "allow-oom flag is not set on the script, "
+                                   "can not run it when used memory > 'maxmemory'");
+        return;
+    }
     lua_State* state = script_thread_state();
     if (!state) { reply_text_error(op, "ERR", "out of memory"); return; }
 
     // Fetch the compiled chunk by sha, compiling at most once per thread per script.
     std::string sha_storage;
-    Slice sha = sha_hint;
+    if (sha_hint.n) sha_storage = sha_key(sha_hint);
+    Slice sha(sha_storage.data(), sha_storage.size());
     if (!sha.n) {
         sha_storage = sha1_hex(source);
         sha = Slice(sha_storage.data(), static_cast<uint32_t>(sha_storage.size()));
@@ -1395,8 +1622,7 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_h
     if (lua_isnil(state, -1)) {
         lua_pop(state, 1);
         g_compile_misses.fetch_add(1, std::memory_order_relaxed);
-        const int compiled = luaL_loadbuffer(state, eval_compile_source(source).p,
-                                             eval_compile_source(source).n, kEvalChunkName);
+        const int compiled = luaL_loadbuffer(state, body.p, body.n, kEvalChunkName);
         if (compiled != 0) {
             size_t length = 0;
             const char* text = lua_tolstring(state, -1, &length);
@@ -1427,7 +1653,8 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_h
     call.key_first = key_first;
     call.key_count = key_count;
     call.style = ScriptArgStyle::Globals;
-    call.readonly = readonly;
+    call.readonly = readonly || (flags & EvalNoWrites);
+    call.memory_admitted = !(flags & EvalLegacy);
     call.notify = notify;
     call.chunk = "user_script";
     call.tag = sha;
@@ -1487,7 +1714,7 @@ void cmd_script(Shard&, Op& op) {
         std::string compile_error;
         if (!validate_source(op.arg(2), compile_error)) {
             reply_text_error(op, "ERR",
-                             std::string("Error compiling script (new function): ") + compile_error);
+                             compile_error);
             return;
         }
         std::string sha;
@@ -1627,7 +1854,7 @@ static bool script_route_store(Op& op) {
     std::string compile_error;
     if (!validate_source(source, compile_error)) {
         reply_text_error(op, "ERR",
-                         std::string("Error compiling script (new function): ") + compile_error);
+                         compile_error);
         return false;
     }
     std::string ignored;

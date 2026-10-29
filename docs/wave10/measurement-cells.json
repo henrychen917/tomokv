@@ -1,0 +1,17 @@
+[
+  {
+    "path": "docs/wave10/cells/generic14.txt",
+    "sha256": "ac3719760fcd07f05a090bcba536162c4d713cdbef3f24e52d886e8d83880311",
+    "cells": 14
+  },
+  {
+    "path": "docs/wave10/cells/null28.txt",
+    "sha256": "92f0f134a8cc768ad6872c33d87bda7260d1e21215dea6b09a1c9d8f91afe228",
+    "cells": 28
+  },
+  {
+    "path": "docs/wave10/cells/readlocal9.txt",
+    "sha256": "563eab62e25c9c63dfa4d723700bbce57c1ee85ee8f70785814fa64c502cfcb2",
+    "cells": 9
+  }
+]

@@ -1,0 +1,282 @@
+{
+  "mix": [
+    "execs",
+    "scripts",
+    "writers"
+  ],
+  "flushes": 17,
+  "saves": 50,
+  "observations": 1808,
+  "torn": 37,
+  "examples": [
+    {
+      "keys": [
+        "snapfix:fs:0",
+        "snapfix:fs:1"
+      ],
+      "values": [
+        7790,
+        63
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fs:0",
+        "snapfix:fs:1"
+      ],
+      "values": [
+        7941,
+        214
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fs:0",
+        "snapfix:fs:1"
+      ],
+      "values": [
+        8114,
+        387
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fs:0",
+        "snapfix:fs:1"
+      ],
+      "values": [
+        8271,
+        544
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fs:0",
+        "snapfix:fs:1"
+      ],
+      "values": [
+        8441,
+        714
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fs:0",
+        "snapfix:fs:1"
+      ],
+      "values": [
+        8595,
+        868
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fs:0",
+        "snapfix:fs:1"
+      ],
+      "values": [
+        8758,
+        1031
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fs:0",
+        "snapfix:fs:1"
+      ],
+      "values": [
+        8918,
+        1191
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fs:0",
+        "snapfix:fs:1"
+      ],
+      "values": [
+        9072,
+        1345
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fs:0",
+        "snapfix:fs:1"
+      ],
+      "values": [
+        9234,
+        1507
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fs:0",
+        "snapfix:fs:1"
+      ],
+      "values": [
+        9397,
+        1670
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fs:0",
+        "snapfix:fs:1"
+      ],
+      "values": [
+        9570,
+        1843
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fs:0",
+        "snapfix:fs:1"
+      ],
+      "values": [
+        9718,
+        1991
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fs:0",
+        "snapfix:fs:1"
+      ],
+      "values": [
+        9880,
+        2153
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fs:0",
+        "snapfix:fs:1"
+      ],
+      "values": [
+        10029,
+        2302
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fs:0",
+        "snapfix:fs:1"
+      ],
+      "values": [
+        10182,
+        2455
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fs:0",
+        "snapfix:fs:1"
+      ],
+      "values": [
+        10341,
+        2614
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fs:0",
+        "snapfix:fs:1"
+      ],
+      "values": [
+        10495,
+        2768
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fs:0",
+        "snapfix:fs:1"
+      ],
+      "values": [
+        10661,
+        2934
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fs:0",
+        "snapfix:fs:1"
+      ],
+      "values": [
+        10826,
+        3099
+      ]
+    }
+  ],
+  "tally": [
+    18588,
+    26492,
+    17890,
+    17672,
+    26560,
+    26595,
+    18487,
+    26164,
+    26198,
+    25735,
+    25450,
+    25495,
+    25142,
+    25384,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "errors": [],
+  "counters": {
+    "script_stage_owner_tasks": 308970,
+    "script_run_attempts": 154485,
+    "script_validate_owner_tasks": 288734,
+    "script_apply_owner_tasks": 267594,
+    "script_crossshard_activations": 133797,
+    "script_group_commits": 133797,
+    "script_group_occ_retries": 20426,
+    "script_group_occ_giveups": 262,
+    "script_staged_bytes_total": 21006304,
+    "script_crossshard_window_refusals": 0,
+    "script_group_aborts_oom": 0,
+    "script_keys_armed": 268118,
+    "script_keys_released": 268118,
+    "script_intents_live": 0,
+    "script_write_tickets_forced": 0,
+    "script_flush_generation": 0,
+    "script_interpreter_builds": 1,
+    "script_chunk_cache_hits": 154484,
+    "script_chunk_cache_misses": 1,
+    "script_readonly_rejections": 0,
+    "script_effect_writes": 308970,
+    "script_failed_after_effects": 0,
+    "atomic_txn_attempts": 96596,
+    "atomic_txn_retries": 12,
+    "atomic_txn_dooms": 0,
+    "atomic_txn_wounds": 12,
+    "atomic_txn_waits": 3739,
+    "atomic_txn_intents": 0,
+    "atomic_txn_intents_live": 0,
+    "atomic_txn_executed": 96584,
+    "atomic_txn_place_waits": 606,
+    "atomic_txn_writer_waits": 0,
+    "atomic_txn_writer_marks": 0,
+    "atomic_txn_blind_restarts": 0,
+    "atomic_txn_readonly": 0,
+    "atomic_txn_order_violations": 0,
+    "atomic_txn_fast_polls": 563530,
+    "atomic_txn_poll_skips": 9573
+  },
+  "final": [
+    13558,
+    5831,
+    3845,
+    3845
+  ]
+}

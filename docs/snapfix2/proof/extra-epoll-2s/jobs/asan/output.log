@@ -1,0 +1,2 @@
+  row budget: 900s; median=39.005s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); ASAN build
+  ASAN build                                           ok

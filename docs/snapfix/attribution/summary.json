@@ -1,0 +1,120 @@
+{
+  "fix1-bgsave-exec": {
+    "1s-uring-1": false,
+    "1s-epoll-1": false,
+    "2s-uring-1": false,
+    "2s-epoll-1": false
+  },
+  "fix1-bgsave-script": {
+    "1s-uring-1": false,
+    "1s-epoll-1": false,
+    "2s-uring-1": false,
+    "2s-epoll-1": false
+  },
+  "fix1-shutdown": {
+    "1s-uring-1": true,
+    "1s-epoll-1": true,
+    "2s-uring-1": true,
+    "2s-epoll-1": true
+  },
+  "fix2-bgsave-exec": {
+    "1s-uring-1": false,
+    "1s-epoll-1": false,
+    "2s-uring-1": false,
+    "2s-epoll-1": false
+  },
+  "fix2-bgsave-script": {
+    "1s-uring-1": true,
+    "1s-epoll-1": true,
+    "2s-uring-1": true,
+    "2s-epoll-1": true
+  },
+  "fix2-shutdown": {
+    "1s-uring-1": false,
+    "1s-epoll-1": false,
+    "2s-uring-1": false,
+    "2s-epoll-1": false
+  },
+  "fix3-bgsave-exec": {
+    "1s-uring-1": true,
+    "1s-epoll-1": true,
+    "2s-uring-1": true,
+    "2s-epoll-1": true
+  },
+  "fix3-bgsave-script": {
+    "1s-uring-1": false,
+    "1s-epoll-1": false,
+    "2s-uring-1": false,
+    "2s-epoll-1": false
+  },
+  "fix3-shutdown": {
+    "1s-uring-1": false,
+    "1s-epoll-1": false,
+    "2s-uring-1": false,
+    "2s-epoll-1": false
+  },
+  "rows:bgsave-exec-post": {
+    "1s-uring-0": true,
+    "1s-uring-1": true,
+    "1s-epoll-0": true,
+    "1s-epoll-1": true,
+    "2s-uring-0": true,
+    "2s-uring-1": true,
+    "2s-epoll-0": true,
+    "2s-epoll-1": true
+  },
+  "rows:bgsave-exec-pre": {
+    "1s-uring-0": false,
+    "1s-uring-1": false,
+    "1s-epoll-0": false,
+    "1s-epoll-1": false,
+    "2s-uring-0": false,
+    "2s-uring-1": false,
+    "2s-epoll-0": false,
+    "2s-epoll-1": false
+  },
+  "rows:bgsave-script-post": {
+    "redis-redis-0": true,
+    "1s-uring-0": true,
+    "1s-uring-1": true,
+    "1s-epoll-0": true,
+    "1s-epoll-1": true,
+    "2s-uring-0": true,
+    "2s-uring-1": true,
+    "2s-epoll-0": true,
+    "2s-epoll-1": true
+  },
+  "rows:bgsave-script-pre": {
+    "redis-redis-0": true,
+    "1s-uring-0": false,
+    "1s-uring-1": false,
+    "1s-epoll-0": false,
+    "1s-epoll-1": false,
+    "2s-uring-0": false,
+    "2s-uring-1": false,
+    "2s-epoll-0": false,
+    "2s-epoll-1": false
+  },
+  "rows:shutdown-post": {
+    "redis-redis-0": true,
+    "1s-uring-0": true,
+    "1s-uring-1": true,
+    "1s-epoll-0": true,
+    "1s-epoll-1": true,
+    "2s-uring-0": true,
+    "2s-uring-1": true,
+    "2s-epoll-0": true,
+    "2s-epoll-1": true
+  },
+  "rows:shutdown-pre": {
+    "redis-redis-0": true,
+    "1s-uring-0": false,
+    "1s-uring-1": false,
+    "1s-epoll-0": false,
+    "1s-epoll-1": false,
+    "2s-uring-0": false,
+    "2s-uring-1": false,
+    "2s-epoll-0": false,
+    "2s-epoll-1": false
+  }
+}

@@ -27,6 +27,7 @@
 #include "../exec/exqueue.h"
 #include "../exec/masked_queue.h"
 #include "../net/uring.h"
+#include "exec1s.h"
 
 namespace tomo {
 
@@ -328,6 +329,13 @@ public:
     // here may suppress optional filler work but can never strand the underlying queue.
     uint64_t peek(uint32_t word) const {
         return words_[word].load(std::memory_order_relaxed);
+    }
+
+    // Consumer side, for a bounded drain that stops before a channel is empty: put back the flags
+    // it took for those channels so its own next pass visits them again. No wake is owed: the
+    // consumer is the running thread, and the park path re-checks masks and depths anyway.
+    void restore(uint32_t word, uint64_t bits) {
+        words_[word].fetch_or(bits, std::memory_order_seq_cst);
     }
 
     bool any() const {

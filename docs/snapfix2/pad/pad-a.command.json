@@ -1,0 +1,49 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "8-15",
+    "python3",
+    "tests/snapfix.py",
+    "--case",
+    "bgsave-loop",
+    "--binary",
+    "build/snapfix2/PAD-A",
+    "--oracle",
+    "/home/user/Projects/redis/src/redis-server",
+    "--cores",
+    "0-7",
+    "--port",
+    "20100",
+    "--output",
+    "/home/user/Projects/cx-snapfix2/docs/snapfix2/pad/pad-a",
+    "--atomics",
+    "1",
+    "--no-oracle"
+  ],
+  "environment": {},
+  "binary": "build/snapfix2/PAD-A",
+  "binary_sha256": "a5f898e5e659944c8f328280654328df4dad60c53fcbf0e6213ce14937303a34",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "exit": 1,
+  "seconds": 2.217,
+  "log_sha256": "4c71f67c144146ac93eb2114e3dc51920f04c3304434d8291d717dbe6eb4abf6",
+  "removed_data": {
+    "1s-epoll-1/dump.tomo": {
+      "bytes": 676,
+      "sha256": "1dc28d64227b2d1fa4ccdd1c5be41526340cb3164e4cd1214ad4a368559601d4"
+    },
+    "2s-epoll-1/dump.tomo": {
+      "bytes": 676,
+      "sha256": "c6890d3fccc1e5b464262fcd91a4f7fd649f43d63fef42a3d690003079e02ec8"
+    },
+    "1s-uring-1/dump.tomo": {
+      "bytes": 676,
+      "sha256": "ea0b56c6d4b1690ad77edb761dd987c448ee88153fd7bbcaedff94d7d996a510"
+    },
+    "2s-uring-1/dump.tomo": {
+      "bytes": 676,
+      "sha256": "2f7d71b5c1e6cd48e867cab4a8649b53fdad6a21f1f18ae01e640c69c0d71100"
+    }
+  }
+}

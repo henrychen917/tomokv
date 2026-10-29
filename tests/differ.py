@@ -5629,7 +5629,7 @@ xgroup|destroy xgroup|help xgroup|setid xinfo|consumers xinfo|groups xinfo|help 
     diffs = 0
     compared = 0
     fired = {"info": 0, "intent": 0, "pipes": 0, "categories": 0,
-             "docs_boundary": 0, "zero_controls": 0, "absent_info_docs": 0,
+             "docs_exact": 0, "zero_controls": 0, "absent_info_docs": 0,
              "patterns": 0, "module_filters": 0}
 
     def command(sock, file, argv):
@@ -5761,15 +5761,15 @@ xgroup|destroy xgroup|help xgroup|setid xinfo|consumers xinfo|groups xinfo|help 
                 mismatch("known oracle " + verb + " " + name.decode(), repr(oracle).encode(), b"populated metadata")
             fired["absent_info_docs"] += 1
 
-    # The prose corpus is intentionally not embedded. Prove the boundary actually differs and
-    # that both sides returned documentation rather than letting a vacuous omission pass.
+    # Registered documentation now includes Redis's argument metadata and prose.
+    # Require the exact populated reply; equal omissions must not pass.
     target_docs = command(ts, tf, ["COMMAND", "DOCS", "config|get"])
     oracle_docs = command(os_, of, ["COMMAND", "DOCS", "config|get"])
-    if target_docs == oracle_docs or b"tomokv compatible config|get command" not in target_docs or \
-            b"Returns the effective values" not in oracle_docs:
-        mismatch("DOCS explicit minimal-prose boundary", target_docs, oracle_docs)
+    if target_docs != oracle_docs or b"Returns the effective values" not in oracle_docs or \
+            b"$9\r\narguments\r\n" not in oracle_docs:
+        mismatch("DOCS exact registered metadata", target_docs, oracle_docs)
     else:
-        fired["docs_boundary"] = 1
+        fired["docs_exact"] = 1
 
     # Every direct subcommand row is deterministic; container child order is intentionally not.
     # Mix these with 48 key-spec shapes for 4,200 raw byte comparisons.
@@ -5793,7 +5793,7 @@ xgroup|destroy xgroup|help xgroup|setid xinfo|consumers xinfo|groups xinfo|help 
     ts.close()
     os_.close()
     if fired["pipes"] != 96 or fired["info"] < 1900 or fired["intent"] < 1900 or \
-            fired["categories"] != 21 or fired["docs_boundary"] != 1 or \
+            fired["categories"] != 21 or fired["docs_exact"] != 1 or \
             fired["absent_info_docs"] != 78 or fired["patterns"] != 8 or fired["module_filters"] != 3:
         mismatch("cmdmeta non-vacuity", repr(fired).encode(), b"required counters")
     print("DIFFER cmdmeta: %d ops, %d diffs -> %s (%s)" %

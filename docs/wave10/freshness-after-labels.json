@@ -1,0 +1,816 @@
+{
+  "note": "Freshness after the explicit telemetry-label rebuild; no sources changed afterward.",
+  "checks": [
+    {
+      "target": "build/aoforder-scheduled",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/aoforder-scheduled"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "3e580656e215d48bb160bfd513469b83ca27f3e18c145fcdf842914481424daa"
+    },
+    {
+      "target": "build/at15-db0-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/at15-db0-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "9f9137bbb8c2bc72aacf47177a73b1026f3208346f936d94f1bda0fed33ff8d6"
+    },
+    {
+      "target": "build/at15-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/at15-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "e0e967e2643103d25493ede858a331d4a1f37a0cacbd164852d551c4f84f74ab"
+    },
+    {
+      "target": "build/at412-owner",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/at412-owner"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "0cc5093e27afa1e6b6ffa937ec3ee1d295fc78ab22f9206b57a2b5e89e186e23"
+    },
+    {
+      "target": "build/atomic-survivors-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/atomic-survivors-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "a8eee7b123422b92991bd2609363657b84461eb0a4cd0df95dee9d9c44d9fb8a"
+    },
+    {
+      "target": "build/blockfix-cost",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-f",
+        "Makefile",
+        "-f",
+        "tools/blockfix_cost.mk",
+        "-q",
+        "build/blockfix-cost"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "a738870fe124acf499b2c6a4004eacc354f20858cb04d5622e57b4847f65661f"
+    },
+    {
+      "target": "build/blockfix2-db0-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-f",
+        "Makefile",
+        "-f",
+        "tools/blockfix2.mk",
+        "-q",
+        "build/blockfix2-db0-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "5fbf55087107ba5e04965d5276c213b2ef5a83fa29aed52cabb998c30dc937d9"
+    },
+    {
+      "target": "build/blockfix2-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-f",
+        "Makefile",
+        "-f",
+        "tools/blockfix2.mk",
+        "-q",
+        "build/blockfix2-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "ddb6f2ea931d5154692021cbf9fd1e152282fbf6c940cae89c7daa6f1cf8aa17"
+    },
+    {
+      "target": "build/core-concurrency-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/core-concurrency-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "060606ba62cf0d9a2212885d21a5f7d6a1157cdd5b3dcdcadd47764c04a61391"
+    },
+    {
+      "target": "build/encodingfix-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/encodingfix-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "ecd7412163d19f012dd083a0c764f9e4ae93264a71164a29b7389ff485a232be"
+    },
+    {
+      "target": "build/exbatch-db0-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/exbatch-db0-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "83b49c23da6712bfd37d7cdadf3ecc42c80dbbc087bc649d57e19171c33fca94"
+    },
+    {
+      "target": "build/exbatch-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/exbatch-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "79ce10f1cfe149ab43c1d9c5f27a5cce977a0e3e226f90ee72e619b7364e3151"
+    },
+    {
+      "target": "build/exec1s-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/exec1s-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "d2c4050d13597112342d95cfa4a6fdb078ac1e8bf776101d649c5f62c196184b"
+    },
+    {
+      "target": "build/exec1s-word-tsan",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/exec1s-word-tsan"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "be7cfb415b37399a1d1191b9ad7137a7bd50f25b881b8b148639dd89aef434f2"
+    },
+    {
+      "target": "build/execabort-watch-db0-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/execabort-watch-db0-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "9b21ce76ed6758f2a110b605d95d4fec10a2fba047b5f2e2a5de736968353ac2"
+    },
+    {
+      "target": "build/execabort-watch-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/execabort-watch-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "ae85f89c1de57d9fd1a922a34fce366664de70b6a66644a1206ceafedcb19ec5"
+    },
+    {
+      "target": "build/expire-notify-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/expire-notify-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "70454f39017dacadc075767869cb13b5db563d6a895621e70da63f00e13405ca"
+    },
+    {
+      "target": "build/flushfix-units",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/flushfix-units"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "target": "build/gaterows5-units",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/gaterows5-units"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "target": "build/ktls-keyupdate",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/ktls-keyupdate"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "2d861fce5ce3923f93a221e512f0e8975f6b7eb9962fa923415cd0e7161b6a6d"
+    },
+    {
+      "target": "build/ktls-keyupdate-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/ktls-keyupdate-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "e8f0f7dc4ea8c053c0710635869be716c471a21b6b576b6679f8224c7e1db8bc"
+    },
+    {
+      "target": "build/ktls-lifetime-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/ktls-lifetime-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "5969fdfc17283105e6df98d75f5b88a21a7d0fb7737f463d3f5208c32c898c75"
+    },
+    {
+      "target": "build/lbplanner-units",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/lbplanner-units"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "target": "mdbqsbr2-park",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "BUILD_ROOT=build/mdbqsbr2-park",
+        "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK",
+        "all"
+      ],
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "target": "mdbqsbr2-no-wake",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "BUILD_ROOT=build/mdbqsbr2-no-wake",
+        "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE",
+        "all"
+      ],
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/moverfix-db0-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/moverfix-db0-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "8ae2cf670a2201a373c2b523d05a4d40cddd72d1bd87b4515c439c97ebe68b7c"
+    },
+    {
+      "target": "build/moverfix-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/moverfix-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "1eaf00de1de5326eb1c0e4f4095bc7941fee1428eec91a7d48b7f38d0e041a9c"
+    },
+    {
+      "target": "build/multidb-boundary-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/multidb-boundary-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "ce8230071b1f023fd5ed8da323d698311e5a09f5ac4939c6079951499d546c44"
+    },
+    {
+      "target": "build/multidb-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/multidb-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "bc1cdb8cb77f03d212c1e69b28efe94e825d93cc9b715ca7f77a610128716444"
+    },
+    {
+      "target": "build/netcap-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/netcap-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "84c6bc3f1f560d293ac92a2a336940a357e11d2a75760af8709a27d689928499"
+    },
+    {
+      "target": "build/netcmd-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/netcmd-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "bd52b28dffb447132a4565a9995dab0133ce104b70e82386294c0496f58cdb2f"
+    },
+    {
+      "target": "build/persistfix-units",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/persistfix-units"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "target": "build/publishfix-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/publishfix-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "67827da49a44f1cf14990726a384fc5cd95c0e26a1c4216a64bc2b205e26a049"
+    },
+    {
+      "target": "build/racefix-climon",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/racefix-climon"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "a19c775eb05aa28fae988e06ad83945222f049b8cf48b4e0d92c8b68706e62db"
+    },
+    {
+      "target": "build/rehash-waits-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/rehash-waits-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "3b7e6801058d79be1adac8bfe3fe529b73d3bfda18bbde8b03f663be2b30dad5"
+    },
+    {
+      "target": "build/reorder-engagement-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/reorder-engagement-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "a4bf0aeff1440f22bddbe9a4ef327d8ad56799660cc9f63b79568eb64ac43b8a"
+    },
+    {
+      "target": "build/reorder-engagement-unit-db0",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/reorder-engagement-unit-db0"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "118ef75ef46cde63ccd2d3299fd291b0f281d65e30f293898c0fcab8ae4209ff"
+    },
+    {
+      "target": "build/respresume-migration",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/respresume-migration"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "f62fa2805442fa09210529f53abfa45a05d6acc8ab11a3ec081654a92a1640a3"
+    },
+    {
+      "target": "build/respresume-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/respresume-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "3971aa2d80329997ade929f07c45e3089b1d4483d374737098fa59252056f178"
+    },
+    {
+      "target": "build/rltopo-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/rltopo-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "2df98f1a24889cf62bd5c89167270e3c6f944d9597b3d8ead07069a8f49cba83"
+    },
+    {
+      "target": "build/shutdown-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/shutdown-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "9b8ab097833d58dc588f01bea12ef13b158d043d18da218c0e4beda0b98a2103"
+    },
+    {
+      "target": "build/splitlocal-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/splitlocal-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "17cb298a6b32939b8ead47fe38a190024e537384c75777615d0f5951819bc5ad"
+    },
+    {
+      "target": "build/storesize-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/storesize-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "6d1ab8e4ff0db3fc78680b8f09b36cdf7a85d998b2bede206760e6ffee63ea2a"
+    },
+    {
+      "target": "build/txnorder-episodes",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/txnorder-episodes"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "cce90f120f90b8eb0ad30c2aeffec7db0e9ceafdcdb9d1c4bdc34fcca3a17683"
+    },
+    {
+      "target": "build/txnorder-episodes-debug",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/txnorder-episodes-debug"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "e3f6381040de91fdf28c14125d514c407b52efe65bafdc3a27e9be4ae1336f93"
+    },
+    {
+      "target": "build/txnorder-index-db0-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/txnorder-index-db0-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "377f712688d59fec3a74f1d18cb00fdaef9d90bceeac5139098635b40056103d"
+    },
+    {
+      "target": "build/txnorder-index-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/txnorder-index-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "70125850e05d220fd4b0c2633f85f1b38b29228f9bbeb7f654afc5e3d75ffbb2"
+    },
+    {
+      "target": "build/txnorder-retry-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/txnorder-retry-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "1e6190742f886e941d8fd4139910bb6cedbf739ed87562b5c571c2f5bbf0a24d"
+    },
+    {
+      "target": "build/txnorder-wake-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/txnorder-wake-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "270c267925ae53e7aa101ca14a15270706e2015400042a980d571f794cf3a649"
+    },
+    {
+      "target": "build/txnorder-watch-db0-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/txnorder-watch-db0-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "f3e896d4ce26e12e6f41e01423bba990966a5d99e055d53cc209c96fd1d3c0fc"
+    },
+    {
+      "target": "build/txnorder-watch-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/txnorder-watch-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "5c3a6fc3ea14b77637d853e29b23928dcf3041de7a4a8d92b26c468a78067753"
+    },
+    {
+      "target": "build/txnorder-wound-db0-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/txnorder-wound-db0-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "01daa059e0f8f23cd0686787c6dadef450f68adf58234346faad1ee3e68512e5"
+    },
+    {
+      "target": "build/txnorder-wound-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/txnorder-wound-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "582f6d5ac9e2376f4323b02b126136c5bb9fe9536b3daa51a21a60df706a7459"
+    },
+    {
+      "target": "build/waits-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/waits-unit"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "a97406d9b4c0c8a3348c6fbf36527c388526102b0607ae2ac5612c016864ae50"
+    },
+    {
+      "target": "build/wb-rule-units",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/wb-rule-units"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "target": "build/wbland-units",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/wbland-units"
+      ],
+      "exit": 0,
+      "output": "",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "target": "all",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "all"
+      ],
+      "exit": 0,
+      "output": ""
+    }
+  ]
+}

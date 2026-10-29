@@ -1,0 +1,8 @@
+PARTIAL	0	GATE_ONLY_JOBS=infofix_compat-missing infofix_compat-docs infofix_compat-slowlog infofix_compat-loadaof redis_tcl; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	201.920000	Redis 7.4.10 Tcl passing subset (2s)
+FAIL	195.890000	Redis 7.4.10 Tcl passing subset (1s)
+FAIL	1.150000	Redis 7.4 infofix missing (both modes/engines/runtimes)
+FAIL	1.400000	Redis 7.4 infofix docs (both modes/engines/runtimes)
+FAIL	1.140000	Redis 7.4 infofix slowlog (both modes/engines/runtimes)
+FAIL	1.330000	Redis 7.4 infofix loadaof (both modes/engines/runtimes)

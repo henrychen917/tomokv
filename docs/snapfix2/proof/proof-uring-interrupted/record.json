@@ -1,0 +1,508 @@
+{
+  "run": "/home/user/Projects/cx-snapfix2/build/gate-run.tXq2NT",
+  "command": "env 'GATE_ONLY_JOBS=snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_tables snapshot-epoll snapshot-uring persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors persistfix_units dump_restore debug-0 debug-1 aof-epoll aof-uring aof_frame aoforder notify_aof serverfix_waitaof iofix-signal climonfix txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 txnorder2 txnorder_wake txnorder_index execfair txn_group_fused txn_group_split script_bounds scriptfix lualibs flip fliplisten flipctl flip_saturated flip_unit flipfix_units atomic_units atomic_batteries atomfix5_watch atomfix5_accounting moverfix fused-0 fused-1 source_identity storage_units' REDIS74_ROOT=/home/user/Projects/redis GATE_NET_IO=uring GATE_DIFFER_NET_IO=uring taskset -c 0-15 tests/gate.sh iteration --server-cores 0-7 --load-cores 8-15 --server-smt '' --load-smt '' --ports 20100-20199",
+  "binary": "/home/user/Projects/cx-snapfix2/build/tomokv",
+  "binary_sha256": "dd169c2f10040c4b13cb87c3731e4ba1a2dbd74088635008e8512ba64e84021c",
+  "files": {
+    "ledger.partial": "709c4c94249549b3021ca8268f6473415a5e92ab958708e4f261265e50e17f64",
+    "ledger.partial.timings": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "plan.sh": "aec113bb8ab3e3ea7ea59430fca3c59675304f8e8fa63c1fd931e527a044b46b",
+    "phases.tsv": "012250ef9cb724a6da0d2f142634581125d969e3a4f405498f92eba7ff9e3d2c",
+    "row-timeouts.json": "bbfe7f7af12877e2e9c2b35bbdf2f3be99d61042e7ea189bdc9ee8bcc4e2099d",
+    "gate-output.log": "10b9f9f4821310069b64a18c11a6627c310302c3fc663f96ea762be6a20a6db8",
+    "jobs/core_tsan_build/build.log": "4ee0de15da996110f5ac0b8a4f73b0f80908701853c8eeac4b00b1d328799961",
+    "jobs/core_tsan_build/family.tsv": "2460f7a74deaf96c815b5324dac7c1120f1840cf25c6829787cdb5284b1f1fb9",
+    "jobs/core_tsan_build/output.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "jobs/flip_unit/family.tsv": "497ad2b69335ad7fbf7f6e0fc8a71e8e386205925b535f354c8fcb1a049dada6",
+    "jobs/flip_unit/gate-flipctl-unit.txt": "82544afe5a2f0e6e3918f4778cf2c8bd020bb779e02ff7a9b92b148ab23dc8a9",
+    "jobs/flip_unit/output.log": "b2916b9d2766c80c39b98effddfab8faeb8286a37636c89456c4695233e06534",
+    "jobs/flipctl/battery.log": "fbc7cd8d37720e4e9d040dd1f8af108b69724b0c32d61cc58bb3ca400f553bfb",
+    "jobs/flipctl/family.tsv": "36332d6307d4ea453ad23b30aa19225b3fab51add2f2b5dd5e9d11159f89bddd",
+    "jobs/flipctl/output.log": "ac8ba29e232242b4bec2a3e712924b61f1ddde3c5628702ea4b014a782c3be7e",
+    "jobs/persistfix2_lastsave/family.tsv": "a72e4489b6f8ea114a9111508282fb7f0c2ceb6c313fc10e14247e7448c1b1c8",
+    "jobs/persistfix2_lastsave/lastsave-oracle-1s-epoll/lastsave/argv.json": "537ec926369809ce156d43323904a06a4763699671d158779badb499dfec3c86",
+    "jobs/persistfix2_lastsave/lastsave-oracle-1s-epoll/lastsave/server.log": "ebeb28fedcfbee1af37257b6fb90b8af77096f4e34778323822e26aae6607830",
+    "jobs/persistfix2_lastsave/lastsave-oracle-1s-epoll.log": "8f791c06a03d1150a118ebeffdab7b1fb4b49f1e0ab71f16a40a84b7ecd72687",
+    "jobs/persistfix2_lastsave/lastsave-oracle-1s-uring/lastsave/argv.json": "f24812ea3f4d2a9a755255ccc0a1dee917c2e5fbab59b52891eb723c3f44a1cb",
+    "jobs/persistfix2_lastsave/lastsave-oracle-1s-uring/lastsave/server.log": "2e39047ca95f5469ff17731b59956c41aa88432d632b43faf39d0e10be0d91b0",
+    "jobs/persistfix2_lastsave/lastsave-oracle-1s-uring.log": "6431949fd510006798ad7fd93b1b9b3b668e2f7565e15b2d51fec3ffd47e1806",
+    "jobs/persistfix2_lastsave/lastsave-oracle-2s-epoll/lastsave/argv.json": "829ad852d696ec915114dafba99f9aaadc750aec9fb04cb0391cf5c45a6ecf61",
+    "jobs/persistfix2_lastsave/lastsave-oracle-2s-epoll/lastsave/server.log": "44df8ef95b8aa04fb530d1144e10739768c9b8f05fb3a44a71092c25df5fa5f6",
+    "jobs/persistfix2_lastsave/lastsave-oracle-2s-epoll.log": "d7202c209365b11a0ee028af1dd8eda9958ef212185df6e39e49c6dd19e16920",
+    "jobs/persistfix2_lastsave/lastsave-oracle-2s-uring/lastsave/argv.json": "8f0b1de8aaef604fd26a1e0b6fef9f8091f602ad93aea00682d5fb908bd44745",
+    "jobs/persistfix2_lastsave/lastsave-oracle-2s-uring/lastsave/server.log": "528c53c587806ad9c521be7b5e5bc0ef0cf1028ef23b6fa06b15c9ff58ccc354",
+    "jobs/persistfix2_lastsave/lastsave-oracle-2s-uring.log": "7757bf1ff08d4df506b65f5c597c32be37e91545abea4b4f5320a34b13a80fa5",
+    "jobs/persistfix2_lastsave/lastsave-target-1s-epoll/lastsave/argv.json": "30f9736f58f797d7f1af11cfb60bbdad4b9477b4ad44105e7ba14ae2564899d2",
+    "jobs/persistfix2_lastsave/lastsave-target-1s-epoll/lastsave/server.log": "4e0c383d1b6c5d1e725e9a2201936d0f6c9a9acd51e1591bb789afd9b80e8eee",
+    "jobs/persistfix2_lastsave/lastsave-target-1s-epoll.log": "69083c2013b526077e891c7dd6fbf0fb8db20e92a688dc01a002afed7bd14d02",
+    "jobs/persistfix2_lastsave/lastsave-target-1s-uring/lastsave/argv.json": "61f5dc0044df0f60a42826619361cee9b5df9a49ef48fc2a920be4053fe39021",
+    "jobs/persistfix2_lastsave/lastsave-target-1s-uring/lastsave/server.log": "5fb0ea141e799b257009fc8773b3bd7372379ae1fa27194ad581fcd518ac60b0",
+    "jobs/persistfix2_lastsave/lastsave-target-1s-uring.log": "fe758fe28c8b919d5f76938a548951392f4847507f66cda45b8088c03fb71f3a",
+    "jobs/persistfix2_lastsave/lastsave-target-2s-epoll/lastsave/argv.json": "c57ab19a8b1782b2d4f2c0c7b6b19382e2b9c6e6da081b8cace0301cab9109a9",
+    "jobs/persistfix2_lastsave/lastsave-target-2s-epoll/lastsave/server.log": "7b8c2074e94220ac87b54944d7768f5eb4a5560148c275d3a1d284643e04261a",
+    "jobs/persistfix2_lastsave/lastsave-target-2s-epoll.log": "646b7c5b525944e0d19771c1625a26f082198cccc1781bc9ce6c2233f6738418",
+    "jobs/persistfix2_lastsave/lastsave-target-2s-uring/lastsave/argv.json": "cb207274666b9aa422d027a24bbee2a89aaf10bd6cc3540e83b7f854faece4af",
+    "jobs/persistfix2_lastsave/lastsave-target-2s-uring/lastsave/server.log": "0ebc818d8619bd98a1dcc799f6e57812bbc5061711569c4377dfabafe9b3c020",
+    "jobs/persistfix2_lastsave/lastsave-target-2s-uring.log": "589fb46c7d99b3cd0a7dec060a02f6d552a7c9671c286027349bc99c9fdc84d1",
+    "jobs/persistfix2_lastsave/output.log": "43cde3e78bbdb54ffffe3f323c62b817f0a5bd8c7a5f963b56e569ebe1539608",
+    "jobs/persistfix2_shutdown/output.log": "a4f7802a6020cfa127ff4caae17dab39e2fec3de0f265c1f38904cbf0e0cea10",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/boot-sigterm/argv.json": "972d582d8a1f6aab293a2090e3be7f702d99ae2e703b8e5f991ab3c412c2316e",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/boot-sigterm/server.log": "9cde62cd6fcda778ebd6931cd9bf97755d0c6c1f6701b2d6d2df5c0bb3571208",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-0-0/argv.json": "cb5e22ada7efc69393a7b5eb52d0c1dbc0ffb578771aa68b038ebb168fd166d1",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-0-0/server.log": "c0131c77bc471199664c707478420062d750cd8d0add5a1afe87c49ef29fe36b",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-0-1/argv.json": "05750dab7c72da3e265be129713e07c4bbe10fb095f3b19a1109b3c4b6b14365",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-0-1/server.log": "2325cd61fd90481b08be7c90cabc6826a2d66c554e49aa10e201d2b082c25382",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-1-0/argv.json": "b86e535099ca8f257deac307870c22122e58ddb548324d53cc0d04a56a4a58bd",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-1-0/server.log": "115fe17b2c0b062e549c8fe4f456b23bff571b9933a4643de889017e3e3cbd1f",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-1-1/argv.json": "132ecc49bc01c5f5930eab91b26e1e4e6aa536bdd0d441bbf2cd318c415670c7",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-1-1/server.log": "f605b131879269c613870f2147fc803447f1bf6398dacebeceae87ce5b59257f",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-10-0/argv.json": "3bcbfc9036797da7b198ba9fef7bec7f250778068038fadfa34970c33472ae37",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-10-0/server.log": "c70f162adc4273c299cf16e61acf51bec60eb61d610b7d20505db00b61bd576f",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-10-1/argv.json": "afc5829c81df214983269802ba07e910156365a3e12d208282ddb5a096938ae3",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-10-1/server.log": "e044dedd26ee079b3c1ddd04ca1cd5fe456775806a472c42d1b22b4c449c020a",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-11-0/argv.json": "dcf59be3fd9ffbf0bdf202303c392e02d92c6b4bb3a04e2dc8bd3ed311f3fd96",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-11-0/server.log": "21d1eb66edec047356d64d1af4fcd2db206f06688e44c8df6b840e9d653a1389",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-11-1/argv.json": "0a087d1f832a39f4e193b6fefbdebac0c4b34b6a841bf160788195698f2ec7c4",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-11-1/server.log": "95021dd8f9ef24ec3fda88c732b2b4f305b56acc759eef409cd075bf322318a6",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-12-0/argv.json": "b56bc8927a0e334a064e6a89b42e46d110a204fb9b59556af440ab517d68314e",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-12-0/server.log": "5e98036526e788c4c76315b0dd6c37abe62d388a80871d1ff9510af6de8526c1",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-12-1/argv.json": "1a362ce6913a847f43a79744504998bf7fd5c7c696ed4b962539dd71ef81ab72",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-12-1/server.log": "28ecc0a0551f572d7977e0920336874873852e0d74318a292cd9a2af848d429c",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-2-0/argv.json": "87a2e21a80cad4831c8a46bef460ce7b561575cf43210ffd8712630f5808ceae",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-2-0/server.log": "c48e04e7fdd968028db022567dc68fcc6db608a92116807b3770bf9fae34c3c9",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-2-1/argv.json": "8f70390a5fdc213e175700ea26c0c3a488cd74981262ceca9ce78f85199df9d5",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-2-1/server.log": "5cd711573a7170f994ee643f369774e77f7c9eaaf27ccf5e3fcf0372536bb334",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-3-0/argv.json": "ac970233e12da010d6d00d4374172643569003cd9cc5be723a4cd8d11705b3c7",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-3-0/server.log": "df404d8dcf79eb10892cb2cd363fec36784c2caa7dc58c8b6b12e4a556e6f8af",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-3-1/argv.json": "f8619cb5d04f870653382e81a3048bc8a362e853038c1b6793828f5e40148a96",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-3-1/server.log": "605eab80bed7e63a003636d8cd9be9e9968a1d188be0f1e7e6f1388a226fef7f",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-4-0/argv.json": "57be5bbb33bb2fc7d7883a286b3001b935218fd9f2b444d53059403ff13fc501",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-4-0/server.log": "d2135fab9fe8b3436be64352533011559ad2ed119d29082c6c0b56a25647a792",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-4-1/argv.json": "fb79c00b0e4be12f51a555ab1c018f8a8b5068003433b08bc5f46bd949f95c49",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-4-1/server.log": "5d372db4ccab489e3f8780baf3f2dbca7c3c57fb1dab11ac3af7a0001fe35b69",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-5-0/argv.json": "65ef39c6d96a8dfd14fc3eb9acb36d17c586add180d97b343d2ff7bbbabba274",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-5-0/server.log": "52132921beeb570cc71656924096e9f72aacf973490626a9f22450d0e7605d86",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-5-1/argv.json": "c89afdf13202a9f97a12e37efe1e4ffd097bdd7e38eed62c8b5197ba86a85707",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-5-1/server.log": "d875130b24b1273ad41d1cf20a9bbac5151c2cf61f6f64edb1aad56e326f93c2",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-6-0/argv.json": "f27b36b2fea85e3feb11696a35e148e6769aee1d7df3e75dfc7d2213613206b4",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-6-0/server.log": "68341eba7e0bb81c0e7a0defdc8e9771ccd1b405eb049f0c374e2dc69a8861c9",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-6-1/argv.json": "dc11a261841154f5718a26e1af11da6bbee1236dddaa1038da9fc5dc1f3ae1ef",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-6-1/server.log": "0397b0d8847746b2ed33dc07800ccfe8c5857189788708fda8e41ae5ead5294b",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-7-0/argv.json": "0f07f7524ece90f6eeead50bbe0c9a7b9d55f71eb7e0dc60abd53fff64bb2844",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-7-0/server.log": "8259a614f8bda24b2dcef397fef28dfe02ce7ba5e81aeec83bdbee88474b7eb2",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-7-1/argv.json": "ca9c142bb5ace9350f96eddaf26067483a5f30359bd9aee35722073b8bf99887",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-7-1/server.log": "ce402ede890ec264ddc726a459802b9a7d76a168f6e912b29c88e29ab067ffe1",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-8-0/argv.json": "769841dd53f70917157ec642a9af91e1a1930065286e7ad93095c0a737efdbcc",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-8-0/server.log": "d4ff8d5f9340ddd097faf4e3fdb5c7d8d44501164c20dfc8bc97065af92fb1f6",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-8-1/argv.json": "9d87fbc5e7b69256697d65d24b76e12ec3a6294c6bfb93c485880369ef0c501d",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-8-1/server.log": "85116b8045f1630a812cc24d7c0461a1851241815061d05085ee6a62b81e2e7a",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-9-0/argv.json": "f69aa98778ced949296385d42aae8571428ec58ea156eed57a0491aeb0edf60a",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-9-0/server.log": "4a1528e99a0764b934b1b371b5b5bf1b3ca31917334e88641c3fb2c63a41cd93",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-9-1/argv.json": "f20e27d20e3d94ba732b4524c813b6b2a8a348b89a238633b7054a438ef35e2e",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-9-1/server.log": "4e5f1240839980f599b8f263cbbe8446ef4b55749ebea7acba6f85d3624f1dd4",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/config/argv.json": "20600d41b7c4c4faffe495e2125f5a5d0dadefcfcc9c924fcb2e7c89b7763772",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/config/server.log": "7ed10d58660762cc77a35df76aac027d522ff912374d694a9a1b3cbb68aea71b",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/grammar/argv.json": "0243eac6cccd8565633a5236c61732ea9d862af94cfbab85f2cc8802646b5b06",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/grammar/server.log": "2db0e067a083e7069f6b3d1addc881aa1349e25bf918db92896ded7ed7eaa620",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-default-0/argv.json": "d7bc8e6be96f84ddd85370b0fdb607c832f0156ad4e560e39bd54918285e4027",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-default-0/server.log": "3d1c2175642ee90940e40b4ae4825b15e72bc41538000f2d1ca5314a850c8bfe",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-default-1/argv.json": "6f41c32fe3cc7f0abd405cd193c0dbcd059579ea7ce56188404dbb984c4204be",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-default-1/server.log": "ccde40405b381352e7298fabf75507e0637b1da42b4f2326b577723b4692f3ca",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-nosave-0/argv.json": "e98356d12c7ad0c746443f801e7305fc93954a9155b7e54d73e8cb54d603f31b",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-nosave-0/server.log": "ab5918103f20ca9198dc3791e02c231bcaf998d953bc02d7a02b211a0922cde0",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-nosave-1/argv.json": "b40fb32300e964a5dfe0819cc5aef6b2d895c02d6a514ebd39dce5528e39b3bc",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-nosave-1/server.log": "3dff9fcb9ac14c22d1534ab63a39f9cf0e7bb9a486ce934d4e14b4beb465bed6",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-nosave-now-force-0/argv.json": "a5361216c8d5437a10562ce4b4487c5c1bf4f98808ad4f64fd1e59cf6850955f",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-nosave-now-force-0/server.log": "88fda91f80a039cecdee725d0e956b03ec858fc9a457c549c65660fa87f7975b",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-nosave-now-force-1/argv.json": "d6a90f3df9b7eedfeb5661913c7dc9143d9c824d9d74f65b1d8a3fc2d9fc4572",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-nosave-now-force-1/server.log": "ce8aa6c5ed23cdc2c26b155196275fbd7cd26503f4c25ea4f27e2c34869a44d1",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-save-0/argv.json": "507d80a275ddb453feed9a70f35be85c4fd85557ebbfdf5b62aef2ffa5c3ddeb",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-save-0/server.log": "bfca7ea991236606e6978316cc7c3012c0811f23c03288d559ac9e850f1a9fc7",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-save-1/argv.json": "30802ecc24fbf0f2becda4f321f992c2305aefc7d75b1d55839cc95975de5d4b",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-save-1/server.log": "9495f3f0838dfee0452cd1e5f18c9f90654f9ffe95bfd037c82e4367f54dc233",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-save-force-0/argv.json": "c8e9511250f22ab0b826d8098a13304e7dd1f63e4b36c02e6cd77d2458af51df",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-save-force-0/server.log": "030c5f71b41096529af545952c6ba8add424f16698b74d14955e1d51f4f05053",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-save-force-1/argv.json": "fa2fdf56b732fd74a28236df9a47c916e1a668a184885e53bb0d4408dd6e9470",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-save-force-1/server.log": "43b1a7b177ca44ebfb7681d886609eebf6a2a12f03bbace4bd0a44d8ef1be29d",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-save-now-0/argv.json": "ca60f0d46ea9ce162029dc82a2fbda83bfb62a82c2db075e9b69592ac2ffc653",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-save-now-0/server.log": "0dc0c65ace6c58839b864d05817a4913a605e18e5c8c5d39e423a551a245f45b",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-save-now-1/argv.json": "0b88639980810c75ff591c8119fbcb9e5191a1bf83abeb7dd89e26bd3a17402a",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-save-now-1/server.log": "2046337f52926c92025e143221fb80ef355c840734e9cd05f3f471998f95dc40",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-default-0/argv.json": "02fad50a4312547fb7e516a2ff5df9d758671cbe802b64162bcc2c894b3ddfcc",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-default-0/server.log": "4da8b05ad1891719aa3eaee611ed95fc1760664f0c98bb6e945216d2b6229c30",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-default-1/argv.json": "8997bac56c728adf70ea8b9b9a55a5bf8b5b793f69c79f25dfb444d08d60f2ba",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-default-1/server.log": "b697faa43ab788c90fa0cf442fb6a12e55c14c77a4806e8cd192cebdce7330ae",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-nosave-0/argv.json": "ba68bc3e5cd3b9f6d3f6e726c3ef31df8847e8b8b9e5e65a8c5ce8090a5b44b1",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-nosave-0/server.log": "9d8c7a84b3a9813281426e22424a09108318afce82460198cedf01f335b4e7a5",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-nosave-1/argv.json": "e5e24a0ef076fe0bacc618eba348214ab7cb02baeaf8c103705c44b7f150314c",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-nosave-1/server.log": "43448510c439ab6f15d571a95a2e52f480f7fb3cd0e212dc03448c2fbec61359",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-nosave-now-force-0/argv.json": "2a9a9641be00cfd163d8ca72f70b881f9e62843e70a21cb970d42192c7a3832d",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-nosave-now-force-0/server.log": "be7fab867be919deac7a0b1146185462452d0417ecf3a7b46ce41c322707c847",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-nosave-now-force-1/argv.json": "6aa1c53dffc44f7a8f701537c1f622e9ad555980d67d871fb486d2a565819bce",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-nosave-now-force-1/server.log": "cef99d045d3c34f139c42a3caeec320752f383d5d47ee3130b3c7a79985d8513",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-save-0/argv.json": "75143976b3c2d638ee24f1c55c6e39ef73fc010668c574f741b14507cc270e95",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-save-0/server.log": "a1156e63ed324248c0e2971f19f3c3d56b8f30d67637c85f0762535a463915bb",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-save-1/argv.json": "4b5cd21e4dfbd460283421f2e86b48362d003dcdb047beb45d42abefda720066",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-save-1/server.log": "9287538549762fb911c811e3345455e31394597232a6f73d9e1cec43ceb5bf40",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-save-force-0/argv.json": "63ffe4454ca96cb9f95c5821ee470f1e2c9916f729f4d847d5c276568e3324ab",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-save-force-0/server.log": "dec0a1f06ae1c0a5b74bf6b6501d85a9190f470c38b52325b00a4009a1597b13",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-save-force-1/argv.json": "3056bb806a0f0db734ce1fdd313925eb8689e79e70561d6540c7d53aae938594",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-save-force-1/server.log": "7bd1b47dadb33d4e107bcc606e2ffbe5930485a99ca5ec11093937983673d8ed",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-save-now-0/argv.json": "f940988bb4ac73f5ffdb8714f2c9196f016e2eac7de3630b41312475757d4920",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-save-now-0/server.log": "50e1d7331cc60b0d5c4aa7371dc5b8e798fe86d767ffcea69904539825f74d2f",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-save-now-1/argv.json": "8492c36c177d2bcaea42025bbc9eb4fc94cfc61d27d961559d9335b7d2c62b64",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-save-now-1/server.log": "312bcb08ba2c25f6197b0be0b383693ef6c638d20d7aa4a857fdc665242e4f22",
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll.log": "cd8de01676490b7cec9949ac2fd9c34d08ca02f09199f13dcc01912085106f4d",
+    "jobs/production_units/blockfix-cost-build.log": "08a4ae73a53a6c933efb77cc61b248b70fde10593864124e78136edf82364ac5",
+    "jobs/production_units/build.log": "c86ef24b2a7e8620b31d99a8eb1e425abd697103231e9f1ccf1f5d2bab1c15f0",
+    "jobs/production_units/family.tsv": "93503d48ecbc80191c54f1cbfc835e00859af905d1ad7aee8756df228945a126",
+    "jobs/production_units/mdbqsbr-live-build.log": "1a40b89f2f8df9367939de53e93981108ca286c04b966c68fcd30f6824e9c02f",
+    "jobs/production_units/output.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "jobs/release/family.tsv": "84fa800e74c986ced38c596b31057de1481c6b07de72530d710c1ebbfc6d77c9",
+    "jobs/release/gate-build.txt": "68c5f548009ee20966e380682cc0b78f39bea9c8895af0403577a7204fef2e99",
+    "jobs/release/output.log": "409abba14aa74aa6bd5150ce2a9b4b6ed5b6d17bb0bc367f33ddb04c2f33dee2",
+    "jobs/source_identity/family.tsv": "2c25787199dbe01e42a4c9501fb86e3cded587592ee443aa30a96607052f1888",
+    "jobs/source_identity/output.log": "14be716374e8d3fece42abd90f74a29da3c602347ecc16c6fc1f06db4024508f",
+    "jobs/source_identity/source-identity-build.log": "9553628983c3fcffc44c7727c41bc2efea8589c7c434ade4cc95329c627db316",
+    "jobs/source_identity/source-identity-checks.log": "0777f838c839a59690fe1390d037e29e43120d505762cf7fc3a00f77864b6faa",
+    "jobs/storage_units/family.tsv": "d3ea6d931f0b0bd392e683d3e07dccb98af17a1ff1f92870b6e9fb15832099b3",
+    "jobs/storage_units/gate-store-aof-eviction.txt": "1203435755f4bc8753cd620f83605e9f90a9bca72eb582350c0aea5d12d97275",
+    "jobs/storage_units/gate-store-build.txt": "d3c3598a3a64fbfbcd1efb1bc9ef461c0eede6206bb4e3f1539527b6cdb5c04f",
+    "jobs/storage_units/gate-store-deadline-allocation-failure.txt": "6f7c6ef73d9534aa091e2fddad14262b7d581956110212032ef88bd2af71e62d",
+    "jobs/storage_units/gate-store-field-index-failure.txt": "797fcf85da738854f07de46f82cb2f2b73c2d9e6044bcfcd648de25c09e22565",
+    "jobs/storage_units/gate-store-flags-build.txt": "63fa8f6d70263522ab45b937009390d65506c28bbb2c6ede87e7b8906652a7a1",
+    "jobs/storage_units/gate-store-flags.txt": "992a4dbe23485b8af83eba65a28d1ed9a1ba055385209028a4472dddadcadf51",
+    "jobs/storage_units/gate-store-flush-prepared-capacity.txt": "52ac58e748b0288612466c98b48221afc94f582fedf883a10eb57b35fa827a3b",
+    "jobs/storage_units/gate-store-hash-bytes.txt": "472badf33bcb7651f7e99957885fec11e430cbaea2e483d7c47971ad66d42baa",
+    "jobs/storage_units/gate-store-imported-hash.txt": "667933cc33cd8688e837eef8e6f3b2ac027b4cccfd883504c3ce369105c539de",
+    "jobs/storage_units/gate-store-intents.txt": "475cac43459cc30a2f92857ab12f42e51c45c8bd3954fbd92dd9a6e59a81655a",
+    "jobs/storage_units/gate-store-randomkey.txt": "d0a0e34618b2652f1c73e124069ef0236bf59198ee000f11ddd12f6949450187",
+    "jobs/storage_units/gate-store-rehash.txt": "22c73a649b01d3ff3ad60c8cd2b0da4425552935ab7fe6e68bc8045ea21a2992",
+    "jobs/storage_units/gate-store-rollback.txt": "564898d4f189d287f33e79d6b0a32e90a827ada908fa6edf28203de4851ac6d8",
+    "jobs/storage_units/gate-store-snapshot-eviction.txt": "bd0028336aa198ce1387579883a0be9640b91ae065990a9e33a08ebdb16d726f",
+    "jobs/storage_units/gate-store-unlinked.txt": "a800bdda5db65afa13cb48955b83b604da7167daa1543c4f5db987970f427ab3",
+    "jobs/storage_units/output.log": "ef79f9801360eda35e8b63fc66b0075c8179de40f14237bdc17b796014abdff0"
+  },
+  "referenced": {
+    "jobs/core_tsan_build/row-timeout-3637720.3637720.485661790.1.cancel": {
+      "bytes": 63,
+      "sha256": "ea726cf8fdd44e88a696ef820c1e9441ff126ffcefb39c1aedfe247bfb969fe5"
+    },
+    "jobs/flip_unit/row-timeout-152349.152349.485757986.1.cancel": {
+      "bytes": 60,
+      "sha256": "24985c4315f1436be36cea43a49d0a4f9229ad611992f9d81e283bff6819e12a"
+    },
+    "jobs/flip_unit/tomokv-flipctl-unit": {
+      "bytes": 137936,
+      "sha256": "0c04ff976ae5d609c2e8eb3f23463e6d30a10d4cb1f5fa0a2ffd89f4e6dd6e60"
+    },
+    "jobs/flipctl/gate-srv-main.nqX3Qn": {
+      "bytes": 10942,
+      "sha256": "b1b55e43b86635a0e82b36c024ddcceb3ba256da5a8fe3bea8d565c91f7becd7"
+    },
+    "jobs/flipctl/row-timeout-194111.194111.485771456.1.cancel": {
+      "bytes": 60,
+      "sha256": "58ea09edd6b542393318ab6e66b134fad58c44af86986ec9d28e5f9aeefb04ca"
+    },
+    "jobs/persistfix2_lastsave/lastsave-oracle-1s-epoll/lastsave/data/appendonlydir/appendonly.aof.2.base.rdb": {
+      "bytes": 47016,
+      "sha256": "db58ab22da19e34e4aa9e2facaa5a775fd6bf525add69eeb033b912085d12473"
+    },
+    "jobs/persistfix2_lastsave/lastsave-oracle-1s-epoll/lastsave/data/appendonlydir/appendonly.aof.2.incr.aof": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "jobs/persistfix2_lastsave/lastsave-oracle-1s-epoll/lastsave/data/appendonlydir/appendonly.aof.manifest": {
+      "bytes": 88,
+      "sha256": "88b2ada3303b36cbd7c98f2635e6626986e0273b334f26a86bf7531207811d63"
+    },
+    "jobs/persistfix2_lastsave/lastsave-oracle-1s-epoll/lastsave/data/dump.rdb": {
+      "bytes": 46985,
+      "sha256": "faa88f3f963a5a89a64e19f6f8d07c50ffd27a53585cef8615fbdf1f076e3b0d"
+    },
+    "jobs/persistfix2_lastsave/lastsave-oracle-1s-uring/lastsave/data/appendonlydir/appendonly.aof.2.base.rdb": {
+      "bytes": 47016,
+      "sha256": "325a39279c8d48eb105a8574664143cdb16e72bae3ee0d0510b823e6144bc9f6"
+    },
+    "jobs/persistfix2_lastsave/lastsave-oracle-1s-uring/lastsave/data/appendonlydir/appendonly.aof.2.incr.aof": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "jobs/persistfix2_lastsave/lastsave-oracle-1s-uring/lastsave/data/appendonlydir/appendonly.aof.manifest": {
+      "bytes": 88,
+      "sha256": "88b2ada3303b36cbd7c98f2635e6626986e0273b334f26a86bf7531207811d63"
+    },
+    "jobs/persistfix2_lastsave/lastsave-oracle-1s-uring/lastsave/data/dump.rdb": {
+      "bytes": 46985,
+      "sha256": "5e7afe01e7903b5c4adebc97ec95208d74e00d1aafbcb1baf68a61982bdafebc"
+    },
+    "jobs/persistfix2_lastsave/lastsave-oracle-2s-epoll/lastsave/data/appendonlydir/appendonly.aof.2.base.rdb": {
+      "bytes": 47016,
+      "sha256": "237dcc09fbbdac0a8a74963c6234653dcc7b337c12ca08923a5ab7a0cadd020b"
+    },
+    "jobs/persistfix2_lastsave/lastsave-oracle-2s-epoll/lastsave/data/appendonlydir/appendonly.aof.2.incr.aof": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "jobs/persistfix2_lastsave/lastsave-oracle-2s-epoll/lastsave/data/appendonlydir/appendonly.aof.manifest": {
+      "bytes": 88,
+      "sha256": "88b2ada3303b36cbd7c98f2635e6626986e0273b334f26a86bf7531207811d63"
+    },
+    "jobs/persistfix2_lastsave/lastsave-oracle-2s-epoll/lastsave/data/dump.rdb": {
+      "bytes": 46985,
+      "sha256": "3be5c1f5b69a455d25eb6a05694163a82ef6ce60ef71130799d3378bd73dee8f"
+    },
+    "jobs/persistfix2_lastsave/lastsave-oracle-2s-uring/lastsave/data/appendonlydir/appendonly.aof.2.base.rdb": {
+      "bytes": 47016,
+      "sha256": "7cf07fb80c5c11d69a3444272ddb71e2d75446a0c0e788c13586de761e3ab64e"
+    },
+    "jobs/persistfix2_lastsave/lastsave-oracle-2s-uring/lastsave/data/appendonlydir/appendonly.aof.2.incr.aof": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "jobs/persistfix2_lastsave/lastsave-oracle-2s-uring/lastsave/data/appendonlydir/appendonly.aof.manifest": {
+      "bytes": 88,
+      "sha256": "88b2ada3303b36cbd7c98f2635e6626986e0273b334f26a86bf7531207811d63"
+    },
+    "jobs/persistfix2_lastsave/lastsave-oracle-2s-uring/lastsave/data/dump.rdb": {
+      "bytes": 46985,
+      "sha256": "358083fa26e15cc6bf8412187f3283c2ce4e95f5845370330982c8d1091fcd63"
+    },
+    "jobs/persistfix2_lastsave/lastsave-target-1s-epoll/lastsave/data/appendonlydir/appendonly.aof.2.base.tomo": {
+      "bytes": 105574,
+      "sha256": "e30c408be3234c205311f8c7990ba0f0a7211ab216d8d9aa01195c0509b94e81"
+    },
+    "jobs/persistfix2_lastsave/lastsave-target-1s-epoll/lastsave/data/appendonlydir/appendonly.aof.2.incr.tomo": {
+      "bytes": 80,
+      "sha256": "b0e6ad220cc4f4c635e2a2be879c2e5f1d3f600c8588e53c79c56f1605881f2d"
+    },
+    "jobs/persistfix2_lastsave/lastsave-target-1s-epoll/lastsave/data/appendonlydir/appendonly.aof.manifest": {
+      "bytes": 217,
+      "sha256": "cc4829386ebb5986d05248fe113ad282a136c1faf43c3d56c69c35083fc48264"
+    },
+    "jobs/persistfix2_lastsave/lastsave-target-1s-epoll/lastsave/data/dump.rdb": {
+      "bytes": 105514,
+      "sha256": "0fc62de2a44b2ff928fef59f08dcda2ab5025497076f3d3ad6d4b95f021612a9"
+    },
+    "jobs/persistfix2_lastsave/lastsave-target-1s-uring/lastsave/data/appendonlydir/appendonly.aof.2.base.tomo": {
+      "bytes": 105574,
+      "sha256": "d8fb915614a2731c16e1f88226db49ea0d27c46ab3dfe0664c7e199ab72f7257"
+    },
+    "jobs/persistfix2_lastsave/lastsave-target-1s-uring/lastsave/data/appendonlydir/appendonly.aof.2.incr.tomo": {
+      "bytes": 80,
+      "sha256": "adb6b981efa17ea1322a4a976b7cf38f3d9e6109c2a4f6ef4f96304ae820e276"
+    },
+    "jobs/persistfix2_lastsave/lastsave-target-1s-uring/lastsave/data/appendonlydir/appendonly.aof.manifest": {
+      "bytes": 217,
+      "sha256": "24482d9969205eed8f00711427539c1b5eb9db384f607d1bb046d2f4ea92fe5e"
+    },
+    "jobs/persistfix2_lastsave/lastsave-target-1s-uring/lastsave/data/dump.rdb": {
+      "bytes": 105514,
+      "sha256": "17309c31cf895dcf68d01a1397c337696d7e889e4dc1306f97567107872f516f"
+    },
+    "jobs/persistfix2_lastsave/lastsave-target-2s-epoll/lastsave/data/appendonlydir/appendonly.aof.2.base.tomo": {
+      "bytes": 105574,
+      "sha256": "611b42c5790ea6abc3c2ce73223b2c2782835a940f58f66ab26f40f0c06eaf3a"
+    },
+    "jobs/persistfix2_lastsave/lastsave-target-2s-epoll/lastsave/data/appendonlydir/appendonly.aof.2.incr.tomo": {
+      "bytes": 80,
+      "sha256": "dff9992e48bf24eb2e785e20b1a0b5cf0eba4b044354521db782eae2c750fc44"
+    },
+    "jobs/persistfix2_lastsave/lastsave-target-2s-epoll/lastsave/data/appendonlydir/appendonly.aof.manifest": {
+      "bytes": 217,
+      "sha256": "e35a4a4accd1fdc90a19d98c92c9b8837110e87e1fc7d443bea4aa4696d66c33"
+    },
+    "jobs/persistfix2_lastsave/lastsave-target-2s-epoll/lastsave/data/dump.rdb": {
+      "bytes": 105514,
+      "sha256": "3d0b69a974c6dff1115bb9c0883402917ec0556fe4652d018f49b96fc34b806e"
+    },
+    "jobs/persistfix2_lastsave/lastsave-target-2s-uring/lastsave/data/appendonlydir/appendonly.aof.2.base.tomo": {
+      "bytes": 105574,
+      "sha256": "bc7fd93626cfa20494dae85b55f16cd3d641c8a15cf52033eaf95c8b29437438"
+    },
+    "jobs/persistfix2_lastsave/lastsave-target-2s-uring/lastsave/data/appendonlydir/appendonly.aof.2.incr.tomo": {
+      "bytes": 80,
+      "sha256": "44ce2ce21693c3ed2181e324973e8cd35cf49cbeadf9d297c6494b5575865b33"
+    },
+    "jobs/persistfix2_lastsave/lastsave-target-2s-uring/lastsave/data/appendonlydir/appendonly.aof.manifest": {
+      "bytes": 217,
+      "sha256": "558822312c77d33ec8d3ca9d2b216c36228f23c4417cea15c045a820a1413525"
+    },
+    "jobs/persistfix2_lastsave/lastsave-target-2s-uring/lastsave/data/dump.rdb": {
+      "bytes": 105514,
+      "sha256": "59b680bbb4ba15fa5ac0363022ce2c2c023585affc40e013bbe26ba4fb9490e2"
+    },
+    "jobs/persistfix2_lastsave/row-timeout-378984.378984.485784828.1.cancel": {
+      "bytes": 60,
+      "sha256": "8128b6ee935732ea80f6bb431d69a2977788c7283148504916473de1ea228f4c"
+    },
+    "jobs/persistfix2_shutdown/row-timeout-390875.390875.485785652.1.cancel": {
+      "bytes": 60,
+      "sha256": "728a8d046260c4419da7a14d9fa275df198b4a0783e1b003164adcb89b3a6dc8"
+    },
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/boot-sigterm/data/dump.rdb": {
+      "bytes": 89,
+      "sha256": "6d08f9f57879c4ff785c2959220bf827b2ec6de3a9e8993b9e6a5b4befaafabc"
+    },
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-0-0/data/dump.rdb": {
+      "bytes": 120,
+      "sha256": "fc9da7ce48590e807403079ac3380ac3d15cdb473770ab1f65dd85de20ffa14a"
+    },
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-1-0/data/dump.rdb": {
+      "bytes": 120,
+      "sha256": "11954261ac91664e4ccc57ba4ee134feb4d8adc2c77f4eaf792ea0da5c070ff8"
+    },
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-10-0/data/dump.rdb": {
+      "bytes": 120,
+      "sha256": "0c44bc9e7386b25c2bb9a3a058104c3149c0859d214f07086421e56400b316ae"
+    },
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-2-0/data/dump.rdb": {
+      "bytes": 120,
+      "sha256": "196482bd4e26eb608f62b53b2b8a8d22d4ff645b4cd6a86fa7f40a9fd46b47c3"
+    },
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-3-0/data/dump.rdb": {
+      "bytes": 120,
+      "sha256": "d789d273ac746d2323f20d04cb0d389687bb941a152920aa1dcda518da59a066"
+    },
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-4-0/data/dump.rdb": {
+      "bytes": 120,
+      "sha256": "0ee078c5a99e23bf4f0cff958d8e75207c94a5054080b003afe9aca584682db5"
+    },
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-6-0/data/dump.rdb": {
+      "bytes": 120,
+      "sha256": "64b991bf138ed9b0ad39429283ac58bf4d2cd8b369badce88da2bd9e80e990d9"
+    },
+    "jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-7-0/data/dump.rdb": {
+      "bytes": 120,
+      "sha256": "d178bd720b439ebc227393cabe59af6464121e1f4901ca227284fba5879dd7ee"
+    },
+    "jobs/production_units/row-timeout-3739617.3739617.485671101.1.cancel": {
+      "bytes": 63,
+      "sha256": "74fd37dcbe83a13896b174d0fb52a04ccfce5f1fb2147a52fe24b3d4014b0507"
+    },
+    "jobs/production_units/row-timeout-3739617.3739617.485671101.2.cancel": {
+      "bytes": 61,
+      "sha256": "c9f3a5c24f27aae1e19d27d0e199969512539ab6178b60b23083cdd2fb621f15"
+    },
+    "jobs/production_units/row-timeout-3739617.3739617.485671101.3.cancel": {
+      "bytes": 62,
+      "sha256": "e22cd8d3f0a1c0229b4a15ea652641d183f61be531f9a3a519b8b775cfad72bf"
+    },
+    "jobs/release/row-timeout-3636463.3636463.485661699.1.cancel": {
+      "bytes": 63,
+      "sha256": "ab2b6f6c04645e209ae314143c9d363613b3d3f7c475244a32ac70c683e80a98"
+    },
+    "jobs/source_identity/row-timeout-157327.157327.485759838.1.cancel": {
+      "bytes": 60,
+      "sha256": "8f894129380919976ca2b0c780fc7f0188f678b61c837771e9ba3d559a18a0df"
+    },
+    "jobs/storage_units/row-timeout-3731040.3731040.485669723.1.cancel": {
+      "bytes": 63,
+      "sha256": "1fe11170dc302955534b310f9aad4f481280b1003152357260e34ad35f904bd6"
+    },
+    "jobs/storage_units/row-timeout-3731040.3731040.485669723.10.cancel": {
+      "bytes": 64,
+      "sha256": "173a63498fa151dc17f87aac8df2d83411c0c4243ebeda492e1752cf016a19c0"
+    },
+    "jobs/storage_units/row-timeout-3731040.3731040.485669723.11.cancel": {
+      "bytes": 64,
+      "sha256": "cf2d70b32ff02704e14ca00a359cfa5ba4d31ea2d9a635dab6b1c84fec1f9ca5"
+    },
+    "jobs/storage_units/row-timeout-3731040.3731040.485669723.12.cancel": {
+      "bytes": 64,
+      "sha256": "e5f57495cb2ac0edff442a61521521a2504b438deb2be78285054386cface538"
+    },
+    "jobs/storage_units/row-timeout-3731040.3731040.485669723.13.cancel": {
+      "bytes": 64,
+      "sha256": "70cc17a49c352343c9627b8e8863c7ce43e5871f2fe7d783e2ad1c7aeae567f1"
+    },
+    "jobs/storage_units/row-timeout-3731040.3731040.485669723.2.cancel": {
+      "bytes": 63,
+      "sha256": "88155ad2b49bc75833c04c8e532fd9b20f5ed25678261e1709e107bcf388c818"
+    },
+    "jobs/storage_units/row-timeout-3731040.3731040.485669723.3.cancel": {
+      "bytes": 63,
+      "sha256": "a9bca2edc1c312b0865b2825c62b4f3c3137e0a046bc9a0065ab803b1f058c80"
+    },
+    "jobs/storage_units/row-timeout-3731040.3731040.485669723.4.cancel": {
+      "bytes": 63,
+      "sha256": "a9df2139f658b6a617eb839fce894a6007d83cc7801787c1c36331e382b88910"
+    },
+    "jobs/storage_units/row-timeout-3731040.3731040.485669723.5.cancel": {
+      "bytes": 63,
+      "sha256": "b1fdd28f9233be12ba844a291f29c137f60649f87528ea5fd82f54e0f6727cf7"
+    },
+    "jobs/storage_units/row-timeout-3731040.3731040.485669723.6.cancel": {
+      "bytes": 63,
+      "sha256": "081d2ea2942143f72d57ad98dc740332fa62f11327683be468791a0d888c5db1"
+    },
+    "jobs/storage_units/row-timeout-3731040.3731040.485669723.7.cancel": {
+      "bytes": 63,
+      "sha256": "03b186a8dbef3d57dcc24ebe4ffba567975d0080421d73cecc08f2bee748e8e5"
+    },
+    "jobs/storage_units/row-timeout-3731040.3731040.485669723.8.cancel": {
+      "bytes": 63,
+      "sha256": "08dfb41519a11bcb40ec1ca4514099b32b966b9e1a44d8a4ddd75f1b0f7b381c"
+    },
+    "jobs/storage_units/row-timeout-3731040.3731040.485669723.9.cancel": {
+      "bytes": 63,
+      "sha256": "9a9017e4bbfc9fd2cbc42ebf89275b1860088320524c1ad831575a522364ff7f"
+    },
+    "jobs/storage_units/row-timeout-3731046.3731046.485669724.1.cancel": {
+      "bytes": 63,
+      "sha256": "9b0b036ea5441c8149f32c9954a9cacd3d531b4bb08914df3fad9d5f84cbe51c"
+    },
+    "jobs/storage_units/row-timeout-3731047.3731047.485669724.1.cancel": {
+      "bytes": 63,
+      "sha256": "8158c8db1cecdf24885f71b1a13c9d47255d97af5b3d9ffeef2a7904b55aa221"
+    }
+  },
+  "jobs": {
+    "core_tsan_build": {
+      "ledger": "",
+      "done": "0\t0\t0\n",
+      "timings": ""
+    },
+    "flip_unit": {
+      "ledger": "ok\t18.110000\tflip controller model unit\n",
+      "done": "0\t1\t0\n",
+      "timings": "ok\t18.110000\tflip controller model unit\n"
+    },
+    "flipctl": {
+      "ledger": "ok\t131.970000\tflip controller: ramp gate, hold, surge + mix re-maneuvers\n",
+      "done": "0\t1\t0\n",
+      "timings": "ok\t131.970000\tflip controller: ramp gate, hold, surge + mix re-maneuvers\n"
+    },
+    "persistfix2_lastsave": {
+      "ledger": "ok\t7.860000\tpersistfix2 LASTSAVE and rewrite INFO\n",
+      "done": "0\t1\t0\n",
+      "timings": "ok\t7.860000\tpersistfix2 LASTSAVE and rewrite INFO\n"
+    },
+    "persistfix2_shutdown": {
+      "ledger": "FAIL\t6.770000\tpersistfix2 shutdown modifiers and signal policy\n",
+      "timings": "FAIL\t6.770000\tpersistfix2 shutdown modifiers and signal policy\n"
+    },
+    "production_units": {
+      "ledger": "",
+      "done": "0\t0\t0\n",
+      "timings": ""
+    },
+    "release": {
+      "ledger": "ok\t0.050000\trelease build (+footprint locks)\n",
+      "done": "0\t1\t0\n",
+      "timings": "ok\t0.050000\trelease build (+footprint locks)\n"
+    },
+    "source_identity": {
+      "ledger": "ok\t115.680000\tproduction source identity + stable assertion ids\n",
+      "done": "0\t1\t0\n",
+      "timings": "ok\t115.680000\tproduction source identity + stable assertion ids\n"
+    },
+    "storage_units": {
+      "ledger": "ok\t0.000000\tstorage unlinked regression\nok\t0.010000\tstorage randomkey regression\nok\t0.020000\tstorage rehash regression\nok\t0.020000\tstorage rollback regression\nok\t0.010000\tstorage snapshot-eviction regression\nok\t0.130000\tstorage flags regression\nok\t0.010000\tstorage aof-eviction regression\nok\t0.010000\tstorage intents regression\nok\t0.010000\tstorage imported-hash regression\nok\t0.010000\tstorage field-index-failure regression\nok\t0.020000\tstorage hash-bytes regression\nok\t0.010000\tstorage deadline-allocation-failure regression\nok\t0.010000\tstorage flush-prepared-capacity regression\n",
+      "done": "0\t13\t0\n",
+      "timings": "ok\t0.000000\tstorage unlinked regression\nok\t0.010000\tstorage randomkey regression\nok\t0.020000\tstorage rehash regression\nok\t0.020000\tstorage rollback regression\nok\t0.010000\tstorage snapshot-eviction regression\nok\t0.130000\tstorage flags regression\nok\t0.010000\tstorage aof-eviction regression\nok\t0.010000\tstorage intents regression\nok\t0.010000\tstorage imported-hash regression\nok\t0.010000\tstorage field-index-failure regression\nok\t0.020000\tstorage hash-bytes regression\nok\t0.010000\tstorage deadline-allocation-failure regression\nok\t0.010000\tstorage flush-prepared-capacity regression\n"
+    }
+  },
+  "compressed_large_text": {},
+  "removed_run_artifacts": true
+}

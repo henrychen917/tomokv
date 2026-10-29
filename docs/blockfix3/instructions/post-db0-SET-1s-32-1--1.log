@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-blockfix3/build/blockfix3/commands/post-db0-SET-1s-32-1--1.log
+SHA-256: a4dd32b847f246004127d54cff768318488af7d8243d26562b7b1deada3cb97f
+Exit: 0
+PASS bounded production command scope
+<optimized out>) at src/core/ex_loop.h:2356
+2356	    }
+0x00005555558adf78	2356	    }
+0x00005555558adf81	2356	    }
+0x00005555558adf87	2356	    }
+0x00005555558adf8b	2356	    }
+0x00005555558adf8c	2356	    }
+0x00005555558adf8e	2356	    }
+0x00005555558adf90	2356	    }
+0x00005555558adf92	2356	    }
+0x00005555558adf94	2356	    }
+0x00005555558adf95	2356	    }
+0x0000555555d90f24 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-blockfix3/tests/txnorder_command_scope.cc:72
+72	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-blockfix3/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 37266) exited normally]
+COUNT 23089

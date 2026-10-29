@@ -1,0 +1,17 @@
+{
+  "oracle": "/home/user/Projects/redis/src/redis-server",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "oracle_version": "Redis server v=7.4.10 sha=f103d127:0 malloc=jemalloc-5.3.0 bits=64 build=f39586913084a746",
+  "files": {
+    "tests/differ.py": "a8c12ee2e5179b1f10d57506e2636d94d84f6c21660187b1bae8dc8df21ea71b",
+    "tests/differ_gate.sh": "e741f837fb9bed5a0927fefe38aa3361d29ec699964f140a93a05fb9f17e8c63",
+    "docs/exec1s-d/epoll-seed22-plan.json": "691f4ca97536166577ea77321b44f34853f690a70251f7290597768397f41157"
+  },
+  "harness_diff_from_exec1sc": "",
+  "cpu_pool": "64-95",
+  "ports": [
+    20000,
+    20001
+  ],
+  "reseeded": false
+}

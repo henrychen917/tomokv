@@ -1,0 +1,187 @@
+SIGINT is used by the debugger.
+Are you sure you want to change it? (y or n) [answered Y; input not from terminal]
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Enable debuginfod for this session? (y or [n]) [answered N; input not from terminal]
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [16,17,18,19,20,21,22,23]
+tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0
+  thread t0: role=ifid cpu=16 L3=0 shards=0
+  thread t1: role=ifid cpu=17 L3=0 shards=0
+  thread t2: role=ifid cpu=18 L3=0 shards=0
+  thread t3: role=ifid cpu=19 L3=0 shards=0
+  thread t4: role=ifid cpu=20 L3=0 shards=0
+  thread t5: role=ifid cpu=21 L3=0 shards=0
+  thread t6: role=ex cpu=22 L3=0 shards=8
+  thread t7: role=ex cpu=23 L3=0 shards=8
+[New Thread 0x7ffff567f6c0 (LWP 888948)]
+[New Thread 0x7ffff4e7e6c0 (LWP 888949)]
+[New Thread 0x7ffff39ff6c0 (LWP 888950)]
+[New Thread 0x7ffff31fe6c0 (LWP 888951)]
+[New Thread 0x7ffff23ff6c0 (LWP 888952)]
+[New Thread 0x7ffff13ff6c0 (LWP 888953)]
+[New Thread 0x7ffff05ff6c0 (LWP 888954)]
+[New Thread 0x7fffefdfe6c0 (LWP 888955)]
+listening on 127.0.0.1:20218
+
+Thread 1 "tomokv" received signal SIGINT, Interrupt.
+0x00007ffff6f1b79d in __GI___poll (fds=fds@entry=0x7ffffffb1960, nfds=nfds@entry=1, timeout=timeout@entry=50) at ../sysdeps/unix/sysv/linux/poll.c:29
+warning: 29	../sysdeps/unix/sysv/linux/poll.c: No such file or directory
+
+Thread 9 (Thread 0x7fffefdfe6c0 (LWP 888955) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x0000555555a35225 in tomo::Ring::submit_and_wait<false> (database_fd=-1, timeout_ms=<optimized out>, want=1, this=0x7ffff57f8b90) at src/core/../store/../persist/../core/../net/uring.h:269
+#3  tomo::IoLoop::run_loop<false, false, false, false, false> (this=0x7ffff57f80c8) at src/core/io_loop.h:754
+#4  0x00005555559a6931 in tomo::IoLoop::run_split (this=<optimized out>) at src/core/io_loop.h:446
+#5  tomo::IoLoop::run (this=<optimized out>) at src/core/io_loop.h:452
+#6  operator() (__closure=0x7ffff6a592a8) at src/main.cc:603
+#7  std::__invoke_impl<void, tomokv_multidb_main(int, char**)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#8  std::__invoke<tomokv_multidb_main(int, char**)::<lambda()> > (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+#9  std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > >::_M_invoke<0> (this=0x7ffff6a592a8) at /usr/include/c++/13/bits/std_thread.h:292
+#10 std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > >::operator() (this=0x7ffff6a592a8) at /usr/include/c++/13/bits/std_thread.h:299
+#11 std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > > >::_M_run(void) (this=0x7ffff6a592a0) at /usr/include/c++/13/bits/std_thread.h:244
+#12 0x00007ffff72ecdb4 in ?? () from /lib/x86_64-linux-gnu/libstdc++.so.6
+#13 0x00007ffff6e9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#14 0x00007ffff6f29ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 8 (Thread 0x7ffff05ff6c0 (LWP 888954) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x0000555555a35225 in tomo::Ring::submit_and_wait<false> (database_fd=-1, timeout_ms=<optimized out>, want=1, this=0x7ffff57f6f68) at src/core/../store/../persist/../core/../net/uring.h:269
+#3  tomo::IoLoop::run_loop<false, false, false, false, false> (this=0x7ffff57f64a0) at src/core/io_loop.h:754
+#4  0x00005555559a6931 in tomo::IoLoop::run_split (this=<optimized out>) at src/core/io_loop.h:446
+#5  tomo::IoLoop::run (this=<optimized out>) at src/core/io_loop.h:452
+#6  operator() (__closure=0x7ffff6a59248) at src/main.cc:603
+#7  std::__invoke_impl<void, tomokv_multidb_main(int, char**)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#8  std::__invoke<tomokv_multidb_main(int, char**)::<lambda()> > (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+#9  std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > >::_M_invoke<0> (this=0x7ffff6a59248) at /usr/include/c++/13/bits/std_thread.h:292
+#10 std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > >::operator() (this=0x7ffff6a59248) at /usr/include/c++/13/bits/std_thread.h:299
+#11 std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > > >::_M_run(void) (this=0x7ffff6a59240) at /usr/include/c++/13/bits/std_thread.h:244
+#12 0x00007ffff72ecdb4 in ?? () from /lib/x86_64-linux-gnu/libstdc++.so.6
+#13 0x00007ffff6e9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#14 0x00007ffff6f29ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 7 (Thread 0x7ffff13ff6c0 (LWP 888953) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x0000555555a35225 in tomo::Ring::submit_and_wait<false> (database_fd=-1, timeout_ms=<optimized out>, want=1, this=0x7ffff57f5340) at src/core/../store/../persist/../core/../net/uring.h:269
+#3  tomo::IoLoop::run_loop<false, false, false, false, false> (this=0x7ffff57f4878) at src/core/io_loop.h:754
+#4  0x00005555559a6931 in tomo::IoLoop::run_split (this=<optimized out>) at src/core/io_loop.h:446
+#5  tomo::IoLoop::run (this=<optimized out>) at src/core/io_loop.h:452
+#6  operator() (__closure=0x7ffff6a591e8) at src/main.cc:603
+#7  std::__invoke_impl<void, tomokv_multidb_main(int, char**)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#8  std::__invoke<tomokv_multidb_main(int, char**)::<lambda()> > (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+#9  std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > >::_M_invoke<0> (this=0x7ffff6a591e8) at /usr/include/c++/13/bits/std_thread.h:292
+#10 std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > >::operator() (this=0x7ffff6a591e8) at /usr/include/c++/13/bits/std_thread.h:299
+#11 std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > > >::_M_run(void) (this=0x7ffff6a591e0) at /usr/include/c++/13/bits/std_thread.h:244
+#12 0x00007ffff72ecdb4 in ?? () from /lib/x86_64-linux-gnu/libstdc++.so.6
+#13 0x00007ffff6e9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#14 0x00007ffff6f29ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 6 (Thread 0x7ffff23ff6c0 (LWP 888952) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x0000555555a35225 in tomo::Ring::submit_and_wait<false> (database_fd=-1, timeout_ms=<optimized out>, want=1, this=0x7ffff57f3718) at src/core/../store/../persist/../core/../net/uring.h:269
+#3  tomo::IoLoop::run_loop<false, false, false, false, false> (this=0x7ffff57f2c50) at src/core/io_loop.h:754
+#4  0x00005555559a6931 in tomo::IoLoop::run_split (this=<optimized out>) at src/core/io_loop.h:446
+#5  tomo::IoLoop::run (this=<optimized out>) at src/core/io_loop.h:452
+#6  operator() (__closure=0x7ffff6a59188) at src/main.cc:603
+#7  std::__invoke_impl<void, tomokv_multidb_main(int, char**)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#8  std::__invoke<tomokv_multidb_main(int, char**)::<lambda()> > (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+#9  std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > >::_M_invoke<0> (this=0x7ffff6a59188) at /usr/include/c++/13/bits/std_thread.h:292
+#10 std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > >::operator() (this=0x7ffff6a59188) at /usr/include/c++/13/bits/std_thread.h:299
+#11 std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > > >::_M_run(void) (this=0x7ffff6a59180) at /usr/include/c++/13/bits/std_thread.h:244
+#12 0x00007ffff72ecdb4 in ?? () from /lib/x86_64-linux-gnu/libstdc++.so.6
+#13 0x00007ffff6e9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#14 0x00007ffff6f29ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 5 (Thread 0x7ffff31fe6c0 (LWP 888951) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x0000555555a35225 in tomo::Ring::submit_and_wait<false> (database_fd=-1, timeout_ms=<optimized out>, want=1, this=0x7ffff57f1af0) at src/core/../store/../persist/../core/../net/uring.h:269
+#3  tomo::IoLoop::run_loop<false, false, false, false, false> (this=0x7ffff57f1028) at src/core/io_loop.h:754
+#4  0x00005555559a6931 in tomo::IoLoop::run_split (this=<optimized out>) at src/core/io_loop.h:446
+#5  tomo::IoLoop::run (this=<optimized out>) at src/core/io_loop.h:452
+#6  operator() (__closure=0x7ffff6a59128) at src/main.cc:603
+#7  std::__invoke_impl<void, tomokv_multidb_main(int, char**)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#8  std::__invoke<tomokv_multidb_main(int, char**)::<lambda()> > (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+#9  std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > >::_M_invoke<0> (this=0x7ffff6a59128) at /usr/include/c++/13/bits/std_thread.h:292
+#10 std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > >::operator() (this=0x7ffff6a59128) at /usr/include/c++/13/bits/std_thread.h:299
+#11 std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > > >::_M_run(void) (this=0x7ffff6a59120) at /usr/include/c++/13/bits/std_thread.h:244
+#12 0x00007ffff72ecdb4 in ?? () from /lib/x86_64-linux-gnu/libstdc++.so.6
+#13 0x00007ffff6e9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#14 0x00007ffff6f29ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 4 (Thread 0x7ffff39ff6c0 (LWP 888950) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x0000555555a35225 in tomo::Ring::submit_and_wait<false> (database_fd=-1, timeout_ms=<optimized out>, want=1, this=0x7ffff57efec8) at src/core/../store/../persist/../core/../net/uring.h:269
+#3  tomo::IoLoop::run_loop<false, false, false, false, false> (this=0x7ffff57ef400) at src/core/io_loop.h:754
+#4  0x00005555559a6931 in tomo::IoLoop::run_split (this=<optimized out>) at src/core/io_loop.h:446
+#5  tomo::IoLoop::run (this=<optimized out>) at src/core/io_loop.h:452
+#6  operator() (__closure=0x7ffff6a590c8) at src/main.cc:603
+#7  std::__invoke_impl<void, tomokv_multidb_main(int, char**)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#8  std::__invoke<tomokv_multidb_main(int, char**)::<lambda()> > (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+#9  std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > >::_M_invoke<0> (this=0x7ffff6a590c8) at /usr/include/c++/13/bits/std_thread.h:292
+#10 std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > >::operator() (this=0x7ffff6a590c8) at /usr/include/c++/13/bits/std_thread.h:299
+#11 std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > > >::_M_run(void) (this=0x7ffff6a590c0) at /usr/include/c++/13/bits/std_thread.h:244
+#12 0x00007ffff72ecdb4 in ?? () from /lib/x86_64-linux-gnu/libstdc++.so.6
+#13 0x00007ffff6e9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#14 0x00007ffff6f29ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 3 (Thread 0x7ffff4e7e6c0 (LWP 888949) "tomokv"):
+#0  0x0000555555a5f0ad in tomo::FlatStore::atomic_visit_key_groups<tomo::(anonymous namespace)::cancel_applied_scripts(tomo::FlatStore&, uint64_t, tomo::Slice, const tomo::ScatterState*)::<lambda(auto:53&)> >(uint64_t, tomo::Slice, struct {...} &&) (this=this@entry=0x7ffff6a48c38, hash=hash@entry=15467467827259696384, key=..., visit=...) at src/cmd/../store/flatstore_atomic.inc:58
+#1  0x0000555555a989a0 in tomo::(anonymous namespace)::cancel_applied_scripts (self=0x0, key=..., hash=15467467827259696384, store=...) at src/cmd/atomics_glue.inc:20
+#2  tomo::(anonymous namespace)::begin_plain_version (server=..., shard=..., key=..., hash=15467467827259696384, origin_conn_id=origin_conn_id@entry=13, snapshot=18446744073709551615) at src/cmd/atomics_glue.inc:34
+#3  0x0000555555a990b5 in tomo::xshard_plain_prepare (server=..., shard=..., op=..., origin_conn_id=<optimized out>, foreign_scope=...) at src/cmd/atomics_glue.inc:1088
+#4  0x0000555555a01970 in tomo::ExLoopT<false>::execute<false, false> (this=this@entry=0x7ffff580a8e0, t=...) at src/core/../net/conn.h:617
+#5  0x0000555555a0250a in tomo::ExLoopT<false>::execute_resumed<false> (task=..., this=0x7ffff580a8e0) at src/core/ex_loop.h:2404
+#6  tomo::ExLoopT<false>::execute_snapshot_task<false> (this=this@entry=0x7ffff580a8e0, task=..., capture_writes=capture_writes@entry=true) at src/core/ex_loop.h:2149
+#7  0x0000555555a06657 in tomo::ExLoopT<false>::schedule_snapshot_task<false> (task=..., this=0x7ffff580a8e0) at src/core/ex_loop.h:2176
+#8  tomo::ExLoopT<false>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}::operator()(tomo::Task const&) const (task=..., __closure=0x7ffff4e7cb90) at src/core/ex_loop.h:2200
+#9  tomo::ThreadCtx::drain_tasks<false, tomo::ExLoopT<false>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<false>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&) (this=0x7ffff6bf9000, fn=...) at src/core/thread.h:650
+#10 0x0000555555a1257e in tomo::ExLoopT<false>::drain_tasks_snapshot<32u, false> (unmasked=false, this=0x7ffff580a8e0) at src/core/ex_loop.h:2204
+#11 tomo::ExLoopT<false>::run (this=0x7ffff580a8e0) at src/core/ex_loop.h:672
+#12 0x00005555559a73be in operator() (__closure=0x7ffff6a35288) at src/main.cc:472
+#13 std::__invoke_impl<void, tomokv_multidb_main(int, char**)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#14 std::__invoke<tomokv_multidb_main(int, char**)::<lambda()> > (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+#15 std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > >::_M_invoke<0> (this=0x7ffff6a35288) at /usr/include/c++/13/bits/std_thread.h:292
+#16 std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > >::operator() (this=0x7ffff6a35288) at /usr/include/c++/13/bits/std_thread.h:299
+#17 std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > > >::_M_run(void) (this=0x7ffff6a35280) at /usr/include/c++/13/bits/std_thread.h:244
+#18 0x00007ffff72ecdb4 in ?? () from /lib/x86_64-linux-gnu/libstdc++.so.6
+#19 0x00007ffff6e9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#20 0x00007ffff6f29ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 2 (Thread 0x7ffff567f6c0 (LWP 888948) "tomokv"):
+#0  tomo::TxnRetryQueues::unlink (node=..., this=<optimized out>) at src/core/../cmd/txn_retry_queue.h:38
+#1  tomo::TxnRetryQueues::pop (fast=true, this=<optimized out>) at src/core/../cmd/txn_retry_queue.h:52
+#2  tomo::ExLoopT<false>::service_multi_retries<false> (this=this@entry=0x7ffff5809200) at src/core/ex_loop.h:2466
+#3  0x0000555555a11396 in tomo::ExLoopT<false>::run (this=0x7ffff5809200) at src/core/ex_loop.h:666
+#4  0x00005555559a73be in operator() (__closure=0x7ffff6a35208) at src/main.cc:472
+#5  std::__invoke_impl<void, tomokv_multidb_main(int, char**)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#6  std::__invoke<tomokv_multidb_main(int, char**)::<lambda()> > (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+#7  std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > >::_M_invoke<0> (this=0x7ffff6a35208) at /usr/include/c++/13/bits/std_thread.h:292
+#8  std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > >::operator() (this=0x7ffff6a35208) at /usr/include/c++/13/bits/std_thread.h:299
+#9  std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::<lambda()> > > >::_M_run(void) (this=0x7ffff6a35200) at /usr/include/c++/13/bits/std_thread.h:244
+#10 0x00007ffff72ecdb4 in ?? () from /lib/x86_64-linux-gnu/libstdc++.so.6
+#11 0x00007ffff6e9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#12 0x00007ffff6f29ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 1 (Thread 0x7ffff7ef3500 (LWP 888945) "tomokv"):
+#0  0x00007ffff6f1b79d in __GI___poll (fds=fds@entry=0x7ffffffb1960, nfds=nfds@entry=1, timeout=timeout@entry=50) at ../sysdeps/unix/sysv/linux/poll.c:29
+#1  0x0000555555d01e3c in poll (__timeout=50, __nfds=1, __fds=0x7ffffffb1960) at /usr/include/x86_64-linux-gnu/bits/poll2.h:39
+#2  tomo::signal_doorbell_wait (timeout_ms=<optimized out>) at src/core/../store/../persist/../core/../net/../core/signal_doorbell.h:97
+#3  tomo::Server::monitor_controllers (this=this@entry=0x7ffffffb4f00) at src/core/lbplanner.cc:582
+#4  0x000055555559a154 in tomokv_multidb_main (argc=argc@entry=35, argv=argv@entry=0x7fffffffd858) at src/main.cc:621
+#5  0x00005555555bf550 in main (argc=35, argv=0x7fffffffd858) at src/main.cc:215
+warning: Memory read failed for corefile section, 4096 bytes at 0xffffffffff600000.
+Saved corefile /tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/wd-2s-uring-7/stall.core
+Kill the program being debugged? (y or n) [answered Y; input not from terminal]
+[Inferior 1 (process 888945) killed]

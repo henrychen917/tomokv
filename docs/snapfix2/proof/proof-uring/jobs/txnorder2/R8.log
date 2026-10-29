@@ -1,0 +1,16 @@
+R8 negative controls: started-only, read-before-CAS, Dekker all falsified
+PASS R8
+R8 negative controls: started-only, read-before-CAS, Dekker all falsified
+PASS R8
+R8 negative controls: started-only, read-before-CAS, Dekker all falsified
+PASS R8
+R8 negative controls: started-only, read-before-CAS, Dekker all falsified
+PASS R8
+PASS WATCH owner-turn regression
+PASS WATCH owner-turn regression
+PASS WATCH owner-turn regression
+PASS WATCH owner-turn regression
+PASS WATCH owner-turn regression
+PASS WATCH owner-turn regression
+PASS WATCH owner-turn regression
+PASS WATCH owner-turn regression

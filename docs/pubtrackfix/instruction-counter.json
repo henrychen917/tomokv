@@ -1,0 +1,28 @@
+{
+  "files": [
+    {
+      "path": "docs/wave9/step_pc.c",
+      "sha256": "af7be6e38b12d949c9867daa0348e382e55f2dfcb0a0855b86beed848b1292ba"
+    },
+    {
+      "path": "tests/wave9_scope.cc",
+      "sha256": "946c57179263c92dd1e045077b0b9355365ad0c9273be45bf129246087ddbecf"
+    },
+    {
+      "path": "docs/pubtrackfix/instructions.py",
+      "sha256": "226d8d5143d48611911463af2ca5bab82468db0d753fa120d175dfbe4f0d9664",
+      "sha256_at_count_time": "606846ed89a027b51bc3294bfe37cce095aca0f33344cf96094322e696e0e023",
+      "documentation_update": "Docstring now accurately says slowlog disabled (-1); non-docstring Python AST is identical to the executed version."
+    },
+    {
+      "path": "docs/pubtrackfix/count_pc.py",
+      "sha256": "d68a4a2195b95eec666482e283ebaab4d028e2be76821058a1e37aac3e0aced1"
+    },
+    {
+      "path": "build/pubtrackfix/counts/step-pc",
+      "sha256": "c3a1bcf87b2738409f4d3f6285a17e0346230d386ea5b30da02ac11b22cea998"
+    }
+  ],
+  "trace_bound": 10000000,
+  "mechanism": "ptrace single-step of an owned finite serverless child; data/exit check after scope_end; clock_gettime frozen; no perf events or rate measurement"
+}

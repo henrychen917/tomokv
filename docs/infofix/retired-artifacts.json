@@ -1,0 +1,174 @@
+[
+  {
+    "path": "build/infofix/commands/post-normal/original-main.o",
+    "sha256": "6b3a1c3cd5d30753d124942f6dfcdab98445766cdd20f166cdc466b934252098",
+    "bytes": 26570640
+  },
+  {
+    "path": "build/infofix/commands/post-normal/probe",
+    "sha256": "64ddea383aa7d5e369a55dac77b27733e9dc9d40b0fe60cd66fdc75f2faefb0c",
+    "bytes": 224344944
+  },
+  {
+    "path": "build/infofix/commands/post-normal/probe.o",
+    "sha256": "8107996d4b285816d1f16310f7baf105e930891dcfad0e5c151dc216d0179cbb",
+    "bytes": 10225440
+  },
+  {
+    "path": "build/infofix/commands/post-db0/original-main.o",
+    "sha256": "6b3a1c3cd5d30753d124942f6dfcdab98445766cdd20f166cdc466b934252098",
+    "bytes": 26570640
+  },
+  {
+    "path": "build/infofix/commands/post-db0/probe",
+    "sha256": "fc36b228374ab7978a4cd89c7d96729321f809bfeef5344b8566eb316acb755c",
+    "bytes": 224353688
+  },
+  {
+    "path": "build/infofix/commands/post-db0/probe.o",
+    "sha256": "4aecb28034fdb4303a709092a9b6e12d77e57cc73f22610a1988e2c755cc7cc9",
+    "bytes": 10315224
+  },
+  {
+    "path": "build/infofix/commands/cold-db0/probe",
+    "sha256": "6a4240afdf28e6cc1f2160b35c12a162922330a71045b44a0b24a0c6be2700b7",
+    "bytes": 224340416
+  },
+  {
+    "path": "build/infofix/commands/cold-normal/probe",
+    "sha256": "79b2c7c48536315418247a63dda7a6d2acf61aef6ee2340c3a4045d2fcaa7564",
+    "bytes": 224327072
+  },
+  {
+    "path": "build/infofix/commands/pre-db0/original-main.o",
+    "sha256": "6b3a1c3cd5d30753d124942f6dfcdab98445766cdd20f166cdc466b934252098",
+    "bytes": 26570640
+  },
+  {
+    "path": "build/infofix/commands/pre-db0/probe",
+    "sha256": "d69881de13e683758153d46af3ccf9a0203cdd41fe338fe3c41fc58616ce8dbe",
+    "bytes": 223497984
+  },
+  {
+    "path": "build/infofix/commands/pre-db0/probe.o",
+    "sha256": "ab0ff46b28411eb452596a255da9aef3618521c98fabe74dc08e42ef8f304cd3",
+    "bytes": 10315680
+  },
+  {
+    "path": "build/infofix/commands/pre-normal/original-main.o",
+    "sha256": "6b3a1c3cd5d30753d124942f6dfcdab98445766cdd20f166cdc466b934252098",
+    "bytes": 26570640
+  },
+  {
+    "path": "build/infofix/commands/pre-normal/probe",
+    "sha256": "93c80eeb673d1061bcec279aa2f12f60e860f87b703287bc32486d0f4d58b3cf",
+    "bytes": 223489240
+  },
+  {
+    "path": "build/infofix/commands/pre-normal/probe.o",
+    "sha256": "bf215a92a7e0ac306ba2e062b404cc0a75af8d9c815fd5541da07401c4f67716",
+    "bytes": 10225888
+  },
+  {
+    "path": "build/infofix/cold-trial/xshard.o",
+    "sha256": "6eae6896c7cf398dcdaa54f721a82735cc2e01c2cabc37357cff12b81335b04b",
+    "bytes": 27888232
+  },
+  {
+    "path": "build/infofix/cold-trial/xshard-normal.o",
+    "sha256": "17976767db2c68240796c697bab35fdd52790b52dc692ac3afe97ece67967087",
+    "bytes": 27691552
+  },
+  {
+    "path": "build/infofix/hottrace/pre.pc",
+    "sha256": "9a132b2114a07650167d8fbcedb3068bae55b599427aac5dc55175331b16fa0e",
+    "bytes": 13083
+  },
+  {
+    "path": "build/infofix/hottrace/post.asm",
+    "sha256": "1c497a7d03915dcbdb8da6d9b063bd39db11b306922a5e012cfac188495a8d54",
+    "bytes": 93180
+  },
+  {
+    "path": "build/infofix/hottrace/pre.asm",
+    "sha256": "37208dc0227f29608e13d7838ff397af3c4a06a821197a3c81d420d7c22c5749",
+    "bytes": 93178
+  },
+  {
+    "path": "build/infofix/hottrace/post.pc",
+    "sha256": "e868b4cefdeee0da321700708b3a13c08991708e9312ebb421460ef9d275bd1d",
+    "bytes": 13111
+  },
+  {
+    "path": "build/infofix/commands/post-normal/original-main.o",
+    "sha256": "6b3a1c3cd5d30753d124942f6dfcdab98445766cdd20f166cdc466b934252098",
+    "bytes": 26570640,
+    "stage": "final counts"
+  },
+  {
+    "path": "build/infofix/commands/post-normal/probe",
+    "sha256": "bac45005df3f75dcc652e2e923a1e23c221e54a6b0bb7cf8b720a2860e95c08d",
+    "bytes": 224339240,
+    "stage": "final counts"
+  },
+  {
+    "path": "build/infofix/commands/post-normal/probe.o",
+    "sha256": "8107996d4b285816d1f16310f7baf105e930891dcfad0e5c151dc216d0179cbb",
+    "bytes": 10225440,
+    "stage": "final counts"
+  },
+  {
+    "path": "build/infofix/commands/post-db0/original-main.o",
+    "sha256": "6b3a1c3cd5d30753d124942f6dfcdab98445766cdd20f166cdc466b934252098",
+    "bytes": 26570640,
+    "stage": "final counts"
+  },
+  {
+    "path": "build/infofix/commands/post-db0/probe",
+    "sha256": "f6f8ff23f7370350adf6ff3a852dec49c0a1b7a9bbef260f2d72e1a91bca049f",
+    "bytes": 224347984,
+    "stage": "final counts"
+  },
+  {
+    "path": "build/infofix/commands/post-db0/probe.o",
+    "sha256": "4aecb28034fdb4303a709092a9b6e12d77e57cc73f22610a1988e2c755cc7cc9",
+    "bytes": 10315224,
+    "stage": "final counts"
+  },
+  {
+    "path": "build/infofix/commands/pre-db0/original-main.o",
+    "sha256": "6b3a1c3cd5d30753d124942f6dfcdab98445766cdd20f166cdc466b934252098",
+    "bytes": 26570640,
+    "stage": "final counts"
+  },
+  {
+    "path": "build/infofix/commands/pre-db0/probe",
+    "sha256": "d69881de13e683758153d46af3ccf9a0203cdd41fe338fe3c41fc58616ce8dbe",
+    "bytes": 223497984,
+    "stage": "final counts"
+  },
+  {
+    "path": "build/infofix/commands/pre-db0/probe.o",
+    "sha256": "ab0ff46b28411eb452596a255da9aef3618521c98fabe74dc08e42ef8f304cd3",
+    "bytes": 10315680,
+    "stage": "final counts"
+  },
+  {
+    "path": "build/infofix/commands/pre-normal/original-main.o",
+    "sha256": "6b3a1c3cd5d30753d124942f6dfcdab98445766cdd20f166cdc466b934252098",
+    "bytes": 26570640,
+    "stage": "final counts"
+  },
+  {
+    "path": "build/infofix/commands/pre-normal/probe",
+    "sha256": "93c80eeb673d1061bcec279aa2f12f60e860f87b703287bc32486d0f4d58b3cf",
+    "bytes": 223489240,
+    "stage": "final counts"
+  },
+  {
+    "path": "build/infofix/commands/pre-normal/probe.o",
+    "sha256": "bf215a92a7e0ac306ba2e062b404cc0a75af8d9c815fd5541da07401c4f67716",
+    "bytes": 10225888,
+    "stage": "final counts"
+  }
+]

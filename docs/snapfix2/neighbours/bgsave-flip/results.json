@@ -1,0 +1,123 @@
+[
+  {
+    "case": "bgsave-flip",
+    "leg": "redis-redis-0",
+    "value": {
+      "flips": 6,
+      "refusals": [],
+      "saves": 50,
+      "scripts": 247215,
+      "writes": 112936,
+      "snapshot": [
+        242804,
+        242804
+      ]
+    },
+    "pass": true,
+    "seconds": 6.163
+  },
+  {
+    "case": "bgsave-flip",
+    "leg": "1s-uring-0",
+    "value": {
+      "skipped": "FLIP is a 2s placement transition"
+    },
+    "pass": true,
+    "seconds": 0.0
+  },
+  {
+    "case": "bgsave-flip",
+    "leg": "1s-uring-1",
+    "value": {
+      "skipped": "FLIP is a 2s placement transition"
+    },
+    "pass": true,
+    "seconds": 0.0
+  },
+  {
+    "case": "bgsave-flip",
+    "leg": "1s-epoll-0",
+    "value": {
+      "skipped": "FLIP is a 2s placement transition"
+    },
+    "pass": true,
+    "seconds": 0.0
+  },
+  {
+    "case": "bgsave-flip",
+    "leg": "1s-epoll-1",
+    "value": {
+      "skipped": "FLIP is a 2s placement transition"
+    },
+    "pass": true,
+    "seconds": 0.0
+  },
+  {
+    "case": "bgsave-flip",
+    "leg": "2s-uring-0",
+    "value": {
+      "flips": 6,
+      "refusals": [],
+      "saves": 50,
+      "scripts": 131483,
+      "writes": 175675,
+      "snapshot": [
+        128543,
+        128543
+      ]
+    },
+    "pass": true,
+    "seconds": 6.086
+  },
+  {
+    "case": "bgsave-flip",
+    "leg": "2s-uring-1",
+    "value": {
+      "flips": 6,
+      "refusals": [],
+      "saves": 50,
+      "scripts": 135567,
+      "writes": 172656,
+      "snapshot": [
+        132825,
+        132825
+      ]
+    },
+    "pass": true,
+    "seconds": 6.102
+  },
+  {
+    "case": "bgsave-flip",
+    "leg": "2s-epoll-0",
+    "value": {
+      "flips": 5,
+      "refusals": [],
+      "saves": 50,
+      "scripts": 150199,
+      "writes": 162289,
+      "snapshot": [
+        147460,
+        147460
+      ]
+    },
+    "pass": true,
+    "seconds": 5.087
+  },
+  {
+    "case": "bgsave-flip",
+    "leg": "2s-epoll-1",
+    "value": {
+      "flips": 5,
+      "refusals": [],
+      "saves": 50,
+      "scripts": 137799,
+      "writes": 172526,
+      "snapshot": [
+        134953,
+        134953
+      ]
+    },
+    "pass": true,
+    "seconds": 5.085
+  }
+]

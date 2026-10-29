@@ -1,0 +1,402 @@
+[
+  {
+    "attempt": "tcl-post",
+    "mode": "2s",
+    "summary": "/home/user/Projects/cx-wave10/build/gate-run.c4TBK2/jobs/redis_tcl/redis-tcl-2s/summary.json",
+    "sha256": "b68834e5227fb8a2a6f947ce0e0f5517894da2645f8004e5e044bab7a1491217",
+    "passed": 1803,
+    "failed": 7,
+    "failures": [
+      {
+        "file": "integration/redis-cli",
+        "passed": 45,
+        "failed": 1,
+        "error": "passing subset failed, incomplete, or assertion inventory changed",
+        "complete": true,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "Non-interactive non-TTY CLI: Test command-line hinting - latest server in tests/integration/redis-cli.tcl",
+            "data": "Non-interactive non-TTY CLI: Test command-line hinting - latest server in tests/integration/redis-cli.tcl\nExpected 'Test case 'MIGRATE ' FAILED: expected 'host port key|\"\" destination-db timeout [COPY] [REPLACE] [AUTH password|AUTH2 username password] [KEYS key [key ...]]', got '(null)'' to match '*SUCCESS*' (context: type eval line 4 cmd {assert_match \"*SUCCESS*\" $output} proc ::test) "
+          }
+        ]
+      },
+      {
+        "file": "unit/scripting",
+        "passed": 130,
+        "failed": 2,
+        "error": null,
+        "complete": true,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "",
+            "data": "n subcommand or wrong number of arguments for 'debug' command\nERR unknown subcommand or wrong number of arguments for 'debug' command\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r debug set-disable-deny-scripts 1\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\""
+          },
+          {
+            "status": "err",
+            "test": "",
+            "data": "n subcommand or wrong number of arguments for 'debug' command\nERR unknown subcommand or wrong number of arguments for 'debug' command\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r debug set-disable-deny-scripts 1\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\""
+          }
+        ]
+      },
+      {
+        "file": "unit/slowlog",
+        "passed": 8,
+        "failed": 1,
+        "error": "passing subset failed, incomplete, or assertion inventory changed",
+        "complete": true,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl",
+            "data": "SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl\nExpected 'spop set 10' to be equal to '' (context: type eval line 10 cmd {assert_equal {spop set 10} [lindex [lindex [r slowlog get] 0] 3]} proc ::test)"
+          }
+        ]
+      },
+      {
+        "file": "unit/type/list",
+        "passed": 232,
+        "failed": 1,
+        "error": null,
+        "complete": true,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "",
+            "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\""
+          }
+        ]
+      },
+      {
+        "file": "unit/type/list-3",
+        "passed": 2,
+        "failed": 1,
+        "error": null,
+        "complete": true,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "",
+            "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"error $err\"\n    (procedure \"config_set\" line 16)\n    invoked from within\n\"config_set list-compress-depth $comp\"\n    (\"foreach\" body line 4)\n    invoked from within\n\"foreach comp {2 1 0} {\n    set cycles 1000\n    if {$::accurate} { set cycles 10000 }\n    config_set list-compress-depth $comp\n    \n    test \"Stress te...\"\n    (\"uplevel\" body line 81)\n    invoked from within\n\"uplevel 2 $code\""
+          }
+        ]
+      },
+      {
+        "file": "unit/type/stream-cgroups",
+        "passed": 49,
+        "failed": 1,
+        "error": null,
+        "complete": true,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "",
+            "data": " SET failed (possibly related to argument 'appendonly') - can't set immutable config\nERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set $param $val\"\n    (procedure \"run_external_server_test\" line 35)\n    invoked from within\n\"run_external_server_test $code $overrides\"\n    (procedure \"start_server\" line 61)\n    invoked from within\n\"start_server {tags {\"stream needs:debug\"} overrides {appendonly yes aof-use-rdb-preamble no appendfsync always}} {\n        test {XREADGROUP with NOACK...\"\n    (\"uplevel\" body line 1072)\n    invoked from within\n\"uplevel 2 $code\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "attempt": "tcl-post",
+    "mode": "1s",
+    "summary": "/home/user/Projects/cx-wave10/build/gate-run.c4TBK2/jobs/redis_tcl/redis-tcl-1s/summary.json",
+    "sha256": "dad50bf6d24211d595ec23a682fdf89fc86f8f60d5b8892cda7a33259f47202d",
+    "passed": 1726,
+    "failed": 8,
+    "failures": [
+      {
+        "file": "integration/redis-cli",
+        "passed": 45,
+        "failed": 1,
+        "error": "passing subset failed, incomplete, or assertion inventory changed",
+        "complete": true,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "Non-interactive non-TTY CLI: Test command-line hinting - latest server in tests/integration/redis-cli.tcl",
+            "data": "Non-interactive non-TTY CLI: Test command-line hinting - latest server in tests/integration/redis-cli.tcl\nExpected 'Test case 'MIGRATE ' FAILED: expected 'host port key|\"\" destination-db timeout [COPY] [REPLACE] [AUTH password|AUTH2 username password] [KEYS key [key ...]]', got '(null)'' to match '*SUCCESS*' (context: type eval line 4 cmd {assert_match \"*SUCCESS*\" $output} proc ::test) "
+          }
+        ]
+      },
+      {
+        "file": "unit/pubsub",
+        "passed": 29,
+        "failed": 2,
+        "error": "passing subset failed, incomplete, or assertion inventory changed",
+        "complete": true,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments in tests/unit/pubsub.tcl",
+            "data": "PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments in tests/unit/pubsub.tcl\nExpected '0' to be equal to '1' (context: type eval line 5 cmd {assert_equal 0 [r publish chan1 hello]} proc ::test)"
+          },
+          {
+            "status": "err",
+            "test": "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl",
+            "data": "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl\nExpected '0' to be equal to '1' (context: type eval line 5 cmd {assert_equal 0 [r publish chan1.hi hello]} proc ::test)"
+          }
+        ]
+      },
+      {
+        "file": "unit/scripting",
+        "passed": 55,
+        "failed": 1,
+        "error": "passing subset failed, incomplete, or assertion inventory changed",
+        "complete": false,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "",
+            "data": "n subcommand or wrong number of arguments for 'debug' command\nERR unknown subcommand or wrong number of arguments for 'debug' command\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r debug set-disable-deny-scripts 1\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\""
+          }
+        ]
+      },
+      {
+        "file": "unit/slowlog",
+        "passed": 8,
+        "failed": 1,
+        "error": "passing subset failed, incomplete, or assertion inventory changed",
+        "complete": true,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl",
+            "data": "SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl\nExpected 'spop set 10' to be equal to '' (context: type eval line 10 cmd {assert_equal {spop set 10} [lindex [lindex [r slowlog get] 0] 3]} proc ::test)"
+          }
+        ]
+      },
+      {
+        "file": "unit/type/list",
+        "passed": 232,
+        "failed": 1,
+        "error": null,
+        "complete": true,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "",
+            "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\""
+          }
+        ]
+      },
+      {
+        "file": "unit/type/list-3",
+        "passed": 2,
+        "failed": 1,
+        "error": null,
+        "complete": true,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "",
+            "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"error $err\"\n    (procedure \"config_set\" line 16)\n    invoked from within\n\"config_set list-compress-depth $comp\"\n    (\"foreach\" body line 4)\n    invoked from within\n\"foreach comp {2 1 0} {\n    set cycles 1000\n    if {$::accurate} { set cycles 10000 }\n    config_set list-compress-depth $comp\n    \n    test \"Stress te...\"\n    (\"uplevel\" body line 81)\n    invoked from within\n\"uplevel 2 $code\""
+          }
+        ]
+      },
+      {
+        "file": "unit/type/stream-cgroups",
+        "passed": 49,
+        "failed": 1,
+        "error": null,
+        "complete": true,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "",
+            "data": " SET failed (possibly related to argument 'appendonly') - can't set immutable config\nERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set $param $val\"\n    (procedure \"run_external_server_test\" line 35)\n    invoked from within\n\"run_external_server_test $code $overrides\"\n    (procedure \"start_server\" line 61)\n    invoked from within\n\"start_server {tags {\"stream needs:debug\"} overrides {appendonly yes aof-use-rdb-preamble no appendfsync always}} {\n        test {XREADGROUP with NOACK...\"\n    (\"uplevel\" body line 1072)\n    invoked from within\n\"uplevel 2 $code\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "attempt": "tcl-planted-uppercase",
+    "mode": "2s",
+    "summary": "/home/user/Projects/cx-wave10/build/gate-run.AnGY15/jobs/redis_tcl/redis-tcl-2s/summary.json",
+    "sha256": "f14d3541a364ee4df16c5805d6a95556e221ef0c1a21864727f69e8feb741497",
+    "passed": 1728,
+    "failed": 6,
+    "failures": [
+      {
+        "file": "integration/redis-cli",
+        "passed": 45,
+        "failed": 1,
+        "error": "passing subset failed, incomplete, or assertion inventory changed",
+        "complete": true,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "Non-interactive non-TTY CLI: Test command-line hinting - latest server in tests/integration/redis-cli.tcl",
+            "data": "Non-interactive non-TTY CLI: Test command-line hinting - latest server in tests/integration/redis-cli.tcl\nExpected 'Test case 'MIGRATE ' FAILED: expected 'host port key|\"\" destination-db timeout [COPY] [REPLACE] [AUTH password|AUTH2 username password] [KEYS key [key ...]]', got '(null)'' to match '*SUCCESS*' (context: type eval line 4 cmd {assert_match \"*SUCCESS*\" $output} proc ::test) "
+          }
+        ]
+      },
+      {
+        "file": "unit/scripting",
+        "passed": 55,
+        "failed": 1,
+        "error": "passing subset failed, incomplete, or assertion inventory changed",
+        "complete": false,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "",
+            "data": "n subcommand or wrong number of arguments for 'debug' command\nERR unknown subcommand or wrong number of arguments for 'debug' command\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r debug set-disable-deny-scripts 1\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\""
+          }
+        ]
+      },
+      {
+        "file": "unit/slowlog",
+        "passed": 8,
+        "failed": 1,
+        "error": "passing subset failed, incomplete, or assertion inventory changed",
+        "complete": true,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl",
+            "data": "SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl\nExpected 'spop set 10' to be equal to '' (context: type eval line 10 cmd {assert_equal {spop set 10} [lindex [lindex [r slowlog get] 0] 3]} proc ::test)"
+          }
+        ]
+      },
+      {
+        "file": "unit/type/list",
+        "passed": 232,
+        "failed": 1,
+        "error": null,
+        "complete": true,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "",
+            "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\""
+          }
+        ]
+      },
+      {
+        "file": "unit/type/list-3",
+        "passed": 2,
+        "failed": 1,
+        "error": null,
+        "complete": true,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "",
+            "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"error $err\"\n    (procedure \"config_set\" line 16)\n    invoked from within\n\"config_set list-compress-depth $comp\"\n    (\"foreach\" body line 4)\n    invoked from within\n\"foreach comp {2 1 0} {\n    set cycles 1000\n    if {$::accurate} { set cycles 10000 }\n    config_set list-compress-depth $comp\n    \n    test \"Stress te...\"\n    (\"uplevel\" body line 81)\n    invoked from within\n\"uplevel 2 $code\""
+          }
+        ]
+      },
+      {
+        "file": "unit/type/stream-cgroups",
+        "passed": 49,
+        "failed": 1,
+        "error": null,
+        "complete": true,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "",
+            "data": " SET failed (possibly related to argument 'appendonly') - can't set immutable config\nERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set $param $val\"\n    (procedure \"run_external_server_test\" line 35)\n    invoked from within\n\"run_external_server_test $code $overrides\"\n    (procedure \"start_server\" line 61)\n    invoked from within\n\"start_server {tags {\"stream needs:debug\"} overrides {appendonly yes aof-use-rdb-preamble no appendfsync always}} {\n        test {XREADGROUP with NOACK...\"\n    (\"uplevel\" body line 1072)\n    invoked from within\n\"uplevel 2 $code\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "attempt": "tcl-planted-uppercase",
+    "mode": "1s",
+    "summary": "/home/user/Projects/cx-wave10/build/gate-run.AnGY15/jobs/redis_tcl/redis-tcl-1s/summary.json",
+    "sha256": "6745466f06fdebb57274d1d8740a14851f993d3969aa9f7df20a2609741e0fd9",
+    "passed": 1728,
+    "failed": 6,
+    "failures": [
+      {
+        "file": "integration/redis-cli",
+        "passed": 45,
+        "failed": 1,
+        "error": "passing subset failed, incomplete, or assertion inventory changed",
+        "complete": true,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "Non-interactive non-TTY CLI: Test command-line hinting - latest server in tests/integration/redis-cli.tcl",
+            "data": "Non-interactive non-TTY CLI: Test command-line hinting - latest server in tests/integration/redis-cli.tcl\nExpected 'Test case 'MIGRATE ' FAILED: expected 'host port key|\"\" destination-db timeout [COPY] [REPLACE] [AUTH password|AUTH2 username password] [KEYS key [key ...]]', got '(null)'' to match '*SUCCESS*' (context: type eval line 4 cmd {assert_match \"*SUCCESS*\" $output} proc ::test) "
+          }
+        ]
+      },
+      {
+        "file": "unit/scripting",
+        "passed": 55,
+        "failed": 1,
+        "error": "passing subset failed, incomplete, or assertion inventory changed",
+        "complete": false,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "",
+            "data": "n subcommand or wrong number of arguments for 'debug' command\nERR unknown subcommand or wrong number of arguments for 'debug' command\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r debug set-disable-deny-scripts 1\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\""
+          }
+        ]
+      },
+      {
+        "file": "unit/slowlog",
+        "passed": 8,
+        "failed": 1,
+        "error": "passing subset failed, incomplete, or assertion inventory changed",
+        "complete": true,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl",
+            "data": "SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl\nExpected 'spop set 10' to be equal to '' (context: type eval line 10 cmd {assert_equal {spop set 10} [lindex [lindex [r slowlog get] 0] 3]} proc ::test)"
+          }
+        ]
+      },
+      {
+        "file": "unit/type/list",
+        "passed": 232,
+        "failed": 1,
+        "error": null,
+        "complete": true,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "",
+            "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\""
+          }
+        ]
+      },
+      {
+        "file": "unit/type/list-3",
+        "passed": 2,
+        "failed": 1,
+        "error": null,
+        "complete": true,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "",
+            "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"error $err\"\n    (procedure \"config_set\" line 16)\n    invoked from within\n\"config_set list-compress-depth $comp\"\n    (\"foreach\" body line 4)\n    invoked from within\n\"foreach comp {2 1 0} {\n    set cycles 1000\n    if {$::accurate} { set cycles 10000 }\n    config_set list-compress-depth $comp\n    \n    test \"Stress te...\"\n    (\"uplevel\" body line 81)\n    invoked from within\n\"uplevel 2 $code\""
+          }
+        ]
+      },
+      {
+        "file": "unit/type/stream-cgroups",
+        "passed": 49,
+        "failed": 1,
+        "error": null,
+        "complete": true,
+        "assertions": [
+          {
+            "status": "err",
+            "test": "",
+            "data": " SET failed (possibly related to argument 'appendonly') - can't set immutable config\nERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set $param $val\"\n    (procedure \"run_external_server_test\" line 35)\n    invoked from within\n\"run_external_server_test $code $overrides\"\n    (procedure \"start_server\" line 61)\n    invoked from within\n\"start_server {tags {\"stream needs:debug\"} overrides {appendonly yes aof-use-rdb-preamble no appendfsync always}} {\n        test {XREADGROUP with NOACK...\"\n    (\"uplevel\" body line 1072)\n    invoked from within\n\"uplevel 2 $code\""
+          }
+        ]
+      }
+    ]
+  }
+]

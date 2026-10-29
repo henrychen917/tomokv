@@ -1,0 +1,92 @@
+{
+  "mix": [
+    "execs",
+    "scripts",
+    "writers"
+  ],
+  "flushes": 17,
+  "saves": 50,
+  "observations": 1804,
+  "torn": 1,
+  "examples": [
+    {
+      "keys": [
+        "snapfix:fe:0",
+        "snapfix:fe:1"
+      ],
+      "values": [
+        5844,
+        null
+      ]
+    }
+  ],
+  "tally": [
+    20894,
+    20694,
+    20847,
+    20806,
+    20774,
+    20890,
+    24513,
+    24439,
+    24454,
+    24655,
+    24098,
+    23951,
+    24088,
+    24395,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "errors": [],
+  "counters": {
+    "script_stage_owner_tasks": 653930,
+    "script_run_attempts": 326965,
+    "script_validate_owner_tasks": 425202,
+    "script_apply_owner_tasks": 249820,
+    "script_crossshard_activations": 124905,
+    "script_group_commits": 124905,
+    "script_group_occ_retries": 197304,
+    "script_group_occ_giveups": 4756,
+    "script_staged_bytes_total": 44465344,
+    "script_crossshard_window_refusals": 0,
+    "script_group_aborts_oom": 0,
+    "script_keys_armed": 259322,
+    "script_keys_released": 259322,
+    "script_intents_live": 0,
+    "script_write_tickets_forced": 0,
+    "script_flush_generation": 0,
+    "script_interpreter_builds": 1,
+    "script_chunk_cache_hits": 326964,
+    "script_chunk_cache_misses": 1,
+    "script_readonly_rejections": 0,
+    "script_effect_writes": 653930,
+    "script_failed_after_effects": 0,
+    "atomic_txn_attempts": 98330,
+    "atomic_txn_retries": 269,
+    "atomic_txn_dooms": 0,
+    "atomic_txn_wounds": 269,
+    "atomic_txn_waits": 78213,
+    "atomic_txn_intents": 0,
+    "atomic_txn_intents_live": 0,
+    "atomic_txn_executed": 98061,
+    "atomic_txn_place_waits": 4523,
+    "atomic_txn_writer_waits": 0,
+    "atomic_txn_writer_marks": 0,
+    "atomic_txn_blind_restarts": 0,
+    "atomic_txn_readonly": 0,
+    "atomic_txn_order_violations": 0,
+    "atomic_txn_fast_polls": 1446673,
+    "atomic_txn_poll_skips": 17092
+  },
+  "final": [
+    5103,
+    5103,
+    3973,
+    3973
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "transactional": false,
+  "geometry": [
+    [
+      9,
+      1
+    ],
+    [
+      9,
+      1
+    ],
+    [
+      13,
+      5
+    ]
+  ],
+  "rounds": 131072,
+  "completed": 131072,
+  "failures": 0,
+  "examples": [],
+  "errors": [],
+  "threads_alive": false,
+  "binary_sha256": "da219bf6c15d7f7649e6f6f2758ed7407f8ba6e4456ef48ea2a416ba01de710c",
+  "server_argv": [
+    "taskset",
+    "-c",
+    "0-7",
+    "/home/user/Projects/cx-snapfix2/build/snapfix2/pre/tomokv",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "20100",
+    "--dir",
+    "/home/user/Projects/cx-snapfix2/docs/snapfix2/control/txn-nx-pre",
+    "--save",
+    "",
+    "--enable-debug-command",
+    "yes",
+    "--shards",
+    "16",
+    "--thread-mode",
+    "1s",
+    "--net-io",
+    "uring",
+    "--atomic",
+    "1",
+    "--read-local",
+    "1",
+    "--key-lb",
+    "0",
+    "--client-lb",
+    "0",
+    "--flip-auto",
+    "0",
+    "--databases",
+    "16"
+  ]
+}

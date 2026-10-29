@@ -1,0 +1,4 @@
+atomic=1
+{"transactional": true, "geometry": [[13, 5], [13, 5], [7, 7]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+FAIL {'iteration': 799, 'replies': [1, RespError(b'ERR no such key')], 'values': [None, b'winner-b', b'winner-a']}
+{"transactional": false, "geometry": [[3, 3], [3, 3], [14, 6]], "rounds": 8192, "completed": 8192, "failures": 1, "examples": [{"iteration": 799, "replies": [1, "RespError(b'ERR no such key')"], "values": [null, "b'winner-b'", "b'winner-a'"]}], "errors": [], "threads_alive": false}

@@ -1,0 +1,26 @@
+  ok   geometry: in-EXEC reads fan out over more than one owner strings=8 over [0, 1, 3, 5, 6, 7]; sets=8 over [0, 3, 5, 6, 7]; same-owner=8 on shard 4
+  ok   CONFIG SET atomic 0
+  ok   unarmed in-EXEC read completes far inside the park budget (atomic 0) elapsed=0.0001s budget=0.300s
+  ok   deterministic in-EXEC straddle: MGET (atomic 0) rounds=3 torn=0 windows_opened=3 exec_read_cuts=+3 dooms=+0 retries=+0 []
+  ok   deterministic in-EXEC straddle: EXISTS (atomic 0) rounds=3 torn=0 windows_opened=3 exec_read_cuts=+3 dooms=+0 retries=+0 []
+  ok   deterministic in-EXEC straddle: SUNION (atomic 0) rounds=3 torn=0 windows_opened=3 exec_read_cuts=+3 dooms=+0 retries=+0 []
+  ok   bare reference: the same parked MGET straddle is clean (atomic 0) rounds=3 torn=0 windows_opened=3 route_witness=3 (exact pinned-old oracle) []
+  ok   committed transaction is fully visible to a later in-EXEC read (atomic 0) values=[b'fresh', b'fresh', b'fresh']
+  ok   own plain writes stay visible to a later in-EXEC read (atomic 0) values=[b'own0', b'own1']
+  ok   own in-transaction write is visible to a later read in the same EXEC (atomic 0) values=[b'mine', b'own1']
+  ok   same-owner in-EXEC read registers NO cut (atomic 0) exec_read_cuts=+0 owner=4
+  ok   write-only transaction registers NO cut (atomic 0) exec_read_cuts=+0
+  ok   concurrent in-EXEC MGET never straddles a transaction (atomic 0) reads=34273 commits=3686 torn=0 exec_read_cuts=+34273 errors=[] []
+  ok   CONFIG SET atomic 1
+  ok   unarmed in-EXEC read completes far inside the park budget (atomic 1) elapsed=0.0001s budget=0.300s
+  ok   deterministic in-EXEC straddle: MGET (atomic 1) rounds=3 torn=0 windows_opened=3 exec_read_cuts=+3 dooms=+0 retries=+0 []
+  ok   deterministic in-EXEC straddle: EXISTS (atomic 1) rounds=3 torn=0 windows_opened=3 exec_read_cuts=+3 dooms=+0 retries=+0 []
+  ok   deterministic in-EXEC straddle: SUNION (atomic 1) rounds=3 torn=0 windows_opened=3 exec_read_cuts=+3 dooms=+0 retries=+0 []
+  ok   bare reference: the same parked MGET straddle is clean (atomic 1) rounds=3 torn=0 windows_opened=3 route_witness=0 (exact pinned-old oracle) []
+  ok   committed transaction is fully visible to a later in-EXEC read (atomic 1) values=[b'fresh', b'fresh', b'fresh']
+  ok   own plain writes stay visible to a later in-EXEC read (atomic 1) values=[b'own0', b'own1']
+  ok   own in-transaction write is visible to a later read in the same EXEC (atomic 1) values=[b'mine', b'own1']
+  ok   same-owner in-EXEC read registers NO cut (atomic 1) exec_read_cuts=+0 owner=4
+  ok   write-only transaction registers NO cut (atomic 1) exec_read_cuts=+0
+  ok   concurrent in-EXEC MGET never straddles a transaction (atomic 1) reads=34176 commits=3633 torn=0 exec_read_cuts=+34176 errors=[] []
+in-EXEC isolation battery passed

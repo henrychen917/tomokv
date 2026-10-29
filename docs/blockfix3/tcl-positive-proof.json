@@ -1,0 +1,26 @@
+{
+  "2s": {
+    "binary_sha256": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1",
+    "executions": 36,
+    "passed": 1661,
+    "required_test": {
+      "status": "ok",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl",
+      "data": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP",
+      "milliseconds": "1"
+    }
+  },
+  "1s": {
+    "binary_sha256": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1",
+    "executions": 36,
+    "passed": 1661,
+    "required_test": {
+      "status": "ok",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl",
+      "data": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP",
+      "milliseconds": "2"
+    }
+  }
+}

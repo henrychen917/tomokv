@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-snapfix/build/snapfix/commands/post-normal-INCR-2s-1-1--1.log
+SHA-256: fe70cf9b420bc04263b39b050a94ff419aa94dbc9ab9a00f29df523676605fce
+Exit: 0
+0x0000555555a05038	2364	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
+0x0000555555a04f03 in tomo::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff61df9c8, batch=batch@entry=0x7ffffffda280, n=n@entry=1) at src/core/ex_loop.h:2367
+2367	    }
+0x0000555555a04f08	2367	    }
+0x0000555555a04f11	2367	    }
+0x0000555555a04f17	2367	    }
+0x0000555555a04f1b	2367	    }
+0x0000555555a04f1c	2367	    }
+0x0000555555a04f1e	2367	    }
+0x0000555555a04f20	2367	    }
+0x0000555555a04f22	2367	    }
+0x0000555555a04f24	2367	    }
+0x0000555555a04f25	2367	    }
+0x0000555555d90774 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-snapfix/tests/txnorder_command_scope.cc:72
+72	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-snapfix/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 1936022) exited normally]
+COUNT 2151

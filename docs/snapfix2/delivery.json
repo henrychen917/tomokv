@@ -1,0 +1,95 @@
+{
+  "branch": "cx-snapfix2",
+  "base": "5572e84cc",
+  "arms": {
+    "PRE": {
+      "path": "build/snapfix2/pre/tomokv",
+      "sha256": "da219bf6c15d7f7649e6f6f2758ed7407f8ba6e4456ef48ea2a416ba01de710c",
+      "bytes": 218091648
+    },
+    "BASE": {
+      "path": "build/snapfix2/base/tomokv",
+      "sha256": "dea9309b1ebdf5a46da5fc69d377ed55b26414e7e01d38d3ddfa4b2a8b61db98",
+      "bytes": 218116760
+    },
+    "POST": {
+      "path": "build/tomokv",
+      "sha256": "dd169c2f10040c4b13cb87c3731e4ba1a2dbd74088635008e8512ba64e84021c",
+      "bytes": 218115968
+    },
+    "POST-layout": {
+      "path": "build/snapfix2/POST-layout",
+      "sha256": "e091b35599b3c8ec893facb4132a5d3996fb35a076557303c11174f26df67346",
+      "bytes": 423331360
+    },
+    "PAD-A": {
+      "path": "build/snapfix2/PAD-A",
+      "sha256": "a5f898e5e659944c8f328280654328df4dad60c53fcbf0e6213ce14937303a34",
+      "bytes": 423331360
+    }
+  },
+  "build_allocated_bytes": 18797625344,
+  "build_GiB": 17.507,
+  "expect_constants_unchanged": [
+    "EXPECT_QUICK=807",
+    "EXPECT_FULL=824                 # ABBA reports only; self-test remains counted."
+  ],
+  "new_row_line": 5743,
+  "quick_exit_line": 5819,
+  "DQ": 1,
+  "DF": 1,
+  "final_make_q_command": [
+    "make",
+    "-q",
+    "all",
+    "build/aoforder-scheduled",
+    "build/at15-db0-unit",
+    "build/at15-unit",
+    "build/atomic-survivors-unit",
+    "build/core-concurrency-unit",
+    "build/encodingfix-unit",
+    "build/exbatch-db0-unit",
+    "build/exbatch-unit",
+    "build/execabort-watch-db0-unit",
+    "build/execabort-watch-unit",
+    "build/expire-notify-unit",
+    "build/flushfix-units",
+    "build/ktls-keyupdate",
+    "build/ktls-keyupdate-unit",
+    "build/ktls-lifetime-unit",
+    "build/lbplanner-units",
+    "build/moverfix-db0-unit",
+    "build/moverfix-unit",
+    "build/multidb-boundary-unit",
+    "build/multidb-unit",
+    "build/netcap-unit",
+    "build/netcmd-unit",
+    "build/persistfix-units",
+    "build/publishfix-unit",
+    "build/racefix-climon",
+    "build/rehash-waits-unit",
+    "build/reorder-engagement-unit",
+    "build/reorder-engagement-unit-db0",
+    "build/respresume-migration",
+    "build/respresume-unit",
+    "build/rltopo-unit",
+    "build/shutdown-unit",
+    "build/splitlocal-unit",
+    "build/storesize-unit",
+    "build/txnorder-episodes",
+    "build/txnorder-episodes-debug",
+    "build/txnorder-index-db0-unit",
+    "build/txnorder-index-unit",
+    "build/txnorder-retry-unit",
+    "build/txnorder-wake-unit",
+    "build/txnorder-watch-db0-unit",
+    "build/txnorder-watch-unit",
+    "build/waits-unit",
+    "build/wb-rule-units",
+    "build/wbland-units"
+  ],
+  "final_make_q_exit": 0,
+  "freshness_queries": 51,
+  "listeners_20100_20199": "",
+  "processes_owned_by_lane": "No owned TomoKV runtime processes remained at the final /proc executable audit."
+}

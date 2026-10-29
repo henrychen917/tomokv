@@ -1,0 +1,146 @@
+[
+  {
+    "case": "bgsave-flip",
+    "leg": "redis-redis-0",
+    "value": {
+      "flips": 6,
+      "refusals": [],
+      "saves": 50,
+      "scripts": 251530,
+      "writes": 116007,
+      "snapshot": [
+        247089,
+        247089
+      ]
+    },
+    "pass": true,
+    "seconds": 6.163
+  },
+  {
+    "case": "bgsave-flip",
+    "leg": "1s-uring-0",
+    "value": {
+      "skipped": "FLIP is a 2s placement transition"
+    },
+    "pass": true,
+    "seconds": 0.0
+  },
+  {
+    "case": "bgsave-flip",
+    "leg": "1s-uring-1",
+    "value": {
+      "skipped": "FLIP is a 2s placement transition"
+    },
+    "pass": true,
+    "seconds": 0.0
+  },
+  {
+    "case": "bgsave-flip",
+    "leg": "1s-epoll-0",
+    "value": {
+      "skipped": "FLIP is a 2s placement transition"
+    },
+    "pass": true,
+    "seconds": 0.0
+  },
+  {
+    "case": "bgsave-flip",
+    "leg": "1s-epoll-1",
+    "value": {
+      "skipped": "FLIP is a 2s placement transition"
+    },
+    "pass": true,
+    "seconds": 0.0
+  },
+  {
+    "case": "bgsave-flip",
+    "leg": "2s-uring-0",
+    "value": {
+      "flips": 2,
+      "refusals": [
+        "ERR FLIP is not allowed during a snapshot",
+        "ERR FLIP is not allowed during a snapshot",
+        "ERR FLIP is not allowed during a snapshot",
+        "ERR FLIP is not allowed during a snapshot"
+      ],
+      "saves": 10,
+      "scripts": 25744,
+      "writes": 355299,
+      "snapshot": [
+        22909,
+        22909
+      ]
+    },
+    "pass": true,
+    "seconds": 6.082
+  },
+  {
+    "case": "bgsave-flip",
+    "leg": "2s-uring-1",
+    "value": {
+      "flips": 1,
+      "refusals": [
+        "ERR FLIP is not allowed during a snapshot",
+        "ERR FLIP is not allowed during a snapshot",
+        "ERR FLIP is not allowed during a snapshot",
+        "ERR FLIP is not allowed during a snapshot",
+        "ERR FLIP is not allowed during a snapshot"
+      ],
+      "saves": 8,
+      "scripts": 18230,
+      "writes": 38131,
+      "snapshot": [
+        14342,
+        14342
+      ]
+    },
+    "pass": true,
+    "seconds": 6.083
+  },
+  {
+    "case": "bgsave-flip",
+    "leg": "2s-epoll-0",
+    "value": {
+      "flips": 1,
+      "refusals": [
+        "ERR FLIP is not allowed during a snapshot",
+        "ERR FLIP is not allowed during a snapshot",
+        "ERR FLIP is not allowed during a snapshot",
+        "ERR FLIP is not allowed during a snapshot",
+        "ERR FLIP is not allowed during a snapshot"
+      ],
+      "saves": 9,
+      "scripts": 25544,
+      "writes": 355796,
+      "snapshot": [
+        23222,
+        23222
+      ]
+    },
+    "pass": true,
+    "seconds": 6.081
+  },
+  {
+    "case": "bgsave-flip",
+    "leg": "2s-epoll-1",
+    "value": {
+      "flips": 1,
+      "refusals": [
+        "ERR FLIP is not allowed during a snapshot",
+        "ERR FLIP is not allowed during a snapshot",
+        "ERR FLIP is not allowed during a snapshot",
+        "ERR FLIP is not allowed during a snapshot",
+        "ERR FLIP is not allowed during a snapshot"
+      ],
+      "saves": 10,
+      "scripts": 28674,
+      "writes": 356763,
+      "snapshot": [
+        25181,
+        25181
+      ]
+    },
+    "pass": true,
+    "seconds": 6.082
+  }
+]

@@ -1,0 +1,2 @@
+  row budget: 900s; median=38.04s; correctness-plan-fallback; lualibs CC4.7 vs Redis 7.4
+  lualibs CC4.7 vs Redis 7.4                           ok

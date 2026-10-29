@@ -1,0 +1,6 @@
+thread 6 notify words ['0x19', '0x0'] producers 8
+   lane 0 head 12882 tail 12884 retired 12882 pending 2 notify_bit 1
+   lane 3 head 28300 tail 28301 retired 28300 pending 1 notify_bit 1
+   lane 4 head 61684 tail 61685 retired 61683 pending 1 notify_bit 1
+thread 7 notify words ['0x10', '0x0'] producers 8
+   lane 4 head 93380 tail 93381 retired 93380 pending 1 notify_bit 1

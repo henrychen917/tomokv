@@ -1,0 +1,2 @@
+  row budget: 900s; median=11.96s; correctness-plan-fallback; local script notification AOF vs Redis 7.4
+  local script notification AOF vs Redis 7.4           ok

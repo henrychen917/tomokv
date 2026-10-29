@@ -103,6 +103,7 @@ public:
         client_lb_signal_armed_ = srv_->client_lb_signals_enabled();
         lb_controller_armed_ = srv_->lb_controller_enabled();
         if (!ring_.init(4096)) return false;
+        ring_.bind_entry_counters(self_->id(), false);
         if (!srv_->databases().watch_wake(self_->id(), ring_)) return false;
         if (epoll_ && !init_epoll()) return false;
         wb_.bind(&ring_, this, [](void* ctx, int32_t shard, const char* ptr) {
@@ -166,6 +167,10 @@ public:
     // insufficient once no future pass can consume its queue or kernel pins.
     void shutdown_clients_after_join();
     void shutdown_on_issuer();
+    // Coordinator only, after all workers join and before the stores release their atomic
+    // records: drop the PIN references of cross-owner script activations abandoned between their
+    // PIN and UNPIN waves (XS-SHUT-1). Defined in shutdown.cc, like the two members above.
+    static void shutdown_release_abandoned_script_pins(Server& srv);
     struct ShutdownOnIssuer {
         IoLoop& loop;
         ~ShutdownOnIssuer() { loop.shutdown_on_issuer(); }
@@ -523,6 +528,11 @@ private:
         static_assert(!SplitLocal || Fused);
         LoopSignals& sig = self_->sig();
         IoTenure tenure(sig);
+        Ring::RegisteredFd registered_io(Fused && !SplitLocal ? &ring_ : nullptr);
+        Ring::RegisteredFd registered_ex(Fused && !SplitLocal && fused_executor_ ? &fused_executor_->ring() : nullptr);
+        // Thread identity is fixed for this run. Hoist hint addressing out of
+        // both boundaries rather than rediscovering it through the executor.
+        const auto* const owner_bell = &fused_owner_bells[self_->id()];
         wb_rule::IdleWindow wb_idle;
         Server::DebugSleepWorker sleep_worker(srv_->debug_sleep_coordinator(), self_->id());
         if constexpr (Fused) {
@@ -629,6 +639,10 @@ private:
                 did += drain_client_transfers<kEp>();
                 did += scatter_pool_.refresh_snapshot_floor(*srv_, self_->id());
                 if constexpr (HasUnix) did += flush_handoffs();
+                if constexpr (Fused && !SplitLocal) {
+                    if (owner_bell->runnable.load(std::memory_order_relaxed))
+                        did += fused_executor_->fused_owner_turn();
+                }
                 did += multi_owner_pass_entry(*this);
                 if (aof_writer_bound())
                     did += srv_->aof().writer_pass(*self_, ring_);
@@ -654,6 +668,10 @@ private:
                     if (__builtin_expect(!routing_forward_.empty(), false))
                         client_routing_cleanup_pass();
                     did += flush_ready<HasTls, kEp>();
+                }
+                if constexpr (Fused && !SplitLocal) {
+                    if (owner_bell->runnable.load(std::memory_order_relaxed))
+                        did += fused_executor_->fused_owner_turn();
                 }
                 did += flip_control_pass<kEp>();
                 if (__builtin_expect(client_lb_signal_armed &&

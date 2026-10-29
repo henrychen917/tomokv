@@ -1,0 +1,30 @@
+[
+  {
+    "case": "shutdown",
+    "leg": "1s-uring-1",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 561, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 279, in case_shutdown\n    assert exit_status == dict(rc=0, forced=False), ('SHUTDOWN NOSAVE exit', exit_status)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ('SHUTDOWN NOSAVE exit', {'rc': -6, 'forced': False})\n",
+    "seconds": 1.133
+  },
+  {
+    "case": "shutdown",
+    "leg": "1s-epoll-1",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 561, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 279, in case_shutdown\n    assert exit_status == dict(rc=0, forced=False), ('SHUTDOWN NOSAVE exit', exit_status)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ('SHUTDOWN NOSAVE exit', {'rc': -6, 'forced': False})\n",
+    "seconds": 1.129
+  },
+  {
+    "case": "shutdown",
+    "leg": "2s-uring-1",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 561, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 279, in case_shutdown\n    assert exit_status == dict(rc=0, forced=False), ('SHUTDOWN NOSAVE exit', exit_status)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ('SHUTDOWN NOSAVE exit', {'rc': -6, 'forced': False})\n",
+    "seconds": 1.13
+  },
+  {
+    "case": "shutdown",
+    "leg": "2s-epoll-1",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 561, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix.py\", line 279, in case_shutdown\n    assert exit_status == dict(rc=0, forced=False), ('SHUTDOWN NOSAVE exit', exit_status)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ('SHUTDOWN NOSAVE exit', {'rc': -6, 'forced': False})\n",
+    "seconds": 1.13
+  }
+]

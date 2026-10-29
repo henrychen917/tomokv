@@ -1,0 +1,2 @@
+ok	0.000000	release build (+footprint locks)
+FAIL	0.130000	Redis 7.4 infofix exact latency batch witness

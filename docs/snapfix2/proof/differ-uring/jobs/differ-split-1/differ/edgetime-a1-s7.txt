@@ -1,0 +1,1 @@
+DIFFER edgetime: 4427 ops, 0 diffs, 77 deadline-bounded TTL checks -> PASS

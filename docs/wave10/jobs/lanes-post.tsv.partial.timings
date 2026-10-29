@@ -1,0 +1,75 @@
+ok	0.000000	release build (+footprint locks)
+ok	3.290000	pubtrackfix TRACK-BCAST-BATCH
+ok	11.500000	pubtrackfix PUBSUB-REPLY-OFF-PUSH
+ok	8.270000	pubtrackfix PUBSUB-IMPLICIT-CONSUMER-EVENT
+ok	21.000000	pubtrackfix PUBSUB-EVICT-ON-MAXMEMORY
+ok	33.860000	blockfix2 BLOCK-WAKE-RENAME-SORTSTORE
+ok	36.380000	blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK
+ok	33.920000	blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS
+ok	33.040000	blockfix2 MULTI-XREADGROUP-BLOCK-HANG
+ok	33.580000	blockfix2 INFO-TOTAL-BLOCKING-KEYS
+ok	33.600000	blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED
+ok	0.020000	blockfix2 BLOCK-SERVE-REFUSED-DROP
+ok	0.700000	snapfix XS-SHUT-1 SHUTDOWN NOSAVE in script storm (both modes, both engines, atomic 0/1)
+ok	58.640000	snapfix SNAP-STORM-1 BGSAVE under script storm (both modes, both engines, atomic 0/1)
+ok	55.490000	snapfix SNAP-STORM-1 BGSAVE under EXEC + writer storm (both modes, both engines, atomic 0/1)
+ok	1.990000	snapfix2 repeated BGSAVE bounds RSS (both modes, both engines, atomic 0/1)
+FAIL	4.170000	CRLF line replies match Redis and preserve synchronization
+ok	1.930000	scriptfix2 EVAL-SHEBANG (1s, uring)
+ok	1.880000	scriptfix2 EVALSHA-SHA-CASE (1s, uring)
+ok	1.870000	scriptfix2 FCALL-NAME-CASE (1s, uring)
+ok	1.860000	scriptfix2 FUNCTION-LOAD-ENV (1s, uring)
+ok	1.870000	scriptfix2 FUNCTION-REGISTER-ARGS (1s, uring)
+ok	1.880000	scriptfix2 FUNCTION-SHEBANG-META (1s, uring)
+ok	1.870000	scriptfix2 FUNCTION-SUBCMD-ARGS (1s, uring)
+ok	1.840000	scriptfix2 LUA-REDIS-API (1s, uring)
+ok	1.840000	scriptfix2 LUA-SANDBOX-GLOBALS (1s, uring)
+ok	1.850000	scriptfix2 SCRIPT-ERROR-WORDING (1s, uring)
+ok	1.830000	scriptfix2 SCRIPT-NUMBER-ARG (1s, uring)
+ok	1.930000	scriptfix2 SCRIPT-REPLY-DEPTH (1s, uring)
+ok	1.870000	scriptfix2 EVAL-SHEBANG (1s, epoll)
+ok	1.850000	scriptfix2 EVALSHA-SHA-CASE (1s, epoll)
+ok	1.860000	scriptfix2 FCALL-NAME-CASE (1s, epoll)
+ok	1.820000	scriptfix2 FUNCTION-LOAD-ENV (1s, epoll)
+ok	1.840000	scriptfix2 FUNCTION-REGISTER-ARGS (1s, epoll)
+ok	1.820000	scriptfix2 FUNCTION-SHEBANG-META (1s, epoll)
+ok	1.850000	scriptfix2 FUNCTION-SUBCMD-ARGS (1s, epoll)
+ok	1.840000	scriptfix2 LUA-REDIS-API (1s, epoll)
+ok	1.850000	scriptfix2 LUA-SANDBOX-GLOBALS (1s, epoll)
+ok	1.850000	scriptfix2 SCRIPT-ERROR-WORDING (1s, epoll)
+ok	1.840000	scriptfix2 SCRIPT-NUMBER-ARG (1s, epoll)
+ok	1.810000	scriptfix2 SCRIPT-REPLY-DEPTH (1s, epoll)
+ok	1.850000	scriptfix2 EVAL-SHEBANG (2s, uring)
+ok	1.930000	scriptfix2 EVALSHA-SHA-CASE (2s, uring)
+ok	1.900000	scriptfix2 FCALL-NAME-CASE (2s, uring)
+ok	1.870000	scriptfix2 FUNCTION-LOAD-ENV (2s, uring)
+ok	1.880000	scriptfix2 FUNCTION-REGISTER-ARGS (2s, uring)
+ok	1.880000	scriptfix2 FUNCTION-SHEBANG-META (2s, uring)
+ok	1.860000	scriptfix2 FUNCTION-SUBCMD-ARGS (2s, uring)
+ok	1.880000	scriptfix2 LUA-REDIS-API (2s, uring)
+ok	1.920000	scriptfix2 LUA-SANDBOX-GLOBALS (2s, uring)
+ok	1.900000	scriptfix2 SCRIPT-ERROR-WORDING (2s, uring)
+ok	1.930000	scriptfix2 SCRIPT-NUMBER-ARG (2s, uring)
+ok	1.950000	scriptfix2 SCRIPT-REPLY-DEPTH (2s, uring)
+ok	1.870000	scriptfix2 EVAL-SHEBANG (2s, epoll)
+ok	1.830000	scriptfix2 EVALSHA-SHA-CASE (2s, epoll)
+ok	1.870000	scriptfix2 FCALL-NAME-CASE (2s, epoll)
+ok	1.870000	scriptfix2 FUNCTION-LOAD-ENV (2s, epoll)
+ok	1.870000	scriptfix2 FUNCTION-REGISTER-ARGS (2s, epoll)
+ok	1.860000	scriptfix2 FUNCTION-SHEBANG-META (2s, epoll)
+ok	1.880000	scriptfix2 FUNCTION-SUBCMD-ARGS (2s, epoll)
+ok	1.860000	scriptfix2 LUA-REDIS-API (2s, epoll)
+ok	1.870000	scriptfix2 LUA-SANDBOX-GLOBALS (2s, epoll)
+ok	1.860000	scriptfix2 SCRIPT-ERROR-WORDING (2s, epoll)
+ok	1.860000	scriptfix2 SCRIPT-NUMBER-ARG (2s, epoll)
+ok	1.900000	scriptfix2 SCRIPT-REPLY-DEPTH (2s, epoll)
+ok	16.030000	wave8b tracking-off EXEC scans and transitions
+ok	84.690000	EXEC fast-lane polls
+ok	26.100000	exec1s refinements (1s, atomic 0)
+ok	20.690000	exec1s refinements (1s, atomic 1)
+ok	20.380000	exec1s refinements (2s, atomic 0)
+ok	2.970000	exec1s refinements (2s, atomic 1)
+ok	13.560000	Redis 7.4 infofix exact latency batch witness
+ok	1.170000	Redis 7.4 infofix missing (both modes/engines/runtimes)
+ok	1.790000	Redis 7.4 infofix docs (both modes/engines/runtimes)
+ok	1.320000	Redis 7.4 infofix loadaof (both modes/engines/runtimes)

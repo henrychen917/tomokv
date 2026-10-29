@@ -1,0 +1,379 @@
+{
+  "idle": {
+    "pre": [
+      {
+        "leg": "redis-redis-0",
+        "passed": true,
+        "completed_saves": 12,
+        "first": 6381568,
+        "last": 6381568,
+        "peak": 6381568
+      },
+      {
+        "leg": "1s-uring-0",
+        "passed": false,
+        "completed_saves": 12,
+        "first": 19357696,
+        "last": 958513152,
+        "peak": 958513152,
+        "failure": "RSS growth assertion"
+      },
+      {
+        "leg": "1s-uring-1",
+        "passed": false,
+        "completed_saves": 12,
+        "first": 19357696,
+        "last": 958513152,
+        "peak": 958513152,
+        "failure": "RSS growth assertion"
+      },
+      {
+        "leg": "1s-epoll-0",
+        "passed": false,
+        "completed_saves": 12,
+        "first": 19357696,
+        "last": 960987136,
+        "peak": 960987136,
+        "failure": "RSS growth assertion"
+      },
+      {
+        "leg": "1s-epoll-1",
+        "passed": false,
+        "completed_saves": 12,
+        "first": 19357696,
+        "last": 960978944,
+        "peak": 960978944,
+        "failure": "RSS growth assertion"
+      },
+      {
+        "leg": "2s-uring-0",
+        "passed": false,
+        "completed_saves": 12,
+        "first": 16207872,
+        "last": 900157440,
+        "peak": 900157440,
+        "failure": "RSS growth assertion"
+      },
+      {
+        "leg": "2s-uring-1",
+        "passed": false,
+        "completed_saves": 12,
+        "first": 16207872,
+        "last": 900173824,
+        "peak": 900173824,
+        "failure": "RSS growth assertion"
+      },
+      {
+        "leg": "2s-epoll-0",
+        "passed": false,
+        "completed_saves": 12,
+        "first": 16211968,
+        "last": 898080768,
+        "peak": 898080768,
+        "failure": "RSS growth assertion"
+      },
+      {
+        "leg": "2s-epoll-1",
+        "passed": false,
+        "completed_saves": 12,
+        "first": 16211968,
+        "last": 900182016,
+        "peak": 900182016,
+        "failure": "RSS growth assertion"
+      }
+    ],
+    "base": [
+      {
+        "leg": "redis-redis-0",
+        "passed": true,
+        "completed_saves": 12,
+        "first": 6344704,
+        "last": 6344704,
+        "peak": 6344704
+      },
+      {
+        "leg": "1s-uring-0",
+        "passed": false,
+        "completed_saves": 12,
+        "first": 19357696,
+        "last": 960610304,
+        "peak": 960610304,
+        "failure": "RSS growth assertion"
+      },
+      {
+        "leg": "1s-uring-1",
+        "passed": false,
+        "completed_saves": 12,
+        "first": 21450752,
+        "last": 960610304,
+        "peak": 960610304,
+        "failure": "RSS growth assertion"
+      },
+      {
+        "leg": "1s-epoll-0",
+        "passed": false,
+        "completed_saves": 12,
+        "first": 21458944,
+        "last": 961445888,
+        "peak": 961445888,
+        "failure": "RSS growth assertion"
+      },
+      {
+        "leg": "1s-epoll-1",
+        "passed": false,
+        "completed_saves": 12,
+        "first": 21458944,
+        "last": 960602112,
+        "peak": 960602112,
+        "failure": "RSS growth assertion"
+      },
+      {
+        "leg": "2s-uring-0",
+        "passed": false,
+        "completed_saves": 12,
+        "first": 16207872,
+        "last": 898076672,
+        "peak": 898076672,
+        "failure": "RSS growth assertion"
+      },
+      {
+        "leg": "2s-uring-1",
+        "passed": false,
+        "completed_saves": 12,
+        "first": 16207872,
+        "last": 900173824,
+        "peak": 900173824,
+        "failure": "RSS growth assertion"
+      },
+      {
+        "leg": "2s-epoll-0",
+        "passed": false,
+        "completed_saves": 12,
+        "first": 16211968,
+        "last": 900177920,
+        "peak": 900177920,
+        "failure": "RSS growth assertion"
+      },
+      {
+        "leg": "2s-epoll-1",
+        "passed": false,
+        "completed_saves": 12,
+        "first": 16211968,
+        "last": 898080768,
+        "peak": 898080768,
+        "failure": "RSS growth assertion"
+      }
+    ],
+    "post": [
+      {
+        "leg": "redis-redis-0",
+        "passed": true,
+        "completed_saves": 12,
+        "first": 6361088,
+        "last": 6361088,
+        "peak": 6361088
+      },
+      {
+        "leg": "1s-uring-0",
+        "passed": true,
+        "completed_saves": 12,
+        "first": 21811200,
+        "last": 21884928,
+        "peak": 21884928
+      },
+      {
+        "leg": "1s-uring-1",
+        "passed": true,
+        "completed_saves": 12,
+        "first": 19709952,
+        "last": 19783680,
+        "peak": 19783680
+      },
+      {
+        "leg": "1s-epoll-0",
+        "passed": true,
+        "completed_saves": 12,
+        "first": 19709952,
+        "last": 19783680,
+        "peak": 19783680
+      },
+      {
+        "leg": "1s-epoll-1",
+        "passed": true,
+        "completed_saves": 12,
+        "first": 19709952,
+        "last": 19783680,
+        "peak": 19783680
+      },
+      {
+        "leg": "2s-uring-0",
+        "passed": true,
+        "completed_saves": 12,
+        "first": 16044032,
+        "last": 16130048,
+        "peak": 16130048
+      },
+      {
+        "leg": "2s-uring-1",
+        "passed": true,
+        "completed_saves": 12,
+        "first": 16044032,
+        "last": 16130048,
+        "peak": 16130048
+      },
+      {
+        "leg": "2s-epoll-0",
+        "passed": true,
+        "completed_saves": 12,
+        "first": 16048128,
+        "last": 16134144,
+        "peak": 16134144
+      },
+      {
+        "leg": "2s-epoll-1",
+        "passed": true,
+        "completed_saves": 12,
+        "first": 18149376,
+        "last": 18239488,
+        "peak": 18239488
+      }
+    ]
+  },
+  "large": [
+    {
+      "leg": "redis-redis-0",
+      "keys": 1000000,
+      "completed_saves": 16,
+      "first": 109117440,
+      "last": 103862272,
+      "peak": 109117440,
+      "passed": true
+    },
+    {
+      "leg": "1s-uring-0",
+      "keys": 1000000,
+      "completed_saves": 16,
+      "first": 137297920,
+      "last": 158580736,
+      "peak": 170840064,
+      "passed": true
+    },
+    {
+      "leg": "1s-uring-1",
+      "keys": 1000000,
+      "completed_saves": 16,
+      "first": 135323648,
+      "last": 159375360,
+      "peak": 168943616,
+      "passed": true
+    },
+    {
+      "leg": "1s-epoll-0",
+      "keys": 1000000,
+      "completed_saves": 16,
+      "first": 132587520,
+      "last": 158298112,
+      "peak": 166207488,
+      "passed": true
+    },
+    {
+      "leg": "1s-epoll-1",
+      "keys": 1000000,
+      "completed_saves": 16,
+      "first": 135704576,
+      "last": 157032448,
+      "peak": 169099264,
+      "passed": true
+    },
+    {
+      "leg": "2s-uring-0",
+      "keys": 1000000,
+      "completed_saves": 16,
+      "first": 119345152,
+      "last": 132685824,
+      "peak": 148729856,
+      "passed": true
+    },
+    {
+      "leg": "2s-uring-1",
+      "keys": 1000000,
+      "completed_saves": 16,
+      "first": 121245696,
+      "last": 132898816,
+      "peak": 144326656,
+      "passed": true
+    },
+    {
+      "leg": "2s-epoll-0",
+      "keys": 1000000,
+      "completed_saves": 16,
+      "first": 119840768,
+      "last": 132694016,
+      "peak": 144994304,
+      "passed": true
+    },
+    {
+      "leg": "2s-epoll-1",
+      "keys": 1000000,
+      "completed_saves": 16,
+      "first": 119283712,
+      "last": 132907008,
+      "peak": 144474112,
+      "passed": true
+    }
+  ],
+  "pad": {
+    "post-layout": [
+      {
+        "leg": "1s-uring-1",
+        "completed_saves": 12,
+        "peak": 19800064,
+        "passed": true
+      },
+      {
+        "leg": "1s-epoll-1",
+        "completed_saves": 12,
+        "peak": 19804160,
+        "passed": true
+      },
+      {
+        "leg": "2s-uring-1",
+        "completed_saves": 12,
+        "peak": 16150528,
+        "passed": true
+      },
+      {
+        "leg": "2s-epoll-1",
+        "completed_saves": 12,
+        "peak": 16154624,
+        "passed": true
+      }
+    ],
+    "pad-a": [
+      {
+        "leg": "1s-uring-1",
+        "completed_saves": 12,
+        "peak": 958533632,
+        "passed": false
+      },
+      {
+        "leg": "1s-epoll-1",
+        "completed_saves": 12,
+        "peak": 961462272,
+        "passed": false
+      },
+      {
+        "leg": "2s-uring-1",
+        "completed_saves": 12,
+        "peak": 900194304,
+        "passed": false
+      },
+      {
+        "leg": "2s-epoll-1",
+        "completed_saves": 12,
+        "peak": 898101248,
+        "passed": false
+      }
+    ]
+  }
+}

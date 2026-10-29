@@ -1,0 +1,70 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "8-15",
+    "python3",
+    "tests/snapfix2_rss.py",
+    "--case",
+    "large-rss",
+    "--binary",
+    "build/tomokv",
+    "--oracle",
+    "/home/user/Projects/redis/src/redis-server",
+    "--cores",
+    "0-7",
+    "--port",
+    "20100",
+    "--output",
+    "/home/user/Projects/cx-snapfix2/docs/snapfix2/rss/large-final",
+    "--dataset",
+    "1000000",
+    "--stall",
+    "60"
+  ],
+  "environment": {},
+  "binary": "build/tomokv",
+  "binary_sha256": "dd169c2f10040c4b13cb87c3731e4ba1a2dbd74088635008e8512ba64e84021c",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "exit": 0,
+  "seconds": 63.647,
+  "log_sha256": "d744b0efac722aa8d7c477c5e215b81fb2c802772582b242417c94442873eb00",
+  "removed_data": {
+    "1s-epoll-1/dump.tomo": {
+      "bytes": 66921610,
+      "sha256": "a2e3f2c5a6714b9cc63eeea928e3eb10f761ca301b2884d7186958bb31e854a3"
+    },
+    "2s-uring-0/dump.tomo": {
+      "bytes": 66921642,
+      "sha256": "a684a0cbf0cb993a091463cccd07c84657e99cd85cb35fb361cf1f51c2ec057e"
+    },
+    "1s-epoll-0/dump.tomo": {
+      "bytes": 66921610,
+      "sha256": "21a0e56350cadbb75e0224e62c83250b04f2b2df76571d7ee202c9aeb98e0c0e"
+    },
+    "1s-uring-0/dump.tomo": {
+      "bytes": 66921546,
+      "sha256": "f1b0e3525f0dd001be158aa7866e49d3dd953b6ab39186a93a9a793d84caf086"
+    },
+    "2s-epoll-0/dump.tomo": {
+      "bytes": 66921642,
+      "sha256": "8da21a5e3bfe8459f0c4128ab7e379fdb71be6d78690437b65904523a94b6d54"
+    },
+    "redis-redis-0/dump.rdb": {
+      "bytes": 37888508,
+      "sha256": "c905762fcfbf3e9147e3c624a6bda0ac9902f84488d8e946efb798cbe1ca482b"
+    },
+    "2s-epoll-1/dump.tomo": {
+      "bytes": 66921610,
+      "sha256": "35c4baa8439b5b2f699e8558d76d047aecc84cda6d217c6a19a57bc1925f7512"
+    },
+    "1s-uring-1/dump.tomo": {
+      "bytes": 66921578,
+      "sha256": "6a0479ca657fde54af9d51142a1a039a3b3e2cf4de016c316c07bb4b1353a12f"
+    },
+    "2s-uring-1/dump.tomo": {
+      "bytes": 66921642,
+      "sha256": "6998e252e9b8a9a91a367eb7ad8ae157e31fd010cd1db2d82c069e80d89cc182"
+    }
+  }
+}

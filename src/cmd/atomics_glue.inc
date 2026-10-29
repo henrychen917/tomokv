@@ -1126,7 +1126,11 @@ uint32_t xshard_cleanup_shard_at(Shard& shard, uint64_t floor, uint64_t cleanup_
     if (intents && shard.server())
         shard.server()->note_txn(shard.server()->worker_of_shard(shard.id()),
                                   TxnCounter::IntentsLive, uint64_t{0} - intents);
-    return shard.store().atomic_sweep(floor, cleanup_cutoff, budget);
+    const uint32_t work = shard.store().atomic_sweep(floor, cleanup_cutoff, budget);
+    // Finish the already-pending owner sweep before cleanup can make the next
+    // command bypass the atomic-record path. No table retirement is active here.
+    if (work) blocking_cleanup_published(shard);
+    return work;
 }
 
 }  // namespace tomo

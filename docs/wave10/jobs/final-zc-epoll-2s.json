@@ -1,0 +1,46 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-71",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "72-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "20020-20029",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave10/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave10",
+  "env": {
+    "LANG": "en_US.UTF-8",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "zc",
+    "GATE_NET_IO": "epoll",
+    "GATE_PROOF_NET_IO": "epoll",
+    "GATE_ZC_NET_IO": "epoll",
+    "GATE_SHUTDOWN_NET_IO": "epoll",
+    "GATE_DIFFER_NET_IO": "epoll",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TEST_PORT": "20098",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave10/docs/wave10/jobs/final-zc-epoll-2s.tsv"
+  },
+  "binary_sha256": "844cf188071bae335a80e8ae15c2acaec2d1f583f235edf4bf4496421299660e",
+  "source_commit": "e619168f5b37b8e4794b55a75ccf8b263d7e88ff",
+  "source_diff_sha256": "b02033571477a0e51b1d715e827b7b96a8dd1c07d2b73fa01e9467cec5fab52a",
+  "gate_sha256": "ef483d43ddd0466e4ffd62b120c97f11faeb590209d397e077e895a150e8a38c",
+  "started": 1793252685.6639335,
+  "exit": 0,
+  "seconds": 10.572434902191162,
+  "artifacts": "/home/user/Projects/cx-wave10/build/gate-run.XYSEG5",
+  "summary": [
+    "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave10/docs/wave10/jobs/final-zc-epoll-2s.tsv.partial"
+  ],
+  "binary_unchanged": true
+}

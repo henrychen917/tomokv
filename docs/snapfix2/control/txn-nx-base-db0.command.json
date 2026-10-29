@@ -1,0 +1,25 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "8-15",
+    "python3",
+    "tools/snapfix2_nx_control.py",
+    "--binary",
+    "build/snapfix2/base/tomokv",
+    "--databases",
+    "1",
+    "--read-local",
+    "0",
+    "--output",
+    "/home/user/Projects/cx-snapfix2/docs/snapfix2/control/txn-nx-base-db0"
+  ],
+  "environment": {},
+  "binary": "build/snapfix2/base/tomokv",
+  "binary_sha256": "dea9309b1ebdf5a46da5fc69d377ed55b26414e7e01d38d3ddfa4b2a8b61db98",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "exit": 1,
+  "seconds": 26.148,
+  "log_sha256": "764d12e23f602c1fdb6d3e2e88e0072ae14743219e6186cacb1479a463a84214",
+  "removed_data": {}
+}

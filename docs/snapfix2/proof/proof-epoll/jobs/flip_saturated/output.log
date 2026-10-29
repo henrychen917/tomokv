@@ -1,0 +1,4 @@
+  row budget: 900s; median=6.05s; correctness-plan-fallback; FLIP applies under saturated load
+  FLIP applies under saturated load                    ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; flip battery shutdown invariants
+  flip battery shutdown invariants                     ok

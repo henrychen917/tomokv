@@ -1,0 +1,22 @@
+[
+  {
+    "path": "build/gate-run.9UWLZQ/jobs/atomic_batteries/gate-atomic-torn.txt",
+    "line": 14,
+    "text": "  SKIP OFF control exposes impossible SINTERSTORE image clean run, no mixed image in 36390 reads (kernel-timing geometry)"
+  },
+  {
+    "path": "build/gate-run.9UWLZQ/jobs/atomic_batteries/gate-atomic-torn.txt",
+    "line": 18,
+    "text": "  SKIP OFF control exposes RENAMENX losing race clean run, losing race never manifested (kernel-timing geometry)"
+  },
+  {
+    "path": "build/gate-run.9UWLZQ/jobs/atomic_batteries/gate-atomic-torn.txt",
+    "line": 20,
+    "text": "  SKIP OFF control exposes COPY losing race clean run, losing race never manifested (kernel-timing geometry)"
+  },
+  {
+    "path": "build/gate-run.9UWLZQ/jobs/atomic_batteries/gate-atomic-ryow.txt",
+    "line": 11,
+    "text": "  SKIP pipelined atomic groups beat the serial round-trip rate -- rate comparison disabled by --no-rate-assertions"
+  }
+]

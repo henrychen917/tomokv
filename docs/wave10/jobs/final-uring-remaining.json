@@ -1,0 +1,46 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-87",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "88-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "20000-20009",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave10/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave10",
+  "env": {
+    "LANG": "en_US.UTF-8",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "lualibs latencyfix_grammar latencyfix_shape latencyfix_off iofix-deferred iofix-hz iofix-sleep iofix-signal txnorder_index txnorder2 txnorder_wake reorder_identity reorder_sync reorder_engagement wb_rule_units wbland_units scriptfix atomfix5_watch datafix2_watch blockfix_registry serverfix_slowlog rlfix3_info compat3 netcmd_units atomic_units splitlocal_units exbatch_units moverfix core_units wait_units serverfix_waitaof netfix_query_stats ntfix_input persistfix2_lastsave racefix_counters notify_aof notify_order notifycompat exbatch_live atomfix5_accounting acl_recheck aclfix authfix rlcache blockfix2 txnorder_wound trackfix_order trackfix_accounting tracking_redirect aoforder racefix_climon dispatch_arity dispatch_errors dispatch_children serverfix_lines serverfix_scalar serverfix_hello serverfix_config bplus clientfix perfio_stream climonfix ntnew4_live perfex_units perfex_live netcap netfix_unix netfix_config netfix_tls netfix_idle_buffers boot_grammar dbdefault readonly hexpread serverfix_hll serverfix_acllog rlfix3_zc aof_frame sort lbplanner_units persistfix_units flipfix_units lb-stationary-1s lb-stationary-2s acl_subcommands router_uniform datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_idle auth persistfix2_shutdown persistfix2_commands persistfix2_errors tls feature-cell-1s-0-0-0-0 feature-cell-1s-0-0-0-1 feature-cell-1s-0-0-1-0 feature-cell-1s-0-0-1-1 feature-cell-1s-0-1-0-0 feature-cell-1s-0-1-0-1 feature-cell-1s-0-1-1-0 feature-cell-1s-0-1-1-1 feature-cell-1s-1-0-0-0 feature-cell-1s-1-0-0-1 feature-cell-1s-1-0-1-0 feature-cell-1s-1-0-1-1 feature-cell-1s-1-1-0-0 feature-cell-1s-1-1-0-1 feature-cell-1s-1-1-1-0 feature-cell-1s-1-1-1-1 feature-cell-2s-0-0-0-0 feature-cell-2s-0-0-0-1 feature-cell-2s-0-0-1-0 feature-cell-2s-0-0-1-1 feature-cell-2s-0-1-0-0 feature-cell-2s-0-1-0-1 feature-cell-2s-0-1-1-0 feature-cell-2s-0-1-1-1 feature-cell-2s-1-0-0-0 feature-cell-2s-1-0-0-1 feature-cell-2s-1-0-1-0 feature-cell-2s-1-0-1-1 feature-cell-2s-1-1-0-0 feature-cell-2s-1-1-0-1 feature-cell-2s-1-1-1-0 feature-cell-2s-1-1-1-1 feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto globcase fused-0 fused-1 txn_group_fused txn_group_split txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 replyoff wb_policy respcompat flip fliplisten flip_saturated aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1 script_bounds notify asan_batteries atomic_batteries release_batteries dump_restore atomic_floor",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_ZC_NET_IO": "uring",
+    "GATE_SHUTDOWN_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TEST_PORT": "20098",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave10/docs/wave10/jobs/final-uring-remaining.tsv"
+  },
+  "binary_sha256": "844cf188071bae335a80e8ae15c2acaec2d1f583f235edf4bf4496421299660e",
+  "source_commit": "d9ed7de013b709ede5c9bd0252f58d20c647eef1",
+  "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "gate_sha256": "ef483d43ddd0466e4ffd62b120c97f11faeb590209d397e077e895a150e8a38c",
+  "started": 1793250770.040726,
+  "exit": 1,
+  "seconds": 1851.1520841121674,
+  "artifacts": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV",
+  "summary": [
+    "GATE(PARTIAL): 587 ok, 11 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave10/docs/wave10/jobs/final-uring-remaining.tsv.partial"
+  ],
+  "binary_unchanged": true
+}

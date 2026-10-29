@@ -12,8 +12,9 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-// Deterministic external facts for byte-for-byte PRE/POST INFO snapshots. These
-// link wrappers exist only in this worker-free witness, never in the server.
+// Fixed clocks, randomness and allocator facts for the worker-free witness.
+// PID and CPU usage remain real: INFO CPU reads the main thread's /proc entry.
+// These link wrappers exist only in this witness, never in the server.
 extern "C" int __wrap_clock_gettime(clockid_t clock, timespec* value) {
     *value = {clock == CLOCK_REALTIME ? 1700000000 : 1000, 0}; return 0;
 }
@@ -21,7 +22,8 @@ extern "C" time_t __wrap_time(time_t* value) {
     if (value) *value = 1700000000;
     return 1700000000;
 }
-extern "C" pid_t __wrap_getpid() { return 12345; }
+extern "C" pid_t __real_getpid();
+extern "C" pid_t __wrap_getpid() { return __real_getpid(); }
 extern "C" ssize_t __wrap_getrandom(void* bytes, size_t length, unsigned) {
     std::memset(bytes, 0x42, length); return length;
 }

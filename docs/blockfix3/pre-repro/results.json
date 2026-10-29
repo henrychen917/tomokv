@@ -1,0 +1,283 @@
+[
+  {
+    "removal": [
+      [
+        1,
+        {
+          "error": "4e4f47524f5550204e6f2073756368206b6579202773747265616d27206f7220636f6e73756d65722067726f75702027672720696e20585245414447524f555020776974682047524f5550206f7074696f6e"
+        },
+        {
+          "bytes": "6e6f6e65"
+        }
+      ],
+      [
+        1,
+        {
+          "error": "4e4f47524f5550204e6f2073756368206b6579202773747265616d27206f7220636f6e73756d65722067726f75702027672720696e20585245414447524f555020776974682047524f5550206f7074696f6e"
+        },
+        {
+          "bytes": "6e6f6e65"
+        }
+      ],
+      [
+        {
+          "bytes": "4f4b"
+        },
+        {
+          "error": "57524f4e4754595045204f7065726174696f6e20616761696e73742061206b657920686f6c64696e67207468652077726f6e67206b696e64206f662076616c7565"
+        },
+        {
+          "bytes": "737472696e67"
+        }
+      ],
+      [
+        {
+          "bytes": "4f4b"
+        },
+        {
+          "error": "57524f4e4754595045204f7065726174696f6e20616761696e73742061206b657920686f6c64696e67207468652077726f6e67206b696e64206f662076616c7565"
+        },
+        {
+          "bytes": "737472696e67"
+        }
+      ],
+      [
+        {
+          "bytes": "4f4b"
+        },
+        {
+          "error": "4e4f47524f5550204e6f2073756368206b6579202773747265616d27206f7220636f6e73756d65722067726f75702027672720696e20585245414447524f555020776974682047524f5550206f7074696f6e"
+        },
+        {
+          "bytes": "6e6f6e65"
+        }
+      ],
+      [
+        {
+          "bytes": "4f4b"
+        },
+        {
+          "error": "4e4f47524f5550204e6f2073756368206b6579202773747265616d27206f7220636f6e73756d65722067726f75702027672720696e20585245414447524f555020776974682047524f5550206f7074696f6e"
+        },
+        {
+          "bytes": "6e6f6e65"
+        }
+      ],
+      [
+        1,
+        {
+          "error": "4e4f47524f5550204e6f2073756368206b6579202773747265616d27206f7220636f6e73756d65722067726f75702027672720696e20585245414447524f555020776974682047524f5550206f7074696f6e"
+        },
+        {
+          "bytes": "73747265616d"
+        }
+      ],
+      [
+        [
+          1,
+          1
+        ],
+        {
+          "error": "57524f4e4754595045204f7065726174696f6e20616761696e73742061206b657920686f6c64696e67207468652077726f6e67206b696e64206f662076616c7565"
+        },
+        {
+          "bytes": "736574"
+        }
+      ],
+      {
+        "error": "4e4f47524f5550204e6f2073756368206b657920276d6978656427206f7220636f6e73756d65722067726f75702027672720696e20585245414447524f555020776974682047524f5550206f7074696f6e"
+      },
+      {
+        "error": "4e4f47524f5550204e6f2073756368206b65792027626f756e6461727927206f7220636f6e73756d65722067726f75702027672720696e20585245414447524f555020776974682047524f5550206f7074696f6e"
+      }
+    ],
+    "reply": {
+      "error": "4e4f47524f5550204e6f2073756368206b65792027737461747327206f7220636f6e73756d65722067726f75702027672720696e20585245414447524f555020776974682047524f5550206f7074696f6e"
+    },
+    "errorstat": "count=1",
+    "cmdstat": "calls=1,usec=2,usec_per_call=2.00,rejected_calls=0,failed_calls=1",
+    "total_errors": "1",
+    "mode": "redis",
+    "engine": null,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "argv": [
+      "taskset",
+      "-c",
+      "0-7",
+      "/home/user/Projects/redis74/src/redis-server",
+      "--port",
+      "20190",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-blockfix3/docs/blockfix3/pre-repro/redis-None"
+    ],
+    "tcl_passed": 1,
+    "tcl_failed": 0,
+    "tcl_error": null
+  },
+  {
+    "removal_error": "AssertionError((\"deleted group's waiter must not consume recreated stream\", [[b'boundary', [[b'1-0', [b'f', b'v']]]]]))",
+    "reply": {
+      "error": "4e4f47524f5550204e6f2073756368206b65792027737461747327206f7220636f6e73756d65722067726f75702027672720696e20585245414447524f555020776974682047524f5550206f7074696f6e"
+    },
+    "errorstat": null,
+    "cmdstat": "calls=1,rejected_calls=0",
+    "total_errors": null,
+    "mode": "1s",
+    "engine": "epoll",
+    "sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+    "argv": [
+      "taskset",
+      "-c",
+      "0-7",
+      "/home/user/Projects/cx-blockfix3/build/blockfix3/pre/tomokv",
+      "--port",
+      "20190",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-blockfix3/docs/blockfix3/pre-repro/1s-epoll",
+      "--thread-mode",
+      "1s",
+      "--net-io",
+      "epoll",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+    ],
+    "tcl_passed": 0,
+    "tcl_failed": 2,
+    "tcl_error": null
+  },
+  {
+    "removal_error": "AssertionError((\"deleted group's waiter must not consume recreated stream\", [[b'boundary', [[b'1-0', [b'f', b'v']]]]]))",
+    "reply": {
+      "error": "4e4f47524f5550204e6f2073756368206b65792027737461747327206f7220636f6e73756d65722067726f75702027672720696e20585245414447524f555020776974682047524f5550206f7074696f6e"
+    },
+    "errorstat": null,
+    "cmdstat": "calls=1,rejected_calls=0",
+    "total_errors": null,
+    "mode": "1s",
+    "engine": "uring",
+    "sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+    "argv": [
+      "taskset",
+      "-c",
+      "0-7",
+      "/home/user/Projects/cx-blockfix3/build/blockfix3/pre/tomokv",
+      "--port",
+      "20190",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-blockfix3/docs/blockfix3/pre-repro/1s-uring",
+      "--thread-mode",
+      "1s",
+      "--net-io",
+      "uring",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+    ],
+    "tcl_passed": 0,
+    "tcl_failed": 2,
+    "tcl_error": null
+  },
+  {
+    "removal_error": "AssertionError((\"deleted group's waiter must not consume recreated stream\", [[b'boundary', [[b'1-0', [b'f', b'v']]]]]))",
+    "reply": {
+      "error": "4e4f47524f5550204e6f2073756368206b65792027737461747327206f7220636f6e73756d65722067726f75702027672720696e20585245414447524f555020776974682047524f5550206f7074696f6e"
+    },
+    "errorstat": null,
+    "cmdstat": "calls=1,rejected_calls=0",
+    "total_errors": null,
+    "mode": "2s",
+    "engine": "epoll",
+    "sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+    "argv": [
+      "taskset",
+      "-c",
+      "0-7",
+      "/home/user/Projects/cx-blockfix3/build/blockfix3/pre/tomokv",
+      "--port",
+      "20190",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-blockfix3/docs/blockfix3/pre-repro/2s-epoll",
+      "--thread-mode",
+      "2s",
+      "--net-io",
+      "epoll",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+    ],
+    "tcl_passed": 0,
+    "tcl_failed": 2,
+    "tcl_error": null
+  },
+  {
+    "removal_error": "AssertionError((\"deleted group's waiter must not consume recreated stream\", [[b'boundary', [[b'1-0', [b'f', b'v']]]]]))",
+    "reply": {
+      "error": "4e4f47524f5550204e6f2073756368206b65792027737461747327206f7220636f6e73756d65722067726f75702027672720696e20585245414447524f555020776974682047524f5550206f7074696f6e"
+    },
+    "errorstat": null,
+    "cmdstat": "calls=1,rejected_calls=0",
+    "total_errors": null,
+    "mode": "2s",
+    "engine": "uring",
+    "sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+    "argv": [
+      "taskset",
+      "-c",
+      "0-7",
+      "/home/user/Projects/cx-blockfix3/build/blockfix3/pre/tomokv",
+      "--port",
+      "20190",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-blockfix3/docs/blockfix3/pre-repro/2s-uring",
+      "--thread-mode",
+      "2s",
+      "--net-io",
+      "uring",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+    ],
+    "tcl_passed": 0,
+    "tcl_failed": 2,
+    "tcl_error": null
+  }
+]

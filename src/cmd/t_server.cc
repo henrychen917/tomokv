@@ -14,6 +14,7 @@
 #include "network_config.h"
 #include "hll.h"
 #include "t_sort.h"
+#include "t_stream.h"
 #include "scripting.h"
 #include "server_tail.h"
 #include "slowlog.h"
@@ -1594,31 +1595,6 @@ void cmd_client(Shard&, Op& op) {
     }
 }
 
-const char* command_group(const CommandMetadata& metadata) {
-    const uint64_t categories = command_metadata_categories(metadata);
-    if (categories & (uint64_t{1} << 13)) return "server";
-    if (categories & (uint64_t{1} << 18)) return "connection";
-    return "generic";
-}
-
-void reply_command_docs(Op::Sink& sink, const CommandMetadata& metadata, bool resp3) {
-    // A RESP2 map is a flat array. These four fields are enough for redis-cli's live help parser.
-    reply_map_header(sink, 4, resp3);
-    reply_bulk(sink, Slice("summary", 7));
-    const Slice name = command_metadata_name(metadata);
-    std::string summary = "tomokv compatible ";
-    summary.append(name.p, name.n);
-    summary += " command";
-    reply_bulk(sink, Slice(summary.data(), summary.size()));
-    reply_bulk(sink, Slice("since", 5)); reply_bulk(sink, Slice("0.1.0", 5));
-    reply_bulk(sink, Slice("group", 5));
-    const char* group = command_group(metadata);
-    reply_bulk(sink, Slice(group, std::strlen(group)));
-    reply_bulk(sink, Slice("complexity", 10));
-    const char* complexity = "O(1) or proportional to returned work";
-    reply_bulk(sink, Slice(complexity, std::strlen(complexity)));
-}
-
 void cmd_command(Shard&, Op& op) {
     if (auth_arity_reply(op, *op.spec, false)) return;
     auto sink = op.sink();
@@ -1659,7 +1635,7 @@ void cmd_command(Shard&, Op& op) {
         reply_map_header(sink, specs.size(), op.resp3());
         for (const CommandMetadata* spec : specs) {
             reply_bulk(sink, command_metadata_name(*spec));
-            reply_command_docs(sink, *spec, op.resp3());
+            command_metadata_reply_docs(op, *spec);
         }
         return;
     }
@@ -1974,6 +1950,7 @@ struct StatBaseline {
     ReadLocalStats read_local;
     std::vector<uint64_t> command_calls;
     std::vector<uint64_t> rejected_calls, failed_calls;
+    StreamGroupStats xreadgroup;
 };
 
 std::mutex g_stat_baseline_mu;
@@ -2024,6 +2001,7 @@ void add_read_local_stats(ReadLocalStats& total, const ReadLocalStats& local) {
 
 void collect_stat_totals(StatBaseline& out) {
     out = StatBaseline{};
+    out.xreadgroup = stream_xreadgroup_stats();
     if (!g_server) return;
     for (uint32_t i = 0; i < g_server->nshards(); i++) {
         const Shard& sh = g_server->shard(static_cast<int32_t>(i));
@@ -2262,10 +2240,14 @@ void cmd_info(Shard&, Op& op) {
         }
     }
     StatBaseline baseline;
-    if (want_stats || want_commands) {
+    const bool want_errors = info_section(op, "ERRORSTATS");
+    if (want_stats || want_commands || want_errors) {
         std::lock_guard<std::mutex> lock(g_stat_baseline_mu);
         baseline = g_stat_baseline;
     }
+    const StreamGroupStats group_totals = stream_xreadgroup_stats();
+    const uint64_t group_errors = minus_baseline(group_totals.nogroup, baseline.xreadgroup.nogroup);
+    const uint64_t group_usec = minus_baseline(group_totals.usec, baseline.xreadgroup.usec);
     const uint64_t expired_subkeys = want_stats
         ? minus_baseline(expired_hash_fields, baseline.expired_subkeys) : 0;
     if (want_stats) {
@@ -2416,6 +2398,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(uptime),
                 static_cast<unsigned long long>(uptime / 86400),
                 info_executable(), info_config_file());
+        info_stats_build_fields(body);
         appendf(body, "hz:%u\r\nconfigured_hz:%u\r\n",
                 g_server ? g_server->client_hz() : ClientHz::kDefault,
                 g_server ? g_server->configured_hz() : ClientHz::kDefault);
@@ -3056,7 +3039,16 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(read_local.mget_fallback_seq_churn),
                 static_cast<unsigned long long>(read_local.mget_fallback_generation));
     }
-    if (info_section(op, "REPLICATION")) body += "# Replication\r\nrole:master\r\n";
+    if (want_stats)
+        appendf(body, "total_error_replies:%llu\r\n", static_cast<unsigned long long>(group_errors));
+    if (want_errors) {
+        body += "# Errorstats\r\n";
+        if (group_errors)
+            appendf(body, "errorstat_NOGROUP:count=%llu\r\n",
+                    static_cast<unsigned long long>(group_errors));
+    }
+    if (info_section(op, "CPU")) info_stats_cpu_fields(body);
+    if (info_section(op, "REPLICATION")) body += "# Replication\r\nrole:master\r\nmaster_repl_offset:0\r\n";
     if (want_commands) {
         body += "# Commandstats\r\n";
         for (uint32_t id = 0; id < command_registry_size(); id++) {
@@ -3074,6 +3066,15 @@ void cmd_info(Shard&, Op& op) {
                 failed_calls = minus_baseline(failed_calls, baseline.failed_calls[id]);
             if (!calls && !rejected_calls && !failed_calls) continue;
             const std::string name = lower_name(command_registry_at(id)->name);
+            if (name == "xreadgroup") {
+                appendf(body, "cmdstat_%s:calls=%llu,usec=%llu,usec_per_call=%.2f,rejected_calls=%llu,failed_calls=%llu\r\n",
+                        name.c_str(), static_cast<unsigned long long>(calls),
+                        static_cast<unsigned long long>(group_usec),
+                        calls ? double(group_usec) / double(calls) : 0.0,
+                        static_cast<unsigned long long>(rejected_calls),
+                        static_cast<unsigned long long>(failed_calls + group_errors));
+                continue;
+            }
             // Omit unmeasured timing and unimplemented failed_calls; never invent counters.
             appendf(body, "cmdstat_%s:calls=%llu,rejected_calls=%llu\r\n",
                     name.c_str(), static_cast<unsigned long long>(calls),

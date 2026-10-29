@@ -1,0 +1,17 @@
+{
+  "DQ": 5,
+  "DF": 5,
+  "collect_lines": [
+    5981,
+    5982
+  ],
+  "quick_exit_line": 6113,
+  "unchanged": {
+    "EXPECT_QUICK": 881,
+    "EXPECT_FULL": 898
+  },
+  "owner_should_set": {
+    "EXPECT_QUICK": 886,
+    "EXPECT_FULL": 903
+  }
+}

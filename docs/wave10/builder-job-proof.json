@@ -1,0 +1,58 @@
+{
+  "note": "Whole gate jobs from the final build-directory campaign. Their disposable-source builders use the existing Makefile dry-run interface and production prerequisites. Lottery/publishfix separate full-build/netio receipts: variant-builds.json.",
+  "candidate_sha256": "844cf188071bae335a80e8ae15c2acaec2d1f583f235edf4bf4496421299660e",
+  "jobs": [
+    {
+      "job": "trackfix_order",
+      "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/trackfix_order",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger_sha256": "05f63fee51b60b9c19a270ad192cdf0fa27f88e558fbc133792855b369ae2b31",
+      "rows": [
+        "ok\t220.710000\ttracking delayed-write order vs Redis 7.4"
+      ]
+    },
+    {
+      "job": "notifycompat",
+      "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/notifycompat",
+      "exit": 0,
+      "passed": 7,
+      "failed": 0,
+      "ledger_sha256": "d86e922c68dbb68ea8a41592363e6e7d94576e56e6cacefa7594c3d270eb1061",
+      "rows": [
+        "ok\t22.570000\tnotification compatibility setbit vs Redis 7.4",
+        "ok\t41.510000\tnotification compatibility setpast vs Redis 7.4",
+        "ok\t50.810000\tnotification compatibility emptystore vs Redis 7.4",
+        "ok\t42.850000\tnotification compatibility writemiss vs Redis 7.4",
+        "ok\t43.770000\tnotification compatibility objectmiss vs Redis 7.4",
+        "ok\t144.800000\tnotification compatibility expiredstore vs Redis 7.4",
+        "ok\t57.040000\tnotification compatibility flush vs Redis 7.4"
+      ]
+    },
+    {
+      "job": "aoforder",
+      "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/aoforder",
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "ledger_sha256": "e418419431242ef6fa0eaf710fa2a855f6394ddb17b6f555bab59e3d5a135b18",
+      "rows": [
+        "ok\t10.280000\tAOF commit order single",
+        "ok\t4.520000\tAOF commit order crossing",
+        "ok\t4.740000\tAOF commit order rewrite"
+      ]
+    },
+    {
+      "job": "racefix_climon",
+      "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/racefix_climon",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger_sha256": "9fd99064c3a671a1f402ab90df8ea8fdc2b838af932e097b26a06baeda2bbe98",
+      "rows": [
+        "ok\t1.590000\tClimon armed refresh + stale-store suppression control"
+      ]
+    }
+  ]
+}

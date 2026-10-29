@@ -1,0 +1,60 @@
+[
+  {
+    "arm": "pre",
+    "object": "src/cmd/t_string_notify.o",
+    "budget": 10000,
+    "unit": 13816,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/cmd/t_string_notify.cc",
+      "-o",
+      "/home/user/Projects/cx-wave10/build/wave10/notify-budget/src_cmd_t_string_notify.o-pre-10000.o",
+      "--param",
+      "large-unit-insns=10000",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-wave10/build/wave10/notify-budget/src_cmd_t_string_notify.o-pre-10000"
+    ],
+    "output": "/home/user/Projects/cx-wave10/build/wave10/notify-budget/src_cmd_t_string_notify.o-pre-10000.o",
+    "code_digest": "a491bafd1100824d42d23cf9aef515349c3106bf7f78b0090f434521f856f725"
+  },
+  {
+    "arm": "post",
+    "object": "src/cmd/t_string_notify.o",
+    "budget": 10000,
+    "unit": 13821,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/cmd/t_string_notify.cc",
+      "-o",
+      "/home/user/Projects/cx-wave10/build/wave10/notify-budget/src_cmd_t_string_notify.o-post-10000.o",
+      "--param",
+      "large-unit-insns=10000",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-wave10/build/wave10/notify-budget/src_cmd_t_string_notify.o-post-10000"
+    ],
+    "output": "/home/user/Projects/cx-wave10/build/wave10/notify-budget/src_cmd_t_string_notify.o-post-10000.o",
+    "code_digest": "93aabd5a0ec5e40f8c0c360cbfb2fa199c08e344c5415399a93c3606f6c05ebb"
+  }
+]

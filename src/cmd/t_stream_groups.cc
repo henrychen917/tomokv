@@ -29,6 +29,34 @@ namespace {
 
 constexpr uint32_t kMaxIdText = 128;
 
+// This cold command owns its reply accounting, including replies generated
+// after parking. Never infer errors from the producer's command or count a
+// probe which merely discovers a missing group without sending a reply.
+std::atomic<uint64_t> xreadgroup_nogroup{0};
+std::atomic<uint64_t> xreadgroup_usec{0};
+struct XreadgroupTiming {
+    uint64_t start = now_ns();
+    ~XreadgroupTiming() {
+        xreadgroup_usec.fetch_add((now_ns() - start) / 1000, std::memory_order_relaxed);
+    }
+};
+
+// Redis dirties consumer metadata and emits its keyspace event, but does not
+// signalModifiedKey: creating a consumer must not invalidate tracked reads.
+// A parked XREADGROUP has no retiring Op yet, so it uses the keyless route.
+void notify_implicit_consumer(Shard& shard, Op* source, Slice key) {
+    const uint32_t mask = shard.notify_mask();
+    if (mask & NOTIFY_SAVE) shard.note_save_change();
+    const uint32_t routes = notify_routes_for_class(mask, NOTIFY_STREAM) & ~NOTIFY_TRACKING;
+    if (!routes) return;
+    if (source)
+        notify_record_slow(shard, *source, routes, NOTIFY_STREAM,
+                           NotifyEventId::XgroupCreateconsumer, key);
+    else
+        notify_record_keyless_slow(shard, routes, NOTIFY_STREAM,
+                                   NotifyEventId::XgroupCreateconsumer, key);
+}
+
 int id_compare(const StreamID& a, const StreamID& b) {
     if (a.ms != b.ms) return a.ms < b.ms ? -1 : 1;
     if (a.seq != b.seq) return a.seq < b.seq ? -1 : 1;
@@ -224,6 +252,7 @@ void maybe_release_groups(StreamVal& stream) {
 }
 
 void reply_nogroup(Op& op, Slice key, Slice group, bool xreadgroup = false) {
+    if (xreadgroup) xreadgroup_nogroup.fetch_add(1, std::memory_order_relaxed);
     std::string message = "NOGROUP No such key '";
     message.append(key.p, key.n);
     message += "' or consumer group '";
@@ -427,6 +456,13 @@ void cmd_xgroup(Shard& shard, Op& op) {
         reply_stream_subcommand_syntax(op); return;
     }
     const Slice key = op.arg(2);
+    // A committed DEL may already have been materialized by owner cleanup,
+    // leaving no atomic record for the dispatch publication hook to observe.
+    // Publish the old group state before CREATE can replace it. EXEC/plain
+    // views retain their existing deferred publication; no object is borrowed
+    // across this call because waking a group reader can replace the stream.
+    if (create && shard.has_blocking_waiters())
+        blocking_publish_key(shard, op.hash, key.p, key.n, key.ns);
     KvObj* object = shard.store_find<kNotify>(op.hash, key);
     if (object && !obj_type_check(object, Type::Stream, op.sink())) return;
     if (!object && !mkstream) {
@@ -764,6 +800,8 @@ void cmd_xclaim(Shard& shard, Op& op) {
     if (!create_consumer(*groups, *group, op.arg(3), now, consumer, created)) {
         reply_err(op.sink(), "ERR out of memory"); return;
     }
+    if constexpr (kNotify) if (created)
+        notify_implicit_consumer(shard, &op, op.arg(1));
     consumer->seen_time = now;
     std::vector<StreamOwnedEntry> claimed;
     try { claimed.reserve(ids.size()); }
@@ -868,6 +906,8 @@ void cmd_xautoclaim(Shard& shard, Op& op) {
     if (!create_consumer(*groups, *group, op.arg(3), now, consumer, created)) {
         reply_err(op.sink(), "ERR out of memory"); return;
     }
+    if constexpr (kNotify) if (created)
+        notify_implicit_consumer(shard, &op, op.arg(1));
     consumer->seen_time = now;
     std::vector<StreamOwnedEntry> claimed;
     const size_t capacity = std::min<uint64_t>(count, group->pending.size());
@@ -1244,6 +1284,11 @@ static const CommandSpec kTable[] = {
 
 }  // namespace
 
+StreamGroupStats stream_xreadgroup_stats() {
+    return {xreadgroup_nogroup.load(std::memory_order_relaxed),
+            xreadgroup_usec.load(std::memory_order_relaxed)};
+}
+
 StreamVal::~StreamVal() { stream_groups_destroy(groups); }
 
 void stream_groups_destroy(void* groups) { delete static_cast<StreamGroups*>(groups); }
@@ -1313,18 +1358,24 @@ StreamGroupProbe stream_group_prepare_waiter(Shard& shard, Slice key, uint64_t h
     StreamConsumer* consumer = nullptr; bool created = false;
     if (!create_consumer(*groups, *group, consumer_name, shard.now_ms(), consumer, created))
         return StreamGroupProbe::Oom;
+    // The blocked command may stay parked indefinitely. Creation is already visible,
+    // so publish on the owner maintenance route instead of waiting for its reply.
+    if (created)
+        notify_implicit_consumer(shard, nullptr, key);
     consumer->seen_time = shard.now_ms();
     return stream_object_has_live_after(object, group->last_delivered)
         ? StreamGroupProbe::Ready : StreamGroupProbe::Empty;
 }
 
 void stream_xreadgroup_reply_nogroup(Op& op) {
+    XreadgroupTiming timing;
     StreamXreadGroupArgs parsed;
     if (stream_parse_xreadgroup(op, parsed))
         reply_nogroup(op, op.arg(parsed.key_arg), op.arg(parsed.group_arg), true);
 }
 
 bool stream_xreadgroup_execute(Shard& shard, Op& op, bool may_block) {
+    XreadgroupTiming timing;
     StreamXreadGroupArgs parsed;
     if (!stream_parse_xreadgroup(op, parsed)) return true;
     const Slice key = op.arg(parsed.key_arg);
@@ -1342,6 +1393,8 @@ bool stream_xreadgroup_execute(Shard& shard, Op& op, bool may_block) {
     if (!create_consumer(*groups, *group, op.arg(parsed.consumer_arg), now, consumer, created)) {
         reply_err(op.sink(), "ERR out of memory"); return true;
     }
+    if (created && (op.spec->flags & CmdFlags::NotifySelected))
+        notify_implicit_consumer(shard, &op, key);
     consumer->seen_time = now;
     const std::string consumer_name(op.arg(parsed.consumer_arg).p,
                                     op.arg(parsed.consumer_arg).n);

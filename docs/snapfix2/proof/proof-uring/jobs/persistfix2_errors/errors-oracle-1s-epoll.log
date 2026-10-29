@@ -1,0 +1,201 @@
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.1RnZQ6/jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-no-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--appendonly", "yes", "--appendfsync", "no"], "event": "boot", "pid": 527587}
+{"command": ["FUNCTION", "LOAD", "#!lua name=persistfix2\nredis.register_function{function_name='persistfix2_read', flags={'no-writes'},\n callback=function(keys, args) return redis.call('GET', keys[1]) end}\nredis.register_function('persistfix2_write',\n function(keys, args) return redis.call('SET', keys[1], 'refused') end)\n"], "event": "reply", "reply": "persistfix2"}
+{"command": ["FCALL", "persistfix2_read", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"event": "durability window armed", "file_limit": 398, "policy": "no", "reorder": 0}
+{"command": ["WATCH", "acknowledged-write"], "event": "reply", "reply": "OK"}
+{"command": ["MULTI"], "event": "reply", "reply": "OK"}
+{"command": ["SET", "queued-write", "value"], "event": "reply", "reply": "QUEUED"}
+{"command": ["MULTI"], "event": "reply", "reply": "OK"}
+{"command": ["GET", "acknowledged-write"], "event": "reply", "reply": "QUEUED"}
+{"command": ["FCALL", "persistfix2_read", "1", "acknowledged-write"], "event": "reply", "reply": "QUEUED"}
+{"command": ["EVAL", "return redis.call('GET', KEYS[1])", "1", "acknowledged-write"], "event": "reply", "reply": "QUEUED"}
+{"command": ["EVALSHA", "d3c21d0c2b9ca22f82737626a27bcaf5d288f99f", "1", "acknowledged-write"], "event": "reply", "reply": "QUEUED"}
+{"command": ["MULTI"], "event": "reply", "reply": "OK"}
+{"command": ["EVAL", "return redis.pcall('SET', KEYS[1], 'refused').err", "1", "refused-script-write"], "event": "reply", "reply": "QUEUED"}
+{"event": "durability window", "initial_reply": "OK", "policy": "no"}
+{"command": ["PING"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["PING", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["SET", "refused-write", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["MSET", "refused-one", "1", "refused-two", "2"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["DEL", "acknowledged-write"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["GET", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["MGET", "refused-write", "refused-one", "refused-two"], "event": "reply", "reply": [null, null, null]}
+{"command": ["PFCOUNT", "absent-hll"], "event": "reply", "reply": 0}
+{"command": ["EVAL_RO", "return redis.call('GET', KEYS[1])", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["EVAL", "return redis.call('GET', KEYS[1])", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["EVALSHA", "d3c21d0c2b9ca22f82737626a27bcaf5d288f99f", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["EVALSHA", "0000000000000000000000000000000000000000", "0"], "event": "reply", "reply": {"error": "NOSCRIPT No matching script. Please use EVAL."}}
+{"command": ["EVAL", "return redis.pcall('SET', KEYS[1], 'refused').err", "1", "refused-script-write"], "event": "reply", "reply": "MISCONF Errors writing to the AOF file: File too large"}
+{"command": ["GET", "refused-script-write"], "event": "reply", "reply": null}
+{"command": ["EVALSHA", "6d218518b2969f93e113434ce4768b267040d417", "1", "refused-script-write"], "event": "reply", "reply": "MISCONF Errors writing to the AOF file: File too large"}
+{"command": ["GET", "refused-script-write"], "event": "reply", "reply": null}
+{"command": ["EVAL", "redis.call('GET', KEYS[1]); return redis.pcall('SET', KEYS[1], 'refused').err", "1", "refused-script-write"], "event": "reply", "reply": "MISCONF Errors writing to the AOF file: File too large"}
+{"command": ["GET", "refused-script-write"], "event": "reply", "reply": null}
+{"command": ["EVAL", "redis.pcall('SET', KEYS[1], 'first-refused'); return redis.pcall('SET', KEYS[1], 'refused').err", "1", "refused-script-write"], "event": "reply", "reply": "MISCONF Errors writing to the AOF file: File too large"}
+{"command": ["GET", "refused-script-write"], "event": "reply", "reply": null}
+{"command": ["FCALL", "persistfix2_read", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["FCALL", "persistfix2_write", "1", "refused-function-write"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["FCALL_RO", "persistfix2_read", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["FCALL_RO", "persistfix2_write", "1", "refused-function-write"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["GET", "refused-function-write"], "event": "reply", "reply": null}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "EXECABORT Transaction discarded because of: MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "ERR EXEC without MULTI"}}
+{"command": ["GET", "queued-write"], "event": "reply", "reply": null}
+{"command": ["EXEC"], "event": "reply", "reply": ["before", "before", "before", "before"]}
+{"command": ["EXEC"], "event": "reply", "reply": ["MISCONF Errors writing to the AOF file: File too large"]}
+{"command": ["GET", "refused-script-write"], "event": "reply", "reply": null}
+{"command": ["SET", "queue-error", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "EXECABORT Transaction discarded because of previous errors."}}
+{"event": "AOF error refusal", "info": {"aof_base_size": "0", "aof_buffer_length": "200048", "aof_current_rewrite_time_sec": "-1", "aof_current_size": "398", "aof_delayed_fsync": "0", "aof_enabled": "1", "aof_last_bgrewrite_status": "ok", "aof_last_cow_size": "0", "aof_last_rewrite_time_sec": "-1", "aof_last_write_status": "err", "aof_pending_bio_fsync": "0", "aof_pending_rewrite": "0", "aof_rewrite_in_progress": "0", "aof_rewrite_scheduled": "0", "aof_rewrites": "0", "aof_rewrites_consecutive_failures": "0", "async_loading": "0", "current_cow_peak": "0", "current_cow_size": "0", "current_cow_size_age": "0", "current_fork_perc": "0.00", "current_save_keys_processed": "0", "current_save_keys_total": "0", "loading": "0", "module_fork_in_progress": "0", "module_fork_last_cow_size": "0", "rdb_bgsave_in_progress": "0", "rdb_changes_since_last_save": "3", "rdb_current_bgsave_time_sec": "-1", "rdb_last_bgsave_status": "ok", "rdb_last_bgsave_time_sec": "-1", "rdb_last_cow_size": "0", "rdb_last_load_keys_expired": "0", "rdb_last_load_keys_loaded": "0", "rdb_last_save_time": "1793202178", "rdb_saves": "0"}, "policy": "no"}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.1RnZQ6/jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-no-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--appendonly", "yes", "--appendfsync", "no"], "event": "boot", "pid": 527595}
+{"command": ["FUNCTION", "LOAD", "#!lua name=persistfix2\nredis.register_function{function_name='persistfix2_read', flags={'no-writes'},\n callback=function(keys, args) return redis.call('GET', keys[1]) end}\nredis.register_function('persistfix2_write',\n function(keys, args) return redis.call('SET', keys[1], 'refused') end)\n"], "event": "reply", "reply": "persistfix2"}
+{"command": ["FCALL", "persistfix2_read", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"event": "durability window armed", "file_limit": 398, "policy": "no", "reorder": 1}
+{"command": ["WATCH", "acknowledged-write"], "event": "reply", "reply": "OK"}
+{"command": ["MULTI"], "event": "reply", "reply": "OK"}
+{"command": ["SET", "queued-write", "value"], "event": "reply", "reply": "QUEUED"}
+{"command": ["MULTI"], "event": "reply", "reply": "OK"}
+{"command": ["GET", "acknowledged-write"], "event": "reply", "reply": "QUEUED"}
+{"command": ["FCALL", "persistfix2_read", "1", "acknowledged-write"], "event": "reply", "reply": "QUEUED"}
+{"command": ["EVAL", "return redis.call('GET', KEYS[1])", "1", "acknowledged-write"], "event": "reply", "reply": "QUEUED"}
+{"command": ["EVALSHA", "d3c21d0c2b9ca22f82737626a27bcaf5d288f99f", "1", "acknowledged-write"], "event": "reply", "reply": "QUEUED"}
+{"command": ["MULTI"], "event": "reply", "reply": "OK"}
+{"command": ["EVAL", "return redis.pcall('SET', KEYS[1], 'refused').err", "1", "refused-script-write"], "event": "reply", "reply": "QUEUED"}
+{"event": "durability window", "initial_reply": "OK", "policy": "no"}
+{"command": ["PING"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["PING", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["SET", "refused-write", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["MSET", "refused-one", "1", "refused-two", "2"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["DEL", "acknowledged-write"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["GET", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["MGET", "refused-write", "refused-one", "refused-two"], "event": "reply", "reply": [null, null, null]}
+{"command": ["PFCOUNT", "absent-hll"], "event": "reply", "reply": 0}
+{"command": ["EVAL_RO", "return redis.call('GET', KEYS[1])", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["EVAL", "return redis.call('GET', KEYS[1])", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["EVALSHA", "d3c21d0c2b9ca22f82737626a27bcaf5d288f99f", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["EVALSHA", "0000000000000000000000000000000000000000", "0"], "event": "reply", "reply": {"error": "NOSCRIPT No matching script. Please use EVAL."}}
+{"command": ["EVAL", "return redis.pcall('SET', KEYS[1], 'refused').err", "1", "refused-script-write"], "event": "reply", "reply": "MISCONF Errors writing to the AOF file: File too large"}
+{"command": ["GET", "refused-script-write"], "event": "reply", "reply": null}
+{"command": ["EVALSHA", "6d218518b2969f93e113434ce4768b267040d417", "1", "refused-script-write"], "event": "reply", "reply": "MISCONF Errors writing to the AOF file: File too large"}
+{"command": ["GET", "refused-script-write"], "event": "reply", "reply": null}
+{"command": ["EVAL", "redis.call('GET', KEYS[1]); return redis.pcall('SET', KEYS[1], 'refused').err", "1", "refused-script-write"], "event": "reply", "reply": "MISCONF Errors writing to the AOF file: File too large"}
+{"command": ["GET", "refused-script-write"], "event": "reply", "reply": null}
+{"command": ["EVAL", "redis.pcall('SET', KEYS[1], 'first-refused'); return redis.pcall('SET', KEYS[1], 'refused').err", "1", "refused-script-write"], "event": "reply", "reply": "MISCONF Errors writing to the AOF file: File too large"}
+{"command": ["GET", "refused-script-write"], "event": "reply", "reply": null}
+{"command": ["FCALL", "persistfix2_read", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["FCALL", "persistfix2_write", "1", "refused-function-write"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["FCALL_RO", "persistfix2_read", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["FCALL_RO", "persistfix2_write", "1", "refused-function-write"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["GET", "refused-function-write"], "event": "reply", "reply": null}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "EXECABORT Transaction discarded because of: MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "ERR EXEC without MULTI"}}
+{"command": ["GET", "queued-write"], "event": "reply", "reply": null}
+{"command": ["EXEC"], "event": "reply", "reply": ["before", "before", "before", "before"]}
+{"command": ["EXEC"], "event": "reply", "reply": ["MISCONF Errors writing to the AOF file: File too large"]}
+{"command": ["GET", "refused-script-write"], "event": "reply", "reply": null}
+{"command": ["SET", "queue-error", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "EXECABORT Transaction discarded because of previous errors."}}
+{"event": "AOF error refusal", "info": {"aof_base_size": "0", "aof_buffer_length": "200048", "aof_current_rewrite_time_sec": "-1", "aof_current_size": "398", "aof_delayed_fsync": "0", "aof_enabled": "1", "aof_last_bgrewrite_status": "ok", "aof_last_cow_size": "0", "aof_last_rewrite_time_sec": "-1", "aof_last_write_status": "err", "aof_pending_bio_fsync": "0", "aof_pending_rewrite": "0", "aof_rewrite_in_progress": "0", "aof_rewrite_scheduled": "0", "aof_rewrites": "0", "aof_rewrites_consecutive_failures": "0", "async_loading": "0", "current_cow_peak": "0", "current_cow_size": "0", "current_cow_size_age": "0", "current_fork_perc": "0.00", "current_save_keys_processed": "0", "current_save_keys_total": "0", "loading": "0", "module_fork_in_progress": "0", "module_fork_last_cow_size": "0", "rdb_bgsave_in_progress": "0", "rdb_changes_since_last_save": "3", "rdb_current_bgsave_time_sec": "-1", "rdb_last_bgsave_status": "ok", "rdb_last_bgsave_time_sec": "-1", "rdb_last_cow_size": "0", "rdb_last_load_keys_expired": "0", "rdb_last_load_keys_loaded": "0", "rdb_last_save_time": "1793202178", "rdb_saves": "0"}, "policy": "no"}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.1RnZQ6/jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-everysec-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--appendonly", "yes", "--appendfsync", "everysec"], "event": "boot", "pid": 527603}
+{"command": ["FUNCTION", "LOAD", "#!lua name=persistfix2\nredis.register_function{function_name='persistfix2_read', flags={'no-writes'},\n callback=function(keys, args) return redis.call('GET', keys[1]) end}\nredis.register_function('persistfix2_write',\n function(keys, args) return redis.call('SET', keys[1], 'refused') end)\n"], "event": "reply", "reply": "persistfix2"}
+{"command": ["FCALL", "persistfix2_read", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"event": "durability window armed", "file_limit": 398, "policy": "everysec", "reorder": 0}
+{"command": ["WATCH", "acknowledged-write"], "event": "reply", "reply": "OK"}
+{"command": ["MULTI"], "event": "reply", "reply": "OK"}
+{"command": ["SET", "queued-write", "value"], "event": "reply", "reply": "QUEUED"}
+{"command": ["MULTI"], "event": "reply", "reply": "OK"}
+{"command": ["GET", "acknowledged-write"], "event": "reply", "reply": "QUEUED"}
+{"command": ["FCALL", "persistfix2_read", "1", "acknowledged-write"], "event": "reply", "reply": "QUEUED"}
+{"command": ["EVAL", "return redis.call('GET', KEYS[1])", "1", "acknowledged-write"], "event": "reply", "reply": "QUEUED"}
+{"command": ["EVALSHA", "d3c21d0c2b9ca22f82737626a27bcaf5d288f99f", "1", "acknowledged-write"], "event": "reply", "reply": "QUEUED"}
+{"command": ["MULTI"], "event": "reply", "reply": "OK"}
+{"command": ["EVAL", "return redis.pcall('SET', KEYS[1], 'refused').err", "1", "refused-script-write"], "event": "reply", "reply": "QUEUED"}
+{"event": "durability window", "initial_reply": "OK", "policy": "everysec"}
+{"command": ["PING"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["PING", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["SET", "refused-write", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["MSET", "refused-one", "1", "refused-two", "2"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["DEL", "acknowledged-write"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["GET", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["MGET", "refused-write", "refused-one", "refused-two"], "event": "reply", "reply": [null, null, null]}
+{"command": ["PFCOUNT", "absent-hll"], "event": "reply", "reply": 0}
+{"command": ["EVAL_RO", "return redis.call('GET', KEYS[1])", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["EVAL", "return redis.call('GET', KEYS[1])", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["EVALSHA", "d3c21d0c2b9ca22f82737626a27bcaf5d288f99f", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["EVALSHA", "0000000000000000000000000000000000000000", "0"], "event": "reply", "reply": {"error": "NOSCRIPT No matching script. Please use EVAL."}}
+{"command": ["EVAL", "return redis.pcall('SET', KEYS[1], 'refused').err", "1", "refused-script-write"], "event": "reply", "reply": "MISCONF Errors writing to the AOF file: File too large"}
+{"command": ["GET", "refused-script-write"], "event": "reply", "reply": null}
+{"command": ["EVALSHA", "6d218518b2969f93e113434ce4768b267040d417", "1", "refused-script-write"], "event": "reply", "reply": "MISCONF Errors writing to the AOF file: File too large"}
+{"command": ["GET", "refused-script-write"], "event": "reply", "reply": null}
+{"command": ["EVAL", "redis.call('GET', KEYS[1]); return redis.pcall('SET', KEYS[1], 'refused').err", "1", "refused-script-write"], "event": "reply", "reply": "MISCONF Errors writing to the AOF file: File too large"}
+{"command": ["GET", "refused-script-write"], "event": "reply", "reply": null}
+{"command": ["EVAL", "redis.pcall('SET', KEYS[1], 'first-refused'); return redis.pcall('SET', KEYS[1], 'refused').err", "1", "refused-script-write"], "event": "reply", "reply": "MISCONF Errors writing to the AOF file: File too large"}
+{"command": ["GET", "refused-script-write"], "event": "reply", "reply": null}
+{"command": ["FCALL", "persistfix2_read", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["FCALL", "persistfix2_write", "1", "refused-function-write"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["FCALL_RO", "persistfix2_read", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["FCALL_RO", "persistfix2_write", "1", "refused-function-write"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["GET", "refused-function-write"], "event": "reply", "reply": null}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "EXECABORT Transaction discarded because of: MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "ERR EXEC without MULTI"}}
+{"command": ["GET", "queued-write"], "event": "reply", "reply": null}
+{"command": ["EXEC"], "event": "reply", "reply": ["before", "before", "before", "before"]}
+{"command": ["EXEC"], "event": "reply", "reply": ["MISCONF Errors writing to the AOF file: File too large"]}
+{"command": ["GET", "refused-script-write"], "event": "reply", "reply": null}
+{"command": ["SET", "queue-error", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "EXECABORT Transaction discarded because of previous errors."}}
+{"event": "AOF error refusal", "info": {"aof_base_size": "0", "aof_buffer_length": "200048", "aof_current_rewrite_time_sec": "-1", "aof_current_size": "398", "aof_delayed_fsync": "0", "aof_enabled": "1", "aof_last_bgrewrite_status": "ok", "aof_last_cow_size": "0", "aof_last_rewrite_time_sec": "-1", "aof_last_write_status": "err", "aof_pending_bio_fsync": "0", "aof_pending_rewrite": "0", "aof_rewrite_in_progress": "0", "aof_rewrite_scheduled": "0", "aof_rewrites": "0", "aof_rewrites_consecutive_failures": "0", "async_loading": "0", "current_cow_peak": "0", "current_cow_size": "0", "current_cow_size_age": "0", "current_fork_perc": "0.00", "current_save_keys_processed": "0", "current_save_keys_total": "0", "loading": "0", "module_fork_in_progress": "0", "module_fork_last_cow_size": "0", "rdb_bgsave_in_progress": "0", "rdb_changes_since_last_save": "3", "rdb_current_bgsave_time_sec": "-1", "rdb_last_bgsave_status": "ok", "rdb_last_bgsave_time_sec": "-1", "rdb_last_cow_size": "0", "rdb_last_load_keys_expired": "0", "rdb_last_load_keys_loaded": "0", "rdb_last_save_time": "1793202178", "rdb_saves": "0"}, "policy": "everysec"}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.1RnZQ6/jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-everysec-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--appendonly", "yes", "--appendfsync", "everysec"], "event": "boot", "pid": 527615}
+{"command": ["FUNCTION", "LOAD", "#!lua name=persistfix2\nredis.register_function{function_name='persistfix2_read', flags={'no-writes'},\n callback=function(keys, args) return redis.call('GET', keys[1]) end}\nredis.register_function('persistfix2_write',\n function(keys, args) return redis.call('SET', keys[1], 'refused') end)\n"], "event": "reply", "reply": "persistfix2"}
+{"command": ["FCALL", "persistfix2_read", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"event": "durability window armed", "file_limit": 398, "policy": "everysec", "reorder": 1}
+{"command": ["WATCH", "acknowledged-write"], "event": "reply", "reply": "OK"}
+{"command": ["MULTI"], "event": "reply", "reply": "OK"}
+{"command": ["SET", "queued-write", "value"], "event": "reply", "reply": "QUEUED"}
+{"command": ["MULTI"], "event": "reply", "reply": "OK"}
+{"command": ["GET", "acknowledged-write"], "event": "reply", "reply": "QUEUED"}
+{"command": ["FCALL", "persistfix2_read", "1", "acknowledged-write"], "event": "reply", "reply": "QUEUED"}
+{"command": ["EVAL", "return redis.call('GET', KEYS[1])", "1", "acknowledged-write"], "event": "reply", "reply": "QUEUED"}
+{"command": ["EVALSHA", "d3c21d0c2b9ca22f82737626a27bcaf5d288f99f", "1", "acknowledged-write"], "event": "reply", "reply": "QUEUED"}
+{"command": ["MULTI"], "event": "reply", "reply": "OK"}
+{"command": ["EVAL", "return redis.pcall('SET', KEYS[1], 'refused').err", "1", "refused-script-write"], "event": "reply", "reply": "QUEUED"}
+{"event": "durability window", "initial_reply": "OK", "policy": "everysec"}
+{"command": ["PING"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["PING", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["SET", "refused-write", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["MSET", "refused-one", "1", "refused-two", "2"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["DEL", "acknowledged-write"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["GET", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["MGET", "refused-write", "refused-one", "refused-two"], "event": "reply", "reply": [null, null, null]}
+{"command": ["PFCOUNT", "absent-hll"], "event": "reply", "reply": 0}
+{"command": ["EVAL_RO", "return redis.call('GET', KEYS[1])", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["EVAL", "return redis.call('GET', KEYS[1])", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["EVALSHA", "d3c21d0c2b9ca22f82737626a27bcaf5d288f99f", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["EVALSHA", "0000000000000000000000000000000000000000", "0"], "event": "reply", "reply": {"error": "NOSCRIPT No matching script. Please use EVAL."}}
+{"command": ["EVAL", "return redis.pcall('SET', KEYS[1], 'refused').err", "1", "refused-script-write"], "event": "reply", "reply": "MISCONF Errors writing to the AOF file: File too large"}
+{"command": ["GET", "refused-script-write"], "event": "reply", "reply": null}
+{"command": ["EVALSHA", "6d218518b2969f93e113434ce4768b267040d417", "1", "refused-script-write"], "event": "reply", "reply": "MISCONF Errors writing to the AOF file: File too large"}
+{"command": ["GET", "refused-script-write"], "event": "reply", "reply": null}
+{"command": ["EVAL", "redis.call('GET', KEYS[1]); return redis.pcall('SET', KEYS[1], 'refused').err", "1", "refused-script-write"], "event": "reply", "reply": "MISCONF Errors writing to the AOF file: File too large"}
+{"command": ["GET", "refused-script-write"], "event": "reply", "reply": null}
+{"command": ["EVAL", "redis.pcall('SET', KEYS[1], 'first-refused'); return redis.pcall('SET', KEYS[1], 'refused').err", "1", "refused-script-write"], "event": "reply", "reply": "MISCONF Errors writing to the AOF file: File too large"}
+{"command": ["GET", "refused-script-write"], "event": "reply", "reply": null}
+{"command": ["FCALL", "persistfix2_read", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["FCALL", "persistfix2_write", "1", "refused-function-write"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["FCALL_RO", "persistfix2_read", "1", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["FCALL_RO", "persistfix2_write", "1", "refused-function-write"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["GET", "refused-function-write"], "event": "reply", "reply": null}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "EXECABORT Transaction discarded because of: MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "ERR EXEC without MULTI"}}
+{"command": ["GET", "queued-write"], "event": "reply", "reply": null}
+{"command": ["EXEC"], "event": "reply", "reply": ["before", "before", "before", "before"]}
+{"command": ["EXEC"], "event": "reply", "reply": ["MISCONF Errors writing to the AOF file: File too large"]}
+{"command": ["GET", "refused-script-write"], "event": "reply", "reply": null}
+{"command": ["SET", "queue-error", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "EXECABORT Transaction discarded because of previous errors."}}
+{"event": "AOF error refusal", "info": {"aof_base_size": "0", "aof_buffer_length": "200048", "aof_current_rewrite_time_sec": "-1", "aof_current_size": "398", "aof_delayed_fsync": "0", "aof_enabled": "1", "aof_last_bgrewrite_status": "ok", "aof_last_cow_size": "0", "aof_last_rewrite_time_sec": "-1", "aof_last_write_status": "err", "aof_pending_bio_fsync": "0", "aof_pending_rewrite": "0", "aof_rewrite_in_progress": "0", "aof_rewrite_scheduled": "0", "aof_rewrites": "0", "aof_rewrites_consecutive_failures": "0", "async_loading": "0", "current_cow_peak": "0", "current_cow_size": "0", "current_cow_size_age": "0", "current_fork_perc": "0.00", "current_save_keys_processed": "0", "current_save_keys_total": "0", "loading": "0", "module_fork_in_progress": "0", "module_fork_last_cow_size": "0", "rdb_bgsave_in_progress": "0", "rdb_changes_since_last_save": "3", "rdb_current_bgsave_time_sec": "-1", "rdb_last_bgsave_status": "ok", "rdb_last_bgsave_time_sec": "-1", "rdb_last_cow_size": "0", "rdb_last_load_keys_expired": "0", "rdb_last_load_keys_loaded": "0", "rdb_last_save_time": "1793202178", "rdb_saves": "0"}, "policy": "everysec"}
+{"code": 0, "event": "exit"}
+{"case": "errors", "engine": "epoll", "event": "PASS", "mode": "1s", "oracle": true}

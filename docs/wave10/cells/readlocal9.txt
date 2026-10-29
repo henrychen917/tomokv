@@ -1,0 +1,10 @@
+# Every rl=1 cell from null28; three blocks per comparison.
+d32g_l1 | 1s | rl=1 | ov=0 | ro=0 | GET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+d8s_l1 | 1s | rl=1 | ov=0 | ro=0 | SET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+d32s_l1 | 1s | rl=1 | ov=0 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+x9_32_l1 | 1s | rl=1 | ov=0 | ro=0 | MIX | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=9:1 | smoke=0
+notify_exm | 1s | rl=1 | ov=0 | ro=0 | GET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0 | srv=--notify-keyspace-events Exm
+m26 | 1s | rl=1 | ov=0 | ro=0 | MGET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+m29 | 1s | rl=1 | ov=0 | ro=0 | MSET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+m74 | 2s | rl=1 | ov=0 | ro=0 | MGET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+m77 | 2s | rl=1 | ov=0 | ro=0 | MSET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0

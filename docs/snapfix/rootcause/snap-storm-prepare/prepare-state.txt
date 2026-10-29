@@ -1,0 +1,20 @@
+# gdb -batch -x docs/snapfix/rootcause/gdb/prepare.gdb <POST ee7461ab... (before the table-sizing fix)> stall.core
+# core: build/snapfix/cap-post-script-4/stall.core, sha256 0a56070a13f9048526657c32c0c92a95f8139b04d2851ae24a745d85baa86e05
+# captured by tools/snapfix_storm_capture.py --mode 1s --engine uring --atomic 1 --mix scripts,writers --gdb --watchdog 2.0
+manager phase tomo::SnapshotManager::Phase::Preparing epoch 12 ready 7 frozen 0 marked 0 finished 0 executor_count 8 writer_tid 2 barrier 1
+executors 8
+ex 0 state Prepared epoch 12 prepare_cursor 2 xshard_retries 0 ordered_deferred 0 atomic_deferred 0 backlogs all 0
+    shard 0 prepared 1 active 0 cap0 2097152 cap1 0 live0 0 live1 0 rehash_pos 0 tab1 0x0
+    shard 8 prepared 1 active 0 cap0 2097152 cap1 0 live0 1 live1 0 rehash_pos 0 tab1 0x0
+ex 1 state Prepared epoch 12 prepare_cursor 2 (shards 1, 9: prepared, cap0 2097152, live 0)
+ex 2 state Prepared epoch 12 prepare_cursor 2 (shards 2, 10: prepared, cap0 2097152, live 0)
+ex 3 state Preparing epoch 12 prepare_cursor 1 xshard_retries 0 ordered_deferred 0 atomic_deferred 0 backlogs all 0
+    shard 3 prepared 1 active 0 cap0 2097152 cap1 0 live0 1 live1 0 rehash_pos 0 tab1 0x0
+    shard 11 prepared 0 active 0 cap0 2097152 cap1 1048576 live0 0 live1 0 rehash_pos 722288 tab1 0x7fffdac00c40
+ex 4 state Prepared epoch 12 prepare_cursor 2 (shards 4, 12: prepared, cap0 2097152, live 0)
+ex 5 state Prepared epoch 12 prepare_cursor 2 (shards 5, 13: prepared, cap0 2097152, live 0)
+ex 6 state Prepared epoch 12 prepare_cursor 2 (shards 6, 14: prepared, cap0 2097152, live 0)
+ex 7 state Prepared epoch 12 prepare_cursor 2 (shards 7, 15: prepared, cap0 2097152, live 0)
+# Reading: BGSAVE #12 waits in Preparing for owner 3, whose shard 11 (no live keys) is still merging
+# the previous capture's 1,048,576-slot table into a 2,097,152-slot one, 8 slots per rehash step,
+# one step per control pass. After 11 BGSAVEs every shard holds a 2,097,152-slot table for 0-1 keys.

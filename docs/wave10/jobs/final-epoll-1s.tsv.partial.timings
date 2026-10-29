@@ -1,0 +1,75 @@
+ok	0.000000	release build (+footprint locks)
+ok	68.120000	ASAN build
+ok	11.200000	plain-write lost updates (atomic 0)
+ok	0.170000	lbsignals battery (atomic 0)
+ok	1.490000	slowlog battery (atomic 0)
+ok	0.050000	atomfix battery (atomic 0)
+ok	0.150000	scriptatomic battery (atomic 0)
+ok	14.470000	execatomic battery (atomic 0)
+ok	11.880000	execiso battery (atomic 0)
+ok	0.500000	execfix battery (atomic 0)
+ok	0.160000	multires battery (atomic 0)
+ok	0.830000	multirace battery (atomic 0)
+ok	30.910000	session_monotonic battery (atomic 0)
+ok	0.390000	xacct battery (atomic 0)
+ok	0.030000	xmove battery (atomic 0)
+ok	3.290000	xscript battery (atomic 0)
+ok	2.930000	txn_nx battery (atomic 0)
+ok	8.560000	txniso battery (atomic 0)
+ok	6.160000	plain-write lost updates (atomic 1)
+ok	0.200000	lbsignals battery (atomic 1)
+ok	1.510000	slowlog battery (atomic 1)
+ok	0.090000	atomfix battery (atomic 1)
+ok	0.140000	scriptatomic battery (atomic 1)
+ok	14.480000	execatomic battery (atomic 1)
+ok	11.890000	execiso battery (atomic 1)
+ok	0.550000	execfix battery (atomic 1)
+ok	0.170000	multires battery (atomic 1)
+ok	0.800000	multirace battery (atomic 1)
+ok	30.690000	session_monotonic battery (atomic 1)
+ok	0.360000	xacct battery (atomic 1)
+ok	0.030000	xmove battery (atomic 1)
+ok	3.270000	xscript battery (atomic 1)
+ok	2.670000	txn_nx battery (atomic 1)
+ok	9.160000	txniso battery (atomic 1)
+ok	6.760000	torture battery
+ok	1.020000	RYOW battery
+ok	0.040000	ACL category runtime table
+ok	0.050000	ACL LOAD/SAVE no-file errors
+ok	1.030000	idle loop ceiling (LBSIGNALS, 1s)
+ok	0.050000	shutdown invariants (nothing stuck)
+ok	0.030000	direct-reply fired (direct=982)
+ok	0.040000	fused unified work agrees with thread totals (111012)
+ok	25.340000	atomic torn/window battery
+ok	4.090000	atomic RYOW/mixed-write battery
+ok	4.240000	atomic owner-local hazard battery
+ok	0.020000	atomic shutdown invariants
+ok	0.160000	cross-owner SORT battery (atomic 0)
+ok	0.140000	cross-owner SORT battery (atomic 1)
+ok	0.060000	xscript limit control
+ok	1.060000	xscript window control
+ok	0.070000	DUMP/RESTORE prepare + native SAVE
+ok	0.060000	DUMP/RESTORE cross-restart round-trip
+ok	0.040000	DUMP/RESTORE restart shutdown invariants
+ok	0.010000	reject bad protected-mode
+ok	0.010000	reject bad enable-debug-command
+ok	0.150000	AUTH/HELLO/protected state machine
+ok	5.610000	ACL battery (atomic off)
+ok	5.500000	ACL battery (atomic on)
+ok	2.460000	DEBUG toggle/reload battery
+ok	0.140000	typed snapshot round-trip incl stream
+ok	2.090000	MULTI feature battery
+ok	1.570000	blocking feature battery
+ok	0.900000	pubsub feature battery
+ok	0.030000	Lua feature battery
+ok	46.920000	keyspace notification battery (atomic 0/1)
+ok	0.030000	feature battery shutdown invariants
+ok	0.330000	AOF control frame never inside a large record (atomic 0)
+ok	0.330000	AOF control frame never inside a large record (atomic 1)
+ok	7.020000	torture under ASAN
+ok	1.040000	RYOW under ASAN
+ok	25.380000	atomic torn/window under ASAN
+ok	4.080000	atomic RYOW under ASAN
+ok	0.020000	ASAN clean
+ok	1.230000	CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)
+ok	1.230000	CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)

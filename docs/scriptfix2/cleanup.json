@@ -1,0 +1,37 @@
+{
+  "removed": [
+    {
+      "path": "build/scriptfix2/tomokv-post",
+      "bytes": 218236976,
+      "sha256": "a1cc101cd0f75623c24ad35591ae073e55a1bc1a82d7074368f48efa12d2d15b",
+      "reason": "Superseded POST arm; final verified binary retained."
+    },
+    {
+      "path": "build/scriptfix2/tomokv-post-final",
+      "bytes": 218237360,
+      "sha256": "b651113e95f1c0296601e1efccca55cfaa4a2f1d2f088c30c36b1b5931e6cad1",
+      "reason": "Superseded POST arm; final verified binary retained."
+    },
+    {
+      "path": "build/scriptfix2/pre-source",
+      "source_commit": "a214652ec262aa9a5eeaeadf129c0ef76ba6c99c",
+      "reason": "Frozen source archive; binary hashes, object audits and both counter sets recorded. PAD tool recreates it from Git."
+    }
+  ],
+  "removed_tcl_checkouts": [
+    "build/gate-run.neqtgU/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "build/gate-run.neqtgU/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "build/gate-run.Aesnsi/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "build/gate-run.nIkqTT/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "build/gate-run.nIkqTT/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "build/gate-run.ioHUQb/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "build/gate-run.ioHUQb/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "build/gate-run.ZXWPz9/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "build/gate-run.ZXWPz9/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "build/gate-run.mQQkBF/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "build/gate-run.mQQkBF/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "build/gate-run.ogV03c/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "build/gate-run.ogV03c/jobs/redis_tcl/redis-tcl-1s/checkout"
+  ],
+  "tcl_source_provenance": "Unmodified source/support inventory retained in tests/redis_tcl_passing.json and compressed final Tcl receipts."
+}

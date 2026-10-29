@@ -1,0 +1,14 @@
+--- server tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)
+
++++ probe tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)
+
+@@ -17,7 +17,7 @@
+
+ 0047 [ 2] dec %ecx | ff c9
+ 0049 [ 2] cmp $0x31,%al | 3c 31
+ 004b [ 2] ja <+0xc3> | 77 76
+-004d [ 7] lea <rip>(%rip),%rdx # <tomo_db0::(anonymous namespace)::configure_protocols(ssl_ctx_st*, char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)::versions+0x20> | 48 8d 15 ?? ?? ?? ??
++004d [ 7] lea <rip>(%rip),%rdx # <tomo_db0::(anonymous namespace)::configure_protocols(ssl_ctx_st*, char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)::versions+0x40> | 48 8d 15 ?? ?? ?? ??
+ 0054 [ 3] movzbl %al,%eax | 0f b6 c0
+ 0057 [ 3] mov %rdi,%rbx | 48 89 fb
+ 005a [ 4] movslq (%rdx,%rax,4),%rax | 48 63 04 82

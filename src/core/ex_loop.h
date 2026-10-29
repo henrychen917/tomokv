@@ -193,7 +193,11 @@ public:
                 read_local_.impl = std::move(impl);
             }
         }
+        if constexpr (Fused) {
+            if (srv_->thread_mode() == ThreadMode::Fused) ring_.track_owned_completions();
+        }
         if (!ring_.init(1024)) return false;
+        ring_.bind_entry_counters(self_->id(), true);
         if (!srv_->databases().watch_wake(self_->id(), ring_)) return false;
         initialized_ = true;
         if (!dormant) activate();
@@ -365,9 +369,12 @@ public:
         return fused_pass_impl<kGenthreadExBatchOps, true>();
     }
 
+#include "fused_owner_turn.inc"
+
     template <uint32_t BatchOps, bool ConsumeTasks,
               bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
     uint32_t fused_pass_impl() {
+        ++exec1s_counters[self_->id()].owner_passes;
         Server::ClientWorkScope client_work(*srv_, self_->id());
         struct RotationBoundary {
             bool enabled;
@@ -494,8 +501,14 @@ public:
                 read_local_impl().lane_admit_cap = want;
         }
         if (!lb_frozen) did += owner_control_tail();
-        if (did) {
+        // Incoming deferred task work and outstanding IO do not require any
+        // owner task to have progressed first. Keep the fused loop active until
+        // those CQEs can be reaped on its next pass.
+        if (ring_.completion_service_needed()) {
             ring_.submit_and_reap();
+            ++did;
+        }
+        if (did) {
             fused_idle_spins_ = 0;
             return did;
         }
@@ -510,7 +523,7 @@ public:
         } else {
             did = sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
         }
-        if (did) ring_.submit_and_reap();
+        if (ring_.completion_service_needed()) { ring_.submit_and_reap(); ++did; }
         return did;
     }
 
@@ -525,6 +538,7 @@ public:
     template <uint32_t BatchOps, bool ConsumeTasks,
               bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
     uint32_t fused_sweep_impl() {
+        ++exec1s_counters[self_->id()].owner_passes;
         if (lb_controller_armed_ && srv_->lb_dispatch_paused())
             return fused_pass_impl<BatchOps, ConsumeTasks,
                                    IofusedPrivateQueue>();
@@ -558,7 +572,7 @@ public:
                 sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
         }
         if (read_local_enabled()) did += read_local_impl().deferred.drain_ready();
-        if (did) ring_.submit_and_reap();
+        if (ring_.completion_service_needed()) { ring_.submit_and_reap(); ++did; }
         return did;
     }
 
@@ -609,6 +623,7 @@ public:
             // the otherwise-cold configuration refresh path.
             if (!placement_frozen) refresh_live_config();
             sig.iterations++;
+            ++exec1s_counters[self_->id()].owner_passes;
 
             uint32_t did = 0;
             uint64_t pass_ns = 0;
@@ -1512,6 +1527,7 @@ private:
         if (now != expire_beat_ms_) {
             expire_beat_ms_ = now;
             work += active_expire_cycle();
+            if (maxmemory_enabled_) work += eviction_cycle();
             if constexpr (kSingleDatabase) keyspace_sample_cycle();
         }
         if constexpr (Fused)
@@ -1770,6 +1786,18 @@ private:
             shard->store().publish_keyspace_sample();
             break;
         }
+    }
+
+    [[gnu::noinline]] uint32_t eviction_cycle() {
+        if (snapshot_blocks_tasks()) return 0;
+        uint32_t removed = 0;
+        for (Shard* sh : self_->shards()) {
+            sh->set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
+            const uint32_t n = sh->store().evict_over_limit();
+            if (n) sh->publish_size();
+            removed += n;
+        }
+        return removed;
     }
 
     uint32_t active_expire_cycle() {
@@ -2195,13 +2223,24 @@ private:
     template <uint32_t BatchOps = kGenthreadExBatchOps,
               bool IofusedPrivateQueue = false>
     uint32_t drain_tasks_snapshot(bool unmasked = false) {
+        // ONE BOUNDED QUANTUM PER PRODUCER LANE, NOT "UNTIL EMPTY" (SNAP-STORM-1).
+        // While a shard captures, atomic_collapse() refuses to clean its MVCC pending list, so
+        // every plain-version write to a hot key walks a chain that grows with each write until
+        // that shard's capture ends -- and the capture advances only in snapshot_control_pass(),
+        // between drains. Draining a lane until empty therefore stopped returning as soon as a
+        // few closed-loop clients refilled one lane as fast as the growing walk emptied it: the
+        // capture stalled, the chain kept growing, and every other producer's tasks, every parked
+        // EXEC/WATCH/group retry and the capture itself waited behind that one lane until the
+        // load stopped. Capping each lane returns this owner to its control pass and retry
+        // queues every pass; a capped lane is re-flagged and resumes on the next pass. Only the
+        // snapshot path changes: an owner with no snapshot armed keeps the unbounded drains.
         auto take = [&](const Task& task) {
             refresh_command_clock();
             schedule_snapshot_task<IofusedPrivateQueue>(task);
         };
         const uint32_t n = unmasked
-            ? self_->drain_tasks_unmasked<IofusedPrivateQueue>(take)
-            : self_->drain_tasks<IofusedPrivateQueue>(take);
+            ? self_->drain_tasks_unmasked_capped<IofusedPrivateQueue, BatchOps>(take)
+            : self_->drain_tasks_capped<IofusedPrivateQueue, BatchOps>(take);
         self_->sig().ops += n;
         // Retire at least as many deferred Tasks as this drain can add, plus one batch of old debt;
         // otherwise a saturated post-capture owner could remain in Draining forever.
@@ -2437,21 +2476,49 @@ private:
         (void)owned[lb_bytes_shard_cursor_++]->lb_scan_bucket_bytes(64);
     }
 
+    // Four two-key EXECs amortize a prefix collapse against eight-record walks.
+    // Only transaction completion reaches this helper; ordinary command paths
+    // do not acquire a cleanup clock/floor or update new per-operation state.
+    __attribute__((noinline)) void reclaim_multi_prefix(Shard& shard) {
+        if (shard.store().atomic_live_records() < 8) return;
+        const uint64_t cutoff = srv_->atomic_snapshot(); // must precede floor
+        const uint64_t floor = srv_->atomic_read_floor();
+        if (xshard_cleanup_shard_at(shard, floor, cutoff, 8))
+            ++exec1s_counters[self_->id()].eager_collapses;
+    }
+
+    // Keep completion bookkeeping inside the transaction branch without
+    // extending its result's live range across calls in ordinary dispatch.
+    __attribute__((noinline)) MultiTaskResult finish_multi_store(Shard& shard, MultiTaskResult result) {
+        if (result == MultiTaskResult::Complete || result == MultiTaskResult::Final)
+            reclaim_multi_prefix(shard);
+        // Expiry/object-byte statistics may change while the key count stays fixed.
+        shard.publish_size();
+        return result;
+    }
+
     __attribute__((noinline)) MultiTaskResult execute_multi_unit(
         const Task& task, Shard& shard, void (*promote)(void*, MultiOwnerRetryNode&)) {
         AofOwnerContext context{self_->id(), &ring_, &self_->sig()};
         const MultiRetryPromoter promoter{this, promote};
+#ifdef TOMO_EXEC1S_DEBUG
+        Exec1sVisitScope visits(self_->id());
+#endif
         return multi_execute_task(*srv_, task, shard, self_->id(), self_->domain(),
                                   aof_manager_ ? &context : nullptr, &promoter);
     }
 
     __attribute__((noinline)) void queue_fast_multi_retry(const Task& task) {
         multi_retries_.enqueue(multi_owner_retry_node(task), task, true);
+        ring_fused_owner();
     }
     __attribute__((noinline)) void queue_multi_retry(const Task& task) {
         multi_retries_.enqueue(multi_owner_retry_node(task), task, false);
     }
-    void promote_multi_retry(MultiOwnerRetryNode& node) { multi_retries_.promote(node); }
+    void promote_multi_retry(MultiOwnerRetryNode& node) {
+        multi_retries_.promote(node);
+        ring_fused_owner();
+    }
 
     template <bool IofusedPrivateQueue = false>
     uint32_t service_multi_retries() {

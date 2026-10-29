@@ -322,6 +322,7 @@ public:
     void init(uint32_t id, Role r, uint32_t nthreads, uint32_t age_sample_rate,
               uint32_t flip_work_window) {
         id_ = id;
+        exec1s_counters[id_] = {};
         role_.store(r, std::memory_order_relaxed);
         nchan_     = nthreads;
         client_in_ = std::make_unique<ClientChan[]>(nthreads);
@@ -654,6 +655,71 @@ public:
         return n;
     }
 
+    // SNAPSHOT-MODE VARIANTS (SNAP-STORM-1): drain_tasks() / drain_tasks_unmasked() with at most
+    // LaneCap tasks per producer per call. A capped producer's flag is put back (NotifyMask::restore)
+    // so its remainder is taken on the owner's next pass, as drain_task_producer_chunks() re-flags
+    // its capped producers. Kept as separate templates rather than a parameter of the unbounded
+    // drains, so every ordinary caller keeps its existing instantiation; only
+    // ExLoopT::drain_tasks_snapshot() instantiates these.
+    template <bool IofusedPrivateQueue, uint32_t LaneCap, typename Fn>
+    uint32_t drain_tasks_capped(Fn&& fn) {
+        static_assert(LaneCap != 0);
+        uint32_t n = 0;
+        for (uint32_t w = 0; w < NotifyMask::kWords; w++) {
+            uint64_t bits = task_notify_.take(w);
+            uint64_t capped = 0;
+            while (bits) {
+                const uint32_t b = static_cast<uint32_t>(__builtin_ctzll(bits));
+                bits &= bits - 1;
+                const uint32_t p = w * 64 + b;
+                if (p >= nchan_) continue;
+                Task t;
+                auto recv = [&] {
+                    if constexpr (IofusedPrivateQueue)
+                        return task_in_->recv_fused_private<kInboxSlots>(p, t);
+                    else
+                        return task_in_->recv(p, t);
+                };
+                uint32_t taken = 0;
+                while (recv()) {
+                    uint64_t age = 0;
+                    if (t.enqueue_us_low && sig_.observe_queue_delay(t.enqueue_us_low, age))
+                        sig_.observe_oldest_age(age);
+                    fn(t); task_in_->retire(p); n++;
+                    if (++taken == LaneCap) { capped |= 1ull << b; break; }
+                }
+            }
+            if (capped) task_notify_.restore(w, capped);
+        }
+        return n;
+    }
+
+    template <bool IofusedPrivateQueue, uint32_t LaneCap, typename Fn>
+    uint32_t drain_tasks_unmasked_capped(Fn&& fn) {
+        static_assert(LaneCap != 0);
+        uint32_t n = 0; Task t;
+        for (uint32_t p = 0; p < nchan_; p++) {
+            auto recv = [&] {
+                if constexpr (IofusedPrivateQueue)
+                    return task_in_->recv_fused_private<kInboxSlots>(p, t);
+                else
+                    return task_in_->recv(p, t);
+            };
+            uint32_t taken = 0;
+            while (recv()) {
+                uint64_t age = 0;
+                if (t.enqueue_us_low && sig_.observe_queue_delay(t.enqueue_us_low, age))
+                    sig_.observe_oldest_age(age);
+                fn(t); task_in_->retire(p); n++;
+                if (++taken == LaneCap) {
+                    task_notify_.restore((p >> 6) & (NotifyMask::kWords - 1), 1ull << (p & 63));
+                    break;
+                }
+            }
+        }
+        return n;
+    }
+
     // Armed read-local scheduling variant. Consume at most one fixed quantum from every producer
     // named by this pass's mask, rather than letting one deep lane extend the whole fused rotation.
     // `batch_boundary` runs only after the Task that completed an execution batch has reached the
@@ -791,6 +857,9 @@ public:
     uint32_t client_count() const { return client_count_.load(std::memory_order_acquire); }
     void add_client(Client* client) {
         clients_.push_back(client);
+        auto& counts = exec1s_counters[id_];
+        counts.clients_live = clients_.size();
+        counts.clients_peak = std::max(counts.clients_peak, counts.clients_live);
         client_count_.fetch_add(1, std::memory_order_release);
     }
     bool remove_client(Client* client) {
@@ -798,6 +867,7 @@ public:
         if (found == clients_.end()) return false;
         *found = clients_.back();
         clients_.pop_back();
+        exec1s_counters[id_].clients_live = clients_.size();
         if (client_count_.fetch_sub(1, std::memory_order_release) == 0) std::abort();
         return true;
     }

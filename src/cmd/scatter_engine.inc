@@ -1596,6 +1596,41 @@ void ScatterArenaPool::release(void* ptr, bool pooled) {
 // One implementation, two compiled routes. The ordinary route classifies once and hands scripts
 // off before constructing the reload lifetime guard. The FIFO call and its argument liveness
 // belong only to the script route; no script admission state is added to an ordinary command.
+namespace {
+// Keep file recovery and its cleanup out of the common cross-shard dispatch body.
+// The cold attribute keeps this recovery branch out of the normal hot block layout.
+[[gnu::cold, gnu::noinline]] bool prepare_debug_loadaof(Server& server, Op& op, uint32_t owner_io,
+        Client* origin_client, std::unique_ptr<SnapshotLoadPlan>& aof_reload_base,
+        std::vector<std::unique_ptr<AofReplayPlan>>& aof_reload_increments) {
+    if (!debug_command_allowed(server, origin_client)) {
+        reply_debug_command_denied(op);
+        return false;
+    }
+    ThreadCtx& caller = server.thread(owner_io);
+    Ring* caller_ring = caller.ring();
+    if (server.aof().configured() && server.aof().writer_is(owner_io) && caller_ring) {
+        while (server.aof().pending_chunks()) {
+            if (!server.aof().writer_pass(caller, *caller_ring, true))
+                std::this_thread::yield();
+        }
+    } else if (server.aof().configured() && !server.aof().wait_until_drained(5000)) {
+        reply_err(op.sink(), "ERR timed out flushing AOF before reload");
+        return false;
+    }
+    std::string warning;
+    std::string error;
+    if (!aof_read_recovery(server.cfg(), server.nshards(), aof_reload_base,
+                           aof_reload_increments, warning, error) ||
+        (!aof_reload_base && aof_reload_increments.empty())) {
+        // DEBUG LOADAOF flushes even when recovery fails. Carry the
+        // outcome through the owner barrier, then report it at retire.
+        aof_reload_base.reset();
+        aof_reload_increments.clear();
+    }
+    return true;
+}
+} // namespace
+
 template<bool ScriptOnly>
 [[gnu::always_inline]] inline ScatterPrepare xshard_prepare_body(Server& server, Op& op, ScatterArenaPool& pool,
                               uint32_t owner_io, uint64_t origin_conn_id,
@@ -1732,33 +1767,9 @@ template<bool ScriptOnly>
                 return ScatterPrepare::Error;
             }
         } else if (kind == Kind::DebugLoadAof) {
-            if (!debug_command_allowed(server, origin_client)) {
-                reply_debug_command_denied(op);
+            if (!prepare_debug_loadaof(server, op, owner_io, origin_client,
+                                       aof_reload_base, aof_reload_increments))
                 return ScatterPrepare::Error;
-            }
-            if (!server.aof().configured()) {
-                reply_err(op.sink(), "ERR appendonly is disabled");
-                return ScatterPrepare::Error;
-            }
-            ThreadCtx& caller = server.thread(owner_io);
-            Ring* caller_ring = caller.ring();
-            if (server.aof().writer_is(owner_io) && caller_ring) {
-                while (server.aof().pending_chunks()) {
-                    if (!server.aof().writer_pass(caller, *caller_ring, true))
-                        std::this_thread::yield();
-                }
-            } else if (!server.aof().wait_until_drained(5000)) {
-                reply_err(op.sink(), "ERR timed out flushing AOF before reload");
-                return ScatterPrepare::Error;
-            }
-            std::string warning;
-            std::string error;
-            if (!aof_read_recovery(server.cfg(), server.nshards(), aof_reload_base,
-                                   aof_reload_increments, warning, error) ||
-                (!aof_reload_base && aof_reload_increments.empty())) {
-                reply_err(op.sink(), "ERR Error trying to load the AOF, check server logs.");
-                return ScatterPrepare::Error;
-            }
         } else {
             const bool valid = (op.spec->flags & CmdFlags::ConfigRoute)
                 ? command_validate_config_set(op) : command_validate_all_shards(op);
@@ -2879,6 +2890,13 @@ void xshard_visit_task_hashes(const Task& task, void* context,
         visit(context, state.keys[state.key_order[group->begin + i]].hash);
 }
 
+// EXEC helpers share this translation unit. Keep the normal-namespace MSET
+// fall-through free of extra executed alignment NOPs when those helpers move.
+// This changes jump padding only; the complete command scopes cover both DB
+// variants and the release/PAD merit request checks the resulting code layout.
+#if !TOMO_SINGLE_DATABASE
+__attribute__((optimize("align-jumps=1,align-loops=1")))
+#endif
 ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                                  uint32_t owner_thread_id) {
     // DB0's ordinary read path does not use this atomic-arm argument. Keeping
@@ -3427,6 +3445,10 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 auto foreign_read_scope = shard.store().foreign_read_poison_guard();
                 if (!shard.store().atomic_tombstone_all()) return ScatterTaskResult::Retry;
                 shard.store().clear();
+                if (!state.aof_reload_base && state.aof_reload_increments.empty()) {
+                    group.error = WorkError::Corrupt;
+                    return ScatterTaskResult::Complete;
+                }
                 std::string error;
                 if (state.aof_reload_base &&
                     !snapshot_load_shard(*state.aof_reload_base, *state.server, shard, error)) {

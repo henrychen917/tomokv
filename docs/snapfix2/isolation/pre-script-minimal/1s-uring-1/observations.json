@@ -1,0 +1,162 @@
+{
+  "cycles": 46769,
+  "observations": 172101,
+  "torn": 1105,
+  "pair": [
+    "snapfix2:flush:0",
+    "snapfix2:flush:2"
+  ],
+  "owners": [
+    [
+      4,
+      4
+    ],
+    [
+      14,
+      6
+    ]
+  ],
+  "examples": [
+    {
+      "observation": 77,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 92,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 144,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 321,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 412,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 421,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 443,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 484,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 492,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 623,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 757,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 774,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 819,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 1499,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 1527,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 1536,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 1823,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 2036,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 2102,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 2274,
+      "values": [
+        1,
+        null
+      ]
+    }
+  ],
+  "errors": []
+}

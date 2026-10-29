@@ -1,0 +1,48 @@
+[
+  {
+    "path": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/counts/superseded-ALIGN-normal-13ddc679891e/probe",
+    "sha256": "13ddc679891e750a537b5dddaf6ec8aac9e3d6c529c986893b57084b5fdec81f",
+    "bytes": 223525992,
+    "retained_receipts": [
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/counts/superseded-ALIGN-normal-13ddc679891e/ALIGN-normal-MSET-2s-1-1--1.json",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/counts/superseded-ALIGN-normal-13ddc679891e/ALIGN-normal-MGET-2s-32-1--1.json",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/counts/superseded-ALIGN-normal-13ddc679891e/ALIGN-normal-MSET-2s-32-1--1.json",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/counts/superseded-ALIGN-normal-13ddc679891e/ALIGN-normal-build.json",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/counts/superseded-ALIGN-normal-13ddc679891e/ALIGN-normal-MGET-2s-1-1--1.json"
+    ]
+  },
+  {
+    "path": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/counts/superseded-ORD-POST-db0-d6378d2a593d/probe",
+    "sha256": "d6378d2a593d8032d0650ca82fec4149b67d3c7a0c6676b8e649047113f3d302",
+    "bytes": 223536120,
+    "retained_receipts": [
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/counts/superseded-ORD-POST-db0-d6378d2a593d/ORD-POST-db0-build.json"
+    ]
+  },
+  {
+    "path": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/counts/superseded-ORD-POST-normal-30c4636b4a29/probe",
+    "sha256": "30c4636b4a298607446c4291def0da9cb12475bf66a23b59385e12e60166c6e0",
+    "bytes": 223526112,
+    "retained_receipts": [
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/counts/superseded-ORD-POST-normal-30c4636b4a29/ORD-POST-normal-build.json"
+    ]
+  },
+  {
+    "path": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/alignment-source",
+    "bytes": 5223079,
+    "manifest": "/home/user/Projects/cx-exec1s-d/docs/exec1s-d/retired-source-exec1s-d-alignment-source.json",
+    "manifest_sha256": "db94cc39f4d07b1aa28b736e2ee6ea2e89d6f5599bbe2cacfc36948d2a74e0f4"
+  },
+  {
+    "path": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/checkout",
+    "bytes": 63537213,
+    "manifest": "/home/user/Projects/cx-exec1s-d/docs/exec1s-d/retired-source-slowlog-replay-checkout.json",
+    "manifest_sha256": "40b5fa5445fc3ec4048142efeae9e331a3a59409e710a2239a9b3f7bc4aece6b"
+  },
+  {
+    "path": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-pre-replay/checkout",
+    "bytes": 63537213,
+    "manifest": "/home/user/Projects/cx-exec1s-d/docs/exec1s-d/retired-source-slowlog-pre-replay-checkout.json",
+    "manifest_sha256": "01f7b8699f8bc4ba6142d511caabf7d7bbca4c06cd75c887a63e2be95a4946e3"
+  }
+]

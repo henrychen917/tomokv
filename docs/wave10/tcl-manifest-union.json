@@ -1,0 +1,1046 @@
+{
+  "lanes": [
+    {
+      "lane": "snapfix2",
+      "promoted": []
+    },
+    {
+      "lane": "blockfix3",
+      "promoted": [
+        {
+          "unit": "unit/type/stream-cgroups",
+          "name": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        }
+      ]
+    },
+    {
+      "lane": "scriptfix2",
+      "promoted": [
+        {
+          "unit": "unit/functions",
+          "name": "FUNCTION - Load with unknown argument",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/functions",
+          "name": "FUNCTION - function test multiple names",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/functions",
+          "name": "FUNCTION - function test name with quotes",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/functions",
+          "name": "FUNCTION - redis version api",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/functions",
+          "name": "FUNCTION - test function case insensitive",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/functions",
+          "name": "FUNCTION - test function list libraryname multiple times",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/functions",
+          "name": "FUNCTION - test function list withcode multiple times",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/functions",
+          "name": "FUNCTION - test function restore with wrong number of arguments",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/functions",
+          "name": "FUNCTION - test function wrong argument",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/functions",
+          "name": "FUNCTION - test getmetatable on script load",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/functions",
+          "name": "LIBRARIES - delete removed all functions on library",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/functions",
+          "name": "LIBRARIES - malicious access test",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/functions",
+          "name": "LIBRARIES - math.random from function load",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/functions",
+          "name": "LIBRARIES - register function inside a function",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/functions",
+          "name": "LIBRARIES - test registration failure revert the entire load",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/functions",
+          "name": "LIBRARIES - test registration with empty name",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/functions",
+          "name": "LIBRARIES - test registration with no string name",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/functions",
+          "name": "LIBRARIES - test registration with wrong name format",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "Binary code loading failed",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "EVAL - No arguments to redis.call/pcall is considered an error",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "EVAL - explicit error() call handling",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "EVAL - is Lua able to call Redis API?",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1)",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "EVALSHA - Can we call a SHA1 if already defined?",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "EVALSHA - Can we call a SHA1 in uppercase?",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "EVALSHA_RO - Can we call a SHA1 if already defined?",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "LUA redis.error_reply API with CRLF injection attempt",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "LUA redis.status_reply API",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "LUA test pcall",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "LUA test pcall with error",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "Number conversion precision test (issue #1118)",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "Prohibit dangerous lua methods in sandbox",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "Script check unpack with massive arguments",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "Script del key with expiration set",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "Script read key with expiration set",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "Script return recursive object",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "Scripting engine PRNG can be seeded correctly",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "Scripts can handle commands with incorrect arity",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "Shebang support for lua engine",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "Test dofile are not available",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "Test loadfile are not available",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "Test print are not available",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "Try trick global protection 1",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "Try trick global protection 2",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "Try trick global protection 3",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "Try trick global protection 4",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "Try trick readonly table on basic types metatable",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "Try trick readonly table on redis table",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "Unknown shebang flag",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "Unknown shebang option",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "Verify execution of prohibit dangerous Lua methods will fail",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "no-writes shebang flag",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/scripting",
+          "name": "random numbers are random now",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        }
+      ]
+    },
+    {
+      "lane": "exec1s-d",
+      "promoted": []
+    },
+    {
+      "lane": "pubtrackfix",
+      "promoted": [
+        {
+          "unit": "unit/pubsub",
+          "name": "Keyspace notifications: evicted events",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/pubsub",
+          "name": "Keyspace notifications: stream events test",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/pubsub",
+          "name": "Keyspace notifications: we receive keyevent notifications",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/pubsub",
+          "name": "Keyspace notifications: we receive keyspace notifications",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/pubsub",
+          "name": "PubSub messages with CLIENT REPLY OFF",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "Able to redirect to a RESP3 client",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "Adding prefixes to BCAST mode works",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "After switching from normal tracking to BCAST mode, no invalidation message is produced for pre-BCAST keys",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "CLIENT TRACKINGINFO provides reasonable results when tracking bcast mode",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "CLIENT TRACKINGINFO provides reasonable results when tracking off",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "CLIENT TRACKINGINFO provides reasonable results when tracking on",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "CLIENT TRACKINGINFO provides reasonable results when tracking on with options",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "CLIENT TRACKINGINFO provides reasonable results when tracking optin",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "CLIENT TRACKINGINFO provides reasonable results when tracking optout",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "Clients can enable the BCAST mode with prefixes",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "Different clients can redirect to the same connection",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "Different clients using different protocols can track the same key",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "Invalidation message sent when using OPTIN option with CLIENT CACHING yes",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "Invalidation message sent when using OPTOUT option",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "Invalidations of new keys can be redirected after switching to RESP3",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "Invalidations of previous keys can be redirected after switching to RESP3",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "No invalidation message when using OPTIN option",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "No invalidation message when using OPTOUT option with CLIENT CACHING no",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "RESP3 Client gets tracking-redir-broken push message after cached key changed when rediretion client is terminated",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "RESP3 tracking redirection",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "The connection gets invalidation messages about all the keys",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "Tracking NOLOOP mode in BCAST mode works",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "Tracking NOLOOP mode in standard mode works",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "Tracking gets notification of expired keys",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "Tracking gets notification of lazy expired keys",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/tracking",
+          "name": "hdel deliver invalidate message after response in the same connection",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        }
+      ]
+    },
+    {
+      "lane": "infofix",
+      "promoted": [
+        {
+          "unit": "integration/redis-cli",
+          "name": "Non-interactive non-TTY CLI: Test command-line hinting - latest server",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/other",
+          "name": "EXPIRES after a reload (snapshot + append only file rewrite)",
+          "required": true,
+          "still_skipped": false,
+          "reason": null
+        },
+        {
+          "unit": "unit/slowlog",
+          "name": "SLOWLOG - GET optional argument to limit output len works",
+          "required": false,
+          "still_skipped": true,
+          "reason": "failed on TomoKV 2s in the survey"
+        },
+        {
+          "unit": "unit/slowlog",
+          "name": "SLOWLOG - can clean older entries",
+          "required": false,
+          "still_skipped": true,
+          "reason": "failed or hung on TomoKV 2s in an earlier builder run (round 0)"
+        },
+        {
+          "unit": "unit/slowlog",
+          "name": "SLOWLOG - commands with too many arguments are trimmed",
+          "required": false,
+          "still_skipped": true,
+          "reason": "failed or hung on TomoKV 2s in an earlier builder run (round 0)"
+        },
+        {
+          "unit": "unit/slowlog",
+          "name": "SLOWLOG - get all slow logs",
+          "required": false,
+          "still_skipped": true,
+          "reason": "failed on TomoKV 2s in the survey"
+        },
+        {
+          "unit": "unit/slowlog",
+          "name": "SLOWLOG - logged entry sanity check",
+          "required": false,
+          "still_skipped": true,
+          "reason": "failed or hung on TomoKV 2s in an earlier builder run (round 0)"
+        },
+        {
+          "unit": "unit/slowlog",
+          "name": "SLOWLOG - max entries is correctly handled",
+          "required": false,
+          "still_skipped": true,
+          "reason": "failed on TomoKV 2s in the survey"
+        },
+        {
+          "unit": "unit/slowlog",
+          "name": "SLOWLOG - too long arguments are trimmed",
+          "required": false,
+          "still_skipped": true,
+          "reason": "failed or hung on TomoKV 2s in an earlier builder run (round 0)"
+        }
+      ]
+    },
+    {
+      "lane": "rlfix4",
+      "promoted": []
+    }
+  ],
+  "removed_from_headline_skips": [
+    {
+      "unit": "integration/redis-cli",
+      "name": "Non-interactive non-TTY CLI: Test command-line hinting - latest server"
+    },
+    {
+      "unit": "unit/functions",
+      "name": "FUNCTION - Load with unknown argument"
+    },
+    {
+      "unit": "unit/functions",
+      "name": "FUNCTION - function test multiple names"
+    },
+    {
+      "unit": "unit/functions",
+      "name": "FUNCTION - function test name with quotes"
+    },
+    {
+      "unit": "unit/functions",
+      "name": "FUNCTION - redis version api"
+    },
+    {
+      "unit": "unit/functions",
+      "name": "FUNCTION - test function case insensitive"
+    },
+    {
+      "unit": "unit/functions",
+      "name": "FUNCTION - test function list libraryname multiple times"
+    },
+    {
+      "unit": "unit/functions",
+      "name": "FUNCTION - test function list withcode multiple times"
+    },
+    {
+      "unit": "unit/functions",
+      "name": "FUNCTION - test function restore with wrong number of arguments"
+    },
+    {
+      "unit": "unit/functions",
+      "name": "FUNCTION - test function wrong argument"
+    },
+    {
+      "unit": "unit/functions",
+      "name": "FUNCTION - test getmetatable on script load"
+    },
+    {
+      "unit": "unit/functions",
+      "name": "LIBRARIES - delete removed all functions on library"
+    },
+    {
+      "unit": "unit/functions",
+      "name": "LIBRARIES - malicious access test"
+    },
+    {
+      "unit": "unit/functions",
+      "name": "LIBRARIES - math.random from function load"
+    },
+    {
+      "unit": "unit/functions",
+      "name": "LIBRARIES - register function inside a function"
+    },
+    {
+      "unit": "unit/functions",
+      "name": "LIBRARIES - test registration failure revert the entire load"
+    },
+    {
+      "unit": "unit/functions",
+      "name": "LIBRARIES - test registration with empty name"
+    },
+    {
+      "unit": "unit/functions",
+      "name": "LIBRARIES - test registration with no string name"
+    },
+    {
+      "unit": "unit/functions",
+      "name": "LIBRARIES - test registration with wrong name format"
+    },
+    {
+      "unit": "unit/other",
+      "name": "EXPIRES after a reload (snapshot + append only file rewrite)"
+    },
+    {
+      "unit": "unit/pubsub",
+      "name": "Keyspace notifications: evicted events"
+    },
+    {
+      "unit": "unit/pubsub",
+      "name": "Keyspace notifications: stream events test"
+    },
+    {
+      "unit": "unit/pubsub",
+      "name": "Keyspace notifications: we receive keyevent notifications"
+    },
+    {
+      "unit": "unit/pubsub",
+      "name": "Keyspace notifications: we receive keyspace notifications"
+    },
+    {
+      "unit": "unit/pubsub",
+      "name": "PubSub messages with CLIENT REPLY OFF"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "Binary code loading failed"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "EVAL - No arguments to redis.call/pcall is considered an error"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "EVAL - explicit error() call handling"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "EVAL - is Lua able to call Redis API?"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1)"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "EVALSHA - Can we call a SHA1 if already defined?"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "EVALSHA - Can we call a SHA1 in uppercase?"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "EVALSHA_RO - Can we call a SHA1 if already defined?"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "LUA redis.error_reply API with CRLF injection attempt"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "LUA redis.status_reply API"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "LUA test pcall"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "LUA test pcall with error"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "Number conversion precision test (issue #1118)"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "Prohibit dangerous lua methods in sandbox"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "Script check unpack with massive arguments"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "Script del key with expiration set"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "Script read key with expiration set"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "Script return recursive object"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "Scripting engine PRNG can be seeded correctly"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "Scripts can handle commands with incorrect arity"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "Shebang support for lua engine"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "Test dofile are not available"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "Test loadfile are not available"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "Test print are not available"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "Try trick global protection 1"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "Try trick global protection 2"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "Try trick global protection 3"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "Try trick global protection 4"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "Try trick readonly table on basic types metatable"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "Try trick readonly table on redis table"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "Unknown shebang flag"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "Unknown shebang option"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "Verify execution of prohibit dangerous Lua methods will fail"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "no-writes shebang flag"
+    },
+    {
+      "unit": "unit/scripting",
+      "name": "random numbers are random now"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "Able to redirect to a RESP3 client"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "Adding prefixes to BCAST mode works"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "After switching from normal tracking to BCAST mode, no invalidation message is produced for pre-BCAST keys"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "CLIENT TRACKINGINFO provides reasonable results when tracking bcast mode"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "CLIENT TRACKINGINFO provides reasonable results when tracking off"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "CLIENT TRACKINGINFO provides reasonable results when tracking on"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "CLIENT TRACKINGINFO provides reasonable results when tracking on with options"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "CLIENT TRACKINGINFO provides reasonable results when tracking optin"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "CLIENT TRACKINGINFO provides reasonable results when tracking optout"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "Clients can enable the BCAST mode with prefixes"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "Different clients can redirect to the same connection"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "Different clients using different protocols can track the same key"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "Invalidation message sent when using OPTIN option with CLIENT CACHING yes"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "Invalidation message sent when using OPTOUT option"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "Invalidations of new keys can be redirected after switching to RESP3"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "Invalidations of previous keys can be redirected after switching to RESP3"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "No invalidation message when using OPTIN option"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "No invalidation message when using OPTOUT option with CLIENT CACHING no"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "RESP3 Client gets tracking-redir-broken push message after cached key changed when rediretion client is terminated"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "RESP3 tracking redirection"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "The connection gets invalidation messages about all the keys"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "Tracking NOLOOP mode in BCAST mode works"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "Tracking NOLOOP mode in standard mode works"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "Tracking gets notification of expired keys"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "Tracking gets notification of lazy expired keys"
+    },
+    {
+      "unit": "unit/tracking",
+      "name": "hdel deliver invalidate message after response in the same connection"
+    },
+    {
+      "unit": "unit/type/stream-cgroups",
+      "name": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP"
+    }
+  ],
+  "new_skips": [],
+  "json_format_exact": true
+}

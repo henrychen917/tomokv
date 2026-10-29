@@ -1,0 +1,22 @@
+1862359:C 29 Oct 2026 00:42:19.969 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+1862359:C 29 Oct 2026 00:42:19.969 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+1862359:C 29 Oct 2026 00:42:19.969 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=1862359, just started
+1862359:C 29 Oct 2026 00:42:19.969 * Configuration loaded
+1862359:M 29 Oct 2026 00:42:19.969 * monotonic clock: POSIX clock_gettime
+1862359:M 29 Oct 2026 00:42:19.970 * Running mode=standalone, port=20101.
+1862359:M 29 Oct 2026 00:42:19.970 * Server initialized
+1862359:M 29 Oct 2026 00:42:19.970 * Reading RDB base file on AOF loading...
+1862359:M 29 Oct 2026 00:42:19.970 * Loading RDB produced by version 7.4.10
+1862359:M 29 Oct 2026 00:42:19.970 * RDB age 0 seconds
+1862359:M 29 Oct 2026 00:42:19.970 * RDB memory usage when created 1.29 Mb
+1862359:M 29 Oct 2026 00:42:19.970 * RDB is base AOF
+1862359:M 29 Oct 2026 00:42:19.970 * Done loading RDB, keys loaded: 3, keys expired: 0.
+1862359:M 29 Oct 2026 00:42:19.970 * DB loaded from base file appendonly.aof.26.base.rdb: 0.000 seconds
+1862359:M 29 Oct 2026 00:42:19.981 * DB loaded from incr file appendonly.aof.26.incr.aof: 0.010 seconds
+1862359:M 29 Oct 2026 00:42:19.981 * DB loaded from append only file: 0.011 seconds
+1862359:M 29 Oct 2026 00:42:19.981 * Opening AOF incr file appendonly.aof.26.incr.aof on server start
+1862359:M 29 Oct 2026 00:42:19.981 * Ready to accept connections tcp
+1862359:signal-handler (1793205739) Received SIGTERM scheduling shutdown...
+1862359:M 29 Oct 2026 00:42:20.081 * User requested shutdown...
+1862359:M 29 Oct 2026 00:42:20.081 * Calling fsync() on the AOF file.
+1862359:M 29 Oct 2026 00:42:20.081 # Redis is now ready to exit, bye bye...

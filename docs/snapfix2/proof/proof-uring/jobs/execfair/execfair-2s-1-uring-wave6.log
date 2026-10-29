@@ -1,0 +1,4 @@
+PASS EXEC cross-owner list/set encoding transitions
+PASS EXEC container precedence and child ACL grants
+PASS EXEC no-op SETBIT silence and ordered changed-bit events
+PASS EXEC publication wakes an armed blocking serve exactly once
