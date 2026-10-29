@@ -201,3 +201,13 @@ The separately delivered current-layout no-rlfix4 control removes only rlfix4’
 production diff from final POST. This supplements the requested literal
 pre-rlfix4-merge arm, which predates the later cold CR/LF repair and DB0 budget
 selection. It gives the maintainer a direct integrated-layout inclusion control.
+
+All **56 production-unit freshness checks**, plus `make -q all`, pass.
+An initial discovery probe also attempted three parbuild-only readiness marker
+names as Makefile targets; they have no such rules. Those lookup errors remain
+in `freshness-discovery.json`, separate from the required 56 checks.
+
+Final Tcl positive attempt (`final-tcl`): both modes completed, with only
+infofix’s documented promoted CLI-hint failure for unsupported MIGRATE. The
+restored isolated slowlog assertion and all other required scripting/INFO/reload
+assertions pass. This is **not a green Tcl job**. No skip was added for MIGRATE.
