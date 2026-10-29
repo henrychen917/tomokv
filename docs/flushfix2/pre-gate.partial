@@ -1,0 +1,10 @@
+PARTIAL	0	GATE_ONLY_JOBS=flushfix2; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	54.450000	flushfix2 flush-pair (databases 16)
+FAIL	54.460000	flushfix2 flush-pair (databases 1)
+FAIL	54.480000	flushfix2 flush-script (databases 16)
+FAIL	54.480000	flushfix2 flush-script (databases 1)
+FAIL	54.450000	flushfix2 flush-only (databases 16)
+FAIL	54.450000	flushfix2 flush-only (databases 1)
+FAIL	54.450000	flushfix2 namespace (databases 16)
+FAIL	54.450000	flushfix2 namespace (databases 1)
