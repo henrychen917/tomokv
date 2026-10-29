@@ -243,9 +243,11 @@ retained; no new skip or retry was added. The Tcl/compat2 job is **not green**.
 
 The throwaway abba_selftest attempts are not yet green. The first exposed the
 removed-ring scheduler entry and a concurrent selftest port collision; the
-corrected attempt passed the other controls but had one scheduler fixture fail
-with Bash aborting while interpreting an EXIT trap. These failures remain
-recorded, with a quiet whole-job rerun pending. The real-tree standalone scheduler
+corrected attempt also had one scheduler fixture fail with Bash aborting while
+interpreting an EXIT trap. All three early throwaway attempts additionally
+omitted `.githooks/pre-push`, causing 21 receipt-fixture setup errors. That staging
+omission is repaired; no production test is changed. These failures remain
+recorded, with a complete staged-copy whole-job rerun pending. The real-tree standalone scheduler
 suite passes 73/73. EXPECT was changed only in the throwaway copy.
 
 `make all` passes its footprint locks. All 56 production-unit target freshness
