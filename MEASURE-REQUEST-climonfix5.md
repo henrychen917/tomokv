@@ -8,8 +8,9 @@ triplets have POST <= PRE; all 92 retained hot-command triplets have
 PRE = C4 = POST.** The 32 no-writes-header triplets have POST < C4; PRE rejects
 that header, so their PRE error paths are explicitly not equivalent work.
 These are finite instruction counts, not throughput, cycles/op, IPC or latency
-claims. Correctness validation is in progress; the final evidence below will
-replace this status before handoff.
+claims. The equivalent no-writes FCALL cells are being added separately.
+Correctness validation is in progress; the final evidence below will replace
+this status before handoff.
 
 ### Changes and scope
 
@@ -25,6 +26,10 @@ replace this status before handoff.
   existing armed refresh branch consumes the final EXEC reply while its ROB
   generation remains available. It recognizes errors, materialized nulls, and
   both RESP2/RESP3 coded nulls. Pending child records are discarded on abort.
+  The parser phase precedes retirement; retirement sends the loop back through
+  armed refresh before another parse. Transaction sessions also pin their
+  connection against ownership migration, so the final EXEC slot cannot move
+  into a new parser pass before this consumption.
 * EVAL header validation/compilation is confined to the existing compiled-chunk
   miss. A no-writes chunk is cached as a Lua closure that marks that activation
   read-only. Plain warm EVAL/EVALSHA perform no header work. Original source

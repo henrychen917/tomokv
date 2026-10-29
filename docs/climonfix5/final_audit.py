@@ -60,7 +60,7 @@ def main():
                    cwd=ROOT, check=True)
     subprocess.run(['git', 'diff', '--check'], cwd=ROOT, check=True)
     counts = json.loads((DOC / 'instruction-summary.json').read_text())
-    assert counts['pass'] and len(counts['inputs']) == 804
+    assert counts['pass'] and len(counts['inputs']) == 852
     for row in counts['inputs']:
         assert digest(ROOT / row['file']) == row['sha256'], row['file']
     archives = []
