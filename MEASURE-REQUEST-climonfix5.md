@@ -132,8 +132,12 @@ built; all 58 independent build/freshness checks pass, including `make all`,
 Both Tcl modes pass all 1,704 assertions and all 14 climonfix4 promotions
 ([named assertion audit](docs/climonfix5/full-tcl-promotions-in-campaign.json)).
 The affected whole-job campaign completes with **438 passed, 0 failed**
-([receipt](docs/climonfix5/jobs/affected-final.json)). A second Tcl confirmation,
-CLIENT REPLY full-tier rows, and both standard differential matrices remain in progress.
+([receipt](docs/climonfix5/jobs/affected-final.json)). A second full Tcl confirmation
+again passes 1,704 assertions and all 14 promotions in each mode
+([receipt](docs/climonfix5/jobs/tcl-final.json), [promotion audit](docs/climonfix5/full-tcl-promotions.json)).
+Both CLIENT REPLY OFF/SKIP atomic rows pass
+([receipt](docs/climonfix5/jobs/replyoff-final.json)). The standard differential
+matrices on both engines remain in progress.
 [Directed receipt](docs/climonfix5/jobs/directed-final-v11.json),
 [seven isolated controls](docs/climonfix5/isolated-regressions.json),
 [harness tests](docs/climonfix5/gates-test.json). Five controls raise named

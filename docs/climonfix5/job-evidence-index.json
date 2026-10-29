@@ -3544,6 +3544,84 @@
     ]
   },
   {
+    "name": "replyoff-final",
+    "receipt": "docs/climonfix5/jobs/replyoff-final.json",
+    "exit": 0,
+    "binary_sha256": "5580e65fb3d5135ca6829d272cf4de89c2661715bc58247ad26a7163939a0f5f",
+    "archive": "docs/climonfix5/job-evidence/replyoff-final.tar.gz",
+    "archive_sha256": "55e7bd7f5d18ad29fd15458844d1782c4b52c5bb67fad4dbb0701d0727bb5a68",
+    "files": 17,
+    "uncompressed_bytes": 136222,
+    "jobs": [
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      },
+      {
+        "name": "replyoff",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "1.240000",
+            "label": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.240000",
+            "label": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tcl-final",
+    "receipt": "docs/climonfix5/jobs/tcl-final.json",
+    "exit": 0,
+    "binary_sha256": "5580e65fb3d5135ca6829d272cf4de89c2661715bc58247ad26a7163939a0f5f",
+    "archive": "docs/climonfix5/job-evidence/tcl-final.tar.gz",
+    "archive_sha256": "99d023e9aad2ed96cbe38726080ba6f9aa5197229ca0fe09e85be3efc0018a8e",
+    "files": 387,
+    "uncompressed_bytes": 7143139,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "184.880000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "189.870000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "name": "tcl-initial4",
     "receipt": "docs/climonfix5/jobs/tcl-initial4.json",
     "exit": 1,

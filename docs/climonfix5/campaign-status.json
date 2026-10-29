@@ -6,5 +6,13 @@
   {
     "name": "affected-final",
     "exit": 0
+  },
+  {
+    "name": "tcl-final",
+    "exit": 0
+  },
+  {
+    "name": "replyoff-final",
+    "exit": 0
   }
 ]
