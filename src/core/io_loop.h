@@ -3415,7 +3415,7 @@ private:
                               "ERR wrong number of arguments for '%s' command", command);
                 finish_locally(c, *op, message); continue;
             }
-            if ((spec->flags & (CmdFlags::SubcmdRoute | CmdFlags::ConnLocal | CmdFlags::ConfigRoute)) &&
+            if ((spec->flags & (CmdFlags::SubcmdRoute | CmdFlags::ClientCommandName)) &&
                 command_reply_container_subcommand_arity(*op, *spec, c)) {
                 // A known child has its own generated arity and Redis checks that before ACL and
                 // MULTI. Unknown children continue to the cold AUTH/ACL hook or container

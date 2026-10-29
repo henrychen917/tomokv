@@ -156,6 +156,9 @@ bool command_registry_init(bool tls_enabled, bool fused_mode, bool read_local_ar
         for (const CommandTable& family : families)
             for (size_t i = 0; i < family.size; i++) {
                 CommandSpec copy = family.specs[i];
+                if (const auto* metadata = command_metadata_lookup(Slice(copy.name));
+                    metadata && command_metadata_is_container(*metadata))
+                    copy.flags |= CmdFlags::ClientCommandName;
                 copy.length_class =
                     static_cast<uint8_t>(command_length_class_for(copy, read_local_armed));
                 if (fused_mode && !std::strcmp(copy.name, "FLIP")) {

@@ -443,6 +443,10 @@ int16_t command_metadata_first_key(const CommandMetadata& metadata) {
 uint64_t command_metadata_categories(const CommandMetadata& metadata) {
     return metadata.categories;
 }
+bool command_metadata_is_container(const CommandMetadata& metadata) {
+    return child_count(metadata) != 0;
+}
+
 bool command_metadata_is_subcommand(const CommandMetadata& metadata) {
     return std::strchr(metadata.name, '|') != nullptr;
 }

@@ -112,6 +112,9 @@ struct CmdFlags {
     // IoLoop's cold timer list. This bit does not make DEBUG generally deferred: all other DEBUG
     // subcommands retain their synchronous control-plane path.
     static constexpr uint32_t DebugSleep = 1u << 27;
+    // Boot-stamped from generated metadata. Only containers need persistent
+    // child identity for CLIENT LIST; ordinary verbs use the retained ROB spec.
+    static constexpr uint32_t ClientCommandName = 1u << 28;
 };
 
 using CmdHandler = void (*)(Shard&, Op&);
