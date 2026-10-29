@@ -1,0 +1,1 @@
+["taskset", "-c", "0-7", "/home/user/Projects/redis/src/redis-server", "--bind", "127.0.0.1", "--port", "20101", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/atomfix5_accounting/accounting/oracle", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--databases", "16"]

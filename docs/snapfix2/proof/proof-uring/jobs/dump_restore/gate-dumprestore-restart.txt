@@ -1,0 +1,2 @@
+dumprestore: PASS (261 checks, mode=prepare_restart; snapshot hooks/envelope/TTL fired)
+dumprestore: PASS (61 checks, mode=verify_restart; snapshot hooks/envelope/TTL fired)

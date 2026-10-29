@@ -1,0 +1,108 @@
+{
+  "run": "/home/user/Projects/cx-snapfix2/build/gate-run.VQUQxz",
+  "command": "GATE_ONLY_JOBS=snapfix2_tables REDIS74_ROOT=/home/user/Projects/redis taskset -c 0-15 tests/gate.sh iteration --server-cores 0-7 --load-cores 8-15 --server-smt '' --load-smt '' --ports 20100-20199 --candidate-binary build/snapfix2/pre/tomokv",
+  "binary": "/home/user/Projects/cx-snapfix2/build/snapfix2/pre/tomokv",
+  "binary_sha256": "da219bf6c15d7f7649e6f6f2758ed7407f8ba6e4456ef48ea2a416ba01de710c",
+  "files": {
+    "ledger.partial": "0b376fbcf330ff90ccef4e16e8b57322bddf3646962c9fb64f6051e013c71d87",
+    "ledger.partial.timings": "172091ac68bc0ae37858d18466a4ec0b3ac4f8392600d4cb408b5c3ed1ab65a4",
+    "plan.sh": "558360bdf2a95dc518afaeb8407d3d87e1121303472d7d1e4b5acd7915e6b9fb",
+    "phases.tsv": "3ea35b0a91e2aed22d0f0ecd0f7c1cc769bc4105220d9c2dce17b201c487ccf9",
+    "families.tsv": "2045539a148d070d8923dc445e5ae4294fd368d4ba378a78252f7f81b7c26087",
+    "row-timeouts.json": "176bee32693492fca3a1ea0bb7d1503f91b4286b293376946a772e28072af9da",
+    "gate-output.log": "59b4a757bf8470e0f8df5e2f6a6086c3637aa44eb7ea9a59429f799f514db6af",
+    "jobs/release/family.tsv": "0156e52df678778ecd891aad47af11db1c6d5672a9e9226545ebb1430c902690",
+    "jobs/release/output.log": "409abba14aa74aa6bd5150ce2a9b4b6ed5b6d17bb0bc367f33ddb04c2f33dee2",
+    "jobs/snapfix2_tables/family.tsv": "002febcffbda829724f7f5db7b8b0872eae9442460083ab029a538bec2eafe26",
+    "jobs/snapfix2_tables/output.log": "1212b87d815d85e0863baf4afd57cef6c1c698594cdc7c7a3ec9ced2752346df",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-epoll-0/loop.argv.json": "413b7ba7b91c8a6d8f3fcdc58a096b22dae8bd88d0f1ea226f97571cec75386f",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-epoll-0/loop.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-epoll-0/loop.log": "3db2b0e29af70bf274a3c5f82ed30e996c14a2530ed2afd79dc3e80e9079026d",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-epoll-1/loop.argv.json": "fdcac7ccec6daea503fcb99a10077d1e8c776e959987904f719cfe6de54d53c9",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-epoll-1/loop.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-epoll-1/loop.log": "4b1164a8d206210bd417f3c36134bd308bce6f8d8a6b9b6c0190e6521369e130",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-uring-0/loop.argv.json": "2e358d2b981355693c953ae3639c484c42b6d9f9f064f62ade33fc11f829ec3d",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-uring-0/loop.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-uring-0/loop.log": "3dfe43ff72ba1587c60b7c068f81a6c6a9122d2af9f47ad9b06fe5a923fbac27",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-uring-1/loop.argv.json": "126080bda7be01aef1fd7fbdc53bf60a30d44bde4423889bc390f7524a86d044",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-uring-1/loop.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-uring-1/loop.log": "3ca4deb9d9d8b9e6622e9be4ca74e2f824db558e60571c652ff30c8cc0106293",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-epoll-0/loop.argv.json": "5ae80ae49ea10c4d32bf9cadaa6a0d7012b0366b518950d7ee08aa8d10307cf8",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-epoll-0/loop.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-epoll-0/loop.log": "bb0cab8e621593a484481823d07ac4449b68c7c2bb900d6c1eadc4c91a1c6bce",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-epoll-1/loop.argv.json": "94720f5c77e34a424476a52da6461fc75938033eabd334d7f35f68f07e022391",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-epoll-1/loop.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-epoll-1/loop.log": "c7c2e4604f1796d54efdfa6b6965caf30299b0eae625b99951863e9f65d92362",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-uring-0/loop.argv.json": "c3c6031dcdffe55821e7469b3fe66b0c15b793275158877dbd6af4c430ebac5e",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-uring-0/loop.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-uring-0/loop.log": "ce3b1ac76b2ecc51df31afd443fb875f27fa2ac12f1e7bb7eb8aedb36cad191f",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-uring-1/loop.argv.json": "bf56e3dba8bf0df71cabd2683c251ca82996a16ba103875b6829aa7a57b41a59",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-uring-1/loop.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-uring-1/loop.log": "3ad24856e905792f481b629eaa60cbf55f8351a37fa1c0ebf79d67865f8329b1",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/redis-redis-0/loop.argv.json": "7ac3a24adac8ab1d5bb618ae9392df824f7db7a1202c7d6c4769db5492b42872",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/redis-redis-0/loop.exit.json": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/redis-redis-0/loop.log": "5c4a63f4c8e326da7ef612d997790d7c45cd506d56c58e49ce81a038e0aa901f",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/results.json": "d2c8a8c4fd5ae63711f0eec819f249ad668f3fbf6c7e2500bbde3b59796d4631",
+    "jobs/snapfix2_tables/snapfix-bgsave-loop.log": "65695de2b60ef9152b511df190158459f0407051865e8a04139392ff5c44f27c"
+  },
+  "referenced": {
+    "jobs/release/row-timeout-3056898.3056898.485507219.1.cancel": {
+      "bytes": 63,
+      "sha256": "ceabe570a8388207cba7573c8b40a2fccacf30bc791b6de28e68b71bc6e8d273"
+    },
+    "jobs/snapfix2_tables/row-timeout-3056935.3056935.485507254.1.cancel": {
+      "bytes": 63,
+      "sha256": "0c455cfd884d68bf599963ea17d675b40ca4ef0106b1db50880778a14b8f7fa5"
+    },
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-epoll-0/dump.tomo": {
+      "bytes": 676,
+      "sha256": "601993501f210628c99f8975e937dee57886a337b5c8b6a7b6c68606a107bbd5"
+    },
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-epoll-1/dump.tomo": {
+      "bytes": 676,
+      "sha256": "6607be7fe6463fcf49a893c04382285d5e936078ee64177afdc465b5b5818580"
+    },
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-uring-0/dump.tomo": {
+      "bytes": 676,
+      "sha256": "309be424d8347916e799f85d1e80157ee80f76d8d77be1f27dc56efe0371d22f"
+    },
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/1s-uring-1/dump.tomo": {
+      "bytes": 676,
+      "sha256": "5fa4549ef9ef970fb0c32ab3bde96992992f6aac6b221025d0b8c582152f9175"
+    },
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-epoll-0/dump.tomo": {
+      "bytes": 676,
+      "sha256": "5100c4dca4e4c6618bb49ced4fbd89d1834ba1100a662a5a1edd4e9d8dcc3e29"
+    },
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-epoll-1/dump.tomo": {
+      "bytes": 676,
+      "sha256": "ff69fb7dc1be1bc48b7df02096430ce341e90a5f5bfdff49b697cac28a0a52cf"
+    },
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-uring-0/dump.tomo": {
+      "bytes": 676,
+      "sha256": "bddbee1083a39799a42aee2d7f1661324f1a7777d5c18487af0af505e7ee82b8"
+    },
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/2s-uring-1/dump.tomo": {
+      "bytes": 676,
+      "sha256": "d930582e46549a6b1b072ae3362faa0be7b9b18adfb1cdad76361a7aa93b89dc"
+    },
+    "jobs/snapfix2_tables/snapfix-bgsave-loop/redis-redis-0/dump.rdb": {
+      "bytes": 110,
+      "sha256": "0ecc8ceaf796ffaa11d19fd9e1733658483d46b1e575850eaf56dc6ae9bebcac"
+    }
+  },
+  "jobs": {
+    "release": {
+      "ledger": "ok\t0.010000\trelease build (+footprint locks)\n",
+      "done": "0\t1\t0\n",
+      "timings": "ok\t0.010000\trelease build (+footprint locks)\n"
+    },
+    "snapfix2_tables": {
+      "ledger": "FAIL\t7.890000\tsnapfix2 repeated BGSAVE bounds RSS (both modes, both engines, atomic 0/1)\n",
+      "done": "0\t0\t1\n",
+      "timings": "FAIL\t7.890000\tsnapfix2 repeated BGSAVE bounds RSS (both modes, both engines, atomic 0/1)\n"
+    }
+  },
+  "compressed_large_text": {},
+  "removed_run_artifacts": true
+}

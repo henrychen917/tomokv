@@ -330,6 +330,13 @@ public:
         return words_[word].load(std::memory_order_relaxed);
     }
 
+    // Consumer side, for a bounded drain that stops before a channel is empty: put back the flags
+    // it took for those channels so its own next pass visits them again. No wake is owed: the
+    // consumer is the running thread, and the park path re-checks masks and depths anyway.
+    void restore(uint32_t word, uint64_t bits) {
+        words_[word].fetch_or(bits, std::memory_order_seq_cst);
+    }
+
     bool any() const {
         for (uint32_t i = 0; i < kWords; i++)
             if (words_[i].load(std::memory_order_relaxed)) return true;

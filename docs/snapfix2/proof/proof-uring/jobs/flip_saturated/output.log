@@ -1,0 +1,4 @@
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP applies under saturated load
+  FLIP applies under saturated load                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; flip battery shutdown invariants
+  flip battery shutdown invariants                     ok

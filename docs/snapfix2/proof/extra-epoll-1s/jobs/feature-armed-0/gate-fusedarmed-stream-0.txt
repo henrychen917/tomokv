@@ -1,0 +1,35 @@
+  ok   explicit ID creates stream
+  ok   ms-* increments same-ms sequence
+  ok   auto ID clamps to stored last, not clock
+  ok   0-0 rejected before key creation
+  ok   duplicate/decreasing IDs rejected
+  ok   range bounds use start=0/end=UINT64_MAX missing sequences
+  ok   exclusive '(' range bound
+  ok   reverse range ordering
+  ok   XRANGE COUNT 0 is null array
+  ok   XDEL parse-all before apply
+  ok   XDEL tombstone count and idempotence
+  ok   XTRIM MAXLEN exact boundary
+  ok   XTRIM MINID exact boundary
+  ok   approximate '~' parses and behaves exact
+  ok   XREAD immediate single-stream owner route
+  ok   XREAD immediate multi-stream argument order
+  ok   XREAD empty reply is null array
+  ok   blocking XREAD broadcasts one XADD to all waiters
+  ok   blocking '$' freezes the first publication reply=[[[b'stream:dollar', [[b'1-0', [b'f', b'first']]]]]]
+  ok   blocking XREAD freezes publication across following XDEL
+  ok   blocking XREAD COUNT applies on wake reply=[[[b'stream:count-wake', [[b'1-0', [b'f', b'1']]]]]]
+  ok   blocking XREAD wakes from a multi-stream scatter reply=[[[b'stream:block-c', [[b'1-0', [b'f', b'third']]]]]]
+  ok   empty tombstoned stream blocks then times out elapsed=0.150
+  ok   RESET pipelined while parked retires after XREAD
+  ok   parked disconnect drains stream waiter gauges
+  ok   macro-node seek and partial gap-head trim
+  ok   sustained exact trim retains the last 100 entries
+  ok   sustained exact trim reaches a memory plateau first=2191 second=2191 after-del=0 baseline=0
+  ok   one-entry streams retain their exact payload and allocate memory keys=1024 measured=128.0B/key
+  ok   one-entry memory floor tracks ~140B design (well below 4.4KiB) measured=128.0B/key audit-kvobj~=140B
+  ok   stream reports the redis encoding name
+  ok   embedded->macro migration retains every entry
+  ok   growth across the embedded->macro boundary stays amortized-linear usage=5211 for 128 entries (bound 200B/entry)
+  ok   stream waiter gauges end at zero
+STREAM PASS

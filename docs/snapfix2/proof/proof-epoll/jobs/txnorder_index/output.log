@@ -1,0 +1,4 @@
+  row budget: 900s; median=105.58s; correctness-plan-fallback; txnorder index oracle
+  txnorder index oracle                                ok
+  row budget: 900s; median=2.79s; correctness-plan-fallback; txnorder index complexity
+  txnorder index complexity                            ok

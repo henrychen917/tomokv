@@ -1033,7 +1033,14 @@ public:
         if (snapshot_prepared_) return SnapshotWriteResult::Ready;
         if (read_local_enabled_ && !prepare_resize_retirement())
             return SnapshotWriteResult::Error;
-        uint64_t wanted = static_cast<uint64_t>(cap_[0]) * 2;
+        // A completed snapshot leaves its fresh table installed. Doubling cap_[0] on every
+        // cut therefore grows an idle store forever. Reserve twice the ordinary live-set
+        // capacity instead, bounded above by the old rule. Do not shrink here: until Mark,
+        // prepared inserts (including atomic reservations) may still fill the current table.
+        // Keeping at least cap_[0] makes their existing admission bound safe for the merge.
+        uint64_t sized = kMinCap;
+        while ((static_cast<uint64_t>(live_[0]) + 1) * 100 >= sized * kLoadPct) sized *= 2;
+        uint64_t wanted = std::max<uint64_t>(cap_[0], std::min<uint64_t>(sized, cap_[0]) * 2);
         if (wanted > UINT32_MAX) return SnapshotWriteResult::Error;
         const uint32_t cap = round_pow2(static_cast<uint32_t>(wanted));
         if (!cap) return SnapshotWriteResult::Error;
@@ -2523,10 +2530,10 @@ private:
             flatstore_table_calloc(cap, sizeof(uint64_t)));  // EMPTY == 0
     }
 
-    // FLUSH's replacement table. A prepared snapshot sized its post-cut table at twice the current
-    // capacity and suppresses every resize until the cut, refusing new keys only when the current
-    // table is full: a larger replacement would accept keys that table cannot absorb and wedge the
-    // post-capture merge. clear() changes neither input, so it may ask again before installing.
+    // FLUSH's replacement table. A prepared snapshot suppresses every resize until the cut,
+    // refusing new keys only when the current table is full. Keep the replacement below the
+    // prepared destination's capacity so those keys still fit in the post-capture merge.
+    // clear() changes neither input, so it may ask again before installing.
     uint32_t clear_capacity() const {
         return snapshot_prepared_ ? std::min<uint32_t>(snapshot_new_cap_ / 2, 1024) : 1024;
     }

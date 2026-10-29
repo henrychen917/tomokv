@@ -1,0 +1,1 @@
+{"case": "bgsave-exec", "leg": "2s-epoll-1", "seconds": 6.0, "value": {"probe_max": 0.013, "saves": 13, "writes": 450368, "execs": 4252, "aborted": 2044, "lanes": {"owner": 7, "writer_io": 0, "probe_io": 1}, "max_latency": {"exec": 0.663, "writer-burst": 0.827}, "snapshot": [3924, 3924]}, "pass": true}

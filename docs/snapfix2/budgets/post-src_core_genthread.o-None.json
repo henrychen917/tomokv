@@ -1,0 +1,55 @@
+{
+  "functions": 783,
+  "equal": 778,
+  "changed": [
+    "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true, false>()",
+    "tomo::IoLoop::pubsub_append_ack(tomo::Op::Sink&, bool, bool, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const*, unsigned long, bool) [clone .isra]",
+    "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+    "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()"
+  ],
+  "symbols": [
+    "_ZN4tomo6IoLoop11flush_readyILb0ELb1ELb1ELb0ELb1ELb0EEEjv",
+    "_ZN4tomo6IoLoop17pubsub_append_ackERNS_2Op4SinkEbbbPKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEmb.isra",
+    "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+    "_ZN4tomo7ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv"
+  ],
+  "padding": [
+    "_ZN4tomo6IoLoop17pubsub_reply_pingERNS_2OpE.isra"
+  ],
+  "hot": [
+    "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true, false>()",
+    "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)"
+  ],
+  "added": [],
+  "removed": [],
+  "arm": "post",
+  "unit": "src/core/genthread.o",
+  "budget": 131241,
+  "initial": 109405,
+  "command": [
+    "taskset",
+    "-c",
+    "0-15",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=131241",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/core/genthread.cc",
+    "-o",
+    "/home/user/Projects/cx-snapfix2/build/snapfix2/budgets/post-src_core_genthread.o-None.o",
+    "-g0",
+    "-fdump-ipa-inline=/home/user/Projects/cx-snapfix2/build/snapfix2/budgets/post-src_core_genthread.o-None.inline"
+  ],
+  "sha256": "af4d39e87e883a31c1861a7664db5bbe76b814878bfa8d578f3ee3062f13dccb"
+}

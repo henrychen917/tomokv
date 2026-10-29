@@ -1,0 +1,20 @@
+521266:C 28 Oct 2026 23:42:32.847 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+521266:C 28 Oct 2026 23:42:32.847 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+521266:C 28 Oct 2026 23:42:32.847 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=521266, just started
+521266:C 28 Oct 2026 23:42:32.847 * Configuration loaded
+521266:M 28 Oct 2026 23:42:32.847 * monotonic clock: POSIX clock_gettime
+521266:M 28 Oct 2026 23:42:32.847 * Running mode=standalone, port=20100.
+521266:M 28 Oct 2026 23:42:32.848 * Server initialized
+521266:M 28 Oct 2026 23:42:32.848 * Ready to accept connections tcp
+521266:M 28 Oct 2026 23:42:32.927 * Background saving started by pid 521272
+521272:C 28 Oct 2026 23:42:33.544 * DB saved on disk
+521272:C 28 Oct 2026 23:42:33.544 * Fork CoW for RDB: current 1 MB, peak 1 MB, average 0 MB
+521266:M 28 Oct 2026 23:42:33.555 * Background saving terminated with success
+521266:M 28 Oct 2026 23:42:33.656 * Background append only file rewriting started by pid 521273
+521273:C 28 Oct 2026 23:42:34.273 * Successfully created the temporary AOF base file temp-rewriteaof-bg-521273.aof
+521273:C 28 Oct 2026 23:42:34.273 * Fork CoW for AOF rewrite: current 1 MB, peak 1 MB, average 0 MB
+521266:M 28 Oct 2026 23:42:34.362 * Background AOF rewrite terminated with success
+521266:M 28 Oct 2026 23:42:34.363 * Successfully renamed the temporary AOF base file temp-rewriteaof-bg-521273.aof into appendonly.aof.1.base.rdb
+521266:M 28 Oct 2026 23:42:34.363 * Background AOF rewrite finished successfully
+521266:M 28 Oct 2026 23:42:34.366 * User requested shutdown...
+521266:M 28 Oct 2026 23:42:34.366 # Redis is now ready to exit, bye bye...

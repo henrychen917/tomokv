@@ -1,0 +1,4 @@
+PASS wave8b pending exec CONFIG no/yes; exact off/on samples {'exec': 1, 'incr': 2, 'eval': 1, 'incrby': 2, 'mget': 1}
+PASS wave8b pending script CONFIG no/yes; exact off/on samples {'exec': 1, 'incr': 2, 'eval': 1, 'incrby': 2, 'mget': 1}
+PASS wave8b WAIT pending CONFIG transition, enabled at wake False
+PASS wave8b WAIT pending CONFIG transition, enabled at wake True

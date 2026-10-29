@@ -359,6 +359,9 @@ EXPECT_FULL=898                 # ABBA reports only; self-test remains counted.
 # txnorder2: seventeen more rows before quick exit. Against merged origin/cpp:
 # DQ=DF=+31; maintainer counts 685+31=716 quick, 702+31=733 full.
 # EXPECT assignments are owner-owned and unchanged by this lane.
+# snapfix: three directed rows (XS-SHUT-1, SNAP-STORM-1 script and EXEC+writer storms), each over
+# both modes, engines and atomic settings, collected before the quick exit: DQ=+3, DF=+3 over
+# a214652ec's 807/824, so the maintainer's counts become 810/827.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -1158,7 +1161,7 @@ plan_jobs(){
   for mode in 1s 2s; do
     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
   done
-  JOB_NAMES+=(blockfix2 blockfix_structure blockfix_registry blockfix_mkstream persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
+  JOB_NAMES+=(blockfix2 blockfix_structure blockfix_registry blockfix_mkstream persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-epoll aof-uring snapshot-epoll snapshot-uring snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_tables debug-0 debug-1
               iofix-deferred iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               atomfix5_watch atomfix5_accounting core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat crlffix boot_grammar dbdefault wait_units readonly
@@ -3795,6 +3798,38 @@ fi
 [ "$compatible" = 1 ]
 }
 
+# snapfix: three directed rows for XS-SHUT-1 and SNAP-STORM-1. Each row runs tests/snapfix.py over
+# 1s/2s x uring/epoll x atomic 0/1 plus the Redis 7.4 oracle, owns its boots on this slot's cores
+# and PORT/PORT+1, and requires every boot to exit 0 without a forced kill. PRE a214652ec fails
+# every TomoKV leg of all three. All are collected before the quick-tier exit: DQ=+3, DF=+3.
+# EXPECT_QUICK/EXPECT_FULL remain maintainer-owned.
+snapfix_case(){
+  py tests/snapfix.py --case "$1" --binary "$CANDIDATE_BINARY" \
+      --oracle "$REDIS74_ROOT/src/redis-server" --cores "$CORES" --port "$PORT" \
+      --output "$TMPDIR/snapfix-$1" >"$TMPDIR/snapfix-$1.log" 2>&1 \
+      && ok "$2" || bad "$2" "see $TMPDIR/snapfix-$1.log"
+}
+job_snapfix_shutdown(){
+  local label='snapfix XS-SHUT-1 SHUTDOWN NOSAVE in script storm (both modes, both engines, atomic 0/1)'
+  row_begin "$label"
+  snapfix_case shutdown "$label"
+}
+job_snapfix_bgsave_script(){
+  local label='snapfix SNAP-STORM-1 BGSAVE under script storm (both modes, both engines, atomic 0/1)'
+  row_begin "$label"
+  snapfix_case bgsave-script "$label"
+}
+job_snapfix_bgsave_exec(){
+  local label='snapfix SNAP-STORM-1 BGSAVE under EXEC + writer storm (both modes, both engines, atomic 0/1)'
+  row_begin "$label"
+  snapfix_case bgsave-exec "$label"
+}
+job_snapfix2_tables(){
+  local label='snapfix2 repeated BGSAVE bounds RSS (both modes, both engines, atomic 0/1)'
+  row_begin "$label"
+  snapfix_case bgsave-loop "$label"
+}
+
 job_datafix2_notouch(){
   row_begin "datafix2 CD4.7 no-touch lookups vs Redis 7.4"
   datafix2_case notouch notouch && ok "datafix2 CD4.7 no-touch lookups vs Redis 7.4" \
@@ -6000,6 +6035,12 @@ collect_job persistfix2_shutdown
 collect_job persistfix2_commands
 collect_job persistfix2_errors
 for NET_IO in epoll uring; do collect_job "snapshot-$NET_IO"; done
+# snapfix: three rows before the quick exit (DQ=+3, DF=+3); EXPECT stays maintainer-owned.
+collect_job snapfix_shutdown
+collect_job snapfix_bgsave_script
+collect_job snapfix_bgsave_exec
+# snapfix2: one independent RSS row before the quick exit, DQ=+1 / DF=+1.
+collect_job snapfix2_tables
 
 collect_job notify
 # trackfix CC4.4: one row before the quick exit; EXPECT remains maintainer-owned.

@@ -1,0 +1,90 @@
+[
+  {
+    "case": "bgsave-exec",
+    "leg": "1s-uring-1",
+    "value": {
+      "probe_max": 0.007,
+      "saves": 5,
+      "writes": 267392,
+      "execs": 4609,
+      "aborted": 2009,
+      "lanes": {
+        "owner": 7,
+        "writer_io": 0,
+        "probe_io": 3
+      },
+      "snapshot": [
+        2603,
+        2603
+      ]
+    },
+    "pass": true,
+    "seconds": 6.114
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "1s-epoll-1",
+    "value": {
+      "probe_max": 0.001,
+      "saves": 6,
+      "writes": 325056,
+      "execs": 5034,
+      "aborted": 2197,
+      "lanes": {
+        "owner": 6,
+        "writer_io": 0,
+        "probe_io": 4
+      },
+      "snapshot": [
+        4131,
+        4131
+      ]
+    },
+    "pass": true,
+    "seconds": 6.21
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "2s-uring-1",
+    "value": {
+      "probe_max": 0.02,
+      "saves": 4,
+      "writes": 255296,
+      "execs": 2597,
+      "aborted": 1267,
+      "lanes": {
+        "owner": 6,
+        "writer_io": 0,
+        "probe_io": 3
+      },
+      "snapshot": [
+        2350,
+        2350
+      ]
+    },
+    "pass": true,
+    "seconds": 6.196
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "2s-epoll-1",
+    "value": {
+      "probe_max": 0.02,
+      "saves": 6,
+      "writes": 412160,
+      "execs": 3844,
+      "aborted": 1809,
+      "lanes": {
+        "owner": 6,
+        "writer_io": 0,
+        "probe_io": 3
+      },
+      "snapshot": [
+        3763,
+        3763
+      ]
+    },
+    "pass": true,
+    "seconds": 6.222
+  }
+]

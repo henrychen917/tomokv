@@ -1,0 +1,236 @@
+[
+  {
+    "case": "bgsave-script",
+    "leg": "redis-redis-0",
+    "value": {
+      "bgsave_seconds": 0.0,
+      "storm": {
+        "activations": 283213,
+        "refused": 0,
+        "writes": [
+          65715,
+          65707
+        ],
+        "saves": 60,
+        "max_latency": {
+          "script": 0.001,
+          "writer": 0.001
+        }
+      },
+      "snapshot": [
+        279326,
+        279326
+      ]
+    },
+    "pass": true,
+    "seconds": 6.417
+  },
+  {
+    "case": "bgsave-script",
+    "leg": "1s-uring-0",
+    "value": {
+      "bgsave_seconds": 0.395,
+      "storm": {
+        "activations": 79132,
+        "refused": 69638,
+        "writes": [
+          114236,
+          131578
+        ],
+        "saves": 60,
+        "max_latency": {
+          "script": 0.002,
+          "writer": 0.002
+        }
+      },
+      "snapshot": [
+        78035,
+        78035
+      ]
+    },
+    "pass": true,
+    "seconds": 6.52
+  },
+  {
+    "case": "bgsave-script",
+    "leg": "1s-uring-1",
+    "value": {
+      "bgsave_seconds": 0.395,
+      "storm": {
+        "activations": 82219,
+        "refused": 69067,
+        "writes": [
+          111911,
+          129918
+        ],
+        "saves": 60,
+        "max_latency": {
+          "script": 0.001,
+          "writer": 0.001
+        }
+      },
+      "snapshot": [
+        81015,
+        81015
+      ]
+    },
+    "pass": true,
+    "seconds": 6.54
+  },
+  {
+    "case": "bgsave-script",
+    "leg": "1s-epoll-0",
+    "value": {
+      "bgsave_seconds": 0.395,
+      "storm": {
+        "activations": 76440,
+        "refused": 68743,
+        "writes": [
+          114739,
+          135506
+        ],
+        "saves": 60,
+        "max_latency": {
+          "script": 0.002,
+          "writer": 0.001
+        }
+      },
+      "snapshot": [
+        75356,
+        75356
+      ]
+    },
+    "pass": true,
+    "seconds": 6.514
+  },
+  {
+    "case": "bgsave-script",
+    "leg": "1s-epoll-1",
+    "value": {
+      "bgsave_seconds": 0.395,
+      "storm": {
+        "activations": 54570,
+        "refused": 61648,
+        "writes": [
+          133557,
+          165463
+        ],
+        "saves": 60,
+        "max_latency": {
+          "script": 0.001,
+          "writer": 0.001
+        }
+      },
+      "snapshot": [
+        53810,
+        53810
+      ]
+    },
+    "pass": true,
+    "seconds": 6.505
+  },
+  {
+    "case": "bgsave-script",
+    "leg": "2s-uring-0",
+    "value": {
+      "bgsave_seconds": 0.394,
+      "storm": {
+        "activations": 192006,
+        "refused": 29250,
+        "writes": [
+          90325,
+          95333
+        ],
+        "saves": 60,
+        "max_latency": {
+          "script": 0.05,
+          "writer": 0.001
+        }
+      },
+      "snapshot": [
+        189080,
+        189080
+      ]
+    },
+    "pass": true,
+    "seconds": 6.515
+  },
+  {
+    "case": "bgsave-script",
+    "leg": "2s-uring-1",
+    "value": {
+      "bgsave_seconds": 0.395,
+      "storm": {
+        "activations": 181501,
+        "refused": 28015,
+        "writes": [
+          94358,
+          98899
+        ],
+        "saves": 60,
+        "max_latency": {
+          "script": 0.051,
+          "writer": 0.001
+        }
+      },
+      "snapshot": [
+        178626,
+        178626
+      ]
+    },
+    "pass": true,
+    "seconds": 6.516
+  },
+  {
+    "case": "bgsave-script",
+    "leg": "2s-epoll-0",
+    "value": {
+      "bgsave_seconds": 0.395,
+      "storm": {
+        "activations": 201818,
+        "refused": 30355,
+        "writes": [
+          83666,
+          88532
+        ],
+        "saves": 60,
+        "max_latency": {
+          "script": 0.051,
+          "writer": 0.002
+        }
+      },
+      "snapshot": [
+        198688,
+        198688
+      ]
+    },
+    "pass": true,
+    "seconds": 6.508
+  },
+  {
+    "case": "bgsave-script",
+    "leg": "2s-epoll-1",
+    "value": {
+      "bgsave_seconds": 0.395,
+      "storm": {
+        "activations": 213265,
+        "refused": 25655,
+        "writes": [
+          81064,
+          86152
+        ],
+        "saves": 60,
+        "max_latency": {
+          "script": 0.05,
+          "writer": 0.001
+        }
+      },
+      "snapshot": [
+        209850,
+        209850
+      ]
+    },
+    "pass": true,
+    "seconds": 6.507
+  }
+]

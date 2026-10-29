@@ -1,0 +1,35 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "0-15",
+    "tests/gate.sh",
+    "iteration",
+    "--server-cores",
+    "0-7",
+    "--load-cores",
+    "8-15",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20100-20199",
+    "--candidate-binary",
+    "build/snapfix2/base/tomokv"
+  ],
+  "environment": {
+    "GATE_ONLY_JOBS": "snapfix2_tables",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_PROOF_NO_RATES": "1"
+  },
+  "binary": "build/snapfix2/base/tomokv",
+  "binary_sha256": "dea9309b1ebdf5a46da5fc69d377ed55b26414e7e01d38d3ddfa4b2a8b61db98",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "exit": 1,
+  "seconds": 7.074,
+  "log_sha256": "64c518b60d43dae87ec62fdd655c4f00cfebb40eb3c960bab39e49c341f0c4ed",
+  "removed_data": {}
+}

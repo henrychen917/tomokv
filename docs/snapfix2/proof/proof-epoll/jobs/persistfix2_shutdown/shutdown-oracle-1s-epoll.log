@@ -1,0 +1,229 @@
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/grammar/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1"], "event": "boot", "pid": 1997442}
+{"command": ["SHUTDOWN", "ABORT"], "event": "reply", "reply": {"error": "ERR No shutdown in progress."}}
+{"command": ["SHUTDOWN", "ABORT", "ABORT"], "event": "reply", "reply": {"error": "ERR No shutdown in progress."}}
+{"command": ["SHUTDOWN", "ABORT", "bogus"], "event": "reply", "reply": {"error": "ERR syntax error"}}
+{"command": ["SHUTDOWN", "SAVE", "NOSAVE"], "event": "reply", "reply": {"error": "ERR syntax error"}}
+{"command": ["SHUTDOWN", "ABORT", "SAVE"], "event": "reply", "reply": {"error": "ERR syntax error"}}
+{"command": ["SHUTDOWN", "NOW", "ABORT"], "event": "reply", "reply": {"error": "ERR syntax error"}}
+{"command": ["SHUTDOWN", "FORCE", "ABORT"], "event": "reply", "reply": {"error": "ERR syntax error"}}
+{"command": ["SHUTDOWN", "ABORT", "NOSAVE"], "event": "reply", "reply": {"error": "ERR syntax error"}}
+{"command": ["SHUTDOWN", "ABORT", "ABORT", "ABORT", "ABORT", "ABORT"], "event": "reply", "reply": {"error": "ERR No shutdown in progress."}}
+{"command": ["SHUTDOWN", "NOSAVE"], "event": "reply", "reply": {"error": "ERR Command not allowed inside a transaction"}}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "EXECABORT Transaction discarded because of previous errors."}}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-0-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 1997454}
+{"configured": true, "event": "shutdown reply", "failed": false, "reply": "closed", "words": []}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-0-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 1997474}
+{"configured": true, "event": "shutdown reply", "failed": true, "reply": {"error": "ERR Errors trying to SHUTDOWN. Check logs."}, "words": []}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-1-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 1997482}
+{"configured": true, "event": "shutdown reply", "failed": false, "reply": "closed", "words": ["NOW"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-1-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 1997489}
+{"configured": true, "event": "shutdown reply", "failed": true, "reply": {"error": "ERR Errors trying to SHUTDOWN. Check logs."}, "words": ["NOW"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-2-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 1997496}
+{"configured": true, "event": "shutdown reply", "failed": false, "reply": "closed", "words": ["FORCE"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-2-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 1997503}
+{"configured": true, "event": "shutdown reply", "failed": true, "reply": "closed", "words": ["FORCE"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-3-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 1997511}
+{"configured": true, "event": "shutdown reply", "failed": false, "reply": "closed", "words": ["NOW", "FORCE"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-3-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 1997518}
+{"configured": true, "event": "shutdown reply", "failed": true, "reply": "closed", "words": ["NOW", "FORCE"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-4-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 1997536}
+{"configured": true, "event": "shutdown reply", "failed": false, "reply": "closed", "words": ["SAVE"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-4-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 1997543}
+{"configured": true, "event": "shutdown reply", "failed": true, "reply": {"error": "ERR Errors trying to SHUTDOWN. Check logs."}, "words": ["SAVE"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-5-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 1997665}
+{"configured": true, "event": "shutdown reply", "failed": false, "reply": "closed", "words": ["NOSAVE"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-5-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 1997987}
+{"configured": true, "event": "shutdown reply", "failed": true, "reply": "closed", "words": ["NOSAVE"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-6-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 1998320}
+{"configured": true, "event": "shutdown reply", "failed": false, "reply": "closed", "words": ["SAVE", "NOW"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-6-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 1998658}
+{"configured": true, "event": "shutdown reply", "failed": true, "reply": {"error": "ERR Errors trying to SHUTDOWN. Check logs."}, "words": ["SAVE", "NOW"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-7-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 1998836}
+{"configured": true, "event": "shutdown reply", "failed": false, "reply": "closed", "words": ["SAVE", "FORCE"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-7-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 1998843}
+{"configured": true, "event": "shutdown reply", "failed": true, "reply": "closed", "words": ["SAVE", "FORCE"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-8-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 1999131}
+{"configured": true, "event": "shutdown reply", "failed": false, "reply": "closed", "words": ["NOSAVE", "NOW"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-8-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 1999463}
+{"configured": true, "event": "shutdown reply", "failed": true, "reply": "closed", "words": ["NOSAVE", "NOW"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-9-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 1999564}
+{"configured": true, "event": "shutdown reply", "failed": false, "reply": "closed", "words": ["NOSAVE", "FORCE"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-9-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 1999610}
+{"configured": true, "event": "shutdown reply", "failed": true, "reply": "closed", "words": ["NOSAVE", "FORCE"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-10-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 1999938}
+{"configured": true, "event": "shutdown reply", "failed": false, "reply": "closed", "words": ["SAVE", "NOW", "FORCE"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-10-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 2000271}
+{"configured": true, "event": "shutdown reply", "failed": true, "reply": "closed", "words": ["SAVE", "NOW", "FORCE"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-11-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 2000475}
+{"configured": true, "event": "shutdown reply", "failed": false, "reply": "closed", "words": ["NOSAVE", "NOW", "FORCE"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-11-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 2000482}
+{"configured": true, "event": "shutdown reply", "failed": true, "reply": "closed", "words": ["NOSAVE", "NOW", "FORCE"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-12-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 2000762}
+{"configured": true, "event": "shutdown reply", "failed": false, "reply": "closed", "words": ["NOSAVE", "NOW", "FORCE", "NOW", "NOSAVE"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-12-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 2001097}
+{"configured": true, "event": "shutdown reply", "failed": true, "reply": "closed", "words": ["NOSAVE", "NOW", "FORCE", "NOW", "NOSAVE"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-default-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", ""], "event": "boot", "pid": 2001398}
+{"command": ["CONFIG", "SET", "shutdown-on-sigterm", "default"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigterm"], "event": "reply", "reply": ["shutdown-on-sigterm", "default"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-default-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 2001405}
+{"command": ["CONFIG", "SET", "shutdown-on-sigterm", "default"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigterm"], "event": "reply", "reply": ["shutdown-on-sigterm", "default"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-save-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", ""], "event": "boot", "pid": 2001735}
+{"command": ["CONFIG", "SET", "shutdown-on-sigterm", "save"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigterm"], "event": "reply", "reply": ["shutdown-on-sigterm", "save"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-save-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 2002142}
+{"command": ["CONFIG", "SET", "shutdown-on-sigterm", "save"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigterm"], "event": "reply", "reply": ["shutdown-on-sigterm", "save"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-nosave-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", ""], "event": "boot", "pid": 2002167}
+{"command": ["CONFIG", "SET", "shutdown-on-sigterm", "nosave"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigterm"], "event": "reply", "reply": ["shutdown-on-sigterm", "nosave"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-nosave-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 2002174}
+{"command": ["CONFIG", "SET", "shutdown-on-sigterm", "nosave"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigterm"], "event": "reply", "reply": ["shutdown-on-sigterm", "nosave"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-save-now-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", ""], "event": "boot", "pid": 2002181}
+{"command": ["CONFIG", "SET", "shutdown-on-sigterm", "save now"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigterm"], "event": "reply", "reply": ["shutdown-on-sigterm", "save now"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-save-now-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 2002188}
+{"command": ["CONFIG", "SET", "shutdown-on-sigterm", "save now"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigterm"], "event": "reply", "reply": ["shutdown-on-sigterm", "save now"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-save-force-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", ""], "event": "boot", "pid": 2002195}
+{"command": ["CONFIG", "SET", "shutdown-on-sigterm", "save force"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigterm"], "event": "reply", "reply": ["shutdown-on-sigterm", "save force"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-save-force-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 2002202}
+{"command": ["CONFIG", "SET", "shutdown-on-sigterm", "save force"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigterm"], "event": "reply", "reply": ["shutdown-on-sigterm", "save force"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-nosave-now-force-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", ""], "event": "boot", "pid": 2002209}
+{"command": ["CONFIG", "SET", "shutdown-on-sigterm", "nosave now force"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigterm"], "event": "reply", "reply": ["shutdown-on-sigterm", "nosave now force"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigterm-nosave-now-force-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 2002218}
+{"command": ["CONFIG", "SET", "shutdown-on-sigterm", "nosave now force"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigterm"], "event": "reply", "reply": ["shutdown-on-sigterm", "nosave now force"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-default-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", ""], "event": "boot", "pid": 2002225}
+{"command": ["CONFIG", "SET", "shutdown-on-sigint", "default"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigint"], "event": "reply", "reply": ["shutdown-on-sigint", "default"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-default-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 2002235}
+{"command": ["CONFIG", "SET", "shutdown-on-sigint", "default"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigint"], "event": "reply", "reply": ["shutdown-on-sigint", "default"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-save-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", ""], "event": "boot", "pid": 2002243}
+{"command": ["CONFIG", "SET", "shutdown-on-sigint", "save"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigint"], "event": "reply", "reply": ["shutdown-on-sigint", "save"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-save-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 2002250}
+{"command": ["CONFIG", "SET", "shutdown-on-sigint", "save"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigint"], "event": "reply", "reply": ["shutdown-on-sigint", "save"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-nosave-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", ""], "event": "boot", "pid": 2002257}
+{"command": ["CONFIG", "SET", "shutdown-on-sigint", "nosave"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigint"], "event": "reply", "reply": ["shutdown-on-sigint", "nosave"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-nosave-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 2002274}
+{"command": ["CONFIG", "SET", "shutdown-on-sigint", "nosave"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigint"], "event": "reply", "reply": ["shutdown-on-sigint", "nosave"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-save-now-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", ""], "event": "boot", "pid": 2002285}
+{"command": ["CONFIG", "SET", "shutdown-on-sigint", "save now"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigint"], "event": "reply", "reply": ["shutdown-on-sigint", "save now"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-save-now-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 2002292}
+{"command": ["CONFIG", "SET", "shutdown-on-sigint", "save now"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigint"], "event": "reply", "reply": ["shutdown-on-sigint", "save now"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-save-force-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", ""], "event": "boot", "pid": 2002299}
+{"command": ["CONFIG", "SET", "shutdown-on-sigint", "save force"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigint"], "event": "reply", "reply": ["shutdown-on-sigint", "save force"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-save-force-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 2002307}
+{"command": ["CONFIG", "SET", "shutdown-on-sigint", "save force"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigint"], "event": "reply", "reply": ["shutdown-on-sigint", "save force"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-nosave-now-force-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", ""], "event": "boot", "pid": 2002321}
+{"command": ["CONFIG", "SET", "shutdown-on-sigint", "nosave now force"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigint"], "event": "reply", "reply": ["shutdown-on-sigint", "nosave now force"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/sigint-nosave-now-force-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--save", "3600 1"], "event": "boot", "pid": 2002328}
+{"command": ["CONFIG", "SET", "shutdown-on-sigint", "nosave now force"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "GET", "shutdown-on-sigint"], "event": "reply", "reply": ["shutdown-on-sigint", "nosave now force"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/config/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1"], "event": "boot", "pid": 2002335}
+{"command": ["CONFIG", "SET", "shutdown-on-sigterm", "SAVE save FORCE"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "SET", "shutdown-on-sigterm", "default now nosave"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "SET", "shutdown-on-sigterm", "force now save default"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "SET", "shutdown-on-sigterm", "save nosave"], "event": "reply", "reply": {"error": "ERR CONFIG SET failed (possibly related to argument 'shutdown-on-sigterm') - shutdown options SAVE and NOSAVE can't be used simultaneously"}}
+{"command": ["CONFIG", "SET", "shutdown-on-sigterm", "bogus"], "event": "reply", "reply": {"error": "ERR CONFIG SET failed (possibly related to argument 'shutdown-on-sigterm') - argument(s) must be one of the following: default, save, nosave, now, force"}}
+{"command": ["CONFIG", "SET", "shutdown-on-sigterm", ""], "event": "reply", "reply": {"error": "ERR CONFIG SET failed (possibly related to argument 'shutdown-on-sigterm') - argument(s) must be one of the following: default, save, nosave, now, force"}}
+{"command": ["CONFIG", "SET", "shutdown-on-sigterm", "abort"], "event": "reply", "reply": {"error": "ERR CONFIG SET failed (possibly related to argument 'shutdown-on-sigterm') - argument(s) must be one of the following: default, save, nosave, now, force"}}
+{"command": ["CONFIG", "SET", "shutdown-on-sigterm", "nosave"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "SET", "shutdown-on-sigint", "SAVE save FORCE"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "SET", "shutdown-on-sigint", "default now nosave"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "SET", "shutdown-on-sigint", "force now save default"], "event": "reply", "reply": "OK"}
+{"command": ["CONFIG", "SET", "shutdown-on-sigint", "save nosave"], "event": "reply", "reply": {"error": "ERR CONFIG SET failed (possibly related to argument 'shutdown-on-sigint') - shutdown options SAVE and NOSAVE can't be used simultaneously"}}
+{"command": ["CONFIG", "SET", "shutdown-on-sigint", "bogus"], "event": "reply", "reply": {"error": "ERR CONFIG SET failed (possibly related to argument 'shutdown-on-sigint') - argument(s) must be one of the following: default, save, nosave, now, force"}}
+{"command": ["CONFIG", "SET", "shutdown-on-sigint", ""], "event": "reply", "reply": {"error": "ERR CONFIG SET failed (possibly related to argument 'shutdown-on-sigint') - argument(s) must be one of the following: default, save, nosave, now, force"}}
+{"command": ["CONFIG", "SET", "shutdown-on-sigint", "abort"], "event": "reply", "reply": {"error": "ERR CONFIG SET failed (possibly related to argument 'shutdown-on-sigint') - argument(s) must be one of the following: default, save, nosave, now, force"}}
+{"command": ["CONFIG", "SET", "shutdown-on-sigint", "nosave"], "event": "reply", "reply": "OK"}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/boot-sigterm/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--shutdown-on-sigterm", "default", "save", "now", "force"], "event": "boot", "pid": 2002342}
+{"command": ["CONFIG", "GET", "shutdown-on-sigterm"], "event": "reply", "reply": ["shutdown-on-sigterm", "save now force"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/boot-sigint/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--shutdown-on-sigint", "default", "save", "now", "force"], "event": "boot", "pid": 2002349}
+{"command": ["CONFIG", "GET", "shutdown-on-sigint"], "event": "reply", "reply": ["shutdown-on-sigint", "save now force"]}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/active-save-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--rdb-key-save-delay", "100"], "event": "boot", "pid": 2002356}
+{"command": ["BGSAVE"], "event": "reply", "reply": "Background saving started"}
+{"attempt": 0, "event": "active save observed"}
+{"event": "active save shutdown reply", "reply": "closed"}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/wave7-blocked-nosave/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1"], "event": "boot", "pid": 2002422}
+{"armed": 2, "event": "wave7 blocked shutdown", "exit": 0, "save": false}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/wave7-blocked-nosave/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1"], "event": "boot", "pid": 2002430}
+{"event": "wave7 blocked shutdown recovery", "save": false}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/wave7-blocked-save/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1"], "event": "boot", "pid": 2002454}
+{"armed": 2, "event": "wave7 blocked shutdown", "exit": 0, "save": true}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "0-7", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/wave7-blocked-save/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1"], "event": "boot", "pid": 2002469}
+{"event": "wave7 blocked shutdown recovery", "save": true}
+{"code": 0, "event": "exit"}
+{"case": "shutdown", "engine": "epoll", "event": "PASS", "mode": "1s", "oracle": true}

@@ -1,0 +1,49 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "8-15",
+    "python3",
+    "tests/snapfix.py",
+    "--case",
+    "bgsave-loop",
+    "--binary",
+    "build/snapfix2/POST-layout",
+    "--oracle",
+    "/home/user/Projects/redis/src/redis-server",
+    "--cores",
+    "0-7",
+    "--port",
+    "20100",
+    "--output",
+    "/home/user/Projects/cx-snapfix2/docs/snapfix2/pad/post-layout",
+    "--atomics",
+    "1",
+    "--no-oracle"
+  ],
+  "environment": {},
+  "binary": "build/snapfix2/POST-layout",
+  "binary_sha256": "e091b35599b3c8ec893facb4132a5d3996fb35a076557303c11174f26df67346",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "exit": 0,
+  "seconds": 0.365,
+  "log_sha256": "fc77473a5a6f01fe065e204848162b25f42da73721039d1fd25c8043ff6b078a",
+  "removed_data": {
+    "1s-epoll-1/dump.tomo": {
+      "bytes": 676,
+      "sha256": "73d066b9f4aa0836e182b98a49896fd9051de33c9fce0e4a8c2ef3ea3eb08d9d"
+    },
+    "2s-epoll-1/dump.tomo": {
+      "bytes": 676,
+      "sha256": "9a87fae3c329301ef57a91d1f3a60cc865d6dfadde986e41af8b59e172db0a16"
+    },
+    "1s-uring-1/dump.tomo": {
+      "bytes": 676,
+      "sha256": "3f9216ea16975e47ddf304b622404ef70fa80d7ce2aa5798e940f8dcdb73acb3"
+    },
+    "2s-uring-1/dump.tomo": {
+      "bytes": 676,
+      "sha256": "41c9c85af293ee0cf75c6c6521701f94691fc556100c4b214f494f4cd737a042"
+    }
+  }
+}

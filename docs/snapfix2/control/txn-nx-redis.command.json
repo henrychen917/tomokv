@@ -1,0 +1,22 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "8-15",
+    "python3",
+    "tools/snapfix2_nx_control.py",
+    "--binary",
+    "build/tomokv",
+    "--output",
+    "/home/user/Projects/cx-snapfix2/docs/snapfix2/control/txn-nx-redis",
+    "--redis"
+  ],
+  "environment": {},
+  "binary": "/home/user/Projects/redis/src/redis-server",
+  "binary_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "exit": 0,
+  "seconds": 14.383,
+  "log_sha256": "c95d1d946786fa81708a6d672b0b38808bdab383812221e4ca1fed2c3652743a",
+  "removed_data": {}
+}

@@ -1,0 +1,2 @@
+df4aa164535e0b2ef615514420ff6171913ea38d40eb8121dcd1a276108b7705  tests/at412.py
+55efcbfd19eb5efa9dd7f4d07e06b643729d8f9aa5f867f6ade7d6f6a118f2fc  tests/at412_diagnostics.py

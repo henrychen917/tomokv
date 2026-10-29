@@ -1,0 +1,173 @@
+[
+  {
+    "case": "shutdown",
+    "leg": "redis-redis-0",
+    "value": {
+      "restored": [
+        144,
+        144
+      ],
+      "acknowledged_max": [
+        141,
+        141
+      ],
+      "sent": 147,
+      "refused": 0,
+      "acknowledged": 141
+    },
+    "pass": true,
+    "seconds": 0.164
+  },
+  {
+    "case": "shutdown",
+    "leg": "1s-uring-0",
+    "value": {
+      "restored": [
+        83,
+        83
+      ],
+      "acknowledged_max": [
+        83,
+        83
+      ],
+      "sent": 104,
+      "refused": 7,
+      "acknowledged": 83
+    },
+    "pass": true,
+    "seconds": 0.053
+  },
+  {
+    "case": "shutdown",
+    "leg": "1s-uring-1",
+    "value": {
+      "restored": [
+        67,
+        67
+      ],
+      "acknowledged_max": [
+        67,
+        67
+      ],
+      "sent": 88,
+      "refused": 7,
+      "acknowledged": 67
+    },
+    "pass": true,
+    "seconds": 0.053
+  },
+  {
+    "case": "shutdown",
+    "leg": "1s-epoll-0",
+    "value": {
+      "restored": [
+        42,
+        42
+      ],
+      "acknowledged_max": [
+        42,
+        42
+      ],
+      "sent": 76,
+      "refused": 20,
+      "acknowledged": 42
+    },
+    "pass": true,
+    "seconds": 0.052
+  },
+  {
+    "case": "shutdown",
+    "leg": "1s-epoll-1",
+    "value": {
+      "restored": [
+        88,
+        88
+      ],
+      "acknowledged_max": [
+        88,
+        88
+      ],
+      "sent": 107,
+      "refused": 5,
+      "acknowledged": 88
+    },
+    "pass": true,
+    "seconds": 0.052
+  },
+  {
+    "case": "shutdown",
+    "leg": "2s-uring-0",
+    "value": {
+      "restored": [
+        88,
+        88
+      ],
+      "acknowledged_max": [
+        88,
+        88
+      ],
+      "sent": 112,
+      "refused": 10,
+      "acknowledged": 88
+    },
+    "pass": true,
+    "seconds": 0.052
+  },
+  {
+    "case": "shutdown",
+    "leg": "2s-uring-1",
+    "value": {
+      "restored": [
+        100,
+        100
+      ],
+      "acknowledged_max": [
+        100,
+        100
+      ],
+      "sent": 118,
+      "refused": 4,
+      "acknowledged": 100
+    },
+    "pass": true,
+    "seconds": 0.052
+  },
+  {
+    "case": "shutdown",
+    "leg": "2s-epoll-0",
+    "value": {
+      "restored": [
+        104,
+        104
+      ],
+      "acknowledged_max": [
+        104,
+        104
+      ],
+      "sent": 120,
+      "refused": 2,
+      "acknowledged": 104
+    },
+    "pass": true,
+    "seconds": 0.052
+  },
+  {
+    "case": "shutdown",
+    "leg": "2s-epoll-1",
+    "value": {
+      "restored": [
+        107,
+        107
+      ],
+      "acknowledged_max": [
+        107,
+        107
+      ],
+      "sent": 123,
+      "refused": 2,
+      "acknowledged": 107
+    },
+    "pass": true,
+    "seconds": 0.052
+  }
+]

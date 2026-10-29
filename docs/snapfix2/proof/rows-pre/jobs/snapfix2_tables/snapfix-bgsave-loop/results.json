@@ -1,0 +1,108 @@
+[
+  {
+    "case": "bgsave-loop",
+    "leg": "redis-redis-0",
+    "value": {
+      "rss": [
+        6352896,
+        6352896,
+        6352896,
+        6352896,
+        6352896,
+        6352896,
+        6352896,
+        6352896,
+        6352896,
+        6352896,
+        6352896,
+        6352896
+      ],
+      "seconds": [
+        0.087,
+        0.097,
+        0.102,
+        0.102,
+        0.097,
+        0.102,
+        0.103,
+        0.097,
+        0.102,
+        0.097,
+        0.102,
+        0.097
+      ],
+      "start_seconds": [
+        0.000266,
+        0.000289,
+        0.000272,
+        0.000307,
+        0.000282,
+        0.000316,
+        0.000302,
+        0.000307,
+        0.000298,
+        0.000295,
+        0.000312,
+        0.0003
+      ]
+    },
+    "pass": true,
+    "seconds": 1.325
+  },
+  {
+    "case": "bgsave-loop",
+    "leg": "1s-uring-0",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 619, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 465, in bgsave_loop_bounded\n    assert max(rss[2:]) <= 3 * rss[1] + (64 << 20), ('BGSAVE loop grew the process', rss)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ('BGSAVE loop grew the process', [19357696, 20496384, 21610496, 23318528, 27578368, 32919552, 49762304, 83386368, 150585344, 284868608, 555470848, 958124032])\n",
+    "seconds": 0.511
+  },
+  {
+    "case": "bgsave-loop",
+    "leg": "1s-uring-1",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 619, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 465, in bgsave_loop_bounded\n    assert max(rss[2:]) <= 3 * rss[1] + (64 << 20), ('BGSAVE loop grew the process', rss)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ('BGSAVE loop grew the process', [19357696, 20496384, 21610496, 23318528, 27578368, 32919552, 49762304, 83398656, 150585344, 284868608, 553369600, 958124032])\n",
+    "seconds": 0.501
+  },
+  {
+    "case": "bgsave-loop",
+    "leg": "1s-epoll-0",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 619, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 465, in bgsave_loop_bounded\n    assert max(rss[2:]) <= 3 * rss[1] + (64 << 20), ('BGSAVE loop grew the process', rss)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ('BGSAVE loop grew the process', [19357696, 20496384, 21610496, 23392256, 27652096, 32923648, 49770496, 83390464, 150573056, 286957568, 555458560, 960208896])\n",
+    "seconds": 0.405
+  },
+  {
+    "case": "bgsave-loop",
+    "leg": "1s-epoll-1",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 619, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 465, in bgsave_loop_bounded\n    assert max(rss[2:]) <= 3 * rss[1] + (64 << 20), ('BGSAVE loop grew the process', rss)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ('BGSAVE loop grew the process', [21458944, 22597632, 23711744, 25423872, 29683712, 35803136, 52645888, 86274048, 153452544, 287735808, 556236800, 960987136])\n",
+    "seconds": 0.418
+  },
+  {
+    "case": "bgsave-loop",
+    "leg": "2s-uring-0",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 619, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 465, in bgsave_loop_bounded\n    assert max(rss[2:]) <= 3 * rss[1] + (64 << 20), ('BGSAVE loop grew the process', rss)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ('BGSAVE loop grew the process', [16207872, 16977920, 18092032, 20160512, 23240704, 29581312, 44318720, 73736192, 140910592, 275202048, 493322240, 898076672])\n",
+    "seconds": 1.296
+  },
+  {
+    "case": "bgsave-loop",
+    "leg": "2s-uring-1",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 619, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 465, in bgsave_loop_bounded\n    assert max(rss[2:]) <= 3 * rss[1] + (64 << 20), ('BGSAVE loop grew the process', rss)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ('BGSAVE loop grew the process', [16207872, 16977920, 18092032, 20160512, 23240704, 29581312, 44318720, 73736192, 140910592, 275202048, 493322240, 898076672])\n",
+    "seconds": 1.418
+  },
+  {
+    "case": "bgsave-loop",
+    "leg": "2s-epoll-0",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 619, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 465, in bgsave_loop_bounded\n    assert max(rss[2:]) <= 3 * rss[1] + (64 << 20), ('BGSAVE loop grew the process', rss)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ('BGSAVE loop grew the process', [18313216, 19083264, 20197376, 22265856, 25346048, 31686656, 46424064, 75841536, 143015936, 277307392, 495427584, 900177920])\n",
+    "seconds": 0.962
+  },
+  {
+    "case": "bgsave-loop",
+    "leg": "2s-epoll-1",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 619, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 465, in bgsave_loop_bounded\n    assert max(rss[2:]) <= 3 * rss[1] + (64 << 20), ('BGSAVE loop grew the process', rss)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ('BGSAVE loop grew the process', [18313216, 19083264, 20197376, 22269952, 25350144, 31690752, 46428160, 75845632, 143020032, 277311488, 495431680, 900182016])\n",
+    "seconds": 1.01
+  }
+]

@@ -1,0 +1,33 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "0-15",
+    "tests/gate.sh",
+    "iteration",
+    "--server-cores",
+    "0-7",
+    "--load-cores",
+    "8-15",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20100-20199"
+  ],
+  "environment": {
+    "GATE_ONLY_JOBS": "differ-split differ-armed",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_PROOF_NO_RATES": "1"
+  },
+  "binary": "build/tomokv",
+  "binary_sha256": "dd169c2f10040c4b13cb87c3731e4ba1a2dbd74088635008e8512ba64e84021c",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "exit": 0,
+  "seconds": 2145.602,
+  "log_sha256": "16a145ab44dcdf7b1b2b9926a6660f2b225b786150cac5708bc70a3720aae855",
+  "removed_data": {}
+}

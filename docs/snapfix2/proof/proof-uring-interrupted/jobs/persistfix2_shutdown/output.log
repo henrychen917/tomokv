@@ -1,0 +1,3 @@
+  row budget: 900s; median=-s; no-history-conservative-default; persistfix2 shutdown modifiers and signal policy
+  persistfix2 shutdown modifiers and signal policy     FAIL (family exited 130 before this row produced a verdict)
+GATE HISTORY ERROR: reap-tree can only clean up its own direct parent

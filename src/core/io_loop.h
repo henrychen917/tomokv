@@ -166,6 +166,10 @@ public:
     // insufficient once no future pass can consume its queue or kernel pins.
     void shutdown_clients_after_join();
     void shutdown_on_issuer();
+    // Coordinator only, after all workers join and before the stores release their atomic
+    // records: drop the PIN references of cross-owner script activations abandoned between their
+    // PIN and UNPIN waves (XS-SHUT-1). Defined in shutdown.cc, like the two members above.
+    static void shutdown_release_abandoned_script_pins(Server& srv);
     struct ShutdownOnIssuer {
         IoLoop& loop;
         ~ShutdownOnIssuer() { loop.shutdown_on_issuer(); }

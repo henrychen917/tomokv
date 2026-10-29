@@ -1,0 +1,18 @@
+  row budget: 900s; median=-s; no-history-conservative-default; fused boot line (atomic 1)
+  fused boot line (atomic 1)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused s6 battery (atomic 1)
+  fused s6 battery (atomic 1)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused multi_exec battery (atomic 1)
+  fused multi_exec battery (atomic 1)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused edgeproto battery (atomic 1)
+  fused edgeproto battery (atomic 1)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused atomfix battery (atomic 1)
+  fused atomfix battery (atomic 1)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused spinprobe battery (atomic 1)
+  fused spinprobe battery (atomic 1)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused shutdown report (atomic 1)
+  fused shutdown report (atomic 1)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused txn_nx battery (atomic 1)
+  fused txn_nx battery (atomic 1)                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused txniso battery (atomic 1)
+  fused txniso battery (atomic 1)                      ok

@@ -1,0 +1,19 @@
+2171749:C 29 Oct 2026 01:00:29.889 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+2171749:C 29 Oct 2026 01:00:29.889 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+2171749:C 29 Oct 2026 01:00:29.889 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=2171749, just started
+2171749:C 29 Oct 2026 01:00:29.889 * Configuration loaded
+2171749:M 29 Oct 2026 01:00:29.889 * monotonic clock: POSIX clock_gettime
+2171749:M 29 Oct 2026 01:00:29.889 * Running mode=standalone, port=20101.
+2171749:M 29 Oct 2026 01:00:29.889 * Server initialized
+2171749:M 29 Oct 2026 01:00:29.890 * Ready to accept connections tcp
+2171749:signal-handler (1793206829) Received SIGTERM scheduling shutdown...
+2171749:M 29 Oct 2026 01:00:29.991 * User requested shutdown...
+2171749:M 29 Oct 2026 01:00:29.991 * Saving the final RDB snapshot before exiting.
+2171749:M 29 Oct 2026 01:00:29.992 # Error moving temp DB file temp-2171749.rdb on the final destination saved.rdb (in server root dir /home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/iofix-signal/signal-2s-epoll/oracle-failed-save): Is a directory
+2171749:M 29 Oct 2026 01:00:29.992 # Error trying to save the DB, can't exit.
+2171749:M 29 Oct 2026 01:00:29.992 # Errors trying to shut down the server. Check the logs for more information.
+2171749:signal-handler (1793206830) Received SIGTERM scheduling shutdown...
+2171749:M 29 Oct 2026 01:00:30.293 * User requested shutdown...
+2171749:M 29 Oct 2026 01:00:30.293 * Saving the final RDB snapshot before exiting.
+2171749:M 29 Oct 2026 01:00:30.294 * DB saved on disk
+2171749:M 29 Oct 2026 01:00:30.294 # Redis is now ready to exit, bye bye...

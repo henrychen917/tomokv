@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-snapfix/build/snapfix/commands/post-db0-SET-1s-32-1--1.log
+SHA-256: c7555a4f44e72336663bb220c4c48edbce0bf31abcf2baba973d44be79dbd5f7
+Exit: 0
+2367	    }
+0x00005555558aee18	TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+2367	    }
+0x00005555558aee21	2367	    }
+0x00005555558aee27	2367	    }
+0x00005555558aee2b	2367	    }
+0x00005555558aee2c	2367	    }
+0x00005555558aee2e	2367	    }
+0x00005555558aee30	2367	    }
+0x00005555558aee32	2367	    }
+0x00005555558aee34	2367	    }
+0x00005555558aee35	2367	    }
+0x0000555555d8d4d4 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-snapfix/tests/txnorder_command_scope.cc:72
+72	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-snapfix/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 1950444) exited normally]
+COUNT 23089

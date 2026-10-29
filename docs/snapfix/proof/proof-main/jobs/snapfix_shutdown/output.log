@@ -1,0 +1,2 @@
+  row budget: 900s; median=0.64s; correctness-plan-fallback; snapfix XS-SHUT-1 SHUTDOWN NOSAVE in script storm (both modes, both engines, atomic 0/1)
+  snapfix XS-SHUT-1 SHUTDOWN NOSAVE in script storm (both modes, both engines, atomic 0/1) ok

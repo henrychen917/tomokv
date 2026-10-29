@@ -1,0 +1,23 @@
+2033923:C 29 Oct 2026 00:51:50.185 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+2033923:C 29 Oct 2026 00:51:50.185 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+2033923:C 29 Oct 2026 00:51:50.185 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=2033923, just started
+2033923:C 29 Oct 2026 00:51:50.185 * Configuration loaded
+2033923:M 29 Oct 2026 00:51:50.185 * monotonic clock: POSIX clock_gettime
+2033923:M 29 Oct 2026 00:51:50.186 * Running mode=standalone, port=20100.
+2033923:M 29 Oct 2026 00:51:50.186 * Server initialized
+2033923:M 29 Oct 2026 00:51:50.186 * Ready to accept connections tcp
+2033923:M 29 Oct 2026 00:51:50.269 * Background append only file rewriting started by pid 2034168
+2034168:C 29 Oct 2026 00:51:50.269 * Successfully created the temporary AOF base file temp-rewriteaof-bg-2034168.aof
+2034168:C 29 Oct 2026 00:51:50.270 * Fork CoW for AOF rewrite: current 0 MB, peak 0 MB, average 0 MB
+2033923:M 29 Oct 2026 00:51:50.288 * Background AOF rewrite terminated with success
+2033923:M 29 Oct 2026 00:51:50.288 * Successfully renamed the temporary AOF base file temp-rewriteaof-bg-2034168.aof into appendonly.aof.1.base.rdb
+2033923:M 29 Oct 2026 00:51:50.288 * Background AOF rewrite finished successfully
+2033923:M 29 Oct 2026 00:51:50.290 * Background append only file rewriting started by pid 2034228
+2034228:C 29 Oct 2026 00:51:50.291 * Successfully created the temporary AOF base file temp-rewriteaof-bg-2034228.aof
+2034228:C 29 Oct 2026 00:51:50.291 * Fork CoW for AOF rewrite: current 0 MB, peak 0 MB, average 0 MB
+2033923:M 29 Oct 2026 00:51:50.389 * Background AOF rewrite terminated with success
+2033923:M 29 Oct 2026 00:51:50.389 * Successfully renamed the temporary AOF base file temp-rewriteaof-bg-2034228.aof into appendonly.aof.2.base.rdb
+2033923:M 29 Oct 2026 00:51:50.389 * Removing the history file appendonly.aof.1.base.rdb in the background
+2033923:M 29 Oct 2026 00:51:50.389 * Background AOF rewrite finished successfully
+2033923:M 29 Oct 2026 00:51:50.393 * User requested shutdown...
+2033923:M 29 Oct 2026 00:51:50.393 # Redis is now ready to exit, bye bye...

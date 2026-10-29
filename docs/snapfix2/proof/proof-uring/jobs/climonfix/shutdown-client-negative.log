@@ -1,0 +1,1 @@
+FAIL shutdown: post-join cleanup releases dead FIFO and admitted receive pins

@@ -45,3 +45,8 @@ Required arms: PRE, POST, POST-minus-rlfix4, and PAD-A (kind A, PRE behaviour wi
 candidate layout control). Final hashes, control limitations, instruction/body
 receipts, correctness results, NOT RUN items and exact maintainer cells will be
 recorded here before delivery. No throughput claim is made.
+
+Snapshot merge resolution: retain wave 9’s stronger at412 APPLY-window witness.
+Retain the existing `xshard_complete_script_final` close, omitting snapfix’s
+redundant `script_snapshot_done` close; every Final still closes owner-side.
+Initial Makefile choices are provisional until the compile-only budget trials.
