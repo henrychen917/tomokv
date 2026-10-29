@@ -601,3 +601,54 @@ def rejects(function):
     except (Invalid, ValueError):
         return
     raise AssertionError('negative control incorrectly passed')
+
+
+def calibration(args, arms, cells, runner, rate_names):
+    """Measure achieved client capacities, choose one conservative load for all cells,
+    then demonstrate sustainability on every arm/cell before freezing that load.
+    Capacity is generator+server achieved capacity, not a server saturation claim.
+    """
+    import copy
+    probe = copy.copy(args)
+    probe.secs = args.calibration_secs
+    probe.profile = False
+    result = dict(capacity=[], validation=[], offered={}, fraction=args.load_fraction,
+                  seconds=probe.secs, scope='minimum achieved client rate across every arm/cell')
+    root = args.output / 'calibration'
+    root.mkdir()
+    fm_path = root / 'calibration.json'
+    for cell in cells:
+        for arm, binary in arms.items():
+            folder = root / 'capacity' / cell['name'] / arm
+            folder.mkdir(parents=True)
+            record = runner(probe, cell, binary, folder, None)
+            result['capacity'].append(dict(cell=cell, arm=arm, result=record))
+            save(fm_path, result)
+    result['offered'] = {key: calibrated_floor(
+        [r['result']['rates'][key] for r in result['capacity']], args.load_fraction) for key in rate_names}
+    save(fm_path, result)
+    for cell in cells:
+        for arm, binary in arms.items():
+            folder = root / 'validation' / cell['name'] / arm
+            folder.mkdir(parents=True)
+            record = runner(probe, cell, binary, folder, result['offered'])
+            result['validation'].append(dict(cell=cell, arm=arm, result=record))
+            save(fm_path, result)
+    result['valid'] = True
+    save(fm_path, result)
+    print('calibration: sustainable fixed offered load validated on every selected cell/arm', flush=True)
+    return result['offered']
+
+
+def pacing_options(parser):
+    parser.add_argument('--secs', type=float, default=30)
+    parser.add_argument('--calibration-secs', type=float, default=3)
+    parser.add_argument('--load-fraction', type=float, default=.5)
+    parser.add_argument('--max-lag-ms', type=float, default=20,
+                        help='reject a paced client if p99 scheduled-send lag exceeds this bound')
+
+
+def check_pacing(args):
+    require(args.secs > 0 and args.calibration_secs > 0 and 0 < args.load_fraction < 1 and args.max_lag_ms > 0,
+            'invalid pacing settings')
+    require(args.smoke or args.secs >= 10, 'merit windows must be at least ten seconds')
