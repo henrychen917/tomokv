@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-rlfix4/build/rlfix4/commands/pre-normal-MSET-1s-1-1--1-owner1.log
+SHA-256: f3ab7e1eff729aeb215d30b516752d08643ea326ef391729b34bc71660074630
+Exit: 0
+569	}
+0x0000555555a5ff80	569	}
+0x0000555555a5ff81	569	}
+0x0000555555a5ff82	569	}
+0x0000555555a5ff84	569	}
+0x0000555555a5ff86	569	}
+0x0000555555a5ff88	569	}
+0x0000555555d93cb7 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1, route=...) at /home/user/Projects/cx-rlfix4/tests/rlfix4_scope.cc:199
+199	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
+182	   for(unsigned i=0;i<n;i++){
+0x0000555555d93cbe	182	   for(unsigned i=0;i<n;i++){
+0x0000555555d93cc5	182	   for(unsigned i=0;i<n;i++){
+0x0000555555d93ccb	202	   std::string want="+OK\r\n";
+0x0000555555d93cd2	202	   std::string want="+OK\r\n";
+0x0000555555d93cd9	201	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-rlfix4/tests/rlfix4_scope.cc:27
+27	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 275625) exited normally]
+COUNT 18392

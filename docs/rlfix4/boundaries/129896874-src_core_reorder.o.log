@@ -1,0 +1,4 @@
+src/core/reorder.cc:1312:37: warning: ‘always_inline’ function might not be inlinable [-Wattributes]
+ 1312 | __attribute__((always_inline)) void IoLoop::r7_admit_retained_fd(int fd, UrKind kind) {
+      |                                     ^~~~~~
+src/core/reorder.cc:1312:37: warning: ‘always_inline’ function might not be inlinable [-Wattributes]

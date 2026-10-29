@@ -1,0 +1,46 @@
+{
+  "defect": "AT4-WOUND-1",
+  "status": "confirmed inherited correctness defect; not repaired by rlfix4",
+  "pre": "a214652ec",
+  "post_production": "18f0ceb8b",
+  "source_files": {
+    "src/cmd/multi.inc": {
+      "pre_sha256": "9fb7b6acc0c84018dfeb5e341f8142e474004dacb4221644f7f691324f1a7e4e",
+      "post_sha256": "9fb7b6acc0c84018dfeb5e341f8142e474004dacb4221644f7f691324f1a7e4e",
+      "identical": true
+    },
+    "src/cmd/txn_group.inc": {
+      "pre_sha256": "217954a7364ad83f43cf2700eacc3834ac3f9736828fd8223f04b9ea0ad1acce",
+      "post_sha256": "217954a7364ad83f43cf2700eacc3834ac3f9736828fd8223f04b9ea0ad1acce",
+      "identical": true
+    },
+    "src/cmd/scatter_engine.inc": {
+      "pre_sha256": "54a53c85f9eabfac6bc48913d1bb25c863c016b7c4be70ea0463b669362885d1",
+      "post_sha256": "54a53c85f9eabfac6bc48913d1bb25c863c016b7c4be70ea0463b669362885d1",
+      "identical": true
+    },
+    "src/cmd/xshard_commands.inc": {
+      "pre_sha256": "86eb8df15cf549b94e56c0dbae04606bd06cf7329f3ed03b60fa460832664134",
+      "post_sha256": "86eb8df15cf549b94e56c0dbae04606bd06cf7329f3ed03b60fa460832664134",
+      "identical": true
+    }
+  },
+  "known_registration": {
+    "path": "/home/user/Projects/round4-read/REGISTER.md",
+    "line": 460,
+    "excerpt": "**Addendum 2026-10-26 11:28 (execindex): NEW CONFIRMED DEFECT AT4-WOUND-1 (server-atomics, BUG, CONFIRMED on headline 3700b51d7 code):** a wounded atomic group can complete before its cancellation is published, and the commit is then accepted.\n- Live symptom: the fused/uring debug-0 job saw a bare RENAMENX answer \"ERR no such key\" (iteration 2877) while MGET showed the source still present.\n- Serverless reproduction, with no timing delay: tests/txnorder_wound_window.cc on branch cx-execindex (fc8528675). On the PRE (headline) build it reports \"FAIL: wounded group completed before cancellation publication; commit accepted (aborted=1 no_such_key=1 source_present=1 commit_accepted=1)\", and the index change inherits it.\n- This breaks the D2 hybrid wound-wait guarantee. Fix lane: woundfix (P9). It needs a design check of whether the fix stays inside D2."
+  },
+  "fixture_origin": {
+    "source_commit": "fc8528675",
+    "source_path": "tests/txnorder_wound_window.cc",
+    "local_path": "tests/rlfix4_wound_window.cc",
+    "sha256": "96fb346b797591f8c36ec72cbdc83c5d1edc8be9b4ee39a19209c167ae542616",
+    "registered_defect": "AT4-WOUND-1",
+    "register": "/home/user/Projects/round4-read/REGISTER.md:460"
+  },
+  "diagnostic": "docs/rlfix4/wound-diagnostic.json",
+  "reproductions": 8,
+  "wire_failure": "docs/rlfix4/txn-nx-first-failure.json",
+  "limitation": "The deterministic registered window reproduces the live wire symptom in both revisions. The live failing thread interleaving was not traced.",
+  "build_note": "The first DB0 diagnostic link omitted the normal scripting object that supplies shared Lua symbols. Its failed logs are preserved; the corrected recipe follows the existing DB0 xshard-unit link policy."
+}

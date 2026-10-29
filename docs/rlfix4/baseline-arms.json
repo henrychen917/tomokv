@@ -1,0 +1,30 @@
+{
+  "anchor": {
+    "commit": "991d48f651d3c6e1324c061bd9ea801ac085afe8",
+    "path": "/home/user/Projects/cx-rlfix4/build/tomokv-rlfix4-anchor",
+    "sha256": "4c7d59028c10d69b3c8a113dcf7325b3dfe8c20a31598a16a04184c8222bf06c",
+    "headline_path": "/home/user/Projects/bench-bins/tomokv-headline-991d48f65",
+    "headline_sha256": "9f74d92965a0fcf10c59d00aaf5e09a9f05dfd64d509152f8e18aca7737efe3d"
+  },
+  "wave6": {
+    "commit": "05a5e01a9d8f1236e11cdbe4f2f7d490eb40edba",
+    "path": "/home/user/Projects/cx-rlfix4/build/tomokv-rlfix4-wave6",
+    "sha256": "3e6c105fea679c11a28f9a9861733c5c2e38fc7a6e264a5112a3b12c7efbcd47",
+    "headline_path": "/home/user/Projects/bench-bins/tomokv-headline-05a5e01a9",
+    "headline_sha256": "ff538ad1bebb30a7272e5396ef7daca90df14f2a84db3dd6f3cfc2acc8c1acd8"
+  },
+  "wave7": {
+    "commit": "3700b51d7fb3074f32330dd81f138efbf1ddd980",
+    "path": "/home/user/Projects/cx-rlfix4/build/tomokv-rlfix4-wave7",
+    "sha256": "ed3cc74bd8c6060327db08feda2b9ef32b22725ddfa12fb6073fc61790a5d4cf",
+    "headline_path": "/home/user/Projects/bench-bins/tomokv-headline-3700b51d7",
+    "headline_sha256": "56ec64d13cf87d97d75ad955311a44c77ffc87a6798b548d5c4330b6713cd97c"
+  },
+  "pre": {
+    "commit": "a214652ec262aa9a5eeaeadf129c0ef76ba6c99c",
+    "path": "/home/user/Projects/cx-rlfix4/build/tomokv-rlfix4-pre",
+    "sha256": "2ffc953c8820419009929629e985b517d02787a461493edd81ce79571b030e5c",
+    "headline_path": "/home/user/Projects/bench-bins/tomokv-headline-a214652ec",
+    "headline_sha256": "5235008bfab65401b335b67b4aff93fbb8cb76e7496d32edd73216885616be4d"
+  }
+}

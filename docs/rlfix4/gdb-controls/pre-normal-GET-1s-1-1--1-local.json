@@ -1,0 +1,28 @@
+{
+  "binary_sha256": "d70f072425ff8a5207b2c84a16b7302d53d8d0bf6e586b20d6e36b7d46c677f3",
+  "total": 925,
+  "functions": {
+    "unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 317,
+    "tomo::FlatStore::read_local_prefetch(unsigned long) const": 84,
+    "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 116,
+    "tomo::FlatStore::read_local_capture_in(tomo::FlatStore::ReadLocalTable const&, unsigned long, tomo::Slice, unsigned long const*&) const [clone .isra.0]": 88,
+    "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)": 109,
+    "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]": 110,
+    "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 101
+  },
+  "bodies": {
+    "0x743000 unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 317,
+    "0x729ca0 tomo::FlatStore::read_local_prefetch(unsigned long) const": 84,
+    "0x729e20 tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 116,
+    "0x728730 tomo::FlatStore::read_local_capture_in(tomo::FlatStore::ReadLocalTable const&, unsigned long, tomo::Slice, unsigned long const*&) const [clone .isra.0]": 88,
+    "0x742730 tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)": 109,
+    "0x729650 void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]": 110,
+    "0x737120 tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 101
+  },
+  "excluded": {
+    "memcmp@plt": 1,
+    "memcpy@plt": 1,
+    "tomo::CoreConcurrencyTest::run<true>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned int, bool, long, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)::{lambda(tomo::ExLoopT<true>&)#1}::operator()(tomo::ExLoopT<true>&) const::{lambda(void*, tomo::Client*)#1}::_FUN(void*, tomo::Client*) in section .text of /home/user/Projects/cx-rlfix4/build/rlfix4/commands/pre-normal/probe": 1
+  },
+  "clock_calls": 0
+}

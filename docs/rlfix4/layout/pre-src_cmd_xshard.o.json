@@ -1,0 +1,27 @@
+{
+  "arm": "pre",
+  "unit": "src/cmd/xshard.o",
+  "command": [
+    "g++",
+    "-ffunction-sections",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=148585",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/cmd/xshard.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/pre/src/cmd/xshard.o"
+  ],
+  "original_sha256": "94a82d397f3a4119534e9107ddc2ac2629eb8d381cf0e8d3d95a670ab367cd8c",
+  "sha256": "617d1dcf6321bbf6d19daeb3286339b9720046828ec965a7372b0d7cf2e5355e"
+}

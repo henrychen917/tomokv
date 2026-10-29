@@ -1,0 +1,3543 @@
+{
+  "server_sha256": "88a45e76757236ef402721884f56de59aba01fef1f51b7c14e79403592c4e10d",
+  "bodies": [
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::ParseResult tomo::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long, tomo::RespFrontier*) [clone .isra.0]",
+      "address": "0x25460",
+      "count": 133878,
+      "matches": [
+        {
+          "size": 1086,
+          "address": "0x24420",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x83c4b0",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x8767b0",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x918e40",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x9d10c0",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        }
+      ],
+      "probe": [
+        {
+          "size": 1086,
+          "address": "0x25460",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::Rob<64u>::publish()",
+      "address": "0x34d80",
+      "count": 2475,
+      "matches": [
+        {
+          "size": 16,
+          "address": "0x33d40",
+          "digest": "0855fe78c29cc2a983c2c6bf2fe5be3d20e56d4e5f0e721f6a9b8f960e2349de"
+        }
+      ],
+      "probe": [
+        {
+          "size": 16,
+          "address": "0x34d80",
+          "digest": "0855fe78c29cc2a983c2c6bf2fe5be3d20e56d4e5f0e721f6a9b8f960e2349de"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::mark_active(tomo::Client*)",
+      "address": "0x3bb40",
+      "count": 7152,
+      "matches": [
+        {
+          "size": 418,
+          "address": "0x3ab00",
+          "digest": "d312e6f4e2047d539eaf8b592c665bdd81a4ca3d6361819ff10386a9876b5105"
+        }
+      ],
+      "probe": [
+        {
+          "size": 418,
+          "address": "0x3bb40",
+          "digest": "d312e6f4e2047d539eaf8b592c665bdd81a4ca3d6361819ff10386a9876b5105"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)",
+      "address": "0x45450",
+      "count": 86390,
+      "matches": [
+        {
+          "size": 12975,
+          "address": "0x44410",
+          "digest": "a93f023dc5e61799f5bb6138c7115b398bc115c36b1cfa517f0bd18ab958015c"
+        }
+      ],
+      "probe": [
+        {
+          "size": 12975,
+          "address": "0x45450",
+          "digest": "a93f023dc5e61799f5bb6138c7115b398bc115c36b1cfa517f0bd18ab958015c"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::dispatch_atomic_scatter(tomo::Client*, tomo::Op&, tomo::ScatterDispatch const&)",
+      "address": "0x603f0",
+      "count": 129824,
+      "matches": [
+        {
+          "size": 2139,
+          "address": "0x5f3b0",
+          "digest": "5ac77da841ab20556098dca27ddc3e52a631c161286747ba880096bc2eaaa93e"
+        }
+      ],
+      "probe": [
+        {
+          "size": 2139,
+          "address": "0x603f0",
+          "digest": "5ac77da841ab20556098dca27ddc3e52a631c161286747ba880096bc2eaaa93e"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::u64_to_dec(char*, unsigned long)",
+      "address": "0x685c60",
+      "count": 2838,
+      "matches": [
+        {
+          "size": 160,
+          "address": "0x684c20",
+          "digest": "b438e3b04c5658cced9ae4fcfc5daf0c79deec451debb6a0bb418fb51e4a0922"
+        }
+      ],
+      "probe": [
+        {
+          "size": 160,
+          "address": "0x685c60",
+          "digest": "b438e3b04c5658cced9ae4fcfc5daf0c79deec451debb6a0bb418fb51e4a0922"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::ScatterState::ScatterState()",
+      "address": "0x687770",
+      "count": 30030,
+      "matches": [
+        {
+          "size": 773,
+          "address": "0x686730",
+          "digest": "8907d1f7b8bb9ec220532b6d62416ce5c856174fbf3a57bc4881b9b17d27a701"
+        }
+      ],
+      "probe": [
+        {
+          "size": 773,
+          "address": "0x687770",
+          "digest": "8907d1f7b8bb9ec220532b6d62416ce5c856174fbf3a57bc4881b9b17d27a701"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)",
+      "address": "0x688230",
+      "count": 6204,
+      "matches": [
+        {
+          "size": 83,
+          "address": "0x6871f0",
+          "digest": "43019189ffda5d72c04fc16116005cab43e22650ed319ab5dfece93d8b474b19"
+        }
+      ],
+      "probe": [
+        {
+          "size": 83,
+          "address": "0x688230",
+          "digest": "43019189ffda5d72c04fc16116005cab43e22650ed319ab5dfece93d8b474b19"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)",
+      "address": "0x689ee0",
+      "count": 11088,
+      "matches": [
+        {
+          "size": 947,
+          "address": "0x688ea0",
+          "digest": "a7d0a472c1290c7a87d718d285643849f60a8b588731fe146af9be795d7a1156"
+        }
+      ],
+      "probe": [
+        {
+          "size": 947,
+          "address": "0x689ee0",
+          "digest": "a7d0a472c1290c7a87d718d285643849f60a8b588731fe146af9be795d7a1156"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)",
+      "address": "0x6942c0",
+      "count": 11550,
+      "matches": [
+        {
+          "size": 122,
+          "address": "0x693280",
+          "digest": "8abb152a6033beb0f3a12a7405c93b69cc30293e0c35bd5611f4039846764111"
+        }
+      ],
+      "probe": [
+        {
+          "size": 122,
+          "address": "0x6942c0",
+          "digest": "8abb152a6033beb0f3a12a7405c93b69cc30293e0c35bd5611f4039846764111"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)",
+      "address": "0x6a84d0",
+      "count": 141768,
+      "matches": [
+        {
+          "size": 734,
+          "address": "0x6a7490",
+          "digest": "7da75b524bdc0e10744e59817839e1bf91e82f5e057852cf8019d506c1f40139"
+        }
+      ],
+      "probe": [
+        {
+          "size": 734,
+          "address": "0x6a84d0",
+          "digest": "7da75b524bdc0e10744e59817839e1bf91e82f5e057852cf8019d506c1f40139"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]",
+      "address": "0x6acff0",
+      "count": 6996,
+      "matches": [
+        {
+          "size": 431,
+          "address": "0x6abfb0",
+          "digest": "ba05aa039ee93928ff4029b205b649391b945321a109cde5bf3a416b80bc2635"
+        }
+      ],
+      "probe": [
+        {
+          "size": 431,
+          "address": "0x6acff0",
+          "digest": "ba05aa039ee93928ff4029b205b649391b945321a109cde5bf3a416b80bc2635"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::(anonymous namespace)::aof_prepare_scatter_group(tomo::ScatterState&)",
+      "address": "0x6ae6a0",
+      "count": 4092,
+      "matches": [
+        {
+          "size": 870,
+          "address": "0x6ad660",
+          "digest": "67717ce9f8f9d781faec22f6e8364cb30ecc411bb8bf57af17bb7f6ff01c5b23"
+        }
+      ],
+      "probe": [
+        {
+          "size": 870,
+          "address": "0x6ae6a0",
+          "digest": "67717ce9f8f9d781faec22f6e8364cb30ecc411bb8bf57af17bb7f6ff01c5b23"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&) [clone .part.0]",
+      "address": "0x6b09d0",
+      "count": 45144,
+      "matches": [
+        {
+          "size": 431,
+          "address": "0x6af990",
+          "digest": "68cfa435a0a46520ff534fa4c5d303cc268f9c033cccee5e7c1c02e7561dd1fd"
+        }
+      ],
+      "probe": [
+        {
+          "size": 431,
+          "address": "0x6b09d0",
+          "digest": "68cfa435a0a46520ff534fa4c5d303cc268f9c033cccee5e7c1c02e7561dd1fd"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]",
+      "address": "0x6b2f60",
+      "count": 10032,
+      "matches": [
+        {
+          "size": 93,
+          "address": "0x6b1f20",
+          "digest": "8d3dc847bff32e51155aee70cc9500b44a849e8359bba592c7025527a18ce1a2"
+        }
+      ],
+      "probe": [
+        {
+          "size": 93,
+          "address": "0x6b2f60",
+          "digest": "8d3dc847bff32e51155aee70cc9500b44a849e8359bba592c7025527a18ce1a2"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)",
+      "address": "0x6b3350",
+      "count": 68904,
+      "matches": [
+        {
+          "size": 145,
+          "address": "0x6b2310",
+          "digest": "59434b7e86233864c381380306df9c9341c7e9a0a4940faecdf09301cbd01dc8"
+        }
+      ],
+      "probe": [
+        {
+          "size": 145,
+          "address": "0x6b3350",
+          "digest": "59434b7e86233864c381380306df9c9341c7e9a0a4940faecdf09301cbd01dc8"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
+      "address": "0x6ba820",
+      "count": 627528,
+      "matches": [
+        {
+          "size": 18231,
+          "address": "0x6b97e0",
+          "digest": "ab86b7f87ac9e008d6480979a59c315ead16f45cb5c401cf9303a04cabf2184e"
+        }
+      ],
+      "probe": [
+        {
+          "size": 18231,
+          "address": "0x6ba820",
+          "digest": "ab86b7f87ac9e008d6480979a59c315ead16f45cb5c401cf9303a04cabf2184e"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::ScatterArenaPool::register_snapshot(tomo::Server&, tomo::SnapshotCut*, unsigned int)",
+      "address": "0x6c2420",
+      "count": 3994,
+      "matches": [
+        {
+          "size": 962,
+          "address": "0x6c13e0",
+          "digest": "304df4119a3435195d213a6f9bb70b46b7940dcd529038188afecf334d99eb78"
+        }
+      ],
+      "probe": [
+        {
+          "size": 962,
+          "address": "0x6c2420",
+          "digest": "304df4119a3435195d213a6f9bb70b46b7940dcd529038188afecf334d99eb78"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::ScatterArenaPool::acquire(unsigned long, bool&)",
+      "address": "0x6c2b10",
+      "count": 8910,
+      "matches": [
+        {
+          "size": 153,
+          "address": "0x6c1ad0",
+          "digest": "c5b37c879bd31ba61857f7934aeeacc1cf3a7d4b78d52e41679f8adb4b739c7c"
+        }
+      ],
+      "probe": [
+        {
+          "size": 153,
+          "address": "0x6c2b10",
+          "digest": "c5b37c879bd31ba61857f7934aeeacc1cf3a7d4b78d52e41679f8adb4b739c7c"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)",
+      "address": "0x6daef0",
+      "count": 46464,
+      "matches": [
+        {
+          "size": 54,
+          "address": "0x6d9eb0",
+          "digest": "5c8013556a13f277c90ce590b9ab9ea1259aa5614f2a1756e56adeea6df4771b"
+        }
+      ],
+      "probe": [
+        {
+          "size": 54,
+          "address": "0x6daef0",
+          "digest": "5c8013556a13f277c90ce590b9ab9ea1259aa5614f2a1756e56adeea6df4771b"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::multi_session_watch_size(tomo::Client const&)",
+      "address": "0x6e1020",
+      "count": 420,
+      "matches": [
+        {
+          "size": 67,
+          "address": "0x6dffe0",
+          "digest": "7dfad166103c2528f9eeed0c3f51385f44ac8cf0bedc24820a738927b67a2185"
+        }
+      ],
+      "probe": [
+        {
+          "size": 67,
+          "address": "0x6e1020",
+          "digest": "7dfad166103c2528f9eeed0c3f51385f44ac8cf0bedc24820a738927b67a2185"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::Op::Sink::reserve(unsigned long)",
+      "address": "0x6e93e0",
+      "count": 1592,
+      "matches": [
+        {
+          "size": 205,
+          "address": "0x6e83a0",
+          "digest": "d29a952406fa60657717395090fade6e08ebb8994abcd1dc96f73d43615be134"
+        }
+      ],
+      "probe": [
+        {
+          "size": 205,
+          "address": "0x6e93e0",
+          "digest": "d29a952406fa60657717395090fade6e08ebb8994abcd1dc96f73d43615be134"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::Server::atomic_try_admit(unsigned int, unsigned long&, bool)",
+      "address": "0x6fa100",
+      "count": 6476,
+      "matches": [
+        {
+          "size": 341,
+          "address": "0x6f90c0",
+          "digest": "be4c0f7d60a9b032c0726408e0860116e814f5a53806c4388461b2e33ce4e1af"
+        }
+      ],
+      "probe": [
+        {
+          "size": 341,
+          "address": "0x6fa100",
+          "digest": "be4c0f7d60a9b032c0726408e0860116e814f5a53806c4388461b2e33ce4e1af"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::Server::atomic_apply_open(unsigned int, std::atomic<bool>&)",
+      "address": "0x6fa410",
+      "count": 1716,
+      "matches": [
+        {
+          "size": 56,
+          "address": "0x6f93d0",
+          "digest": "0f39b912d3f42422c90c85f44aa09aeb24812195c578bd1191a9177f051092fe"
+        }
+      ],
+      "probe": [
+        {
+          "size": 56,
+          "address": "0x6fa410",
+          "digest": "0f39b912d3f42422c90c85f44aa09aeb24812195c578bd1191a9177f051092fe"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::Op::cmd_name() const",
+      "address": "0x7106b0",
+      "count": 8712,
+      "matches": [
+        {
+          "size": 56,
+          "address": "0x70f670",
+          "digest": "127b11c28dc9f34bd4e049f9ea88043e9bb329dd7eab9ed62ced2dd14bc43586"
+        }
+      ],
+      "probe": [
+        {
+          "size": 56,
+          "address": "0x7106b0",
+          "digest": "127b11c28dc9f34bd4e049f9ea88043e9bb329dd7eab9ed62ced2dd14bc43586"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]",
+      "address": "0x710c00",
+      "count": 8910,
+      "matches": [
+        {
+          "size": 86,
+          "address": "0x67de00",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x70fbc0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x76a2a0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x7b5860",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x7da510",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x810160",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x834a10",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x86a360",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x8f3bc0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x9aa1e0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0xa6dcf0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0xb72680",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0xb94b90",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0xbabbb0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0xbd72c0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0xbe6f60",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        }
+      ],
+      "probe": [
+        {
+          "size": 86,
+          "address": "0x710c00",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::[asm .rlfence]",
+      "address": "0x876b30",
+      "count": 416,
+      "assembly_region": "__rlfix4_slot_11306",
+      "offsets": [
+        "0x0",
+        "0x4",
+        "0x8",
+        "0x12",
+        "0x17",
+        "0xa"
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]",
+      "address": "0x876c70",
+      "count": 7268,
+      "matches": [
+        {
+          "size": 477,
+          "address": "0x684860",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x739840",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x7713a0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x7e06a0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x875c30",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0xb95710",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0xbd7b00",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0xbf4640",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0xc28920",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0xc41250",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0xc4c430",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        }
+      ],
+      "probe": [
+        {
+          "size": 477,
+          "address": "0x876c70",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::ParseResult tomo::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long, tomo::RespFrontier*) [clone .isra.0]",
+      "address": "0x8777f0",
+      "count": 267509,
+      "matches": [
+        {
+          "size": 1086,
+          "address": "0x24420",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x83c4b0",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x8767b0",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x918e40",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x9d10c0",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        }
+      ],
+      "probe": [
+        {
+          "size": 1086,
+          "address": "0x8777f0",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::ReadLocalPendingFilter::add(unsigned long)",
+      "address": "0x87c9b0",
+      "count": 4290,
+      "matches": [
+        {
+          "size": 48,
+          "address": "0x87b970",
+          "digest": "6a0ae11b70126c9b497eb0defa8de2e493131ba8e92a003c3ce556ffa0c13438"
+        }
+      ],
+      "probe": [
+        {
+          "size": 48,
+          "address": "0x87c9b0",
+          "digest": "6a0ae11b70126c9b497eb0defa8de2e493131ba8e92a003c3ce556ffa0c13438"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::read_local_command_is_precise_mset(tomo::Op const&)",
+      "address": "0x87e040",
+      "count": 8448,
+      "matches": [
+        {
+          "size": 154,
+          "address": "0x87d000",
+          "digest": "8629c3304853f4193e29716abf7eb58b073fa416ec9f8f913712890c12eaf9fe"
+        }
+      ],
+      "probe": [
+        {
+          "size": 154,
+          "address": "0x87e040",
+          "digest": "8629c3304853f4193e29716abf7eb58b073fa416ec9f8f913712890c12eaf9fe"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::Rob<64u>::read_local_arm()",
+      "address": "0x87e0e0",
+      "count": 136,
+      "matches": [
+        {
+          "size": 104,
+          "address": "0x87d0a0",
+          "digest": "604929da9f697a99434f8f5ce2c74c60b99d352fe47c3debab46078d5574f0e8"
+        }
+      ],
+      "probe": [
+        {
+          "size": 104,
+          "address": "0x87e0e0",
+          "digest": "604929da9f697a99434f8f5ce2c74c60b99d352fe47c3debab46078d5574f0e8"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::Rob<64u>::mark_current_write()",
+      "address": "0x87e1a0",
+      "count": 3696,
+      "matches": [
+        {
+          "size": 619,
+          "address": "0x87d160",
+          "digest": "6a3367e2ff6cbd8fd9afd5837bdcebf6f65f2931907e5d35ee9db88498771c42"
+        }
+      ],
+      "probe": [
+        {
+          "size": 619,
+          "address": "0x87e1a0",
+          "digest": "6a3367e2ff6cbd8fd9afd5837bdcebf6f65f2931907e5d35ee9db88498771c42"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::Rob<64u>::refine_current_write_hash(unsigned long) [clone .isra.0]",
+      "address": "0x87e6e0",
+      "count": 198,
+      "matches": [
+        {
+          "size": 94,
+          "address": "0x83fc80",
+          "digest": "c4eeb7923a1ed3c6608fb4492942743636c4766af0d89d51a62861f46398593f"
+        },
+        {
+          "size": 94,
+          "address": "0x87d6a0",
+          "digest": "c4eeb7923a1ed3c6608fb4492942743636c4766af0d89d51a62861f46398593f"
+        },
+        {
+          "size": 94,
+          "address": "0x922210",
+          "digest": "c4eeb7923a1ed3c6608fb4492942743636c4766af0d89d51a62861f46398593f"
+        },
+        {
+          "size": 94,
+          "address": "0x9d8ca0",
+          "digest": "c4eeb7923a1ed3c6608fb4492942743636c4766af0d89d51a62861f46398593f"
+        }
+      ],
+      "probe": [
+        {
+          "size": 94,
+          "address": "0x87e6e0",
+          "digest": "c4eeb7923a1ed3c6608fb4492942743636c4766af0d89d51a62861f46398593f"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::Rob<64u>::refine_current_write_keyset(unsigned long, unsigned int)",
+      "address": "0x87e740",
+      "count": 1320,
+      "matches": [
+        {
+          "size": 121,
+          "address": "0x87d700",
+          "digest": "09a59972cfad6b888a369358cd484a97eb907823d853fd3a72d6516e32034d5d"
+        }
+      ],
+      "probe": [
+        {
+          "size": 121,
+          "address": "0x87e740",
+          "digest": "09a59972cfad6b888a369358cd484a97eb907823d853fd3a72d6516e32034d5d"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::Rob<64u>::arm_current_local_mget_fence()",
+      "address": "0x87e7c0",
+      "count": 396,
+      "matches": [
+        {
+          "size": 26,
+          "address": "0x87d780",
+          "digest": "03b99be301b04b9578fd10f8f738eb6dd99e2d9cad9fd36701cedfd319032279"
+        }
+      ],
+      "probe": [
+        {
+          "size": 26,
+          "address": "0x87e7c0",
+          "digest": "03b99be301b04b9578fd10f8f738eb6dd99e2d9cad9fd36701cedfd319032279"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+      "address": "0x894b50",
+      "count": 240218,
+      "matches": [
+        {
+          "size": 19469,
+          "address": "0x893b10",
+          "digest": "e4ab4faf47d934a3574f3136bdf8789b67c29f03465302dbbee86fa331ee8532"
+        }
+      ],
+      "probe": [
+        {
+          "size": 19469,
+          "address": "0x894b50",
+          "digest": "e4ab4faf47d934a3574f3136bdf8789b67c29f03465302dbbee86fa331ee8532"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::ReadLocalDemotionPlan::commit_reads()",
+      "address": "0x8ac370",
+      "count": 6864,
+      "matches": [
+        {
+          "size": 2329,
+          "address": "0x8ab330",
+          "digest": "9633799820de9a44166cffcc0014ac43a054229612f3b8baa79c98815d58edf7"
+        }
+      ],
+      "probe": [
+        {
+          "size": 2329,
+          "address": "0x8ac370",
+          "digest": "9633799820de9a44166cffcc0014ac43a054229612f3b8baa79c98815d58edf7"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::ReadLocalDemotionPlan::cancel()",
+      "address": "0x8acef0",
+      "count": 3050,
+      "matches": [
+        {
+          "size": 502,
+          "address": "0x8abeb0",
+          "digest": "39892c88f585cca63043ec86e73b505ac8b40457a29d134628259a57db0ff6a9"
+        }
+      ],
+      "probe": [
+        {
+          "size": 502,
+          "address": "0x8acef0",
+          "digest": "39892c88f585cca63043ec86e73b505ac8b40457a29d134628259a57db0ff6a9"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFallbackReason, bool, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, tomo::Op const*, bool)",
+      "address": "0x8ad0f0",
+      "count": 11484,
+      "matches": [
+        {
+          "size": 6081,
+          "address": "0x8ac0b0",
+          "digest": "27288872abb53e8a09b59a49bd8d6e4d2afa7f6f9bf2da647048e30e6c292449"
+        }
+      ],
+      "probe": [
+        {
+          "size": 6081,
+          "address": "0x8ad0f0",
+          "digest": "27288872abb53e8a09b59a49bd8d6e4d2afa7f6f9bf2da647048e30e6c292449"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::flip_fingerprint_note(tomo::CommandSpec const&, tomo::Op const&)",
+      "address": "0x8aec20",
+      "count": 3168,
+      "matches": [
+        {
+          "size": 37,
+          "address": "0x8adbe0",
+          "digest": "6de9acf1ed63268f34326980c01bd52bad48f755bda5d03d87f061baf1d273da"
+        }
+      ],
+      "probe": [
+        {
+          "size": 37,
+          "address": "0x8aec20",
+          "digest": "6de9acf1ed63268f34326980c01bd52bad48f755bda5d03d87f061baf1d273da"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::flip_fingerprint_finish_pass()",
+      "address": "0x8b8530",
+      "count": 660,
+      "matches": [
+        {
+          "size": 189,
+          "address": "0x8b74f0",
+          "digest": "8d23954c73a9c17dc8649c38c0d39af7a1072cbc38795029fd378398c6dd97f7"
+        }
+      ],
+      "probe": [
+        {
+          "size": 189,
+          "address": "0x8b8530",
+          "digest": "8d23954c73a9c17dc8649c38c0d39af7a1072cbc38795029fd378398c6dd97f7"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
+      "address": "0x8d3300",
+      "count": 9240,
+      "matches": [
+        {
+          "size": 2249,
+          "address": "0x8d22c0",
+          "digest": "125f648e2f7b783fcf4160c22cfc31d235ab2074264693c26855ef1ff094c05c"
+        }
+      ],
+      "probe": [
+        {
+          "size": 2249,
+          "address": "0x8d3300",
+          "digest": "125f648e2f7b783fcf4160c22cfc31d235ab2074264693c26855ef1ff094c05c"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::ExLoopT<true>::prepare_captured_local_mget(tomo::Op&)",
+      "address": "0x8d7840",
+      "count": 185852,
+      "matches": [
+        {
+          "size": 4626,
+          "address": "0x8d6800",
+          "digest": "a1947c588caf7cb799a048501007162c789c1b93d419736f40346009f25c5e67"
+        }
+      ],
+      "probe": [
+        {
+          "size": 4626,
+          "address": "0x8d7840",
+          "digest": "a1947c588caf7cb799a048501007162c789c1b93d419736f40346009f25c5e67"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)",
+      "address": "0x8d8b50",
+      "count": 27606,
+      "matches": [
+        {
+          "size": 2862,
+          "address": "0x8d7b10",
+          "digest": "67000a1c95aac39ae7ec23b0e3cda5ab06fbd8c657c73f82c9c35996dff35eb9"
+        }
+      ],
+      "probe": [
+        {
+          "size": 2862,
+          "address": "0x8d8b50",
+          "digest": "67000a1c95aac39ae7ec23b0e3cda5ab06fbd8c657c73f82c9c35996dff35eb9"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::MaskedSpscArray<tomo::Task, 128u>::producer_free_slots(unsigned int) const",
+      "address": "0x8f4940",
+      "count": 6336,
+      "matches": [
+        {
+          "size": 24,
+          "address": "0x8f3900",
+          "digest": "0f9e3da2db31de21c9f3783572fc5f4551210c829c6c15d612ec94449527aaf8"
+        }
+      ],
+      "probe": [
+        {
+          "size": 24,
+          "address": "0x8f4940",
+          "digest": "0f9e3da2db31de21c9f3783572fc5f4551210c829c6c15d612ec94449527aaf8"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::Rob<64u>::in_flight() const",
+      "address": "0x8f4a00",
+      "count": 420,
+      "matches": [
+        {
+          "size": 18,
+          "address": "0x8f39c0",
+          "digest": "d610c03e9cc7dcc75d571557969130121c3d10ff8a1aa60192eae769f3054b2e"
+        }
+      ],
+      "probe": [
+        {
+          "size": 18,
+          "address": "0x8f4a00",
+          "digest": "d610c03e9cc7dcc75d571557969130121c3d10ff8a1aa60192eae769f3054b2e"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::query_buffer_exceeded(tomo::Client const&) const",
+      "address": "0x8f5690",
+      "count": 1540,
+      "matches": [
+        {
+          "size": 193,
+          "address": "0x8f4650",
+          "digest": "692529f1a5b9ac067ee6c3706592b9446f76226730a4d913c4132b31599f52e9"
+        }
+      ],
+      "probe": [
+        {
+          "size": 193,
+          "address": "0x8f5690",
+          "digest": "692529f1a5b9ac067ee6c3706592b9446f76226730a4d913c4132b31599f52e9"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::ExLoopT<true>::local_read_lane_has_room(unsigned int) const",
+      "address": "0x8f6ac0",
+      "count": 1414,
+      "matches": [
+        {
+          "size": 53,
+          "address": "0x8f5a80",
+          "digest": "b03b2b6d8f206aa3c22d162b2184843fe1839be2854fa03701a192c6f4561f1d"
+        }
+      ],
+      "probe": [
+        {
+          "size": 53,
+          "address": "0x8f6ac0",
+          "digest": "b03b2b6d8f206aa3c22d162b2184843fe1839be2854fa03701a192c6f4561f1d"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::FlatStore::read_local_prefetch(unsigned long) const",
+      "address": "0x8f7330",
+      "count": 49896,
+      "matches": [
+        {
+          "size": 383,
+          "address": "0x8f62f0",
+          "digest": "c5c8ce538c73d8fffec22a2b8fe6e34a9c1257a648c608a69db5c0679b753a3c"
+        }
+      ],
+      "probe": [
+        {
+          "size": 383,
+          "address": "0x8f7330",
+          "digest": "c5c8ce538c73d8fffec22a2b8fe6e34a9c1257a648c608a69db5c0679b753a3c"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::FlatStore::read_local_capture_in(tomo::FlatStore::ReadLocalTable const&, unsigned long, tomo::Slice, unsigned long const*&) const [clone .isra.0]",
+      "address": "0x8f7710",
+      "count": 52272,
+      "matches": [
+        {
+          "size": 416,
+          "address": "0x8f66d0",
+          "digest": "edba7d2e305f3a387e96f7db496dd03ef9704adaf8954d1026885503dbba64b9"
+        }
+      ],
+      "probe": [
+        {
+          "size": 416,
+          "address": "0x8f7710",
+          "digest": "edba7d2e305f3a387e96f7db496dd03ef9704adaf8954d1026885503dbba64b9"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::FlatStore::read_local_state_acquire() const [clone .isra.0]",
+      "address": "0x8f7ae0",
+      "count": 12,
+      "matches": [
+        {
+          "size": 30,
+          "address": "0x86b1d0",
+          "digest": "8ec0a878f5b2ed5652204b7a85acbd48f6a1afce206a252756f09d39b0b1fbda"
+        },
+        {
+          "size": 30,
+          "address": "0x8f6aa0",
+          "digest": "8ec0a878f5b2ed5652204b7a85acbd48f6a1afce206a252756f09d39b0b1fbda"
+        },
+        {
+          "size": 30,
+          "address": "0x9ad120",
+          "digest": "8ec0a878f5b2ed5652204b7a85acbd48f6a1afce206a252756f09d39b0b1fbda"
+        },
+        {
+          "size": 30,
+          "address": "0xa70a70",
+          "digest": "8ec0a878f5b2ed5652204b7a85acbd48f6a1afce206a252756f09d39b0b1fbda"
+        }
+      ],
+      "probe": [
+        {
+          "size": 30,
+          "address": "0x8f7ae0",
+          "digest": "8ec0a878f5b2ed5652204b7a85acbd48f6a1afce206a252756f09d39b0b1fbda"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const",
+      "address": "0x8f7b00",
+      "count": 68904,
+      "matches": [
+        {
+          "size": 1169,
+          "address": "0x8f6ac0",
+          "digest": "d3cae3132533fd8ce2c55ba31a8147c0bd5984ea1d532b950a85ba110ff9e2da"
+        }
+      ],
+      "probe": [
+        {
+          "size": 1169,
+          "address": "0x8f7b00",
+          "digest": "d3cae3132533fd8ce2c55ba31a8147c0bd5984ea1d532b950a85ba110ff9e2da"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "address": "0x90b150",
+      "count": 8496,
+      "matches": [
+        {
+          "size": 590,
+          "address": "0x90a110",
+          "digest": "3a67677265f651c0a1ae576ad48f34629574b824a0771c7f9879f35280732e79"
+        }
+      ],
+      "probe": [
+        {
+          "size": 590,
+          "address": "0x90b150",
+          "digest": "3a67677265f651c0a1ae576ad48f34629574b824a0771c7f9879f35280732e79"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::ParseResult tomo::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long, tomo::RespFrontier*) [clone .isra.0]",
+      "address": "0x9d2100",
+      "count": 133745,
+      "matches": [
+        {
+          "size": 1086,
+          "address": "0x24420",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x83c4b0",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x8767b0",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x918e40",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x9d10c0",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        }
+      ],
+      "probe": [
+        {
+          "size": 1086,
+          "address": "0x9d2100",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::Rob<64u>::refine_current_write_hash(unsigned long) [clone .isra.0]",
+      "address": "0x9d9ce0",
+      "count": 198,
+      "matches": [
+        {
+          "size": 94,
+          "address": "0x83fc80",
+          "digest": "c4eeb7923a1ed3c6608fb4492942743636c4766af0d89d51a62861f46398593f"
+        },
+        {
+          "size": 94,
+          "address": "0x87d6a0",
+          "digest": "c4eeb7923a1ed3c6608fb4492942743636c4766af0d89d51a62861f46398593f"
+        },
+        {
+          "size": 94,
+          "address": "0x922210",
+          "digest": "c4eeb7923a1ed3c6608fb4492942743636c4766af0d89d51a62861f46398593f"
+        },
+        {
+          "size": 94,
+          "address": "0x9d8ca0",
+          "digest": "c4eeb7923a1ed3c6608fb4492942743636c4766af0d89d51a62861f46398593f"
+        }
+      ],
+      "probe": [
+        {
+          "size": 94,
+          "address": "0x9d9ce0",
+          "digest": "c4eeb7923a1ed3c6608fb4492942743636c4766af0d89d51a62861f46398593f"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+      "address": "0x9f79b0",
+      "count": 133723,
+      "matches": [
+        {
+          "size": 20181,
+          "address": "0x9f6970",
+          "digest": "6a3ce26e8a25d2e604066aa8723a707a535824f3afddd0102f2015484ede4fa0"
+        }
+      ],
+      "probe": [
+        {
+          "size": 20181,
+          "address": "0x9f79b0",
+          "digest": "6a3ce26e8a25d2e604066aa8723a707a535824f3afddd0102f2015484ede4fa0"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::FlatStore::hash_key(tomo::Slice)",
+      "address": "0xa4060",
+      "count": 466488,
+      "matches": [
+        {
+          "size": 808,
+          "address": "0xa3020",
+          "digest": "0e54ad08ce2f496c0adfd23826c66f9c61ea3195c48ba5c0b18d4137d71fdc00"
+        }
+      ],
+      "probe": [
+        {
+          "size": 808,
+          "address": "0xa4060",
+          "digest": "0e54ad08ce2f496c0adfd23826c66f9c61ea3195c48ba5c0b18d4137d71fdc00"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::FlatStore::read_local_state_acquire() const [clone .isra.0]",
+      "address": "0xa71ab0",
+      "count": 12,
+      "matches": [
+        {
+          "size": 30,
+          "address": "0x86b1d0",
+          "digest": "8ec0a878f5b2ed5652204b7a85acbd48f6a1afce206a252756f09d39b0b1fbda"
+        },
+        {
+          "size": 30,
+          "address": "0x8f6aa0",
+          "digest": "8ec0a878f5b2ed5652204b7a85acbd48f6a1afce206a252756f09d39b0b1fbda"
+        },
+        {
+          "size": 30,
+          "address": "0x9ad120",
+          "digest": "8ec0a878f5b2ed5652204b7a85acbd48f6a1afce206a252756f09d39b0b1fbda"
+        },
+        {
+          "size": 30,
+          "address": "0xa70a70",
+          "digest": "8ec0a878f5b2ed5652204b7a85acbd48f6a1afce206a252756f09d39b0b1fbda"
+        }
+      ],
+      "probe": [
+        {
+          "size": 30,
+          "address": "0xa71ab0",
+          "digest": "8ec0a878f5b2ed5652204b7a85acbd48f6a1afce206a252756f09d39b0b1fbda"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::ThreadCtx::post_task_quiet(unsigned int, tomo::Task const&, tomo::LoopSignals&)",
+      "address": "0xa92f0",
+      "count": 86130,
+      "matches": [
+        {
+          "size": 583,
+          "address": "0xa82b0",
+          "digest": "802be7fcc0cbe4c91ba7373c3c0d3188ef725acfb7f19538b34e31a10ff76e4c"
+        }
+      ],
+      "probe": [
+        {
+          "size": 583,
+          "address": "0xa92f0",
+          "digest": "802be7fcc0cbe4c91ba7373c3c0d3188ef725acfb7f19538b34e31a10ff76e4c"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::Client::nothing_to_write() const",
+      "address": "0xab3f0",
+      "count": 396,
+      "matches": [
+        {
+          "size": 72,
+          "address": "0xaa3b0",
+          "digest": "fed3a26ad5fcc5cecb1613922d907f35b4ccf57be731cbca7d29136f23d60ce6"
+        }
+      ],
+      "probe": [
+        {
+          "size": 72,
+          "address": "0xab3f0",
+          "digest": "fed3a26ad5fcc5cecb1613922d907f35b4ccf57be731cbca7d29136f23d60ce6"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::flip_dispatch_paused() const",
+      "address": "0xabbd0",
+      "count": 770,
+      "matches": [
+        {
+          "size": 52,
+          "address": "0xaab90",
+          "digest": "4996941468a10e38880bee692fefc16282954f494564bd816059d0f7401578c5"
+        }
+      ],
+      "probe": [
+        {
+          "size": 52,
+          "address": "0xabbd0",
+          "digest": "4996941468a10e38880bee692fefc16282954f494564bd816059d0f7401578c5"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > >::~vector()",
+      "address": "0xb9170",
+      "count": 7590,
+      "matches": [
+        {
+          "size": 383,
+          "address": "0xb8130",
+          "digest": "2f51d9e2a5c1228d736122b92cefb2c92b5819349032de42a816b2cbd06cc565"
+        }
+      ],
+      "probe": [
+        {
+          "size": 383,
+          "address": "0xb9170",
+          "digest": "2f51d9e2a5c1228d736122b92cefb2c92b5819349032de42a816b2cbd06cc565"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::l4prebuild_policy(unsigned int)",
+      "address": "0xc26fe0",
+      "count": 3696,
+      "matches": [
+        {
+          "size": 14,
+          "address": "0xc25b30",
+          "digest": "a64c8718ad86432cfbd572fb3b12c0e01914b42f258220aa65272b83669ddc70"
+        }
+      ],
+      "probe": [
+        {
+          "size": 14,
+          "address": "0xc26fe0",
+          "digest": "a64c8718ad86432cfbd572fb3b12c0e01914b42f258220aa65272b83669ddc70"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::stamp_regular_range(tomo::Op&)",
+      "address": "0xc37e10",
+      "count": 67320,
+      "matches": [
+        {
+          "size": 229,
+          "address": "0xc36960",
+          "digest": "da8e3a5f56e87bf1e927c47fc6447587373d6d5fe2e2d62f352bff9f9898df84"
+        }
+      ],
+      "probe": [
+        {
+          "size": 229,
+          "address": "0xc37e10",
+          "digest": "da8e3a5f56e87bf1e927c47fc6447587373d6d5fe2e2d62f352bff9f9898df84"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "normal",
+      "name": "tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)",
+      "address": "0xc3e710",
+      "count": 29304,
+      "matches": [
+        {
+          "size": 1031,
+          "address": "0xc3d260",
+          "digest": "e76afe1f7913c9175f4a1f3a4652857f1a78eb0e0886f6155b65ff06e3fc2a42"
+        }
+      ],
+      "probe": [
+        {
+          "size": 1031,
+          "address": "0xc3e710",
+          "digest": "e76afe1f7913c9175f4a1f3a4652857f1a78eb0e0886f6155b65ff06e3fc2a42"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::dispatch_atomic_scatter(tomo_db0::Client*, tomo_db0::Op&, tomo_db0::ScatterDispatch const&)",
+      "address": "0x10a870",
+      "count": 129824,
+      "matches": [
+        {
+          "size": 2139,
+          "address": "0x109830",
+          "digest": "b71a06b2f0cbf84cc32c923cc53ddef7280aa0096af1771caefed374849cffd6"
+        }
+      ],
+      "probe": [
+        {
+          "size": 2139,
+          "address": "0x10a870",
+          "digest": "b71a06b2f0cbf84cc32c923cc53ddef7280aa0096af1771caefed374849cffd6"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+      "address": "0x14c990",
+      "count": 8316,
+      "matches": [
+        {
+          "size": 776,
+          "address": "0x14b950",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        },
+        {
+          "size": 776,
+          "address": "0x3e4580",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        },
+        {
+          "size": 776,
+          "address": "0x5e8f70",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        },
+        {
+          "size": 776,
+          "address": "0xb3f0a0",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        },
+        {
+          "size": 776,
+          "address": "0xb65b90",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        }
+      ],
+      "probe": [
+        {
+          "size": 776,
+          "address": "0x14c990",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::ThreadCtx::post_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)",
+      "address": "0x1519a0",
+      "count": 86130,
+      "matches": [
+        {
+          "size": 583,
+          "address": "0x150960",
+          "digest": "802be7fcc0cbe4c91ba7373c3c0d3188ef725acfb7f19538b34e31a10ff76e4c"
+        }
+      ],
+      "probe": [
+        {
+          "size": 583,
+          "address": "0x1519a0",
+          "digest": "802be7fcc0cbe4c91ba7373c3c0d3188ef725acfb7f19538b34e31a10ff76e4c"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::Client::nothing_to_write() const",
+      "address": "0x153aa0",
+      "count": 324,
+      "matches": [
+        {
+          "size": 72,
+          "address": "0x152a60",
+          "digest": "fed3a26ad5fcc5cecb1613922d907f35b4ccf57be731cbca7d29136f23d60ce6"
+        }
+      ],
+      "probe": [
+        {
+          "size": 72,
+          "address": "0x153aa0",
+          "digest": "fed3a26ad5fcc5cecb1613922d907f35b4ccf57be731cbca7d29136f23d60ce6"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::flip_dispatch_paused() const",
+      "address": "0x154280",
+      "count": 770,
+      "matches": [
+        {
+          "size": 52,
+          "address": "0x153240",
+          "digest": "2882fd39d0233de99c6019d50d9d89a286aea90cc3b992695989bb96f57cedc3"
+        }
+      ],
+      "probe": [
+        {
+          "size": 52,
+          "address": "0x154280",
+          "digest": "2882fd39d0233de99c6019d50d9d89a286aea90cc3b992695989bb96f57cedc3"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::~vector()",
+      "address": "0x161840",
+      "count": 7590,
+      "matches": [
+        {
+          "size": 383,
+          "address": "0x160800",
+          "digest": "2f51d9e2a5c1228d736122b92cefb2c92b5819349032de42a816b2cbd06cc565"
+        }
+      ],
+      "probe": [
+        {
+          "size": 383,
+          "address": "0x161840",
+          "digest": "2f51d9e2a5c1228d736122b92cefb2c92b5819349032de42a816b2cbd06cc565"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::u64_to_dec(char*, unsigned long)",
+      "address": "0x1ea340",
+      "count": 2838,
+      "matches": [
+        {
+          "size": 160,
+          "address": "0x1e9300",
+          "digest": "b438e3b04c5658cced9ae4fcfc5daf0c79deec451debb6a0bb418fb51e4a0922"
+        }
+      ],
+      "probe": [
+        {
+          "size": 160,
+          "address": "0x1ea340",
+          "digest": "b438e3b04c5658cced9ae4fcfc5daf0c79deec451debb6a0bb418fb51e4a0922"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::ScatterState::ScatterState()",
+      "address": "0x1ebe50",
+      "count": 30030,
+      "matches": [
+        {
+          "size": 771,
+          "address": "0x1eae10",
+          "digest": "eface9f130fbd47104b25cd2ceab64fcdecc5e50d901de1fa6751edc888d40c9"
+        }
+      ],
+      "probe": [
+        {
+          "size": 771,
+          "address": "0x1ebe50",
+          "digest": "eface9f130fbd47104b25cd2ceab64fcdecc5e50d901de1fa6751edc888d40c9"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::(anonymous namespace)::has_status(tomo_db0::(anonymous namespace)::Kind, bool)",
+      "address": "0x1ec910",
+      "count": 6204,
+      "matches": [
+        {
+          "size": 83,
+          "address": "0x1eb8d0",
+          "digest": "43019189ffda5d72c04fc16116005cab43e22650ed319ab5dfece93d8b474b19"
+        }
+      ],
+      "probe": [
+        {
+          "size": 83,
+          "address": "0x1ec910",
+          "digest": "43019189ffda5d72c04fc16116005cab43e22650ed319ab5dfece93d8b474b19"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "address": "0x1ee500",
+      "count": 11088,
+      "matches": [
+        {
+          "size": 947,
+          "address": "0x1ed4c0",
+          "digest": "6aaf22101a7c8987de78fa8b380f434e2831560c41e3d6e5f58a5a427db908f7"
+        }
+      ],
+      "probe": [
+        {
+          "size": 947,
+          "address": "0x1ee500",
+          "digest": "6aaf22101a7c8987de78fa8b380f434e2831560c41e3d6e5f58a5a427db908f7"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)",
+      "address": "0x1f88d0",
+      "count": 11550,
+      "matches": [
+        {
+          "size": 122,
+          "address": "0x1f7890",
+          "digest": "8abb152a6033beb0f3a12a7405c93b69cc30293e0c35bd5611f4039846764111"
+        }
+      ],
+      "probe": [
+        {
+          "size": 122,
+          "address": "0x1f88d0",
+          "digest": "8abb152a6033beb0f3a12a7405c93b69cc30293e0c35bd5611f4039846764111"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::(anonymous namespace)::build_initial_groups(tomo_db0::ScatterState&)",
+      "address": "0x20d0f0",
+      "count": 141768,
+      "matches": [
+        {
+          "size": 734,
+          "address": "0x20c0b0",
+          "digest": "b8718d657caed71af368241326af93c90b90505e5ea879c10543c687716b8bec"
+        }
+      ],
+      "probe": [
+        {
+          "size": 734,
+          "address": "0x20d0f0",
+          "digest": "b8718d657caed71af368241326af93c90b90505e5ea879c10543c687716b8bec"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::(anonymous namespace)::arm_debug_off_hop_delay(tomo_db0::ScatterState&, tomo_db0::Op const&) [clone .isra.0]",
+      "address": "0x211b00",
+      "count": 6996,
+      "matches": [
+        {
+          "size": 431,
+          "address": "0x210ac0",
+          "digest": "d42fc56db2f857bd9008421ff3d7b8d7a715947dec2673f89fd93fde797ed65a"
+        }
+      ],
+      "probe": [
+        {
+          "size": 431,
+          "address": "0x211b00",
+          "digest": "d42fc56db2f857bd9008421ff3d7b8d7a715947dec2673f89fd93fde797ed65a"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::(anonymous namespace)::aof_prepare_scatter_group(tomo_db0::ScatterState&)",
+      "address": "0x213730",
+      "count": 4092,
+      "matches": [
+        {
+          "size": 870,
+          "address": "0x2126f0",
+          "digest": "f94f25dde33aa9568e7c1b42eddb6d8764637a7b6cb5b00147ff1c275afa0fdc"
+        }
+      ],
+      "probe": [
+        {
+          "size": 870,
+          "address": "0x213730",
+          "digest": "f94f25dde33aa9568e7c1b42eddb6d8764637a7b6cb5b00147ff1c275afa0fdc"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::(anonymous namespace)::initialize_owner_completion(tomo_db0::ScatterState&) [clone .part.0]",
+      "address": "0x215b70",
+      "count": 45144,
+      "matches": [
+        {
+          "size": 431,
+          "address": "0x214b30",
+          "digest": "7dcab00000b1f188be67e8aeb6508110a7cbbdd5fb6119d7cf3284ac22f4e489"
+        }
+      ],
+      "probe": [
+        {
+          "size": 431,
+          "address": "0x215b70",
+          "digest": "7dcab00000b1f188be67e8aeb6508110a7cbbdd5fb6119d7cf3284ac22f4e489"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::(anonymous namespace)::classify(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind&) [clone .isra.0]",
+      "address": "0x2181b0",
+      "count": 10032,
+      "matches": [
+        {
+          "size": 93,
+          "address": "0x217170",
+          "digest": "3bede9bcce5683cdedf87eba8beb5e96740ffec4f6e258837186d11c89098de2"
+        }
+      ],
+      "probe": [
+        {
+          "size": 93,
+          "address": "0x2181b0",
+          "digest": "3bede9bcce5683cdedf87eba8beb5e96740ffec4f6e258837186d11c89098de2"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)",
+      "address": "0x2185a0",
+      "count": 68904,
+      "matches": [
+        {
+          "size": 145,
+          "address": "0x217560",
+          "digest": "59434b7e86233864c381380306df9c9341c7e9a0a4940faecdf09301cbd01dc8"
+        }
+      ],
+      "probe": [
+        {
+          "size": 145,
+          "address": "0x2185a0",
+          "digest": "59434b7e86233864c381380306df9c9341c7e9a0a4940faecdf09301cbd01dc8"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+      "address": "0x220090",
+      "count": 627660,
+      "matches": [
+        {
+          "size": 18665,
+          "address": "0x21f050",
+          "digest": "9e364b09d032184606fc34dc49e0207be5be4149fb6b2c825fbe241f29b2a7c0"
+        }
+      ],
+      "probe": [
+        {
+          "size": 18665,
+          "address": "0x220090",
+          "digest": "9e364b09d032184606fc34dc49e0207be5be4149fb6b2c825fbe241f29b2a7c0"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::ScatterArenaPool::register_snapshot(tomo_db0::Server&, tomo_db0::SnapshotCut*, unsigned int)",
+      "address": "0x227e90",
+      "count": 3994,
+      "matches": [
+        {
+          "size": 962,
+          "address": "0x226e50",
+          "digest": "b7882b41df3a3afd1828582a9c48f7516731331a6e260dfe312f156f1b32bd46"
+        }
+      ],
+      "probe": [
+        {
+          "size": 962,
+          "address": "0x227e90",
+          "digest": "b7882b41df3a3afd1828582a9c48f7516731331a6e260dfe312f156f1b32bd46"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::ScatterArenaPool::acquire(unsigned long, bool&)",
+      "address": "0x228580",
+      "count": 8910,
+      "matches": [
+        {
+          "size": 153,
+          "address": "0x227540",
+          "digest": "c5b37c879bd31ba61857f7934aeeacc1cf3a7d4b78d52e41679f8adb4b739c7c"
+        }
+      ],
+      "probe": [
+        {
+          "size": 153,
+          "address": "0x228580",
+          "digest": "c5b37c879bd31ba61857f7934aeeacc1cf3a7d4b78d52e41679f8adb4b739c7c"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::xshard_dispatch_shard(tomo_db0::ScatterDispatch const&, unsigned int)",
+      "address": "0x240630",
+      "count": 46464,
+      "matches": [
+        {
+          "size": 54,
+          "address": "0x23f5f0",
+          "digest": "5c8013556a13f277c90ce590b9ab9ea1259aa5614f2a1756e56adeea6df4771b"
+        }
+      ],
+      "probe": [
+        {
+          "size": 54,
+          "address": "0x240630",
+          "digest": "5c8013556a13f277c90ce590b9ab9ea1259aa5614f2a1756e56adeea6df4771b"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::multi_session_watch_size(tomo_db0::Client const&)",
+      "address": "0x246600",
+      "count": 420,
+      "matches": [
+        {
+          "size": 51,
+          "address": "0x2455c0",
+          "digest": "16d9aae4c006f8389a687e0710a1e1c47e4fbf6fc4d5c0b3a49b0f9fcc01b058"
+        }
+      ],
+      "probe": [
+        {
+          "size": 51,
+          "address": "0x246600",
+          "digest": "16d9aae4c006f8389a687e0710a1e1c47e4fbf6fc4d5c0b3a49b0f9fcc01b058"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::Op::Sink::reserve(unsigned long)",
+      "address": "0x24e930",
+      "count": 1592,
+      "matches": [
+        {
+          "size": 205,
+          "address": "0x24d8f0",
+          "digest": "d29a952406fa60657717395090fade6e08ebb8994abcd1dc96f73d43615be134"
+        }
+      ],
+      "probe": [
+        {
+          "size": 205,
+          "address": "0x24e930",
+          "digest": "d29a952406fa60657717395090fade6e08ebb8994abcd1dc96f73d43615be134"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::Server::atomic_try_admit(unsigned int, unsigned long&, bool)",
+      "address": "0x25f530",
+      "count": 6476,
+      "matches": [
+        {
+          "size": 341,
+          "address": "0x25e4f0",
+          "digest": "993f85288463e73ba297aab423571ade727690f316817568fb82032190bcbcfc"
+        }
+      ],
+      "probe": [
+        {
+          "size": 341,
+          "address": "0x25f530",
+          "digest": "993f85288463e73ba297aab423571ade727690f316817568fb82032190bcbcfc"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::Server::atomic_apply_open(unsigned int, std::atomic<bool>&)",
+      "address": "0x25f840",
+      "count": 1716,
+      "matches": [
+        {
+          "size": 56,
+          "address": "0x25e800",
+          "digest": "a028a8841614de29e4b32dab743b4a7b068d4d594fdf68cf16be5b7429a0d94f"
+        }
+      ],
+      "probe": [
+        {
+          "size": 56,
+          "address": "0x25f840",
+          "digest": "a028a8841614de29e4b32dab743b4a7b068d4d594fdf68cf16be5b7429a0d94f"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+      "address": "0x272040",
+      "count": 251790,
+      "matches": [
+        {
+          "size": 749,
+          "address": "0x1991b0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x1b39b0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x1d33e0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x1e1d70",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x271000",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x2b0300",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x2c0110",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x2cee70",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x2f4c10",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x31ced0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x342350",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x35c050",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x378090",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x39da30",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x3b4cc0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x46bae0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x524130",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        }
+      ],
+      "probe": [
+        {
+          "size": 749,
+          "address": "0x272040",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::Op::cmd_name() const",
+      "address": "0x274cc0",
+      "count": 4752,
+      "matches": [
+        {
+          "size": 56,
+          "address": "0x273c80",
+          "digest": "0a04a76eabf3e42b4a15c170100679892f7f55dd673b8574322afe6f5ce599e5"
+        }
+      ],
+      "probe": [
+        {
+          "size": 56,
+          "address": "0x274cc0",
+          "digest": "0a04a76eabf3e42b4a15c170100679892f7f55dd673b8574322afe6f5ce599e5"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]",
+      "address": "0x2751c0",
+      "count": 8910,
+      "matches": [
+        {
+          "size": 86,
+          "address": "0x1e2430",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x274180",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x2cf950",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x31e150",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x342fe0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x379740",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x3b5d40",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x3e5910",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x470570",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x528140",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0xab6ee0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0xadaba0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0xaf16b0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0xb01980",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        }
+      ],
+      "probe": [
+        {
+          "size": 86,
+          "address": "0x2751c0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::[asm .rlfence]",
+      "address": "0x3f21d0",
+      "count": 416,
+      "assembly_region": "__rlfix4_slot_5225",
+      "offsets": [
+        "0x0",
+        "0x4",
+        "0x8",
+        "0xa",
+        "0x12",
+        "0x17"
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "void tomo_db0::reply_bulk<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice) [clone .isra.0]",
+      "address": "0x3f23b0",
+      "count": 7268,
+      "matches": [
+        {
+          "size": 477,
+          "address": "0x1e8f40",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x29d720",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x2c2aa0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x2d9120",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x3492b0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x3f1370",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0xadb720",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0xaf1ef0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0xb0f7b0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0xb44890",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0xb59bc0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0xb64de0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        }
+      ],
+      "probe": [
+        {
+          "size": 477,
+          "address": "0x3f23b0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::ParseResult tomo_db0::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long, tomo_db0::RespFrontier*) [clone .isra.0]",
+      "address": "0x3f2f30",
+      "count": 277882,
+      "matches": [
+        {
+          "size": 1097,
+          "address": "0xceb60",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x3b7d10",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x3f1ef0",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x495b80",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x54f590",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        }
+      ],
+      "probe": [
+        {
+          "size": 1097,
+          "address": "0x3f2f30",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::ReadLocalPendingFilter::add(unsigned long)",
+      "address": "0x3f81d0",
+      "count": 4290,
+      "matches": [
+        {
+          "size": 48,
+          "address": "0x3f7190",
+          "digest": "6a0ae11b70126c9b497eb0defa8de2e493131ba8e92a003c3ce556ffa0c13438"
+        }
+      ],
+      "probe": [
+        {
+          "size": 48,
+          "address": "0x3f81d0",
+          "digest": "6a0ae11b70126c9b497eb0defa8de2e493131ba8e92a003c3ce556ffa0c13438"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::read_local_command_is_precise_mset(tomo_db0::Op const&)",
+      "address": "0x3f9890",
+      "count": 4224,
+      "matches": [
+        {
+          "size": 154,
+          "address": "0x3f8850",
+          "digest": "8629c3304853f4193e29716abf7eb58b073fa416ec9f8f913712890c12eaf9fe"
+        }
+      ],
+      "probe": [
+        {
+          "size": 154,
+          "address": "0x3f9890",
+          "digest": "8629c3304853f4193e29716abf7eb58b073fa416ec9f8f913712890c12eaf9fe"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::Rob<64u>::read_local_arm()",
+      "address": "0x3f9930",
+      "count": 136,
+      "matches": [
+        {
+          "size": 104,
+          "address": "0x3f88f0",
+          "digest": "604929da9f697a99434f8f5ce2c74c60b99d352fe47c3debab46078d5574f0e8"
+        }
+      ],
+      "probe": [
+        {
+          "size": 104,
+          "address": "0x3f9930",
+          "digest": "604929da9f697a99434f8f5ce2c74c60b99d352fe47c3debab46078d5574f0e8"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::Rob<64u>::mark_current_write()",
+      "address": "0x3f99f0",
+      "count": 3696,
+      "matches": [
+        {
+          "size": 619,
+          "address": "0x3f89b0",
+          "digest": "6a3367e2ff6cbd8fd9afd5837bdcebf6f65f2931907e5d35ee9db88498771c42"
+        }
+      ],
+      "probe": [
+        {
+          "size": 619,
+          "address": "0x3f99f0",
+          "digest": "6a3367e2ff6cbd8fd9afd5837bdcebf6f65f2931907e5d35ee9db88498771c42"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::Rob<64u>::refine_current_write_hash(unsigned long) [clone .isra.0]",
+      "address": "0x3f9f30",
+      "count": 198,
+      "matches": [
+        {
+          "size": 94,
+          "address": "0x3bb4f0",
+          "digest": "347ab2340b2d6454d3b6e3f5283a9123b8abefcbf4ecacdacf4e696e39f85bf4"
+        },
+        {
+          "size": 94,
+          "address": "0x3f8ef0",
+          "digest": "347ab2340b2d6454d3b6e3f5283a9123b8abefcbf4ecacdacf4e696e39f85bf4"
+        },
+        {
+          "size": 94,
+          "address": "0x49f280",
+          "digest": "347ab2340b2d6454d3b6e3f5283a9123b8abefcbf4ecacdacf4e696e39f85bf4"
+        }
+      ],
+      "probe": [
+        {
+          "size": 94,
+          "address": "0x3f9f30",
+          "digest": "347ab2340b2d6454d3b6e3f5283a9123b8abefcbf4ecacdacf4e696e39f85bf4"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::Rob<64u>::refine_current_write_keyset(unsigned long, unsigned int)",
+      "address": "0x3f9f90",
+      "count": 660,
+      "matches": [
+        {
+          "size": 121,
+          "address": "0x3f8f50",
+          "digest": "09a59972cfad6b888a369358cd484a97eb907823d853fd3a72d6516e32034d5d"
+        }
+      ],
+      "probe": [
+        {
+          "size": 121,
+          "address": "0x3f9f90",
+          "digest": "09a59972cfad6b888a369358cd484a97eb907823d853fd3a72d6516e32034d5d"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::Rob<64u>::arm_current_local_mget_fence()",
+      "address": "0x3fa010",
+      "count": 396,
+      "matches": [
+        {
+          "size": 26,
+          "address": "0x3f8fd0",
+          "digest": "03b99be301b04b9578fd10f8f738eb6dd99e2d9cad9fd36701cedfd319032279"
+        }
+      ],
+      "probe": [
+        {
+          "size": 26,
+          "address": "0x3fa010",
+          "digest": "03b99be301b04b9578fd10f8f738eb6dd99e2d9cad9fd36701cedfd319032279"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "address": "0x410890",
+      "count": 237170,
+      "matches": [
+        {
+          "size": 19211,
+          "address": "0x40f850",
+          "digest": "32d19109d691e99b7615972571c0b1cc4fcfd3955a456c484151c52d8e2b6ec1"
+        }
+      ],
+      "probe": [
+        {
+          "size": 19211,
+          "address": "0x410890",
+          "digest": "32d19109d691e99b7615972571c0b1cc4fcfd3955a456c484151c52d8e2b6ec1"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::ReadLocalDemotionPlan::commit_reads()",
+      "address": "0x428320",
+      "count": 6864,
+      "matches": [
+        {
+          "size": 2329,
+          "address": "0x4272e0",
+          "digest": "2214e9cf6d0eac5b1c41f9f6d654d1b5d4d9e04ec4c71ea2b6bd1ecbda492b7e"
+        }
+      ],
+      "probe": [
+        {
+          "size": 2329,
+          "address": "0x428320",
+          "digest": "2214e9cf6d0eac5b1c41f9f6d654d1b5d4d9e04ec4c71ea2b6bd1ecbda492b7e"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::ReadLocalDemotionPlan::cancel()",
+      "address": "0x428ea0",
+      "count": 3050,
+      "matches": [
+        {
+          "size": 502,
+          "address": "0x427e60",
+          "digest": "9a620e5820f46ada584545c39c22ce6909aff84690314c65620533dfeb789547"
+        }
+      ],
+      "probe": [
+        {
+          "size": 502,
+          "address": "0x428ea0",
+          "digest": "9a620e5820f46ada584545c39c22ce6909aff84690314c65620533dfeb789547"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo_db0::ReadLocalFallbackReason, bool, unsigned long const*, tomo_db0::ReadLocalFallbackReason const*, unsigned int, tomo_db0::Op const*, bool)",
+      "address": "0x4290a0",
+      "count": 11088,
+      "matches": [
+        {
+          "size": 6382,
+          "address": "0x428060",
+          "digest": "c9b2222fb3992a7198ef09cb12b5a24a6c1be5bdc09a3e7c7469a81be02803db"
+        }
+      ],
+      "probe": [
+        {
+          "size": 6382,
+          "address": "0x4290a0",
+          "digest": "c9b2222fb3992a7198ef09cb12b5a24a6c1be5bdc09a3e7c7469a81be02803db"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::flip_fingerprint_note(tomo_db0::CommandSpec const&, tomo_db0::Op const&)",
+      "address": "0x42a990",
+      "count": 2772,
+      "matches": [
+        {
+          "size": 37,
+          "address": "0x429950",
+          "digest": "ec2e2662a0e661485ebcf3ee5908064e43064cffb3165156c8ea038dbcf2cf10"
+        }
+      ],
+      "probe": [
+        {
+          "size": 37,
+          "address": "0x42a990",
+          "digest": "ec2e2662a0e661485ebcf3ee5908064e43064cffb3165156c8ea038dbcf2cf10"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::flip_fingerprint_finish_pass()",
+      "address": "0x434890",
+      "count": 660,
+      "matches": [
+        {
+          "size": 189,
+          "address": "0x433850",
+          "digest": "dc9f9965560b0d6e6aedeb1a6790b9adc36fc4040a1232a3565fbc33425cbbf0"
+        }
+      ],
+      "probe": [
+        {
+          "size": 189,
+          "address": "0x434890",
+          "digest": "dc9f9965560b0d6e6aedeb1a6790b9adc36fc4040a1232a3565fbc33425cbbf0"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::ReadLocalPrefetchCapture const*)",
+      "address": "0x44fa90",
+      "count": 9240,
+      "matches": [
+        {
+          "size": 2249,
+          "address": "0x44ea50",
+          "digest": "50ee76f842091182dc23d21a1483dac1d25b5b2da4c714f10bb81f00bc88ad33"
+        }
+      ],
+      "probe": [
+        {
+          "size": 2249,
+          "address": "0x44fa90",
+          "digest": "50ee76f842091182dc23d21a1483dac1d25b5b2da4c714f10bb81f00bc88ad33"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::ExLoopT<true>::prepare_captured_local_mget(tomo_db0::Op&)",
+      "address": "0x4541b0",
+      "count": 186290,
+      "matches": [
+        {
+          "size": 4635,
+          "address": "0x453170",
+          "digest": "3087859dc8222cd53390ccf2fb13809ecfbd77a919ce2406335e055015f9bb27"
+        }
+      ],
+      "probe": [
+        {
+          "size": 4635,
+          "address": "0x4541b0",
+          "digest": "3087859dc8222cd53390ccf2fb13809ecfbd77a919ce2406335e055015f9bb27"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "unsigned int tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)",
+      "address": "0x4554c0",
+      "count": 28582,
+      "matches": [
+        {
+          "size": 2927,
+          "address": "0x454480",
+          "digest": "9b3704298ea2d9a05843b552100f25ecd9cbf2d30282f3aeffc740453ea899b8"
+        }
+      ],
+      "probe": [
+        {
+          "size": 2927,
+          "address": "0x4554c0",
+          "digest": "9b3704298ea2d9a05843b552100f25ecd9cbf2d30282f3aeffc740453ea899b8"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+      "address": "0x46cb20",
+      "count": 143913,
+      "matches": [
+        {
+          "size": 749,
+          "address": "0x1991b0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x1b39b0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x1d33e0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x1e1d70",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x271000",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x2b0300",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x2c0110",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x2cee70",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x2f4c10",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x31ced0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x342350",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x35c050",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x378090",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x39da30",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x3b4cc0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x46bae0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x524130",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        }
+      ],
+      "probe": [
+        {
+          "size": 749,
+          "address": "0x46cb20",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::MaskedSpscArray<tomo_db0::Task, 128u>::producer_free_slots(unsigned int) const",
+      "address": "0x471340",
+      "count": 6336,
+      "matches": [
+        {
+          "size": 24,
+          "address": "0x470300",
+          "digest": "0f9e3da2db31de21c9f3783572fc5f4551210c829c6c15d612ec94449527aaf8"
+        }
+      ],
+      "probe": [
+        {
+          "size": 24,
+          "address": "0x471340",
+          "digest": "0f9e3da2db31de21c9f3783572fc5f4551210c829c6c15d612ec94449527aaf8"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::Rob<64u>::in_flight() const",
+      "address": "0x471400",
+      "count": 400,
+      "matches": [
+        {
+          "size": 18,
+          "address": "0x4703c0",
+          "digest": "d610c03e9cc7dcc75d571557969130121c3d10ff8a1aa60192eae769f3054b2e"
+        }
+      ],
+      "probe": [
+        {
+          "size": 18,
+          "address": "0x471400",
+          "digest": "d610c03e9cc7dcc75d571557969130121c3d10ff8a1aa60192eae769f3054b2e"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::query_buffer_exceeded(tomo_db0::Client const&) const",
+      "address": "0x471f40",
+      "count": 1540,
+      "matches": [
+        {
+          "size": 193,
+          "address": "0x470f00",
+          "digest": "c2437d9cd2d695497cde28cec5f6b8ca7add28c3eaa14d8b00089f6a930ba4c4"
+        }
+      ],
+      "probe": [
+        {
+          "size": 193,
+          "address": "0x471f40",
+          "digest": "c2437d9cd2d695497cde28cec5f6b8ca7add28c3eaa14d8b00089f6a930ba4c4"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::ExLoopT<true>::local_read_lane_has_room(unsigned int) const",
+      "address": "0x473350",
+      "count": 1414,
+      "matches": [
+        {
+          "size": 53,
+          "address": "0x472310",
+          "digest": "b03b2b6d8f206aa3c22d162b2184843fe1839be2854fa03701a192c6f4561f1d"
+        }
+      ],
+      "probe": [
+        {
+          "size": 53,
+          "address": "0x473350",
+          "digest": "b03b2b6d8f206aa3c22d162b2184843fe1839be2854fa03701a192c6f4561f1d"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::FlatStore::read_local_prefetch(unsigned long) const",
+      "address": "0x473b40",
+      "count": 49896,
+      "matches": [
+        {
+          "size": 383,
+          "address": "0x472b00",
+          "digest": "c5c8ce538c73d8fffec22a2b8fe6e34a9c1257a648c608a69db5c0679b753a3c"
+        }
+      ],
+      "probe": [
+        {
+          "size": 383,
+          "address": "0x473b40",
+          "digest": "c5c8ce538c73d8fffec22a2b8fe6e34a9c1257a648c608a69db5c0679b753a3c"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::FlatStore::read_local_state_acquire() const [clone .isra.0]",
+      "address": "0x4741d0",
+      "count": 12,
+      "matches": [
+        {
+          "size": 30,
+          "address": "0x3e6780",
+          "digest": "857a2e7533c5b6a2c0b5cb339dee92427d4aaa1fe28dacfa25780f1ea1c6089e"
+        },
+        {
+          "size": 30,
+          "address": "0x473190",
+          "digest": "857a2e7533c5b6a2c0b5cb339dee92427d4aaa1fe28dacfa25780f1ea1c6089e"
+        },
+        {
+          "size": 30,
+          "address": "0x52b020",
+          "digest": "857a2e7533c5b6a2c0b5cb339dee92427d4aaa1fe28dacfa25780f1ea1c6089e"
+        },
+        {
+          "size": 30,
+          "address": "0x5f08d0",
+          "digest": "857a2e7533c5b6a2c0b5cb339dee92427d4aaa1fe28dacfa25780f1ea1c6089e"
+        }
+      ],
+      "probe": [
+        {
+          "size": 30,
+          "address": "0x4741d0",
+          "digest": "857a2e7533c5b6a2c0b5cb339dee92427d4aaa1fe28dacfa25780f1ea1c6089e"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const",
+      "address": "0x4741f0",
+      "count": 102168,
+      "matches": [
+        {
+          "size": 1770,
+          "address": "0x4731b0",
+          "digest": "0430ceb00ba0bdfd98ebd004990c201457b21f346b4e39d90d3f93b1b3b09763"
+        }
+      ],
+      "probe": [
+        {
+          "size": 1770,
+          "address": "0x4741f0",
+          "digest": "0430ceb00ba0bdfd98ebd004990c201457b21f346b4e39d90d3f93b1b3b09763"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "address": "0x487bb0",
+      "count": 8496,
+      "matches": [
+        {
+          "size": 590,
+          "address": "0x486b70",
+          "digest": "a7c2e43718476ecbe46073864b308544ec3dfd90b0b53b734b17b63189ea9297"
+        }
+      ],
+      "probe": [
+        {
+          "size": 590,
+          "address": "0x487bb0",
+          "digest": "a7c2e43718476ecbe46073864b308544ec3dfd90b0b53b734b17b63189ea9297"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::ParseResult tomo_db0::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long, tomo_db0::RespFrontier*) [clone .isra.0]",
+      "address": "0x5505d0",
+      "count": 138931,
+      "matches": [
+        {
+          "size": 1097,
+          "address": "0xceb60",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x3b7d10",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x3f1ef0",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x495b80",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x54f590",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        }
+      ],
+      "probe": [
+        {
+          "size": 1097,
+          "address": "0x5505d0",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)",
+      "address": "0x5776b0",
+      "count": 137250,
+      "matches": [
+        {
+          "size": 22017,
+          "address": "0x576670",
+          "digest": "c2c8105232fe573a35e0f25459380e9a86759f9a186e19b9f3c5a3d05ef7f5ae"
+        }
+      ],
+      "probe": [
+        {
+          "size": 22017,
+          "address": "0x5776b0",
+          "digest": "c2c8105232fe573a35e0f25459380e9a86759f9a186e19b9f3c5a3d05ef7f5ae"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+      "address": "0x5e9fb0",
+      "count": 78309,
+      "matches": [
+        {
+          "size": 776,
+          "address": "0x14b950",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        },
+        {
+          "size": 776,
+          "address": "0x3e4580",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        },
+        {
+          "size": 776,
+          "address": "0x5e8f70",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        },
+        {
+          "size": 776,
+          "address": "0xb3f0a0",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        },
+        {
+          "size": 776,
+          "address": "0xb65b90",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        }
+      ],
+      "probe": [
+        {
+          "size": 776,
+          "address": "0x5e9fb0",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::FlatStore::read_local_state_acquire() const [clone .isra.0]",
+      "address": "0x5f1910",
+      "count": 12,
+      "matches": [
+        {
+          "size": 30,
+          "address": "0x3e6780",
+          "digest": "857a2e7533c5b6a2c0b5cb339dee92427d4aaa1fe28dacfa25780f1ea1c6089e"
+        },
+        {
+          "size": 30,
+          "address": "0x473190",
+          "digest": "857a2e7533c5b6a2c0b5cb339dee92427d4aaa1fe28dacfa25780f1ea1c6089e"
+        },
+        {
+          "size": 30,
+          "address": "0x52b020",
+          "digest": "857a2e7533c5b6a2c0b5cb339dee92427d4aaa1fe28dacfa25780f1ea1c6089e"
+        },
+        {
+          "size": 30,
+          "address": "0x5f08d0",
+          "digest": "857a2e7533c5b6a2c0b5cb339dee92427d4aaa1fe28dacfa25780f1ea1c6089e"
+        }
+      ],
+      "probe": [
+        {
+          "size": 30,
+          "address": "0x5f1910",
+          "digest": "857a2e7533c5b6a2c0b5cb339dee92427d4aaa1fe28dacfa25780f1ea1c6089e"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::l4prebuild_policy(unsigned int)",
+      "address": "0xb429e0",
+      "count": 3696,
+      "matches": [
+        {
+          "size": 14,
+          "address": "0xb41410",
+          "digest": "a64c8718ad86432cfbd572fb3b12c0e01914b42f258220aa65272b83669ddc70"
+        }
+      ],
+      "probe": [
+        {
+          "size": 14,
+          "address": "0xb429e0",
+          "digest": "a64c8718ad86432cfbd572fb3b12c0e01914b42f258220aa65272b83669ddc70"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::ParseResult tomo_db0::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long, tomo_db0::RespFrontier*) [clone .isra.0]",
+      "address": "0xcfba0",
+      "count": 139071,
+      "matches": [
+        {
+          "size": 1097,
+          "address": "0xceb60",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x3b7d10",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x3f1ef0",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x495b80",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x54f590",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        }
+      ],
+      "probe": [
+        {
+          "size": 1097,
+          "address": "0xcfba0",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::Rob<64u>::publish()",
+      "address": "0xdf620",
+      "count": 1980,
+      "matches": [
+        {
+          "size": 16,
+          "address": "0xde5e0",
+          "digest": "0855fe78c29cc2a983c2c6bf2fe5be3d20e56d4e5f0e721f6a9b8f960e2349de"
+        }
+      ],
+      "probe": [
+        {
+          "size": 16,
+          "address": "0xdf620",
+          "digest": "0855fe78c29cc2a983c2c6bf2fe5be3d20e56d4e5f0e721f6a9b8f960e2349de"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::mark_active(tomo_db0::Client*)",
+      "address": "0xe6340",
+      "count": 7152,
+      "matches": [
+        {
+          "size": 418,
+          "address": "0xe5300",
+          "digest": "d312e6f4e2047d539eaf8b592c665bdd81a4ca3d6361819ff10386a9876b5105"
+        }
+      ],
+      "probe": [
+        {
+          "size": 418,
+          "address": "0xe6340",
+          "digest": "d312e6f4e2047d539eaf8b592c665bdd81a4ca3d6361819ff10386a9876b5105"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pad-a",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)",
+      "address": "0xefd60",
+      "count": 84824,
+      "matches": [
+        {
+          "size": 12815,
+          "address": "0xeed20",
+          "digest": "7363bd78c16ee8a63ceeacf20e3c4aff0d60f9c5a4b3c91e5deb6bc86543749c"
+        }
+      ],
+      "probe": [
+        {
+          "size": 12815,
+          "address": "0xefd60",
+          "digest": "7363bd78c16ee8a63ceeacf20e3c4aff0d60f9c5a4b3c91e5deb6bc86543749c"
+        }
+      ],
+      "pass_": true
+    }
+  ],
+  "pass_": true
+}

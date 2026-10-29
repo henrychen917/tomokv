@@ -1,0 +1,3543 @@
+{
+  "server_sha256": "2ffc953c8820419009929629e985b517d02787a461493edd81ce79571b030e5c",
+  "bodies": [
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::ParseResult tomo::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long, tomo::RespFrontier*) [clone .isra.0]",
+      "address": "0x44fe20",
+      "count": 133878,
+      "matches": [
+        {
+          "size": 1086,
+          "address": "0x44e960",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x71d9d0",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x76c410",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x7cf450",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x80df30",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        }
+      ],
+      "probe": [
+        {
+          "size": 1086,
+          "address": "0x44fe20",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::Client::nothing_to_write() const",
+      "address": "0x45aa70",
+      "count": 396,
+      "matches": [
+        {
+          "size": 72,
+          "address": "0x4595b0",
+          "digest": "fed3a26ad5fcc5cecb1613922d907f35b4ccf57be731cbca7d29136f23d60ce6"
+        }
+      ],
+      "probe": [
+        {
+          "size": 72,
+          "address": "0x45aa70",
+          "digest": "fed3a26ad5fcc5cecb1613922d907f35b4ccf57be731cbca7d29136f23d60ce6"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::FlatStore::hash_key(tomo::Slice)",
+      "address": "0x45f660",
+      "count": 466488,
+      "matches": [
+        {
+          "size": 808,
+          "address": "0x45e1a0",
+          "digest": "0e54ad08ce2f496c0adfd23826c66f9c61ea3195c48ba5c0b18d4137d71fdc00"
+        }
+      ],
+      "probe": [
+        {
+          "size": 808,
+          "address": "0x45f660",
+          "digest": "0e54ad08ce2f496c0adfd23826c66f9c61ea3195c48ba5c0b18d4137d71fdc00"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::ThreadCtx::post_task_quiet(unsigned int, tomo::Task const&, tomo::LoopSignals&)",
+      "address": "0x46a560",
+      "count": 86130,
+      "matches": [
+        {
+          "size": 583,
+          "address": "0x4690a0",
+          "digest": "802be7fcc0cbe4c91ba7373c3c0d3188ef725acfb7f19538b34e31a10ff76e4c"
+        }
+      ],
+      "probe": [
+        {
+          "size": 583,
+          "address": "0x46a560",
+          "digest": "802be7fcc0cbe4c91ba7373c3c0d3188ef725acfb7f19538b34e31a10ff76e4c"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::dispatch_atomic_scatter(tomo::Client*, tomo::Op&, tomo::ScatterDispatch const&)",
+      "address": "0x46fb00",
+      "count": 129824,
+      "matches": [
+        {
+          "size": 2139,
+          "address": "0x46e640",
+          "digest": "5ac77da841ab20556098dca27ddc3e52a631c161286747ba880096bc2eaaa93e"
+        }
+      ],
+      "probe": [
+        {
+          "size": 2139,
+          "address": "0x46fb00",
+          "digest": "5ac77da841ab20556098dca27ddc3e52a631c161286747ba880096bc2eaaa93e"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::mark_active(tomo::Client*)",
+      "address": "0x470ba0",
+      "count": 7152,
+      "matches": [
+        {
+          "size": 418,
+          "address": "0x46f6e0",
+          "digest": "d312e6f4e2047d539eaf8b592c665bdd81a4ca3d6361819ff10386a9876b5105"
+        }
+      ],
+      "probe": [
+        {
+          "size": 418,
+          "address": "0x470ba0",
+          "digest": "d312e6f4e2047d539eaf8b592c665bdd81a4ca3d6361819ff10386a9876b5105"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::flip_dispatch_paused() const",
+      "address": "0x471310",
+      "count": 770,
+      "matches": [
+        {
+          "size": 52,
+          "address": "0x46fe50",
+          "digest": "4996941468a10e38880bee692fefc16282954f494564bd816059d0f7401578c5"
+        }
+      ],
+      "probe": [
+        {
+          "size": 52,
+          "address": "0x471310",
+          "digest": "4996941468a10e38880bee692fefc16282954f494564bd816059d0f7401578c5"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::Rob<64u>::publish()",
+      "address": "0x477910",
+      "count": 2475,
+      "matches": [
+        {
+          "size": 16,
+          "address": "0x476450",
+          "digest": "0855fe78c29cc2a983c2c6bf2fe5be3d20e56d4e5f0e721f6a9b8f960e2349de"
+        }
+      ],
+      "probe": [
+        {
+          "size": 16,
+          "address": "0x477910",
+          "digest": "0855fe78c29cc2a983c2c6bf2fe5be3d20e56d4e5f0e721f6a9b8f960e2349de"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > >::~vector()",
+      "address": "0x47de50",
+      "count": 7590,
+      "matches": [
+        {
+          "size": 383,
+          "address": "0x47c990",
+          "digest": "2f51d9e2a5c1228d736122b92cefb2c92b5819349032de42a816b2cbd06cc565"
+        }
+      ],
+      "probe": [
+        {
+          "size": 383,
+          "address": "0x47de50",
+          "digest": "2f51d9e2a5c1228d736122b92cefb2c92b5819349032de42a816b2cbd06cc565"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)",
+      "address": "0x4d0410",
+      "count": 86390,
+      "matches": [
+        {
+          "size": 12975,
+          "address": "0x4cef50",
+          "digest": "a93f023dc5e61799f5bb6138c7115b398bc115c36b1cfa517f0bd18ab958015c"
+        }
+      ],
+      "probe": [
+        {
+          "size": 12975,
+          "address": "0x4d0410",
+          "digest": "a93f023dc5e61799f5bb6138c7115b398bc115c36b1cfa517f0bd18ab958015c"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)",
+      "address": "0x4f8000",
+      "count": 6204,
+      "matches": [
+        {
+          "size": 83,
+          "address": "0x4f6b40",
+          "digest": "43019189ffda5d72c04fc16116005cab43e22650ed319ab5dfece93d8b474b19"
+        }
+      ],
+      "probe": [
+        {
+          "size": 83,
+          "address": "0x4f8000",
+          "digest": "43019189ffda5d72c04fc16116005cab43e22650ed319ab5dfece93d8b474b19"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)",
+      "address": "0x4f8130",
+      "count": 11550,
+      "matches": [
+        {
+          "size": 122,
+          "address": "0x4f6c70",
+          "digest": "8abb152a6033beb0f3a12a7405c93b69cc30293e0c35bd5611f4039846764111"
+        }
+      ],
+      "probe": [
+        {
+          "size": 122,
+          "address": "0x4f8130",
+          "digest": "8abb152a6033beb0f3a12a7405c93b69cc30293e0c35bd5611f4039846764111"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)",
+      "address": "0x4f81b0",
+      "count": 11088,
+      "matches": [
+        {
+          "size": 947,
+          "address": "0x4f6cf0",
+          "digest": "a7d0a472c1290c7a87d718d285643849f60a8b588731fe146af9be795d7a1156"
+        }
+      ],
+      "probe": [
+        {
+          "size": 947,
+          "address": "0x4f81b0",
+          "digest": "a7d0a472c1290c7a87d718d285643849f60a8b588731fe146af9be795d7a1156"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&) [clone .part.0]",
+      "address": "0x4f9900",
+      "count": 45144,
+      "matches": [
+        {
+          "size": 431,
+          "address": "0x4f8440",
+          "digest": "68cfa435a0a46520ff534fa4c5d303cc268f9c033cccee5e7c1c02e7561dd1fd"
+        }
+      ],
+      "probe": [
+        {
+          "size": 431,
+          "address": "0x4f9900",
+          "digest": "68cfa435a0a46520ff534fa4c5d303cc268f9c033cccee5e7c1c02e7561dd1fd"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)",
+      "address": "0x4f9d90",
+      "count": 68904,
+      "matches": [
+        {
+          "size": 145,
+          "address": "0x4f88d0",
+          "digest": "59434b7e86233864c381380306df9c9341c7e9a0a4940faecdf09301cbd01dc8"
+        }
+      ],
+      "probe": [
+        {
+          "size": 145,
+          "address": "0x4f9d90",
+          "digest": "59434b7e86233864c381380306df9c9341c7e9a0a4940faecdf09301cbd01dc8"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)",
+      "address": "0x4f9e30",
+      "count": 141768,
+      "matches": [
+        {
+          "size": 734,
+          "address": "0x4f8970",
+          "digest": "7da75b524bdc0e10744e59817839e1bf91e82f5e057852cf8019d506c1f40139"
+        }
+      ],
+      "probe": [
+        {
+          "size": 734,
+          "address": "0x4f9e30",
+          "digest": "7da75b524bdc0e10744e59817839e1bf91e82f5e057852cf8019d506c1f40139"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]",
+      "address": "0x4fad60",
+      "count": 10032,
+      "matches": [
+        {
+          "size": 93,
+          "address": "0x4f98a0",
+          "digest": "8d3dc847bff32e51155aee70cc9500b44a849e8359bba592c7025527a18ce1a2"
+        }
+      ],
+      "probe": [
+        {
+          "size": 93,
+          "address": "0x4fad60",
+          "digest": "8d3dc847bff32e51155aee70cc9500b44a849e8359bba592c7025527a18ce1a2"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]",
+      "address": "0x4fb240",
+      "count": 8910,
+      "matches": [
+        {
+          "size": 86,
+          "address": "0x4f9d80",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x583cb0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x59f510",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x5d30c0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x617040",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x6343d0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x643a80",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x65d990",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x6749b0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x6a00c0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x6dce40",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x6e9900",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x71b500",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x769900",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x7cca90",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x80bfe0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        }
+      ],
+      "probe": [
+        {
+          "size": 86,
+          "address": "0x4fb240",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]",
+      "address": "0x507f90",
+      "count": 6996,
+      "matches": [
+        {
+          "size": 431,
+          "address": "0x506ad0",
+          "digest": "ba05aa039ee93928ff4029b205b649391b945321a109cde5bf3a416b80bc2635"
+        }
+      ],
+      "probe": [
+        {
+          "size": 431,
+          "address": "0x507f90",
+          "digest": "ba05aa039ee93928ff4029b205b649391b945321a109cde5bf3a416b80bc2635"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::ScatterArenaPool::acquire(unsigned long, bool&)",
+      "address": "0x508b30",
+      "count": 8910,
+      "matches": [
+        {
+          "size": 153,
+          "address": "0x507670",
+          "digest": "c5b37c879bd31ba61857f7934aeeacc1cf3a7d4b78d52e41679f8adb4b739c7c"
+        }
+      ],
+      "probe": [
+        {
+          "size": 153,
+          "address": "0x508b30",
+          "digest": "c5b37c879bd31ba61857f7934aeeacc1cf3a7d4b78d52e41679f8adb4b739c7c"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)",
+      "address": "0x508c10",
+      "count": 46464,
+      "matches": [
+        {
+          "size": 54,
+          "address": "0x507750",
+          "digest": "5c8013556a13f277c90ce590b9ab9ea1259aa5614f2a1756e56adeea6df4771b"
+        }
+      ],
+      "probe": [
+        {
+          "size": 54,
+          "address": "0x508c10",
+          "digest": "5c8013556a13f277c90ce590b9ab9ea1259aa5614f2a1756e56adeea6df4771b"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::ScatterArenaPool::register_snapshot(tomo::Server&, tomo::SnapshotCut*, unsigned int)",
+      "address": "0x50a8e0",
+      "count": 3994,
+      "matches": [
+        {
+          "size": 962,
+          "address": "0x509420",
+          "digest": "26144589f1480a28e6be5ed5972f45ed9f5333971a3e9b86854ee284b1007587"
+        }
+      ],
+      "probe": [
+        {
+          "size": 962,
+          "address": "0x50a8e0",
+          "digest": "26144589f1480a28e6be5ed5972f45ed9f5333971a3e9b86854ee284b1007587"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::multi_session_watch_size(tomo::Client const&)",
+      "address": "0x50ce90",
+      "count": 420,
+      "matches": [
+        {
+          "size": 67,
+          "address": "0x50b9d0",
+          "digest": "7dfad166103c2528f9eeed0c3f51385f44ac8cf0bedc24820a738927b67a2185"
+        }
+      ],
+      "probe": [
+        {
+          "size": 67,
+          "address": "0x50ce90",
+          "digest": "7dfad166103c2528f9eeed0c3f51385f44ac8cf0bedc24820a738927b67a2185"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::(anonymous namespace)::aof_prepare_scatter_group(tomo::ScatterState&)",
+      "address": "0x50e9e0",
+      "count": 4092,
+      "matches": [
+        {
+          "size": 870,
+          "address": "0x50d520",
+          "digest": "67717ce9f8f9d781faec22f6e8364cb30ecc411bb8bf57af17bb7f6ff01c5b23"
+        }
+      ],
+      "probe": [
+        {
+          "size": 870,
+          "address": "0x50e9e0",
+          "digest": "67717ce9f8f9d781faec22f6e8364cb30ecc411bb8bf57af17bb7f6ff01c5b23"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
+      "address": "0x526330",
+      "count": 627528,
+      "matches": [
+        {
+          "size": 18231,
+          "address": "0x524e70",
+          "digest": "ab86b7f87ac9e008d6480979a59c315ead16f45cb5c401cf9303a04cabf2184e"
+        }
+      ],
+      "probe": [
+        {
+          "size": 18231,
+          "address": "0x526330",
+          "digest": "ab86b7f87ac9e008d6480979a59c315ead16f45cb5c401cf9303a04cabf2184e"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::Op::cmd_name() const",
+      "address": "0x55c410",
+      "count": 8712,
+      "matches": [
+        {
+          "size": 56,
+          "address": "0x55af50",
+          "digest": "127b11c28dc9f34bd4e049f9ea88043e9bb329dd7eab9ed62ced2dd14bc43586"
+        }
+      ],
+      "probe": [
+        {
+          "size": 56,
+          "address": "0x55c410",
+          "digest": "127b11c28dc9f34bd4e049f9ea88043e9bb329dd7eab9ed62ced2dd14bc43586"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::Op::Sink::reserve(unsigned long)",
+      "address": "0x55c450",
+      "count": 1592,
+      "matches": [
+        {
+          "size": 205,
+          "address": "0x55af90",
+          "digest": "d29a952406fa60657717395090fade6e08ebb8994abcd1dc96f73d43615be134"
+        }
+      ],
+      "probe": [
+        {
+          "size": 205,
+          "address": "0x55c450",
+          "digest": "d29a952406fa60657717395090fade6e08ebb8994abcd1dc96f73d43615be134"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::u64_to_dec(char*, unsigned long)",
+      "address": "0x55c520",
+      "count": 2838,
+      "matches": [
+        {
+          "size": 160,
+          "address": "0x55b060",
+          "digest": "b438e3b04c5658cced9ae4fcfc5daf0c79deec451debb6a0bb418fb51e4a0922"
+        }
+      ],
+      "probe": [
+        {
+          "size": 160,
+          "address": "0x55c520",
+          "digest": "b438e3b04c5658cced9ae4fcfc5daf0c79deec451debb6a0bb418fb51e4a0922"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::Server::atomic_try_admit(unsigned int, unsigned long&, bool)",
+      "address": "0x561a80",
+      "count": 6476,
+      "matches": [
+        {
+          "size": 341,
+          "address": "0x5605c0",
+          "digest": "be4c0f7d60a9b032c0726408e0860116e814f5a53806c4388461b2e33ce4e1af"
+        }
+      ],
+      "probe": [
+        {
+          "size": 341,
+          "address": "0x561a80",
+          "digest": "be4c0f7d60a9b032c0726408e0860116e814f5a53806c4388461b2e33ce4e1af"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::Server::atomic_apply_open(unsigned int, std::atomic<bool>&)",
+      "address": "0x561ca0",
+      "count": 1716,
+      "matches": [
+        {
+          "size": 56,
+          "address": "0x5607e0",
+          "digest": "0f39b912d3f42422c90c85f44aa09aeb24812195c578bd1191a9177f051092fe"
+        }
+      ],
+      "probe": [
+        {
+          "size": 56,
+          "address": "0x561ca0",
+          "digest": "0f39b912d3f42422c90c85f44aa09aeb24812195c578bd1191a9177f051092fe"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::ScatterState::ScatterState()",
+      "address": "0x562030",
+      "count": 30030,
+      "matches": [
+        {
+          "size": 773,
+          "address": "0x560b70",
+          "digest": "8907d1f7b8bb9ec220532b6d62416ce5c856174fbf3a57bc4881b9b17d27a701"
+        }
+      ],
+      "probe": [
+        {
+          "size": 773,
+          "address": "0x562030",
+          "digest": "8907d1f7b8bb9ec220532b6d62416ce5c856174fbf3a57bc4881b9b17d27a701"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::Rob<64u>::refine_current_write_hash(unsigned long) [clone .isra.0]",
+      "address": "0x71c510",
+      "count": 198,
+      "matches": [
+        {
+          "size": 94,
+          "address": "0x71b050",
+          "digest": "c4eeb7923a1ed3c6608fb4492942743636c4766af0d89d51a62861f46398593f"
+        },
+        {
+          "size": 94,
+          "address": "0x769480",
+          "digest": "c4eeb7923a1ed3c6608fb4492942743636c4766af0d89d51a62861f46398593f"
+        },
+        {
+          "size": 94,
+          "address": "0x7cc5b0",
+          "digest": "c4eeb7923a1ed3c6608fb4492942743636c4766af0d89d51a62861f46398593f"
+        },
+        {
+          "size": 94,
+          "address": "0x80be60",
+          "digest": "c4eeb7923a1ed3c6608fb4492942743636c4766af0d89d51a62861f46398593f"
+        }
+      ],
+      "probe": [
+        {
+          "size": 94,
+          "address": "0x71c510",
+          "digest": "c4eeb7923a1ed3c6608fb4492942743636c4766af0d89d51a62861f46398593f"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::FlatStore::read_local_state_acquire() const [clone .isra.0]",
+      "address": "0x71cfa0",
+      "count": 12,
+      "matches": [
+        {
+          "size": 30,
+          "address": "0x71bae0",
+          "digest": "8ec0a878f5b2ed5652204b7a85acbd48f6a1afce206a252756f09d39b0b1fbda"
+        },
+        {
+          "size": 30,
+          "address": "0x769ee0",
+          "digest": "8ec0a878f5b2ed5652204b7a85acbd48f6a1afce206a252756f09d39b0b1fbda"
+        },
+        {
+          "size": 30,
+          "address": "0x7cd070",
+          "digest": "8ec0a878f5b2ed5652204b7a85acbd48f6a1afce206a252756f09d39b0b1fbda"
+        },
+        {
+          "size": 30,
+          "address": "0x80bfa0",
+          "digest": "8ec0a878f5b2ed5652204b7a85acbd48f6a1afce206a252756f09d39b0b1fbda"
+        }
+      ],
+      "probe": [
+        {
+          "size": 30,
+          "address": "0x71cfa0",
+          "digest": "8ec0a878f5b2ed5652204b7a85acbd48f6a1afce206a252756f09d39b0b1fbda"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::ParseResult tomo::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long, tomo::RespFrontier*) [clone .isra.0]",
+      "address": "0x71ee90",
+      "count": 267509,
+      "matches": [
+        {
+          "size": 1086,
+          "address": "0x44e960",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x71d9d0",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x76c410",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x7cf450",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x80df30",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        }
+      ],
+      "probe": [
+        {
+          "size": 1086,
+          "address": "0x71ee90",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::FlatStore::read_local_capture_in(tomo::FlatStore::ReadLocalTable const&, unsigned long, tomo::Slice, unsigned long const*&) const [clone .isra.0]",
+      "address": "0x727730",
+      "count": 52272,
+      "matches": [
+        {
+          "size": 416,
+          "address": "0x726270",
+          "digest": "edba7d2e305f3a387e96f7db496dd03ef9704adaf8954d1026885503dbba64b9"
+        }
+      ],
+      "probe": [
+        {
+          "size": 416,
+          "address": "0x727730",
+          "digest": "edba7d2e305f3a387e96f7db496dd03ef9704adaf8954d1026885503dbba64b9"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]",
+      "address": "0x728650",
+      "count": 7268,
+      "matches": [
+        {
+          "size": 477,
+          "address": "0x504390",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x5bd3e0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x5c8fb0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x5ee890",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x65e510",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x6a0900",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x6f6a10",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x727190",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x7b5520",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x807590",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x824010",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        }
+      ],
+      "probe": [
+        {
+          "size": 477,
+          "address": "0x728650",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::ReadLocalPendingFilter::add(unsigned long)",
+      "address": "0x728830",
+      "count": 4290,
+      "matches": [
+        {
+          "size": 48,
+          "address": "0x727370",
+          "digest": "6a0ae11b70126c9b497eb0defa8de2e493131ba8e92a003c3ce556ffa0c13438"
+        }
+      ],
+      "probe": [
+        {
+          "size": 48,
+          "address": "0x728830",
+          "digest": "6a0ae11b70126c9b497eb0defa8de2e493131ba8e92a003c3ce556ffa0c13438"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::FlatStore::read_local_prefetch(unsigned long) const",
+      "address": "0x728ca0",
+      "count": 49896,
+      "matches": [
+        {
+          "size": 383,
+          "address": "0x7277e0",
+          "digest": "c5c8ce538c73d8fffec22a2b8fe6e34a9c1257a648c608a69db5c0679b753a3c"
+        }
+      ],
+      "probe": [
+        {
+          "size": 383,
+          "address": "0x728ca0",
+          "digest": "c5c8ce538c73d8fffec22a2b8fe6e34a9c1257a648c608a69db5c0679b753a3c"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const",
+      "address": "0x728e20",
+      "count": 68904,
+      "matches": [
+        {
+          "size": 1169,
+          "address": "0x727960",
+          "digest": "d3cae3132533fd8ce2c55ba31a8147c0bd5984ea1d532b950a85ba110ff9e2da"
+        }
+      ],
+      "probe": [
+        {
+          "size": 1169,
+          "address": "0x728e20",
+          "digest": "d3cae3132533fd8ce2c55ba31a8147c0bd5984ea1d532b950a85ba110ff9e2da"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::read_local_command_is_precise_mset(tomo::Op const&)",
+      "address": "0x72a510",
+      "count": 8448,
+      "matches": [
+        {
+          "size": 154,
+          "address": "0x729050",
+          "digest": "8629c3304853f4193e29716abf7eb58b073fa416ec9f8f913712890c12eaf9fe"
+        }
+      ],
+      "probe": [
+        {
+          "size": 154,
+          "address": "0x72a510",
+          "digest": "8629c3304853f4193e29716abf7eb58b073fa416ec9f8f913712890c12eaf9fe"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::query_buffer_exceeded(tomo::Client const&) const",
+      "address": "0x72ac10",
+      "count": 1540,
+      "matches": [
+        {
+          "size": 193,
+          "address": "0x729750",
+          "digest": "692529f1a5b9ac067ee6c3706592b9446f76226730a4d913c4132b31599f52e9"
+        }
+      ],
+      "probe": [
+        {
+          "size": 193,
+          "address": "0x72ac10",
+          "digest": "692529f1a5b9ac067ee6c3706592b9446f76226730a4d913c4132b31599f52e9"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::ReadLocalDemotionPlan::cancel()",
+      "address": "0x72b140",
+      "count": 3050,
+      "matches": [
+        {
+          "size": 502,
+          "address": "0x729c80",
+          "digest": "39892c88f585cca63043ec86e73b505ac8b40457a29d134628259a57db0ff6a9"
+        }
+      ],
+      "probe": [
+        {
+          "size": 502,
+          "address": "0x72b140",
+          "digest": "39892c88f585cca63043ec86e73b505ac8b40457a29d134628259a57db0ff6a9"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFallbackReason, bool, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, tomo::Op const*, bool)",
+      "address": "0x72b340",
+      "count": 11484,
+      "matches": [
+        {
+          "size": 6081,
+          "address": "0x729e80",
+          "digest": "27288872abb53e8a09b59a49bd8d6e4d2afa7f6f9bf2da647048e30e6c292449"
+        }
+      ],
+      "probe": [
+        {
+          "size": 6081,
+          "address": "0x72b340",
+          "digest": "27288872abb53e8a09b59a49bd8d6e4d2afa7f6f9bf2da647048e30e6c292449"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::flip_fingerprint_finish_pass()",
+      "address": "0x72cb10",
+      "count": 660,
+      "matches": [
+        {
+          "size": 189,
+          "address": "0x72b650",
+          "digest": "8d23954c73a9c17dc8649c38c0d39af7a1072cbc38795029fd378398c6dd97f7"
+        }
+      ],
+      "probe": [
+        {
+          "size": 189,
+          "address": "0x72cb10",
+          "digest": "8d23954c73a9c17dc8649c38c0d39af7a1072cbc38795029fd378398c6dd97f7"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::flip_fingerprint_note(tomo::CommandSpec const&, tomo::Op const&)",
+      "address": "0x72cbd0",
+      "count": 3168,
+      "matches": [
+        {
+          "size": 37,
+          "address": "0x72b710",
+          "digest": "6de9acf1ed63268f34326980c01bd52bad48f755bda5d03d87f061baf1d273da"
+        }
+      ],
+      "probe": [
+        {
+          "size": 37,
+          "address": "0x72cbd0",
+          "digest": "6de9acf1ed63268f34326980c01bd52bad48f755bda5d03d87f061baf1d273da"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::Rob<64u>::in_flight() const",
+      "address": "0x72d230",
+      "count": 420,
+      "matches": [
+        {
+          "size": 18,
+          "address": "0x72bd70",
+          "digest": "d610c03e9cc7dcc75d571557969130121c3d10ff8a1aa60192eae769f3054b2e"
+        }
+      ],
+      "probe": [
+        {
+          "size": 18,
+          "address": "0x72d230",
+          "digest": "d610c03e9cc7dcc75d571557969130121c3d10ff8a1aa60192eae769f3054b2e"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::MaskedSpscArray<tomo::Task, 128u>::producer_free_slots(unsigned int) const",
+      "address": "0x72d8d0",
+      "count": 6336,
+      "matches": [
+        {
+          "size": 24,
+          "address": "0x72c410",
+          "digest": "0f9e3da2db31de21c9f3783572fc5f4551210c829c6c15d612ec94449527aaf8"
+        }
+      ],
+      "probe": [
+        {
+          "size": 24,
+          "address": "0x72d8d0",
+          "digest": "0f9e3da2db31de21c9f3783572fc5f4551210c829c6c15d612ec94449527aaf8"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::ReadLocalDemotionPlan::commit_reads()",
+      "address": "0x72dd00",
+      "count": 6864,
+      "matches": [
+        {
+          "size": 2329,
+          "address": "0x72c840",
+          "digest": "9633799820de9a44166cffcc0014ac43a054229612f3b8baa79c98815d58edf7"
+        }
+      ],
+      "probe": [
+        {
+          "size": 2329,
+          "address": "0x72dd00",
+          "digest": "9633799820de9a44166cffcc0014ac43a054229612f3b8baa79c98815d58edf7"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::ExLoopT<true>::local_read_lane_has_room(unsigned int) const",
+      "address": "0x72f540",
+      "count": 1414,
+      "matches": [
+        {
+          "size": 53,
+          "address": "0x72e080",
+          "digest": "b03b2b6d8f206aa3c22d162b2184843fe1839be2854fa03701a192c6f4561f1d"
+        }
+      ],
+      "probe": [
+        {
+          "size": 53,
+          "address": "0x72f540",
+          "digest": "b03b2b6d8f206aa3c22d162b2184843fe1839be2854fa03701a192c6f4561f1d"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::Rob<64u>::mark_current_write()",
+      "address": "0x72fdf0",
+      "count": 3696,
+      "matches": [
+        {
+          "size": 619,
+          "address": "0x72e930",
+          "digest": "6a3367e2ff6cbd8fd9afd5837bdcebf6f65f2931907e5d35ee9db88498771c42"
+        }
+      ],
+      "probe": [
+        {
+          "size": 619,
+          "address": "0x72fdf0",
+          "digest": "6a3367e2ff6cbd8fd9afd5837bdcebf6f65f2931907e5d35ee9db88498771c42"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::Rob<64u>::refine_current_write_keyset(unsigned long, unsigned int)",
+      "address": "0x730060",
+      "count": 1320,
+      "matches": [
+        {
+          "size": 121,
+          "address": "0x72eba0",
+          "digest": "09a59972cfad6b888a369358cd484a97eb907823d853fd3a72d6516e32034d5d"
+        }
+      ],
+      "probe": [
+        {
+          "size": 121,
+          "address": "0x730060",
+          "digest": "09a59972cfad6b888a369358cd484a97eb907823d853fd3a72d6516e32034d5d"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::Rob<64u>::arm_current_local_mget_fence()",
+      "address": "0x730210",
+      "count": 396,
+      "matches": [
+        {
+          "size": 26,
+          "address": "0x72ed50",
+          "digest": "03b99be301b04b9578fd10f8f738eb6dd99e2d9cad9fd36701cedfd319032279"
+        }
+      ],
+      "probe": [
+        {
+          "size": 26,
+          "address": "0x730210",
+          "digest": "03b99be301b04b9578fd10f8f738eb6dd99e2d9cad9fd36701cedfd319032279"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::Rob<64u>::read_local_arm()",
+      "address": "0x732090",
+      "count": 136,
+      "matches": [
+        {
+          "size": 104,
+          "address": "0x730bd0",
+          "digest": "604929da9f697a99434f8f5ce2c74c60b99d352fe47c3debab46078d5574f0e8"
+        }
+      ],
+      "probe": [
+        {
+          "size": 104,
+          "address": "0x732090",
+          "digest": "604929da9f697a99434f8f5ce2c74c60b99d352fe47c3debab46078d5574f0e8"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "address": "0x736120",
+      "count": 8496,
+      "matches": [
+        {
+          "size": 590,
+          "address": "0x734c60",
+          "digest": "bdea8e9c7baf758b058b9a7216d6c12b5ab5514129493a17cd93b1fb926e1ba4"
+        }
+      ],
+      "probe": [
+        {
+          "size": 590,
+          "address": "0x736120",
+          "digest": "bdea8e9c7baf758b058b9a7216d6c12b5ab5514129493a17cd93b1fb926e1ba4"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::ExLoopT<true>::prepare_captured_local_mget(tomo::Op&)",
+      "address": "0x740510",
+      "count": 185852,
+      "matches": [
+        {
+          "size": 4626,
+          "address": "0x73f050",
+          "digest": "a1947c588caf7cb799a048501007162c789c1b93d419736f40346009f25c5e67"
+        }
+      ],
+      "probe": [
+        {
+          "size": 4626,
+          "address": "0x740510",
+          "digest": "a1947c588caf7cb799a048501007162c789c1b93d419736f40346009f25c5e67"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
+      "address": "0x741730",
+      "count": 9240,
+      "matches": [
+        {
+          "size": 2249,
+          "address": "0x740270",
+          "digest": "125f648e2f7b783fcf4160c22cfc31d235ab2074264693c26855ef1ff094c05c"
+        }
+      ],
+      "probe": [
+        {
+          "size": 2249,
+          "address": "0x741730",
+          "digest": "125f648e2f7b783fcf4160c22cfc31d235ab2074264693c26855ef1ff094c05c"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)",
+      "address": "0x742000",
+      "count": 27606,
+      "matches": [
+        {
+          "size": 2862,
+          "address": "0x740b40",
+          "digest": "67000a1c95aac39ae7ec23b0e3cda5ab06fbd8c657c73f82c9c35996dff35eb9"
+        }
+      ],
+      "probe": [
+        {
+          "size": 2862,
+          "address": "0x742000",
+          "digest": "67000a1c95aac39ae7ec23b0e3cda5ab06fbd8c657c73f82c9c35996dff35eb9"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+      "address": "0x748100",
+      "count": 240218,
+      "matches": [
+        {
+          "size": 19469,
+          "address": "0x746c40",
+          "digest": "e4ab4faf47d934a3574f3136bdf8789b67c29f03465302dbbee86fa331ee8532"
+        }
+      ],
+      "probe": [
+        {
+          "size": 19469,
+          "address": "0x748100",
+          "digest": "e4ab4faf47d934a3574f3136bdf8789b67c29f03465302dbbee86fa331ee8532"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::Rob<64u>::refine_current_write_hash(unsigned long) [clone .isra.0]",
+      "address": "0x76a940",
+      "count": 198,
+      "matches": [
+        {
+          "size": 94,
+          "address": "0x71b050",
+          "digest": "c4eeb7923a1ed3c6608fb4492942743636c4766af0d89d51a62861f46398593f"
+        },
+        {
+          "size": 94,
+          "address": "0x769480",
+          "digest": "c4eeb7923a1ed3c6608fb4492942743636c4766af0d89d51a62861f46398593f"
+        },
+        {
+          "size": 94,
+          "address": "0x7cc5b0",
+          "digest": "c4eeb7923a1ed3c6608fb4492942743636c4766af0d89d51a62861f46398593f"
+        },
+        {
+          "size": 94,
+          "address": "0x80be60",
+          "digest": "c4eeb7923a1ed3c6608fb4492942743636c4766af0d89d51a62861f46398593f"
+        }
+      ],
+      "probe": [
+        {
+          "size": 94,
+          "address": "0x76a940",
+          "digest": "c4eeb7923a1ed3c6608fb4492942743636c4766af0d89d51a62861f46398593f"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::FlatStore::read_local_state_acquire() const [clone .isra.0]",
+      "address": "0x76b3a0",
+      "count": 12,
+      "matches": [
+        {
+          "size": 30,
+          "address": "0x71bae0",
+          "digest": "8ec0a878f5b2ed5652204b7a85acbd48f6a1afce206a252756f09d39b0b1fbda"
+        },
+        {
+          "size": 30,
+          "address": "0x769ee0",
+          "digest": "8ec0a878f5b2ed5652204b7a85acbd48f6a1afce206a252756f09d39b0b1fbda"
+        },
+        {
+          "size": 30,
+          "address": "0x7cd070",
+          "digest": "8ec0a878f5b2ed5652204b7a85acbd48f6a1afce206a252756f09d39b0b1fbda"
+        },
+        {
+          "size": 30,
+          "address": "0x80bfa0",
+          "digest": "8ec0a878f5b2ed5652204b7a85acbd48f6a1afce206a252756f09d39b0b1fbda"
+        }
+      ],
+      "probe": [
+        {
+          "size": 30,
+          "address": "0x76b3a0",
+          "digest": "8ec0a878f5b2ed5652204b7a85acbd48f6a1afce206a252756f09d39b0b1fbda"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::ParseResult tomo::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long, tomo::RespFrontier*) [clone .isra.0]",
+      "address": "0x76d8d0",
+      "count": 133745,
+      "matches": [
+        {
+          "size": 1086,
+          "address": "0x44e960",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x71d9d0",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x76c410",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x7cf450",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        },
+        {
+          "size": 1086,
+          "address": "0x80df30",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        }
+      ],
+      "probe": [
+        {
+          "size": 1086,
+          "address": "0x76d8d0",
+          "digest": "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+      "address": "0x784e60",
+      "count": 133723,
+      "matches": [
+        {
+          "size": 20181,
+          "address": "0x7839a0",
+          "digest": "6a3ce26e8a25d2e604066aa8723a707a535824f3afddd0102f2015484ede4fa0"
+        }
+      ],
+      "probe": [
+        {
+          "size": 20181,
+          "address": "0x784e60",
+          "digest": "6a3ce26e8a25d2e604066aa8723a707a535824f3afddd0102f2015484ede4fa0"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::l4prebuild_policy(unsigned int)",
+      "address": "0x7b3bf0",
+      "count": 3696,
+      "matches": [
+        {
+          "size": 14,
+          "address": "0x7b2730",
+          "digest": "a64c8718ad86432cfbd572fb3b12c0e01914b42f258220aa65272b83669ddc70"
+        }
+      ],
+      "probe": [
+        {
+          "size": 14,
+          "address": "0x7b3bf0",
+          "digest": "a64c8718ad86432cfbd572fb3b12c0e01914b42f258220aa65272b83669ddc70"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::stamp_regular_range(tomo::Op&)",
+      "address": "0x7c4a20",
+      "count": 67320,
+      "matches": [
+        {
+          "size": 229,
+          "address": "0x7c3560",
+          "digest": "da8e3a5f56e87bf1e927c47fc6447587373d6d5fe2e2d62f352bff9f9898df84"
+        }
+      ],
+      "probe": [
+        {
+          "size": 229,
+          "address": "0x7c4a20",
+          "digest": "da8e3a5f56e87bf1e927c47fc6447587373d6d5fe2e2d62f352bff9f9898df84"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)",
+      "address": "0x7cb320",
+      "count": 29304,
+      "matches": [
+        {
+          "size": 1031,
+          "address": "0x7c9e60",
+          "digest": "e76afe1f7913c9175f4a1f3a4652857f1a78eb0e0886f6155b65ff06e3fc2a42"
+        }
+      ],
+      "probe": [
+        {
+          "size": 1031,
+          "address": "0x7cb320",
+          "digest": "e76afe1f7913c9175f4a1f3a4652857f1a78eb0e0886f6155b65ff06e3fc2a42"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "normal",
+      "name": "tomo::[asm .rlfence]",
+      "address": "0x83eabc",
+      "count": 416,
+      "assembly_region": ".rlfence",
+      "offsets": [
+        "0x38",
+        "0x3c",
+        "0x40",
+        "0x4a",
+        "0x4f",
+        "0x42"
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::(anonymous namespace)::has_status(tomo_db0::(anonymous namespace)::Kind, bool)",
+      "address": "0x122790",
+      "count": 6204,
+      "matches": [
+        {
+          "size": 83,
+          "address": "0x1211b0",
+          "digest": "43019189ffda5d72c04fc16116005cab43e22650ed319ab5dfece93d8b474b19"
+        }
+      ],
+      "probe": [
+        {
+          "size": 83,
+          "address": "0x122790",
+          "digest": "43019189ffda5d72c04fc16116005cab43e22650ed319ab5dfece93d8b474b19"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)",
+      "address": "0x1228c0",
+      "count": 11550,
+      "matches": [
+        {
+          "size": 122,
+          "address": "0x1212e0",
+          "digest": "8abb152a6033beb0f3a12a7405c93b69cc30293e0c35bd5611f4039846764111"
+        }
+      ],
+      "probe": [
+        {
+          "size": 122,
+          "address": "0x1228c0",
+          "digest": "8abb152a6033beb0f3a12a7405c93b69cc30293e0c35bd5611f4039846764111"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "address": "0x122940",
+      "count": 11088,
+      "matches": [
+        {
+          "size": 947,
+          "address": "0x121360",
+          "digest": "6aaf22101a7c8987de78fa8b380f434e2831560c41e3d6e5f58a5a427db908f7"
+        }
+      ],
+      "probe": [
+        {
+          "size": 947,
+          "address": "0x122940",
+          "digest": "6aaf22101a7c8987de78fa8b380f434e2831560c41e3d6e5f58a5a427db908f7"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::(anonymous namespace)::initialize_owner_completion(tomo_db0::ScatterState&) [clone .part.0]",
+      "address": "0x124170",
+      "count": 45144,
+      "matches": [
+        {
+          "size": 431,
+          "address": "0x122b90",
+          "digest": "7dcab00000b1f188be67e8aeb6508110a7cbbdd5fb6119d7cf3284ac22f4e489"
+        }
+      ],
+      "probe": [
+        {
+          "size": 431,
+          "address": "0x124170",
+          "digest": "7dcab00000b1f188be67e8aeb6508110a7cbbdd5fb6119d7cf3284ac22f4e489"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)",
+      "address": "0x124570",
+      "count": 68904,
+      "matches": [
+        {
+          "size": 145,
+          "address": "0x122f90",
+          "digest": "59434b7e86233864c381380306df9c9341c7e9a0a4940faecdf09301cbd01dc8"
+        }
+      ],
+      "probe": [
+        {
+          "size": 145,
+          "address": "0x124570",
+          "digest": "59434b7e86233864c381380306df9c9341c7e9a0a4940faecdf09301cbd01dc8"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::(anonymous namespace)::build_initial_groups(tomo_db0::ScatterState&)",
+      "address": "0x124610",
+      "count": 141768,
+      "matches": [
+        {
+          "size": 734,
+          "address": "0x123030",
+          "digest": "b8718d657caed71af368241326af93c90b90505e5ea879c10543c687716b8bec"
+        }
+      ],
+      "probe": [
+        {
+          "size": 734,
+          "address": "0x124610",
+          "digest": "b8718d657caed71af368241326af93c90b90505e5ea879c10543c687716b8bec"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::(anonymous namespace)::classify(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind&) [clone .isra.0]",
+      "address": "0x125530",
+      "count": 10032,
+      "matches": [
+        {
+          "size": 93,
+          "address": "0x123f50",
+          "digest": "3bede9bcce5683cdedf87eba8beb5e96740ffec4f6e258837186d11c89098de2"
+        }
+      ],
+      "probe": [
+        {
+          "size": 93,
+          "address": "0x125530",
+          "digest": "3bede9bcce5683cdedf87eba8beb5e96740ffec4f6e258837186d11c89098de2"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]",
+      "address": "0x125dd0",
+      "count": 8910,
+      "matches": [
+        {
+          "size": 86,
+          "address": "0x1247f0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x1b2250",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x2069b0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x24de90",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x26c1f0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x27f4c0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x29a600",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x2b1990",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x2bbc20",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x2fb830",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x308a80",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x33c040",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x3eca90",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x42c940",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        }
+      ],
+      "probe": [
+        {
+          "size": 86,
+          "address": "0x125dd0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+      "address": "0x12cc00",
+      "count": 251790,
+      "matches": [
+        {
+          "size": 749,
+          "address": "0x12b620",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x1d0d70",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x1ef990",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x1fc280",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x207da0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x222e50",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x237bb0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x250dd0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x26e1a0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x280360",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x2b2640",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x2ccba0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x2d2ef0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x2dd280",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x309090",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x33d950",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x3ee3a0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        }
+      ],
+      "probe": [
+        {
+          "size": 749,
+          "address": "0x12cc00",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::(anonymous namespace)::arm_debug_off_hop_delay(tomo_db0::ScatterState&, tomo_db0::Op const&) [clone .isra.0]",
+      "address": "0x132d50",
+      "count": 6996,
+      "matches": [
+        {
+          "size": 431,
+          "address": "0x131770",
+          "digest": "d42fc56db2f857bd9008421ff3d7b8d7a715947dec2673f89fd93fde797ed65a"
+        }
+      ],
+      "probe": [
+        {
+          "size": 431,
+          "address": "0x132d50",
+          "digest": "d42fc56db2f857bd9008421ff3d7b8d7a715947dec2673f89fd93fde797ed65a"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::ScatterArenaPool::acquire(unsigned long, bool&)",
+      "address": "0x133ba0",
+      "count": 8910,
+      "matches": [
+        {
+          "size": 153,
+          "address": "0x1325c0",
+          "digest": "c5b37c879bd31ba61857f7934aeeacc1cf3a7d4b78d52e41679f8adb4b739c7c"
+        }
+      ],
+      "probe": [
+        {
+          "size": 153,
+          "address": "0x133ba0",
+          "digest": "c5b37c879bd31ba61857f7934aeeacc1cf3a7d4b78d52e41679f8adb4b739c7c"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::xshard_dispatch_shard(tomo_db0::ScatterDispatch const&, unsigned int)",
+      "address": "0x133c80",
+      "count": 46464,
+      "matches": [
+        {
+          "size": 54,
+          "address": "0x1326a0",
+          "digest": "5c8013556a13f277c90ce590b9ab9ea1259aa5614f2a1756e56adeea6df4771b"
+        }
+      ],
+      "probe": [
+        {
+          "size": 54,
+          "address": "0x133c80",
+          "digest": "5c8013556a13f277c90ce590b9ab9ea1259aa5614f2a1756e56adeea6df4771b"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::ScatterArenaPool::register_snapshot(tomo_db0::Server&, tomo_db0::SnapshotCut*, unsigned int)",
+      "address": "0x1358c0",
+      "count": 3994,
+      "matches": [
+        {
+          "size": 962,
+          "address": "0x1342e0",
+          "digest": "e00f3a31c181904c9cc8aaed71d99b6bf04bf681bf7e511b8d9b064d0fa79fc2"
+        }
+      ],
+      "probe": [
+        {
+          "size": 962,
+          "address": "0x1358c0",
+          "digest": "e00f3a31c181904c9cc8aaed71d99b6bf04bf681bf7e511b8d9b064d0fa79fc2"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::multi_session_watch_size(tomo_db0::Client const&)",
+      "address": "0x137ee0",
+      "count": 420,
+      "matches": [
+        {
+          "size": 51,
+          "address": "0x136900",
+          "digest": "16d9aae4c006f8389a687e0710a1e1c47e4fbf6fc4d5c0b3a49b0f9fcc01b058"
+        }
+      ],
+      "probe": [
+        {
+          "size": 51,
+          "address": "0x137ee0",
+          "digest": "16d9aae4c006f8389a687e0710a1e1c47e4fbf6fc4d5c0b3a49b0f9fcc01b058"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::(anonymous namespace)::aof_prepare_scatter_group(tomo_db0::ScatterState&)",
+      "address": "0x139a20",
+      "count": 4092,
+      "matches": [
+        {
+          "size": 870,
+          "address": "0x138440",
+          "digest": "f94f25dde33aa9568e7c1b42eddb6d8764637a7b6cb5b00147ff1c275afa0fdc"
+        }
+      ],
+      "probe": [
+        {
+          "size": 870,
+          "address": "0x139a20",
+          "digest": "f94f25dde33aa9568e7c1b42eddb6d8764637a7b6cb5b00147ff1c275afa0fdc"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+      "address": "0x1514f0",
+      "count": 627660,
+      "matches": [
+        {
+          "size": 18665,
+          "address": "0x14ff10",
+          "digest": "9e364b09d032184606fc34dc49e0207be5be4149fb6b2c825fbe241f29b2a7c0"
+        }
+      ],
+      "probe": [
+        {
+          "size": 18665,
+          "address": "0x1514f0",
+          "digest": "9e364b09d032184606fc34dc49e0207be5be4149fb6b2c825fbe241f29b2a7c0"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::Op::cmd_name() const",
+      "address": "0x188870",
+      "count": 4752,
+      "matches": [
+        {
+          "size": 56,
+          "address": "0x187290",
+          "digest": "0a04a76eabf3e42b4a15c170100679892f7f55dd673b8574322afe6f5ce599e5"
+        }
+      ],
+      "probe": [
+        {
+          "size": 56,
+          "address": "0x188870",
+          "digest": "0a04a76eabf3e42b4a15c170100679892f7f55dd673b8574322afe6f5ce599e5"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::Op::Sink::reserve(unsigned long)",
+      "address": "0x1888b0",
+      "count": 1592,
+      "matches": [
+        {
+          "size": 205,
+          "address": "0x1872d0",
+          "digest": "d29a952406fa60657717395090fade6e08ebb8994abcd1dc96f73d43615be134"
+        }
+      ],
+      "probe": [
+        {
+          "size": 205,
+          "address": "0x1888b0",
+          "digest": "d29a952406fa60657717395090fade6e08ebb8994abcd1dc96f73d43615be134"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::u64_to_dec(char*, unsigned long)",
+      "address": "0x188980",
+      "count": 2838,
+      "matches": [
+        {
+          "size": 160,
+          "address": "0x1873a0",
+          "digest": "b438e3b04c5658cced9ae4fcfc5daf0c79deec451debb6a0bb418fb51e4a0922"
+        }
+      ],
+      "probe": [
+        {
+          "size": 160,
+          "address": "0x188980",
+          "digest": "b438e3b04c5658cced9ae4fcfc5daf0c79deec451debb6a0bb418fb51e4a0922"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::Server::atomic_try_admit(unsigned int, unsigned long&, bool)",
+      "address": "0x18c760",
+      "count": 6476,
+      "matches": [
+        {
+          "size": 341,
+          "address": "0x18b180",
+          "digest": "993f85288463e73ba297aab423571ade727690f316817568fb82032190bcbcfc"
+        }
+      ],
+      "probe": [
+        {
+          "size": 341,
+          "address": "0x18c760",
+          "digest": "993f85288463e73ba297aab423571ade727690f316817568fb82032190bcbcfc"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::Server::atomic_apply_open(unsigned int, std::atomic<bool>&)",
+      "address": "0x18c9e0",
+      "count": 1716,
+      "matches": [
+        {
+          "size": 56,
+          "address": "0x18b400",
+          "digest": "a028a8841614de29e4b32dab743b4a7b068d4d594fdf68cf16be5b7429a0d94f"
+        }
+      ],
+      "probe": [
+        {
+          "size": 56,
+          "address": "0x18c9e0",
+          "digest": "a028a8841614de29e4b32dab743b4a7b068d4d594fdf68cf16be5b7429a0d94f"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::ScatterState::ScatterState()",
+      "address": "0x18cd70",
+      "count": 30030,
+      "matches": [
+        {
+          "size": 771,
+          "address": "0x18b790",
+          "digest": "eface9f130fbd47104b25cd2ceab64fcdecc5e50d901de1fa6751edc888d40c9"
+        }
+      ],
+      "probe": [
+        {
+          "size": 771,
+          "address": "0x18cd70",
+          "digest": "eface9f130fbd47104b25cd2ceab64fcdecc5e50d901de1fa6751edc888d40c9"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::Rob<64u>::refine_current_write_hash(unsigned long) [clone .isra.0]",
+      "address": "0x33d140",
+      "count": 198,
+      "matches": [
+        {
+          "size": 94,
+          "address": "0x33bb60",
+          "digest": "347ab2340b2d6454d3b6e3f5283a9123b8abefcbf4ecacdacf4e696e39f85bf4"
+        },
+        {
+          "size": 94,
+          "address": "0x3ec550",
+          "digest": "347ab2340b2d6454d3b6e3f5283a9123b8abefcbf4ecacdacf4e696e39f85bf4"
+        },
+        {
+          "size": 94,
+          "address": "0x42c7e0",
+          "digest": "347ab2340b2d6454d3b6e3f5283a9123b8abefcbf4ecacdacf4e696e39f85bf4"
+        }
+      ],
+      "probe": [
+        {
+          "size": 94,
+          "address": "0x33d140",
+          "digest": "347ab2340b2d6454d3b6e3f5283a9123b8abefcbf4ecacdacf4e696e39f85bf4"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::FlatStore::read_local_state_acquire() const [clone .isra.0]",
+      "address": "0x33dc00",
+      "count": 12,
+      "matches": [
+        {
+          "size": 30,
+          "address": "0x33c620",
+          "digest": "857a2e7533c5b6a2c0b5cb339dee92427d4aaa1fe28dacfa25780f1ea1c6089e"
+        },
+        {
+          "size": 30,
+          "address": "0x38b6c0",
+          "digest": "857a2e7533c5b6a2c0b5cb339dee92427d4aaa1fe28dacfa25780f1ea1c6089e"
+        },
+        {
+          "size": 30,
+          "address": "0x3ed070",
+          "digest": "857a2e7533c5b6a2c0b5cb339dee92427d4aaa1fe28dacfa25780f1ea1c6089e"
+        },
+        {
+          "size": 30,
+          "address": "0x42ca40",
+          "digest": "857a2e7533c5b6a2c0b5cb339dee92427d4aaa1fe28dacfa25780f1ea1c6089e"
+        }
+      ],
+      "probe": [
+        {
+          "size": 30,
+          "address": "0x33dc00",
+          "digest": "857a2e7533c5b6a2c0b5cb339dee92427d4aaa1fe28dacfa25780f1ea1c6089e"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+      "address": "0x33ef30",
+      "count": 143913,
+      "matches": [
+        {
+          "size": 749,
+          "address": "0x12b620",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x1d0d70",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x1ef990",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x1fc280",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x207da0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x222e50",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x237bb0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x250dd0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x26e1a0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x280360",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x2b2640",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x2ccba0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x2d2ef0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x2dd280",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x309090",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x33d950",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        },
+        {
+          "size": 749,
+          "address": "0x3ee3a0",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        }
+      ],
+      "probe": [
+        {
+          "size": 749,
+          "address": "0x33ef30",
+          "digest": "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::ParseResult tomo_db0::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long, tomo_db0::RespFrontier*) [clone .isra.0]",
+      "address": "0x3402b0",
+      "count": 277882,
+      "matches": [
+        {
+          "size": 1097,
+          "address": "0x7a8c0",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x33ecd0",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x38deb0",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x3ef8e0",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x42ebc0",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        }
+      ],
+      "probe": [
+        {
+          "size": 1097,
+          "address": "0x3402b0",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "void tomo_db0::reply_bulk<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice) [clone .isra.0]",
+      "address": "0x3495f0",
+      "count": 7268,
+      "matches": [
+        {
+          "size": 477,
+          "address": "0x12f0c0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x1f0030",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x1fc570",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x223140",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x26e490",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x29b180",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x2bc460",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x3171d0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x348010",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x3d8bf0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x427ee0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x444b60",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        }
+      ],
+      "probe": [
+        {
+          "size": 477,
+          "address": "0x3495f0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::ReadLocalPendingFilter::add(unsigned long)",
+      "address": "0x349940",
+      "count": 4290,
+      "matches": [
+        {
+          "size": 48,
+          "address": "0x348360",
+          "digest": "6a0ae11b70126c9b497eb0defa8de2e493131ba8e92a003c3ce556ffa0c13438"
+        }
+      ],
+      "probe": [
+        {
+          "size": 48,
+          "address": "0x349940",
+          "digest": "6a0ae11b70126c9b497eb0defa8de2e493131ba8e92a003c3ce556ffa0c13438"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::FlatStore::read_local_prefetch(unsigned long) const",
+      "address": "0x349db0",
+      "count": 49896,
+      "matches": [
+        {
+          "size": 383,
+          "address": "0x3487d0",
+          "digest": "c5c8ce538c73d8fffec22a2b8fe6e34a9c1257a648c608a69db5c0679b753a3c"
+        }
+      ],
+      "probe": [
+        {
+          "size": 383,
+          "address": "0x349db0",
+          "digest": "c5c8ce538c73d8fffec22a2b8fe6e34a9c1257a648c608a69db5c0679b753a3c"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const",
+      "address": "0x349f30",
+      "count": 102168,
+      "matches": [
+        {
+          "size": 1770,
+          "address": "0x348950",
+          "digest": "0430ceb00ba0bdfd98ebd004990c201457b21f346b4e39d90d3f93b1b3b09763"
+        }
+      ],
+      "probe": [
+        {
+          "size": 1770,
+          "address": "0x349f30",
+          "digest": "0430ceb00ba0bdfd98ebd004990c201457b21f346b4e39d90d3f93b1b3b09763"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::read_local_command_is_precise_mset(tomo_db0::Op const&)",
+      "address": "0x34b5c0",
+      "count": 4224,
+      "matches": [
+        {
+          "size": 154,
+          "address": "0x349fe0",
+          "digest": "8629c3304853f4193e29716abf7eb58b073fa416ec9f8f913712890c12eaf9fe"
+        }
+      ],
+      "probe": [
+        {
+          "size": 154,
+          "address": "0x34b5c0",
+          "digest": "8629c3304853f4193e29716abf7eb58b073fa416ec9f8f913712890c12eaf9fe"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::query_buffer_exceeded(tomo_db0::Client const&) const",
+      "address": "0x34bcc0",
+      "count": 1540,
+      "matches": [
+        {
+          "size": 193,
+          "address": "0x34a6e0",
+          "digest": "c2437d9cd2d695497cde28cec5f6b8ca7add28c3eaa14d8b00089f6a930ba4c4"
+        }
+      ],
+      "probe": [
+        {
+          "size": 193,
+          "address": "0x34bcc0",
+          "digest": "c2437d9cd2d695497cde28cec5f6b8ca7add28c3eaa14d8b00089f6a930ba4c4"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::ReadLocalDemotionPlan::cancel()",
+      "address": "0x34c1f0",
+      "count": 3050,
+      "matches": [
+        {
+          "size": 502,
+          "address": "0x34ac10",
+          "digest": "9a620e5820f46ada584545c39c22ce6909aff84690314c65620533dfeb789547"
+        }
+      ],
+      "probe": [
+        {
+          "size": 502,
+          "address": "0x34c1f0",
+          "digest": "9a620e5820f46ada584545c39c22ce6909aff84690314c65620533dfeb789547"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo_db0::ReadLocalFallbackReason, bool, unsigned long const*, tomo_db0::ReadLocalFallbackReason const*, unsigned int, tomo_db0::Op const*, bool)",
+      "address": "0x34c3f0",
+      "count": 11088,
+      "matches": [
+        {
+          "size": 6382,
+          "address": "0x34ae10",
+          "digest": "c9b2222fb3992a7198ef09cb12b5a24a6c1be5bdc09a3e7c7469a81be02803db"
+        }
+      ],
+      "probe": [
+        {
+          "size": 6382,
+          "address": "0x34c3f0",
+          "digest": "c9b2222fb3992a7198ef09cb12b5a24a6c1be5bdc09a3e7c7469a81be02803db"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::flip_fingerprint_finish_pass()",
+      "address": "0x34dce0",
+      "count": 660,
+      "matches": [
+        {
+          "size": 189,
+          "address": "0x34c700",
+          "digest": "dc9f9965560b0d6e6aedeb1a6790b9adc36fc4040a1232a3565fbc33425cbbf0"
+        }
+      ],
+      "probe": [
+        {
+          "size": 189,
+          "address": "0x34dce0",
+          "digest": "dc9f9965560b0d6e6aedeb1a6790b9adc36fc4040a1232a3565fbc33425cbbf0"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::flip_fingerprint_note(tomo_db0::CommandSpec const&, tomo_db0::Op const&)",
+      "address": "0x34dda0",
+      "count": 2772,
+      "matches": [
+        {
+          "size": 37,
+          "address": "0x34c7c0",
+          "digest": "ec2e2662a0e661485ebcf3ee5908064e43064cffb3165156c8ea038dbcf2cf10"
+        }
+      ],
+      "probe": [
+        {
+          "size": 37,
+          "address": "0x34dda0",
+          "digest": "ec2e2662a0e661485ebcf3ee5908064e43064cffb3165156c8ea038dbcf2cf10"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::Rob<64u>::in_flight() const",
+      "address": "0x34e2e0",
+      "count": 400,
+      "matches": [
+        {
+          "size": 18,
+          "address": "0x34cd00",
+          "digest": "d610c03e9cc7dcc75d571557969130121c3d10ff8a1aa60192eae769f3054b2e"
+        }
+      ],
+      "probe": [
+        {
+          "size": 18,
+          "address": "0x34e2e0",
+          "digest": "d610c03e9cc7dcc75d571557969130121c3d10ff8a1aa60192eae769f3054b2e"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::MaskedSpscArray<tomo_db0::Task, 128u>::producer_free_slots(unsigned int) const",
+      "address": "0x34ec40",
+      "count": 6336,
+      "matches": [
+        {
+          "size": 24,
+          "address": "0x34d660",
+          "digest": "0f9e3da2db31de21c9f3783572fc5f4551210c829c6c15d612ec94449527aaf8"
+        }
+      ],
+      "probe": [
+        {
+          "size": 24,
+          "address": "0x34ec40",
+          "digest": "0f9e3da2db31de21c9f3783572fc5f4551210c829c6c15d612ec94449527aaf8"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::ReadLocalDemotionPlan::commit_reads()",
+      "address": "0x34f070",
+      "count": 6864,
+      "matches": [
+        {
+          "size": 2329,
+          "address": "0x34da90",
+          "digest": "2214e9cf6d0eac5b1c41f9f6d654d1b5d4d9e04ec4c71ea2b6bd1ecbda492b7e"
+        }
+      ],
+      "probe": [
+        {
+          "size": 2329,
+          "address": "0x34f070",
+          "digest": "2214e9cf6d0eac5b1c41f9f6d654d1b5d4d9e04ec4c71ea2b6bd1ecbda492b7e"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::ExLoopT<true>::local_read_lane_has_room(unsigned int) const",
+      "address": "0x3508b0",
+      "count": 1414,
+      "matches": [
+        {
+          "size": 53,
+          "address": "0x34f2d0",
+          "digest": "b03b2b6d8f206aa3c22d162b2184843fe1839be2854fa03701a192c6f4561f1d"
+        }
+      ],
+      "probe": [
+        {
+          "size": 53,
+          "address": "0x3508b0",
+          "digest": "b03b2b6d8f206aa3c22d162b2184843fe1839be2854fa03701a192c6f4561f1d"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::Rob<64u>::mark_current_write()",
+      "address": "0x351160",
+      "count": 3696,
+      "matches": [
+        {
+          "size": 619,
+          "address": "0x34fb80",
+          "digest": "6a3367e2ff6cbd8fd9afd5837bdcebf6f65f2931907e5d35ee9db88498771c42"
+        }
+      ],
+      "probe": [
+        {
+          "size": 619,
+          "address": "0x351160",
+          "digest": "6a3367e2ff6cbd8fd9afd5837bdcebf6f65f2931907e5d35ee9db88498771c42"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::Rob<64u>::refine_current_write_keyset(unsigned long, unsigned int)",
+      "address": "0x3513d0",
+      "count": 660,
+      "matches": [
+        {
+          "size": 121,
+          "address": "0x34fdf0",
+          "digest": "09a59972cfad6b888a369358cd484a97eb907823d853fd3a72d6516e32034d5d"
+        }
+      ],
+      "probe": [
+        {
+          "size": 121,
+          "address": "0x3513d0",
+          "digest": "09a59972cfad6b888a369358cd484a97eb907823d853fd3a72d6516e32034d5d"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::Rob<64u>::arm_current_local_mget_fence()",
+      "address": "0x351580",
+      "count": 396,
+      "matches": [
+        {
+          "size": 26,
+          "address": "0x34ffa0",
+          "digest": "03b99be301b04b9578fd10f8f738eb6dd99e2d9cad9fd36701cedfd319032279"
+        }
+      ],
+      "probe": [
+        {
+          "size": 26,
+          "address": "0x351580",
+          "digest": "03b99be301b04b9578fd10f8f738eb6dd99e2d9cad9fd36701cedfd319032279"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::Rob<64u>::read_local_arm()",
+      "address": "0x353500",
+      "count": 136,
+      "matches": [
+        {
+          "size": 104,
+          "address": "0x351f20",
+          "digest": "604929da9f697a99434f8f5ce2c74c60b99d352fe47c3debab46078d5574f0e8"
+        }
+      ],
+      "probe": [
+        {
+          "size": 104,
+          "address": "0x353500",
+          "digest": "604929da9f697a99434f8f5ce2c74c60b99d352fe47c3debab46078d5574f0e8"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "address": "0x357580",
+      "count": 8496,
+      "matches": [
+        {
+          "size": 590,
+          "address": "0x355fa0",
+          "digest": "7fada4da83c4a2a4739b2a1151807a362fa9d00918fda6868f30b45c413edeac"
+        }
+      ],
+      "probe": [
+        {
+          "size": 590,
+          "address": "0x357580",
+          "digest": "7fada4da83c4a2a4739b2a1151807a362fa9d00918fda6868f30b45c413edeac"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::ExLoopT<true>::prepare_captured_local_mget(tomo_db0::Op&)",
+      "address": "0x361a50",
+      "count": 186290,
+      "matches": [
+        {
+          "size": 4635,
+          "address": "0x360470",
+          "digest": "3087859dc8222cd53390ccf2fb13809ecfbd77a919ce2406335e055015f9bb27"
+        }
+      ],
+      "probe": [
+        {
+          "size": 4635,
+          "address": "0x361a50",
+          "digest": "3087859dc8222cd53390ccf2fb13809ecfbd77a919ce2406335e055015f9bb27"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::ReadLocalPrefetchCapture const*)",
+      "address": "0x362c70",
+      "count": 9240,
+      "matches": [
+        {
+          "size": 2249,
+          "address": "0x361690",
+          "digest": "50ee76f842091182dc23d21a1483dac1d25b5b2da4c714f10bb81f00bc88ad33"
+        }
+      ],
+      "probe": [
+        {
+          "size": 2249,
+          "address": "0x362c70",
+          "digest": "50ee76f842091182dc23d21a1483dac1d25b5b2da4c714f10bb81f00bc88ad33"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "unsigned int tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)",
+      "address": "0x363540",
+      "count": 28582,
+      "matches": [
+        {
+          "size": 2927,
+          "address": "0x361f60",
+          "digest": "9b3704298ea2d9a05843b552100f25ecd9cbf2d30282f3aeffc740453ea899b8"
+        }
+      ],
+      "probe": [
+        {
+          "size": 2927,
+          "address": "0x363540",
+          "digest": "9b3704298ea2d9a05843b552100f25ecd9cbf2d30282f3aeffc740453ea899b8"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "address": "0x369990",
+      "count": 237170,
+      "matches": [
+        {
+          "size": 19211,
+          "address": "0x3683b0",
+          "digest": "32d19109d691e99b7615972571c0b1cc4fcfd3955a456c484151c52d8e2b6ec1"
+        }
+      ],
+      "probe": [
+        {
+          "size": 19211,
+          "address": "0x369990",
+          "digest": "32d19109d691e99b7615972571c0b1cc4fcfd3955a456c484151c52d8e2b6ec1"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::FlatStore::read_local_state_acquire() const [clone .isra.0]",
+      "address": "0x38cca0",
+      "count": 12,
+      "matches": [
+        {
+          "size": 30,
+          "address": "0x33c620",
+          "digest": "857a2e7533c5b6a2c0b5cb339dee92427d4aaa1fe28dacfa25780f1ea1c6089e"
+        },
+        {
+          "size": 30,
+          "address": "0x38b6c0",
+          "digest": "857a2e7533c5b6a2c0b5cb339dee92427d4aaa1fe28dacfa25780f1ea1c6089e"
+        },
+        {
+          "size": 30,
+          "address": "0x3ed070",
+          "digest": "857a2e7533c5b6a2c0b5cb339dee92427d4aaa1fe28dacfa25780f1ea1c6089e"
+        },
+        {
+          "size": 30,
+          "address": "0x42ca40",
+          "digest": "857a2e7533c5b6a2c0b5cb339dee92427d4aaa1fe28dacfa25780f1ea1c6089e"
+        }
+      ],
+      "probe": [
+        {
+          "size": 30,
+          "address": "0x38cca0",
+          "digest": "857a2e7533c5b6a2c0b5cb339dee92427d4aaa1fe28dacfa25780f1ea1c6089e"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+      "address": "0x38e8e0",
+      "count": 78309,
+      "matches": [
+        {
+          "size": 776,
+          "address": "0x78f00",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        },
+        {
+          "size": 776,
+          "address": "0x38d300",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        },
+        {
+          "size": 776,
+          "address": "0x3d3400",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        },
+        {
+          "size": 776,
+          "address": "0x42e080",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        },
+        {
+          "size": 776,
+          "address": "0x445910",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        }
+      ],
+      "probe": [
+        {
+          "size": 776,
+          "address": "0x38e8e0",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::ParseResult tomo_db0::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long, tomo_db0::RespFrontier*) [clone .isra.0]",
+      "address": "0x38f490",
+      "count": 138931,
+      "matches": [
+        {
+          "size": 1097,
+          "address": "0x7a8c0",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x33ecd0",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x38deb0",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x3ef8e0",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x42ebc0",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        }
+      ],
+      "probe": [
+        {
+          "size": 1097,
+          "address": "0x38f490",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)",
+      "address": "0x3a78f0",
+      "count": 137250,
+      "matches": [
+        {
+          "size": 22017,
+          "address": "0x3a6310",
+          "digest": "c2c8105232fe573a35e0f25459380e9a86759f9a186e19b9f3c5a3d05ef7f5ae"
+        }
+      ],
+      "probe": [
+        {
+          "size": 22017,
+          "address": "0x3a78f0",
+          "digest": "c2c8105232fe573a35e0f25459380e9a86759f9a186e19b9f3c5a3d05ef7f5ae"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::l4prebuild_policy(unsigned int)",
+      "address": "0x3d6d50",
+      "count": 3696,
+      "matches": [
+        {
+          "size": 14,
+          "address": "0x3d5770",
+          "digest": "a64c8718ad86432cfbd572fb3b12c0e01914b42f258220aa65272b83669ddc70"
+        }
+      ],
+      "probe": [
+        {
+          "size": 14,
+          "address": "0x3d6d50",
+          "digest": "a64c8718ad86432cfbd572fb3b12c0e01914b42f258220aa65272b83669ddc70"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+      "address": "0x7a4e0",
+      "count": 8316,
+      "matches": [
+        {
+          "size": 776,
+          "address": "0x78f00",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        },
+        {
+          "size": 776,
+          "address": "0x38d300",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        },
+        {
+          "size": 776,
+          "address": "0x3d3400",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        },
+        {
+          "size": 776,
+          "address": "0x42e080",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        },
+        {
+          "size": 776,
+          "address": "0x445910",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        }
+      ],
+      "probe": [
+        {
+          "size": 776,
+          "address": "0x7a4e0",
+          "digest": "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::ParseResult tomo_db0::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long, tomo_db0::RespFrontier*) [clone .isra.0]",
+      "address": "0x7bea0",
+      "count": 139071,
+      "matches": [
+        {
+          "size": 1097,
+          "address": "0x7a8c0",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x33ecd0",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x38deb0",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x3ef8e0",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        },
+        {
+          "size": 1097,
+          "address": "0x42ebc0",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        }
+      ],
+      "probe": [
+        {
+          "size": 1097,
+          "address": "0x7bea0",
+          "digest": "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::Client::nothing_to_write() const",
+      "address": "0x83bd0",
+      "count": 324,
+      "matches": [
+        {
+          "size": 72,
+          "address": "0x825f0",
+          "digest": "fed3a26ad5fcc5cecb1613922d907f35b4ccf57be731cbca7d29136f23d60ce6"
+        }
+      ],
+      "probe": [
+        {
+          "size": 72,
+          "address": "0x83bd0",
+          "digest": "fed3a26ad5fcc5cecb1613922d907f35b4ccf57be731cbca7d29136f23d60ce6"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::[asm .rlfence]",
+      "address": "0x83eeb3",
+      "count": 416,
+      "assembly_region": ".rlfence",
+      "offsets": [
+        "0x0",
+        "0x4",
+        "0x8",
+        "0xa",
+        "0x12",
+        "0x17"
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::ThreadCtx::post_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)",
+      "address": "0x92030",
+      "count": 86130,
+      "matches": [
+        {
+          "size": 583,
+          "address": "0x90a50",
+          "digest": "802be7fcc0cbe4c91ba7373c3c0d3188ef725acfb7f19538b34e31a10ff76e4c"
+        }
+      ],
+      "probe": [
+        {
+          "size": 583,
+          "address": "0x92030",
+          "digest": "802be7fcc0cbe4c91ba7373c3c0d3188ef725acfb7f19538b34e31a10ff76e4c"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::dispatch_atomic_scatter(tomo_db0::Client*, tomo_db0::Op&, tomo_db0::ScatterDispatch const&)",
+      "address": "0x97430",
+      "count": 129824,
+      "matches": [
+        {
+          "size": 2139,
+          "address": "0x95e50",
+          "digest": "b71a06b2f0cbf84cc32c923cc53ddef7280aa0096af1771caefed374849cffd6"
+        }
+      ],
+      "probe": [
+        {
+          "size": 2139,
+          "address": "0x97430",
+          "digest": "b71a06b2f0cbf84cc32c923cc53ddef7280aa0096af1771caefed374849cffd6"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::mark_active(tomo_db0::Client*)",
+      "address": "0x984d0",
+      "count": 7152,
+      "matches": [
+        {
+          "size": 418,
+          "address": "0x96ef0",
+          "digest": "d312e6f4e2047d539eaf8b592c665bdd81a4ca3d6361819ff10386a9876b5105"
+        }
+      ],
+      "probe": [
+        {
+          "size": 418,
+          "address": "0x984d0",
+          "digest": "d312e6f4e2047d539eaf8b592c665bdd81a4ca3d6361819ff10386a9876b5105"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::flip_dispatch_paused() const",
+      "address": "0x98c40",
+      "count": 770,
+      "matches": [
+        {
+          "size": 52,
+          "address": "0x97660",
+          "digest": "2882fd39d0233de99c6019d50d9d89a286aea90cc3b992695989bb96f57cedc3"
+        }
+      ],
+      "probe": [
+        {
+          "size": 52,
+          "address": "0x98c40",
+          "digest": "2882fd39d0233de99c6019d50d9d89a286aea90cc3b992695989bb96f57cedc3"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::Rob<64u>::publish()",
+      "address": "0xa0280",
+      "count": 1980,
+      "matches": [
+        {
+          "size": 16,
+          "address": "0x9eca0",
+          "digest": "0855fe78c29cc2a983c2c6bf2fe5be3d20e56d4e5f0e721f6a9b8f960e2349de"
+        }
+      ],
+      "probe": [
+        {
+          "size": 16,
+          "address": "0xa0280",
+          "digest": "0855fe78c29cc2a983c2c6bf2fe5be3d20e56d4e5f0e721f6a9b8f960e2349de"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::~vector()",
+      "address": "0xa6260",
+      "count": 7590,
+      "matches": [
+        {
+          "size": 383,
+          "address": "0xa4c80",
+          "digest": "2f51d9e2a5c1228d736122b92cefb2c92b5819349032de42a816b2cbd06cc565"
+        }
+      ],
+      "probe": [
+        {
+          "size": 383,
+          "address": "0xa6260",
+          "digest": "2f51d9e2a5c1228d736122b92cefb2c92b5819349032de42a816b2cbd06cc565"
+        }
+      ],
+      "pass_": true
+    },
+    {
+      "arm": "admission-pre",
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)",
+      "address": "0xfb2d0",
+      "count": 84824,
+      "matches": [
+        {
+          "size": 12815,
+          "address": "0xf9cf0",
+          "digest": "7363bd78c16ee8a63ceeacf20e3c4aff0d60f9c5a4b3c91e5deb6bc86543749c"
+        }
+      ],
+      "probe": [
+        {
+          "size": 12815,
+          "address": "0xfb2d0",
+          "digest": "7363bd78c16ee8a63ceeacf20e3c4aff0d60f9c5a4b3c91e5deb6bc86543749c"
+        }
+      ],
+      "pass_": true
+    }
+  ],
+  "pass_": true
+}

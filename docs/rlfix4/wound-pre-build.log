@@ -1,0 +1,234 @@
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=147838 -DTOMO_JEMALLOC -I. -c src/main.cc -o build/src/main.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/net/tls.cc -o build/src/net/tls.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/commands.cc -o build/src/cmd/commands.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/glob.cc -o build/src/cmd/glob.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=148585 -DTOMO_JEMALLOC -I. -c src/cmd/xshard.cc -o build/src/cmd/xshard.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=35758 -DTOMO_JEMALLOC -I. -c src/cmd/acl.cc -o build/src/cmd/acl.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/hll.cc -o build/src/cmd/hll.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=32703 -DTOMO_JEMALLOC -I. -c src/cmd/t_server.cc -o build/src/cmd/t_server.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param large-unit-insns=10600 -DTOMO_JEMALLOC -I. -c src/cmd/t_string.cc -o build/src/cmd/t_string.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_string_notify.cc -o build/src/cmd/t_string_notify.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_hash.cc -o build/src/cmd/t_hash.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_hash_ttl.cc -o build/src/cmd/t_hash_ttl.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=25608 -DTOMO_JEMALLOC -I. -c src/cmd/t_list.cc -o build/src/cmd/t_list.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=26451 -DTOMO_JEMALLOC -I. -c src/cmd/t_set.cc -o build/src/cmd/t_set.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=33447 -DTOMO_JEMALLOC -I. -c src/cmd/t_zset.cc -o build/src/cmd/t_zset.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_zset_ops.cc -o build/src/cmd/t_zset_ops.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=14410 -DTOMO_JEMALLOC -I. -c src/cmd/geo.cc -o build/src/cmd/geo.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_stream.cc -o build/src/cmd/t_stream.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_stream_groups.cc -o build/src/cmd/t_stream_groups.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/scripting.cc -o build/src/cmd/scripting.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/functions.cc -o build/src/cmd/functions.o
+In file included from src/cmd/xshard.cc:58:
+src/cmd/scatter_engine.inc:447:8: warning: ‘tomo::TxnGroupAttempt’ has a field ‘std::unique_ptr<tomo::{anonymous}::ShardGroup []> tomo::TxnGroupAttempt::placement_groups’ whose type has internal linkage [-Wsubobject-linkage]
+  447 | struct TxnGroupAttempt {
+      |        ^~~~~~~~~~~~~~~
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::Kind tomo::ScatterState::kind’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+  465 | struct ScatterState : SnapshotCut {
+      |        ^~~~~~~~~~~~
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::FinalReply tomo::ScatterState::final_reply’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::WorkError tomo::ScatterState::final_error’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ScriptPhase tomo::ScatterState::script_phase’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::PopReplyShape tomo::ScatterState::pop_reply_shape’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ImageRangeOptions tomo::ScatterState::range_options’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ImageRangeSpec tomo::ScatterState::range_spec’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::SortOptions tomo::ScatterState::sort_options’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ZAggregate tomo::ScatterState::zset_aggregate’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ShardGroup* tomo::ScatterState::groups’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::KeyRef* tomo::ScatterState::keys’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ValueSlot* tomo::ScatterState::values’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ObjectImage* tomo::ScatterState::images’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ObjectImage* tomo::ScatterState::apply’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::ResultHeap* tomo::ScatterState::result’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo::ScatterState’ has a field ‘tomo::{anonymous}::SortDerefState* tomo::ScatterState::sort_deref’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+In file included from src/cmd/xshard.cc:64:
+src/cmd/multi.inc: In function ‘void tomo::{anonymous}::txn_add_claim(std::vector<tomo::TxnClaim>&, tomo::Slice, tomo::TxnClaimMode, bool)’:
+src/cmd/multi.inc:770:21: warning: missing initializer for member ‘tomo::TxnClaim::waiter’ [-Wmissing-field-initializers]
+  770 |     claims.push_back({std::move(owned), whole ? 0 : FlatStore::hash_key(key), mode});
+      |     ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/cmd/multi.inc: In function ‘void tomo::{anonymous}::txn_cap_claims(std::vector<tomo::TxnClaim>&)’:
+src/cmd/multi.inc:779:21: warning: missing initializer for member ‘tomo::TxnClaim::waiter’ [-Wmissing-field-initializers]
+  779 |     claims.push_back({{}, 0, mode});
+      |     ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+In file included from src/cmd/xshard.cc:68:
+src/cmd/notify.inc: At global scope:
+src/cmd/notify.inc:255:8: warning: ‘tomo::NotifyBatch’ has a field ‘std::shared_ptr<tomo::{anonymous}::NotifyExpiryCompletion> tomo::NotifyBatch::expiry_completion’ whose type has internal linkage [-Wsubobject-linkage]
+  255 | struct NotifyBatch {
+      |        ^~~~~~~~~~~
+src/cmd/notify.inc: In function ‘void tomo::notify_elapsed_set(Shard&, Op&, Slice)’:
+src/cmd/notify.inc:583:78: warning: narrowing conversion of ‘key.tomo::Slice::ns’ from ‘uint32_t’ {aka ‘unsigned int’} to ‘uint8_t’ {aka ‘unsigned char’} [-Wnarrowing]
+  583 |         pending.push_back(NotifyPendingExpiry{std::string(key.p, key.n), key.ns, std::move(ready)});
+      |                                                                          ~~~~^~
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/serialize.cc -o build/src/cmd/serialize.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=15191 -DTOMO_JEMALLOC -I. -c src/snapshot/snapshot.cc -o build/src/snapshot/snapshot.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=37173 -DTOMO_JEMALLOC -I. -c src/persist/aof.cc -o build/src/persist/aof.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=26265 -DTOMO_JEMALLOC -I. -c src/cmd/climon.cc -o build/src/cmd/climon.o
+In file included from src/snapshot/snapshot.cc:1:
+src/snapshot/../persist/routing_compat.h: In lambda function:
+src/snapshot/../persist/routing_compat.h:46:45: warning: comparison of integer expressions of different signedness: ‘const uint32_t’ {aka ‘const unsigned int’} and ‘int’ [-Wsign-compare]
+   46 |             if ((physical_db >= 0 && key.ns != physical_db) ||
+      |                                      ~~~~~~~^~~~~~~~~~~~~~
+In file included from src/persist/aof.cc:1:
+src/persist/routing_compat.h: In lambda function:
+src/persist/routing_compat.h:46:45: warning: comparison of integer expressions of different signedness: ‘const uint32_t’ {aka ‘const unsigned int’} and ‘int’ [-Wsign-compare]
+   46 |             if ((physical_db >= 0 && key.ns != physical_db) ||
+      |                                      ~~~~~~~^~~~~~~~~~~~~~
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/tracking.cc -o build/src/cmd/tracking.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/server_tail.cc -o build/src/cmd/server_tail.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/slowlog.cc -o build/src/cmd/slowlog.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/lcs.cc -o build/src/cmd/lcs.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/info_stats.cc -o build/src/cmd/info_stats.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/lbsignals.cc -o build/src/cmd/lbsignals.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/core/flipctl.cc -o build/src/core/flipctl.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=131218 -DTOMO_JEMALLOC -I. -c src/core/genthread.cc -o build/src/core/genthread.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=164621 -DTOMO_JEMALLOC -I. -c src/core/rl2s.cc -o build/src/core/rl2s.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/core/lbstall.cc -o build/src/core/lbstall.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/core/lbplanner.cc -o build/src/core/lbplanner.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/l4prebuild.cc -o build/src/cmd/l4prebuild.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/cmdgap.cc -o build/src/cmd/cmdgap.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/pfdebug.cc -o build/src/cmd/pfdebug.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/cmdmeta.cc -o build/src/cmd/cmdmeta.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_sort.cc -o build/src/cmd/t_sort.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/multidb.cc -o build/src/cmd/multidb.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/storesize.cc -o build/src/cmd/storesize.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/multi_admin.cc -o build/src/cmd/multi_admin.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=149103 -DTOMO_JEMALLOC -I. -c src/core/reorder.cc -o build/src/core/reorder.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/geo_store.cc -o build/src/cmd/geo_store.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/persist/aof_frame_debug.cc -o build/src/persist/aof_frame_debug.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/aclkeys.cc -o build/src/cmd/aclkeys.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/blocking_debug.cc -o build/src/cmd/blocking_debug.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/objectpread.cc -o build/src/cmd/objectpread.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/hexpread.cc -o build/src/cmd/hexpread.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/autharity.cc -o build/src/cmd/autharity.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/core/fliplisten.cc -o build/src/core/fliplisten.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/core/shutdown.cc -o build/src/core/shutdown.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/latency_tracking.cc -o build/src/cmd/latency_tracking.o
+cc -O2 -g -Wall -Wextra -march=native -pthread -std=c11 -DENABLE_CJSON_GLOBAL -Ithird_party/lua -c third_party/lua/helpers/lua_cjson.c -o build/third_party/lua/helpers/lua_cjson.o
+third_party/lua/helpers/lua_cjson.c: In function ‘json_append_data’:
+third_party/lua/helpers/lua_cjson.c:694:12: warning: this statement may fall through [-Wimplicit-fallthrough=]
+  694 |         if (lua_touserdata(l, -1) == NULL) {
+      |            ^
+third_party/lua/helpers/lua_cjson.c:698:5: note: here
+  698 |     default:
+      |     ^~~~~~~
+cc -O2 -g -Wall -Wextra -march=native -pthread -std=c11 -DENABLE_CJSON_GLOBAL -Ithird_party/lua -c third_party/lua/helpers/lua_cmsgpack.c -o build/third_party/lua/helpers/lua_cmsgpack.o
+third_party/lua/helpers/lua_cmsgpack.c: In function ‘mp_unpack_full’:
+third_party/lua/helpers/lua_cmsgpack.c:809:21: warning: comparison of integer expressions of different signedness: ‘lua_Integer’ {aka ‘long int’} and ‘size_t’ {aka ‘long unsigned int’} [-Wsign-compare]
+  809 |     else if (offset > len)
+      |                     ^
+third_party/lua/helpers/lua_cmsgpack.c: In function ‘luaopen_create’:
+third_party/lua/helpers/lua_cmsgpack.c:910:19: warning: comparison of integer expressions of different signedness: ‘int’ and ‘long unsigned int’ [-Wsign-compare]
+  910 |     for (i = 0; i < (sizeof(cmds)/sizeof(*cmds) - 1); i++) {
+      |                   ^
+third_party/lua/helpers/lua_cmsgpack.c: In function ‘luaopen_cmsgpack_safe’:
+third_party/lua/helpers/lua_cmsgpack.c:945:19: warning: comparison of integer expressions of different signedness: ‘int’ and ‘long unsigned int’ [-Wsign-compare]
+  945 |     for (i = 0; i < (sizeof(cmds)/sizeof(*cmds) - 1); i++) {
+      |                   ^
+cc -O2 -g -Wall -Wextra -march=native -pthread -std=c11 -DENABLE_CJSON_GLOBAL -Ithird_party/lua -c third_party/lua/helpers/lua_bit.c -o build/third_party/lua/helpers/lua_bit.o
+cc -O2 -g -Wall -Wextra -march=native -pthread -std=c11 -DENABLE_CJSON_GLOBAL -Ithird_party/lua -c third_party/lua/helpers/lua_struct.c -o build/third_party/lua/helpers/lua_struct.o
+cc -O2 -g -Wall -Wextra -march=native -pthread -std=c11 -DENABLE_CJSON_GLOBAL -Ithird_party/lua -c third_party/lua/helpers/strbuf.c -o build/third_party/lua/helpers/strbuf.o
+cc -O2 -g -Wall -Wextra -march=native -pthread -std=c11 -DENABLE_CJSON_GLOBAL -Ithird_party/lua -c third_party/lua/helpers/fpconv.c -o build/third_party/lua/helpers/fpconv.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/core/version.cc -o build/src/core/version.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=146080 --param max-inline-insns-auto=18 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/main.cc -o build/db0/src/main.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/net/tls.cc -o build/db0/src/net/tls.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/commands.cc -o build/db0/src/cmd/commands.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/glob.cc -o build/db0/src/cmd/glob.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=147391 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/xshard.cc -o build/db0/src/cmd/xshard.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=35705 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/acl.cc -o build/db0/src/cmd/acl.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/hll.cc -o build/db0/src/cmd/hll.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=33448 --param max-inline-insns-auto=16 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_server.cc -o build/db0/src/cmd/t_server.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param large-unit-insns=10600 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_string.cc -o build/db0/src/cmd/t_string.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_string_notify.cc -o build/db0/src/cmd/t_string_notify.o
+src/core/reorder.cc:1304:37: warning: ‘always_inline’ function might not be inlinable [-Wattributes]
+ 1304 | __attribute__((always_inline)) void IoLoop::r7_admit_retained_fd(int fd, UrKind kind) {
+      |                                     ^~~~~~
+src/core/reorder.cc:1304:37: warning: ‘always_inline’ function might not be inlinable [-Wattributes]
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_hash.cc -o build/db0/src/cmd/t_hash.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_hash_ttl.cc -o build/db0/src/cmd/t_hash_ttl.o
+In file included from src/cmd/xshard.cc:58:
+src/cmd/scatter_engine.inc:447:8: warning: ‘tomo_db0::TxnGroupAttempt’ has a field ‘std::unique_ptr<tomo_db0::{anonymous}::ShardGroup []> tomo_db0::TxnGroupAttempt::placement_groups’ whose type has internal linkage [-Wsubobject-linkage]
+  447 | struct TxnGroupAttempt {
+      |        ^~~~~~~~~~~~~~~
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::Kind tomo_db0::ScatterState::kind’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+  465 | struct ScatterState : SnapshotCut {
+      |        ^~~~~~~~~~~~
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::FinalReply tomo_db0::ScatterState::final_reply’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::WorkError tomo_db0::ScatterState::final_error’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::ScriptPhase tomo_db0::ScatterState::script_phase’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::PopReplyShape tomo_db0::ScatterState::pop_reply_shape’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::ImageRangeOptions tomo_db0::ScatterState::range_options’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::ImageRangeSpec tomo_db0::ScatterState::range_spec’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::SortOptions tomo_db0::ScatterState::sort_options’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::ZAggregate tomo_db0::ScatterState::zset_aggregate’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::ShardGroup* tomo_db0::ScatterState::groups’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::KeyRef* tomo_db0::ScatterState::keys’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::ValueSlot* tomo_db0::ScatterState::values’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::ObjectImage* tomo_db0::ScatterState::images’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::ObjectImage* tomo_db0::ScatterState::apply’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::ResultHeap* tomo_db0::ScatterState::result’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+src/cmd/scatter_engine.inc:465:8: warning: ‘tomo_db0::ScatterState’ has a field ‘tomo_db0::{anonymous}::SortDerefState* tomo_db0::ScatterState::sort_deref’ whose type uses the anonymous namespace [-Wsubobject-linkage]
+In file included from src/cmd/xshard.cc:64:
+src/cmd/multi.inc: In function ‘void tomo_db0::{anonymous}::txn_add_claim(std::vector<tomo_db0::TxnClaim>&, tomo_db0::Slice, tomo_db0::TxnClaimMode, bool)’:
+src/cmd/multi.inc:770:21: warning: missing initializer for member ‘tomo_db0::TxnClaim::waiter’ [-Wmissing-field-initializers]
+  770 |     claims.push_back({std::move(owned), whole ? 0 : FlatStore::hash_key(key), mode});
+      |     ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/cmd/multi.inc: In function ‘void tomo_db0::{anonymous}::txn_cap_claims(std::vector<tomo_db0::TxnClaim>&)’:
+src/cmd/multi.inc:779:21: warning: missing initializer for member ‘tomo_db0::TxnClaim::waiter’ [-Wmissing-field-initializers]
+  779 |     claims.push_back({{}, 0, mode});
+      |     ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+In file included from src/cmd/xshard.cc:68:
+src/cmd/notify.inc: At global scope:
+src/cmd/notify.inc:255:8: warning: ‘tomo_db0::NotifyBatch’ has a field ‘std::shared_ptr<tomo_db0::{anonymous}::NotifyExpiryCompletion> tomo_db0::NotifyBatch::expiry_completion’ whose type has internal linkage [-Wsubobject-linkage]
+  255 | struct NotifyBatch {
+      |        ^~~~~~~~~~~
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_list.cc -o build/db0/src/cmd/t_list.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=26651 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_set.cc -o build/db0/src/cmd/t_set.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=33229 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_zset.cc -o build/db0/src/cmd/t_zset.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_zset_ops.cc -o build/db0/src/cmd/t_zset_ops.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=16462 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/geo.cc -o build/db0/src/cmd/geo.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_stream.cc -o build/db0/src/cmd/t_stream.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_stream_groups.cc -o build/db0/src/cmd/t_stream_groups.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/scripting.cc -o build/db0/src/cmd/scripting.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/functions.cc -o build/db0/src/cmd/functions.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/serialize.cc -o build/db0/src/cmd/serialize.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=14612 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/snapshot/snapshot.cc -o build/db0/src/snapshot/snapshot.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=39024 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/persist/aof.cc -o build/db0/src/persist/aof.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=26780 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/climon.cc -o build/db0/src/cmd/climon.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/tracking.cc -o build/db0/src/cmd/tracking.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/server_tail.cc -o build/db0/src/cmd/server_tail.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/slowlog.cc -o build/db0/src/cmd/slowlog.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/lcs.cc -o build/db0/src/cmd/lcs.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/info_stats.cc -o build/db0/src/cmd/info_stats.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/lbsignals.cc -o build/db0/src/cmd/lbsignals.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/core/flipctl.cc -o build/db0/src/core/flipctl.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=132012 -Wa,--defsym,tomo_rlfence_text_pad=16 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/core/genthread.cc -o build/db0/src/core/genthread.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=167496 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/core/rl2s.cc -o build/db0/src/core/rl2s.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/core/lbstall.cc -o build/db0/src/core/lbstall.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/core/lbplanner.cc -o build/db0/src/core/lbplanner.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/l4prebuild.cc -o build/db0/src/cmd/l4prebuild.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/cmdgap.cc -o build/db0/src/cmd/cmdgap.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/pfdebug.cc -o build/db0/src/cmd/pfdebug.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/cmdmeta.cc -o build/db0/src/cmd/cmdmeta.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_sort.cc -o build/db0/src/cmd/t_sort.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/multidb.cc -o build/db0/src/cmd/multidb.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/storesize.cc -o build/db0/src/cmd/storesize.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/multi_admin.cc -o build/db0/src/cmd/multi_admin.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=150092 --param max-inline-insns-auto=14 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/core/reorder.cc -o build/db0/src/core/reorder.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/geo_store.cc -o build/db0/src/cmd/geo_store.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/persist/aof_frame_debug.cc -o build/db0/src/persist/aof_frame_debug.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/aclkeys.cc -o build/db0/src/cmd/aclkeys.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/blocking_debug.cc -o build/db0/src/cmd/blocking_debug.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/objectpread.cc -o build/db0/src/cmd/objectpread.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/hexpread.cc -o build/db0/src/cmd/hexpread.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/autharity.cc -o build/db0/src/cmd/autharity.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/core/fliplisten.cc -o build/db0/src/core/fliplisten.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/core/shutdown.cc -o build/db0/src/core/shutdown.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/latency_tracking.cc -o build/db0/src/cmd/latency_tracking.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/core/version.cc -o build/db0/src/core/version.o
+python3 tools/assert_map.py --output build/tomokv.asserts.tsv --cxx "g++"
+src/core/reorder.cc:1304:37: warning: ‘always_inline’ function might not be inlinable [-Wattributes]
+ 1304 | __attribute__((always_inline)) void IoLoop::r7_admit_retained_fd(int fd, UrKind kind) {
+      |                                     ^~~~~~
+src/core/reorder.cc:1304:37: warning: ‘always_inline’ function might not be inlinable [-Wattributes]
+assert map: 22 unique sites -> build/tomokv.asserts.tsv
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread build/db0/src/main.o build/db0/src/net/tls.o build/db0/src/cmd/commands.o build/db0/src/cmd/glob.o build/db0/src/cmd/xshard.o build/db0/src/cmd/acl.o build/db0/src/cmd/hll.o build/db0/src/cmd/t_server.o build/db0/src/cmd/t_string.o build/db0/src/cmd/t_string_notify.o build/db0/src/cmd/t_hash.o build/db0/src/cmd/t_hash_ttl.o build/db0/src/cmd/t_list.o build/db0/src/cmd/t_set.o build/db0/src/cmd/t_zset.o build/db0/src/cmd/t_zset_ops.o build/db0/src/cmd/geo.o build/db0/src/cmd/t_stream.o build/db0/src/cmd/t_stream_groups.o build/db0/src/cmd/scripting.o build/db0/src/cmd/functions.o build/db0/src/cmd/serialize.o build/db0/src/snapshot/snapshot.o build/db0/src/persist/aof.o build/db0/src/cmd/climon.o build/db0/src/cmd/tracking.o build/db0/src/cmd/server_tail.o build/db0/src/cmd/slowlog.o build/db0/src/cmd/lcs.o build/db0/src/cmd/info_stats.o build/db0/src/cmd/lbsignals.o build/db0/src/core/flipctl.o build/db0/src/core/genthread.o build/db0/src/core/rl2s.o build/db0/src/core/lbstall.o build/db0/src/core/lbplanner.o build/db0/src/cmd/l4prebuild.o build/db0/src/cmd/cmdgap.o build/db0/src/cmd/pfdebug.o build/db0/src/cmd/cmdmeta.o build/db0/src/cmd/t_sort.o build/db0/src/cmd/multidb.o build/db0/src/cmd/storesize.o build/db0/src/cmd/multi_admin.o build/db0/src/core/reorder.o build/db0/src/cmd/geo_store.o build/db0/src/persist/aof_frame_debug.o build/db0/src/cmd/aclkeys.o build/db0/src/cmd/blocking_debug.o build/db0/src/cmd/objectpread.o build/db0/src/cmd/hexpread.o build/db0/src/cmd/autharity.o build/db0/src/core/fliplisten.o build/db0/src/core/shutdown.o build/db0/src/cmd/latency_tracking.o build/db0/src/core/version.o build/src/main.o build/src/net/tls.o build/src/cmd/commands.o build/src/cmd/glob.o build/src/cmd/xshard.o build/src/cmd/acl.o build/src/cmd/hll.o build/src/cmd/t_server.o build/src/cmd/t_string.o build/src/cmd/t_string_notify.o build/src/cmd/t_hash.o build/src/cmd/t_hash_ttl.o build/src/cmd/t_list.o build/src/cmd/t_set.o build/src/cmd/t_zset.o build/src/cmd/t_zset_ops.o build/src/cmd/geo.o build/src/cmd/t_stream.o build/src/cmd/t_stream_groups.o build/src/cmd/scripting.o build/src/cmd/functions.o build/src/cmd/serialize.o build/src/snapshot/snapshot.o build/src/persist/aof.o build/src/cmd/climon.o build/src/cmd/tracking.o build/src/cmd/server_tail.o build/src/cmd/slowlog.o build/src/cmd/lcs.o build/src/cmd/info_stats.o build/src/cmd/lbsignals.o build/src/core/flipctl.o build/src/core/genthread.o build/src/core/rl2s.o build/src/core/lbstall.o build/src/core/lbplanner.o build/src/cmd/l4prebuild.o build/src/cmd/cmdgap.o build/src/cmd/pfdebug.o build/src/cmd/cmdmeta.o build/src/cmd/t_sort.o build/src/cmd/multidb.o build/src/cmd/storesize.o build/src/cmd/multi_admin.o build/src/core/reorder.o build/src/cmd/geo_store.o build/src/persist/aof_frame_debug.o build/src/cmd/aclkeys.o build/src/cmd/blocking_debug.o build/src/cmd/objectpread.o build/src/cmd/hexpread.o build/src/cmd/autharity.o build/src/core/fliplisten.o build/src/core/shutdown.o build/src/cmd/latency_tracking.o build/third_party/lua/helpers/lua_cjson.o build/third_party/lua/helpers/lua_cmsgpack.o build/third_party/lua/helpers/lua_bit.o build/third_party/lua/helpers/lua_struct.o build/third_party/lua/helpers/strbuf.o build/third_party/lua/helpers/fpconv.o build/src/core/version.o -o build/tomokv -Wl,--wrap=main -ljemalloc -luring -pthread -lssl -lcrypto -lm

@@ -1,0 +1,204 @@
+src/core/io_loop.h:3363:53: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/18516 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/44497 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/44499 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/44526 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/44524 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/44528 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/44522 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/pubsub.inc:1318:24: missed:   not inlinable: tomo_db0::IoLoop::PubSubStartResult tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)/8816 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/45537 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/45531 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/45533 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/45535 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/45548 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/45550 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/pubsub.inc:1319:24: missed:   not inlinable: tomo_db0::IoLoop::PubSubStartResult tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)/8816 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2118:49: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/16689 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2118:49: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/16668 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/pubsub.inc:1324:24: missed:   not inlinable: tomo_db0::IoLoop::PubSubStartResult tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)/8816 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/46196 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/46194 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/46200 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/46204 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/46206 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/46202 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/46090 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/46092 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/pubsub.inc:1325:24: missed:   not inlinable: tomo_db0::IoLoop::PubSubStartResult tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)/8816 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/46293 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/46291 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/pubsub.inc:1330:24: missed:   not inlinable: tomo_db0::IoLoop::PubSubStartResult tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)/8816 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/45370 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/read_local.h:40:60: missed:   not inlinable: bool tomo_db0::read_local_command_is_precise_mset(const Op&)/43848 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/pubsub.inc:1331:24: missed:   not inlinable: tomo_db0::IoLoop::PubSubStartResult tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)/8816 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3770:71: missed:   not inlinable: parse_and_dispatch.isra/41191 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3793:33: missed:   not inlinable: parse_and_dispatch.isra/41191 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3793:70: missed:   not inlinable: parse_and_dispatch.isra/41191 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/pubsub.inc:1336:24: missed:   not inlinable: tomo_db0::IoLoop::PubSubStartResult tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)/8816 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3373:48: missed:   not inlinable: parse_and_dispatch.isra/41191 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3770:71: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/18516 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3770:71: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/18561 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/pubsub.inc:1341:25: missed:   not inlinable: tomo_db0::IoLoop::PubSubStartResult tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)/8816 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3793:33: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/18516 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3793:33: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/18561 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3793:70: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/18516 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3793:70: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/18561 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3373:48: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/18516 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3373:48: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/18561 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3544:33: missed:   not inlinable: parse_and_dispatch.isra/41191 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2531:67: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/16689 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2531:67: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/16668 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3562:33: missed:   not inlinable: parse_and_dispatch.isra/41191 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3556:33: missed:   not inlinable: parse_and_dispatch.isra/41191 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2555:29: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/16689 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2555:29: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/16668 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2555:66: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/16689 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2555:66: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/16668 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3544:33: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/18516 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3544:33: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/18561 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2128:44: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/16689 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2128:44: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/16668 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3556:33: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/18516 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3562:33: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/18516 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3562:33: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/18561 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3556:33: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/18561 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3557:33: missed:   not inlinable: parse_and_dispatch.isra/41191 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2299:29: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/16689 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2299:29: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/16668 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3570:59: missed:   not inlinable: parse_and_dispatch.isra/41191 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2311:29: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/16689 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2317:29: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/16689 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2311:29: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/16668 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2317:29: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/16668 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3557:33: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/18516 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3557:33: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/18561 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:136:32: missed:   not inlinable: bool tomo_db0::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, uint64_t, bool, int32_t, tomo_db0::ReadLocalFallbackReason, bool, const uint64_t*, const tomo_db0::ReadLocalFallbackReason*, uint32_t, const tomo_db0::Op*, bool)/9094 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:2735:36: missed:   not inlinable: bool tomo_db0::IoLoop::ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, uint64_t, bool, int32_t, tomo_db0::ReadLocalFallbackReason, bool, const uint64_t*, const tomo_db0::ReadLocalFallbackReason*, uint32_t, const tomo_db0::Op*, bool)/8893 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3558:33: missed:   not inlinable: parse_and_dispatch.isra/41191 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3570:59: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/18516 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3570:59: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/18561 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2312:29: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/16689 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2312:29: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/16668 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3558:33: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/18516 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3558:33: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/18561 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:137:32: missed:   not inlinable: bool tomo_db0::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, uint64_t, bool, int32_t, tomo_db0::ReadLocalFallbackReason, bool, const uint64_t*, const tomo_db0::ReadLocalFallbackReason*, uint32_t, const tomo_db0::Op*, bool)/9094 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:2736:36: missed:   not inlinable: bool tomo_db0::IoLoop::ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, uint64_t, bool, int32_t, tomo_db0::ReadLocalFallbackReason, bool, const uint64_t*, const tomo_db0::ReadLocalFallbackReason*, uint32_t, const tomo_db0::Op*, bool)/8893 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3559:33: missed:   not inlinable: parse_and_dispatch.isra/41191 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2325:55: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/16689 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2325:55: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/16668 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2313:29: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/16689 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2313:29: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/16668 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3559:33: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/18516 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3559:33: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/18561 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3560:33: missed:   not inlinable: parse_and_dispatch.isra/41191 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2314:29: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/16689 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2314:29: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/16668 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3560:33: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/18516 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3560:33: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/18561 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3561:33: missed:   not inlinable: parse_and_dispatch.isra/41191 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2315:29: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/16689 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/reorder.cc:2315:29: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/16668 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3561:33: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = true; unsigned int BatchOps = 32; bool SplitLocal = false]/18516 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+src/core/io_loop.h:3561:33: missed:   not inlinable: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch(tomo_db0::Client*) [with bool NoBorrow = false; unsigned int BatchOps = 32; bool SplitLocal = false]/18561 -> tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502, --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+              tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+                tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+              tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+                tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+              tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+                tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+            tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+              tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+                tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+            tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+              tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+                tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+            tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+              tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+                tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+            tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+            tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+        tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+          tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+          tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+            tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+        tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+          tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+          tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached
+    tomo_db0::Slice tomo_db0::Op::cmd_name() const/3502 --param inline-unit-growth limit reached

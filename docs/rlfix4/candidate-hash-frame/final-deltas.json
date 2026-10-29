@@ -1,0 +1,1850 @@
+[
+  {
+    "case": [
+      "normal",
+      "GET",
+      "1s",
+      1,
+      1,
+      -1,
+      "parse"
+    ],
+    "pre": 2393,
+    "post": 2383,
+    "delta": -10
+  },
+  {
+    "case": [
+      "normal",
+      "GET",
+      "1s",
+      1,
+      1,
+      -1,
+      "parsemix"
+    ],
+    "pre": 2254,
+    "post": 2244,
+    "delta": -10
+  },
+  {
+    "case": [
+      "normal",
+      "GET",
+      "1s",
+      1,
+      1,
+      -1,
+      "r7parse"
+    ],
+    "pre": 2431,
+    "post": 2421,
+    "delta": -10
+  },
+  {
+    "case": [
+      "normal",
+      "GET",
+      "1s",
+      1,
+      1,
+      -1,
+      "r7mix"
+    ],
+    "pre": 2288,
+    "post": 2278,
+    "delta": -10
+  },
+  {
+    "case": [
+      "normal",
+      "GET",
+      "1s",
+      32,
+      1,
+      -1,
+      "parse"
+    ],
+    "pre": 48788,
+    "post": 48468,
+    "delta": -320
+  },
+  {
+    "case": [
+      "normal",
+      "GET",
+      "1s",
+      32,
+      1,
+      -1,
+      "parsemix"
+    ],
+    "pre": 48639,
+    "post": 48343,
+    "delta": -296
+  },
+  {
+    "case": [
+      "normal",
+      "GET",
+      "1s",
+      32,
+      1,
+      -1,
+      "r7parse"
+    ],
+    "pre": 49234,
+    "post": 48914,
+    "delta": -320
+  },
+  {
+    "case": [
+      "normal",
+      "GET",
+      "1s",
+      32,
+      1,
+      -1,
+      "r7mix"
+    ],
+    "pre": 49240,
+    "post": 48929,
+    "delta": -311
+  },
+  {
+    "case": [
+      "db0",
+      "GET",
+      "1s",
+      1,
+      1,
+      -1,
+      "parse"
+    ],
+    "pre": 2304,
+    "post": 2285,
+    "delta": -19
+  },
+  {
+    "case": [
+      "db0",
+      "GET",
+      "1s",
+      1,
+      1,
+      -1,
+      "parsemix"
+    ],
+    "pre": 2165,
+    "post": 2146,
+    "delta": -19
+  },
+  {
+    "case": [
+      "db0",
+      "GET",
+      "1s",
+      1,
+      1,
+      -1,
+      "r7parse"
+    ],
+    "pre": 2343,
+    "post": 2322,
+    "delta": -21
+  },
+  {
+    "case": [
+      "db0",
+      "GET",
+      "1s",
+      1,
+      1,
+      -1,
+      "r7mix"
+    ],
+    "pre": 2200,
+    "post": 2179,
+    "delta": -21
+  },
+  {
+    "case": [
+      "db0",
+      "GET",
+      "1s",
+      32,
+      1,
+      -1,
+      "parse"
+    ],
+    "pre": 45505,
+    "post": 44897,
+    "delta": -608
+  },
+  {
+    "case": [
+      "db0",
+      "GET",
+      "1s",
+      32,
+      1,
+      -1,
+      "parsemix"
+    ],
+    "pre": 45424,
+    "post": 44828,
+    "delta": -596
+  },
+  {
+    "case": [
+      "db0",
+      "GET",
+      "1s",
+      32,
+      1,
+      -1,
+      "r7parse"
+    ],
+    "pre": 45952,
+    "post": 45372,
+    "delta": -580
+  },
+  {
+    "case": [
+      "db0",
+      "GET",
+      "1s",
+      32,
+      1,
+      -1,
+      "r7mix"
+    ],
+    "pre": 46018,
+    "post": 45451,
+    "delta": -567
+  },
+  {
+    "case": [
+      "normal",
+      "GET",
+      "1s",
+      1,
+      1,
+      -1,
+      "local"
+    ],
+    "pre": 930,
+    "post": 930,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "GET",
+      "1s",
+      1,
+      1,
+      -1,
+      "mix"
+    ],
+    "pre": 930,
+    "post": 930,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "GET",
+      "1s",
+      32,
+      1,
+      -1,
+      "local"
+    ],
+    "pre": 21421,
+    "post": 21421,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "GET",
+      "1s",
+      32,
+      1,
+      -1,
+      "mix"
+    ],
+    "pre": 19438,
+    "post": 19438,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "GET",
+      "1s",
+      1,
+      1,
+      -1,
+      "local"
+    ],
+    "pre": 917,
+    "post": 917,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "GET",
+      "1s",
+      1,
+      1,
+      -1,
+      "mix"
+    ],
+    "pre": 917,
+    "post": 917,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "GET",
+      "1s",
+      32,
+      1,
+      -1,
+      "local"
+    ],
+    "pre": 20602,
+    "post": 20602,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "GET",
+      "1s",
+      32,
+      1,
+      -1,
+      "mix"
+    ],
+    "pre": 18697,
+    "post": 18697,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "GET",
+      "1s",
+      1,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 939,
+    "post": 939,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "SET",
+      "1s",
+      1,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 1068,
+    "post": 1068,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "INCR",
+      "1s",
+      1,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 1531,
+    "post": 1531,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MGET",
+      "1s",
+      1,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 10243,
+    "post": 10243,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MSET",
+      "1s",
+      1,
+      0,
+      -1,
+      "owner0"
+    ],
+    "pre": 10894,
+    "post": 10894,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MSET",
+      "1s",
+      1,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 17080,
+    "post": 17080,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "GET",
+      "1s",
+      1,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 948,
+    "post": 948,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "SET",
+      "1s",
+      1,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 1416,
+    "post": 1416,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "INCR",
+      "1s",
+      1,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 1608,
+    "post": 1608,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MGET",
+      "1s",
+      1,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 10323,
+    "post": 10323,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MSET",
+      "1s",
+      1,
+      0,
+      -1,
+      "owner1"
+    ],
+    "pre": 13702,
+    "post": 13702,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MSET",
+      "1s",
+      1,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 18392,
+    "post": 18392,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "GET",
+      "1s",
+      32,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 18578,
+    "post": 18578,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "SET",
+      "1s",
+      32,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 22706,
+    "post": 22706,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "INCR",
+      "1s",
+      32,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 38051,
+    "post": 38051,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MGET",
+      "1s",
+      32,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 326598,
+    "post": 326598,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MSET",
+      "1s",
+      32,
+      0,
+      -1,
+      "owner0"
+    ],
+    "pre": 348453,
+    "post": 348453,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MSET",
+      "1s",
+      32,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 964774,
+    "post": 964774,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "GET",
+      "1s",
+      32,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 18866,
+    "post": 18866,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "SET",
+      "1s",
+      32,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 33842,
+    "post": 33842,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "INCR",
+      "1s",
+      32,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 40515,
+    "post": 40515,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MGET",
+      "1s",
+      32,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 329158,
+    "post": 329158,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MSET",
+      "1s",
+      32,
+      0,
+      -1,
+      "owner1"
+    ],
+    "pre": 438309,
+    "post": 438309,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MSET",
+      "1s",
+      32,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 1018662,
+    "post": 1018662,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "GET",
+      "2s",
+      1,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 1559,
+    "post": 1559,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "SET",
+      "2s",
+      1,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 1688,
+    "post": 1688,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "INCR",
+      "2s",
+      1,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 2151,
+    "post": 2151,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MGET",
+      "2s",
+      1,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 10243,
+    "post": 10243,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MSET",
+      "2s",
+      1,
+      0,
+      -1,
+      "owner0"
+    ],
+    "pre": 10690,
+    "post": 10690,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MSET",
+      "2s",
+      1,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 16726,
+    "post": 16726,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "GET",
+      "2s",
+      1,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 1564,
+    "post": 1564,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "SET",
+      "2s",
+      1,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 2028,
+    "post": 2028,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "INCR",
+      "2s",
+      1,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 2220,
+    "post": 2220,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MGET",
+      "2s",
+      1,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 10323,
+    "post": 10323,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MSET",
+      "2s",
+      1,
+      0,
+      -1,
+      "owner1"
+    ],
+    "pre": 13498,
+    "post": 13498,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MSET",
+      "2s",
+      1,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 18038,
+    "post": 18038,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "GET",
+      "2s",
+      32,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 18423,
+    "post": 18423,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "SET",
+      "2s",
+      32,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 22551,
+    "post": 22551,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "INCR",
+      "2s",
+      32,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 37896,
+    "post": 37896,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MGET",
+      "2s",
+      32,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 326598,
+    "post": 326598,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MSET",
+      "2s",
+      32,
+      0,
+      -1,
+      "owner0"
+    ],
+    "pre": 341925,
+    "post": 341925,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MSET",
+      "2s",
+      32,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 953446,
+    "post": 953446,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "GET",
+      "2s",
+      32,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 18583,
+    "post": 18583,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "SET",
+      "2s",
+      32,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 33431,
+    "post": 33431,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "INCR",
+      "2s",
+      32,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 40104,
+    "post": 40104,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MGET",
+      "2s",
+      32,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 329158,
+    "post": 329158,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MSET",
+      "2s",
+      32,
+      0,
+      -1,
+      "owner1"
+    ],
+    "pre": 431781,
+    "post": 431781,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MSET",
+      "2s",
+      32,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 1007334,
+    "post": 1007334,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "GET",
+      "1s",
+      1,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 818,
+    "post": 818,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "SET",
+      "1s",
+      1,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 955,
+    "post": 955,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "INCR",
+      "1s",
+      1,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 1314,
+    "post": 1314,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "MGET",
+      "1s",
+      1,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 10370,
+    "post": 10314,
+    "delta": -56
+  },
+  {
+    "case": [
+      "db0",
+      "MSET",
+      "1s",
+      1,
+      0,
+      -1,
+      "owner0"
+    ],
+    "pre": 11143,
+    "post": 11087,
+    "delta": -56
+  },
+  {
+    "case": [
+      "db0",
+      "MSET",
+      "1s",
+      1,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 16497,
+    "post": 16441,
+    "delta": -56
+  },
+  {
+    "case": [
+      "db0",
+      "GET",
+      "1s",
+      1,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 827,
+    "post": 827,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "SET",
+      "1s",
+      1,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 1214,
+    "post": 1214,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "INCR",
+      "1s",
+      1,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 1391,
+    "post": 1391,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "MGET",
+      "1s",
+      1,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 10450,
+    "post": 10394,
+    "delta": -56
+  },
+  {
+    "case": [
+      "db0",
+      "MSET",
+      "1s",
+      1,
+      0,
+      -1,
+      "owner1"
+    ],
+    "pre": 13239,
+    "post": 13183,
+    "delta": -56
+  },
+  {
+    "case": [
+      "db0",
+      "MSET",
+      "1s",
+      1,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 17841,
+    "post": 17785,
+    "delta": -56
+  },
+  {
+    "case": [
+      "db0",
+      "GET",
+      "1s",
+      32,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 18705,
+    "post": 18705,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "SET",
+      "1s",
+      32,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 23089,
+    "post": 23089,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "INCR",
+      "1s",
+      32,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 35106,
+    "post": 35106,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "MGET",
+      "1s",
+      32,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 330662,
+    "post": 328870,
+    "delta": -1792
+  },
+  {
+    "case": [
+      "db0",
+      "MSET",
+      "1s",
+      32,
+      0,
+      -1,
+      "owner0"
+    ],
+    "pre": 356421,
+    "post": 354629,
+    "delta": -1792
+  },
+  {
+    "case": [
+      "db0",
+      "MSET",
+      "1s",
+      32,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 955046,
+    "post": 953254,
+    "delta": -1792
+  },
+  {
+    "case": [
+      "db0",
+      "GET",
+      "1s",
+      32,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 18993,
+    "post": 18993,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "SET",
+      "1s",
+      32,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 31377,
+    "post": 31377,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "INCR",
+      "1s",
+      32,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 37570,
+    "post": 37570,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "MGET",
+      "1s",
+      32,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 333222,
+    "post": 331430,
+    "delta": -1792
+  },
+  {
+    "case": [
+      "db0",
+      "MSET",
+      "1s",
+      32,
+      0,
+      -1,
+      "owner1"
+    ],
+    "pre": 423493,
+    "post": 421701,
+    "delta": -1792
+  },
+  {
+    "case": [
+      "db0",
+      "MSET",
+      "1s",
+      32,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 1009958,
+    "post": 1008166,
+    "delta": -1792
+  },
+  {
+    "case": [
+      "db0",
+      "GET",
+      "2s",
+      1,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 1051,
+    "post": 1051,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "SET",
+      "2s",
+      1,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 1188,
+    "post": 1188,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "INCR",
+      "2s",
+      1,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 1547,
+    "post": 1547,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "MGET",
+      "2s",
+      1,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 10370,
+    "post": 10314,
+    "delta": -56
+  },
+  {
+    "case": [
+      "db0",
+      "MSET",
+      "2s",
+      1,
+      0,
+      -1,
+      "owner0"
+    ],
+    "pre": 10962,
+    "post": 10906,
+    "delta": -56
+  },
+  {
+    "case": [
+      "db0",
+      "MSET",
+      "2s",
+      1,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 16166,
+    "post": 16110,
+    "delta": -56
+  },
+  {
+    "case": [
+      "db0",
+      "GET",
+      "2s",
+      1,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 1056,
+    "post": 1056,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "SET",
+      "2s",
+      1,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 1439,
+    "post": 1439,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "INCR",
+      "2s",
+      1,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 1616,
+    "post": 1616,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "MGET",
+      "2s",
+      1,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 10450,
+    "post": 10394,
+    "delta": -56
+  },
+  {
+    "case": [
+      "db0",
+      "MSET",
+      "2s",
+      1,
+      0,
+      -1,
+      "owner1"
+    ],
+    "pre": 13058,
+    "post": 13002,
+    "delta": -56
+  },
+  {
+    "case": [
+      "db0",
+      "MSET",
+      "2s",
+      1,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 17510,
+    "post": 17454,
+    "delta": -56
+  },
+  {
+    "case": [
+      "db0",
+      "GET",
+      "2s",
+      32,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 18163,
+    "post": 18163,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "SET",
+      "2s",
+      32,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 22547,
+    "post": 22547,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "INCR",
+      "2s",
+      32,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 34564,
+    "post": 34564,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "MGET",
+      "2s",
+      32,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 330662,
+    "post": 328870,
+    "delta": -1792
+  },
+  {
+    "case": [
+      "db0",
+      "MSET",
+      "2s",
+      32,
+      0,
+      -1,
+      "owner0"
+    ],
+    "pre": 350629,
+    "post": 348837,
+    "delta": -1792
+  },
+  {
+    "case": [
+      "db0",
+      "MSET",
+      "2s",
+      32,
+      1,
+      -1,
+      "owner0"
+    ],
+    "pre": 944454,
+    "post": 942662,
+    "delta": -1792
+  },
+  {
+    "case": [
+      "db0",
+      "GET",
+      "2s",
+      32,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 18323,
+    "post": 18323,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "SET",
+      "2s",
+      32,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 30579,
+    "post": 30579,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "INCR",
+      "2s",
+      32,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 36772,
+    "post": 36772,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "MGET",
+      "2s",
+      32,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 333222,
+    "post": 331430,
+    "delta": -1792
+  },
+  {
+    "case": [
+      "db0",
+      "MSET",
+      "2s",
+      32,
+      0,
+      -1,
+      "owner1"
+    ],
+    "pre": 417701,
+    "post": 415909,
+    "delta": -1792
+  },
+  {
+    "case": [
+      "db0",
+      "MSET",
+      "2s",
+      32,
+      1,
+      -1,
+      "owner1"
+    ],
+    "pre": 999366,
+    "post": 997574,
+    "delta": -1792
+  },
+  {
+    "case": [
+      "normal",
+      "MGET",
+      "1s",
+      1,
+      1,
+      -1,
+      "local"
+    ],
+    "pre": 6330,
+    "post": 6330,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MGET",
+      "1s",
+      32,
+      1,
+      -1,
+      "local"
+    ],
+    "pre": 194624,
+    "post": 194624,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "GET",
+      "2s",
+      1,
+      1,
+      -1,
+      "local"
+    ],
+    "pre": 930,
+    "post": 930,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MGET",
+      "2s",
+      1,
+      1,
+      -1,
+      "local"
+    ],
+    "pre": 6330,
+    "post": 6330,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "GET",
+      "2s",
+      32,
+      1,
+      -1,
+      "local"
+    ],
+    "pre": 21421,
+    "post": 21421,
+    "delta": 0
+  },
+  {
+    "case": [
+      "normal",
+      "MGET",
+      "2s",
+      32,
+      1,
+      -1,
+      "local"
+    ],
+    "pre": 194624,
+    "post": 194624,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "MGET",
+      "1s",
+      1,
+      1,
+      -1,
+      "local"
+    ],
+    "pre": 6124,
+    "post": 6069,
+    "delta": -55
+  },
+  {
+    "case": [
+      "db0",
+      "MGET",
+      "1s",
+      32,
+      1,
+      -1,
+      "local"
+    ],
+    "pre": 187846,
+    "post": 186086,
+    "delta": -1760
+  },
+  {
+    "case": [
+      "db0",
+      "GET",
+      "2s",
+      1,
+      1,
+      -1,
+      "local"
+    ],
+    "pre": 917,
+    "post": 917,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "MGET",
+      "2s",
+      1,
+      1,
+      -1,
+      "local"
+    ],
+    "pre": 6124,
+    "post": 6069,
+    "delta": -55
+  },
+  {
+    "case": [
+      "db0",
+      "GET",
+      "2s",
+      32,
+      1,
+      -1,
+      "local"
+    ],
+    "pre": 20602,
+    "post": 20602,
+    "delta": 0
+  },
+  {
+    "case": [
+      "db0",
+      "MGET",
+      "2s",
+      32,
+      1,
+      -1,
+      "local"
+    ],
+    "pre": 187846,
+    "post": 186086,
+    "delta": -1760
+  }
+]

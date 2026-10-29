@@ -1,0 +1,43 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "32-39",
+    "--load-cores",
+    "40-47",
+    "--load-smt",
+    "",
+    "--ports",
+    "20301-20310",
+    "--candidate-binary",
+    "/home/user/Projects/cx-rlfix4/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-rlfix4",
+  "env": {
+    "LANG": "en_US.UTF-8",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "release source_identity config_unit filter_unit ring_unit storage_units climonfix bplus rlfix3_zc rlfix3_info rlcache readonly splitlocal_units feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 fused-0 fused-1 release_batteries atomic_batteries asan_batteries core_units atomic_units wait_units racefix_counters racefix_climon atomfix5_watch atomfix5_accounting txn_group_fused txn_group_split execfair txnorder_index txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 debug-0 debug-1 notify notifycompat tracking_redirect notify_order notify_aof trackfix_accounting trackfix_order wb_policy wb_rule_units wbland_units iofix-deferred replyoff zc netio-1s netio-2s reorder_sync reorder_engagement persistfix2_errors bugs5 clientfix perfex_live exbatch_live respcompat aclfix authfix script_bounds datafix2_notouch latencyfix_grammar latencyfix_shape latencyfix_off wave8b_off snapshot-epoll snapshot-uring tls respresume-fragment-1s-epoll respresume-fragment-1s-uring respresume-fragment-2s-epoll respresume-fragment-2s-uring respresume-cpu-1s-epoll respresume-cpu-1s-uring respresume-cpu-2s-epoll respresume-cpu-2s-uring respresume-neighbour-1s-epoll respresume-neighbour-1s-uring respresume-neighbour-2s-epoll respresume-neighbour-2s-uring",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_ZC_NET_IO": "uring",
+    "GATE_SHUTDOWN_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TEST_PORT": "20397",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-rlfix4/docs/rlfix4/jobs/final2-main.tsv"
+  },
+  "binary_sha256": "5a903fd856e7cccfcb27df13da666be6381f3c0ae3a0a9428bb01f542ab0cb97",
+  "source_commit": "18f0ceb8b56ec272e80eb70fc19d23abab901cef",
+  "gate_sha256": "18f2550f02531d143d523854b6745227cee7a2623f9d75645f2fc294941383fe",
+  "started": 1793158716.9067805,
+  "exit": 0,
+  "seconds": 3908.675880908966,
+  "artifacts": "/home/user/Projects/cx-rlfix4/build/gate-run.HhEpk5",
+  "summary": [
+    "GATE(PARTIAL): 481 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rlfix4/docs/rlfix4/jobs/final2-main.tsv.partial"
+  ],
+  "binary_unchanged": true
+}

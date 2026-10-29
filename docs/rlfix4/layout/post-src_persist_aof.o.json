@@ -1,0 +1,27 @@
+{
+  "arm": "post",
+  "unit": "src/persist/aof.o",
+  "command": [
+    "g++",
+    "-ffunction-sections",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=37173",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/persist/aof.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/post/src/persist/aof.o"
+  ],
+  "original_sha256": "92b800ddc0926d36b6eea7364c32a106dd77dc2a0e6f07c7cdf89d9fd660551a",
+  "sha256": "4467d61f28e55313b3cc4f33eeacc6af3b9ef321dc7fb3a01f7b62f774b86c49"
+}

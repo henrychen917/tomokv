@@ -1,0 +1,4262 @@
+[
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "db0",
+    "name": "tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::ReadLocalPrefetchCapture const*)",
+    "before_digests": [
+      "a0cb8a6320ef7eb4c9677dd55922386cea59654e1dfd60ee588192b2677302e9"
+    ],
+    "after_digests": [
+      "50ee76f842091182dc23d21a1483dac1d25b5b2da4c714f10bb81f00bc88ad33"
+    ],
+    "before_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "d1f5fe0bc2cb338c44956e7027e7859694046700",
+        "lane_or_integration": "Merge cx-rlfix (59ef3e4b0) into cx-wave3: RL4.3 read-local GET miss, RL4.4 one-key DEL/UNLINK point write for RYOW (+4/+4 rows)",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "b46247a1098c54a3146f06227d4af059477a4e5b0f19d8ca05ce39d357465780",
+        "after_digest": "d7a9392a974130e3aedc17a53479ca9dcbaf4150d37e5d446b2c4dcedd477a6c"
+      },
+      {
+        "commit": "d1f5fe0bc2cb338c44956e7027e7859694046700",
+        "lane_or_integration": "Merge cx-rlfix (59ef3e4b0) into cx-wave3: RL4.3 read-local GET miss, RL4.4 one-key DEL/UNLINK point write for RYOW (+4/+4 rows)",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "b46247a1098c54a3146f06227d4af059477a4e5b0f19d8ca05ce39d357465780",
+        "after_digest": "d7a9392a974130e3aedc17a53479ca9dcbaf4150d37e5d446b2c4dcedd477a6c"
+      },
+      {
+        "commit": "567d3b8e32b8228105d548e459cf2e31ef25fc40",
+        "lane_or_integration": "Merge remote-tracking branch 'origin/cpp' into cx-ntfix",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "d7a9392a974130e3aedc17a53479ca9dcbaf4150d37e5d446b2c4dcedd477a6c",
+        "after_digest": "b46247a1098c54a3146f06227d4af059477a4e5b0f19d8ca05ce39d357465780"
+      },
+      {
+        "commit": "567d3b8e32b8228105d548e459cf2e31ef25fc40",
+        "lane_or_integration": "Merge remote-tracking branch 'origin/cpp' into cx-ntfix",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "d7a9392a974130e3aedc17a53479ca9dcbaf4150d37e5d446b2c4dcedd477a6c",
+        "after_digest": "b46247a1098c54a3146f06227d4af059477a4e5b0f19d8ca05ce39d357465780"
+      },
+      {
+        "commit": "339b546e2a08ccb0227142266bf1dc326a4bed57",
+        "lane_or_integration": "ntfix4: merge wave3 headline and retain all gate rows",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "b46247a1098c54a3146f06227d4af059477a4e5b0f19d8ca05ce39d357465780",
+        "after_digest": "d7a9392a974130e3aedc17a53479ca9dcbaf4150d37e5d446b2c4dcedd477a6c"
+      },
+      {
+        "commit": "339b546e2a08ccb0227142266bf1dc326a4bed57",
+        "lane_or_integration": "ntfix4: merge wave3 headline and retain all gate rows",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "b46247a1098c54a3146f06227d4af059477a4e5b0f19d8ca05ce39d357465780",
+        "after_digest": "d7a9392a974130e3aedc17a53479ca9dcbaf4150d37e5d446b2c4dcedd477a6c"
+      },
+      {
+        "commit": "4c692daf41093d7c03e8dade0c2222812d5c1f0a",
+        "lane_or_integration": "Merge clockcut (0e594f293) into cx-wave4: command clock after dequeue, Redis exact-deadline liveness",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "d7a9392a974130e3aedc17a53479ca9dcbaf4150d37e5d446b2c4dcedd477a6c",
+        "after_digest": "109cb2ccf20f89d46c9d8937f198506222490e946df3a55bea26b40576aa6903"
+      },
+      {
+        "commit": "4c692daf41093d7c03e8dade0c2222812d5c1f0a",
+        "lane_or_integration": "Merge clockcut (0e594f293) into cx-wave4: command clock after dequeue, Redis exact-deadline liveness",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "d7a9392a974130e3aedc17a53479ca9dcbaf4150d37e5d446b2c4dcedd477a6c",
+        "after_digest": "109cb2ccf20f89d46c9d8937f198506222490e946df3a55bea26b40576aa6903"
+      }
+    ],
+    "source_events": [
+      {
+        "commit": "3676d3cae",
+        "integration": "d1f5fe0bc",
+        "lane": "rlfix",
+        "effect": "required GET-miss path"
+      },
+      {
+        "commit": "5cd136502",
+        "integration": "4c692daf4",
+        "lane": "clockcut",
+        "effect": "required exact TTL boundary"
+      }
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "db0",
+    "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+    "before_digests": [
+      "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae",
+      "1eea3e9ecfdc3a00d645571ed40f9dd8065534c046d14ca4fde91254195b80c1"
+    ],
+    "after_digests": [
+      "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae",
+      "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "aa37854feb066868750c1d2d86d9242eb1f769d8",
+        "lane_or_integration": "Merge cx-perfio (96bcf62cf) into cx-wave2: IO4.19 epoll interest retirement, PFDATATY.1 stream delivery (+4/+4 rows)",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "0e54ab722ea636ec41f9a8d78ee25d14d59da6b65c2819192c9e98945d5d8cab",
+        "after_digest": "422bf0cf57affd1f42c33da759f1365da08835f99858aa06f1a492a23c8fedda"
+      },
+      {
+        "commit": "2f81a7105ef3820f4cb72f1fb8a43ceeb6317b5b",
+        "lane_or_integration": "Merge cx-perfex (2b15e0328) into cx-wave2: perfex executor beats + perfex2 TTL sample freshness (+4/+4 rows)",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "422bf0cf57affd1f42c33da759f1365da08835f99858aa06f1a492a23c8fedda",
+        "after_digest": "0e54ab722ea636ec41f9a8d78ee25d14d59da6b65c2819192c9e98945d5d8cab"
+      },
+      {
+        "commit": "2dadd80582968e7f1eb0a77915e576c7063846e8",
+        "lane_or_integration": "Merge cx-rlresize (f2a8a3d46) into cx-wave2: armed atomic growth resize record, FLUSH in the snapshot prepare window (+3/+3 rows)",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "0e54ab722ea636ec41f9a8d78ee25d14d59da6b65c2819192c9e98945d5d8cab",
+        "after_digest": "422bf0cf57affd1f42c33da759f1365da08835f99858aa06f1a492a23c8fedda"
+      },
+      {
+        "commit": "39a4bd9b2b87fae87d620a85cc69de212260a778",
+        "lane_or_integration": "Merge cx-respresume (f95da7d55) into cx-wave3: NT4.2 resumable RESP multibulk parser, NT4.3 parser canaries removed (+12/+12 rows)",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "422bf0cf57affd1f42c33da759f1365da08835f99858aa06f1a492a23c8fedda",
+        "after_digest": "377d6e1fd7af43d4320be1c18a75e183f75677a51a93dd1ff0e69d71f42a9986"
+      },
+      {
+        "commit": "d1f5fe0bc2cb338c44956e7027e7859694046700",
+        "lane_or_integration": "Merge cx-rlfix (59ef3e4b0) into cx-wave3: RL4.3 read-local GET miss, RL4.4 one-key DEL/UNLINK point write for RYOW (+4/+4 rows)",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "377d6e1fd7af43d4320be1c18a75e183f75677a51a93dd1ff0e69d71f42a9986",
+        "after_digest": "422bf0cf57affd1f42c33da759f1365da08835f99858aa06f1a492a23c8fedda"
+      },
+      {
+        "commit": "2d2b7cefd69552f1038385b6d535cc448a5f118e",
+        "lane_or_integration": "Merge cx-mkfix (c6f990023) into cx-wave3: mkfix count study tooling, mkfix2 A (MSET replies to the WB rule), B (scatter arenas retained at peak demand), C (reverted next)",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "422bf0cf57affd1f42c33da759f1365da08835f99858aa06f1a492a23c8fedda",
+        "after_digest": "377d6e1fd7af43d4320be1c18a75e183f75677a51a93dd1ff0e69d71f42a9986"
+      },
+      {
+        "commit": "7aa2b2abad5ec5e0d281ae12c25dab322df734e7",
+        "lane_or_integration": "ntfix2: account epoll output bytes found by required INFO differential",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "377d6e1fd7af43d4320be1c18a75e183f75677a51a93dd1ff0e69d71f42a9986",
+        "after_digest": "0e54ab722ea636ec41f9a8d78ee25d14d59da6b65c2819192c9e98945d5d8cab"
+      },
+      {
+        "commit": "339b546e2a08ccb0227142266bf1dc326a4bed57",
+        "lane_or_integration": "ntfix4: merge wave3 headline and retain all gate rows",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "0e54ab722ea636ec41f9a8d78ee25d14d59da6b65c2819192c9e98945d5d8cab",
+        "after_digest": "422bf0cf57affd1f42c33da759f1365da08835f99858aa06f1a492a23c8fedda"
+      },
+      {
+        "commit": "4c692daf41093d7c03e8dade0c2222812d5c1f0a",
+        "lane_or_integration": "Merge clockcut (0e594f293) into cx-wave4: command clock after dequeue, Redis exact-deadline liveness",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "422bf0cf57affd1f42c33da759f1365da08835f99858aa06f1a492a23c8fedda",
+        "after_digest": "377d6e1fd7af43d4320be1c18a75e183f75677a51a93dd1ff0e69d71f42a9986"
+      },
+      {
+        "commit": "f0414a935352ae51fadbadb00dbefdcd51b3d608",
+        "lane_or_integration": "Merge cx-bugs5 scan slowlog and LFU fixes for wave5",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "377d6e1fd7af43d4320be1c18a75e183f75677a51a93dd1ff0e69d71f42a9986",
+        "after_digest": "422bf0cf57affd1f42c33da759f1365da08835f99858aa06f1a492a23c8fedda"
+      },
+      {
+        "commit": "0242611899f34b7bf47196994526a61abf7872fa",
+        "lane_or_integration": "Merge cx-compat3 stream pubsub and FUNCTION compatibility for wave5",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "422bf0cf57affd1f42c33da759f1365da08835f99858aa06f1a492a23c8fedda",
+        "after_digest": "0e54ab722ea636ec41f9a8d78ee25d14d59da6b65c2819192c9e98945d5d8cab"
+      },
+      {
+        "commit": "08d9649752e6aaa33b2a6ce9b910d0ba579725b7",
+        "lane_or_integration": "Merge cx-trackfix causal tracking stamps and accounting for wave5",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "0e54ab722ea636ec41f9a8d78ee25d14d59da6b65c2819192c9e98945d5d8cab",
+        "after_digest": "422bf0cf57affd1f42c33da759f1365da08835f99858aa06f1a492a23c8fedda"
+      },
+      {
+        "commit": "c0be5394d42fe74aca3ab02b9298d321794b39dd",
+        "lane_or_integration": "Merge cx-netfix network compatibility TLS and idle reclaim for wave5",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "422bf0cf57affd1f42c33da759f1365da08835f99858aa06f1a492a23c8fedda",
+        "after_digest": "0e54ab722ea636ec41f9a8d78ee25d14d59da6b65c2819192c9e98945d5d8cab"
+      },
+      {
+        "commit": "f49beb99e80e95dda12e5b9f018ce7cc8575d325",
+        "lane_or_integration": "Merge cx-iofix park wake cron and global sleep repairs for wave5",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "0e54ab722ea636ec41f9a8d78ee25d14d59da6b65c2819192c9e98945d5d8cab",
+        "after_digest": "5e9ab8e1e46bbb84d4d190a94dfbcfb0f1d2ca68985da3e996c50eef64c1680e"
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "db0",
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+    "before_digests": [
+      "7c2b50b6614810a48614c1acb7782b22c49048f4f479c6f1d838ad10e28e7f66"
+    ],
+    "after_digests": [
+      "6e3218f6370f3f51260dd0353b637a54d5949e4ff3fc344f95265fb7c2fdfd96"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "39a4bd9b2b87fae87d620a85cc69de212260a778",
+        "lane_or_integration": "Merge cx-respresume (f95da7d55) into cx-wave3: NT4.2 resumable RESP multibulk parser, NT4.3 parser canaries removed (+12/+12 rows)",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "f341414b838cade0a68474350fc9f979bc4bf9adda42333fe4b00b2ad7758d71",
+        "after_digest": "00ae4186e20f8c88b9b3cfc46ef53e7c6ebeb2a15d687bdf6928fc85b5f6fbb9"
+      },
+      {
+        "commit": "39a4bd9b2b87fae87d620a85cc69de212260a778",
+        "lane_or_integration": "Merge cx-respresume (f95da7d55) into cx-wave3: NT4.2 resumable RESP multibulk parser, NT4.3 parser canaries removed (+12/+12 rows)",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "42ac2cdc3bc4015937eb86bccb8f919426162d53e94fefff4c9cdbd3d37337df",
+        "after_digest": "62ce9b48e654ded5b17bb7f8d4d331b440ef6050cc1a057579bf6c3177a9ac70"
+      },
+      {
+        "commit": "2d2b7cefd69552f1038385b6d535cc448a5f118e",
+        "lane_or_integration": "Merge cx-mkfix (c6f990023) into cx-wave3: mkfix count study tooling, mkfix2 A (MSET replies to the WB rule), B (scatter arenas retained at peak demand), C (reverted next)",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "00ae4186e20f8c88b9b3cfc46ef53e7c6ebeb2a15d687bdf6928fc85b5f6fbb9",
+        "after_digest": "84f925675fb7517dbaebe95d579e9666da46ee7bb3f3795a1e3b8882e1ab32f1"
+      },
+      {
+        "commit": "2d2b7cefd69552f1038385b6d535cc448a5f118e",
+        "lane_or_integration": "Merge cx-mkfix (c6f990023) into cx-wave3: mkfix count study tooling, mkfix2 A (MSET replies to the WB rule), B (scatter arenas retained at peak demand), C (reverted next)",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "62ce9b48e654ded5b17bb7f8d4d331b440ef6050cc1a057579bf6c3177a9ac70",
+        "after_digest": "2984d191c3f70b2ac327956b6a90bad523112effb894050d3f700cc057f906ba"
+      },
+      {
+        "commit": "567d3b8e32b8228105d548e459cf2e31ef25fc40",
+        "lane_or_integration": "Merge remote-tracking branch 'origin/cpp' into cx-ntfix",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "84f925675fb7517dbaebe95d579e9666da46ee7bb3f3795a1e3b8882e1ab32f1",
+        "after_digest": "00ae4186e20f8c88b9b3cfc46ef53e7c6ebeb2a15d687bdf6928fc85b5f6fbb9"
+      },
+      {
+        "commit": "567d3b8e32b8228105d548e459cf2e31ef25fc40",
+        "lane_or_integration": "Merge remote-tracking branch 'origin/cpp' into cx-ntfix",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "2984d191c3f70b2ac327956b6a90bad523112effb894050d3f700cc057f906ba",
+        "after_digest": "62ce9b48e654ded5b17bb7f8d4d331b440ef6050cc1a057579bf6c3177a9ac70"
+      },
+      {
+        "commit": "1e4861741bb7fcc63e1e12419973152e612a8711",
+        "lane_or_integration": "ntfix2: match Redis pre-AUTH length error precedence",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "00ae4186e20f8c88b9b3cfc46ef53e7c6ebeb2a15d687bdf6928fc85b5f6fbb9",
+        "after_digest": "aa94aa638a4b3059887b62d9a5c40a5b7f009852cbaa54ce66370e187001746c"
+      },
+      {
+        "commit": "1e4861741bb7fcc63e1e12419973152e612a8711",
+        "lane_or_integration": "ntfix2: match Redis pre-AUTH length error precedence",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "62ce9b48e654ded5b17bb7f8d4d331b440ef6050cc1a057579bf6c3177a9ac70",
+        "after_digest": "dc0a34370c19923ad4ac405eaa6edfb321cb4faa76ce3fbf566e6b207df87d79"
+      },
+      {
+        "commit": "339b546e2a08ccb0227142266bf1dc326a4bed57",
+        "lane_or_integration": "ntfix4: merge wave3 headline and retain all gate rows",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "aa94aa638a4b3059887b62d9a5c40a5b7f009852cbaa54ce66370e187001746c",
+        "after_digest": "251762531b35567397c4e7da2d271da372bbd561be49dd8b3fc50b0c8e33911f"
+      },
+      {
+        "commit": "339b546e2a08ccb0227142266bf1dc326a4bed57",
+        "lane_or_integration": "ntfix4: merge wave3 headline and retain all gate rows",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "dc0a34370c19923ad4ac405eaa6edfb321cb4faa76ce3fbf566e6b207df87d79",
+        "after_digest": "55b3f96fde32fd468ac2def624b52f2b7d9478d7ce27c73e90f14808fe0dbf2f"
+      },
+      {
+        "commit": "2d276e45c1e360fcb8d273356693faa8a7974080",
+        "lane_or_integration": "Merge compat2 (a7e318a14) into cx-wave4: C1 pre-AUTH precedence, C2 version-aware expiry notifications, C3 TLS live accounting",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "251762531b35567397c4e7da2d271da372bbd561be49dd8b3fc50b0c8e33911f",
+        "after_digest": "e5103d3f235617634026eb035a6b26fd8cbfd733da1b5cf58380272ee352cb78"
+      },
+      {
+        "commit": "2d276e45c1e360fcb8d273356693faa8a7974080",
+        "lane_or_integration": "Merge compat2 (a7e318a14) into cx-wave4: C1 pre-AUTH precedence, C2 version-aware expiry notifications, C3 TLS live accounting",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "55b3f96fde32fd468ac2def624b52f2b7d9478d7ce27c73e90f14808fe0dbf2f",
+        "after_digest": "3d86f98237e5b693c7a5ef6efcb4e197daf0afb37830c2364062dc4e88f15737"
+      },
+      {
+        "commit": "f49beb99e80e95dda12e5b9f018ce7cc8575d325",
+        "lane_or_integration": "Merge cx-iofix park wake cron and global sleep repairs for wave5",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "e5103d3f235617634026eb035a6b26fd8cbfd733da1b5cf58380272ee352cb78",
+        "after_digest": "9ac92aa3573ca865479d5fd30eb26aed914a8f0514e385b0ea20ff39782b7db3"
+      },
+      {
+        "commit": "f49beb99e80e95dda12e5b9f018ce7cc8575d325",
+        "lane_or_integration": "Merge cx-iofix park wake cron and global sleep repairs for wave5",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "3d86f98237e5b693c7a5ef6efcb4e197daf0afb37830c2364062dc4e88f15737",
+        "after_digest": "e0e6a289feaa99b5f4ca4660908e43f8a367aee16cecf207fb89f80b1b654e78"
+      },
+      {
+        "commit": "323bbd77036bb78c8a34519a242de1337f26c563",
+        "lane_or_integration": "Restore executor and IO call boundaries after merged slowlog growth",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "9ac92aa3573ca865479d5fd30eb26aed914a8f0514e385b0ea20ff39782b7db3",
+        "after_digest": "48ca133813e8874d23edf3ccd9371d42bdca0870d64989a2bc7e601057681862"
+      },
+      {
+        "commit": "323bbd77036bb78c8a34519a242de1337f26c563",
+        "lane_or_integration": "Restore executor and IO call boundaries after merged slowlog growth",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "e0e6a289feaa99b5f4ca4660908e43f8a367aee16cecf207fb89f80b1b654e78",
+        "after_digest": "b537339e3cedf828205a6a18a7b7a3ed4ac8d1ee1eea81c1ded335595eb4abb7"
+      },
+      {
+        "commit": "313677a95217abf53ba8e2227ea67731bde61a1f",
+        "lane_or_integration": "Merge cx-execfair into wave6",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "48ca133813e8874d23edf3ccd9371d42bdca0870d64989a2bc7e601057681862",
+        "after_digest": "d0d35aee4a1f51c50ecd42b981b62fdc59aff566e78ba6c26fb24d6392c4c634"
+      },
+      {
+        "commit": "313677a95217abf53ba8e2227ea67731bde61a1f",
+        "lane_or_integration": "Merge cx-execfair into wave6",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "b537339e3cedf828205a6a18a7b7a3ed4ac8d1ee1eea81c1ded335595eb4abb7",
+        "after_digest": "5c2ec89fc43486e1b74fe666653e74fb8a80f4145bb77160aa3bd53ba5b0e9e8"
+      },
+      {
+        "commit": "3fd72af555aeee279d2a4bc2d6cdc52b09e068a3",
+        "lane_or_integration": "Merge cx-serverfix into wave6",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "d0d35aee4a1f51c50ecd42b981b62fdc59aff566e78ba6c26fb24d6392c4c634",
+        "after_digest": "2665f05b13f3d87e6ccdc98d4a3107ba1dc5915e63cb0ea8deb818349f2caa00"
+      },
+      {
+        "commit": "3fd72af555aeee279d2a4bc2d6cdc52b09e068a3",
+        "lane_or_integration": "Merge cx-serverfix into wave6",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "5c2ec89fc43486e1b74fe666653e74fb8a80f4145bb77160aa3bd53ba5b0e9e8",
+        "after_digest": "84a9a4139f90ce36d7b46983b024d36005ca2699a48d30da01f703b4d6bf5864"
+      },
+      {
+        "commit": "8a1ccffa1c88abc3a3ba51e98844b33cfe0ffcda",
+        "lane_or_integration": "Preserve integer reply selection and derive merged unit budgets",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "2665f05b13f3d87e6ccdc98d4a3107ba1dc5915e63cb0ea8deb818349f2caa00",
+        "after_digest": "42666c6f819e2f4062a24867cb297676a9e21ed86b6a1483e258618b569eb543"
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "db0",
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+    "before_digests": [
+      "7260358312b16ec4fdfaceeba8e39739fe866fec69f5ac461fa3cad39c1022cc"
+    ],
+    "after_digests": [
+      "39846c433f26d4555384a4acb83c0762c3ad2f9f0816c85e628935c8f2c46f4d"
+    ],
+    "before_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "39a4bd9b2b87fae87d620a85cc69de212260a778",
+        "lane_or_integration": "Merge cx-respresume (f95da7d55) into cx-wave3: NT4.2 resumable RESP multibulk parser, NT4.3 parser canaries removed (+12/+12 rows)",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "420331a7a9eec30ebbd4d52adae03737ea59205f197c524e48aa60bba413c8f1",
+        "after_digest": "dcc6e5e7969a371a37221ae0c3f6b8a8437a685534fbbd060fcd41d96ce8ac0e"
+      },
+      {
+        "commit": "2d2b7cefd69552f1038385b6d535cc448a5f118e",
+        "lane_or_integration": "Merge cx-mkfix (c6f990023) into cx-wave3: mkfix count study tooling, mkfix2 A (MSET replies to the WB rule), B (scatter arenas retained at peak demand), C (reverted next)",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "dcc6e5e7969a371a37221ae0c3f6b8a8437a685534fbbd060fcd41d96ce8ac0e",
+        "after_digest": "281b3d0b3fbb50f6ba68176d4b6710797c4264e54fc71b3b6b3b556041649fa7"
+      },
+      {
+        "commit": "7fa5cb0e08cdb59f4b5510b5b41f1b5537a9996a",
+        "lane_or_integration": "reorder: regenerate the R7 envelope for rlfix's RL4.4 (tools/reorder_sync.py --write)",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "281b3d0b3fbb50f6ba68176d4b6710797c4264e54fc71b3b6b3b556041649fa7",
+        "after_digest": "b1c1dd15375df9b132b01492f525183c22eccf87fbaf088d3e9625df041815d7"
+      },
+      {
+        "commit": "e454a79a6c3c8a86c14c397444726a12cd9e1fcd",
+        "lane_or_integration": "build: re-derive the reorder.o budgets after the R7 envelope regeneration",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "b1c1dd15375df9b132b01492f525183c22eccf87fbaf088d3e9625df041815d7",
+        "after_digest": "281b3d0b3fbb50f6ba68176d4b6710797c4264e54fc71b3b6b3b556041649fa7"
+      },
+      {
+        "commit": "567d3b8e32b8228105d548e459cf2e31ef25fc40",
+        "lane_or_integration": "Merge remote-tracking branch 'origin/cpp' into cx-ntfix",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "281b3d0b3fbb50f6ba68176d4b6710797c4264e54fc71b3b6b3b556041649fa7",
+        "after_digest": "dcc6e5e7969a371a37221ae0c3f6b8a8437a685534fbbd060fcd41d96ce8ac0e"
+      },
+      {
+        "commit": "a3828024c78b6d5dca141d3ce91de7cd531b4056",
+        "lane_or_integration": "ntfix: wake TLS close-after-reply receives after output drains",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "dcc6e5e7969a371a37221ae0c3f6b8a8437a685534fbbd060fcd41d96ce8ac0e",
+        "after_digest": "1660f46e6f9279382e865dbf536ffa1c4a8759cc881b66efa38ae0f13bef87f0"
+      },
+      {
+        "commit": "09addf4cc3efd18e5ceab2f459a084e4338bfc8f",
+        "lane_or_integration": "ntfix2: re-derive N1/N2 inlining budgets with compile-only receipts",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "1660f46e6f9279382e865dbf536ffa1c4a8759cc881b66efa38ae0f13bef87f0",
+        "after_digest": "dcc6e5e7969a371a37221ae0c3f6b8a8437a685534fbbd060fcd41d96ce8ac0e"
+      },
+      {
+        "commit": "1e4861741bb7fcc63e1e12419973152e612a8711",
+        "lane_or_integration": "ntfix2: match Redis pre-AUTH length error precedence",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "dcc6e5e7969a371a37221ae0c3f6b8a8437a685534fbbd060fcd41d96ce8ac0e",
+        "after_digest": "c3e95ce883337ad41de44c9db8e0d6dec8d48239f3c47a249c4d595e264ffdf3"
+      },
+      {
+        "commit": "7aa2b2abad5ec5e0d281ae12c25dab322df734e7",
+        "lane_or_integration": "ntfix2: account epoll output bytes found by required INFO differential",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "c3e95ce883337ad41de44c9db8e0d6dec8d48239f3c47a249c4d595e264ffdf3",
+        "after_digest": "1bdde10fd06f0285aefc86d4a731ec75ed92f686d17c1c2ff3376dc5f42c22b9"
+      },
+      {
+        "commit": "fabe3af1b454fe36237e4445c7ac1e076249adde",
+        "lane_or_integration": "ntfix3: refine query accounting only at conservative receive limits",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "1bdde10fd06f0285aefc86d4a731ec75ed92f686d17c1c2ff3376dc5f42c22b9",
+        "after_digest": "c3e95ce883337ad41de44c9db8e0d6dec8d48239f3c47a249c4d595e264ffdf3"
+      },
+      {
+        "commit": "339b546e2a08ccb0227142266bf1dc326a4bed57",
+        "lane_or_integration": "ntfix4: merge wave3 headline and retain all gate rows",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "c3e95ce883337ad41de44c9db8e0d6dec8d48239f3c47a249c4d595e264ffdf3",
+        "after_digest": "1fe96e2715dbc713a3c44d9531d8caeae83e3363b6d0cc435ff3dbb6f283dd2c"
+      },
+      {
+        "commit": "47fa7d9b1b92100a37e635a8311a457a6d268ec0",
+        "lane_or_integration": "ntfix4: rederive inlining budgets against both reference builds",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "1fe96e2715dbc713a3c44d9531d8caeae83e3363b6d0cc435ff3dbb6f283dd2c",
+        "after_digest": "12265cc032493a537f46457f86dfc96d27a01fbfc2b816fe5b3b2deed6374965"
+      },
+      {
+        "commit": "2d276e45c1e360fcb8d273356693faa8a7974080",
+        "lane_or_integration": "Merge compat2 (a7e318a14) into cx-wave4: C1 pre-AUTH precedence, C2 version-aware expiry notifications, C3 TLS live accounting",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "12265cc032493a537f46457f86dfc96d27a01fbfc2b816fe5b3b2deed6374965",
+        "after_digest": "35ed5b51853ed5d6a53eb5718b7c429c8984c8991412850667de8eb0d76b1643"
+      },
+      {
+        "commit": "f0414a935352ae51fadbadb00dbefdcd51b3d608",
+        "lane_or_integration": "Merge cx-bugs5 scan slowlog and LFU fixes for wave5",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "35ed5b51853ed5d6a53eb5718b7c429c8984c8991412850667de8eb0d76b1643",
+        "after_digest": "47eb751c2bdb4d7d02fb72ca81d31ab59d1b35ed86ba65707ad774055b898a99"
+      },
+      {
+        "commit": "0242611899f34b7bf47196994526a61abf7872fa",
+        "lane_or_integration": "Merge cx-compat3 stream pubsub and FUNCTION compatibility for wave5",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "47eb751c2bdb4d7d02fb72ca81d31ab59d1b35ed86ba65707ad774055b898a99",
+        "after_digest": "35ed5b51853ed5d6a53eb5718b7c429c8984c8991412850667de8eb0d76b1643"
+      },
+      {
+        "commit": "476da2223429b8f0780c01dd77a1298304510746",
+        "lane_or_integration": "Merge cx-fliplisten retained listener ownership for wave5",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "35ed5b51853ed5d6a53eb5718b7c429c8984c8991412850667de8eb0d76b1643",
+        "after_digest": "47eb751c2bdb4d7d02fb72ca81d31ab59d1b35ed86ba65707ad774055b898a99"
+      },
+      {
+        "commit": "c0be5394d42fe74aca3ab02b9298d321794b39dd",
+        "lane_or_integration": "Merge cx-netfix network compatibility TLS and idle reclaim for wave5",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "47eb751c2bdb4d7d02fb72ca81d31ab59d1b35ed86ba65707ad774055b898a99",
+        "after_digest": "35ed5b51853ed5d6a53eb5718b7c429c8984c8991412850667de8eb0d76b1643"
+      },
+      {
+        "commit": "f49beb99e80e95dda12e5b9f018ce7cc8575d325",
+        "lane_or_integration": "Merge cx-iofix park wake cron and global sleep repairs for wave5",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "35ed5b51853ed5d6a53eb5718b7c429c8984c8991412850667de8eb0d76b1643",
+        "after_digest": "ad35e078ce544237798a833c982daca19bb1b27aefa0304227dc97ea83f9c9c4"
+      },
+      {
+        "commit": "323bbd77036bb78c8a34519a242de1337f26c563",
+        "lane_or_integration": "Restore executor and IO call boundaries after merged slowlog growth",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "ad35e078ce544237798a833c982daca19bb1b27aefa0304227dc97ea83f9c9c4",
+        "after_digest": "78f99c02471337b2e819109377a8c1c804b61a92792f6f6c4faff4508f6242c5"
+      },
+      {
+        "commit": "eef2312d47816f4f8964f77b6aab2108c60ab51b",
+        "lane_or_integration": "Preserve ordinary executor symbol ownership across exact timing specialization",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "78f99c02471337b2e819109377a8c1c804b61a92792f6f6c4faff4508f6242c5",
+        "after_digest": "fb631c66c3ef815dcaf8b550e82e6c0f83e0c9dcfca20bce81bb9b8e7ce539ae"
+      },
+      {
+        "commit": "26db42a598ab58b0a14db936ae5cf650cfbb4c4e",
+        "lane_or_integration": "Keep plain dispatch out of the cold deferral helper",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "fb631c66c3ef815dcaf8b550e82e6c0f83e0c9dcfca20bce81bb9b8e7ce539ae",
+        "after_digest": "78f99c02471337b2e819109377a8c1c804b61a92792f6f6c4faff4508f6242c5"
+      },
+      {
+        "commit": "e95be5c81eadf81d2bf136d69d2b5c4fa6c8eae0",
+        "lane_or_integration": "Reopen WB4.1 after grace misses PRE park behavior; restore deferred work",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "78f99c02471337b2e819109377a8c1c804b61a92792f6f6c4faff4508f6242c5",
+        "after_digest": "fb631c66c3ef815dcaf8b550e82e6c0f83e0c9dcfca20bce81bb9b8e7ce539ae"
+      },
+      {
+        "commit": "313677a95217abf53ba8e2227ea67731bde61a1f",
+        "lane_or_integration": "Merge cx-execfair into wave6",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "fb631c66c3ef815dcaf8b550e82e6c0f83e0c9dcfca20bce81bb9b8e7ce539ae",
+        "after_digest": "78f99c02471337b2e819109377a8c1c804b61a92792f6f6c4faff4508f6242c5"
+      },
+      {
+        "commit": "3fd72af555aeee279d2a4bc2d6cdc52b09e068a3",
+        "lane_or_integration": "Merge cx-serverfix into wave6",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "78f99c02471337b2e819109377a8c1c804b61a92792f6f6c4faff4508f6242c5",
+        "after_digest": "b59237097311f87a31f5fb07bd8079f7f192d19ba2547297645f356fbea2c8a6"
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "db0",
+    "name": "tomo_db0::IoLoop::flip_dispatch_paused() const",
+    "before_digests": [],
+    "after_digests": [
+      "2882fd39d0233de99c6019d50d9d89a286aea90cc3b992695989bb96f57cedc3"
+    ],
+    "before_cases": [],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "323bbd77036bb78c8a34519a242de1337f26c563",
+        "lane_or_integration": "Restore executor and IO call boundaries after merged slowlog growth",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": null,
+        "after_digest": "cfa5f518f2c6a065e4a828e55f2281419d153bf2bc27fc3c46030e8dfeaaee4a"
+      },
+      {
+        "commit": "323bbd77036bb78c8a34519a242de1337f26c563",
+        "lane_or_integration": "Restore executor and IO call boundaries after merged slowlog growth",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": null,
+        "after_digest": "cfa5f518f2c6a065e4a828e55f2281419d153bf2bc27fc3c46030e8dfeaaee4a"
+      }
+    ],
+    "source_events": [
+      {
+        "commit": "323bbd770",
+        "lane": "wave5 integration",
+        "effect": "noinline per-pass pause helper"
+      }
+    ],
+    "entered_set_note": "newly entered helper; an entered-set change does not imply a new helper implementation"
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "db0",
+    "name": "tomo_db0::IoLoop::query_buffer_exceeded(tomo_db0::Client const&) const",
+    "before_digests": [
+      "fdaaf04d556b2ecd39118772ea8a5e25f84fec8718e548e27a6c6c4adefce0e9"
+    ],
+    "after_digests": [
+      "c2437d9cd2d695497cde28cec5f6b8ca7add28c3eaa14d8b00089f6a930ba4c4"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "70572c70288faa0af948c5c14ce22553136290b2",
+        "lane_or_integration": "ntfix2: exclude consumed RESP prefixes from query-buffer accounting",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "82976645720a17ea025e3c8aeb00769d406694289ba542d11600dddd0e0c243a",
+        "after_digest": "3eba15f4276a089fe565373bc7099bb962f2878c692c2dce8ec1d47ad030e04a"
+      },
+      {
+        "commit": "70572c70288faa0af948c5c14ce22553136290b2",
+        "lane_or_integration": "ntfix2: exclude consumed RESP prefixes from query-buffer accounting",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "82976645720a17ea025e3c8aeb00769d406694289ba542d11600dddd0e0c243a",
+        "after_digest": "3eba15f4276a089fe565373bc7099bb962f2878c692c2dce8ec1d47ad030e04a"
+      },
+      {
+        "commit": "fabe3af1b454fe36237e4445c7ac1e076249adde",
+        "lane_or_integration": "ntfix3: refine query accounting only at conservative receive limits",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "3eba15f4276a089fe565373bc7099bb962f2878c692c2dce8ec1d47ad030e04a",
+        "after_digest": "546a7169f39775dcc51c6a073ed3faf320b4816fe01fc40957c7dfc7ccb9cd34"
+      },
+      {
+        "commit": "fabe3af1b454fe36237e4445c7ac1e076249adde",
+        "lane_or_integration": "ntfix3: refine query accounting only at conservative receive limits",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "3eba15f4276a089fe565373bc7099bb962f2878c692c2dce8ec1d47ad030e04a",
+        "after_digest": "546a7169f39775dcc51c6a073ed3faf320b4816fe01fc40957c7dfc7ccb9cd34"
+      },
+      {
+        "commit": "c0be5394d42fe74aca3ab02b9298d321794b39dd",
+        "lane_or_integration": "Merge cx-netfix network compatibility TLS and idle reclaim for wave5",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "546a7169f39775dcc51c6a073ed3faf320b4816fe01fc40957c7dfc7ccb9cd34",
+        "after_digest": "b5a53bc2318f34dcd69753099b2657ac0d6cabe4395a23aac5f61ee5c15e2828"
+      },
+      {
+        "commit": "c0be5394d42fe74aca3ab02b9298d321794b39dd",
+        "lane_or_integration": "Merge cx-netfix network compatibility TLS and idle reclaim for wave5",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "546a7169f39775dcc51c6a073ed3faf320b4816fe01fc40957c7dfc7ccb9cd34",
+        "after_digest": "b5a53bc2318f34dcd69753099b2657ac0d6cabe4395a23aac5f61ee5c15e2828"
+      }
+    ],
+    "source_events": [
+      {
+        "commit": "24c828243",
+        "lane": "netfix",
+        "effect": "query-limit accounting"
+      }
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "db0",
+    "name": "tomo_db0::ParseResult tomo_db0::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long, tomo_db0::RespFrontier*) [clone .isra.0]",
+    "before_digests": [],
+    "after_digests": [
+      "9a6750a5953d94dfc5131f725692430dd7f8c6cf4af8c57c1fc04729f2a431f9"
+    ],
+    "before_cases": [],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [],
+    "source_events": [
+      {
+        "commit": "873b71047",
+        "integration": "39a4bd9b2",
+        "lane": "respresume",
+        "effect": "resumable RESP signature/callee replacement; complete-frame parser cost falls"
+      }
+    ],
+    "entered_set_note": "newly entered helper; an entered-set change does not imply a new helper implementation"
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "db0",
+    "name": "tomo_db0::ParseResult tomo_db0::resp_parse_t<false>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long) [clone .isra.0]",
+    "before_digests": [
+      "1f04f41a1cb6d67052e5aa7b72a10fd63abae32b6c30110511755e3faf48c2ef"
+    ],
+    "after_digests": [],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [],
+    "compiler_events": [],
+    "source_events": [
+      {
+        "commit": "873b71047",
+        "integration": "39a4bd9b2",
+        "lane": "respresume",
+        "effect": "resumable RESP signature/callee replacement; complete-frame parser cost falls"
+      }
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "db0",
+    "name": "tomo_db0::multi_session_watch_size(tomo_db0::Client const&)",
+    "before_digests": [
+      "df775932244cd860c578e01357847368f78a9dbb1372c72d5e6fed97efb53dea"
+    ],
+    "after_digests": [
+      "6a8a826fbd78b6052a3c28333a3c7fb25ce12b565994d1485e9f04c3a54dae8f"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [],
+    "source_events": [
+      {
+        "commit": "a400d1f23",
+        "lane": "txnorder",
+        "effect": "MultiSession last_attempts moves cold field offsets; entered null path unchanged"
+      }
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "db0",
+    "name": "unsigned int tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)",
+    "before_digests": [
+      "4bc2139e9d3fe9827642f20836af8656c039dadb7ed8436cb7a28fdc11f76e0e"
+    ],
+    "after_digests": [
+      "9b3704298ea2d9a05843b552100f25ecd9cbf2d30282f3aeffc740453ea899b8"
+    ],
+    "before_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "08d9649752e6aaa33b2a6ce9b910d0ba579725b7",
+        "lane_or_integration": "Merge cx-trackfix causal tracking stamps and accounting for wave5",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "9b315252485f7738d4fde91b2465175eeeef824565cb4f877477f51db5533d1f",
+        "after_digest": "bd943ce87be1f90c416420b9511a2699022aa320d18f4b36731084cdcf3d2370"
+      },
+      {
+        "commit": "08d9649752e6aaa33b2a6ce9b910d0ba579725b7",
+        "lane_or_integration": "Merge cx-trackfix causal tracking stamps and accounting for wave5",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "9b315252485f7738d4fde91b2465175eeeef824565cb4f877477f51db5533d1f",
+        "after_digest": "bd943ce87be1f90c416420b9511a2699022aa320d18f4b36731084cdcf3d2370"
+      }
+    ],
+    "source_events": [
+      {
+        "commit": "c97c118a2",
+        "integration": "08d964975",
+        "lane": "trackfix",
+        "effect": "required tracking certificate"
+      }
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "normal",
+    "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
+    "before_digests": [
+      "a7d151021afed64ce2de45855bad01639b02b24473019422d39a68ea9aa2eebc"
+    ],
+    "after_digests": [
+      "125f648e2f7b783fcf4160c22cfc31d235ab2074264693c26855ef1ff094c05c"
+    ],
+    "before_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "d1f5fe0bc2cb338c44956e7027e7859694046700",
+        "lane_or_integration": "Merge cx-rlfix (59ef3e4b0) into cx-wave3: RL4.3 read-local GET miss, RL4.4 one-key DEL/UNLINK point write for RYOW (+4/+4 rows)",
+        "unit": "src/core/genthread.o",
+        "before_digest": "ebbf3a9dedd1a44333a5b1c015245f45cc5f1f3eb4d1493dc6896d18ab82e502",
+        "after_digest": "bb303c79a3601f69e46ac5ceab916ec4c6569ae3307d570cee96b8e87d6ee094"
+      },
+      {
+        "commit": "d1f5fe0bc2cb338c44956e7027e7859694046700",
+        "lane_or_integration": "Merge cx-rlfix (59ef3e4b0) into cx-wave3: RL4.3 read-local GET miss, RL4.4 one-key DEL/UNLINK point write for RYOW (+4/+4 rows)",
+        "unit": "src/core/reorder.o",
+        "before_digest": "ebbf3a9dedd1a44333a5b1c015245f45cc5f1f3eb4d1493dc6896d18ab82e502",
+        "after_digest": "bb303c79a3601f69e46ac5ceab916ec4c6569ae3307d570cee96b8e87d6ee094"
+      },
+      {
+        "commit": "567d3b8e32b8228105d548e459cf2e31ef25fc40",
+        "lane_or_integration": "Merge remote-tracking branch 'origin/cpp' into cx-ntfix",
+        "unit": "src/core/genthread.o",
+        "before_digest": "bb303c79a3601f69e46ac5ceab916ec4c6569ae3307d570cee96b8e87d6ee094",
+        "after_digest": "ebbf3a9dedd1a44333a5b1c015245f45cc5f1f3eb4d1493dc6896d18ab82e502"
+      },
+      {
+        "commit": "567d3b8e32b8228105d548e459cf2e31ef25fc40",
+        "lane_or_integration": "Merge remote-tracking branch 'origin/cpp' into cx-ntfix",
+        "unit": "src/core/reorder.o",
+        "before_digest": "bb303c79a3601f69e46ac5ceab916ec4c6569ae3307d570cee96b8e87d6ee094",
+        "after_digest": "ebbf3a9dedd1a44333a5b1c015245f45cc5f1f3eb4d1493dc6896d18ab82e502"
+      },
+      {
+        "commit": "339b546e2a08ccb0227142266bf1dc326a4bed57",
+        "lane_or_integration": "ntfix4: merge wave3 headline and retain all gate rows",
+        "unit": "src/core/genthread.o",
+        "before_digest": "ebbf3a9dedd1a44333a5b1c015245f45cc5f1f3eb4d1493dc6896d18ab82e502",
+        "after_digest": "bb303c79a3601f69e46ac5ceab916ec4c6569ae3307d570cee96b8e87d6ee094"
+      },
+      {
+        "commit": "339b546e2a08ccb0227142266bf1dc326a4bed57",
+        "lane_or_integration": "ntfix4: merge wave3 headline and retain all gate rows",
+        "unit": "src/core/reorder.o",
+        "before_digest": "ebbf3a9dedd1a44333a5b1c015245f45cc5f1f3eb4d1493dc6896d18ab82e502",
+        "after_digest": "bb303c79a3601f69e46ac5ceab916ec4c6569ae3307d570cee96b8e87d6ee094"
+      },
+      {
+        "commit": "4c692daf41093d7c03e8dade0c2222812d5c1f0a",
+        "lane_or_integration": "Merge clockcut (0e594f293) into cx-wave4: command clock after dequeue, Redis exact-deadline liveness",
+        "unit": "src/core/genthread.o",
+        "before_digest": "bb303c79a3601f69e46ac5ceab916ec4c6569ae3307d570cee96b8e87d6ee094",
+        "after_digest": "fe45cd7a34e2a087da3823773031d31decbffa7696f3ec405c5bc63955d97192"
+      },
+      {
+        "commit": "4c692daf41093d7c03e8dade0c2222812d5c1f0a",
+        "lane_or_integration": "Merge clockcut (0e594f293) into cx-wave4: command clock after dequeue, Redis exact-deadline liveness",
+        "unit": "src/core/reorder.o",
+        "before_digest": "bb303c79a3601f69e46ac5ceab916ec4c6569ae3307d570cee96b8e87d6ee094",
+        "after_digest": "fe45cd7a34e2a087da3823773031d31decbffa7696f3ec405c5bc63955d97192"
+      }
+    ],
+    "source_events": [
+      {
+        "commit": "3676d3cae",
+        "integration": "d1f5fe0bc",
+        "lane": "rlfix",
+        "effect": "required GET-miss path"
+      },
+      {
+        "commit": "5cd136502",
+        "integration": "4c692daf4",
+        "lane": "clockcut",
+        "effect": "required exact TTL boundary"
+      }
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "normal",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+    "before_digests": [
+      "74b2fd1e1c77a8c51a69af7b94b318efc8779c9fa5ee6815d913c67a3b09f25a"
+    ],
+    "after_digests": [
+      "9885d43a79b881926da18d0b1b29fef19a08570503ddd730b2efc423ac9393eb"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "39a4bd9b2b87fae87d620a85cc69de212260a778",
+        "lane_or_integration": "Merge cx-respresume (f95da7d55) into cx-wave3: NT4.2 resumable RESP multibulk parser, NT4.3 parser canaries removed (+12/+12 rows)",
+        "unit": "src/core/genthread.o",
+        "before_digest": "27da755a889bcd563075a32618c8e01d661cb8e519a7f401b9b33cc6f737d18c",
+        "after_digest": "93bb13e260fd64e22df9f912c07717856414f95cd456902e14100e2704ca3014"
+      },
+      {
+        "commit": "39a4bd9b2b87fae87d620a85cc69de212260a778",
+        "lane_or_integration": "Merge cx-respresume (f95da7d55) into cx-wave3: NT4.2 resumable RESP multibulk parser, NT4.3 parser canaries removed (+12/+12 rows)",
+        "unit": "src/core/reorder.o",
+        "before_digest": "91b39706acd8de028687c9925e06f19fdea20942e109a49e83c4faf28d331871",
+        "after_digest": "5bafa0130c5d6dd885f706d3a8ac84770d8c6f20e29c68dc171ad3c53871a874"
+      },
+      {
+        "commit": "2d2b7cefd69552f1038385b6d535cc448a5f118e",
+        "lane_or_integration": "Merge cx-mkfix (c6f990023) into cx-wave3: mkfix count study tooling, mkfix2 A (MSET replies to the WB rule), B (scatter arenas retained at peak demand), C (reverted next)",
+        "unit": "src/core/genthread.o",
+        "before_digest": "93bb13e260fd64e22df9f912c07717856414f95cd456902e14100e2704ca3014",
+        "after_digest": "aa75f31a72eea7767a11f04c255fc31dabb1a9f7197f61d02aa4ba877d02da09"
+      },
+      {
+        "commit": "2d2b7cefd69552f1038385b6d535cc448a5f118e",
+        "lane_or_integration": "Merge cx-mkfix (c6f990023) into cx-wave3: mkfix count study tooling, mkfix2 A (MSET replies to the WB rule), B (scatter arenas retained at peak demand), C (reverted next)",
+        "unit": "src/core/reorder.o",
+        "before_digest": "5bafa0130c5d6dd885f706d3a8ac84770d8c6f20e29c68dc171ad3c53871a874",
+        "after_digest": "6ab6da8a99095fe060189c0152061cb9db53712335ee450a08064adff3d2a2c1"
+      },
+      {
+        "commit": "567d3b8e32b8228105d548e459cf2e31ef25fc40",
+        "lane_or_integration": "Merge remote-tracking branch 'origin/cpp' into cx-ntfix",
+        "unit": "src/core/genthread.o",
+        "before_digest": "aa75f31a72eea7767a11f04c255fc31dabb1a9f7197f61d02aa4ba877d02da09",
+        "after_digest": "93bb13e260fd64e22df9f912c07717856414f95cd456902e14100e2704ca3014"
+      },
+      {
+        "commit": "567d3b8e32b8228105d548e459cf2e31ef25fc40",
+        "lane_or_integration": "Merge remote-tracking branch 'origin/cpp' into cx-ntfix",
+        "unit": "src/core/reorder.o",
+        "before_digest": "6ab6da8a99095fe060189c0152061cb9db53712335ee450a08064adff3d2a2c1",
+        "after_digest": "5bafa0130c5d6dd885f706d3a8ac84770d8c6f20e29c68dc171ad3c53871a874"
+      },
+      {
+        "commit": "1e4861741bb7fcc63e1e12419973152e612a8711",
+        "lane_or_integration": "ntfix2: match Redis pre-AUTH length error precedence",
+        "unit": "src/core/genthread.o",
+        "before_digest": "93bb13e260fd64e22df9f912c07717856414f95cd456902e14100e2704ca3014",
+        "after_digest": "b37ae6e1b590c5c6445a94fcc498124a854dbd0b4d6aae7d220e202cc9e73fff"
+      },
+      {
+        "commit": "1e4861741bb7fcc63e1e12419973152e612a8711",
+        "lane_or_integration": "ntfix2: match Redis pre-AUTH length error precedence",
+        "unit": "src/core/reorder.o",
+        "before_digest": "5bafa0130c5d6dd885f706d3a8ac84770d8c6f20e29c68dc171ad3c53871a874",
+        "after_digest": "13e575c18a796e76b1e45db4dacfdc501db517ba1573454e0124ae72d80ccf93"
+      },
+      {
+        "commit": "339b546e2a08ccb0227142266bf1dc326a4bed57",
+        "lane_or_integration": "ntfix4: merge wave3 headline and retain all gate rows",
+        "unit": "src/core/genthread.o",
+        "before_digest": "b37ae6e1b590c5c6445a94fcc498124a854dbd0b4d6aae7d220e202cc9e73fff",
+        "after_digest": "91c8cf53e0749bbabdb440a594791edce2453d7ea59c57b80bb8e1b3b483e63c"
+      },
+      {
+        "commit": "339b546e2a08ccb0227142266bf1dc326a4bed57",
+        "lane_or_integration": "ntfix4: merge wave3 headline and retain all gate rows",
+        "unit": "src/core/reorder.o",
+        "before_digest": "13e575c18a796e76b1e45db4dacfdc501db517ba1573454e0124ae72d80ccf93",
+        "after_digest": "ae0b7606931d3d5fda860d14312552b96494fc1a83ea0acb205a73069574c784"
+      },
+      {
+        "commit": "2d276e45c1e360fcb8d273356693faa8a7974080",
+        "lane_or_integration": "Merge compat2 (a7e318a14) into cx-wave4: C1 pre-AUTH precedence, C2 version-aware expiry notifications, C3 TLS live accounting",
+        "unit": "src/core/genthread.o",
+        "before_digest": "91c8cf53e0749bbabdb440a594791edce2453d7ea59c57b80bb8e1b3b483e63c",
+        "after_digest": "67612b3ceed5800344dcd39ba085eed5d1ceb75e4c8bd2b1fb26239b1e9acdf3"
+      },
+      {
+        "commit": "2d276e45c1e360fcb8d273356693faa8a7974080",
+        "lane_or_integration": "Merge compat2 (a7e318a14) into cx-wave4: C1 pre-AUTH precedence, C2 version-aware expiry notifications, C3 TLS live accounting",
+        "unit": "src/core/reorder.o",
+        "before_digest": "ae0b7606931d3d5fda860d14312552b96494fc1a83ea0acb205a73069574c784",
+        "after_digest": "bed9917a68a6a8364c0c636bf4fe5f0bb6591c5b40d5a84019d5d9e4930ecb5c"
+      },
+      {
+        "commit": "f49beb99e80e95dda12e5b9f018ce7cc8575d325",
+        "lane_or_integration": "Merge cx-iofix park wake cron and global sleep repairs for wave5",
+        "unit": "src/core/genthread.o",
+        "before_digest": "67612b3ceed5800344dcd39ba085eed5d1ceb75e4c8bd2b1fb26239b1e9acdf3",
+        "after_digest": "4003c6bfe748d86d46fa689befdea6e15fc89b72a42105c4f5c9d85a6d2c6530"
+      },
+      {
+        "commit": "f49beb99e80e95dda12e5b9f018ce7cc8575d325",
+        "lane_or_integration": "Merge cx-iofix park wake cron and global sleep repairs for wave5",
+        "unit": "src/core/reorder.o",
+        "before_digest": "bed9917a68a6a8364c0c636bf4fe5f0bb6591c5b40d5a84019d5d9e4930ecb5c",
+        "after_digest": "f2ba605545fe06b66c8abc9975608532e5642f6fbc09bb40f35a147fd9df11cc"
+      },
+      {
+        "commit": "f1e65eca0ad15fd4dcf64659aafeabda9af5bc4d",
+        "lane_or_integration": "Capture slowlog identity at timed completion before publishing Done",
+        "unit": "src/core/reorder.o",
+        "before_digest": "f2ba605545fe06b66c8abc9975608532e5642f6fbc09bb40f35a147fd9df11cc",
+        "after_digest": "500c5c43c1bda4f628d8876f3d03bdae12cc04bc299db08f1e6c57a80ee354f8"
+      },
+      {
+        "commit": "323bbd77036bb78c8a34519a242de1337f26c563",
+        "lane_or_integration": "Restore executor and IO call boundaries after merged slowlog growth",
+        "unit": "src/core/genthread.o",
+        "before_digest": "4003c6bfe748d86d46fa689befdea6e15fc89b72a42105c4f5c9d85a6d2c6530",
+        "after_digest": "b2422697a25e55bbf485aa729acef4da6b72aafc1223c09d0deb25f76725ecc8"
+      },
+      {
+        "commit": "323bbd77036bb78c8a34519a242de1337f26c563",
+        "lane_or_integration": "Restore executor and IO call boundaries after merged slowlog growth",
+        "unit": "src/core/reorder.o",
+        "before_digest": "500c5c43c1bda4f628d8876f3d03bdae12cc04bc299db08f1e6c57a80ee354f8",
+        "after_digest": "ff4e55a1359f13dc44f63b7e5cbdced0f419bcb066a52139feef6c26b40cfdae"
+      },
+      {
+        "commit": "b6d515c064896b72c36f294e4cf48689c3699fb3",
+        "lane_or_integration": "Pin WATCH predicate inlining and record integration verification scope",
+        "unit": "src/core/reorder.o",
+        "before_digest": "ff4e55a1359f13dc44f63b7e5cbdced0f419bcb066a52139feef6c26b40cfdae",
+        "after_digest": "b064e0ac473e93eb53dbebc0e5ad0954b19f547e8c1c7907ba92e34856b6abcf"
+      },
+      {
+        "commit": "26db42a598ab58b0a14db936ae5cf650cfbb4c4e",
+        "lane_or_integration": "Keep plain dispatch out of the cold deferral helper",
+        "unit": "src/core/reorder.o",
+        "before_digest": "b064e0ac473e93eb53dbebc0e5ad0954b19f547e8c1c7907ba92e34856b6abcf",
+        "after_digest": "509342d7aadf8580455418f3fa794776a902c637e4257f331f67677ea6df1a36"
+      },
+      {
+        "commit": "e95be5c81eadf81d2bf136d69d2b5c4fa6c8eae0",
+        "lane_or_integration": "Reopen WB4.1 after grace misses PRE park behavior; restore deferred work",
+        "unit": "src/core/reorder.o",
+        "before_digest": "509342d7aadf8580455418f3fa794776a902c637e4257f331f67677ea6df1a36",
+        "after_digest": "b064e0ac473e93eb53dbebc0e5ad0954b19f547e8c1c7907ba92e34856b6abcf"
+      },
+      {
+        "commit": "313677a95217abf53ba8e2227ea67731bde61a1f",
+        "lane_or_integration": "Merge cx-execfair into wave6",
+        "unit": "src/core/reorder.o",
+        "before_digest": "b064e0ac473e93eb53dbebc0e5ad0954b19f547e8c1c7907ba92e34856b6abcf",
+        "after_digest": "f2ba605545fe06b66c8abc9975608532e5642f6fbc09bb40f35a147fd9df11cc"
+      },
+      {
+        "commit": "3fd72af555aeee279d2a4bc2d6cdc52b09e068a3",
+        "lane_or_integration": "Merge cx-serverfix into wave6",
+        "unit": "src/core/genthread.o",
+        "before_digest": "b2422697a25e55bbf485aa729acef4da6b72aafc1223c09d0deb25f76725ecc8",
+        "after_digest": "b163774e87dc09be867a943d4a9b218cc25ed1ed2c7a87e6fb8e430eb95ca267"
+      },
+      {
+        "commit": "3fd72af555aeee279d2a4bc2d6cdc52b09e068a3",
+        "lane_or_integration": "Merge cx-serverfix into wave6",
+        "unit": "src/core/reorder.o",
+        "before_digest": "f2ba605545fe06b66c8abc9975608532e5642f6fbc09bb40f35a147fd9df11cc",
+        "after_digest": "467bcf5766d5088fa9adc74c191e3e3433327286e737adab74f19830c1dae15e"
+      },
+      {
+        "commit": "117e87887d3a638cd7962da19e532a290806e6cb",
+        "lane_or_integration": "Merge cx-prefetch into wave6",
+        "unit": "src/core/reorder.o",
+        "before_digest": "467bcf5766d5088fa9adc74c191e3e3433327286e737adab74f19830c1dae15e",
+        "after_digest": "ab836760f2e659667ac2302b4a67f969418ea91cdf2c878550a261f88a621613"
+      },
+      {
+        "commit": "b77c613f77940718f6114ba5c28ebbf5ae92dc46",
+        "lane_or_integration": "Delete rejected fallback prefetch walk",
+        "unit": "src/core/reorder.o",
+        "before_digest": "ab836760f2e659667ac2302b4a67f969418ea91cdf2c878550a261f88a621613",
+        "after_digest": "c9a0a412bfab3037a0158c6ac3fc9940288d7df3183347c6bb9eff20236cfc8c"
+      },
+      {
+        "commit": "98346c0f3fb889e980e3727899b957ca4d55aeb4",
+        "lane_or_integration": "Keep EXEC promoter and AOF context off ordinary executor frames",
+        "unit": "src/core/reorder.o",
+        "before_digest": "c9a0a412bfab3037a0158c6ac3fc9940288d7df3183347c6bb9eff20236cfc8c",
+        "after_digest": "ab836760f2e659667ac2302b4a67f969418ea91cdf2c878550a261f88a621613"
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "normal",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+    "before_digests": [
+      "a322ef061f57f9e9ac51588e8a39bd9243b5ca22f3fdb5b561f6787035d1b4f4"
+    ],
+    "after_digests": [
+      "8833703278170ef6f5c54715e83a42f399ff9ec06d05474035df8da55aeb4b99"
+    ],
+    "before_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "39a4bd9b2b87fae87d620a85cc69de212260a778",
+        "lane_or_integration": "Merge cx-respresume (f95da7d55) into cx-wave3: NT4.2 resumable RESP multibulk parser, NT4.3 parser canaries removed (+12/+12 rows)",
+        "unit": "src/core/reorder.o",
+        "before_digest": "7bc1f6e5a7170b3cdc826a472cc5588d58815599720c0b3c2778898ddeac7786",
+        "after_digest": "05d486394d6bd140f18f630ab59302844df3a8c9837e859c82b09ca50f571030"
+      },
+      {
+        "commit": "2d2b7cefd69552f1038385b6d535cc448a5f118e",
+        "lane_or_integration": "Merge cx-mkfix (c6f990023) into cx-wave3: mkfix count study tooling, mkfix2 A (MSET replies to the WB rule), B (scatter arenas retained at peak demand), C (reverted next)",
+        "unit": "src/core/reorder.o",
+        "before_digest": "05d486394d6bd140f18f630ab59302844df3a8c9837e859c82b09ca50f571030",
+        "after_digest": "474d577879f23174a26d0e76bce5d0bf8225dc04b5faf390beb99e242f3d0c92"
+      },
+      {
+        "commit": "567d3b8e32b8228105d548e459cf2e31ef25fc40",
+        "lane_or_integration": "Merge remote-tracking branch 'origin/cpp' into cx-ntfix",
+        "unit": "src/core/reorder.o",
+        "before_digest": "474d577879f23174a26d0e76bce5d0bf8225dc04b5faf390beb99e242f3d0c92",
+        "after_digest": "05d486394d6bd140f18f630ab59302844df3a8c9837e859c82b09ca50f571030"
+      },
+      {
+        "commit": "1e4861741bb7fcc63e1e12419973152e612a8711",
+        "lane_or_integration": "ntfix2: match Redis pre-AUTH length error precedence",
+        "unit": "src/core/reorder.o",
+        "before_digest": "05d486394d6bd140f18f630ab59302844df3a8c9837e859c82b09ca50f571030",
+        "after_digest": "72cb453a53565db99647f5072eff8a109c7dd525e20e3518697bf0781bb4b9ca"
+      },
+      {
+        "commit": "339b546e2a08ccb0227142266bf1dc326a4bed57",
+        "lane_or_integration": "ntfix4: merge wave3 headline and retain all gate rows",
+        "unit": "src/core/reorder.o",
+        "before_digest": "72cb453a53565db99647f5072eff8a109c7dd525e20e3518697bf0781bb4b9ca",
+        "after_digest": "1035c9e6c7b91dc313d17d6b14ffec7f2863458b289197711512ead25980a74e"
+      },
+      {
+        "commit": "2d276e45c1e360fcb8d273356693faa8a7974080",
+        "lane_or_integration": "Merge compat2 (a7e318a14) into cx-wave4: C1 pre-AUTH precedence, C2 version-aware expiry notifications, C3 TLS live accounting",
+        "unit": "src/core/reorder.o",
+        "before_digest": "1035c9e6c7b91dc313d17d6b14ffec7f2863458b289197711512ead25980a74e",
+        "after_digest": "2d7d8addabf11b0a01cab06b2227a732faf67d70714e3355fb857dd3734da982"
+      },
+      {
+        "commit": "f49beb99e80e95dda12e5b9f018ce7cc8575d325",
+        "lane_or_integration": "Merge cx-iofix park wake cron and global sleep repairs for wave5",
+        "unit": "src/core/reorder.o",
+        "before_digest": "2d7d8addabf11b0a01cab06b2227a732faf67d70714e3355fb857dd3734da982",
+        "after_digest": "c977e91ca9d47ad4a0e10e6f78991226f5aa06add952274ad20a56522f5fd95c"
+      },
+      {
+        "commit": "323bbd77036bb78c8a34519a242de1337f26c563",
+        "lane_or_integration": "Restore executor and IO call boundaries after merged slowlog growth",
+        "unit": "src/core/reorder.o",
+        "before_digest": "c977e91ca9d47ad4a0e10e6f78991226f5aa06add952274ad20a56522f5fd95c",
+        "after_digest": "867b112d33f1f1bcc74c57c110d55abc99996df04c1814b2b82fc502b7780b40"
+      },
+      {
+        "commit": "3fd72af555aeee279d2a4bc2d6cdc52b09e068a3",
+        "lane_or_integration": "Merge cx-serverfix into wave6",
+        "unit": "src/core/reorder.o",
+        "before_digest": "867b112d33f1f1bcc74c57c110d55abc99996df04c1814b2b82fc502b7780b40",
+        "after_digest": "96cf340e5f1882610729e97c4b66071a0870e6d3dfa5b261e629c673087a82ad"
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "normal",
+    "name": "tomo::IoLoop::flip_dispatch_paused() const",
+    "before_digests": [],
+    "after_digests": [
+      "4996941468a10e38880bee692fefc16282954f494564bd816059d0f7401578c5"
+    ],
+    "before_cases": [],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "f49beb99e80e95dda12e5b9f018ce7cc8575d325",
+        "lane_or_integration": "Merge cx-iofix park wake cron and global sleep repairs for wave5",
+        "unit": "src/core/reorder.o",
+        "before_digest": null,
+        "after_digest": "e8423ce84063104aa61090bcae7c9b12901b964ce941f50bd2561f4e91a4b9de"
+      },
+      {
+        "commit": "323bbd77036bb78c8a34519a242de1337f26c563",
+        "lane_or_integration": "Restore executor and IO call boundaries after merged slowlog growth",
+        "unit": "src/core/genthread.o",
+        "before_digest": null,
+        "after_digest": "e8423ce84063104aa61090bcae7c9b12901b964ce941f50bd2561f4e91a4b9de"
+      }
+    ],
+    "source_events": [
+      {
+        "commit": "323bbd770",
+        "lane": "wave5 integration",
+        "effect": "noinline per-pass pause helper"
+      }
+    ],
+    "entered_set_note": "newly entered helper; an entered-set change does not imply a new helper implementation"
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "normal",
+    "name": "tomo::IoLoop::query_buffer_exceeded(tomo::Client const&) const",
+    "before_digests": [
+      "9ba314b102b2c23ce30a86071685f60a050a21f24aae1da238a0784588e85941"
+    ],
+    "after_digests": [
+      "692529f1a5b9ac067ee6c3706592b9446f76226730a4d913c4132b31599f52e9"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "70572c70288faa0af948c5c14ce22553136290b2",
+        "lane_or_integration": "ntfix2: exclude consumed RESP prefixes from query-buffer accounting",
+        "unit": "src/core/genthread.o",
+        "before_digest": "757e25be92a117f1d5429f2c4267dd40857fc83af87baef4c23502aa9cc45132",
+        "after_digest": "a948f1e94a885b4ebc0ed65352be75899c002c866d707fef522e56f39306842a"
+      },
+      {
+        "commit": "70572c70288faa0af948c5c14ce22553136290b2",
+        "lane_or_integration": "ntfix2: exclude consumed RESP prefixes from query-buffer accounting",
+        "unit": "src/core/reorder.o",
+        "before_digest": "757e25be92a117f1d5429f2c4267dd40857fc83af87baef4c23502aa9cc45132",
+        "after_digest": "a948f1e94a885b4ebc0ed65352be75899c002c866d707fef522e56f39306842a"
+      },
+      {
+        "commit": "fabe3af1b454fe36237e4445c7ac1e076249adde",
+        "lane_or_integration": "ntfix3: refine query accounting only at conservative receive limits",
+        "unit": "src/core/genthread.o",
+        "before_digest": "a948f1e94a885b4ebc0ed65352be75899c002c866d707fef522e56f39306842a",
+        "after_digest": "42162126944ff351411e58a8355f44ee6f25031feff50667a35919e1219a641f"
+      },
+      {
+        "commit": "fabe3af1b454fe36237e4445c7ac1e076249adde",
+        "lane_or_integration": "ntfix3: refine query accounting only at conservative receive limits",
+        "unit": "src/core/reorder.o",
+        "before_digest": "a948f1e94a885b4ebc0ed65352be75899c002c866d707fef522e56f39306842a",
+        "after_digest": "42162126944ff351411e58a8355f44ee6f25031feff50667a35919e1219a641f"
+      },
+      {
+        "commit": "c0be5394d42fe74aca3ab02b9298d321794b39dd",
+        "lane_or_integration": "Merge cx-netfix network compatibility TLS and idle reclaim for wave5",
+        "unit": "src/core/genthread.o",
+        "before_digest": "42162126944ff351411e58a8355f44ee6f25031feff50667a35919e1219a641f",
+        "after_digest": "7e76393273cc0784f7521e52f8c74fc2847dfd4352f8b236bff506e965cfef2a"
+      },
+      {
+        "commit": "c0be5394d42fe74aca3ab02b9298d321794b39dd",
+        "lane_or_integration": "Merge cx-netfix network compatibility TLS and idle reclaim for wave5",
+        "unit": "src/core/reorder.o",
+        "before_digest": "42162126944ff351411e58a8355f44ee6f25031feff50667a35919e1219a641f",
+        "after_digest": "7e76393273cc0784f7521e52f8c74fc2847dfd4352f8b236bff506e965cfef2a"
+      }
+    ],
+    "source_events": [
+      {
+        "commit": "24c828243",
+        "lane": "netfix",
+        "effect": "query-limit accounting"
+      }
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "normal",
+    "name": "tomo::IoLoop::touch_worker(unsigned int)",
+    "before_digests": [],
+    "after_digests": [
+      "70abbcd24468d6ebbbb7525f0b2efb35128dc46d044d520ade51b4cc00cc8edb"
+    ],
+    "before_cases": [],
+    "after_cases": [
+      [
+        32,
+        "r7mix"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "f49beb99e80e95dda12e5b9f018ce7cc8575d325",
+        "lane_or_integration": "Merge cx-iofix park wake cron and global sleep repairs for wave5",
+        "unit": "src/core/reorder.o",
+        "before_digest": null,
+        "after_digest": "cb851c611857ebea0e2f2b0e6eedaa036673dfb5cfab6b4e7ea821ee870d26fa"
+      }
+    ],
+    "source_events": [],
+    "entered_set_note": "newly entered helper; an entered-set change does not imply a new helper implementation",
+    "caller_event": {
+      "commit": "f49beb99e",
+      "lane": "iofix integration"
+    }
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "normal",
+    "name": "tomo::ParseResult tomo::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long, tomo::RespFrontier*) [clone .isra.0]",
+    "before_digests": [],
+    "after_digests": [
+      "f33033a80ad239c23fc5d22f6ca0869bb0de40dec9a6f312ffdb03c3e0ef3a40"
+    ],
+    "before_cases": [],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [],
+    "source_events": [
+      {
+        "commit": "873b71047",
+        "integration": "39a4bd9b2",
+        "lane": "respresume",
+        "effect": "resumable RESP signature/callee replacement; complete-frame parser cost falls"
+      }
+    ],
+    "entered_set_note": "newly entered helper; an entered-set change does not imply a new helper implementation"
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "normal",
+    "name": "tomo::ParseResult tomo::resp_parse_t<false>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long) [clone .isra.0]",
+    "before_digests": [
+      "9eabd156f0d5ef8bca4ffea85c400caafc2e8eb0a81ca15b4d1d1456f2ccbc31"
+    ],
+    "after_digests": [],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [],
+    "compiler_events": [],
+    "source_events": [
+      {
+        "commit": "873b71047",
+        "integration": "39a4bd9b2",
+        "lane": "respresume",
+        "effect": "resumable RESP signature/callee replacement; complete-frame parser cost falls"
+      }
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "normal",
+    "name": "tomo::multi_session_watch_size(tomo::Client const&)",
+    "before_digests": [
+      "df775932244cd860c578e01357847368f78a9dbb1372c72d5e6fed97efb53dea"
+    ],
+    "after_digests": [
+      "6a8a826fbd78b6052a3c28333a3c7fb25ce12b565994d1485e9f04c3a54dae8f"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [],
+    "source_events": [
+      {
+        "commit": "a400d1f23",
+        "lane": "txnorder",
+        "effect": "MultiSession last_attempts moves cold field offsets; entered null path unchanged"
+      }
+    ]
+  },
+  {
+    "before": "anchor",
+    "after": "wave6",
+    "namespace": "normal",
+    "name": "unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)",
+    "before_digests": [
+      "a69292ba335f6cd6bdc5936555096f8d9e45b092588c7ac50fef53cf87e54cf0"
+    ],
+    "after_digests": [
+      "67000a1c95aac39ae7ec23b0e3cda5ab06fbd8c657c73f82c9c35996dff35eb9"
+    ],
+    "before_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "08d9649752e6aaa33b2a6ce9b910d0ba579725b7",
+        "lane_or_integration": "Merge cx-trackfix causal tracking stamps and accounting for wave5",
+        "unit": "src/core/genthread.o",
+        "before_digest": "6e4b540122793fbb6267e03381ebe36492ca49a6d9db1003ccbaad9456b7e3b4",
+        "after_digest": "c8043d4b1b48637d33488dd9a383312e29c54cb8c1d3b24781f6a88b0b295b50"
+      },
+      {
+        "commit": "08d9649752e6aaa33b2a6ce9b910d0ba579725b7",
+        "lane_or_integration": "Merge cx-trackfix causal tracking stamps and accounting for wave5",
+        "unit": "src/core/reorder.o",
+        "before_digest": "6e4b540122793fbb6267e03381ebe36492ca49a6d9db1003ccbaad9456b7e3b4",
+        "after_digest": "c8043d4b1b48637d33488dd9a383312e29c54cb8c1d3b24781f6a88b0b295b50"
+      }
+    ],
+    "source_events": [
+      {
+        "commit": "c97c118a2",
+        "integration": "08d964975",
+        "lane": "trackfix",
+        "effect": "required tracking certificate"
+      }
+    ]
+  },
+  {
+    "before": "wave6",
+    "after": "wave7",
+    "namespace": "db0",
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+    "before_digests": [
+      "6e3218f6370f3f51260dd0353b637a54d5949e4ff3fc344f95265fb7c2fdfd96"
+    ],
+    "after_digests": [
+      "2aad4ad792bee61ce2f061e00d6f5a4983ad95a6342e5c4daad55b4f51f5be82"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "ee1aec4ea38799c7683278cd4ccadea65cd71e2b",
+        "lane_or_integration": "Merge branch 'cx-ctlfix' into cx-wave7",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "42666c6f819e2f4062a24867cb297676a9e21ed86b6a1483e258618b569eb543",
+        "after_digest": "b0acc8c613783241de8c646f45690d300a6043e5e602304a7c5b1968e9047385"
+      },
+      {
+        "commit": "ee1aec4ea38799c7683278cd4ccadea65cd71e2b",
+        "lane_or_integration": "Merge branch 'cx-ctlfix' into cx-wave7",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "84a9a4139f90ce36d7b46983b024d36005ca2699a48d30da01f703b4d6bf5864",
+        "after_digest": "0718cac78326ac6cc06ae776c14b5e15ccd632b5a815000762ee975e10b37456"
+      },
+      {
+        "commit": "f0d647b3782ee97bec91996da16dcc6d5a0e90f2",
+        "lane_or_integration": "Merge branch 'cx-persistfix2' into cx-wave7",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "b0acc8c613783241de8c646f45690d300a6043e5e602304a7c5b1968e9047385",
+        "after_digest": "c2195e6e8dee9f72b64257ca732a43650292479262092c5ad67e39957a100b29"
+      },
+      {
+        "commit": "f0d647b3782ee97bec91996da16dcc6d5a0e90f2",
+        "lane_or_integration": "Merge branch 'cx-persistfix2' into cx-wave7",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "0718cac78326ac6cc06ae776c14b5e15ccd632b5a815000762ee975e10b37456",
+        "after_digest": "4f7709545f9eb25c95e1bee54deca190a8f73958a1042c5962ef0f6601792805"
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "wave6",
+    "after": "wave7",
+    "namespace": "db0",
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+    "before_digests": [
+      "39846c433f26d4555384a4acb83c0762c3ad2f9f0816c85e628935c8f2c46f4d"
+    ],
+    "after_digests": [
+      "f7b6b75eed4e76dea1edd2e0f4ae0e702493c83cd23efdce729fb2c2d503df39"
+    ],
+    "before_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "ee1aec4ea38799c7683278cd4ccadea65cd71e2b",
+        "lane_or_integration": "Merge branch 'cx-ctlfix' into cx-wave7",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "b59237097311f87a31f5fb07bd8079f7f192d19ba2547297645f356fbea2c8a6",
+        "after_digest": "066b55c3429e85cdea89ce47b795b032cb1131116a3ac2b72aca113762187157"
+      },
+      {
+        "commit": "f0d647b3782ee97bec91996da16dcc6d5a0e90f2",
+        "lane_or_integration": "Merge branch 'cx-persistfix2' into cx-wave7",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "066b55c3429e85cdea89ce47b795b032cb1131116a3ac2b72aca113762187157",
+        "after_digest": "1f1fb57adede9c66bbed207fb448a0fb0eafdbb962740af75d6922c99e5e72f2"
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "wave6",
+    "after": "wave7",
+    "namespace": "db0",
+    "name": "tomo_db0::multi_session_watch_size(tomo_db0::Client const&)",
+    "before_digests": [
+      "6a8a826fbd78b6052a3c28333a3c7fb25ce12b565994d1485e9f04c3a54dae8f"
+    ],
+    "after_digests": [
+      "16d9aae4c006f8389a687e0710a1e1c47e4fbf6fc4d5c0b3a49b0f9fcc01b058"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [],
+    "source_events": [
+      {
+        "commit": "d64accaca",
+        "integration": "033be1114",
+        "lane": "atomfix5",
+        "effect": "logical WATCH traversal changes cold body; entered null path unchanged"
+      }
+    ]
+  },
+  {
+    "before": "wave6",
+    "after": "wave7",
+    "namespace": "normal",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+    "before_digests": [
+      "9885d43a79b881926da18d0b1b29fef19a08570503ddd730b2efc423ac9393eb"
+    ],
+    "after_digests": [
+      "2f7b146be1d8ec074fe50f395ff68804cd59ac0c057647d9ecc7829d43d4806b"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "ee1aec4ea38799c7683278cd4ccadea65cd71e2b",
+        "lane_or_integration": "Merge branch 'cx-ctlfix' into cx-wave7",
+        "unit": "src/core/genthread.o",
+        "before_digest": "b163774e87dc09be867a943d4a9b218cc25ed1ed2c7a87e6fb8e430eb95ca267",
+        "after_digest": "8a8bb8c5d2e77e021357a1c99527d462c1862736a13f3cbe3c72daea808bf1fc"
+      },
+      {
+        "commit": "ee1aec4ea38799c7683278cd4ccadea65cd71e2b",
+        "lane_or_integration": "Merge branch 'cx-ctlfix' into cx-wave7",
+        "unit": "src/core/reorder.o",
+        "before_digest": "ab836760f2e659667ac2302b4a67f969418ea91cdf2c878550a261f88a621613",
+        "after_digest": "d9097bfc732bd828b5d2710182233763c76e0a3f398cec2d31a3f5123d674e46"
+      },
+      {
+        "commit": "f0d647b3782ee97bec91996da16dcc6d5a0e90f2",
+        "lane_or_integration": "Merge branch 'cx-persistfix2' into cx-wave7",
+        "unit": "src/core/genthread.o",
+        "before_digest": "8a8bb8c5d2e77e021357a1c99527d462c1862736a13f3cbe3c72daea808bf1fc",
+        "after_digest": "7ab88f80069400ecab2d0a6735b5924b35e8f7a2ae2cd6a0ad4fce2500110acd"
+      },
+      {
+        "commit": "f0d647b3782ee97bec91996da16dcc6d5a0e90f2",
+        "lane_or_integration": "Merge branch 'cx-persistfix2' into cx-wave7",
+        "unit": "src/core/reorder.o",
+        "before_digest": "d9097bfc732bd828b5d2710182233763c76e0a3f398cec2d31a3f5123d674e46",
+        "after_digest": "a84d4d86d83d2863ddd3c1c30b72e3a50b348c30da981a180d19cc616091502b"
+      },
+      {
+        "commit": "7fe467f66c6ddb43bd507cd668ba0027accacc29",
+        "lane_or_integration": "Merge branch 'cx-datafix2' into cx-wave7",
+        "unit": "src/core/genthread.o",
+        "before_digest": "7ab88f80069400ecab2d0a6735b5924b35e8f7a2ae2cd6a0ad4fce2500110acd",
+        "after_digest": "ba33b9cdca147dcf8a2734c2fc720088f9bebb1108bafb9a9765c3ab39960d43"
+      },
+      {
+        "commit": "f941716b1ef0f9fbc1827ce98800b82e0d5b939c",
+        "lane_or_integration": "Rebalance wave7 inlining budgets and keep GET key access inline",
+        "unit": "src/core/genthread.o",
+        "before_digest": "ba33b9cdca147dcf8a2734c2fc720088f9bebb1108bafb9a9765c3ab39960d43",
+        "after_digest": "7ab88f80069400ecab2d0a6735b5924b35e8f7a2ae2cd6a0ad4fce2500110acd"
+      },
+      {
+        "commit": "f941716b1ef0f9fbc1827ce98800b82e0d5b939c",
+        "lane_or_integration": "Rebalance wave7 inlining budgets and keep GET key access inline",
+        "unit": "src/core/reorder.o",
+        "before_digest": "a84d4d86d83d2863ddd3c1c30b72e3a50b348c30da981a180d19cc616091502b",
+        "after_digest": "9c29a783feb69dfd43fad0e3a7a9f941333a2fb14bf35e8ab64fcd94d55be075"
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "wave6",
+    "after": "wave7",
+    "namespace": "normal",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+    "before_digests": [
+      "8833703278170ef6f5c54715e83a42f399ff9ec06d05474035df8da55aeb4b99"
+    ],
+    "after_digests": [
+      "6143a879bdcbb72bc3d0a21ca1dc2515e8d658605b418d3e66e9d0c38f0ed690"
+    ],
+    "before_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "ee1aec4ea38799c7683278cd4ccadea65cd71e2b",
+        "lane_or_integration": "Merge branch 'cx-ctlfix' into cx-wave7",
+        "unit": "src/core/reorder.o",
+        "before_digest": "96cf340e5f1882610729e97c4b66071a0870e6d3dfa5b261e629c673087a82ad",
+        "after_digest": "57ea4f739a82057af64e1f5857bec3b05edf1ceb354fbd4b0f2064f788babc94"
+      },
+      {
+        "commit": "f0d647b3782ee97bec91996da16dcc6d5a0e90f2",
+        "lane_or_integration": "Merge branch 'cx-persistfix2' into cx-wave7",
+        "unit": "src/core/reorder.o",
+        "before_digest": "57ea4f739a82057af64e1f5857bec3b05edf1ceb354fbd4b0f2064f788babc94",
+        "after_digest": "de57919c93759c6eb104799fd2ec689965af403a342906d6857f6a0b2831590b"
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "wave6",
+    "after": "wave7",
+    "namespace": "normal",
+    "name": "tomo::multi_session_watch_size(tomo::Client const&)",
+    "before_digests": [
+      "6a8a826fbd78b6052a3c28333a3c7fb25ce12b565994d1485e9f04c3a54dae8f"
+    ],
+    "after_digests": [
+      "7dfad166103c2528f9eeed0c3f51385f44ac8cf0bedc24820a738927b67a2185"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [],
+    "source_events": [
+      {
+        "commit": "d64accaca",
+        "integration": "033be1114",
+        "lane": "atomfix5",
+        "effect": "logical WATCH traversal changes cold body; entered null path unchanged"
+      }
+    ]
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "db0",
+    "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "before_digests": [
+      "e906ae66bd0e3a25dbf6f31074b73a898ce86c14a1b4770faa119a6a5b6e3251"
+    ],
+    "after_digests": [
+      "7fada4da83c4a2a4739b2a1151807a362fa9d00918fda6868f30b45c413edeac"
+    ],
+    "before_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "81a7ec066759498b07aee7ca276616d839d8ebe0",
+        "lane_or_integration": "Merge cx-latencyfix into wave8",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "c3b2113be0bf5a79c0d0ee3465fed198b52f0dc95aacf8310fe7be9453313959",
+        "after_digest": "59a144688bbf7363bdef3dbe8b68ee54eed767148f6ed621c47fc5e21c035ef8"
+      },
+      {
+        "commit": "81a7ec066759498b07aee7ca276616d839d8ebe0",
+        "lane_or_integration": "Merge cx-latencyfix into wave8",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "c3b2113be0bf5a79c0d0ee3465fed198b52f0dc95aacf8310fe7be9453313959",
+        "after_digest": "59a144688bbf7363bdef3dbe8b68ee54eed767148f6ed621c47fc5e21c035ef8"
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "db0",
+    "name": "tomo_db0::ExLoopT<true>::notify_sender(tomo_db0::Client*)",
+    "before_digests": [
+      "edd4c63a6af85b4d8db7ae0d1aa0f21ffcf5ece524f89d2a0866f398bca77f6c"
+    ],
+    "after_digests": [],
+    "before_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [],
+    "compiler_events": [
+      {
+        "commit": "81a7ec066759498b07aee7ca276616d839d8ebe0",
+        "lane_or_integration": "Merge cx-latencyfix into wave8",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "af5a51790a8ec74e19e7d8eff85eef538833217bfbfdb7d11a3343d943bfb53d",
+        "after_digest": null
+      },
+      {
+        "commit": "81a7ec066759498b07aee7ca276616d839d8ebe0",
+        "lane_or_integration": "Merge cx-latencyfix into wave8",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "af5a51790a8ec74e19e7d8eff85eef538833217bfbfdb7d11a3343d943bfb53d",
+        "after_digest": null
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "db0",
+    "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+    "before_digests": [
+      "1e43cb53e29ff476f0aeaf9798e47be7f1daa1a93252a4b442bd81a1110e32ae",
+      "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+    ],
+    "after_digests": [
+      "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "81a7ec066759498b07aee7ca276616d839d8ebe0",
+        "lane_or_integration": "Merge cx-latencyfix into wave8",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "e38a62e6e2a3fcffff924deb7f0f0bfce2062c68f48b3d677556de5f90039ac3",
+        "after_digest": "5e9ab8e1e46bbb84d4d190a94dfbcfb0f1d2ca68985da3e996c50eef64c1680e"
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "db0",
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+    "before_digests": [
+      "2aad4ad792bee61ce2f061e00d6f5a4983ad95a6342e5c4daad55b4f51f5be82"
+    ],
+    "after_digests": [
+      "32d19109d691e99b7615972571c0b1cc4fcfd3955a456c484151c52d8e2b6ec1"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "81a7ec066759498b07aee7ca276616d839d8ebe0",
+        "lane_or_integration": "Merge cx-latencyfix into wave8",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "c2195e6e8dee9f72b64257ca732a43650292479262092c5ad67e39957a100b29",
+        "after_digest": "53ba0d3049b345d77bef98fa63f2946f05ea1456b4a091e0539efd7a4e2d653f"
+      },
+      {
+        "commit": "81a7ec066759498b07aee7ca276616d839d8ebe0",
+        "lane_or_integration": "Merge cx-latencyfix into wave8",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "4f7709545f9eb25c95e1bee54deca190a8f73958a1042c5962ef0f6601792805",
+        "after_digest": "a643df6a0df7faf431071efa19d0b4f4935ea947a5e9df2b6517a0ec7acf7677"
+      },
+      {
+        "commit": "f59e83610e3e19432729863768c17535aad7125e",
+        "lane_or_integration": "Carry exact timing starts and discard parked WAIT slices on CONFIG no",
+        "unit": "db0/src/core/genthread.o",
+        "before_digest": "53ba0d3049b345d77bef98fa63f2946f05ea1456b4a091e0539efd7a4e2d653f",
+        "after_digest": "a4ab0cdcbfbc40a479fbb95a0cd1d25bc90b73b9674b5e46838c11212b97b378"
+      },
+      {
+        "commit": "f59e83610e3e19432729863768c17535aad7125e",
+        "lane_or_integration": "Carry exact timing starts and discard parked WAIT slices on CONFIG no",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "a643df6a0df7faf431071efa19d0b4f4935ea947a5e9df2b6517a0ec7acf7677",
+        "after_digest": "71205a625d4edad9ba3ac6b2bbba87cae73321b384f3f980e3b4ca3ce3cea461"
+      },
+      {
+        "commit": "e42a75b6e0290216e211467178c9fbf1e3976818",
+        "lane_or_integration": "Discard orphan script timings when a pre-disable parent completes",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "71205a625d4edad9ba3ac6b2bbba87cae73321b384f3f980e3b4ca3ce3cea461",
+        "after_digest": "d75bf886d1b5338e0776106dbb98adbe73244140ae4bfbc47d746afbea0740e9"
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "db0",
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+    "before_digests": [
+      "f7b6b75eed4e76dea1edd2e0f4ae0e702493c83cd23efdce729fb2c2d503df39"
+    ],
+    "after_digests": [
+      "ce5b41efe39d9ae0a6e971c29cef9866018073658ec68591c5b76fa3cbbd276f"
+    ],
+    "before_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "81a7ec066759498b07aee7ca276616d839d8ebe0",
+        "lane_or_integration": "Merge cx-latencyfix into wave8",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "1f1fb57adede9c66bbed207fb448a0fb0eafdbb962740af75d6922c99e5e72f2",
+        "after_digest": "bdf7c466536535dbb22d29f4498c14f864979cfee04ad2b3f0f28fbd0415504b"
+      },
+      {
+        "commit": "f59e83610e3e19432729863768c17535aad7125e",
+        "lane_or_integration": "Carry exact timing starts and discard parked WAIT slices on CONFIG no",
+        "unit": "db0/src/core/reorder.o",
+        "before_digest": "bdf7c466536535dbb22d29f4498c14f864979cfee04ad2b3f0f28fbd0415504b",
+        "after_digest": "eb47b24569ef4a723136feec935270b4ff80d3dac097e0aa344c5d9527c401d7"
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "db0",
+    "name": "tomo_db0::IoLoop::touch_worker(unsigned int)",
+    "before_digests": [],
+    "after_digests": [
+      "70abbcd24468d6ebbbb7525f0b2efb35128dc46d044d520ade51b4cc00cc8edb"
+    ],
+    "before_cases": [],
+    "after_cases": [
+      [
+        32,
+        "r7mix"
+      ]
+    ],
+    "compiler_events": [],
+    "source_events": [],
+    "entered_set_note": "newly entered helper; an entered-set change does not imply a new helper implementation",
+    "caller_event": {
+      "commit": "81a7ec066",
+      "lane": "latencyfix integration"
+    }
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "db0",
+    "name": "tomo_db0::Op::cmd_name() const",
+    "before_digests": [],
+    "after_digests": [
+      "0a04a76eabf3e42b4a15c170100679892f7f55dd673b8574322afe6f5ce599e5"
+    ],
+    "before_cases": [],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [],
+    "source_events": [],
+    "entered_set_note": "newly entered helper; an entered-set change does not imply a new helper implementation",
+    "caller_event": {
+      "commit": "81a7ec066",
+      "lane": "latencyfix integration"
+    }
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "normal",
+    "name": "std::unique_ptr<tomo::IoLoop::r7_ReadLocalDemotionPlan::Storage, std::default_delete<tomo::IoLoop::r7_ReadLocalDemotionPlan::Storage> >::~unique_ptr()",
+    "before_digests": [],
+    "after_digests": [
+      "d6d2bb1ff22823721bc43a5bae8cbfa619f008ddba01b5718ee13aa06c606024"
+    ],
+    "before_cases": [],
+    "after_cases": [
+      [
+        32,
+        "r7mix"
+      ]
+    ],
+    "compiler_events": [],
+    "source_events": [],
+    "entered_set_note": "newly entered helper; an entered-set change does not imply a new helper implementation",
+    "caller_event": {
+      "commit": "81a7ec066",
+      "lane": "latencyfix integration"
+    }
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "normal",
+    "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "before_digests": [
+      "49d478cc379dac90e16c9a27105655ad54d588647338ff07d7da4164aaa7b41e"
+    ],
+    "after_digests": [
+      "bdea8e9c7baf758b058b9a7216d6c12b5ab5514129493a17cd93b1fb926e1ba4"
+    ],
+    "before_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "81a7ec066759498b07aee7ca276616d839d8ebe0",
+        "lane_or_integration": "Merge cx-latencyfix into wave8",
+        "unit": "src/core/genthread.o",
+        "before_digest": "b6be6527badb22d5af9a7cfd54c4c344348978d356fe3bdcf954e391930c7941",
+        "after_digest": "20df0a10b9a0ed6b1bb49a1148b9e6e8a474e67c8c886d8b534e720336ad9566"
+      },
+      {
+        "commit": "81a7ec066759498b07aee7ca276616d839d8ebe0",
+        "lane_or_integration": "Merge cx-latencyfix into wave8",
+        "unit": "src/core/reorder.o",
+        "before_digest": "b6be6527badb22d5af9a7cfd54c4c344348978d356fe3bdcf954e391930c7941",
+        "after_digest": "20df0a10b9a0ed6b1bb49a1148b9e6e8a474e67c8c886d8b534e720336ad9566"
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "normal",
+    "name": "tomo::ExLoopT<true>::notify_sender(tomo::Client*)",
+    "before_digests": [
+      "100a1eea42755dafd999cd98defce4a92a309c466582b376f33ca187051bf33e"
+    ],
+    "after_digests": [],
+    "before_cases": [
+      [
+        1,
+        "local"
+      ],
+      [
+        1,
+        "mix"
+      ],
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "local"
+      ],
+      [
+        32,
+        "mix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [],
+    "compiler_events": [
+      {
+        "commit": "81a7ec066759498b07aee7ca276616d839d8ebe0",
+        "lane_or_integration": "Merge cx-latencyfix into wave8",
+        "unit": "src/core/genthread.o",
+        "before_digest": "dc22592f2ca87fe53739103d9387b822c219e3e38433917dfe44f88037130029",
+        "after_digest": null
+      },
+      {
+        "commit": "81a7ec066759498b07aee7ca276616d839d8ebe0",
+        "lane_or_integration": "Merge cx-latencyfix into wave8",
+        "unit": "src/core/reorder.o",
+        "before_digest": "dc22592f2ca87fe53739103d9387b822c219e3e38433917dfe44f88037130029",
+        "after_digest": null
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "normal",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+    "before_digests": [
+      "2f7b146be1d8ec074fe50f395ff68804cd59ac0c057647d9ecc7829d43d4806b"
+    ],
+    "after_digests": [
+      "e4ab4faf47d934a3574f3136bdf8789b67c29f03465302dbbee86fa331ee8532"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "81a7ec066759498b07aee7ca276616d839d8ebe0",
+        "lane_or_integration": "Merge cx-latencyfix into wave8",
+        "unit": "src/core/genthread.o",
+        "before_digest": "7ab88f80069400ecab2d0a6735b5924b35e8f7a2ae2cd6a0ad4fce2500110acd",
+        "after_digest": "3c98293f30d537644488c00b447a889dc374aa8dd4f1e4ecef0075992177be02"
+      },
+      {
+        "commit": "81a7ec066759498b07aee7ca276616d839d8ebe0",
+        "lane_or_integration": "Merge cx-latencyfix into wave8",
+        "unit": "src/core/reorder.o",
+        "before_digest": "9c29a783feb69dfd43fad0e3a7a9f941333a2fb14bf35e8ab64fcd94d55be075",
+        "after_digest": "61e295421355c38ff43198ca105ab1c146f90fb362cb980bfdb5cba545dc7ae4"
+      },
+      {
+        "commit": "ea28a43a69c974610283ea3051568269c60901ac",
+        "lane_or_integration": "Merge cx-iofix3 into wave8",
+        "unit": "src/core/genthread.o",
+        "before_digest": "3c98293f30d537644488c00b447a889dc374aa8dd4f1e4ecef0075992177be02",
+        "after_digest": "02a3a47723950485b0311f29f1c082bceb5ed1c8b65cbd234712c84fc024192b"
+      },
+      {
+        "commit": "5a9181ac40b3a218baa2389eae3d1a863b38e2ef",
+        "lane_or_integration": "Select wave8b compile budgets and force script retry transition coverage",
+        "unit": "src/core/genthread.o",
+        "before_digest": "02a3a47723950485b0311f29f1c082bceb5ed1c8b65cbd234712c84fc024192b",
+        "after_digest": "3c98293f30d537644488c00b447a889dc374aa8dd4f1e4ecef0075992177be02"
+      },
+      {
+        "commit": "f59e83610e3e19432729863768c17535aad7125e",
+        "lane_or_integration": "Carry exact timing starts and discard parked WAIT slices on CONFIG no",
+        "unit": "src/core/genthread.o",
+        "before_digest": "3c98293f30d537644488c00b447a889dc374aa8dd4f1e4ecef0075992177be02",
+        "after_digest": "b62c56789eaa1afab2ac90a9e93013e42dd988111da8e197a8deacaa63c33204"
+      },
+      {
+        "commit": "f59e83610e3e19432729863768c17535aad7125e",
+        "lane_or_integration": "Carry exact timing starts and discard parked WAIT slices on CONFIG no",
+        "unit": "src/core/reorder.o",
+        "before_digest": "61e295421355c38ff43198ca105ab1c146f90fb362cb980bfdb5cba545dc7ae4",
+        "after_digest": "25a755a4f4b40eaa4d8d16e1afdd7c8983c1a8a3550f0d0c11a5eae24a12ee98"
+      },
+      {
+        "commit": "e42a75b6e0290216e211467178c9fbf1e3976818",
+        "lane_or_integration": "Discard orphan script timings when a pre-disable parent completes",
+        "unit": "src/core/genthread.o",
+        "before_digest": "b62c56789eaa1afab2ac90a9e93013e42dd988111da8e197a8deacaa63c33204",
+        "after_digest": "f1a54354d0a0b94c467e4f039c2891f9658b9699f20a8660e9ae50ccc24f7d13"
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "wave7",
+    "after": "pre",
+    "namespace": "normal",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+    "before_digests": [
+      "6143a879bdcbb72bc3d0a21ca1dc2515e8d658605b418d3e66e9d0c38f0ed690"
+    ],
+    "after_digests": [
+      "8a58b7ba03ea6401469c51abfccb047e28ad785e9681c87021e5114fc1afb9f3"
+    ],
+    "before_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "81a7ec066759498b07aee7ca276616d839d8ebe0",
+        "lane_or_integration": "Merge cx-latencyfix into wave8",
+        "unit": "src/core/reorder.o",
+        "before_digest": "de57919c93759c6eb104799fd2ec689965af403a342906d6857f6a0b2831590b",
+        "after_digest": "f45452ec8b12ed37cd756fe6bab0193d7eb1bf9548fc5dfe3fc0db71f6cdf261"
+      },
+      {
+        "commit": "f59e83610e3e19432729863768c17535aad7125e",
+        "lane_or_integration": "Carry exact timing starts and discard parked WAIT slices on CONFIG no",
+        "unit": "src/core/reorder.o",
+        "before_digest": "f45452ec8b12ed37cd756fe6bab0193d7eb1bf9548fc5dfe3fc0db71f6cdf261",
+        "after_digest": "003afa26d7f76a93da26bbb86a7a7f0ad0e1e32fce48f94b810fd79c298d51e9"
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "pre",
+    "after": "post",
+    "namespace": "db0",
+    "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+    "before_digests": [
+      "8b0cac503879d338d3156a2c64674340a653cb9cca0c5bd22340231c364019c9"
+    ],
+    "after_digests": [
+      "c96363c1dc9b539fbe5dc184f9757159d7df594dbe9297ddf5956a21183ddf1b"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "18f0ceb8b",
+        "lane_or_integration": "rlfix4 final registry guard and budget",
+        "earlier_commits": [
+          "11ae8a977",
+          "df5c790d2"
+        ]
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "pre",
+    "after": "post",
+    "namespace": "db0",
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+    "before_digests": [
+      "32d19109d691e99b7615972571c0b1cc4fcfd3955a456c484151c52d8e2b6ec1"
+    ],
+    "after_digests": [
+      "7179874d2e2881c24002953859778c45373639546c421cfa04b296d709088798"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "18f0ceb8b",
+        "lane_or_integration": "rlfix4 final registry guard and budget",
+        "earlier_commits": [
+          "11ae8a977",
+          "df5c790d2"
+        ]
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "pre",
+    "after": "post",
+    "namespace": "db0",
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+    "before_digests": [
+      "ce5b41efe39d9ae0a6e971c29cef9866018073658ec68591c5b76fa3cbbd276f"
+    ],
+    "after_digests": [
+      "4cdca9c83527a9160ef8fb7d70c5ea2562c20148875aa3670d26710a566e3eb6"
+    ],
+    "before_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "18f0ceb8b",
+        "lane_or_integration": "rlfix4 final registry guard and budget",
+        "earlier_commits": [
+          "11ae8a977",
+          "df5c790d2"
+        ]
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "pre",
+    "after": "post",
+    "namespace": "db0",
+    "name": "tomo_db0::Op::cmd_name() const",
+    "before_digests": [
+      "0a04a76eabf3e42b4a15c170100679892f7f55dd673b8574322afe6f5ce599e5"
+    ],
+    "after_digests": [],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [],
+    "compiler_events": [
+      {
+        "commit": "18f0ceb8b",
+        "lane_or_integration": "rlfix4 final registry guard and budget",
+        "earlier_commits": [
+          "11ae8a977",
+          "df5c790d2"
+        ]
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "pre",
+    "after": "post",
+    "namespace": "normal",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+    "before_digests": [
+      "e4ab4faf47d934a3574f3136bdf8789b67c29f03465302dbbee86fa331ee8532"
+    ],
+    "after_digests": [
+      "348faee6273d03e69b299f47a957722c366f3ba0f6db9e786c8b174a157468e4"
+    ],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "18f0ceb8b",
+        "lane_or_integration": "rlfix4 final registry guard and budget",
+        "earlier_commits": [
+          "11ae8a977",
+          "df5c790d2"
+        ]
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "pre",
+    "after": "post",
+    "namespace": "normal",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+    "before_digests": [
+      "8a58b7ba03ea6401469c51abfccb047e28ad785e9681c87021e5114fc1afb9f3"
+    ],
+    "after_digests": [
+      "5e898fb863cdeb2b1ebf67c6c1715d31cfe9d2813bb66dc83a49abd1f9af0fb5"
+    ],
+    "before_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "compiler_events": [
+      {
+        "commit": "18f0ceb8b",
+        "lane_or_integration": "rlfix4 final registry guard and budget",
+        "earlier_commits": [
+          "11ae8a977",
+          "df5c790d2"
+        ]
+      }
+    ],
+    "source_events": []
+  },
+  {
+    "before": "pre",
+    "after": "post",
+    "namespace": "normal",
+    "name": "tomo::Op::cmd_name() const",
+    "before_digests": [
+      "127b11c28dc9f34bd4e049f9ea88043e9bb329dd7eab9ed62ced2dd14bc43586"
+    ],
+    "after_digests": [],
+    "before_cases": [
+      [
+        1,
+        "parse"
+      ],
+      [
+        1,
+        "parsemix"
+      ],
+      [
+        1,
+        "r7mix"
+      ],
+      [
+        1,
+        "r7parse"
+      ],
+      [
+        32,
+        "parse"
+      ],
+      [
+        32,
+        "parsemix"
+      ],
+      [
+        32,
+        "r7mix"
+      ],
+      [
+        32,
+        "r7parse"
+      ]
+    ],
+    "after_cases": [],
+    "compiler_events": [
+      {
+        "commit": "18f0ceb8b",
+        "lane_or_integration": "rlfix4 final registry guard and budget",
+        "earlier_commits": [
+          "11ae8a977",
+          "df5c790d2"
+        ]
+      }
+    ],
+    "source_events": []
+  }
+]

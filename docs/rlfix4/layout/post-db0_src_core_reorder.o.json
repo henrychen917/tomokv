@@ -1,0 +1,31 @@
+{
+  "arm": "post",
+  "unit": "db0/src/core/reorder.o",
+  "command": [
+    "g++",
+    "-ffunction-sections",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=150092",
+    "--param",
+    "max-inline-insns-auto=14",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/core/reorder.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/post/db0/src/core/reorder.o"
+  ],
+  "original_sha256": "e57038a3c296e372262002a8243cf1dc32863edab64ac9c285640b262b4a2b7a",
+  "sha256": "61c1d6edbcf4dde01b1ad990b3d95758bbe3a44f2f1d9037b0de7863d3a27ecd"
+}

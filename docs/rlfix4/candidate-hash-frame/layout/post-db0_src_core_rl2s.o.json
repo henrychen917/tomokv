@@ -1,0 +1,29 @@
+{
+  "arm": "post",
+  "unit": "db0/src/core/rl2s.o",
+  "command": [
+    "g++",
+    "-ffunction-sections",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=167496",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/core/rl2s.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/post/db0/src/core/rl2s.o"
+  ],
+  "original_sha256": "3a7198932aafb0f2ad229db3bab44953f9695357c4f3a124783728910d4b1e36",
+  "sha256": "d68a4f3d2185b864f112a433dbe0be6584e214fd74c71ff01834cb9af4401fa0"
+}

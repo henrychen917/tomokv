@@ -1,0 +1,32 @@
+{
+  "binary_sha256": "94044f8d46c49ba3ff27cab90de4bb1845d06ad75bcaf3942b6c9a3b70b2b350",
+  "backend": "ptrace-rep-once",
+  "total": 6069,
+  "functions": {
+    "tomo_db0::Op::Sink::reserve(unsigned long)": 24,
+    "tomo_db0::u64_to_dec(char*, unsigned long)": 43,
+    "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]": 707,
+    "tomo_db0::FlatStore::read_local_prefetch(unsigned long) const": 672,
+    "tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 1376,
+    "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 101,
+    "tomo_db0::ExLoopT<true>::prepare_captured_local_mget(tomo_db0::Op&)": 2826,
+    "tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::ReadLocalPrefetchCapture const*)": 31,
+    "unsigned int tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 284,
+    "tomo_db0::[asm .rlfence]": 5
+  },
+  "bodies": {
+    "0x189a00 tomo_db0::Op::Sink::reserve(unsigned long)": 24,
+    "0x189ad0 tomo_db0::u64_to_dec(char*, unsigned long)": 43,
+    "0x33fed0 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]": 707,
+    "0x34ad20 tomo_db0::FlatStore::read_local_prefetch(unsigned long) const": 672,
+    "0x34aea0 tomo_db0::FlatStore::read_local_prefetch_capture(unsigned long, tomo_db0::Slice) const": 1376,
+    "0x358470 tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 101,
+    "0x362950 tomo_db0::ExLoopT<true>::prepare_captured_local_mget(tomo_db0::Op&)": 2826,
+    "0x363b70 tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::ReadLocalPrefetchCapture const*)": 31,
+    "0x364440 unsigned int tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 284,
+    "0x845f55 tomo_db0::[asm .rlfence]": 5
+  },
+  "raw_total": 6069,
+  "clock_calls": 0,
+  "excluded_calls": 25
+}

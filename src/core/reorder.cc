@@ -2135,7 +2135,9 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
         // certain to be answered — see the dispatch-refusal path below for why.
         const uint32_t consumed = pos - conn.rpos();
 
-        const CommandSpec* spec = command_lookup(op->cmd_name());
+        // Empty frames have already returned ParseResult::Empty. The complete
+        // frame has arg(0); avoid outlining cmd_name's redundant empty check.
+        const CommandSpec* spec = command_lookup(op->arg(0));
         if (!spec) {
             conn.advance_parse(consumed);
             // Redis names the command and echoes the first arguments; client libraries and
@@ -2280,7 +2282,11 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
             __builtin_expect(climon_armed_gate(c, *op), false)) break;
         if (__builtin_expect(security_check, false) &&
             acl_dispatch_entry(*this, conn, *op, consumed, security_flags)) continue;
-        if (__builtin_expect(srv_->aof().failed(), false) && srv_->aof().deny_command(*op)) {
+        // The registry's GET/MGET class is neither a metadata write nor PING,
+        // the only commands deny_command can reject. Keep the live failure
+        // probe for every other route, including queued transaction writes.
+        if ((!Fused || !(spec->flags & CmdFlags::ReadLocalEligible)) &&
+            __builtin_expect(srv_->aof().failed(), false) && srv_->aof().deny_command(*op)) {
             multi_mark_queue_error(conn);
             conn.advance_parse(consumed);
             finish_prebuilt(c, *op);

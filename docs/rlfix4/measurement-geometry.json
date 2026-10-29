@@ -1,0 +1,53 @@
+{
+  "source": "tests/gate_measurements.json",
+  "sha256": "3d47fe9171f21aaedc12f761a122d48ae790f6380e39eb5d98589a318cf8a8bb",
+  "reviewed_geometries": {
+    "correctness": {
+      "8": {
+        "io": 6,
+        "ex": 2,
+        "provenance": {
+          "when": "2026-09-07 (project baseline context)",
+          "how": "Maintainer-reported full correctness gate at --shards 16, eight physical cores, 6 io + 2 ex; defects reproduce at this reviewed geometry."
+        }
+      }
+    },
+    "abba": {
+      "32": {
+        "io": 16,
+        "ex": 16,
+        "provenance": {
+          "when": "2026-09-10T22:18:54Z",
+          "how": "Observed explicit server boot geometry in build/calibrate-final/results.json environment: 32 physical cores, no server SMT, split_ratio 16:16. Campaign failed before valid measurements; this records thread shape, not a performance result."
+        }
+      }
+    }
+  },
+  "server_shard_formula": "min(8 * (executors if 2s else server_threads), 256)",
+  "implementation": "tests/abbagate.py:1864-1867",
+  "databases": 1,
+  "request": "Replay maintainer section-70 reference geometry; do not substitute correctness geometry",
+  "lane_runtime_cpus": [
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47
+  ],
+  "lane_listener_ports": [
+    20300,
+    20399
+  ],
+  "performed_performance_runs": false
+}

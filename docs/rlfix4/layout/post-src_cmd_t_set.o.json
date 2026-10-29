@@ -1,0 +1,27 @@
+{
+  "arm": "post",
+  "unit": "src/cmd/t_set.o",
+  "command": [
+    "g++",
+    "-ffunction-sections",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=26451",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/cmd/t_set.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/post/src/cmd/t_set.o"
+  ],
+  "original_sha256": "320ee4d3765f8564de88f4c6d9e4a1dbb112b97892c1759b20288034943c510d",
+  "sha256": "2d6b7d0b7fde92bce8e4dcd711cda0835f78a471436810d2145d0d751c25e105"
+}

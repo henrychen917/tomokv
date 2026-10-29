@@ -1,0 +1,21 @@
+{
+  "source": "/home/user/Projects/cx-rlfix4/build/gate-run.WIJpPm/jobs/fused-1/gate-fused-txn-nx-1.txt",
+  "binary_sha256": "5a903fd856e7cccfcb27df13da666be6381f3c0ae3a0a9428bb01f542ab0cb97",
+  "mode": "1s",
+  "engine": "epoll",
+  "read_local": 0,
+  "atomic": 1,
+  "log": "atomic=1\n{\"transactional\": true, \"geometry\": [[5, 5], [5, 5], [15, 7]], \"rounds\": 8192, \"completed\": 8192, \"failures\": 0, \"examples\": [], \"errors\": [], \"threads_alive\": false}\nFAIL {'iteration': 1666, 'replies': [RespError(b'ERR no such key'), 1], 'values': [b'winner-a', None, b'winner-b']}\n{\"transactional\": false, \"geometry\": [[0, 0], [0, 0], [3, 3]], \"rounds\": 8192, \"completed\": 8192, \"failures\": 1, \"examples\": [{\"iteration\": 1666, \"replies\": [\"RespError(b'ERR no such key')\", 1], \"values\": [\"b'winner-a'\", null, \"b'winner-b'\"]}], \"errors\": [], \"threads_alive\": false}\n",
+  "status": "wire failure preserved; symptom matches registered AT4-WOUND-1, reproduced deterministically in PRE and POST (all modes/namespaces)",
+  "diagnosis": "docs/rlfix4/wound-inherited.json",
+  "fresh_controls": [
+    "docs/rlfix4/jobs/final2-txnnx-pre-1.json",
+    "docs/rlfix4/jobs/final2-txnnx-pre-2.json",
+    "docs/rlfix4/jobs/final2-txnnx-pre-3.json",
+    "docs/rlfix4/jobs/final2-txnnx-pre-4.json",
+    "docs/rlfix4/jobs/final2-txnnx-post-1.json",
+    "docs/rlfix4/jobs/final2-txnnx-post-2.json",
+    "docs/rlfix4/jobs/final2-txnnx-post-3.json",
+    "docs/rlfix4/jobs/final2-txnnx-post-4.json"
+  ]
+}

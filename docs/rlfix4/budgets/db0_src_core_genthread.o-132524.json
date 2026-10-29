@@ -1,0 +1,131 @@
+{
+  "object": "db0/src/core/genthread.o",
+  "budget": 132524,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=132524",
+    "-Wa,--defsym,tomo_rlfence_text_pad=16",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/core/genthread.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/budgets/db0_src_core_genthread.o-132524.o"
+  ],
+  "object_sha256": "49e32e6d47ba52e5aceeb357ce6ecbf88ba0adb18e976e4d2b9e048781871610",
+  "changes": [
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE15fused_pass_implILj32ELb1ELb0ELb0EEEjv",
+      "pre_size": 3478,
+      "post_size": 3478
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE15fused_pass_implILj32ELb1ELb0ELb1EEEjv",
+      "pre_size": 3790,
+      "post_size": 3911
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, false, false>()",
+      "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb0ELb0ELb0EEEjv",
+      "pre_size": 2934,
+      "post_size": 2998
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, true, false>()",
+      "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb0ELb1ELb0EEEjv",
+      "pre_size": 2902,
+      "post_size": 2966
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, false, true, false>()",
+      "symbol": "_ZN8tomo_db06IoLoop8run_loopILb0ELb1ELb0ELb1ELb0EEEvv",
+      "pre_size": 5191,
+      "post_size": 5242
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, true, false>()",
+      "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb0ELb0ELb1ELb0ELb1ELb0EEEjv",
+      "pre_size": 2206,
+      "post_size": 2270
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, false, true, false>()",
+      "symbol": "_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb1ELb0EEEvv",
+      "pre_size": 5151,
+      "post_size": 5202
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, true, true, false>()",
+      "symbol": "_ZN8tomo_db06IoLoop8run_loopILb0ELb1ELb1ELb1ELb0EEEvv",
+      "pre_size": 5218,
+      "post_size": 5269
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, true, true, false>()",
+      "symbol": "_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb1ELb1ELb0EEEvv",
+      "pre_size": 5218,
+      "post_size": 5269
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, false, false>()",
+      "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb1ELb0ELb0EEEjv",
+      "pre_size": 2934,
+      "post_size": 2998
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, true, false>()",
+      "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb1ELb1ELb0EEEjv",
+      "pre_size": 2902,
+      "post_size": 2966
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, true, false>()",
+      "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb0ELb0ELb1ELb1ELb1ELb0EEEjv",
+      "pre_size": 2206,
+      "post_size": 2270
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, false, true, false>()",
+      "symbol": "_ZN8tomo_db06IoLoop8run_loopILb1ELb0ELb0ELb1ELb0EEEvv",
+      "pre_size": 5280,
+      "post_size": 5307
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, true, true, true, false>()",
+      "symbol": "_ZN8tomo_db06IoLoop8run_loopILb1ELb1ELb1ELb1ELb0EEEvv",
+      "pre_size": 5246,
+      "post_size": 5297
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, true, true, false>()",
+      "symbol": "_ZN8tomo_db06IoLoop8run_loopILb1ELb0ELb1ELb1ELb0EEEvv",
+      "pre_size": 5246,
+      "post_size": 5297
+    }
+  ],
+  "parsers": [
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "size": 19211,
+      "calls": {
+        "cmd_name": 14,
+        "hash_key": 5,
+        "local_read_lane_has_room": 2
+      }
+    }
+  ]
+}

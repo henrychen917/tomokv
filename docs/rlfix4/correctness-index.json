@@ -1,0 +1,1183 @@
+{
+  "status": "NOT fully green: inherited AT4-WOUND-1 plus one unreproduced idle ceiling failure",
+  "production_sha256": "5a903fd856e7cccfcb27df13da666be6381f3c0ae3a0a9428bb01f542ab0cb97",
+  "runs": [
+    {
+      "name": "final2-atomic-extra",
+      "receipt": "docs/rlfix4/jobs/final2-atomic-extra.json",
+      "exit": 0,
+      "summary": [
+        "GATE(PARTIAL): 20 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rlfix4/docs/rlfix4/jobs/final2-atomic-extra.tsv.partial"
+      ],
+      "binary_sha256": "5a903fd856e7cccfcb27df13da666be6381f3c0ae3a0a9428bb01f542ab0cb97",
+      "jobs": [
+        "moverfix",
+        "hexpread",
+        "dispatch_arity",
+        "dispatch_errors",
+        "dispatch_children"
+      ],
+      "engine": "uring",
+      "fused_batteries": "0"
+    },
+    {
+      "name": "final2-differ-epoll",
+      "receipt": "docs/rlfix4/jobs/final2-differ-epoll.json",
+      "exit": 0,
+      "summary": [
+        "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rlfix4/docs/rlfix4/jobs/final2-differ-epoll.tsv.partial"
+      ],
+      "binary_sha256": "5a903fd856e7cccfcb27df13da666be6381f3c0ae3a0a9428bb01f542ab0cb97",
+      "jobs": [
+        "differ-split-0",
+        "differ-split-1",
+        "differ-armed-0",
+        "differ-armed-1",
+        "differ-equivalence"
+      ],
+      "engine": "epoll",
+      "fused_batteries": "0"
+    },
+    {
+      "name": "final2-differ-uring",
+      "receipt": "docs/rlfix4/jobs/final2-differ-uring.json",
+      "exit": 0,
+      "summary": [
+        "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rlfix4/docs/rlfix4/jobs/final2-differ-uring.tsv.partial"
+      ],
+      "binary_sha256": "5a903fd856e7cccfcb27df13da666be6381f3c0ae3a0a9428bb01f542ab0cb97",
+      "jobs": [
+        "differ-split-0",
+        "differ-split-1",
+        "differ-armed-0",
+        "differ-armed-1",
+        "differ-equivalence"
+      ],
+      "engine": "uring",
+      "fused_batteries": "0"
+    },
+    {
+      "name": "final2-epoll-legs",
+      "receipt": "docs/rlfix4/jobs/final2-epoll-legs.json",
+      "exit": 1,
+      "summary": [
+        "GATE(PARTIAL): 274 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rlfix4/docs/rlfix4/jobs/final2-epoll-legs.tsv.partial"
+      ],
+      "binary_sha256": "5a903fd856e7cccfcb27df13da666be6381f3c0ae3a0a9428bb01f542ab0cb97",
+      "jobs": [
+        "bplus",
+        "rlcache",
+        "readonly",
+        "feature-split-0",
+        "feature-split-1",
+        "feature-armed-0",
+        "feature-armed-1",
+        "fused-0",
+        "fused-1",
+        "release_batteries",
+        "atomic_batteries",
+        "asan_batteries",
+        "debug-0",
+        "debug-1",
+        "notify",
+        "txn_group_fused",
+        "txn_group_split",
+        "txnorder-fused-0",
+        "txnorder-fused-1",
+        "txnorder-split-0",
+        "txnorder-split-1",
+        "replyoff",
+        "zc",
+        "wb_policy",
+        "script_bounds",
+        "rldbg",
+        "multidb-1s-0-0",
+        "multidb-1s-0-1",
+        "multidb-1s-1-0",
+        "multidb-1s-1-1",
+        "multidb-2s-0-0",
+        "multidb-2s-0-1",
+        "multidb-2s-1-0",
+        "multidb-2s-1-1",
+        "evict-lfu-split-0",
+        "evict-lfu-split-1",
+        "evict-lfu-armed-0",
+        "evict-lfu-armed-1",
+        "evict-lruclock-split-0",
+        "evict-lruclock-split-1",
+        "evict-lruclock-armed-0",
+        "evict-lruclock-armed-1"
+      ],
+      "engine": "epoll",
+      "fused_batteries": "0"
+    },
+    {
+      "name": "final2-feature-multidb-evict",
+      "receipt": "docs/rlfix4/jobs/final2-feature-multidb-evict.json",
+      "exit": 0,
+      "summary": [
+        "GATE(PARTIAL): 68 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rlfix4/docs/rlfix4/jobs/final2-feature-multidb-evict.tsv.partial"
+      ],
+      "binary_sha256": "5a903fd856e7cccfcb27df13da666be6381f3c0ae3a0a9428bb01f542ab0cb97",
+      "jobs": [
+        "feature-cell-1s-0-0-0-0",
+        "feature-cell-1s-0-0-0-1",
+        "feature-cell-1s-0-0-1-0",
+        "feature-cell-1s-0-0-1-1",
+        "feature-cell-1s-0-1-0-0",
+        "feature-cell-1s-0-1-0-1",
+        "feature-cell-1s-0-1-1-0",
+        "feature-cell-1s-0-1-1-1",
+        "feature-cell-1s-1-0-0-0",
+        "feature-cell-1s-1-0-0-1",
+        "feature-cell-1s-1-0-1-0",
+        "feature-cell-1s-1-0-1-1",
+        "feature-cell-1s-1-1-0-0",
+        "feature-cell-1s-1-1-0-1",
+        "feature-cell-1s-1-1-1-0",
+        "feature-cell-1s-1-1-1-1",
+        "feature-cell-2s-0-0-0-0",
+        "feature-cell-2s-0-0-0-1",
+        "feature-cell-2s-0-0-1-0",
+        "feature-cell-2s-0-0-1-1",
+        "feature-cell-2s-0-1-0-0",
+        "feature-cell-2s-0-1-0-1",
+        "feature-cell-2s-0-1-1-0",
+        "feature-cell-2s-0-1-1-1",
+        "feature-cell-2s-1-0-0-0",
+        "feature-cell-2s-1-0-0-1",
+        "feature-cell-2s-1-0-1-0",
+        "feature-cell-2s-1-0-1-1",
+        "feature-cell-2s-1-1-0-0",
+        "feature-cell-2s-1-1-0-1",
+        "feature-cell-2s-1-1-1-0",
+        "feature-cell-2s-1-1-1-1",
+        "feature-cell-split-home-min",
+        "feature-cell-fused-home-max-nopin",
+        "feature-cell-split-shards-auto",
+        "multidb-1s-0-0",
+        "multidb-1s-0-1",
+        "multidb-1s-1-0",
+        "multidb-1s-1-1",
+        "multidb-2s-0-0",
+        "multidb-2s-0-1",
+        "multidb-2s-1-0",
+        "multidb-2s-1-1",
+        "evict-lfu-split-0",
+        "evict-lfu-split-1",
+        "evict-lfu-armed-0",
+        "evict-lfu-armed-1",
+        "evict-lruclock-split-0",
+        "evict-lruclock-split-1",
+        "evict-lruclock-armed-0",
+        "evict-lruclock-armed-1"
+      ],
+      "engine": "uring",
+      "fused_batteries": "0"
+    },
+    {
+      "name": "final2-fused-epoll",
+      "receipt": "docs/rlfix4/jobs/final2-fused-epoll.json",
+      "exit": 0,
+      "summary": [
+        "GATE(PARTIAL): 59 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rlfix4/docs/rlfix4/jobs/final2-fused-epoll.tsv.partial"
+      ],
+      "binary_sha256": "5a903fd856e7cccfcb27df13da666be6381f3c0ae3a0a9428bb01f542ab0cb97",
+      "jobs": [
+        "release_batteries",
+        "atomic_batteries",
+        "asan_batteries",
+        "debug-0",
+        "debug-1",
+        "notify",
+        "script_bounds"
+      ],
+      "engine": "epoll",
+      "fused_batteries": "1"
+    },
+    {
+      "name": "final2-fused-uring",
+      "receipt": "docs/rlfix4/jobs/final2-fused-uring.json",
+      "exit": 1,
+      "summary": [
+        "GATE(PARTIAL): 58 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rlfix4/docs/rlfix4/jobs/final2-fused-uring.tsv.partial"
+      ],
+      "binary_sha256": "5a903fd856e7cccfcb27df13da666be6381f3c0ae3a0a9428bb01f542ab0cb97",
+      "jobs": [
+        "release_batteries",
+        "atomic_batteries",
+        "asan_batteries",
+        "debug-0",
+        "debug-1",
+        "notify",
+        "script_bounds"
+      ],
+      "engine": "uring",
+      "fused_batteries": "1"
+    },
+    {
+      "name": "final2-idle-repeat-post",
+      "receipt": "docs/rlfix4/jobs/final2-idle-repeat-post.json",
+      "exit": 0,
+      "summary": [
+        "GATE(PARTIAL): 9 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rlfix4/docs/rlfix4/jobs/final2-idle-repeat-post.tsv.partial"
+      ],
+      "binary_sha256": "5a903fd856e7cccfcb27df13da666be6381f3c0ae3a0a9428bb01f542ab0cb97",
+      "jobs": [
+        "release_batteries"
+      ],
+      "engine": "uring",
+      "fused_batteries": "1"
+    },
+    {
+      "name": "final2-idle-repeat-pre",
+      "receipt": "docs/rlfix4/jobs/final2-idle-repeat-pre.json",
+      "exit": 0,
+      "summary": [
+        "GATE(PARTIAL): 9 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rlfix4/docs/rlfix4/jobs/final2-idle-repeat-pre.tsv.partial"
+      ],
+      "binary_sha256": "2ffc953c8820419009929629e985b517d02787a461493edd81ce79571b030e5c",
+      "jobs": [
+        "release_batteries"
+      ],
+      "engine": "uring",
+      "fused_batteries": "1"
+    },
+    {
+      "name": "final2-live-pad-a",
+      "receipt": "docs/rlfix4/jobs/final2-live-pad-a.json",
+      "exit": 0,
+      "summary": [
+        "GATE(PARTIAL): 11 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rlfix4/docs/rlfix4/jobs/final2-live-pad-a.tsv.partial"
+      ],
+      "binary_sha256": "88a45e76757236ef402721884f56de59aba01fef1f51b7c14e79403592c4e10d",
+      "jobs": [
+        "bplus",
+        "persistfix2_errors",
+        "differ-equivalence"
+      ],
+      "engine": "uring",
+      "fused_batteries": "0"
+    },
+    {
+      "name": "final2-live-post-layout",
+      "receipt": "docs/rlfix4/jobs/final2-live-post-layout.json",
+      "exit": 0,
+      "summary": [
+        "GATE(PARTIAL): 11 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rlfix4/docs/rlfix4/jobs/final2-live-post-layout.tsv.partial"
+      ],
+      "binary_sha256": "091a70220da1967f5b9fbda573f9c3b47ff877bcc4e5f7a29588907968d8cf93",
+      "jobs": [
+        "bplus",
+        "persistfix2_errors",
+        "differ-equivalence"
+      ],
+      "engine": "uring",
+      "fused_batteries": "0"
+    },
+    {
+      "name": "final2-main",
+      "receipt": "docs/rlfix4/jobs/final2-main.json",
+      "exit": 0,
+      "summary": [
+        "GATE(PARTIAL): 481 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rlfix4/docs/rlfix4/jobs/final2-main.tsv.partial"
+      ],
+      "binary_sha256": "5a903fd856e7cccfcb27df13da666be6381f3c0ae3a0a9428bb01f542ab0cb97",
+      "jobs": [
+        "release",
+        "source_identity",
+        "config_unit",
+        "filter_unit",
+        "ring_unit",
+        "storage_units",
+        "climonfix",
+        "bplus",
+        "rlfix3_zc",
+        "rlfix3_info",
+        "rlcache",
+        "readonly",
+        "splitlocal_units",
+        "feature-split-0",
+        "feature-split-1",
+        "feature-armed-0",
+        "feature-armed-1",
+        "fused-0",
+        "fused-1",
+        "release_batteries",
+        "atomic_batteries",
+        "asan_batteries",
+        "core_units",
+        "atomic_units",
+        "wait_units",
+        "racefix_counters",
+        "racefix_climon",
+        "atomfix5_watch",
+        "atomfix5_accounting",
+        "txn_group_fused",
+        "txn_group_split",
+        "execfair",
+        "txnorder_index",
+        "txnorder2",
+        "txnorder_wake",
+        "txnorder-fused-0",
+        "txnorder-fused-1",
+        "txnorder-split-0",
+        "txnorder-split-1",
+        "debug-0",
+        "debug-1",
+        "notify",
+        "notifycompat",
+        "tracking_redirect",
+        "notify_order",
+        "notify_aof",
+        "trackfix_accounting",
+        "trackfix_order",
+        "wb_policy",
+        "wb_rule_units",
+        "wbland_units",
+        "iofix-deferred",
+        "replyoff",
+        "zc",
+        "netio-1s",
+        "netio-2s",
+        "reorder_sync",
+        "reorder_engagement",
+        "persistfix2_errors",
+        "bugs5",
+        "clientfix",
+        "perfex_live",
+        "exbatch_live",
+        "respcompat",
+        "aclfix",
+        "authfix",
+        "script_bounds",
+        "datafix2_notouch",
+        "latencyfix_grammar",
+        "latencyfix_shape",
+        "latencyfix_off",
+        "wave8b_off",
+        "snapshot-epoll",
+        "snapshot-uring",
+        "tls",
+        "respresume-fragment-1s-epoll",
+        "respresume-fragment-1s-uring",
+        "respresume-fragment-2s-epoll",
+        "respresume-fragment-2s-uring",
+        "respresume-cpu-1s-epoll",
+        "respresume-cpu-1s-uring",
+        "respresume-cpu-2s-epoll",
+        "respresume-cpu-2s-uring",
+        "respresume-neighbour-1s-epoll",
+        "respresume-neighbour-1s-uring",
+        "respresume-neighbour-2s-epoll",
+        "respresume-neighbour-2s-uring"
+      ],
+      "engine": "uring",
+      "fused_batteries": "0"
+    },
+    {
+      "name": "final2-txnnx-post-1",
+      "receipt": "docs/rlfix4/jobs/final2-txnnx-post-1.json",
+      "exit": 0,
+      "summary": [
+        "GATE(PARTIAL): 10 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rlfix4/docs/rlfix4/jobs/final2-txnnx-post-1.tsv.partial"
+      ],
+      "binary_sha256": "5a903fd856e7cccfcb27df13da666be6381f3c0ae3a0a9428bb01f542ab0cb97",
+      "jobs": [
+        "fused-1"
+      ],
+      "engine": "epoll",
+      "fused_batteries": "0"
+    },
+    {
+      "name": "final2-txnnx-post-2",
+      "receipt": "docs/rlfix4/jobs/final2-txnnx-post-2.json",
+      "exit": 0,
+      "summary": [
+        "GATE(PARTIAL): 10 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rlfix4/docs/rlfix4/jobs/final2-txnnx-post-2.tsv.partial"
+      ],
+      "binary_sha256": "5a903fd856e7cccfcb27df13da666be6381f3c0ae3a0a9428bb01f542ab0cb97",
+      "jobs": [
+        "fused-1"
+      ],
+      "engine": "epoll",
+      "fused_batteries": "0"
+    },
+    {
+      "name": "final2-txnnx-post-3",
+      "receipt": "docs/rlfix4/jobs/final2-txnnx-post-3.json",
+      "exit": 0,
+      "summary": [
+        "GATE(PARTIAL): 10 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rlfix4/docs/rlfix4/jobs/final2-txnnx-post-3.tsv.partial"
+      ],
+      "binary_sha256": "5a903fd856e7cccfcb27df13da666be6381f3c0ae3a0a9428bb01f542ab0cb97",
+      "jobs": [
+        "fused-1"
+      ],
+      "engine": "epoll",
+      "fused_batteries": "0"
+    },
+    {
+      "name": "final2-txnnx-post-4",
+      "receipt": "docs/rlfix4/jobs/final2-txnnx-post-4.json",
+      "exit": 0,
+      "summary": [
+        "GATE(PARTIAL): 10 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rlfix4/docs/rlfix4/jobs/final2-txnnx-post-4.tsv.partial"
+      ],
+      "binary_sha256": "5a903fd856e7cccfcb27df13da666be6381f3c0ae3a0a9428bb01f542ab0cb97",
+      "jobs": [
+        "fused-1"
+      ],
+      "engine": "epoll",
+      "fused_batteries": "0"
+    },
+    {
+      "name": "final2-txnnx-pre-1",
+      "receipt": "docs/rlfix4/jobs/final2-txnnx-pre-1.json",
+      "exit": 0,
+      "summary": [
+        "GATE(PARTIAL): 10 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rlfix4/docs/rlfix4/jobs/final2-txnnx-pre-1.tsv.partial"
+      ],
+      "binary_sha256": "2ffc953c8820419009929629e985b517d02787a461493edd81ce79571b030e5c",
+      "jobs": [
+        "fused-1"
+      ],
+      "engine": "epoll",
+      "fused_batteries": "0"
+    },
+    {
+      "name": "final2-txnnx-pre-2",
+      "receipt": "docs/rlfix4/jobs/final2-txnnx-pre-2.json",
+      "exit": 0,
+      "summary": [
+        "GATE(PARTIAL): 10 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rlfix4/docs/rlfix4/jobs/final2-txnnx-pre-2.tsv.partial"
+      ],
+      "binary_sha256": "2ffc953c8820419009929629e985b517d02787a461493edd81ce79571b030e5c",
+      "jobs": [
+        "fused-1"
+      ],
+      "engine": "epoll",
+      "fused_batteries": "0"
+    },
+    {
+      "name": "final2-txnnx-pre-3",
+      "receipt": "docs/rlfix4/jobs/final2-txnnx-pre-3.json",
+      "exit": 0,
+      "summary": [
+        "GATE(PARTIAL): 10 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rlfix4/docs/rlfix4/jobs/final2-txnnx-pre-3.tsv.partial"
+      ],
+      "binary_sha256": "2ffc953c8820419009929629e985b517d02787a461493edd81ce79571b030e5c",
+      "jobs": [
+        "fused-1"
+      ],
+      "engine": "epoll",
+      "fused_batteries": "0"
+    },
+    {
+      "name": "final2-txnnx-pre-4",
+      "receipt": "docs/rlfix4/jobs/final2-txnnx-pre-4.json",
+      "exit": 0,
+      "summary": [
+        "GATE(PARTIAL): 10 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rlfix4/docs/rlfix4/jobs/final2-txnnx-pre-4.tsv.partial"
+      ],
+      "binary_sha256": "2ffc953c8820419009929629e985b517d02787a461493edd81ce79571b030e5c",
+      "jobs": [
+        "fused-1"
+      ],
+      "engine": "epoll",
+      "fused_batteries": "0"
+    }
+  ],
+  "job_coverage": {
+    "moverfix": [
+      "final2-atomic-extra"
+    ],
+    "hexpread": [
+      "final2-atomic-extra"
+    ],
+    "dispatch_arity": [
+      "final2-atomic-extra"
+    ],
+    "dispatch_errors": [
+      "final2-atomic-extra"
+    ],
+    "dispatch_children": [
+      "final2-atomic-extra"
+    ],
+    "differ-split-0": [
+      "final2-differ-epoll",
+      "final2-differ-uring"
+    ],
+    "differ-split-1": [
+      "final2-differ-epoll",
+      "final2-differ-uring"
+    ],
+    "differ-armed-0": [
+      "final2-differ-epoll",
+      "final2-differ-uring"
+    ],
+    "differ-armed-1": [
+      "final2-differ-epoll",
+      "final2-differ-uring"
+    ],
+    "differ-equivalence": [
+      "final2-differ-epoll",
+      "final2-differ-uring",
+      "final2-live-pad-a",
+      "final2-live-post-layout"
+    ],
+    "bplus": [
+      "final2-epoll-legs",
+      "final2-live-pad-a",
+      "final2-live-post-layout",
+      "final2-main"
+    ],
+    "rlcache": [
+      "final2-epoll-legs",
+      "final2-main"
+    ],
+    "readonly": [
+      "final2-epoll-legs",
+      "final2-main"
+    ],
+    "feature-split-0": [
+      "final2-epoll-legs",
+      "final2-main"
+    ],
+    "feature-split-1": [
+      "final2-epoll-legs",
+      "final2-main"
+    ],
+    "feature-armed-0": [
+      "final2-epoll-legs",
+      "final2-main"
+    ],
+    "feature-armed-1": [
+      "final2-epoll-legs",
+      "final2-main"
+    ],
+    "fused-0": [
+      "final2-epoll-legs",
+      "final2-main"
+    ],
+    "fused-1": [
+      "final2-epoll-legs",
+      "final2-main",
+      "final2-txnnx-post-1",
+      "final2-txnnx-post-2",
+      "final2-txnnx-post-3",
+      "final2-txnnx-post-4",
+      "final2-txnnx-pre-1",
+      "final2-txnnx-pre-2",
+      "final2-txnnx-pre-3",
+      "final2-txnnx-pre-4"
+    ],
+    "release_batteries": [
+      "final2-epoll-legs",
+      "final2-fused-epoll",
+      "final2-fused-uring",
+      "final2-idle-repeat-post",
+      "final2-idle-repeat-pre",
+      "final2-main"
+    ],
+    "atomic_batteries": [
+      "final2-epoll-legs",
+      "final2-fused-epoll",
+      "final2-fused-uring",
+      "final2-main"
+    ],
+    "asan_batteries": [
+      "final2-epoll-legs",
+      "final2-fused-epoll",
+      "final2-fused-uring",
+      "final2-main"
+    ],
+    "debug-0": [
+      "final2-epoll-legs",
+      "final2-fused-epoll",
+      "final2-fused-uring",
+      "final2-main"
+    ],
+    "debug-1": [
+      "final2-epoll-legs",
+      "final2-fused-epoll",
+      "final2-fused-uring",
+      "final2-main"
+    ],
+    "notify": [
+      "final2-epoll-legs",
+      "final2-fused-epoll",
+      "final2-fused-uring",
+      "final2-main"
+    ],
+    "txn_group_fused": [
+      "final2-epoll-legs",
+      "final2-main"
+    ],
+    "txn_group_split": [
+      "final2-epoll-legs",
+      "final2-main"
+    ],
+    "txnorder-fused-0": [
+      "final2-epoll-legs",
+      "final2-main"
+    ],
+    "txnorder-fused-1": [
+      "final2-epoll-legs",
+      "final2-main"
+    ],
+    "txnorder-split-0": [
+      "final2-epoll-legs",
+      "final2-main"
+    ],
+    "txnorder-split-1": [
+      "final2-epoll-legs",
+      "final2-main"
+    ],
+    "replyoff": [
+      "final2-epoll-legs",
+      "final2-main"
+    ],
+    "zc": [
+      "final2-epoll-legs",
+      "final2-main"
+    ],
+    "wb_policy": [
+      "final2-epoll-legs",
+      "final2-main"
+    ],
+    "script_bounds": [
+      "final2-epoll-legs",
+      "final2-fused-epoll",
+      "final2-fused-uring",
+      "final2-main"
+    ],
+    "rldbg": [
+      "final2-epoll-legs"
+    ],
+    "multidb-1s-0-0": [
+      "final2-epoll-legs",
+      "final2-feature-multidb-evict"
+    ],
+    "multidb-1s-0-1": [
+      "final2-epoll-legs",
+      "final2-feature-multidb-evict"
+    ],
+    "multidb-1s-1-0": [
+      "final2-epoll-legs",
+      "final2-feature-multidb-evict"
+    ],
+    "multidb-1s-1-1": [
+      "final2-epoll-legs",
+      "final2-feature-multidb-evict"
+    ],
+    "multidb-2s-0-0": [
+      "final2-epoll-legs",
+      "final2-feature-multidb-evict"
+    ],
+    "multidb-2s-0-1": [
+      "final2-epoll-legs",
+      "final2-feature-multidb-evict"
+    ],
+    "multidb-2s-1-0": [
+      "final2-epoll-legs",
+      "final2-feature-multidb-evict"
+    ],
+    "multidb-2s-1-1": [
+      "final2-epoll-legs",
+      "final2-feature-multidb-evict"
+    ],
+    "evict-lfu-split-0": [
+      "final2-epoll-legs",
+      "final2-feature-multidb-evict"
+    ],
+    "evict-lfu-split-1": [
+      "final2-epoll-legs",
+      "final2-feature-multidb-evict"
+    ],
+    "evict-lfu-armed-0": [
+      "final2-epoll-legs",
+      "final2-feature-multidb-evict"
+    ],
+    "evict-lfu-armed-1": [
+      "final2-epoll-legs",
+      "final2-feature-multidb-evict"
+    ],
+    "evict-lruclock-split-0": [
+      "final2-epoll-legs",
+      "final2-feature-multidb-evict"
+    ],
+    "evict-lruclock-split-1": [
+      "final2-epoll-legs",
+      "final2-feature-multidb-evict"
+    ],
+    "evict-lruclock-armed-0": [
+      "final2-epoll-legs",
+      "final2-feature-multidb-evict"
+    ],
+    "evict-lruclock-armed-1": [
+      "final2-epoll-legs",
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-1s-0-0-0-0": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-1s-0-0-0-1": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-1s-0-0-1-0": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-1s-0-0-1-1": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-1s-0-1-0-0": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-1s-0-1-0-1": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-1s-0-1-1-0": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-1s-0-1-1-1": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-1s-1-0-0-0": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-1s-1-0-0-1": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-1s-1-0-1-0": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-1s-1-0-1-1": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-1s-1-1-0-0": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-1s-1-1-0-1": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-1s-1-1-1-0": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-1s-1-1-1-1": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-2s-0-0-0-0": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-2s-0-0-0-1": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-2s-0-0-1-0": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-2s-0-0-1-1": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-2s-0-1-0-0": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-2s-0-1-0-1": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-2s-0-1-1-0": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-2s-0-1-1-1": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-2s-1-0-0-0": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-2s-1-0-0-1": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-2s-1-0-1-0": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-2s-1-0-1-1": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-2s-1-1-0-0": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-2s-1-1-0-1": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-2s-1-1-1-0": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-2s-1-1-1-1": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-split-home-min": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-fused-home-max-nopin": [
+      "final2-feature-multidb-evict"
+    ],
+    "feature-cell-split-shards-auto": [
+      "final2-feature-multidb-evict"
+    ],
+    "persistfix2_errors": [
+      "final2-live-pad-a",
+      "final2-live-post-layout",
+      "final2-main"
+    ],
+    "release": [
+      "final2-main"
+    ],
+    "source_identity": [
+      "final2-main"
+    ],
+    "config_unit": [
+      "final2-main"
+    ],
+    "filter_unit": [
+      "final2-main"
+    ],
+    "ring_unit": [
+      "final2-main"
+    ],
+    "storage_units": [
+      "final2-main"
+    ],
+    "climonfix": [
+      "final2-main"
+    ],
+    "rlfix3_zc": [
+      "final2-main"
+    ],
+    "rlfix3_info": [
+      "final2-main"
+    ],
+    "splitlocal_units": [
+      "final2-main"
+    ],
+    "core_units": [
+      "final2-main"
+    ],
+    "atomic_units": [
+      "final2-main"
+    ],
+    "wait_units": [
+      "final2-main"
+    ],
+    "racefix_counters": [
+      "final2-main"
+    ],
+    "racefix_climon": [
+      "final2-main"
+    ],
+    "atomfix5_watch": [
+      "final2-main"
+    ],
+    "atomfix5_accounting": [
+      "final2-main"
+    ],
+    "execfair": [
+      "final2-main"
+    ],
+    "txnorder_index": [
+      "final2-main"
+    ],
+    "txnorder2": [
+      "final2-main"
+    ],
+    "txnorder_wake": [
+      "final2-main"
+    ],
+    "notifycompat": [
+      "final2-main"
+    ],
+    "tracking_redirect": [
+      "final2-main"
+    ],
+    "notify_order": [
+      "final2-main"
+    ],
+    "notify_aof": [
+      "final2-main"
+    ],
+    "trackfix_accounting": [
+      "final2-main"
+    ],
+    "trackfix_order": [
+      "final2-main"
+    ],
+    "wb_rule_units": [
+      "final2-main"
+    ],
+    "wbland_units": [
+      "final2-main"
+    ],
+    "iofix-deferred": [
+      "final2-main"
+    ],
+    "netio-1s": [
+      "final2-main"
+    ],
+    "netio-2s": [
+      "final2-main"
+    ],
+    "reorder_sync": [
+      "final2-main"
+    ],
+    "reorder_engagement": [
+      "final2-main"
+    ],
+    "bugs5": [
+      "final2-main"
+    ],
+    "clientfix": [
+      "final2-main"
+    ],
+    "perfex_live": [
+      "final2-main"
+    ],
+    "exbatch_live": [
+      "final2-main"
+    ],
+    "respcompat": [
+      "final2-main"
+    ],
+    "aclfix": [
+      "final2-main"
+    ],
+    "authfix": [
+      "final2-main"
+    ],
+    "datafix2_notouch": [
+      "final2-main"
+    ],
+    "latencyfix_grammar": [
+      "final2-main"
+    ],
+    "latencyfix_shape": [
+      "final2-main"
+    ],
+    "latencyfix_off": [
+      "final2-main"
+    ],
+    "wave8b_off": [
+      "final2-main"
+    ],
+    "snapshot-epoll": [
+      "final2-main"
+    ],
+    "snapshot-uring": [
+      "final2-main"
+    ],
+    "tls": [
+      "final2-main"
+    ],
+    "respresume-fragment-1s-epoll": [
+      "final2-main"
+    ],
+    "respresume-fragment-1s-uring": [
+      "final2-main"
+    ],
+    "respresume-fragment-2s-epoll": [
+      "final2-main"
+    ],
+    "respresume-fragment-2s-uring": [
+      "final2-main"
+    ],
+    "respresume-cpu-1s-epoll": [
+      "final2-main"
+    ],
+    "respresume-cpu-1s-uring": [
+      "final2-main"
+    ],
+    "respresume-cpu-2s-epoll": [
+      "final2-main"
+    ],
+    "respresume-cpu-2s-uring": [
+      "final2-main"
+    ],
+    "respresume-neighbour-1s-epoll": [
+      "final2-main"
+    ],
+    "respresume-neighbour-1s-uring": [
+      "final2-main"
+    ],
+    "respresume-neighbour-2s-epoll": [
+      "final2-main"
+    ],
+    "respresume-neighbour-2s-uring": [
+      "final2-main"
+    ]
+  },
+  "differential_plans": {
+    "uring": {
+      "schema": 1,
+      "manifest": {
+        "run": "full:gate-run.5ZvZLS",
+        "permanent": [
+          7,
+          19,
+          20,
+          23
+        ],
+        "failed": [],
+        "rotating": 27,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          27
+        ],
+        "history": "/home/user/Projects/cx-rlfix4/.gate-history/differ"
+      },
+      "suites": [
+        "string",
+        "list",
+        "set",
+        "zset",
+        "hash",
+        "hexpire",
+        "edgetime",
+        "xshard",
+        "xmove",
+        "bitmap",
+        "hll",
+        "bitfield",
+        "cgaps",
+        "stream",
+        "script",
+        "streamgrp",
+        "zsetops",
+        "geo",
+        "doubles",
+        "scan",
+        "multi",
+        "encodingfix",
+        "edgeenc",
+        "edgeproto",
+        "cmdgap",
+        "cmdgap2",
+        "sort",
+        "servertail",
+        "arity",
+        "storeorder",
+        "infofix",
+        "multidb",
+        "blocking",
+        "pubsub",
+        "fanout",
+        "spubsub",
+        "notify",
+        "wiredump",
+        "climon",
+        "compatintro",
+        "aclsel",
+        "aclkeys",
+        "cmdmeta",
+        "s6fix",
+        "ccfix",
+        "psfix",
+        "monitor"
+      ],
+      "repeats": 4,
+      "equivalence_seeds": [
+        27
+      ]
+    },
+    "epoll": {
+      "schema": 1,
+      "manifest": {
+        "run": "full:gate-run.LBfqsL",
+        "permanent": [
+          7,
+          19,
+          20,
+          23
+        ],
+        "failed": [],
+        "rotating": 26,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          26
+        ],
+        "history": "/home/user/Projects/cx-rlfix4/.gate-history/differ"
+      },
+      "suites": [
+        "string",
+        "list",
+        "set",
+        "zset",
+        "hash",
+        "hexpire",
+        "edgetime",
+        "xshard",
+        "xmove",
+        "bitmap",
+        "hll",
+        "bitfield",
+        "cgaps",
+        "stream",
+        "script",
+        "streamgrp",
+        "zsetops",
+        "geo",
+        "doubles",
+        "scan",
+        "multi",
+        "encodingfix",
+        "edgeenc",
+        "edgeproto",
+        "cmdgap",
+        "cmdgap2",
+        "sort",
+        "servertail",
+        "arity",
+        "storeorder",
+        "infofix",
+        "multidb",
+        "blocking",
+        "pubsub",
+        "fanout",
+        "spubsub",
+        "notify",
+        "wiredump",
+        "climon",
+        "compatintro",
+        "aclsel",
+        "aclkeys",
+        "cmdmeta",
+        "s6fix",
+        "ccfix",
+        "psfix",
+        "monitor"
+      ],
+      "repeats": 4,
+      "equivalence_seeds": [
+        26
+      ]
+    }
+  },
+  "gates_test": "docs/rlfix4/gates-test-final2.json",
+  "production_freshness": "docs/rlfix4/production-freshness-final.json",
+  "failures": [
+    "docs/rlfix4/txn-nx-first-failure.json",
+    "docs/rlfix4/idle-ceiling-first-failure.json"
+  ],
+  "inherited_defect": "docs/rlfix4/wound-inherited.json",
+  "DQ": 0,
+  "DF": 0,
+  "not_run": [
+    {
+      "work": "performance benchmarks, load generators, ABBA, full gate iteration, atomic_floor/efficiency/flip_saturated performance jobs",
+      "reason": "outside this lane runtime authorization; maintainer owns merit measurements"
+    }
+  ]
+}

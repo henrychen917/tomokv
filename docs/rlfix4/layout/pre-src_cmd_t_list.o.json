@@ -1,0 +1,27 @@
+{
+  "arm": "pre",
+  "unit": "src/cmd/t_list.o",
+  "command": [
+    "g++",
+    "-ffunction-sections",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=25608",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/cmd/t_list.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/pre/src/cmd/t_list.o"
+  ],
+  "original_sha256": "9e4e4555f681d5fe13faae339fdf98315b9c990cf29c6ee10d2999e5e45b7cfd",
+  "sha256": "beeae15ddd8308a8e5c2c30f42f8c8674595f482e29e145e3cd894d25ff46f4f"
+}

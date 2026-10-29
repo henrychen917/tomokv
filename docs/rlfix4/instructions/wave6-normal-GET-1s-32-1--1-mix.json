@@ -1,0 +1,30 @@
+{
+  "binary_sha256": "54b1b2136a3199aebc9996c120e0b140e88b95f80421363e2fa30c46567e28e6",
+  "backend": "ptrace-rep-once",
+  "total": 19446,
+  "functions": {
+    "tomo::FlatStore::read_local_capture_in(tomo::FlatStore::ReadLocalTable const&, unsigned long, tomo::Slice, unsigned long const*&) const [clone .isra.0]": 2552,
+    "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]": 3190,
+    "tomo::FlatStore::read_local_prefetch(unsigned long) const": 2436,
+    "tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 3364,
+    "tomo::ExLoopT<true>::notify_sender(tomo::Client*)": 25,
+    "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 728,
+    "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)": 3161,
+    "unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 3985,
+    "tomo::[asm .rlfence]": 5
+  },
+  "bodies": {
+    "0x6f9730 tomo::FlatStore::read_local_capture_in(tomo::FlatStore::ReadLocalTable const&, unsigned long, tomo::Slice, unsigned long const*&) const [clone .isra.0]": 2552,
+    "0x6f9a90 void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]": 3190,
+    "0x6fa120 tomo::FlatStore::read_local_prefetch(unsigned long) const": 2436,
+    "0x6fa2a0 tomo::FlatStore::read_local_prefetch_capture(unsigned long, tomo::Slice) const": 3364,
+    "0x706fc0 tomo::ExLoopT<true>::notify_sender(tomo::Client*)": 25,
+    "0x707280 tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 728,
+    "0x709c20 tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)": 3161,
+    "0x70a4f0 unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)": 3985,
+    "0x8086c1 tomo::[asm .rlfence]": 5
+  },
+  "raw_total": 19446,
+  "clock_calls": 0,
+  "excluded_calls": 58
+}

@@ -1,0 +1,15 @@
+{
+  "path": "build/rlfix4/wound/pre-source",
+  "reason": "Superseded exact-base source/object reconstruction; all diagnostic hashes, recipes and exits retained",
+  "files": 87684,
+  "bytes": 2433061849,
+  "reconstructed_server_sha256": "3bd7911795bf35f2bdf03f3609b72273156e8849e08a3e1cfed7ca693a124b63",
+  "diagnostic_receipts": "docs/rlfix4/wound-diagnostic.json",
+  "preserved_arms": [
+    "build/tomokv-rlfix4-pre",
+    "build/tomokv-rlfix4-post",
+    "build/tomokv-rlfix4-pad-a",
+    "build/tomokv-rlfix4-post-layout"
+  ],
+  "deleted": true
+}

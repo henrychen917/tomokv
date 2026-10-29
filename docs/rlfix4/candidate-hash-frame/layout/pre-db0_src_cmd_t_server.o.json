@@ -1,0 +1,31 @@
+{
+  "arm": "pre",
+  "unit": "db0/src/cmd/t_server.o",
+  "command": [
+    "g++",
+    "-ffunction-sections",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=33448",
+    "--param",
+    "max-inline-insns-auto=16",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/cmd/t_server.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/pre/db0/src/cmd/t_server.o"
+  ],
+  "original_sha256": "bef0a1ea43ab5043a714be76df68a8b4528766728f673aba46d4cd03dcc6cc88",
+  "sha256": "2b061cf3a192de05104b21b42fd4ef655505b2cc14856c55162034c14c16a18b"
+}

@@ -1,0 +1,27 @@
+{
+  "arm": "post",
+  "unit": "src/core/reorder.o",
+  "command": [
+    "g++",
+    "-ffunction-sections",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=149103",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/core/reorder.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/post/src/core/reorder.o"
+  ],
+  "original_sha256": "6994ea0458a174ff9b5426cf225c50ba6062f9ad22b2ea84c52af4d773a72a04",
+  "sha256": "749476850673c2b559a4d7e8daeafab9f3ae90b58a9fdb5ecfc34c4e4ff5e625"
+}

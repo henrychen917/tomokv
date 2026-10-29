@@ -1,0 +1,28 @@
+{
+  "binary_sha256": "b2fef653d8951c5ab52d3dc3e15c27f4b47dd8d801aa8aead2409d5077aad67c",
+  "backend": "ptrace-rep-once",
+  "total": 21445,
+  "functions": {
+    "tomo::ParseResult tomo::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long, tomo::RespFrontier*) [clone .isra.0]": 6099,
+    "tomo::FlatStore::hash_key(tomo::Slice)": 2752,
+    "tomo::ThreadCtx::post_task_quiet(unsigned int, tomo::Task const&, tomo::LoopSignals&)": 1440,
+    "tomo::IoLoop::mark_active(tomo::Client*)": 242,
+    "tomo::IoLoop::flip_dispatch_paused() const": 7,
+    "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)": 8377,
+    "tomo::stamp_regular_range(tomo::Op&)": 1344,
+    "tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)": 1184
+  },
+  "bodies": {
+    "0x44fd90 tomo::ParseResult tomo::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long, tomo::RespFrontier*) [clone .isra.0]": 6099,
+    "0x45f5d0 tomo::FlatStore::hash_key(tomo::Slice)": 2752,
+    "0x46a4d0 tomo::ThreadCtx::post_task_quiet(unsigned int, tomo::Task const&, tomo::LoopSignals&)": 1440,
+    "0x470b10 tomo::IoLoop::mark_active(tomo::Client*)": 242,
+    "0x471280 tomo::IoLoop::flip_dispatch_paused() const": 7,
+    "0x4d0380 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)": 8377,
+    "0x7c4bf0 tomo::stamp_regular_range(tomo::Op&)": 1344,
+    "0x7cb4f0 tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)": 1184
+  },
+  "raw_total": 21445,
+  "clock_calls": 0,
+  "excluded_calls": 6
+}

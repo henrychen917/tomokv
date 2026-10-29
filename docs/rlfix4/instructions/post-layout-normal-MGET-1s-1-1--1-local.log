@@ -1,0 +1,5 @@
+/home/user/Projects/cx-rlfix4/build/rlfix4/trace /home/user/Projects/cx-rlfix4/build/rlfix4/commands/post-layout-normal/probe /home/user/Projects/cx-rlfix4/build/rlfix4/commands/post-layout-normal-MGET-1s-1-1--1-local.ranges c5c300 c5c310 20a40 MGET 1s 1 1 -1 local
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+WITNESS reads=1 pending_writes=0 keys_per_read=8
+PASS bounded production command scope
+COUNT 6330

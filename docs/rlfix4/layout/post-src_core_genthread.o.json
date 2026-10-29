@@ -1,0 +1,27 @@
+{
+  "arm": "post",
+  "unit": "src/core/genthread.o",
+  "command": [
+    "g++",
+    "-ffunction-sections",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=131218",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/core/genthread.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/post/src/core/genthread.o"
+  ],
+  "original_sha256": "16c3aa88880db7578e0e1570bc3c5610b53256d3fe1406eb01329feaa89a988a",
+  "sha256": "f88fe9642e1d1fbda1cc242c6af1700558f2a88174ef3ced8eebf80011fac9b7"
+}

@@ -1,0 +1,25 @@
+{
+  "arm": "post",
+  "unit": "db0/src/cmd/t_hash.o",
+  "command": [
+    "g++",
+    "-ffunction-sections",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/cmd/t_hash.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/post/db0/src/cmd/t_hash.o"
+  ],
+  "original_sha256": "36d84fa6f40cd15eec3907c591a7180a7b79cb6e84653ed5ee881ca58374036b",
+  "sha256": "9109e89207aa3c82a95f2a6974c4f0003dc1db45a77c772430e99f5093d9bdbb"
+}

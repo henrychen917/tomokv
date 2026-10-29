@@ -1,0 +1,27 @@
+{
+  "arm": "pre",
+  "unit": "src/cmd/geo.o",
+  "command": [
+    "g++",
+    "-ffunction-sections",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=14410",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/cmd/geo.cc",
+    "-o",
+    "/home/user/Projects/cx-rlfix4/build/rlfix4/layout/pre/src/cmd/geo.o"
+  ],
+  "original_sha256": "f048082bdf21588de6f6ca068b33b45adfa1d1018719ee4ba8d0c5e4ee443507",
+  "sha256": "5e21f14e02e0ce54538be487d0349dc48078ba5bfb088bbe2e8373176327c51f"
+}
