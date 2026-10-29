@@ -98,3 +98,10 @@ two encode tracking arrays/bulk strings, and the other fourteen emit errors.
 
 No added direct `-`/`+` writer was found. This is a source audit; runtime results
 are recorded separately in the wave10 job receipts.
+
+Wave10 integration repair: FUNCTION LOAD unknown options must reach the central
+`reply_err` builder before CR/LF mapping. `script_clean_error` erased the terminal
+CR/LF distinction and retained two spaces on the trailing/edges cases. The raw
+length-bearing string restores Redis's trim-before-map order; the existing
+`function-load-option` oracle cases rejected the merged predecessor in every
+mode, engine, atomic setting and database runtime.

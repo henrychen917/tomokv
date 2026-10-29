@@ -137,3 +137,11 @@ concurrency and mechanism checks remain present; full gate behavior is unchanged
 The flag now rejects a non-partial invocation at entry. Those timing ratios,
 the atomic throughput floor, and the efficiency scaling benchmarks are NOT RUN
 in this lane and remain in the maintainer's landing gate.
+
+Real interaction found: scriptfix2 pre-sanitized the FUNCTION LOAD unknown-option
+argument before crlffix's central error builder. Trailing CR/LF had already become
+spaces, so the builder could no longer trim them as Redis does. The existing
+CR/LF job rejected 32 exact comparisons (two suffix shapes × all 16 configurations).
+Pass the raw length-bearing argument to the same central builder instead. The
+new Lua error/status API checks passed; framing and following PING/ECHO remain
+mandatory. This repair has its own commit and the whole CR/LF job will be rerun.

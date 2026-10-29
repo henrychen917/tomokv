@@ -1019,8 +1019,10 @@ void cmd_function(Shard&, Op& op) {
         for (; code_arg + 1 < op.argc(); ++code_arg) {
             if (!op.arg(code_arg).eq_icase("replace")) {
                 const Slice option = op.arg(code_arg);
+                // Preserve the raw suffix for the central Redis line builder:
+                // pre-mapping CR/LF to spaces would defeat its trailing trim.
                 reply_err_string(op, "Unknown option given: " +
-                    script_clean_error(option.p, option.n));
+                    std::string(option.p, option.n));
                 return;
             }
             replace = true;
