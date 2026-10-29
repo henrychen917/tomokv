@@ -145,3 +145,12 @@ CR/LF job rejected 32 exact comparisons (two suffix shapes × all 16 configurati
 Pass the raw length-bearing argument to the same central builder instead. The
 new Lua error/status API checks passed; framing and following PING/ECHO remain
 mandatory. This repair has its own commit and the whole CR/LF job will be rerun.
+
+Harness interaction found in the complete Tcl receipts: excluding the global
+ring also requires restoring headline slowlog `isolated_tests`. The zero-capacity
+assertion otherwise leaves the rewritten-command check with capacity zero.
+Restore its exact isolated setup and apply the named ORDER_TESTS retry to isolated
+assertions too. This retains the original assertion and its one-retry bound.
+Concurrent-build Tcl runs also timed out in the Lua GC assertion before reaching
+the planted uppercase-SHA regression; those attempts do not prove falsification.
+They are retained and Tcl will run again without concurrent compilation.

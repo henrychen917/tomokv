@@ -383,6 +383,8 @@ def main():
                 isolated_args.output = args.output / 'isolated' / hashlib.sha256(name.encode()).hexdigest()[:16]
                 isolated_row = run_file(isolated_args, tree, unit, only=[name],
                     extra=spec.get('extra_args', ()), server_args=server_args)
+                isolated_row = retry_monitor_order(isolated_args, tree, unit,
+                    isolated_row, server_args)
                 isolated_row['isolation_reason'] = reason
                 expected = [label for label in spec['passed_tests'] if label.split(' in tests/')[0] == name]
                 try: validate_passing(isolated_row, expected)

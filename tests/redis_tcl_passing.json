@@ -1224,7 +1224,10 @@
    },
    "fresh_tests": [
     "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl"
-   ]
+   ],
+   "isolated_tests": {
+    "SLOWLOG - Rewritten commands are logged as their original command": "The required zero-max-length test leaves slowlog-max-len=0; its restoring max-entries test remains skipped for SLOWLOG-MAXLEN-PER-THREAD. Run the unchanged required assertion on fresh default state."
+   }
   },
   "unit/sort": {
    "extra_args": [],
