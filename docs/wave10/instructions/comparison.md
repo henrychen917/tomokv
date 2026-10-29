@@ -1,6 +1,8 @@
 # Serverless command instruction counts
 
-Retired native instructions in the production namespace, serverless owner-command scope; REP counted once. Excludes fixture code and shared-library calls. Fixed clock, one warm activation then one measured activation, exact replies required. No throughput inference.
+Retired native instructions in the production namespace, serverless owner-command scope; REP counted once. Excludes fixture code and shared-library calls. Fixed clock and fresh initialized fixture for each case. EVAL warms its Lua invocation once outside the scope, then measures the second; the other cases execute their specified batch once. Exact replies are required. No throughput inference.
+
+EXEC-same repeats one key on shard 0; EXEC-cross uses one key per distinct shard. With one INCR child, the cross-labelled placement necessarily has one shard and is a degenerate control, not evidence of a cross-shard transaction. Two/four children use two/four shards. MGET/MSET use eight keys on eight shards. The two EVAL keys are selected on one shard or two distinct shards by actual routing.
 
 Every positive EXEC/EVAL/read-local body subtotal has lane/commit attribution in `comparison.json`; negative subtotals are retained too. Function signature changes can move counts between rows. These are instruction counts, not latency or rate.
 
