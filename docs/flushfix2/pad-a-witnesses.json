@@ -7,22 +7,22 @@
     "flush_mode": "SYNC",
     "pass": false,
     "result_file": {
-      "path": "build/flushfix2/pad-a-proof/1/results.json",
-      "sha256": "b746405ca51c2743fb1943941760610aced94b606d9e6d6ddcb89a71d69afb49"
+      "path": "build/flushfix2/pad-a-v2-proof/flush-only-1/results.json",
+      "sha256": "4a72f2f2abb8b1896dca99eba1f6f70f6b01319850844b81c93ca27ef6d69081"
     },
     "attempts": [
       {
-        "path": "build/flushfix2/pad-a-proof/1/1s-uring-0/attempt-0/observations.json",
-        "sha256": "61de0acf514a1cc673091260ff6bc09afe1a204d1ff32be04c243c1c268c89a7",
-        "cycles": 13744,
-        "observations": 83741,
-        "torn": 172,
+        "path": "build/flushfix2/pad-a-v2-proof/flush-only-1/1s-uring-0/attempt-0/observations.json",
+        "sha256": "9639b6ebd12f0bca078038bc21d786231b361c39ed70e8668672094268796307",
+        "cycles": 9171,
+        "observations": 47019,
+        "torn": 45,
         "controls": null,
         "control_final": null,
         "errors": []
       }
     ],
-    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 13744, 'observations': 83741, 'torn': 172, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(0, 0), (9, 1)], 'examples': [[None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [None, 1], [None, 1]], 'errors': []}\n"
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 9171, 'observations': 47019, 'torn': 45, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(3, 3), (0, 0)], 'examples': [[None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1]], 'errors': []}\n"
   },
   {
     "case": "flush-only",
@@ -32,22 +32,22 @@
     "flush_mode": "SYNC",
     "pass": false,
     "result_file": {
-      "path": "build/flushfix2/pad-a-proof/1/results.json",
-      "sha256": "b746405ca51c2743fb1943941760610aced94b606d9e6d6ddcb89a71d69afb49"
+      "path": "build/flushfix2/pad-a-v2-proof/flush-only-1/results.json",
+      "sha256": "4a72f2f2abb8b1896dca99eba1f6f70f6b01319850844b81c93ca27ef6d69081"
     },
     "attempts": [
       {
-        "path": "build/flushfix2/pad-a-proof/1/1s-uring-1/attempt-0/observations.json",
-        "sha256": "5ca09b8f19ec742eb855e7ecc837e816a9f17f326583bc5170510fc6efa331e0",
-        "cycles": 11926,
-        "observations": 105437,
-        "torn": 12042,
+        "path": "build/flushfix2/pad-a-v2-proof/flush-only-1/1s-uring-1/attempt-0/observations.json",
+        "sha256": "7f0cc2cbcc33b1d63bf8c6d7df294474c8ee9de388b73c11e5330b4568cfd8b9",
+        "cycles": 7949,
+        "observations": 42611,
+        "torn": 3915,
         "controls": null,
         "control_final": null,
         "errors": []
       }
     ],
-    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 11926, 'observations': 105437, 'torn': 12042, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:3'], 'owners': [(15, 7), (1, 1)], 'examples': [[1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None]], 'errors': []}\n"
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 7949, 'observations': 42611, 'torn': 3915, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(1, 1), (6, 6)], 'examples': [[None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1]], 'errors': []}\n"
   },
   {
     "case": "flush-only",
@@ -57,22 +57,22 @@
     "flush_mode": "SYNC",
     "pass": false,
     "result_file": {
-      "path": "build/flushfix2/pad-a-proof/1/results.json",
-      "sha256": "b746405ca51c2743fb1943941760610aced94b606d9e6d6ddcb89a71d69afb49"
+      "path": "build/flushfix2/pad-a-v2-proof/flush-only-1/results.json",
+      "sha256": "4a72f2f2abb8b1896dca99eba1f6f70f6b01319850844b81c93ca27ef6d69081"
     },
     "attempts": [
       {
-        "path": "build/flushfix2/pad-a-proof/1/1s-epoll-0/attempt-0/observations.json",
-        "sha256": "a5f591432e21f77d908390aeb15a351772f2adf0df810399a73855363c4127b1",
-        "cycles": 10048,
-        "observations": 88406,
-        "torn": 6970,
+        "path": "build/flushfix2/pad-a-v2-proof/flush-only-1/1s-epoll-0/attempt-0/observations.json",
+        "sha256": "44ece88b8ff257850c4bf369f669b44799735d9fa0b72b206ab2e56c34fe1617",
+        "cycles": 10115,
+        "observations": 40857,
+        "torn": 3198,
         "controls": null,
         "control_final": null,
         "errors": []
       }
     ],
-    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 10048, 'observations': 88406, 'torn': 6970, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:2'], 'owners': [(5, 5), (14, 6)], 'examples': [[1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None]], 'errors': []}\n"
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 10115, 'observations': 40857, 'torn': 3198, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(10, 2), (6, 6)], 'examples': [[None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1]], 'errors': []}\n"
   },
   {
     "case": "flush-only",
@@ -82,22 +82,22 @@
     "flush_mode": "SYNC",
     "pass": false,
     "result_file": {
-      "path": "build/flushfix2/pad-a-proof/1/results.json",
-      "sha256": "b746405ca51c2743fb1943941760610aced94b606d9e6d6ddcb89a71d69afb49"
+      "path": "build/flushfix2/pad-a-v2-proof/flush-only-1/results.json",
+      "sha256": "4a72f2f2abb8b1896dca99eba1f6f70f6b01319850844b81c93ca27ef6d69081"
     },
     "attempts": [
       {
-        "path": "build/flushfix2/pad-a-proof/1/1s-epoll-1/attempt-0/observations.json",
-        "sha256": "fb1a4dae14315f3b5d719ed888d9e9198284b1cd60b8dceb6b7cd674a905965a",
-        "cycles": 23728,
-        "observations": 140274,
-        "torn": 3095,
+        "path": "build/flushfix2/pad-a-v2-proof/flush-only-1/1s-epoll-1/attempt-0/observations.json",
+        "sha256": "aefb2d8b57176adef097423ff5bc0d4a19874770213ad7904c4e97cbf69c7d8f",
+        "cycles": 9398,
+        "observations": 42589,
+        "torn": 3856,
         "controls": null,
         "control_final": null,
         "errors": []
       }
     ],
-    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 23728, 'observations': 140274, 'torn': 3095, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(1, 1), (4, 4)], 'examples': [[None, 1], [None, 1], [1, None], [None, 1], [None, 1], [None, 1], [None, 1], [1, None], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [1, None], [None, 1], [None, 1], [None, 1]], 'errors': []}\n"
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 9398, 'observations': 42589, 'torn': 3856, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(0, 0), (7, 7)], 'examples': [[None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1]], 'errors': []}\n"
   },
   {
     "case": "flush-only",
@@ -107,22 +107,32 @@
     "flush_mode": "SYNC",
     "pass": false,
     "result_file": {
-      "path": "build/flushfix2/pad-a-proof/1/results.json",
-      "sha256": "b746405ca51c2743fb1943941760610aced94b606d9e6d6ddcb89a71d69afb49"
+      "path": "build/flushfix2/pad-a-v2-proof/flush-only-1/results.json",
+      "sha256": "4a72f2f2abb8b1896dca99eba1f6f70f6b01319850844b81c93ca27ef6d69081"
     },
     "attempts": [
       {
-        "path": "build/flushfix2/pad-a-proof/1/2s-uring-0/attempt-0/observations.json",
-        "sha256": "52a048242aeda997750406c8a7cb0a1666f2186cced0116f79cab6d3468ab2c8",
-        "cycles": 20903,
-        "observations": 57589,
-        "torn": 2574,
+        "path": "build/flushfix2/pad-a-v2-proof/flush-only-1/2s-uring-0/attempt-0/observations.json",
+        "sha256": "2351467dc73fe150e9e5ea9ece29d5e52c189686c676863a13d35b78ce938190",
+        "cycles": 7555,
+        "observations": 19045,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      },
+      {
+        "path": "build/flushfix2/pad-a-v2-proof/flush-only-1/2s-uring-0/attempt-1/observations.json",
+        "sha256": "003dabe4b94dd1a8ab179d30f603c5444a13e1dbfdee4a3fa56cd327fc104f07",
+        "cycles": 7803,
+        "observations": 21904,
+        "torn": 113,
         "controls": null,
         "control_final": null,
         "errors": []
       }
     ],
-    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 20903, 'observations': 57589, 'torn': 2574, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:5'], 'owners': [(14, 6), (13, 7)], 'examples': [[1, None], [1, None], [None, 1], [None, 1], [1, None], [1, None], [1, None], [1, None], [1, None], [None, 1], [1, None], [1, None], [None, 1], [None, 1], [1, None], [1, None], [None, 1], [None, 1], [None, 1], [1, None]], 'errors': []}\n"
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 7803, 'observations': 21904, 'torn': 113, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:3'], 'owners': [(7, 7), (2, 6)], 'examples': [[None, 1], [None, 1], [None, 1], [1, None], [None, 1], [1, None], [None, 1], [None, 1], [None, 1], [None, 1], [1, None], [None, 1], [1, None], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1]], 'errors': []}\n"
   },
   {
     "case": "flush-only",
@@ -132,22 +142,22 @@
     "flush_mode": "SYNC",
     "pass": false,
     "result_file": {
-      "path": "build/flushfix2/pad-a-proof/1/results.json",
-      "sha256": "b746405ca51c2743fb1943941760610aced94b606d9e6d6ddcb89a71d69afb49"
+      "path": "build/flushfix2/pad-a-v2-proof/flush-only-1/results.json",
+      "sha256": "4a72f2f2abb8b1896dca99eba1f6f70f6b01319850844b81c93ca27ef6d69081"
     },
     "attempts": [
       {
-        "path": "build/flushfix2/pad-a-proof/1/2s-uring-1/attempt-0/observations.json",
-        "sha256": "e83f2837237bbb28d2fe8bbad5f3d75604fe88fe6d883154e9e2c4051e9e1c6e",
-        "cycles": 33184,
-        "observations": 96445,
-        "torn": 1552,
+        "path": "build/flushfix2/pad-a-v2-proof/flush-only-1/2s-uring-1/attempt-0/observations.json",
+        "sha256": "167bbcff501145eed8cc2dfdf90f8a07fa33cddb14ce94bae52cb0c1ed95c59e",
+        "cycles": 7856,
+        "observations": 21337,
+        "torn": 189,
         "controls": null,
         "control_final": null,
         "errors": []
       }
     ],
-    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 33184, 'observations': 96445, 'torn': 1552, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:2'], 'owners': [(1, 7), (0, 6)], 'examples': [[None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [1, None], [1, None], [None, 1], [None, 1], [1, None], [None, 1], [None, 1], [None, 1]], 'errors': []}\n"
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 7856, 'observations': 21337, 'torn': 189, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(10, 6), (13, 7)], 'examples': [[1, None], [None, 1], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [None, 1], [None, 1], [1, None], [1, None], [None, 1], [None, 1], [1, None], [1, None], [1, None]], 'errors': []}\n"
   },
   {
     "case": "flush-only",
@@ -157,22 +167,22 @@
     "flush_mode": "SYNC",
     "pass": false,
     "result_file": {
-      "path": "build/flushfix2/pad-a-proof/1/results.json",
-      "sha256": "b746405ca51c2743fb1943941760610aced94b606d9e6d6ddcb89a71d69afb49"
+      "path": "build/flushfix2/pad-a-v2-proof/flush-only-1/results.json",
+      "sha256": "4a72f2f2abb8b1896dca99eba1f6f70f6b01319850844b81c93ca27ef6d69081"
     },
     "attempts": [
       {
-        "path": "build/flushfix2/pad-a-proof/1/2s-epoll-0/attempt-0/observations.json",
-        "sha256": "602a37fc7aa3c61983ca0a3d1e3f9bd05bc0671983e5bf9257efd22c00b1431e",
-        "cycles": 19781,
-        "observations": 56718,
-        "torn": 295,
+        "path": "build/flushfix2/pad-a-v2-proof/flush-only-1/2s-epoll-0/attempt-0/observations.json",
+        "sha256": "c7b4e85d432fe983231df3793465e6d798287644d5d746492c2df228da733318",
+        "cycles": 6780,
+        "observations": 19399,
+        "torn": 100,
         "controls": null,
         "control_final": null,
         "errors": []
       }
     ],
-    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 19781, 'observations': 56718, 'torn': 295, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:2'], 'owners': [(13, 7), (8, 6)], 'examples': [[None, 1], [1, None], [None, 1], [1, None], [None, 1], [1, None], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [1, None], [1, None], [None, 1], [None, 1], [1, None], [1, None], [None, 1]], 'errors': []}\n"
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 6780, 'observations': 19399, 'torn': 100, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(15, 7), (6, 6)], 'examples': [[1, None], [None, 1], [None, 1], [1, None], [1, None], [None, 1], [None, 1], [1, None], [None, 1], [None, 1], [None, 1], [1, None], [1, None], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [1, None]], 'errors': []}\n"
   },
   {
     "case": "flush-only",
@@ -182,22 +192,22 @@
     "flush_mode": "SYNC",
     "pass": false,
     "result_file": {
-      "path": "build/flushfix2/pad-a-proof/1/results.json",
-      "sha256": "b746405ca51c2743fb1943941760610aced94b606d9e6d6ddcb89a71d69afb49"
+      "path": "build/flushfix2/pad-a-v2-proof/flush-only-1/results.json",
+      "sha256": "4a72f2f2abb8b1896dca99eba1f6f70f6b01319850844b81c93ca27ef6d69081"
     },
     "attempts": [
       {
-        "path": "build/flushfix2/pad-a-proof/1/2s-epoll-1/attempt-0/observations.json",
-        "sha256": "38d784a910852cbb5cdfbaba0570e3cc5a02c6133d183c364fd0f44186c54bf0",
-        "cycles": 16741,
-        "observations": 39817,
-        "torn": 473,
+        "path": "build/flushfix2/pad-a-v2-proof/flush-only-1/2s-epoll-1/attempt-0/observations.json",
+        "sha256": "f24ab66e22ae3052888fc24a9381236a257f9b9d9488295c2a63d5de77d96623",
+        "cycles": 6851,
+        "observations": 18852,
+        "torn": 178,
         "controls": null,
         "control_final": null,
         "errors": []
       }
     ],
-    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 16741, 'observations': 39817, 'torn': 473, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(1, 7), (8, 6)], 'examples': [[None, 1], [1, None], [None, 1], [None, 1], [1, None], [1, None], [None, 1], [1, None], [1, None], [1, None], [1, None], [1, None], [None, 1], [1, None], [1, None], [1, None], [1, None], [1, None], [None, 1], [1, None]], 'errors': []}\n"
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 6851, 'observations': 18852, 'torn': 178, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(7, 7), (4, 6)], 'examples': [[1, None], [1, None], [None, 1], [1, None], [None, 1], [None, 1], [None, 1], [1, None], [None, 1], [None, 1], [None, 1], [1, None], [1, None], [None, 1], [1, None], [1, None], [None, 1], [1, None], [None, 1], [1, None]], 'errors': []}\n"
   },
   {
     "case": "flush-only",
@@ -207,22 +217,22 @@
     "flush_mode": "SYNC",
     "pass": false,
     "result_file": {
-      "path": "build/flushfix2/pad-a-proof/16/results.json",
-      "sha256": "7ac3923cc5e7ae13a45a1573452e1f1d93507d68a0f2a4f67f4b4185c74a4ce5"
+      "path": "build/flushfix2/pad-a-v2-proof/flush-only-16/results.json",
+      "sha256": "113e00345537058d7729ee19adb7e7fc5f09ba7c3ba39b8a1ff1a45c5fce8d6d"
     },
     "attempts": [
       {
-        "path": "build/flushfix2/pad-a-proof/16/1s-uring-0/attempt-0/observations.json",
-        "sha256": "dea3d1ec067d72eb79b073937bb1ab07e600dffc76f8d6e3b2426a716e730486",
-        "cycles": 7152,
-        "observations": 52125,
-        "torn": 6377,
+        "path": "build/flushfix2/pad-a-v2-proof/flush-only-16/1s-uring-0/attempt-0/observations.json",
+        "sha256": "164c67002ffe1809cf91924b65fadf6cd328ebffb111e05d1194b3cc4ee56a76",
+        "cycles": 8033,
+        "observations": 52745,
+        "torn": 188,
         "controls": null,
         "control_final": null,
         "errors": []
       }
     ],
-    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 7152, 'observations': 52125, 'torn': 6377, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(7, 7), (11, 3)], 'examples': [[1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None]], 'errors': []}\n"
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 8033, 'observations': 52745, 'torn': 188, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(10, 2), (8, 0)], 'examples': [[1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None]], 'errors': []}\n"
   },
   {
     "case": "flush-only",
@@ -232,22 +242,22 @@
     "flush_mode": "SYNC",
     "pass": false,
     "result_file": {
-      "path": "build/flushfix2/pad-a-proof/16/results.json",
-      "sha256": "7ac3923cc5e7ae13a45a1573452e1f1d93507d68a0f2a4f67f4b4185c74a4ce5"
+      "path": "build/flushfix2/pad-a-v2-proof/flush-only-16/results.json",
+      "sha256": "113e00345537058d7729ee19adb7e7fc5f09ba7c3ba39b8a1ff1a45c5fce8d6d"
     },
     "attempts": [
       {
-        "path": "build/flushfix2/pad-a-proof/16/1s-uring-1/attempt-0/observations.json",
-        "sha256": "922149baf23c657c91b3702ace560abfc2c004a566386835ba218b9d076b8860",
-        "cycles": 11918,
-        "observations": 107276,
-        "torn": 21951,
+        "path": "build/flushfix2/pad-a-v2-proof/flush-only-16/1s-uring-1/attempt-0/observations.json",
+        "sha256": "f8160e910a9812b0a19039e3408404fc1dc17b71d6fe64779044c8cc7fbb2ecb",
+        "cycles": 9511,
+        "observations": 44244,
+        "torn": 7446,
         "controls": null,
         "control_final": null,
         "errors": []
       }
     ],
-    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 11918, 'observations': 107276, 'torn': 21951, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(14, 6), (2, 2)], 'examples': [[1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None]], 'errors': []}\n"
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 9511, 'observations': 44244, 'torn': 7446, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(3, 3), (7, 7)], 'examples': [[1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None]], 'errors': []}\n"
   },
   {
     "case": "flush-only",
@@ -257,22 +267,22 @@
     "flush_mode": "SYNC",
     "pass": false,
     "result_file": {
-      "path": "build/flushfix2/pad-a-proof/16/results.json",
-      "sha256": "7ac3923cc5e7ae13a45a1573452e1f1d93507d68a0f2a4f67f4b4185c74a4ce5"
+      "path": "build/flushfix2/pad-a-v2-proof/flush-only-16/results.json",
+      "sha256": "113e00345537058d7729ee19adb7e7fc5f09ba7c3ba39b8a1ff1a45c5fce8d6d"
     },
     "attempts": [
       {
-        "path": "build/flushfix2/pad-a-proof/16/1s-epoll-0/attempt-0/observations.json",
-        "sha256": "b30ca748516c76b1d786ce1a7e8c35d1f373532304d3ed6fa521646d28e1c093",
-        "cycles": 14366,
-        "observations": 124841,
-        "torn": 10588,
+        "path": "build/flushfix2/pad-a-v2-proof/flush-only-16/1s-epoll-0/attempt-0/observations.json",
+        "sha256": "89b2fff524afc1f828f3362833a2bb00fa8b64550181492a9af010100a17e775",
+        "cycles": 11505,
+        "observations": 50524,
+        "torn": 58,
         "controls": null,
         "control_final": null,
         "errors": []
       }
     ],
-    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 14366, 'observations': 124841, 'torn': 10588, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:2'], 'owners': [(12, 4), (6, 6)], 'examples': [[None, 1], [None, 1], [None, 1], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None]], 'errors': []}\n"
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 11505, 'observations': 50524, 'torn': 58, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:2'], 'owners': [(6, 6), (9, 1)], 'examples': [[None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1]], 'errors': []}\n"
   },
   {
     "case": "flush-only",
@@ -282,22 +292,32 @@
     "flush_mode": "SYNC",
     "pass": false,
     "result_file": {
-      "path": "build/flushfix2/pad-a-proof/16/results.json",
-      "sha256": "7ac3923cc5e7ae13a45a1573452e1f1d93507d68a0f2a4f67f4b4185c74a4ce5"
+      "path": "build/flushfix2/pad-a-v2-proof/flush-only-16/results.json",
+      "sha256": "113e00345537058d7729ee19adb7e7fc5f09ba7c3ba39b8a1ff1a45c5fce8d6d"
     },
     "attempts": [
       {
-        "path": "build/flushfix2/pad-a-proof/16/1s-epoll-1/attempt-0/observations.json",
-        "sha256": "c5a11a1c7e8c53db44179320bffa7318c7a5b8b4f90c3e53c36bb78ca6970a3e",
-        "cycles": 13071,
-        "observations": 99685,
-        "torn": 2739,
+        "path": "build/flushfix2/pad-a-v2-proof/flush-only-16/1s-epoll-1/attempt-0/observations.json",
+        "sha256": "1a39203bf335d62a2fc335b2a2ca6f1d90206960da61f15d3dbabe21f42a5049",
+        "cycles": 11507,
+        "observations": 50647,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      },
+      {
+        "path": "build/flushfix2/pad-a-v2-proof/flush-only-16/1s-epoll-1/attempt-1/observations.json",
+        "sha256": "16e62443f8c1e2d7f7c62464f6d32ecba83b6a483677f920e73cbed8ddfa7cbf",
+        "cycles": 8937,
+        "observations": 36490,
+        "torn": 87,
         "controls": null,
         "control_final": null,
         "errors": []
       }
     ],
-    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 13071, 'observations': 99685, 'torn': 2739, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(11, 3), (9, 1)], 'examples': [[1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [None, 1], [None, 1], [1, None]], 'errors': []}\n"
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 8937, 'observations': 36490, 'torn': 87, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(3, 3), (10, 2)], 'examples': [[None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [1, None], [1, None], [1, None], [1, None], [1, None], [None, 1], [None, 1], [None, 1], [None, 1]], 'errors': []}\n"
   },
   {
     "case": "flush-only",
@@ -307,22 +327,22 @@
     "flush_mode": "SYNC",
     "pass": false,
     "result_file": {
-      "path": "build/flushfix2/pad-a-proof/16/results.json",
-      "sha256": "7ac3923cc5e7ae13a45a1573452e1f1d93507d68a0f2a4f67f4b4185c74a4ce5"
+      "path": "build/flushfix2/pad-a-v2-proof/flush-only-16/results.json",
+      "sha256": "113e00345537058d7729ee19adb7e7fc5f09ba7c3ba39b8a1ff1a45c5fce8d6d"
     },
     "attempts": [
       {
-        "path": "build/flushfix2/pad-a-proof/16/2s-uring-0/attempt-0/observations.json",
-        "sha256": "a38c6d66e1256172c5b007992be7d2ed22a4bdd47257515d688759efcf71fa10",
-        "cycles": 19286,
-        "observations": 58767,
-        "torn": 2007,
+        "path": "build/flushfix2/pad-a-v2-proof/flush-only-16/2s-uring-0/attempt-0/observations.json",
+        "sha256": "32ba592dd1a66af5bc2dc56d53580e40baddbf9367b1dbff896fa33a8ccd3830",
+        "cycles": 11460,
+        "observations": 31763,
+        "torn": 863,
         "controls": null,
         "control_final": null,
         "errors": []
       }
     ],
-    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 19286, 'observations': 58767, 'torn': 2007, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(11, 7), (4, 6)], 'examples': [[None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1]], 'errors': []}\n"
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 11460, 'observations': 31763, 'torn': 863, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:2'], 'owners': [(9, 7), (2, 6)], 'examples': [[1, None], [1, None], [None, 1], [1, None], [1, None], [1, None], [1, None], [1, None], [None, 1], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None]], 'errors': []}\n"
   },
   {
     "case": "flush-only",
@@ -332,22 +352,22 @@
     "flush_mode": "SYNC",
     "pass": false,
     "result_file": {
-      "path": "build/flushfix2/pad-a-proof/16/results.json",
-      "sha256": "7ac3923cc5e7ae13a45a1573452e1f1d93507d68a0f2a4f67f4b4185c74a4ce5"
+      "path": "build/flushfix2/pad-a-v2-proof/flush-only-16/results.json",
+      "sha256": "113e00345537058d7729ee19adb7e7fc5f09ba7c3ba39b8a1ff1a45c5fce8d6d"
     },
     "attempts": [
       {
-        "path": "build/flushfix2/pad-a-proof/16/2s-uring-1/attempt-0/observations.json",
-        "sha256": "762b75b15f313f663a6df7e87a281e4a6413ade3826e2e91847210a0d5ead337",
-        "cycles": 34430,
-        "observations": 98016,
-        "torn": 2118,
+        "path": "build/flushfix2/pad-a-v2-proof/flush-only-16/2s-uring-1/attempt-0/observations.json",
+        "sha256": "a5edc2a329fd59a1d8d8211df107afd36266730993bbb795f82d567eb43096cd",
+        "cycles": 11274,
+        "observations": 33324,
+        "torn": 321,
         "controls": null,
         "control_final": null,
         "errors": []
       }
     ],
-    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 34430, 'observations': 98016, 'torn': 2118, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(14, 6), (13, 7)], 'examples': [[None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [1, None], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1]], 'errors': []}\n"
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 11274, 'observations': 33324, 'torn': 321, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:2'], 'owners': [(13, 7), (0, 6)], 'examples': [[None, 1], [1, None], [None, 1], [None, 1], [None, 1], [1, None], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [1, None], [None, 1], [None, 1], [None, 1], [1, None], [None, 1], [None, 1]], 'errors': []}\n"
   },
   {
     "case": "flush-only",
@@ -357,22 +377,22 @@
     "flush_mode": "SYNC",
     "pass": false,
     "result_file": {
-      "path": "build/flushfix2/pad-a-proof/16/results.json",
-      "sha256": "7ac3923cc5e7ae13a45a1573452e1f1d93507d68a0f2a4f67f4b4185c74a4ce5"
+      "path": "build/flushfix2/pad-a-v2-proof/flush-only-16/results.json",
+      "sha256": "113e00345537058d7729ee19adb7e7fc5f09ba7c3ba39b8a1ff1a45c5fce8d6d"
     },
     "attempts": [
       {
-        "path": "build/flushfix2/pad-a-proof/16/2s-epoll-0/attempt-0/observations.json",
-        "sha256": "09ba199d771f15206e7e30f1391feb9130b0de25a881d16a32d9f3cd38a23b3b",
-        "cycles": 26566,
-        "observations": 84756,
-        "torn": 850,
+        "path": "build/flushfix2/pad-a-v2-proof/flush-only-16/2s-epoll-0/attempt-0/observations.json",
+        "sha256": "ec400454f8ea4a0a3868e1385d3a411a7273aa6da8cc68127355639779690389",
+        "cycles": 8326,
+        "observations": 23883,
+        "torn": 192,
         "controls": null,
         "control_final": null,
         "errors": []
       }
     ],
-    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 26566, 'observations': 84756, 'torn': 850, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(6, 6), (5, 7)], 'examples': [[None, 1], [None, 1], [None, 1], [1, None], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1]], 'errors': []}\n"
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 8326, 'observations': 23883, 'torn': 192, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(7, 7), (2, 6)], 'examples': [[None, 1], [None, 1], [1, None], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [1, None], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [None, 1], [1, None], [None, 1], [None, 1]], 'errors': []}\n"
   },
   {
     "case": "flush-only",
@@ -382,21 +402,21 @@
     "flush_mode": "SYNC",
     "pass": false,
     "result_file": {
-      "path": "build/flushfix2/pad-a-proof/16/results.json",
-      "sha256": "7ac3923cc5e7ae13a45a1573452e1f1d93507d68a0f2a4f67f4b4185c74a4ce5"
+      "path": "build/flushfix2/pad-a-v2-proof/flush-only-16/results.json",
+      "sha256": "113e00345537058d7729ee19adb7e7fc5f09ba7c3ba39b8a1ff1a45c5fce8d6d"
     },
     "attempts": [
       {
-        "path": "build/flushfix2/pad-a-proof/16/2s-epoll-1/attempt-0/observations.json",
-        "sha256": "4eb6ff276fe0fb01b3ac3a1f9991d890f0d8af9d5f13f262730446990827f726",
-        "cycles": 19046,
-        "observations": 56812,
-        "torn": 2140,
+        "path": "build/flushfix2/pad-a-v2-proof/flush-only-16/2s-epoll-1/attempt-0/observations.json",
+        "sha256": "66a99a41fd20382310f6c146c4beeb82f439ae6764534d507336759e6849d2fb",
+        "cycles": 11748,
+        "observations": 35425,
+        "torn": 111,
         "controls": null,
         "control_final": null,
         "errors": []
       }
     ],
-    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 19046, 'observations': 56812, 'torn': 2140, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(7, 7), (10, 6)], 'examples': [[1, None], [1, None], [1, None], [None, 1], [1, None], [1, None], [None, 1], [1, None], [1, None], [1, None], [None, 1], [None, 1], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None], [1, None]], 'errors': []}\n"
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/snapfix2_flush.py\", line 110, in case_flush_only\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 11748, 'observations': 35425, 'torn': 111, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(5, 7), (0, 6)], 'examples': [[1, None], [1, None], [None, 1], [1, None], [1, None], [None, 1], [1, None], [None, 1], [1, None], [1, None], [None, 1], [1, None], [1, None], [None, 1], [None, 1], [1, None], [1, None], [1, None], [1, None], [1, None]], 'errors': []}\n"
   }
 ]

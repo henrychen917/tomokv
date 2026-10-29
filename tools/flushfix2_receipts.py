@@ -46,6 +46,8 @@ def main():
     p.add_argument('--directed', type=Path)
     p.add_argument('--siblings', action='store_true')
     p.add_argument('--pad', action='store_true')
+    p.add_argument('--pad-root', type=Path, default=ROOT/'build/flushfix2/pad-a-v2-proof')
+    p.add_argument('--persistence-label')
     a = p.parse_args()
     if a.directed:
         rows = directed(a.directed.resolve()/'jobs/flushfix2', 126)
@@ -59,7 +61,7 @@ def main():
             assert fired['script_reply'] == [1, 1]
         (OUT/'post-final-witnesses.json').write_text(json.dumps(rows, indent=2)+'\n')
     if a.pad:
-        rows = directed(ROOT/'build/flushfix2/pad-a-proof', 16)
+        rows = directed(a.pad_root.resolve(), 16)
         assert all(not r['pass'] and any(x['torn'] for x in r['attempts']) for r in rows)
         assert all(not x['errors'] for r in rows for x in r['attempts'])
         (OUT/'pad-a-witnesses.json').write_text(json.dumps(rows, indent=2)+'\n')
@@ -77,8 +79,11 @@ def main():
                 inventories.append(row)
         (OUT/'sibling-receipts.json').write_text(json.dumps(inventories, indent=2)+'\n')
         persistence = []
-        for label in ('final-rdb-generations', 'final-aof-all-shards'):
+        labels = [a.persistence_label] if a.persistence_label else ['final-rdb-generations', 'final-aof-all-shards']
+        for label in labels:
             for path in sorted((ROOT/'build/flushfix2/siblings'/label).glob('*/results.json')):
+                if not path.parent.name.startswith(('live-bgsave-', 'bgsave-straddle-', 'aof-restart-')):
+                    continue
                 results = read(path)
                 assert len(results) == 9 and all(r['pass'] for r in results), path
                 target = [r for r in results if not r['leg'].startswith('redis-')]

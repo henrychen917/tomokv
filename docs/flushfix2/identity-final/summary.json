@@ -59,7 +59,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 18421,
-      "post_size": 19331,
+      "post_size": 19173,
       "classification": "other"
     },
     {
@@ -70,7 +70,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 398,
-      "post_size": 656,
+      "post_size": 602,
       "classification": "other"
     },
     {
@@ -301,7 +301,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 18794,
-      "post_size": 19569,
+      "post_size": 19616,
       "classification": "other"
     },
     {
@@ -1352,7 +1352,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 18421,
-      "post_size": 19331,
+      "post_size": 19173,
       "classification": "other"
     },
     {
@@ -1363,7 +1363,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 398,
-      "post_size": 656,
+      "post_size": 602,
       "classification": "other"
     },
     {
@@ -1594,7 +1594,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 18794,
-      "post_size": 19569,
+      "post_size": 19616,
       "classification": "other"
     },
     {

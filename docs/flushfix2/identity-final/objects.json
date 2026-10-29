@@ -157,7 +157,7 @@
   {
     "object": "db0/src/cmd/t_server.o",
     "pre_sha256": "3cfb90184615e13797dd083497192dcb6275e9af47ad048a0dce9a53252367a8",
-    "post_sha256": "197564cef206d3b10d1e791cd6141751a397b6e85576bb1a6933ebc9dde141b2"
+    "post_sha256": "65ca8ff5d75154122939f4331e0d29d9c47bbbc4675509335c94dd32442a844a"
   },
   {
     "object": "db0/src/cmd/t_set.o",
@@ -442,7 +442,7 @@
   {
     "object": "src/cmd/t_server.o",
     "pre_sha256": "725628e8a0503a69691ed118e38eeb12f4713b1afb1a881cd80a304c52c3c4d2",
-    "post_sha256": "3c21d5fd9ab8e9a3353786e3ce6a36cacc7ae143474a898f2ef20614dbcf0ac5"
+    "post_sha256": "cc02946d76d0dbcdbd425b074bb036969e73c529cdb63c085f66c54c626af8ce"
   },
   {
     "object": "src/cmd/t_set.o",

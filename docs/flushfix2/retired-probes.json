@@ -3876,5 +3876,107 @@
     "bytes": 221640776,
     "sha256": "f34095401f930c7747ecb11f951751c19c13377c56f23049bfe1bd6bb8d08a9c",
     "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/counts/post-normal/probe",
+    "sha256": "5138fee76e53f576ad20736395528739355d68d489aa1e1d08d5788725e60ce1",
+    "bytes": 225810016,
+    "reason": "Superseded arm or completed finite scope; exact counts, recipe and identity receipts retained"
+  },
+  {
+    "path": "build/flushfix2/counts/post-db0/probe",
+    "sha256": "d8d229aff5ac634406cc266f734c8528410bfbdead51f2ceca5ef522b538f62f",
+    "bytes": 225812504,
+    "reason": "Superseded arm or completed finite scope; exact counts, recipe and identity receipts retained"
+  },
+  {
+    "path": "build/flushfix2/counts/post-normal/step-plan",
+    "sha256": "014ffa9f58a141e4e1f5464e5b90332457c879a9d244bb41fd01c95dbaf39d2c",
+    "bytes": 27918906,
+    "reason": "Superseded arm or completed finite scope; exact counts, recipe and identity receipts retained"
+  },
+  {
+    "path": "build/flushfix2/counts/post-db0/step-plan",
+    "sha256": "fa7e9d7520344f39da8791c1de9fd5ce0ea0129a1daa53d21d3cf56b3ce68234",
+    "bytes": 27950612,
+    "reason": "Superseded arm or completed finite scope; exact counts, recipe and identity receipts retained"
+  },
+  {
+    "path": "build/flushfix2/live-counts/post-normal/probe",
+    "sha256": "11c14232e40ec915d30f567710b3f2fa4bf6b2bde6d0de7d394a552eaf3307cc",
+    "bytes": 225894304,
+    "reason": "Superseded arm or completed finite scope; exact counts, recipe and identity receipts retained"
+  },
+  {
+    "path": "build/flushfix2/live-counts/post-db0/probe",
+    "sha256": "d79b84ecd924de17eb7e577b2381adc1dcf996e3f3f8d8788bc96d60ee212b45",
+    "bytes": 225905448,
+    "reason": "Superseded arm or completed finite scope; exact counts, recipe and identity receipts retained"
+  },
+  {
+    "path": "build/flushfix2/live-counts/pre-db0/probe",
+    "sha256": "fec8de359282bf32f08806cf178a7820e70d855d41ec0cb2df767f9aa77d2288",
+    "bytes": 223579856,
+    "reason": "Superseded arm or completed finite scope; exact counts, recipe and identity receipts retained"
+  },
+  {
+    "path": "build/flushfix2/live-counts/pre-normal/probe",
+    "sha256": "67d39a46f60b9dde901e506c241868a4d6834d3fe9b1462027f5c9c18ac01470",
+    "bytes": 223567920,
+    "reason": "Superseded arm or completed finite scope; exact counts, recipe and identity receipts retained"
+  },
+  {
+    "path": "build/flushfix2/live-counts/post-normal/step-plan",
+    "sha256": "65fb4e8e0707039a722c860d6294d88128e2c1beae1eb2e97e41d15bccb591a9",
+    "bytes": 27944090,
+    "reason": "Superseded arm or completed finite scope; exact counts, recipe and identity receipts retained"
+  },
+  {
+    "path": "build/flushfix2/live-counts/post-db0/step-plan",
+    "sha256": "e99f0c2a17e27b49e19607b26ba8da58b7b691f4e075775aef20a3e25b88853b",
+    "bytes": 27980958,
+    "reason": "Superseded arm or completed finite scope; exact counts, recipe and identity receipts retained"
+  },
+  {
+    "path": "build/flushfix2/live-counts/pre-db0/step-plan",
+    "sha256": "6a07e3cba158ba915ca7fa41ff93de9f4525a99c9c9229c2d9b56cb00c595b67",
+    "bytes": 27617116,
+    "reason": "Superseded arm or completed finite scope; exact counts, recipe and identity receipts retained"
+  },
+  {
+    "path": "build/flushfix2/live-counts/pre-normal/step-plan",
+    "sha256": "32e3221979d842be082c171bab48f8bd2fd2c9a5114196b53670eb855f190d44",
+    "bytes": 27590438,
+    "reason": "Superseded arm or completed finite scope; exact counts, recipe and identity receipts retained"
+  },
+  {
+    "path": "build/flushfix2/post-final/tomokv",
+    "sha256": "e52527f40c24ed2d27033ba5fc6bd2a395922392f4e8d5c3e8a0927bec933b8b",
+    "bytes": 222404920,
+    "reason": "Superseded arm or completed finite scope; exact counts, recipe and identity receipts retained"
+  },
+  {
+    "path": "build/flushfix2/pad-a/tomokv",
+    "sha256": "7ecfaeb7532b98400799e385dd0d71dd68191b241820586eb37426387dc9b01c",
+    "bytes": 222404920,
+    "reason": "Superseded arm or completed finite scope; exact counts, recipe and identity receipts retained"
+  },
+  {
+    "path": "build/flushfix2/post-snapshot/tomokv",
+    "sha256": "2d7da1cced0176a53e71722e206cfeb70d7cf6aa0e3155cd378e2502c1e027e9",
+    "bytes": 221640560,
+    "reason": "Superseded arm or completed finite scope; exact counts, recipe and identity receipts retained"
+  },
+  {
+    "path": "build/flushfix2/info-section-pre/normal.o",
+    "sha256": "3c21d5fd9ab8e9a3353786e3ce6a36cacc7ae143474a898f2ef20614dbcf0ac5",
+    "bytes": 7989200,
+    "reason": "Superseded arm or completed finite scope; exact counts, recipe and identity receipts retained"
+  },
+  {
+    "path": "build/flushfix2/info-section-pre/db0.o",
+    "sha256": "197564cef206d3b10d1e791cd6141751a397b6e85576bb1a6933ebc9dde141b2",
+    "bytes": 8213816,
+    "reason": "Superseded arm or completed finite scope; exact counts, recipe and identity receipts retained"
   }
 ]

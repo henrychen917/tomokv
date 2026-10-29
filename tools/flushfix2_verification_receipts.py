@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Archive completed gate-job and differential receipts without changing verdicts."""
 from collections import Counter
+import argparse
 import hashlib
 import json
 from pathlib import Path
@@ -60,12 +61,18 @@ def differ(phase):
 
 
 def main():
+    global RUN
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--label', default='final-v2')
+    parser.add_argument('--binary', type=Path, default=ROOT/'build/flushfix2/post-v2/tomokv')
+    args = parser.parse_args()
+    RUN = ROOT/'build/flushfix2/verification'/args.label
     primary = json.loads((RUN/'runs.json').read_text())
     armed = json.loads((RUN/'armed-runs.json').read_text())
     assert {r['phase'] for r in primary} == {'directed', 'broad', 'differ-uring', 'differ-epoll'}
     assert {r['phase'] for r in armed} == {'differ-armed-uring', 'differ-armed-epoll'}
     gates = {name:gate(RUN/(name+'.log')) for name in ('directed', 'broad', 'notifycompat', 'topology')}
-    result = dict(binary=ref(ROOT/'build/flushfix2/post-final/tomokv'),
+    result = dict(binary=ref(args.binary.resolve()),
                   gate_source=ref(ROOT/'tests/gate.sh'), differ_source=ref(ROOT/'tests/differ_gate.sh'),
                   runs=primary+armed, topology_run=json.loads((RUN/'topology-run.json').read_text()),
                   gates=gates, differential=[differ(r['phase']) for r in primary+armed

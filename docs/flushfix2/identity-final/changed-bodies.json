@@ -927,7 +927,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 18421,
-    "post_size": 19331
+    "post_size": 19173
   },
   {
     "object": "db0/src/cmd/t_server.o",
@@ -937,7 +937,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 398,
-    "post_size": 656
+    "post_size": 602
   },
   {
     "object": "db0/src/cmd/t_server.o",
@@ -6387,7 +6387,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 18794,
-    "post_size": 19569
+    "post_size": 19616
   },
   {
     "object": "src/cmd/t_server.o",
@@ -6457,7 +6457,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 3910,
-    "post_size": 3863
+    "post_size": 3873
   },
   {
     "object": "src/cmd/t_server.o",
@@ -6507,7 +6507,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 1849,
-    "post_size": 1867
+    "post_size": 1872
   },
   {
     "object": "src/cmd/t_server.o",

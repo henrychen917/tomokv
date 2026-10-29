@@ -9,18 +9,18 @@
   },
   {
     "arm": "POST",
-    "path": "build/flushfix2/post-final/tomokv",
-    "sha256": "e52527f40c24ed2d27033ba5fc6bd2a395922392f4e8d5c3e8a0927bec933b8b",
-    "bytes": 222404920,
-    "text_bytes": 8653239,
-    "executable_section_bytes": 8663967
+    "path": "build/flushfix2/post-v2/tomokv",
+    "sha256": "7389c241a63ed94d17a03c447c90bba6ae1dde422f0fe6a9edb728006d13bad8",
+    "bytes": 222403712,
+    "text_bytes": 8653079,
+    "executable_section_bytes": 8663807
   },
   {
     "arm": "PAD-A",
-    "path": "build/flushfix2/pad-a/tomokv",
-    "sha256": "7ecfaeb7532b98400799e385dd0d71dd68191b241820586eb37426387dc9b01c",
-    "bytes": 222404920,
-    "text_bytes": 8653239,
-    "executable_section_bytes": 8663967
+    "path": "build/flushfix2/pad-a-v2/tomokv",
+    "sha256": "2f7c9591acc21effb52787cc75194f9d6f9426e63e36538027c7f264d0b0832e",
+    "bytes": 222403712,
+    "text_bytes": 8653079,
+    "executable_section_bytes": 8663807
   }
 ]

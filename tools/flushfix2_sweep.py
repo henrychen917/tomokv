@@ -15,6 +15,8 @@ def main():
     p.add_argument('--cases', default='semantics,swapdb,debug-reload,debug-loadaof,live-cut,live-script,live-watch,live-bgsave,live-flip,bgsave-straddle,aof-restart')
     p.add_argument('--databases', default='16,1')
     p.add_argument('--port', type=int, default=20190)
+    p.add_argument('--cores', default='0-7')
+    p.add_argument('--load-cores', default='8-15')
     a = p.parse_args()
     base = ROOT / 'build/flushfix2/siblings' / a.label
     base.mkdir(parents=True, exist_ok=True)
@@ -22,10 +24,10 @@ def main():
     for case in a.cases.split(','):
         for databases in map(int, a.databases.split(',')):
             output = base / f'{case}-{databases}'
-            cmd = ['taskset', '-c', '8-15', 'python3', 'tests/flushfix2_siblings.py',
+            cmd = ['taskset', '-c', a.load_cores, 'python3', 'tests/flushfix2_siblings.py',
                    '--case', case, '--databases', str(databases), '--binary', str(a.binary.resolve()),
                    '--oracle', '/home/user/Projects/redis/src/redis-server',
-                   '--cores', '0-7', '--port', str(a.port), '--seconds', '4',
+                   '--cores', a.cores, '--port', str(a.port), '--seconds', '4',
                    '--output', str(output)]
             if case == 'live-flip':
                 cmd += ['--modes', '2s']

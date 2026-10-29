@@ -153,7 +153,7 @@
     "changed_selected_bodies": 5,
     "selected_bodies": 41,
     "receipt": "docs/flushfix2/budgets/db0_src_cmd_t_server.o-current.json",
-    "receipt_sha256": "759d1b8d49427eca2fe22c0ad1f14888d7da54d92ee65ed0b7a2953ef142b87e"
+    "receipt_sha256": "8600c828223296ad4febd1c5dad2cd0cc5e3fae0357cef2599dc38effec50289"
   },
   {
     "unit": "db0/src/cmd/t_set.o",
@@ -477,7 +477,7 @@
     "changed_selected_bodies": 5,
     "selected_bodies": 40,
     "receipt": "docs/flushfix2/budgets/src_cmd_t_server.o-current.json",
-    "receipt_sha256": "d513fe507fad6e776ac61f78d47d6d30744343906322716a4037cfc68aba2e93"
+    "receipt_sha256": "c180d730008a039531530fed43a6ead27b88fbb3882e79d8e0a480419afcdd62"
   },
   {
     "unit": "src/cmd/t_set.o",
