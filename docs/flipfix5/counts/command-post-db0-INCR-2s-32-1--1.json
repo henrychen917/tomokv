@@ -1,0 +1,41 @@
+{
+  "probe": "command",
+  "arm": "post",
+  "namespace": "db0",
+  "argv": [
+    "INCR",
+    "2s",
+    "32",
+    "1",
+    "-1"
+  ],
+  "steps": 34475,
+  "clock_calls": 1,
+  "excluded_calls": 96,
+  "total": 34372,
+  "functions": {
+    "unsigned long tomo_db0::kvobj_external_bytes<false>(tomo_db0::KvObj const*, void const*) [clone .isra.0]": 128,
+    "tomo_db0::FlatStore::track_expire(unsigned long, tomo_db0::KvObj*) [clone .isra.0]": 800,
+    "tomo_db0::kvobj_size(tomo_db0::KvObj const*)": 992,
+    "tomo_db0::kvobj_free_with_capacity(tomo_db0::KvObj*, unsigned long)": 608,
+    "void tomo_db0::reply_int<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, long long)": 3281,
+    "tomo_db0::FlatStore::retire_obj(tomo_db0::KvObj*)": 1408,
+    "tomo_db0::FlatStore::insert_into(int, unsigned long, tomo_db0::KvObj*, bool)": 4640,
+    "tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)": 640,
+    "tomo_db0::ExLoopT<false>::flush_notify_batch()": 435,
+    "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)": 7136,
+    "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 400,
+    "tomo_db0::multi_task_tagged(tomo_db0::Task const&)": 128,
+    "tomo_db0::Slice::key_eq(tomo_db0::Slice const&) const": 928,
+    "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)": 3392,
+    "tomo_db0::FlatStore::insert(unsigned long, tomo_db0::KvObj*)": 1568,
+    "tomo_db0::kvobj_init_int(void*, tomo_db0::Slice, long, long, bool) [clone .isra.0]": 2272,
+    "tomo_db0::FlatStore::make_set_int(tomo_db0::Slice, long, long, bool) [clone .isra.0]": 1568,
+    "tomo_db0::(anonymous namespace)::map_insert(tomo_db0::FlatStore&, unsigned long, tomo_db0::KvObj*)": 544,
+    "void tomo_db0::(anonymous namespace)::incr_decr<false>(tomo_db0::Shard&, tomo_db0::Op&, long)": 3104,
+    "void tomo_db0::(anonymous namespace)::cmd_incr<false>(tomo_db0::Shard&, tomo_db0::Op&)": 96,
+    "tomo_db0::FlatStore::publish_database_counts() const": 88,
+    "tomo_db0::Shard::publish_size()": 216
+  },
+  "probe_sha256": "39d1633d66198845a53e65cc1ac6b87ec39eb8b07a757eb2bb22c0b4c040a264"
+}

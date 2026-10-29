@@ -1,0 +1,16 @@
+{
+  "probe": "control",
+  "arm": "pre",
+  "namespace": "db0",
+  "argv": [
+    "io-idle"
+  ],
+  "steps": 34,
+  "clock_calls": 0,
+  "excluded_calls": 0,
+  "total": 26,
+  "functions": {
+    "unsigned int tomo_db0::IoLoop::flip_control_pass<false>()": 26
+  },
+  "probe_sha256": "1e90de2795465705adb1d5b9b12343ebdc4c1aa9971a95fe0cef89253bb66909"
+}

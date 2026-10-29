@@ -1,0 +1,18 @@
+{
+  "probe": "control",
+  "arm": "pre",
+  "namespace": "normal",
+  "argv": [
+    "ex-exdrain-owed"
+  ],
+  "steps": 497,
+  "clock_calls": 0,
+  "excluded_calls": 0,
+  "total": 486,
+  "functions": {
+    "tomo::Server::atomic_apply_inflight() const": 166,
+    "tomo::ExLoopT<false>::flip_quiesced() const": 272,
+    "tomo::ExLoopT<false>::flip_control_pass()": 48
+  },
+  "probe_sha256": "26c4472bfd67081e27a0cfdc12f35984753ffb9b67f02b7de319d2c5fd941025"
+}

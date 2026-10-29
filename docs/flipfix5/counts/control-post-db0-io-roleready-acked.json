@@ -1,0 +1,19 @@
+{
+  "probe": "control",
+  "arm": "post",
+  "namespace": "db0",
+  "argv": [
+    "io-roleready-acked"
+  ],
+  "steps": 248,
+  "clock_calls": 0,
+  "excluded_calls": 0,
+  "total": 240,
+  "functions": {
+    "tomo_db0::Server::flip_stage_owed(unsigned int, tomo_db0::FlipStage) const": 18,
+    "tomo_db0::IoLoop::flip_reflag_inbound()": 137,
+    "unsigned int tomo_db0::IoLoop::flip_control_pass<false>()": 65,
+    "tomo_db0::IoLoop::fliplisten_resume()": 20
+  },
+  "probe_sha256": "ffb023a0109f733d2ee23687d49512600a54d5c9cc1b2d235e4630d670699a13"
+}

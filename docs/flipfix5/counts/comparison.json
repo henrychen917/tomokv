@@ -1,0 +1,1422 @@
+[
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "GET",
+      "1s",
+      "1",
+      "0",
+      "-1"
+    ],
+    "pre": 936,
+    "post": 936,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "GET",
+      "1s",
+      "1",
+      "1",
+      "-1"
+    ],
+    "pre": 936,
+    "post": 936,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "GET",
+      "1s",
+      "32",
+      "0",
+      "-1"
+    ],
+    "pre": 18482,
+    "post": 18482,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "GET",
+      "1s",
+      "32",
+      "1",
+      "-1"
+    ],
+    "pre": 18482,
+    "post": 18482,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "GET",
+      "2s",
+      "1",
+      "0",
+      "-1"
+    ],
+    "pre": 1556,
+    "post": 1556,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "GET",
+      "2s",
+      "1",
+      "1",
+      "-1"
+    ],
+    "pre": 1556,
+    "post": 1556,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "GET",
+      "2s",
+      "32",
+      "0",
+      "-1"
+    ],
+    "pre": 18327,
+    "post": 18327,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "GET",
+      "2s",
+      "32",
+      "1",
+      "-1"
+    ],
+    "pre": 18327,
+    "post": 18327,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "SET",
+      "1s",
+      "1",
+      "0",
+      "-1"
+    ],
+    "pre": 1060,
+    "post": 1060,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "SET",
+      "1s",
+      "1",
+      "1",
+      "-1"
+    ],
+    "pre": 1060,
+    "post": 1060,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "SET",
+      "1s",
+      "32",
+      "0",
+      "-1"
+    ],
+    "pre": 22450,
+    "post": 22450,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "SET",
+      "1s",
+      "32",
+      "1",
+      "-1"
+    ],
+    "pre": 22450,
+    "post": 22450,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "SET",
+      "2s",
+      "1",
+      "0",
+      "-1"
+    ],
+    "pre": 1680,
+    "post": 1680,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "SET",
+      "2s",
+      "1",
+      "1",
+      "-1"
+    ],
+    "pre": 1680,
+    "post": 1680,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "SET",
+      "2s",
+      "32",
+      "0",
+      "-1"
+    ],
+    "pre": 22295,
+    "post": 22295,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "SET",
+      "2s",
+      "32",
+      "1",
+      "-1"
+    ],
+    "pre": 22295,
+    "post": 22295,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "INCR",
+      "1s",
+      "1",
+      "0",
+      "-1"
+    ],
+    "pre": 1511,
+    "post": 1511,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "INCR",
+      "1s",
+      "1",
+      "1",
+      "-1"
+    ],
+    "pre": 1511,
+    "post": 1511,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "INCR",
+      "1s",
+      "32",
+      "0",
+      "-1"
+    ],
+    "pre": 37411,
+    "post": 37411,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "INCR",
+      "1s",
+      "32",
+      "1",
+      "-1"
+    ],
+    "pre": 37411,
+    "post": 37411,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "INCR",
+      "2s",
+      "1",
+      "0",
+      "-1"
+    ],
+    "pre": 2131,
+    "post": 2131,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "INCR",
+      "2s",
+      "1",
+      "1",
+      "-1"
+    ],
+    "pre": 2131,
+    "post": 2131,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "INCR",
+      "2s",
+      "32",
+      "0",
+      "-1"
+    ],
+    "pre": 37256,
+    "post": 37256,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "INCR",
+      "2s",
+      "32",
+      "1",
+      "-1"
+    ],
+    "pre": 37256,
+    "post": 37256,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "MGET",
+      "1s",
+      "1",
+      "0",
+      "-1"
+    ],
+    "pre": 10159,
+    "post": 10159,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "MGET",
+      "1s",
+      "1",
+      "1",
+      "-1"
+    ],
+    "pre": 10177,
+    "post": 10177,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "MGET",
+      "1s",
+      "32",
+      "0",
+      "-1"
+    ],
+    "pre": 323910,
+    "post": 323910,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "MGET",
+      "1s",
+      "32",
+      "1",
+      "-1"
+    ],
+    "pre": 324486,
+    "post": 324486,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "MGET",
+      "2s",
+      "1",
+      "0",
+      "-1"
+    ],
+    "pre": 10159,
+    "post": 10159,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "MGET",
+      "2s",
+      "1",
+      "1",
+      "-1"
+    ],
+    "pre": 10177,
+    "post": 10177,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "MGET",
+      "2s",
+      "32",
+      "0",
+      "-1"
+    ],
+    "pre": 323910,
+    "post": 323910,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "MGET",
+      "2s",
+      "32",
+      "1",
+      "-1"
+    ],
+    "pre": 324486,
+    "post": 324486,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "MSET",
+      "1s",
+      "1",
+      "0",
+      "-1"
+    ],
+    "pre": 10779,
+    "post": 10779,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "MSET",
+      "1s",
+      "1",
+      "1",
+      "-1"
+    ],
+    "pre": 16956,
+    "post": 16956,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "MSET",
+      "1s",
+      "32",
+      "0",
+      "-1"
+    ],
+    "pre": 344773,
+    "post": 344773,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "MSET",
+      "1s",
+      "32",
+      "1",
+      "-1"
+    ],
+    "pre": 960806,
+    "post": 960806,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "MSET",
+      "2s",
+      "1",
+      "0",
+      "-1"
+    ],
+    "pre": 10597,
+    "post": 10597,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "MSET",
+      "2s",
+      "1",
+      "1",
+      "-1"
+    ],
+    "pre": 16624,
+    "post": 16624,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "MSET",
+      "2s",
+      "32",
+      "0",
+      "-1"
+    ],
+    "pre": 338949,
+    "post": 338949,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "normal",
+    "argv": [
+      "MSET",
+      "2s",
+      "32",
+      "1",
+      "-1"
+    ],
+    "pre": 950182,
+    "post": 950182,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "GET",
+      "1s",
+      "1",
+      "0",
+      "-1"
+    ],
+    "pre": 818,
+    "post": 818,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "GET",
+      "1s",
+      "1",
+      "1",
+      "-1"
+    ],
+    "pre": 818,
+    "post": 818,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "GET",
+      "1s",
+      "32",
+      "0",
+      "-1"
+    ],
+    "pre": 18705,
+    "post": 18705,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "GET",
+      "1s",
+      "32",
+      "1",
+      "-1"
+    ],
+    "pre": 18705,
+    "post": 18705,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "GET",
+      "2s",
+      "1",
+      "0",
+      "-1"
+    ],
+    "pre": 1051,
+    "post": 1051,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "GET",
+      "2s",
+      "1",
+      "1",
+      "-1"
+    ],
+    "pre": 1051,
+    "post": 1051,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "GET",
+      "2s",
+      "32",
+      "0",
+      "-1"
+    ],
+    "pre": 18163,
+    "post": 18163,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "GET",
+      "2s",
+      "32",
+      "1",
+      "-1"
+    ],
+    "pre": 18163,
+    "post": 18163,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "SET",
+      "1s",
+      "1",
+      "0",
+      "-1"
+    ],
+    "pre": 926,
+    "post": 926,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "SET",
+      "1s",
+      "1",
+      "1",
+      "-1"
+    ],
+    "pre": 926,
+    "post": 926,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "SET",
+      "1s",
+      "32",
+      "0",
+      "-1"
+    ],
+    "pre": 22161,
+    "post": 22161,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "SET",
+      "1s",
+      "32",
+      "1",
+      "-1"
+    ],
+    "pre": 22161,
+    "post": 22161,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "SET",
+      "2s",
+      "1",
+      "0",
+      "-1"
+    ],
+    "pre": 1159,
+    "post": 1159,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "SET",
+      "2s",
+      "1",
+      "1",
+      "-1"
+    ],
+    "pre": 1159,
+    "post": 1159,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "SET",
+      "2s",
+      "32",
+      "0",
+      "-1"
+    ],
+    "pre": 21619,
+    "post": 21619,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "SET",
+      "2s",
+      "32",
+      "1",
+      "-1"
+    ],
+    "pre": 21619,
+    "post": 21619,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "INCR",
+      "1s",
+      "1",
+      "0",
+      "-1"
+    ],
+    "pre": 1308,
+    "post": 1308,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "INCR",
+      "1s",
+      "1",
+      "1",
+      "-1"
+    ],
+    "pre": 1308,
+    "post": 1308,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "INCR",
+      "1s",
+      "32",
+      "0",
+      "-1"
+    ],
+    "pre": 34914,
+    "post": 34914,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "INCR",
+      "1s",
+      "32",
+      "1",
+      "-1"
+    ],
+    "pre": 34914,
+    "post": 34914,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "INCR",
+      "2s",
+      "1",
+      "0",
+      "-1"
+    ],
+    "pre": 1541,
+    "post": 1541,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "INCR",
+      "2s",
+      "1",
+      "1",
+      "-1"
+    ],
+    "pre": 1541,
+    "post": 1541,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "INCR",
+      "2s",
+      "32",
+      "0",
+      "-1"
+    ],
+    "pre": 34372,
+    "post": 34372,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "INCR",
+      "2s",
+      "32",
+      "1",
+      "-1"
+    ],
+    "pre": 34372,
+    "post": 34372,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "MGET",
+      "1s",
+      "1",
+      "0",
+      "-1"
+    ],
+    "pre": 10308,
+    "post": 10308,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "MGET",
+      "1s",
+      "1",
+      "1",
+      "-1"
+    ],
+    "pre": 10325,
+    "post": 10325,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "MGET",
+      "1s",
+      "32",
+      "0",
+      "-1"
+    ],
+    "pre": 328678,
+    "post": 328678,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "MGET",
+      "1s",
+      "32",
+      "1",
+      "-1"
+    ],
+    "pre": 329222,
+    "post": 329222,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "MGET",
+      "2s",
+      "1",
+      "0",
+      "-1"
+    ],
+    "pre": 10308,
+    "post": 10308,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "MGET",
+      "2s",
+      "1",
+      "1",
+      "-1"
+    ],
+    "pre": 10325,
+    "post": 10325,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "MGET",
+      "2s",
+      "32",
+      "0",
+      "-1"
+    ],
+    "pre": 328678,
+    "post": 328678,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "MGET",
+      "2s",
+      "32",
+      "1",
+      "-1"
+    ],
+    "pre": 329222,
+    "post": 329222,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "MSET",
+      "1s",
+      "1",
+      "0",
+      "-1"
+    ],
+    "pre": 11018,
+    "post": 11018,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "MSET",
+      "1s",
+      "1",
+      "1",
+      "-1"
+    ],
+    "pre": 16415,
+    "post": 16415,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "MSET",
+      "1s",
+      "32",
+      "0",
+      "-1"
+    ],
+    "pre": 352421,
+    "post": 352421,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "MSET",
+      "1s",
+      "32",
+      "1",
+      "-1"
+    ],
+    "pre": 951926,
+    "post": 951926,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "MSET",
+      "2s",
+      "1",
+      "0",
+      "-1"
+    ],
+    "pre": 10828,
+    "post": 10828,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "MSET",
+      "2s",
+      "1",
+      "1",
+      "-1"
+    ],
+    "pre": 16075,
+    "post": 16075,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "MSET",
+      "2s",
+      "32",
+      "0",
+      "-1"
+    ],
+    "pre": 346341,
+    "post": 346341,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "command",
+    "namespace": "db0",
+    "argv": [
+      "MSET",
+      "2s",
+      "32",
+      "1",
+      "-1"
+    ],
+    "pre": 941046,
+    "post": 941046,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "control",
+    "namespace": "normal",
+    "argv": [
+      "ex-idle"
+    ],
+    "pre": 29,
+    "post": 29,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "control",
+    "namespace": "normal",
+    "argv": [
+      "ex-exdrain-owed"
+    ],
+    "pre": 486,
+    "post": 505,
+    "delta": 19,
+    "functions_equal": false
+  },
+  {
+    "probe": "control",
+    "namespace": "normal",
+    "argv": [
+      "ex-exdrain-acked"
+    ],
+    "pre": 35,
+    "post": 53,
+    "delta": 18,
+    "functions_equal": false
+  },
+  {
+    "probe": "control",
+    "namespace": "normal",
+    "argv": [
+      "ex-exinstall-owed"
+    ],
+    "pre": 560,
+    "post": 578,
+    "delta": 18,
+    "functions_equal": false
+  },
+  {
+    "probe": "control",
+    "namespace": "normal",
+    "argv": [
+      "ex-exinstall-acked"
+    ],
+    "pre": 38,
+    "post": 55,
+    "delta": 17,
+    "functions_equal": false
+  },
+  {
+    "probe": "control",
+    "namespace": "normal",
+    "argv": [
+      "io-idle"
+    ],
+    "pre": 25,
+    "post": 25,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "control",
+    "namespace": "normal",
+    "argv": [
+      "io-iodrain-owed"
+    ],
+    "pre": 603,
+    "post": 618,
+    "delta": 15,
+    "functions_equal": false
+  },
+  {
+    "probe": "control",
+    "namespace": "normal",
+    "argv": [
+      "io-iodrain-acked"
+    ],
+    "pre": 215,
+    "post": 230,
+    "delta": 15,
+    "functions_equal": false
+  },
+  {
+    "probe": "control",
+    "namespace": "normal",
+    "argv": [
+      "io-roleready-owed"
+    ],
+    "pre": 475,
+    "post": 491,
+    "delta": 16,
+    "functions_equal": false
+  },
+  {
+    "probe": "control",
+    "namespace": "normal",
+    "argv": [
+      "io-roleready-acked"
+    ],
+    "pre": 226,
+    "post": 241,
+    "delta": 15,
+    "functions_equal": false
+  },
+  {
+    "probe": "control",
+    "namespace": "db0",
+    "argv": [
+      "ex-idle"
+    ],
+    "pre": 32,
+    "post": 32,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "control",
+    "namespace": "db0",
+    "argv": [
+      "ex-exdrain-owed"
+    ],
+    "pre": 479,
+    "post": 498,
+    "delta": 19,
+    "functions_equal": false
+  },
+  {
+    "probe": "control",
+    "namespace": "db0",
+    "argv": [
+      "ex-exdrain-acked"
+    ],
+    "pre": 38,
+    "post": 56,
+    "delta": 18,
+    "functions_equal": false
+  },
+  {
+    "probe": "control",
+    "namespace": "db0",
+    "argv": [
+      "ex-exinstall-owed"
+    ],
+    "pre": 563,
+    "post": 581,
+    "delta": 18,
+    "functions_equal": false
+  },
+  {
+    "probe": "control",
+    "namespace": "db0",
+    "argv": [
+      "ex-exinstall-acked"
+    ],
+    "pre": 40,
+    "post": 58,
+    "delta": 18,
+    "functions_equal": false
+  },
+  {
+    "probe": "control",
+    "namespace": "db0",
+    "argv": [
+      "io-idle"
+    ],
+    "pre": 26,
+    "post": 26,
+    "delta": 0,
+    "functions_equal": true
+  },
+  {
+    "probe": "control",
+    "namespace": "db0",
+    "argv": [
+      "io-iodrain-owed"
+    ],
+    "pre": 602,
+    "post": 617,
+    "delta": 15,
+    "functions_equal": false
+  },
+  {
+    "probe": "control",
+    "namespace": "db0",
+    "argv": [
+      "io-iodrain-acked"
+    ],
+    "pre": 214,
+    "post": 229,
+    "delta": 15,
+    "functions_equal": false
+  },
+  {
+    "probe": "control",
+    "namespace": "db0",
+    "argv": [
+      "io-roleready-owed"
+    ],
+    "pre": 471,
+    "post": 487,
+    "delta": 16,
+    "functions_equal": false
+  },
+  {
+    "probe": "control",
+    "namespace": "db0",
+    "argv": [
+      "io-roleready-acked"
+    ],
+    "pre": 225,
+    "post": 240,
+    "delta": 15,
+    "functions_equal": false
+  }
+]
