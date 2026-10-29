@@ -61,7 +61,8 @@ def main():
                   absent_unarmed_sites={},inputs=inputs)
     for arm in ('pre','c4','post'):
         observed={}
-        for file in COUNTS.glob(f'session-{arm}-*.json'):
+        files = [file for kind in session_kinds for file in COUNTS.glob(f'{kind}-{arm}-*.json')]
+        for file in files:
             row=json.loads(file.read_text())
             for symbol,count in row['functions'].items():
                 if any(name in symbol for name in ('multi_pause_writes(', 'command_pause_write(')):

@@ -189,8 +189,9 @@ unchanged cells. Preserve the supplied storm geometry: three blocks, twenty
 clients on two hot keys (8 two-INCR EVAL, 4 MULTI, 4 WATCH+MULTI, 4 plain INCR),
 with neither PAUSE nor MONITOR armed. Compare POST vs PRE and POST vs C4;
 retain scripts/s, EXEC/s, plain INCR/s, WATCH aborts, cycles/op, IPC and instr/op.
-Run the existing uncontended EXEC cells (64 connections, pipeline 4) in both
-modes, and the same fourteen generic cells including the read-local mix.
+Run one block of the existing uncontended EXEC cells (64 connections,
+pipeline 4) in both modes, and the exact [fourteen generic cells](docs/climonfix5/measure-cells.txt),
+including the read-local mix.
 Include PRE/PRE null checks and the labelled PAD-A behavior twin where the
 layout comparison is needed.
 
