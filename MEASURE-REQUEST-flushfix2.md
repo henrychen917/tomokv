@@ -4,7 +4,8 @@
 
 Branch `cx-flushfix2`, base `393d6ceb129d8c99dffd70959d6a19267c525fe0`.
 No push. Landing requires the owner's design approval. The binaries and directed
-proof are frozen; the last split differential engine is still in progress. The
+proof are frozen; the requested correctness runs are complete with the failures
+and NOT RUN items stated below. The
 required FLUSH+FLIP liveness proof is FAIL: the unmodified PRE and final POST
 binaries both abort. This lane is not an all-green correctness result.
 No performance or throughput claim is made. The first full differential attempt
@@ -128,8 +129,16 @@ All 35 supplemental topology jobs also pass. Both fused differential engines
 pass 466 rows each, with standard seeds; their ten SORT skips per engine are
 listed below. The selected broad coverage contains 86 jobs and 551 scored rows;
 all are green after the explicit rechecks described below. This is a partial
-selection, not a full gate receipt. The split io_uring differential run passes
-475 rows, zero failures; split epoll is still running. The first
+selection, not a full gate receipt. Both split differential engines pass 475
+rows each with zero failures; across the four differential runs there are
+1,882 passes and zero failures. Each uses standard seeds 7/19/20/23 plus its
+recorded rotating seed (22/24 for fused uring/epoll, 25/26 for split uring/epoll).
+Exact commands, per-job ledgers, failure history, seeds and coverage hashes are
+in `docs/flushfix2/verification-final.json`. Its original and resumed broad
+ledgers retain 30 failed entries: 27 fixture/companion failures, the unopened T9
+window, and two entries from the interrupted debug-0 family. Complete rechecks
+resolve those rows; they do not erase the required sibling FLUSH+FLIP failure.
+The first
 broad invocation wrote 49 job receipts before it was stopped ahead of its
 embedded rate checks (48 completed; debug-0 was interrupted during txniso).
 The remaining 37 jobs ran with the existing
@@ -154,8 +163,8 @@ marked INCONCLUSIVE in `hazard-harness-revisions.json`.
 
 Initial mover/txnorder unit rows also failed because the frozen binary directory
 lacked their seven companion executables. Matching production units are now
-staged there with hashes in `companion-units.json`; their complete gate jobs are
-green on their complete gate-job reruns. These setup failures remain in the
+staged there with hashes in `companion-units.json`; all affected complete gate
+jobs pass on rerun. These setup failures remain in the
 original ledgers. All 57 `make -q` freshness checks pass again after the fixture
 changes; the production server SHA is unchanged.
 
@@ -267,6 +276,10 @@ Rate at matched offered load decides regressions in ordinary cells. The latency
 and writer-wait distributions judge the additional publication/floor-drain cost;
 instruction counts alone do not establish a gain. Correctness and the zero-tax
 scope requirement must pass before any merit conclusion.
+
+The retained `build/` footprint is about 23G. Superseded probes, step plans and
+diagnostic binaries were removed after retaining their hashes, counts and
+stack/command receipts. PRE, POST and PAD-A remain available.
 
 All lane builds and correctness work use CPUs 0–15 (builds `-j16`), 16-shard
 gate geometry and split ratio 6:2, and ports 20100–20199. Main servers use CPUs
