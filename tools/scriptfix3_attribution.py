@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Isolate the three scriptfix2 production commits on the landed PRE geometry.
+"""Isolate the four scriptfix2 production commits on the landed PRE geometry.
 
 Only scripting/functions objects change; link order and all other PRE objects
 are fixed. Reverse patches preserve unrelated fixes already on the headline.
@@ -7,11 +7,11 @@ are fixed. Reverse patches preserve unrelated fixes already on the headline.
 import json, os, shutil, subprocess
 from pathlib import Path
 from scriptfix3_counts import ROOT,BUILD,DOC,sha,save
-COMMITS=['370210cfc','6bc147d2c','cdd2c4673']
+COMMITS=['370210cfc','18191bcc1','6bc147d2c','cdd2c4673']
 FILES=['src/cmd/scripting.cc','src/cmd/scripting.h','src/cmd/functions.cc']
 def main():
  assert os.sched_getaffinity(0)<=set(range(32,48));os.environ['LC_ALL']='C'
- for stage in range(3):
+ for stage in range(4):
   label='scriptfix2-stage'+str(stage);source=BUILD/(label+'-source');objects=source/'build'
   if not source.exists():
    shutil.copytree(BUILD/'pre-source',source)
