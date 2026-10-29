@@ -339,7 +339,9 @@ struct ScriptContext {
     uint32_t key_count = 0;
     uint64_t instructions = 0;
     uint32_t call_index = 0;
-    uint32_t monitor_multi_order = UINT32_MAX;
+    // Initialized by the first armed nested call. An unarmed activation never
+    // reads or initializes this cold field (including aggregate construction).
+    union { uint32_t monitor_multi_order; };
     bool timed_out = false;
     uint8_t script_resp = 2;
     // Set per call from the handler variant that entered (clean vs notify registry row). The
@@ -692,9 +694,15 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                 nested.hash = FlatStore::hash_key(key);
                 nested.shard = context->shard->id();
                 if (context->script_resp == 3) nested.mark_resp3();
-                if (context->notify)
+                if (context->notify) {
+                    if (!context->call_index) {
+                        const auto* carrier = context->shard->notify_carrier();
+                        context->monitor_multi_order = carrier && carrier->cmd_name().eq_icase("exec")
+                            ? context->shard->notify_order_base() / 0x10000u : UINT32_MAX;
+                    }
                     notify_execute_source(*context->shard, nested,
                                           context->call_index++ * 0x10000u);
+                }
                 bool modified = false;
                 WatchEffectScope effects(*context->shard, modified);
                 const bool logical_write = (spec->flags & CmdFlags::Write) &&
@@ -703,9 +711,13 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                 if (logical_write && !context->persistence_write_started && server &&
                     __builtin_expect(server->aof().failed(), false)) {
                     server->aof().reply_write_error(nested);
+                    if (context->notify)
+                        notify_execute_source(*context->shard, *context->parent, 0);
                 } else if ((spec->flags & CmdFlags::DenyOom) &&
                     !context->shard->store().budget_admit(key)) {
                     reply_maxmemory_oom(nested);
+                    if (context->notify)
+                        notify_execute_source(*context->shard, *context->parent, 0);
                 } else {
                     if (logical_write) context->persistence_write_started = true;
                     if (__builtin_expect(server && server->latency_tracking(), false)) {
@@ -713,11 +725,14 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                         LatencyTrackingScriptCall latency(executor, *context->parent, nested);
                         spec->handler(*context->shard, nested);
                     } else spec->handler(*context->shard, nested);
-                    notify_monitor_script(*context->shard, *context->parent, nested,
-                                          context->monitor_multi_order);
+                    // Reuse the existing armed source-restore branch. Rejected
+                    // admission above restores the source without a MONITOR line.
+                    if (context->notify) {
+                        notify_monitor_script(*context->shard, *context->parent, nested,
+                                              context->monitor_multi_order);
+                        notify_execute_source(*context->shard, *context->parent, 0);
+                    }
                 }
-                if (context->notify)
-                    notify_execute_source(*context->shard, *context->parent, 0);
                 // A Write row that answered without an error has already changed the keyspace.
                 // Nothing later in this activation may reverse it, so record it here: this is the
                 // quantity a regression asserts on, not "no exception was thrown".
@@ -1333,8 +1348,6 @@ void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
     LuaEngine& engine = t_lua_engine;
     lua_State* state = engine.state;
     ScriptContext context{&shard, &op, call.key_first, call.key_count};
-    if (auto* carrier = shard.notify_carrier(); carrier && carrier->cmd_name().eq_icase("exec"))
-        context.monitor_multi_order = shard.notify_order_base() / 0x10000u;
     if (t_script_cross.op == &op) {
         context.cross_access = t_script_cross.access;
         context.cross_access_count = t_script_cross.count;
@@ -1407,15 +1420,18 @@ void script_cross_access_end() {
 
 namespace {
 
+// Only a compiled no-writes chunk uses this closure. The ordinary compiled
+// function remains the registry value, so warm plain EVAL/EVALSHA do no header
+// work. Hashing, source storage and Lua line coordinates still use the original.
+int readonly_eval(lua_State* state) {
+    lua_context(state)->readonly = true;
+    lua_pushvalue(state, lua_upvalueindex(1));
+    lua_call(state, 0, 1);
+    return 1;
+}
+
 void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_hint,
               bool notify, bool readonly) {
-    Slice body;
-    bool header_readonly;
-    std::string header_error;
-    if (!eval_header(source, body, header_readonly, header_error)) {
-        reply_text_error(op, "ERR", header_error);
-        return;
-    }
     if (source.n > kScriptMaxBytes) {
         reply_text_error(op, "ERR", "script exceeds the 1 MiB limit");
         return;
@@ -1447,6 +1463,14 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_h
     if (lua_isnil(state, -1)) {
         lua_pop(state, 1);
         g_compile_misses.fetch_add(1, std::memory_order_relaxed);
+        Slice body;
+        bool header_readonly;
+        std::string header_error;
+        if (!eval_header(source, body, header_readonly, header_error)) {
+            lua_settop(state, 0);
+            reply_text_error(op, "ERR", header_error);
+            return;
+        }
         const int compiled = luaL_loadbuffer(state, body.p, body.n, kEvalChunkName);
         if (compiled != 0) {
             size_t length = 0;
@@ -1458,6 +1482,7 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_h
                              std::string("Error compiling script (new function): ") + error);
             return;
         }
+        if (header_readonly) lua_pushcclosure(state, readonly_eval, 1);
         lua_pushlstring(state, sha.p, sha.n);
         lua_pushvalue(state, -2);
         lua_rawset(state, -4);
@@ -1478,7 +1503,7 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_h
     call.key_first = key_first;
     call.key_count = key_count;
     call.style = ScriptArgStyle::Globals;
-    call.readonly = readonly || header_readonly;
+    call.readonly = readonly;
     call.notify = notify;
     call.chunk = "user_script";
     call.tag = sha;

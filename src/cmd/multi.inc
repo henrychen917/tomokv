@@ -2451,8 +2451,6 @@ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t co
     }
     if (was_queueing) queue_session->next_queue_op_id = op_id + 1;
     if (action == MultiIoAction::LocalDone) {
-        if (op.cmd_name().eq_icase("exec") && op.reply.size() && op.reply.data()[0] == '-')
-            loop.climon_monitor_multi_abort(client, op_id);
         if (latency_started && (op.spec->flags & CmdFlags::Transaction))
             latency_tracking_finish(loop.self_->id(), op, latency_started);
         client.advance_parse(consumed);
@@ -2511,11 +2509,6 @@ void multi_retire_entry(IoLoop& loop, Client& client, Op& op) {
     if (auto* cut = static_cast<MultiExecState*>(op.multi_state())) {
         if (__builtin_expect(cut->snapshot_registered, false))
             loop.scatter_pool_.unregister_snapshot(*loop.srv_, cut, loop.self_->id());
-        if (op.cmd_name().eq_icase("exec") &&
-            (cut->final_reply != MultiFinalReply::Exec ||
-             cut->watch_failed.load(std::memory_order_acquire) ||
-             cut->decision.aborted.load(std::memory_order_acquire)))
-            loop.climon_monitor_multi_abort(client, client.rob().flush_id());
     }
     multi_retire(client, op, loop.multi_deferred_);
     loop.climon_refresh_armed();

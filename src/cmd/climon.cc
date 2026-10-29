@@ -236,30 +236,37 @@ bool command_client_pause(Server& server, Op& op, uint64_t time_base_ms) {
 }
 
 void IoLoop::climon_refresh_armed() {
-    const uint32_t before = climon_armed_cached_;
+    uint32_t before = climon_armed_cached_;
     climon_armed_cached_ = srv_->climon_armed();
-    if (climon_armed_cached_ & Server::kClimonMonitor) {
-        for (auto& [id, state] : climon_conn_) {
-            if (state.client && state.client->rob().flush_id())
-                climon_monitor_flush(state, state.client->rob().flush_id() - 1);
-            if (state.monitor_script_id != UINT64_MAX || !state.monitor_pending.empty())
-                climon_armed_cached_ |= kClimonRefreshPending;
+    // The pre-existing monitor-lifetime branch also services pending records.
+    // On the first 0->1 transition there cannot yet be pending monitor work.
+    if (before & Server::kClimonMonitor) {
+        if (climon_armed_cached_ & Server::kClimonMonitor) {
+            for (auto& [id, state] : climon_conn_) {
+                if (state.client && state.client->rob().flush_id())
+                    climon_monitor_flush(state, state.client->rob().flush_id() - 1);
+                if (state.monitor_script_id != UINT64_MAX || !state.monitor_pending.empty())
+                    climon_armed_cached_ |= kClimonRefreshPending;
+            }
+        } else {
+            // MONITOR retry receipts belong only to the armed lifetime.
+            for (auto it = climon_conn_.begin(); it != climon_conn_.end();) {
+                it->second.monitor_pending.clear();
+                it->second.monitor_script_id = UINT64_MAX;
+                if (it->second.idle()) it = climon_conn_.erase(it);
+                else ++it;
+            }
         }
-    }
-    if ((before & Server::kClimonMonitor) && !(climon_armed_cached_ & Server::kClimonMonitor)) {
-        // MONITOR retry receipts belong only to the armed lifetime.
-        for (auto it = climon_conn_.begin(); it != climon_conn_.end();) {
-            it->second.monitor_pending.clear();
-            it->second.monitor_script_id = UINT64_MAX;
-            if (it->second.idle()) it = climon_conn_.erase(it);
-            else ++it;
-        }
+        // Ignore the private refresh bit when deciding whether parse variants
+        // changed. Do this inside the already-armed branch, never on plain EXEC.
+        before = (before & ~kClimonRefreshPending) |
+                 (climon_armed_cached_ & kClimonRefreshPending);
     }
     // parse_and_dispatch caches the armed word ONCE per pass (that is what makes it free when
     // off). A CLIENT subcommand that arms or disarms the lane therefore invalidates the cache of
     // the very pass it is running in -- a pipelined `CLIENT REPLY OFF; PING` would otherwise
     // answer the PING. Flag it; the cold dispatch branches end the pass so the next one re-reads.
-    if ((climon_armed_cached_ ^ before) & ~kClimonRefreshPending) climon_armed_dirty_ = true;
+    if (climon_armed_cached_ != before) climon_armed_dirty_ = true;
     notify_armed_ = notify_config_armed_ || save_config_armed_ ||
                     climon_armed_cached_ != 0;
     climon_pause_deadline_ms_ = srv_->climon_pause_end_ms();
@@ -837,18 +844,27 @@ void IoLoop::climon_monitor_flush(ClimonConn& state, uint64_t completed, bool be
         auto& pending = state.monitor_pending.front();
         if (pending.multi_order != UINT32_MAX && pending.id > completed) break;
         if (before_script && pending.id > completed) break;
+        if (pending.multi_order != UINT32_MAX && pending.id != UINT64_MAX && state.client) {
+            // Consume the final EXEC reply while its ROB generation is retained.
+            // Both local EXECABORT and owner-side WATCH aborts arrive here, after
+            // completion and before the next parser pass can reuse the slot.
+            const auto& rob = state.client->rob();
+            if (pending.id < rob.dispatch_id() && rob.dispatch_id() - pending.id <= kRobWindow) {
+                const auto& op = rob.at(pending.id);
+                if (op.reply.size() && (op.reply.data()[0] == '-' ||
+                    (op.reply.size() >= 3 && op.reply.data()[0] == '*' && op.reply.data()[1] == '-'))) {
+                    const uint64_t aborted = pending.id;
+                    std::erase_if(state.monitor_pending, [aborted](const auto& record) {
+                        return record.id == aborted && record.multi_order != UINT32_MAX;
+                    });
+                    continue;
+                }
+            }
+        }
         climon_monitor_broadcast(std::move(pending.line), pending.excluded);
         if (pending.script && pending.id > completed) state.monitor_script_id = pending.id;
         state.monitor_pending.erase(state.monitor_pending.begin());
     }
-}
-
-void IoLoop::climon_monitor_multi_abort(Client& client, uint64_t id) {
-    auto* state = climon_conn_find(client.id());
-    if (!state) return;
-    std::erase_if(state->monitor_pending, [id](const auto& pending) {
-        return pending.id == id && pending.multi_order != UINT32_MAX;
-    });
 }
 
 void IoLoop::climon_monitor_script_deliver(uint64_t writer_id, std::vector<MonitorScriptLine>& lines) {

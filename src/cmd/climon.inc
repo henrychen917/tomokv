@@ -159,7 +159,6 @@
     void climon_unpark_paused(Client* client);
     void climon_monitor_broadcast(std::string line, uint64_t excluded = 0);
     void climon_monitor_flush(ClimonConn& state, uint64_t completed, bool before_script = false);
-    void climon_monitor_multi_abort(Client& client, uint64_t id);
     void climon_monitor_script_deliver(uint64_t writer_id, std::vector<MonitorScriptLine>& lines);
     void climon_monitor_format(Client* client, Op& op, std::string& out);
     void climon_monitor_deliver(const std::string& line, uint64_t excluded = 0);
