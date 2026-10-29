@@ -1,0 +1,32 @@
+{
+  "arm": "c4",
+  "namespace": "normal",
+  "command": "GET",
+  "mode": "1s",
+  "batch": 32,
+  "atomic": 1,
+  "steps": 18585,
+  "clock_calls": 1,
+  "excluded_calls": 32,
+  "pc_trace_sha256": "22ada0d0c113ef532acc0fab15c416f68c4eb419f414ed3adc566018331067bc",
+  "pc_trace_entries": 789,
+  "scope": "hot",
+  "total": 18482,
+  "functions": {
+    "tomo::atomic_tripwire_enabled()": 192,
+    "tomo::Server::ClientWorkScope::ClientWorkScope(tomo::Server&, unsigned int)": 704,
+    "tomo::multi_task_tagged(tomo::Task const&)": 128,
+    "tomo::Slice::key_eq(tomo::Slice const&) const": 928,
+    "tomo::KvObj::key() const": 416,
+    "tomo::FlatStore::find(unsigned long, tomo::Slice)": 2624,
+    "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]": 3520,
+    "void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)": 2464,
+    "tomo::ExLoopT<true>::flush_notify_batch()": 435,
+    "tomo::ExLoopT<true>::note_lb_hash(tomo::Shard&, unsigned long)": 160,
+    "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)": 6336,
+    "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 370,
+    "tomo::FlatStore::publish_database_counts() const": 147,
+    "tomo::Shard::publish_size()": 58
+  },
+  "probe_sha256": "8159d9fc6238ee1741b7fc0b51541e89cf5deeb9a1e6b7822b2db8126284d876"
+}

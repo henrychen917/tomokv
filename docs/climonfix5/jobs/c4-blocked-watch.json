@@ -1,0 +1,63 @@
+{
+  "name": "c4-blocked-watch",
+  "exit": 0,
+  "command": [
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "24-31",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20220-20229",
+    "--candidate-binary",
+    "/home/user/Projects/cx-climonfix5/build/climonfix5/tomokv-C4"
+  ],
+  "env": {
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "redis_tcl",
+    "GATE_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_TCL_MANIFEST": "/home/user/Projects/cx-climonfix5/docs/climonfix5/tcl-blocked-watch.json"
+  },
+  "source_commit": "5bac881e57c83322a94b24d82a31215bdb6130ed",
+  "source_diff_sha256": "711ffed8fa0271e518116bb06329969d0f9b235bcf4545a7af6bc250bcaa9c76",
+  "binary": "/home/user/Projects/cx-climonfix5/build/climonfix5/tomokv-C4",
+  "binary_sha256": "81a33ef8cc968b5f044ce15e2c8db15b6d6ffc29b247b93af85e8525f035020e",
+  "binary_unchanged": true,
+  "gate_sha256": "b7d9f2189e6f89234a68dc1bc70b7e1225a7112b45727a522c25971c25049b22",
+  "log": "docs/climonfix5/jobs/c4-blocked-watch.log",
+  "log_sha256": "a553fe450a98531a14ec7f38da151fc8589c370104531a0eb728ad3873d6fea8",
+  "artifacts": "/home/user/Projects/cx-climonfix5/build/gate-run.Gy3UhT",
+  "rows": [
+    {
+      "verdict": "PARTIAL",
+      "seconds": "0",
+      "label": "GATE_ONLY_JOBS=redis_tcl; NOT A RECEIPT"
+    },
+    {
+      "verdict": "ok",
+      "seconds": "0.000000",
+      "label": "release build (+footprint locks)"
+    },
+    {
+      "verdict": "ok",
+      "seconds": "0.710000",
+      "label": "Redis 7.4.10 Tcl passing subset (2s)"
+    },
+    {
+      "verdict": "ok",
+      "seconds": "0.720000",
+      "label": "Redis 7.4.10 Tcl passing subset (1s)"
+    }
+  ],
+  "passed": 3,
+  "failed": 0
+}

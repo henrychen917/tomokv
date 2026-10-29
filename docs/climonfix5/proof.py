@@ -27,6 +27,8 @@ def main():
     args = parser.parse_args()
     jobs = DOC / 'jobs';jobs.mkdir(exist_ok=True)
     binary = args.binary.resolve();digest = sha(binary)
+    source_commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
+    source_diff_sha256 = hashlib.sha256(subprocess.check_output(['git', 'diff', 'HEAD', '--', 'src'], cwd=ROOT)).hexdigest()
     env_delta = dict(LC_ALL='C', REDIS74_ROOT='/home/user/Projects/redis',
         GATE_ONLY_JOBS=' '.join(args.jobs), GATE_NET_IO=args.engine, GATE_DIFFER_NET_IO=args.engine,
         GATE_DIFFER_ORACLE_BIN='/home/user/Projects/redis74/src/redis-server')
@@ -41,7 +43,7 @@ def main():
     text = log.read_text()
     match = re.search(r'artifacts: (\S+)', text)
     record = dict(name=args.name, exit=rc, command=command, env=env_delta,
-        source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
+        source_commit=source_commit, source_diff_sha256=source_diff_sha256,
         binary=str(binary), binary_sha256=digest, binary_unchanged=sha(binary)==digest,
         gate_sha256=sha(ROOT/'tests/gate.sh'), log=str(log.relative_to(ROOT)), log_sha256=sha(log))
     if match:
@@ -50,7 +52,7 @@ def main():
         if ledger.exists():
             record['rows'] = [dict(zip(('verdict', 'seconds', 'label'), s.split('\t', 2))) for s in ledger.read_text().splitlines()]
             record['passed'] = sum(r['verdict']=='ok' for r in record['rows'])
-            record['failed'] = sum(r['verdict']!='ok' for r in record['rows'])
+            record['failed'] = sum(r['verdict']=='FAIL' for r in record['rows'])
     (jobs/(args.name+'.json')).write_text(json.dumps(record, indent=2)+'\n')
     print(args.name, rc, record.get('passed'), record.get('failed'), flush=True)
     assert record['binary_unchanged'], 'candidate changed during the gate campaign'

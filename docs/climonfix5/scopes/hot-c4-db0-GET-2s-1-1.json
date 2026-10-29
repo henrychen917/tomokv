@@ -1,0 +1,28 @@
+{
+  "arm": "c4",
+  "namespace": "db0",
+  "command": "GET",
+  "mode": "2s",
+  "batch": 1,
+  "atomic": 1,
+  "steps": 1061,
+  "clock_calls": 1,
+  "excluded_calls": 1,
+  "pc_trace_sha256": "cc8b2bd42d6dd5014958c1e3f12ad50285b24fc705be4f0ced252e8f56eabb63",
+  "pc_trace_entries": 724,
+  "scope": "hot",
+  "total": 1051,
+  "functions": {
+    "tomo_db0::ExLoopT<false>::flush_notify_batch()": 94,
+    "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)": 206,
+    "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 121,
+    "tomo_db0::multi_task_tagged(tomo_db0::Task const&)": 4,
+    "tomo_db0::Slice::key_eq(tomo_db0::Slice const&) const": 29,
+    "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)": 106,
+    "void tomo_db0::reply_bulk<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice) [clone .isra.0]": 110,
+    "void tomo_db0::(anonymous namespace)::cmd_get<false, true>(tomo_db0::Shard&, tomo_db0::Op&)": 77,
+    "tomo_db0::FlatStore::publish_database_counts() const": 88,
+    "tomo_db0::Shard::publish_size()": 216
+  },
+  "probe_sha256": "5fa06e26e10d5611d33e9f30780e602efe0ce5f65d86f9d0656c91c9ad3144e6"
+}

@@ -1,0 +1,40 @@
+{
+  "changes": [
+    {
+      "file": "src/cmd/t_server.cc",
+      "before": "    bool no_touch = false;",
+      "after": "    bool no_touch = false;\n    bool pause_blocked = false;\n    const CommandMetadata* last_command = nullptr;\n    uint64_t last_command_id = UINT64_MAX;"
+    },
+    {
+      "file": "src/cmd/notify.h",
+      "before": "struct NotifyBatch;",
+      "after": "struct NotifyBatch;\nstruct MonitorScriptLine { uint32_t multi_order; std::string line; };"
+    },
+    {
+      "file": "src/cmd/notify.inc",
+      "before": "    std::shared_ptr<NotifyExpiryCompletion> expiry_completion;",
+      "after": "    std::shared_ptr<NotifyExpiryCompletion> expiry_completion;\n    std::vector<MonitorScriptLine> monitor_lines;"
+    },
+    {
+      "file": "src/cmd/scripting.cc",
+      "before": "    uint32_t cross_access_count = 0;",
+      "after": "    uint32_t cross_access_count = 0;\n    union { uint32_t monitor_multi_order; };"
+    },
+    {
+      "file": "src/cmd/climon.inc",
+      "before": "    struct ClimonConn {",
+      "after": "    struct ClimonConn {\n        struct MonitorPending { uint64_t id, excluded; bool script; uint32_t multi_order; std::string line; };"
+    },
+    {
+      "file": "src/cmd/climon.inc",
+      "before": "        uint64_t tracking_generation = 0;",
+      "after": "        uint64_t tracking_generation = 0;\n        uint64_t monitor_script_id = UINT64_MAX;\n        std::vector<MonitorPending> monitor_pending;"
+    }
+  ],
+  "command": [
+    "make",
+    "-j16",
+    "BUILD_ROOT=/home/user/Projects/cx-climonfix5/build/climonfix5/pad-a/objects",
+    "all"
+  ]
+}

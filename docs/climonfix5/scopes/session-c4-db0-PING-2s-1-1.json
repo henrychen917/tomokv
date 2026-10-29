@@ -1,0 +1,32 @@
+{
+  "arm": "c4",
+  "namespace": "db0",
+  "command": "PING",
+  "mode": "2s",
+  "batch": 1,
+  "atomic": 1,
+  "steps": 1707,
+  "clock_calls": 0,
+  "excluded_calls": 7,
+  "pc_trace_sha256": "bf4aed337e26df6c761c06644a90bc642b295c7b1ed907b4ee2463324e629243",
+  "pc_trace_entries": 750,
+  "scope": "session",
+  "total": 968,
+  "functions": {
+    "tomo_db0::ParseResult tomo_db0::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long, tomo_db0::RespFrontier*) [clone .isra.0]": 141,
+    "tomo_db0::IoLoop::mark_active(tomo_db0::Client*)": 6,
+    "tomo_db0::IoLoop::flip_dispatch_paused() const": 9,
+    "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)": 402,
+    "tomo_db0::(anonymous namespace)::command_equal(tomo_db0::Slice, char const*) [clone .isra.0]": 113,
+    "tomo_db0::command_lookup_registry(tomo_db0::Slice)": 132,
+    "tomo_db0::command_reply_container_subcommand_arity(tomo_db0::Op&, tomo_db0::CommandSpec const&, tomo_db0::Client*)": 24,
+    "tomo_db0::Op::Sink::reserve(unsigned long)": 24,
+    "std::_Hashtable<unsigned long, std::pair<unsigned long const, tomo_db0::(anonymous namespace)::ClientMeta>, std::allocator<std::pair<unsigned long const, tomo_db0::(anonymous namespace)::ClientMeta> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(unsigned long const&) [clone .isra.0]": 18,
+    "tomo_db0::(anonymous namespace)::cmd_ping(tomo_db0::Shard&, tomo_db0::Op&)": 32,
+    "tomo_db0::command_set_local_context(tomo_db0::Client*, tomo_db0::ThreadCtx*)": 8,
+    "tomo_db0::command_client_note_command(tomo_db0::Client*, tomo_db0::Op&, tomo_db0::CommandSpec const*)": 37,
+    "tomo_db0::snapshot_bind_io(tomo_db0::ThreadCtx*, tomo_db0::Ring*)": 10,
+    "tomo_db0::command_metadata_for(tomo_db0::CommandSpec const&)": 12
+  },
+  "probe_sha256": "83dbb62629ea640646a963c95e30afcc6e6168f21ab2b8cd7f1a8c9453a60d11"
+}

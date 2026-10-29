@@ -360,7 +360,7 @@ struct ScriptContext {
     int error_line = 0;
     uint8_t* cross_access = nullptr;
     uint32_t cross_access_count = 0;
-    // Only script_notify_begin initializes/reads this member. The anonymous
+    // Only the armed script context initializes/reads this member. The anonymous
     // union leaves it untouched in an unarmed aggregate initialization.
     union { uint32_t monitor_multi_order; };
 };
@@ -626,17 +626,41 @@ bool push_resp_value(lua_State* state, const char* data, size_t size, size_t& po
     return false;
 }
 
-__attribute__((noinline, cold)) void script_notify_begin(ScriptContext& context, Op& nested) {
-    if (!context.call_index) {
-        const auto* carrier = context.shard->notify_carrier();
-        context.monitor_multi_order = carrier && carrier->cmd_name().eq_icase("exec")
-            ? context.shard->notify_order_base() / 0x10000u : UINT32_MAX;
-    }
-    notify_execute_source(*context.shard, nested, context.call_index++ * 0x10000u);
+__attribute__((noinline)) void script_monitor_context(ScriptContext& context) {
+    const auto* carrier = context.shard->notify_carrier();
+    context.monitor_multi_order = carrier && carrier->cmd_name().eq_icase("exec")
+        ? context.shard->notify_order_base() / 0x10000u : UINT32_MAX;
 }
 
-__attribute__((noinline, cold)) void script_notify_end(ScriptContext& context, Op& nested) {
-    notify_monitor_script(*context.shard, *context.parent, nested, context.monitor_multi_order);
+// Return whether the command reached its handler; admission errors must not
+// produce a MONITOR line. The clean caller discards the result at compile time.
+__attribute__((always_inline)) inline bool script_nested_execute(
+        ScriptContext& context, Op& nested, const CommandSpec& spec, Slice key) {
+    const bool logical_write = (spec.flags & CmdFlags::Write) && command_metadata_write(nested);
+    Server* server = context.shard->server();
+    if (logical_write && !context.persistence_write_started && server &&
+        __builtin_expect(server->aof().failed(), false)) {
+        server->aof().reply_write_error(nested);
+        return false;
+    }
+    if ((spec.flags & CmdFlags::DenyOom) && !context.shard->store().budget_admit(key)) {
+        reply_maxmemory_oom(nested);
+        return false;
+    }
+    if (logical_write) context.persistence_write_started = true;
+    if (__builtin_expect(server && server->latency_tracking(), false)) {
+        const uint32_t executor = server->worker_of_shard(context.shard->id());
+        LatencyTrackingScriptCall latency(executor, *context.parent, nested);
+        spec.handler(*context.shard, nested);
+    } else spec.handler(*context.shard, nested);
+    return true;
+}
+
+__attribute__((noinline)) void script_nested_notified(
+        ScriptContext& context, Op& nested, const CommandSpec& spec, Slice key) {
+    notify_execute_source(*context.shard, nested, context.call_index++ * 0x10000u);
+    if (script_nested_execute(context, nested, spec, key))
+        notify_monitor_script(*context.shard, *context.parent, nested, context.monitor_multi_order);
     notify_execute_source(*context.shard, *context.parent, 0);
 }
 
@@ -710,36 +734,12 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                 nested.hash = FlatStore::hash_key(key);
                 nested.shard = context->shard->id();
                 if (context->script_resp == 3) nested.mark_resp3();
-                if (context->notify) script_notify_begin(*context, nested);
                 bool modified = false;
                 WatchEffectScope effects(*context->shard, modified);
-                const bool logical_write = (spec->flags & CmdFlags::Write) &&
-                                           command_metadata_write(nested);
-                Server* server = context->shard->server();
-                if (logical_write && !context->persistence_write_started && server &&
-                    __builtin_expect(server->aof().failed(), false)) {
-                    server->aof().reply_write_error(nested);
-                    if (context->notify)
-                        notify_execute_source(*context->shard, *context->parent, 0);
-                    goto nested_reply;
-                } else if ((spec->flags & CmdFlags::DenyOom) &&
-                    !context->shard->store().budget_admit(key)) {
-                    reply_maxmemory_oom(nested);
-                    if (context->notify)
-                        notify_execute_source(*context->shard, *context->parent, 0);
-                    goto nested_reply;
-                } else {
-                    if (logical_write) context->persistence_write_started = true;
-                    if (__builtin_expect(server && server->latency_tracking(), false)) {
-                        const uint32_t executor = server->worker_of_shard(context->shard->id());
-                        LatencyTrackingScriptCall latency(executor, *context->parent, nested);
-                        spec->handler(*context->shard, nested);
-                    } else spec->handler(*context->shard, nested);
-                }
-                // Reuse the existing armed source-restore branch. Rejected
-                // admission above restores the source without a MONITOR line.
-                if (context->notify) script_notify_end(*context, nested);
-            nested_reply:
+                // PRE already branches on this source-routing flag. Put the
+                // complete armed execution behind it, including MONITOR work.
+                if (context->notify) script_nested_notified(*context, nested, *spec, key);
+                else script_nested_execute(*context, nested, *spec, key);
                 // A Write row that answered without an error has already changed the keyspace.
                 // Nothing later in this activation may reverse it, so record it here: this is the
                 // quantity a regression asserts on, not "no exception was thrown".
@@ -1354,12 +1354,17 @@ void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
         latency_tracking_script_begin(op);
     LuaEngine& engine = t_lua_engine;
     lua_State* state = engine.state;
-    ScriptContext context{&shard, &op, call.key_first, call.key_count};
+    ScriptContext context;
+    context.shard = &shard;
+    context.parent = &op;
+    context.key_first = call.key_first;
+    context.key_count = call.key_count;
     if (t_script_cross.op == &op) {
         context.cross_access = t_script_cross.access;
         context.cross_access_count = t_script_cross.count;
     }
     context.notify = call.notify;
+    if (context.notify) script_monitor_context(context);
     context.readonly = call.readonly;
     context.function_admitted = call.style == ScriptArgStyle::Params;
     engine.current = &context;
@@ -1437,6 +1442,35 @@ int readonly_eval(lua_State* state) {
     return 1;
 }
 
+__attribute__((noinline)) bool compile_eval(lua_State* state, Op& op, Slice source, Slice sha) {
+    lua_pop(state, 1);
+    g_compile_misses.fetch_add(1, std::memory_order_relaxed);
+    Slice body;
+    bool header_readonly;
+    std::string header_error;
+    if (!eval_header(source, body, header_readonly, header_error)) {
+        lua_settop(state, 0);
+        reply_text_error(op, "ERR", header_error);
+        return false;
+    }
+    const int compiled = luaL_loadbuffer(state, body.p, body.n, kEvalChunkName);
+    if (compiled != 0) {
+        size_t length = 0;
+        const char* text = lua_tolstring(state, -1, &length);
+        const std::string error =
+            clean_error(text ? text : "compile error", text ? length : 13);
+        lua_settop(state, 0);
+        reply_text_error(op, "ERR",
+                         std::string("Error compiling script (new function): ") + error);
+        return false;
+    }
+    if (header_readonly) lua_pushcclosure(state, readonly_eval, 1);
+    lua_pushlstring(state, sha.p, sha.n);
+    lua_pushvalue(state, -2);
+    lua_rawset(state, -4);
+    return true;
+}
+
 void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_hint,
               bool notify, bool readonly) {
     if (source.n > kScriptMaxBytes) {
@@ -1468,31 +1502,7 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_h
     lua_pushlstring(state, sha.p, sha.n);
     lua_rawget(state, -2);
     if (lua_isnil(state, -1)) {
-        lua_pop(state, 1);
-        g_compile_misses.fetch_add(1, std::memory_order_relaxed);
-        Slice body;
-        bool header_readonly;
-        std::string header_error;
-        if (!eval_header(source, body, header_readonly, header_error)) {
-            lua_settop(state, 0);
-            reply_text_error(op, "ERR", header_error);
-            return;
-        }
-        const int compiled = luaL_loadbuffer(state, body.p, body.n, kEvalChunkName);
-        if (compiled != 0) {
-            size_t length = 0;
-            const char* text = lua_tolstring(state, -1, &length);
-            const std::string error =
-                clean_error(text ? text : "compile error", text ? length : 13);
-            lua_settop(state, 0);
-            reply_text_error(op, "ERR",
-                             std::string("Error compiling script (new function): ") + error);
-            return;
-        }
-        if (header_readonly) lua_pushcclosure(state, readonly_eval, 1);
-        lua_pushlstring(state, sha.p, sha.n);
-        lua_pushvalue(state, -2);
-        lua_rawset(state, -4);
+        if (!compile_eval(state, op, source, sha)) return;
     } else {
         g_compile_hits.fetch_add(1, std::memory_order_relaxed);
     }

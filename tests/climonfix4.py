@@ -138,6 +138,22 @@ def directed(host, port, root):
             assert isinstance(a.cmd("EXEC"), RespError)
             assert '] "MULTI"' in read(m, 1) and '] "EXEC"' in read(m, 1)
             assert read(m, .05) == {"timeout": True}, "MONITOR logged an aborted command"
+            # Retirement now consumes the final EXEC reply. Cover both null
+            # encodings, with a witnessed WATCH conflict before queueing.
+            b = new()
+            for protocol in (2, 3):
+                assert isinstance(a.cmd("HELLO", protocol), list)
+                assert '] "HELLO"' in read(m, 1)
+                assert a.cmd("WATCH", "mon") == b"OK"
+                assert '] "WATCH"' in read(m, 1)
+                assert b.cmd("SET", "mon", "conflict") == b"OK"
+                assert '] "SET"' in read(m, 1)
+                assert a.cmd("MULTI") == b"OK"
+                assert '] "MULTI"' in read(m, 1)
+                assert a.cmd("EVAL", script, 1, "mon", "watch-aborted") == b"QUEUED"
+                assert a.cmd("EXEC") is None
+                assert '] "EXEC"' in read(m, 1)
+                assert read(m, .05) == {"timeout": True}, "MONITOR logged a WATCH-aborted child"
         elif root == "RESET-CLEARS-LIBNAME":
             assert a.cmd("CLIENT", "SETINFO", "lib-name", "redis.py") == b"OK"
             assert a.cmd("CLIENT", "SETINFO", "lib-ver", "1.0") == b"OK"
