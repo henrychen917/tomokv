@@ -97,7 +97,8 @@ unchanged by this lane. `tests/gates_test.py` passes all 73 tests.
 
 All 80 final serverless scope comparisons meet ZERO added executed instructions:
 GET/SET/INCR/MGET/MSET, atomic 0/1, batch 1/32, both modes, both namespaces.
-`docs/flushfix2/counts/comparison-final.json` contains every PRE/POST count.
+`docs/flushfix2/instructions.md` tabulates every PRE/POST count;
+`docs/flushfix2/counts/comparison-final.json` retains the machine-readable table.
 The established fixture counts executed instructions (including NOPs) in named
 TomoKV bodies, excluding library callees and fixture glue; these are scope
 counts, not whole-process instruction or cycle measurements.
