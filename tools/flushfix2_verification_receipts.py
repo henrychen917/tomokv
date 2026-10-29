@@ -57,6 +57,7 @@ def differ(phase):
                 runtime=match[3], seeds=json.loads((folder/'seeds.json').read_text()),
                 skipped=[line.strip() for line in text.splitlines() if 'SKIP' in line],
                 failures=[line.strip() for line in text.splitlines() if 'FAIL' in line],
+                mechanisms=[line.strip() for line in text.splitlines() if 'read-local lane fired' in line],
                 compared_commands=dict(sorted(commands.items())), coverage=coverage)
 
 
