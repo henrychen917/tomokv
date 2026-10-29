@@ -1,0 +1,54 @@
+[
+  {
+    "mode": "1s",
+    "binary_sha256": "d9f883e8babf349d9d7f3435bb0e27b0a2973cdd307fd67830923b18475abe01",
+    "files": 37,
+    "passed": 1803,
+    "raw_failed": 5,
+    "errors": [],
+    "scripting": [
+      {
+        "file": "unit/functions",
+        "passed": 86,
+        "failed": 0,
+        "skipped": 14,
+        "complete": true,
+        "error": null
+      },
+      {
+        "file": "unit/scripting",
+        "passed": 130,
+        "failed": 2,
+        "skipped": 116,
+        "complete": true,
+        "error": null
+      }
+    ]
+  },
+  {
+    "mode": "2s",
+    "binary_sha256": "d9f883e8babf349d9d7f3435bb0e27b0a2973cdd307fd67830923b18475abe01",
+    "files": 37,
+    "passed": 1803,
+    "raw_failed": 5,
+    "errors": [],
+    "scripting": [
+      {
+        "file": "unit/functions",
+        "passed": 86,
+        "failed": 0,
+        "skipped": 14,
+        "complete": true,
+        "error": null
+      },
+      {
+        "file": "unit/scripting",
+        "passed": 130,
+        "failed": 2,
+        "skipped": 116,
+        "complete": true,
+        "error": null
+      }
+    ]
+  }
+]

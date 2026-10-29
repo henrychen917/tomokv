@@ -1,0 +1,10 @@
+[
+  {
+    "path": "build/scriptfix3/tomokv-post1-superseded",
+    "sha256": "f88c351b9b29f99c4bd3ea66a58d99dc71d367a3b9fca0bd675fd1633a6151bd"
+  },
+  {
+    "path": "build/gate-run.SQ5Rxu",
+    "archive": "docs/scriptfix3/job-archives/compatibility.tar.gz"
+  }
+]

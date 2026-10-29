@@ -1,0 +1,14 @@
+[
+  {
+    "name": "compatibility",
+    "exit": 1,
+    "summary": [
+      "GATE(PARTIAL): 65 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-scriptfix3/docs/scriptfix3/jobs/compatibility.tsv.partial"
+    ],
+    "binary_sha256": "f88c351b9b29f99c4bd3ea66a58d99dc71d367a3b9fca0bd675fd1633a6151bd",
+    "binary_unchanged": true,
+    "archive": "docs/scriptfix3/job-archives/compatibility.tar.gz",
+    "sha256": "ddeb753325c54358da4996734d3283a9c8f1f8af0342219653ecb97806b4601e",
+    "files": 1607
+  }
+]
