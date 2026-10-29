@@ -1182,7 +1182,7 @@ plan_jobs(){
       JOB_NAMES+=("feature-cell-$FM-$FR-$FC-$FQ-$FF")
     done; done; done; done
   done
-  JOB_NAMES+=(infofix_latency infofix_compat-missing infofix_compat-docs infofix_compat-slowlog infofix_compat-loadaof)
+  JOB_NAMES+=(infofix_latency infofix_compat-missing infofix_compat-docs infofix_compat-loadaof)
   JOB_NAMES+=(feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto)
 }
 start_workers(){

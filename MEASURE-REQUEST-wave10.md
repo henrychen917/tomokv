@@ -182,3 +182,10 @@ and checked switch-table destinations. It preserves opcodes, registers,
 immediates, member offsets, padding and branch destinations. Moving the fixture’s
 preparsed EVAL hash before the scope removed a private fixture clone from counts;
 the earlier counts and their mismatches remain marked as superseded evidence.
+
+Harness: the real scheduler self-tests rejected a stale
+`infofix_compat-slowlog` queue entry left after its collector was removed.
+Remove that entry as part of the global-ring exclusion; the collector/fixture
+inventory remains 946/963. The initial concurrent standalone/selftest attempts
+also collided on reserved port 20098. Preserve those failures and rerun these
+controls sequentially; no timeout or assertion is relaxed.
