@@ -1,0 +1,4 @@
+{
+  "removed": "build/blockfix3/pre-source",
+  "reason": "Rebuilt PRE section digests, PAD-A and boundary control receipts recorded; original PRE binary retained."
+}

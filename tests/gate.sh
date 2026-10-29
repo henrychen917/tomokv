@@ -3929,15 +3929,31 @@ blockfix2_case(){
     py tools/blockfix2_controls.py check-tcl --case "$case" --binary "$CANDIDATE_BINARY" \
         --cores "$CORES" --port "$PORT" --redis-root "$REDIS74_ROOT" \
         --output "$negative/tcl" >"$negative/tcl.log" 2>&1 || return 1
+    if [ "$case" = removed ]; then
+      local boundary="$TMPDIR/control-boundary"
+      mkdir -p "$boundary"
+      if ( CANDIDATE_BINARY="$PWD/build/blockfix3/controls/boundary/tomokv"
+           TMPDIR="$boundary"
+           compat3_case blockfix2 removed ); then
+        echo 'blockfix3 boundary-only regression unexpectedly passed' >&2
+        return 1
+      fi
+      py tools/blockfix3_controls.py check-boundary --binary "$CANDIDATE_BINARY" \
+          --output "$boundary" >"$boundary/verdict.log" 2>&1 || return 1
+      py tools/blockfix3_controls.py check-tcl --binary "$CANDIDATE_BINARY" \
+          --cores "$CORES" --port "$PORT" --redis-root "$REDIS74_ROOT" \
+          --output "$TMPDIR/control-statistics" >"$TMPDIR/control-statistics.log" 2>&1 || return 1
+    fi
   }
 }
 
-# Six rows before quick exit (+6/+6); the owner updates EXPECT_QUICK/FULL.
-# The removed-stream delete/re-create diagnostic stays in compat3_blockfix2.py;
-# see docs/wave9/diagnostics.md for its retained 24-leg failing evidence.
+# Seven rows before quick exit; blockfix3 restores the removed-stream row (+1/+1).
+# EXPECT_QUICK/FULL remain maintainer-owned.
 job_blockfix2(){
   row_begin "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE"
   blockfix2_case rename && ok "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE" || bad "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE"
+  row_begin "blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK"
+  blockfix2_case removed && ok "blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK" || bad "blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK"
   row_begin "blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS"
   blockfix2_case wrongtype && ok "blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS" || bad "blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS"
   row_begin "blockfix2 MULTI-XREADGROUP-BLOCK-HANG"

@@ -6,6 +6,7 @@
 #include "hll.h"
 #include "xshard.h"
 #include "notify.h"
+#include "blocking.h"
 #include "serialize.h"
 #include "lookup_notouch.h"
 #include "string_mutation.h"
@@ -620,6 +621,10 @@ void cmd_del(Shard& sh, Op& op) {
         removed += sh.store_erase<kNotify>(hash, op.arg(i));
     }
     reply_int(op.sink(), static_cast<long long>(removed));
+    // Deletion is a readiness boundary, even if the next pipelined command
+    // recreates the same stream and group. EXEC/plain MVCC defer this through
+    // their existing publication boundary; never serve inside table retirement.
+    if (removed) blocking_publish_deleted(sh, op);
 }
 
 template <bool kNotify>

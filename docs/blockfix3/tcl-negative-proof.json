@@ -1,0 +1,28 @@
+{
+  "2s": {
+    "binary_sha256": "f32a7616bcc03c98689ac194501481a8e3fe4ce25e088b4f2b396a220a4f7a50",
+    "rows": 36,
+    "named_failures": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/stream-cgroups.tcl",
+        "test": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl",
+        "data": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl\nExpected '' to match '*count=1*' (context: type eval line 13 cmd {assert_match {*count=1*} [errorrstat NOGROUP r]} proc ::test) ",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  "1s": {
+    "binary_sha256": "f32a7616bcc03c98689ac194501481a8e3fe4ce25e088b4f2b396a220a4f7a50",
+    "rows": 36,
+    "named_failures": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/stream-cgroups.tcl",
+        "test": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl",
+        "data": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl\nExpected '' to match '*count=1*' (context: type eval line 13 cmd {assert_match {*count=1*} [errorrstat NOGROUP r]} proc ::test) ",
+        "milliseconds": "0"
+      }
+    ]
+  }
+}

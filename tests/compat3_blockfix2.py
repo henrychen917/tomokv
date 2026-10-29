@@ -73,21 +73,92 @@ def removed(c, clients):
     parked(c, 1); c.cmd("RPUSH", "mixed", "x")
     equal(a.read(), [b"mixed", b"x"], "list waiter survives stream removal")
     parked(c, 0); out.append(got)
-    # Deletion is a command boundary even when recreation is already pipelined.
-    # Keep this assertion red until the owner chooses how to carry that boundary
-    # through stream retirement; a later dirty sweep can observe the new group.
+    # Fresh registrations also cover owner cleanup racing the next dispatch.
+    # Every attempt must observe the deletion boundary, with no skipped window.
+    for delete in (("DEL", "boundary"), ("UNLINK", "boundary"),
+                   ("DEL", "boundary", "other-owner")) * 8:
+        c.cmd("DEL", "boundary", "other-owner")
+        c.cmd("XGROUP", "CREATE", "boundary", "g", "$", "MKSTREAM")
+        w = waiter(c, clients, "XREADGROUP", "GROUP", "g", "c", "BLOCK", 0,
+                   "STREAMS", "boundary", ">")
+        c.raw(b"".join(encode(*command) for command in (
+            delete,
+            ("XGROUP", "CREATE", "boundary", "g", "$", "MKSTREAM"),
+            ("XADD", "boundary", "1-0", "f", "v"))))
+        equal([c.read(), c.read(), c.read()], [1, b"OK", b"1-0"], "pipeline replies")
+        got = w.read()
+        assert isinstance(got, RespError) and str(got).startswith("NOGROUP"), (
+            "deleted group's waiter must not consume recreated stream", delete, got)
+        parked(c, 0); out.append(got)
+        equal(c.cmd("XPENDING", "boundary", "g"), [0, None, None, None],
+              "recreated group has no inherited delivery")
+        equal(c.cmd("XINFO", "CONSUMERS", "boundary", "g"), [],
+              "recreated group has no inherited consumer")
+        equal(c.cmd("XREADGROUP", "GROUP", "g", "new", "STREAMS", "boundary", ">"),
+              [[b"boundary", [[b"1-0", [b"f", b"v"]]]]], "new consumer owns new entry")
+    # RENAME recreates a group without running XGROUP CREATE on the target.
+    # It must preserve the same deletion boundary, including atomic cleanup.
+    for delete in (("DEL", "boundary"), ("DEL", "boundary", "other-owner")) * 8:
+        c.cmd("DEL", "boundary", "other-owner")
+        c.cmd("XGROUP", "CREATE", "boundary", "g", "$", "MKSTREAM")
+        w = waiter(c, clients, "XREADGROUP", "GROUP", "g", "c", "BLOCK", 0,
+                   "STREAMS", "boundary", ">")
+        c.cmd("XGROUP", "CREATE", "replacement", "g", "$", "MKSTREAM")
+        c.raw(b"".join(encode(*command) for command in (
+            delete, ("RENAME", "replacement", "boundary"),
+            ("XADD", "boundary", "1-0", "f", "v"))))
+        equal([c.read(), c.read(), c.read()], [1, b"OK", b"1-0"], "RENAME pipeline replies")
+        got = w.read()
+        assert isinstance(got, RespError) and str(got).startswith("NOGROUP"), (
+            "deleted group's waiter must not consume recreated stream", delete, "RENAME", got)
+        parked(c, 0); out.append(got)
+        equal(c.cmd("XPENDING", "boundary", "g"), [0, None, None, None],
+              "renamed group has no inherited delivery")
+        equal(c.cmd("XINFO", "CONSUMERS", "boundary", "g"), [],
+              "renamed group has no inherited consumer")
+    # EXEC's command boundary is the whole transaction: recreation inside it
+    # retains the waiter and delivers the replacement group's committed data.
+    c.cmd("DEL", "boundary")
     c.cmd("XGROUP", "CREATE", "boundary", "g", "$", "MKSTREAM")
     w = waiter(c, clients, "XREADGROUP", "GROUP", "g", "c", "BLOCK", 0,
                "STREAMS", "boundary", ">")
-    c.raw(b"".join(encode(*command) for command in (
-        ("DEL", "boundary"),
-        ("XGROUP", "CREATE", "boundary", "g", "$", "MKSTREAM"),
-        ("XADD", "boundary", "1-0", "f", "v"))))
-    equal([c.read(), c.read(), c.read()], [1, b"OK", b"1-0"], "pipeline replies")
+    c.cmd("MULTI")
+    c.cmd("DEL", "boundary")
+    c.cmd("XGROUP", "CREATE", "boundary", "g", "$", "MKSTREAM")
+    c.cmd("XADD", "boundary", "1-0", "f", "v")
+    equal(c.cmd("EXEC"), [1, b"OK", b"1-0"], "EXEC replies")
     got = w.read()
-    assert isinstance(got, RespError) and str(got).startswith("NOGROUP"), (
-        "deleted group's waiter must not consume recreated stream", got)
+    equal(got, [[b"boundary", [[b"1-0", [b"f", b"v"]]]]], "EXEC publication boundary")
     parked(c, 0); out.append(got)
+    # Accounting belongs to each failed command, not its producer or key. A
+    # surviving group on the same stream must neither fail nor be charged.
+    c.cmd("CONFIG", "RESETSTAT")
+    c.cmd("XGROUP", "CREATE", "accounting", "gone", "$", "MKSTREAM")
+    c.cmd("XGROUP", "CREATE", "accounting", "live", "$")
+    failed = [waiter(c, clients, "XREADGROUP", "GROUP", "gone", who, "BLOCK", 0,
+                     "STREAMS", "accounting", ">") for who in ("one", "two")]
+    live = waiter(c, clients, "XREADGROUP", "GROUP", "live", "three", "BLOCK", 0,
+                  "STREAMS", "accounting", ">")
+    equal(c.cmd("XGROUP", "DESTROY", "accounting", "gone"), 1, "destroy one group")
+    for w in failed:
+        got = w.read()
+        assert isinstance(got, RespError) and str(got).startswith("NOGROUP"), got
+    parked(c, 1)
+    c.cmd("XADD", "accounting", "1-0", "f", "v")
+    equal(live.read(), [[b"accounting", [[b"1-0", [b"f", b"v"]]]]], "other group survives")
+    parked(c, 0)
+    equal(info(c, "errorstats").get("errorstat_NOGROUP"), "count=2", "NOGROUP replies counted once")
+    equal(info(c, "default").get("errorstat_NOGROUP"), "count=2", "default INFO includes Errorstats")
+    equal(info(c).get("errorstat_NOGROUP"), "count=2", "bare INFO includes Errorstats")
+    equal(info(c, "stats").get("total_error_replies"), "2", "total NOGROUP errors")
+    stats = dict(field.split("=", 1) for field in info(c, "commandstats")["cmdstat_xreadgroup"].split(","))
+    equal([stats.get(k) for k in ("calls", "rejected_calls", "failed_calls")], ["3", "0", "2"],
+          "failed blocked commands counted once")
+    c.cmd("CONFIG", "RESETSTAT")
+    equal(info(c, "errorstats").get("errorstat_NOGROUP"), None, "RESETSTAT clears NOGROUP")
+    equal(info(c, "stats").get("total_error_replies"), "0", "RESETSTAT clears total errors")
+    equal(info(c, "commandstats").get("cmdstat_xreadgroup"), None, "RESETSTAT clears command failures")
+    out.append(["NOGROUP", 2, "xreadgroup", 3, 0, 2])
     return out
 
 

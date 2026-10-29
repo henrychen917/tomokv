@@ -1,0 +1,32 @@
+{
+  "total": 1051,
+  "functions": {
+    "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 121,
+    "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)": 206,
+    "tomo_db0::multi_task_tagged(tomo_db0::Task const&)": 4,
+    "void tomo_db0::(anonymous namespace)::cmd_get<false, true>(tomo_db0::Shard&, tomo_db0::Op&)": 77,
+    "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)": 106,
+    "tomo_db0::Slice::key_eq(tomo_db0::Slice const&) const": 29,
+    "void tomo_db0::reply_bulk<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice) [clone .isra.0]": 110,
+    "tomo_db0::ExLoopT<false>::flush_notify_batch()": 94,
+    "tomo_db0::Shard::publish_size()": 216,
+    "tomo_db0::FlatStore::publish_database_counts() const": 88
+  },
+  "bodies": {
+    "0xde1a0 void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 121,
+    "0xdcdb0 bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)": 206,
+    "0x132110 tomo_db0::multi_task_tagged(tomo_db0::Task const&)": 4,
+    "0x1efc90 void tomo_db0::(anonymous namespace)::cmd_get<false, true>(tomo_db0::Shard&, tomo_db0::Op&)": 77,
+    "0x18acd0 tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)": 106,
+    "0x182ff0 tomo_db0::Slice::key_eq(tomo_db0::Slice const&) const": 29,
+    "0x1ec8f0 void tomo_db0::reply_bulk<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice) [clone .isra.0]": 110,
+    "0xd29a0 tomo_db0::ExLoopT<false>::flush_notify_batch()": 94,
+    "0x3ebb70 tomo_db0::Shard::publish_size()": 216,
+    "0x3ebb30 tomo_db0::FlatStore::publish_database_counts() const": 88
+  },
+  "excluded": {
+    "memcpy@plt": 1
+  },
+  "clock_calls": 1,
+  "binary_sha256": "e6821f7e549fd069cea3e97b1ceed52738ab764015d419bfab7c4ec8418d2f2e"
+}

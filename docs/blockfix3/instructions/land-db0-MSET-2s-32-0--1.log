@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-blockfix3/build/blockfix3/commands/land-db0-MSET-2s-32-0--1.log
+SHA-256: 363882824d770e874974391a78ee0e23f0eb1c79f705b0ce5c2dcea82197f4c5
+Exit: 0
+PASS bounded production command scope
+284	}
+0x000055555569f960	2284	}
+0x000055555569f962	2284	}
+0x000055555569f964	2284	}
+0x0000555555d94cc6 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-blockfix3/tests/txnorder_command_scope.cc:112
+112	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
+95	   for(unsigned i=0;i<n;i++){
+0x0000555555d94cd2	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d94cd9	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d94ce1	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d94ce8	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d94cee	115	   std::string want="+OK\r\n";
+0x0000555555d94cf5	115	   std::string want="+OK\r\n";
+0x0000555555d94cfc	114	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-blockfix3/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 3928910) exited normally]
+COUNT 350373

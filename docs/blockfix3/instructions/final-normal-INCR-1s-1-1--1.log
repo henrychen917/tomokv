@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-blockfix3/build/blockfix3/commands/final-normal-INCR-1s-1-1--1.log
+SHA-256: bd67766594a0a9d3428db5433434d5a6baf08eafe62987e61bede37d24a7ced6
+Exit: 0
+0x0000555555c90428	2353	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
+0x0000555555c902f3 in tomo::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff61cf088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356
+2356	    }
+0x0000555555c902f8	2356	    }
+0x0000555555c90301	2356	    }
+0x0000555555c90307	2356	    }
+0x0000555555c9030b	2356	    }
+0x0000555555c9030c	2356	    }
+0x0000555555c9030e	2356	    }
+0x0000555555c90310	2356	    }
+0x0000555555c90312	2356	    }
+0x0000555555c90314	2356	    }
+0x0000555555c90315	2356	    }
+0x0000555555d90bf8 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-blockfix3/tests/txnorder_command_scope.cc:72
+72	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-blockfix3/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 248586) exited normally]
+COUNT 1514

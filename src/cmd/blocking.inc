@@ -1376,6 +1376,15 @@ void blocking_publish_zset_op(Shard& shard, Op& op) {
     blocking_publish_key(shard, op.hash, op.key().p, op.key().n, op.key().ns);
 }
 
+void blocking_publish_deleted(Shard& shard, Op& op) {
+    if (!shard.has_blocking_waiters()) return;
+    for (uint32_t i = 1; i < op.argc(); i++) {
+        const Slice key = op.arg(i);
+        blocking_publish_key(shard, i == 1 ? op.hash : FlatStore::hash_key(key),
+                             key.p, key.n, key.ns);
+    }
+}
+
 void blocking_defer_plain_publication(bool defer) { blocking_tls_defer_plain = defer; }
 
 void blocking_plain_mutation_published(Shard& shard, Op& op) {
@@ -1403,6 +1412,14 @@ void blocking_plain_mutation_published(Shard& shard, Op& op) {
         const Slice key = op.arg(2);
         blocking_publish_key(shard, FlatStore::hash_key(key), key.p, key.n, key.ns);
     }
+}
+
+void blocking_cleanup_published(Shard& shard) {
+    if (blocking_tls_defer_plain || !blocking_tls_self || !blocking_tls_ring ||
+        !shard.has_blocking_waiters() || !shard.take_blocking_dirty()) return;
+    BlockingRegistry* registry = blocking_registry_get(shard, false);
+    if (registry)
+        registry->sweep(shard, shard.now_ms(), true, *blocking_tls_self, *blocking_tls_ring);
 }
 
 uint32_t blocking_owner_cycle(Server&, ThreadCtx& self, Ring& ring, int64_t now_ms,
@@ -1438,10 +1455,12 @@ void blocking_atomic_published(Server& server, ThreadCtx& self, Ring& ring,
 void blocking_scatter_mutation_published(const Task& task, Shard& shard, Op& op) {
     if (!task.scatter || !shard.has_blocking_waiters()) return;
     ScatterState& state = *task.scatter;
-    if (state.atomic_group || state.phase != 2 ||
+    const bool deletion = !state.atomic_apply && state.phase == 1 &&
+        (state.kind == Kind::Del || state.kind == Kind::Unlink);
+    if (state.atomic_group || (!deletion && (state.phase != 2 ||
         !(state.kind == Kind::Lmove || state.kind == Kind::Rpoplpush ||
           state.kind == Kind::Rename || state.kind == Kind::Renamenx ||
-          state.kind == Kind::Sort)) return;
+          state.kind == Kind::Sort)))) return;
     ShardGroup* group = group_for(state, shard.id());
     if (!group) return;
     for (uint32_t i = 0; i < group->count; i++) {

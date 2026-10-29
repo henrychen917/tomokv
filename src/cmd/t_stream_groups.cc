@@ -29,6 +29,18 @@ namespace {
 
 constexpr uint32_t kMaxIdText = 128;
 
+// This cold command owns its reply accounting, including replies generated
+// after parking. Never infer errors from the producer's command or count a
+// probe which merely discovers a missing group without sending a reply.
+std::atomic<uint64_t> xreadgroup_nogroup{0};
+std::atomic<uint64_t> xreadgroup_usec{0};
+struct XreadgroupTiming {
+    uint64_t start = now_ns();
+    ~XreadgroupTiming() {
+        xreadgroup_usec.fetch_add((now_ns() - start) / 1000, std::memory_order_relaxed);
+    }
+};
+
 int id_compare(const StreamID& a, const StreamID& b) {
     if (a.ms != b.ms) return a.ms < b.ms ? -1 : 1;
     if (a.seq != b.seq) return a.seq < b.seq ? -1 : 1;
@@ -224,6 +236,7 @@ void maybe_release_groups(StreamVal& stream) {
 }
 
 void reply_nogroup(Op& op, Slice key, Slice group, bool xreadgroup = false) {
+    if (xreadgroup) xreadgroup_nogroup.fetch_add(1, std::memory_order_relaxed);
     std::string message = "NOGROUP No such key '";
     message.append(key.p, key.n);
     message += "' or consumer group '";
@@ -427,6 +440,13 @@ void cmd_xgroup(Shard& shard, Op& op) {
         reply_stream_subcommand_syntax(op); return;
     }
     const Slice key = op.arg(2);
+    // A committed DEL may already have been materialized by owner cleanup,
+    // leaving no atomic record for the dispatch publication hook to observe.
+    // Publish the old group state before CREATE can replace it. EXEC/plain
+    // views retain their existing deferred publication; no object is borrowed
+    // across this call because waking a group reader can replace the stream.
+    if (create && shard.has_blocking_waiters())
+        blocking_publish_key(shard, op.hash, key.p, key.n, key.ns);
     KvObj* object = shard.store_find<kNotify>(op.hash, key);
     if (object && !obj_type_check(object, Type::Stream, op.sink())) return;
     if (!object && !mkstream) {
@@ -1244,6 +1264,11 @@ static const CommandSpec kTable[] = {
 
 }  // namespace
 
+StreamGroupStats stream_xreadgroup_stats() {
+    return {xreadgroup_nogroup.load(std::memory_order_relaxed),
+            xreadgroup_usec.load(std::memory_order_relaxed)};
+}
+
 StreamVal::~StreamVal() { stream_groups_destroy(groups); }
 
 void stream_groups_destroy(void* groups) { delete static_cast<StreamGroups*>(groups); }
@@ -1319,12 +1344,14 @@ StreamGroupProbe stream_group_prepare_waiter(Shard& shard, Slice key, uint64_t h
 }
 
 void stream_xreadgroup_reply_nogroup(Op& op) {
+    XreadgroupTiming timing;
     StreamXreadGroupArgs parsed;
     if (stream_parse_xreadgroup(op, parsed))
         reply_nogroup(op, op.arg(parsed.key_arg), op.arg(parsed.group_arg), true);
 }
 
 bool stream_xreadgroup_execute(Shard& shard, Op& op, bool may_block) {
+    XreadgroupTiming timing;
     StreamXreadGroupArgs parsed;
     if (!stream_parse_xreadgroup(op, parsed)) return true;
     const Slice key = op.arg(parsed.key_arg);

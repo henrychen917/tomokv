@@ -270,6 +270,7 @@
     "blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4",
     "blockfix CC4.19 XINFO structural counts vs Redis 7.4",
     "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE",
+    "blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK",
     "blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS",
     "blockfix2 MULTI-XREADGROUP-BLOCK-HANG",
     "blockfix2 INFO-TOTAL-BLOCKING-KEYS",
