@@ -129,7 +129,7 @@ struct CoreConcurrencyTest {
    need(n==1); ScatterArenaPool pool; Ring ring;
    const bool header=command.ends_with("-header");
    const std::string body="return {redis.call('INCR',KEYS[1]),redis.call('INCR',KEYS[2])}";
-   const std::string code=(header?"#!lua flags=allow-oom\n":"")+body;
+   const std::string code=(header?"#!lua\n":"")+body;
    std::string verb="EVAL",target=code;
    if(command.starts_with("EVALSHA")) {
     Op load;load.reset();load.push_arg(Slice("SCRIPT"));load.push_arg(Slice("LOAD"));load.push_arg(Slice(code));

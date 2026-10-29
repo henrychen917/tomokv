@@ -37,17 +37,20 @@ def build(label,source,objects,namespace):
     return dest/'probe'
 def prepare(binary,objects,namespace,domain):
     syms=symbols(binary);prefix='tomo::' if namespace=='normal' else 'tomo_db0::'
-    lua=set()
-    if domain=='lua':
-        for obj in [objects/'src/cmd/scripting.o',*sorted((objects/'third_party/lua/helpers').glob('*.o'))]:
-            lua.update(r[2] for r in symbols(obj) if not r[2].startswith('_Z'))
-    ranges=[r for r in syms if (prefix in r[3] and 'CoreConcurrencyTest::' not in r[3]) or r[2] in lua]
+    # Lua-inclusive walks every function in the executable, including fixture
+    # callback wrappers. Otherwise drain_tasks(test_lambda) hides entire later
+    # scatter phases. Fixture instructions remain uncounted, as do shared libs.
+    ranges=[]
+    for r in syms:
+        fixture='CoreConcurrencyTest::' in r[3] or r[2] in ('main','_Z11scope_beginv','_Z9scope_endv')
+        if domain=='lua':ranges.append(r+[not fixture])
+        elif prefix in r[3] and not fixture:ranges.append(r+[True])
     for line in subprocess.check_output(['readelf','-SW',str(binary)],text=True).splitlines():
         m=re.search(r'\]\s+\.rlfence\s+PROGBITS\s+([0-9a-f]+)\s+[0-9a-f]+\s+([0-9a-f]+)',line)
         if m:
-            start,size=(int(x,16) for x in m.groups());ranges.append([start,start+size,'.rlfence',prefix+'[asm .rlfence]'])
+            start,size=(int(x,16) for x in m.groups());ranges.append([start,start+size,'.rlfence',prefix+'[asm .rlfence]',True])
     ranges.sort();rf=binary.parent/(domain+'.ranges')
-    rf.write_text(''.join(f'{r[0]:x} {r[1]:x}\n' for r in ranges))
+    rf.write_text(''.join(f'{r[0]:x} {r[1]:x} {int(r[4])}\n' for r in ranges))
     named={r[2]:r[0] for r in syms}
     dump=subprocess.check_output(['objdump','-d','-j','.plt','-j','.plt.sec','-j','.plt.got',str(binary)],text=True)
     m=re.search(r'([0-9a-f]+) <clock_gettime@plt>:',dump)
@@ -57,7 +60,7 @@ def trace(prepared,label,namespace,domain,command,mode,batch,atomic):
     target=DOC/label/domain/('-'.join(map(str,(namespace,command,mode,batch,atomic)))+'.json')
     if target.exists():
         old=json.loads(target.read_text())
-        if old['probe_sha256']==digest:return old
+        if old['probe_sha256']==digest and old.get('tracer_sha256')==sha(BUILD/'trace'):return old
     run=subprocess.run(argv+[command,mode,str(batch),str(atomic),'-1'],text=True,capture_output=True,timeout=600)
     if run.returncode:raise RuntimeError(str(target)+' '+run.stderr+run.stdout[-1000:])
     record=json.loads(next(l[6:] for l in run.stdout.splitlines() if l.startswith('TRACE=')))
@@ -66,7 +69,7 @@ def trace(prepared,label,namespace,domain,command,mode,batch,atomic):
         at=int(pc,16);i=bisect.bisect_right(starts,at)-1;assert i>=0 and at<ranges[i][1]
         name=ranges[i][3];functions[name]=functions.get(name,0)+n
     row=dict(arm=label,namespace=namespace,domain=domain,command=command,mode=mode,batch=batch,atomic=atomic,
-        probe_sha256=digest,total=sum(functions.values()),functions=functions,clock_calls=record['clock_calls'],excluded_calls=record['excluded_calls'])
+        probe_sha256=digest,tracer_sha256=sha(BUILD/'trace'),total=sum(functions.values()),functions=functions,clock_calls=record['clock_calls'],excluded_calls=record['excluded_calls'])
     save(target,row)
     with gzip.GzipFile(filename=str(target)+'.sites.gz',mode='wb',mtime=0) as f:f.write(json.dumps(record).encode())
     target.with_suffix('.log').write_text(' '.join(argv+[command,mode,str(batch),str(atomic),'-1'])+'\n'+run.stderr+'\n'.join(l for l in run.stdout.splitlines() if not l.startswith('TRACE='))+'\nCOUNT '+str(row['total'])+'\n')
