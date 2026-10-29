@@ -7429,6 +7429,820 @@
     ]
   },
   {
+    "run": "final-aof-all-shards",
+    "file": {
+      "path": "build/flushfix2/siblings/final-aof-all-shards/aof-restart-1/results.json",
+      "sha256": "0f4a64d78ffce66a05515a63c445ab83230957b84bcb8d28775c40f5cccf5018"
+    },
+    "results": [
+      {
+        "case": "aof-restart",
+        "leg": "redis-redis-0",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 17332,
+          "work": 10703,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 16,
+          "aof_namespaces": 1
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 17332,
+              "work": 10703,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 16,
+              "aof_namespaces": 1
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.472
+      },
+      {
+        "case": "aof-restart",
+        "leg": "1s-uring-0",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 783,
+          "work": 1715,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 16,
+          "aof_namespaces": 1
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 783,
+              "work": 1715,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 16,
+              "aof_namespaces": 1
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.073
+      },
+      {
+        "case": "aof-restart",
+        "leg": "1s-uring-1",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 824,
+          "work": 1208,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 16,
+          "aof_namespaces": 1
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 824,
+              "work": 1208,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 16,
+              "aof_namespaces": 1
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.102
+      },
+      {
+        "case": "aof-restart",
+        "leg": "1s-epoll-0",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 630,
+          "work": 756,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 16,
+          "aof_namespaces": 1
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 630,
+              "work": 756,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 16,
+              "aof_namespaces": 1
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.092
+      },
+      {
+        "case": "aof-restart",
+        "leg": "1s-epoll-1",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 586,
+          "work": 1231,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 16,
+          "aof_namespaces": 1
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 586,
+              "work": 1231,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 16,
+              "aof_namespaces": 1
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.088
+      },
+      {
+        "case": "aof-restart",
+        "leg": "2s-uring-0",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 1529,
+          "work": 1759,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 16,
+          "aof_namespaces": 1
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 1529,
+              "work": 1759,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 16,
+              "aof_namespaces": 1
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.097
+      },
+      {
+        "case": "aof-restart",
+        "leg": "2s-uring-1",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 2208,
+          "work": 2397,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 16,
+          "aof_namespaces": 1
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 2208,
+              "work": 2397,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 16,
+              "aof_namespaces": 1
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.1
+      },
+      {
+        "case": "aof-restart",
+        "leg": "2s-epoll-0",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 1668,
+          "work": 1768,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 16,
+          "aof_namespaces": 1
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 1668,
+              "work": 1768,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 16,
+              "aof_namespaces": 1
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.087
+      },
+      {
+        "case": "aof-restart",
+        "leg": "2s-epoll-1",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 1560,
+          "work": 1729,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 16,
+          "aof_namespaces": 1
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 1560,
+              "work": 1729,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 16,
+              "aof_namespaces": 1
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.091
+      }
+    ],
+    "details": [
+      {
+        "path": "build/flushfix2/siblings/final-aof-all-shards/aof-restart-1/1s-epoll-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-aof-all-shards/aof-restart-1/1s-epoll-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-aof-all-shards/aof-restart-1/1s-uring-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-aof-all-shards/aof-restart-1/1s-uring-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-aof-all-shards/aof-restart-1/2s-epoll-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-aof-all-shards/aof-restart-1/2s-epoll-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-aof-all-shards/aof-restart-1/2s-uring-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-aof-all-shards/aof-restart-1/2s-uring-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-aof-all-shards/aof-restart-1/redis-redis-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      }
+    ]
+  },
+  {
+    "run": "final-aof-all-shards",
+    "file": {
+      "path": "build/flushfix2/siblings/final-aof-all-shards/aof-restart-16/results.json",
+      "sha256": "e976fd92e40062a24b933e691b448b7681a196f2ccfc22c4db14ae9ebf89fd94"
+    },
+    "results": [
+      {
+        "case": "aof-restart",
+        "leg": "redis-redis-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 16708,
+          "work": 10313,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 256,
+          "aof_namespaces": 16
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 16708,
+              "work": 10313,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 256,
+              "aof_namespaces": 16
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.436
+      },
+      {
+        "case": "aof-restart",
+        "leg": "1s-uring-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 754,
+          "work": 1900,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 256,
+          "aof_namespaces": 16
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 754,
+              "work": 1900,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 256,
+              "aof_namespaces": 16
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.201
+      },
+      {
+        "case": "aof-restart",
+        "leg": "1s-uring-1",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 696,
+          "work": 2666,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 256,
+          "aof_namespaces": 16
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 696,
+              "work": 2666,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 256,
+              "aof_namespaces": 16
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.194
+      },
+      {
+        "case": "aof-restart",
+        "leg": "1s-epoll-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 662,
+          "work": 1807,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 256,
+          "aof_namespaces": 16
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 662,
+              "work": 1807,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 256,
+              "aof_namespaces": 16
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.185
+      },
+      {
+        "case": "aof-restart",
+        "leg": "1s-epoll-1",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 677,
+          "work": 1841,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 256,
+          "aof_namespaces": 16
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 677,
+              "work": 1841,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 256,
+              "aof_namespaces": 16
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.195
+      },
+      {
+        "case": "aof-restart",
+        "leg": "2s-uring-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 1352,
+          "work": 1571,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 256,
+          "aof_namespaces": 16
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 1352,
+              "work": 1571,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 256,
+              "aof_namespaces": 16
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.202
+      },
+      {
+        "case": "aof-restart",
+        "leg": "2s-uring-1",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 1233,
+          "work": 1224,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 256,
+          "aof_namespaces": 16
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 1233,
+              "work": 1224,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 256,
+              "aof_namespaces": 16
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.23
+      },
+      {
+        "case": "aof-restart",
+        "leg": "2s-epoll-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 1367,
+          "work": 1478,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 256,
+          "aof_namespaces": 16
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 1367,
+              "work": 1478,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 256,
+              "aof_namespaces": 16
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.26
+      },
+      {
+        "case": "aof-restart",
+        "leg": "2s-epoll-1",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 1461,
+          "work": 1944,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 256,
+          "aof_namespaces": 16
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 1461,
+              "work": 1944,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 256,
+              "aof_namespaces": 16
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.262
+      }
+    ],
+    "details": [
+      {
+        "path": "build/flushfix2/siblings/final-aof-all-shards/aof-restart-16/1s-epoll-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-aof-all-shards/aof-restart-16/1s-epoll-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-aof-all-shards/aof-restart-16/1s-uring-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-aof-all-shards/aof-restart-16/1s-uring-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-aof-all-shards/aof-restart-16/2s-epoll-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-aof-all-shards/aof-restart-16/2s-epoll-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-aof-all-shards/aof-restart-16/2s-uring-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-aof-all-shards/aof-restart-16/2s-uring-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-aof-all-shards/aof-restart-16/redis-redis-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      }
+    ]
+  },
+  {
     "run": "final-extra",
     "file": {
       "path": "build/flushfix2/siblings/final-extra/debug-loadaof-1/results.json",
@@ -13186,6 +14000,1634 @@
       },
       {
         "path": "build/flushfix2/siblings/final-loaders/debug-reload-16/redis-redis-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      }
+    ]
+  },
+  {
+    "run": "final-rdb-generations",
+    "file": {
+      "path": "build/flushfix2/siblings/final-rdb-generations/bgsave-straddle-1/results.json",
+      "sha256": "b0a30042cf697703b76d8ca350a38d4071b6d65b776033ec87849d2b5e32b601"
+    },
+    "results": [
+      {
+        "case": "bgsave-straddle",
+        "leg": "redis-redis-0",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 55458,
+          "work": 65484,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 41,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 55458,
+              "work": 65484,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 41,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.235
+      },
+      {
+        "case": "bgsave-straddle",
+        "leg": "1s-uring-0",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 19464,
+          "work": 41944,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 19464,
+              "work": 41944,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.218
+      },
+      {
+        "case": "bgsave-straddle",
+        "leg": "1s-uring-1",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 1372,
+          "work": 32985,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 1372,
+              "work": 32985,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.253
+      },
+      {
+        "case": "bgsave-straddle",
+        "leg": "1s-epoll-0",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 18645,
+          "work": 44026,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 18645,
+              "work": 44026,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.212
+      },
+      {
+        "case": "bgsave-straddle",
+        "leg": "1s-epoll-1",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 1060,
+          "work": 31050,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 1060,
+              "work": 31050,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.213
+      },
+      {
+        "case": "bgsave-straddle",
+        "leg": "2s-uring-0",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 32916,
+          "work": 43238,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 32916,
+              "work": 43238,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.227
+      },
+      {
+        "case": "bgsave-straddle",
+        "leg": "2s-uring-1",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 27439,
+          "work": 40555,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 27439,
+              "work": 40555,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.229
+      },
+      {
+        "case": "bgsave-straddle",
+        "leg": "2s-epoll-0",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 35780,
+          "work": 40635,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 35780,
+              "work": 40635,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.23
+      },
+      {
+        "case": "bgsave-straddle",
+        "leg": "2s-epoll-1",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 29609,
+          "work": 39869,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 29609,
+              "work": 39869,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.231
+      }
+    ],
+    "details": [
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/bgsave-straddle-1/1s-epoll-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/bgsave-straddle-1/1s-epoll-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/bgsave-straddle-1/1s-uring-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/bgsave-straddle-1/1s-uring-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/bgsave-straddle-1/2s-epoll-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/bgsave-straddle-1/2s-epoll-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/bgsave-straddle-1/2s-uring-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/bgsave-straddle-1/2s-uring-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/bgsave-straddle-1/redis-redis-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      }
+    ]
+  },
+  {
+    "run": "final-rdb-generations",
+    "file": {
+      "path": "build/flushfix2/siblings/final-rdb-generations/bgsave-straddle-16/results.json",
+      "sha256": "9906e3bcc6f67b7bd71f13a10b8740ef9e2f0452ddf1a8e66f686b4db22948d0"
+    },
+    "results": [
+      {
+        "case": "bgsave-straddle",
+        "leg": "redis-redis-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 58144,
+          "work": 68066,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 41,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 58144,
+              "work": 68066,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 41,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.234
+      },
+      {
+        "case": "bgsave-straddle",
+        "leg": "1s-uring-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 621,
+          "work": 43779,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 621,
+              "work": 43779,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.243
+      },
+      {
+        "case": "bgsave-straddle",
+        "leg": "1s-uring-1",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 23448,
+          "work": 36055,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 23448,
+              "work": 36055,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.208
+      },
+      {
+        "case": "bgsave-straddle",
+        "leg": "1s-epoll-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 611,
+          "work": 40450,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 611,
+              "work": 40450,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.244
+      },
+      {
+        "case": "bgsave-straddle",
+        "leg": "1s-epoll-1",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 754,
+          "work": 27722,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 754,
+              "work": 27722,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.253
+      },
+      {
+        "case": "bgsave-straddle",
+        "leg": "2s-uring-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 25116,
+          "work": 28374,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 25116,
+              "work": 28374,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.232
+      },
+      {
+        "case": "bgsave-straddle",
+        "leg": "2s-uring-1",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 35234,
+          "work": 34708,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 35234,
+              "work": 34708,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.24
+      },
+      {
+        "case": "bgsave-straddle",
+        "leg": "2s-epoll-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 35435,
+          "work": 41196,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 35435,
+              "work": 41196,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.226
+      },
+      {
+        "case": "bgsave-straddle",
+        "leg": "2s-epoll-1",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 30899,
+          "work": 39964,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 30899,
+              "work": 39964,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.227
+      }
+    ],
+    "details": [
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/bgsave-straddle-16/1s-epoll-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/bgsave-straddle-16/1s-epoll-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/bgsave-straddle-16/1s-uring-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/bgsave-straddle-16/1s-uring-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/bgsave-straddle-16/2s-epoll-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/bgsave-straddle-16/2s-epoll-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/bgsave-straddle-16/2s-uring-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/bgsave-straddle-16/2s-uring-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/bgsave-straddle-16/redis-redis-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      }
+    ]
+  },
+  {
+    "run": "final-rdb-generations",
+    "file": {
+      "path": "build/flushfix2/siblings/final-rdb-generations/live-bgsave-1/results.json",
+      "sha256": "70aa4a643920be92307c4ee49d4a231456b54f0523cedc194f0fe4ba896066f9"
+    },
+    "results": [
+      {
+        "case": "live-bgsave",
+        "leg": "redis-redis-0",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 58693,
+          "work": 66924,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 41,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 58693,
+              "work": 66924,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 41,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.234
+      },
+      {
+        "case": "live-bgsave",
+        "leg": "1s-uring-0",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 734,
+          "work": 39420,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 734,
+              "work": 39420,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.208
+      },
+      {
+        "case": "live-bgsave",
+        "leg": "1s-uring-1",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 3155,
+          "work": 4508,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 3155,
+              "work": 4508,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.244
+      },
+      {
+        "case": "live-bgsave",
+        "leg": "1s-epoll-0",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 705,
+          "work": 45064,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 705,
+              "work": 45064,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.24
+      },
+      {
+        "case": "live-bgsave",
+        "leg": "1s-epoll-1",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 641,
+          "work": 39327,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 641,
+              "work": 39327,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.24
+      },
+      {
+        "case": "live-bgsave",
+        "leg": "2s-uring-0",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 59900,
+          "work": 65208,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 59900,
+              "work": 65208,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.208
+      },
+      {
+        "case": "live-bgsave",
+        "leg": "2s-uring-1",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 58071,
+          "work": 64819,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 58071,
+              "work": 64819,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.24
+      },
+      {
+        "case": "live-bgsave",
+        "leg": "2s-epoll-0",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 60292,
+          "work": 63801,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 60292,
+              "work": 63801,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.208
+      },
+      {
+        "case": "live-bgsave",
+        "leg": "2s-epoll-1",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 58754,
+          "work": 62979,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 58754,
+              "work": 62979,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.208
+      }
+    ],
+    "details": [
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/live-bgsave-1/1s-epoll-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/live-bgsave-1/1s-epoll-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/live-bgsave-1/1s-uring-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/live-bgsave-1/1s-uring-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/live-bgsave-1/2s-epoll-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/live-bgsave-1/2s-epoll-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/live-bgsave-1/2s-uring-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/live-bgsave-1/2s-uring-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/live-bgsave-1/redis-redis-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      }
+    ]
+  },
+  {
+    "run": "final-rdb-generations",
+    "file": {
+      "path": "build/flushfix2/siblings/final-rdb-generations/live-bgsave-16/results.json",
+      "sha256": "e2f8bfbd87cfe5a638341f61aaa451d7b6aa4c862773fc8efb869b6083603aca"
+    },
+    "results": [
+      {
+        "case": "live-bgsave",
+        "leg": "redis-redis-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 58414,
+          "work": 66849,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 41,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 58414,
+              "work": 66849,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 41,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.234
+      },
+      {
+        "case": "live-bgsave",
+        "leg": "1s-uring-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 29731,
+          "work": 47410,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 29731,
+              "work": 47410,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.208
+      },
+      {
+        "case": "live-bgsave",
+        "leg": "1s-uring-1",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 24592,
+          "work": 39194,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 24592,
+              "work": 39194,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.21
+      },
+      {
+        "case": "live-bgsave",
+        "leg": "1s-epoll-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 980,
+          "work": 43823,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 980,
+              "work": 43823,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.243
+      },
+      {
+        "case": "live-bgsave",
+        "leg": "1s-epoll-1",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 29873,
+          "work": 49848,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 29873,
+              "work": 49848,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.21
+      },
+      {
+        "case": "live-bgsave",
+        "leg": "2s-uring-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 56819,
+          "work": 65037,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 56819,
+              "work": 65037,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.208
+      },
+      {
+        "case": "live-bgsave",
+        "leg": "2s-uring-1",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 55317,
+          "work": 61537,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 55317,
+              "work": 61537,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.211
+      },
+      {
+        "case": "live-bgsave",
+        "leg": "2s-epoll-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 57636,
+          "work": 62214,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 57636,
+              "work": 62214,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.208
+      },
+      {
+        "case": "live-bgsave",
+        "leg": "2s-epoll-1",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 57804,
+          "work": 59319,
+          "saves": 8,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 8,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 57804,
+              "work": 59319,
+              "saves": 8,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 8,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.208
+      }
+    ],
+    "details": [
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/live-bgsave-16/1s-epoll-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/live-bgsave-16/1s-epoll-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/live-bgsave-16/1s-uring-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/live-bgsave-16/1s-uring-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/live-bgsave-16/2s-epoll-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/live-bgsave-16/2s-epoll-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/live-bgsave-16/2s-uring-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/live-bgsave-16/2s-uring-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/final-rdb-generations/live-bgsave-16/redis-redis-0/server.exit.json",
         "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
         "value": {
           "rc": 0,

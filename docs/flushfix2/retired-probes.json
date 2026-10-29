@@ -3612,5 +3612,269 @@
     "bytes": 8156,
     "sha256": "783e0deb853394d72133f12dc6cb1110986d822de027b5f9ff6fb5c5a829c0f0",
     "reason": "superseded arm or completed scope; result/count receipts retained"
+  },
+  {
+    "path": "build/flushfix2/counts/post-normal/step-plan",
+    "bytes": 27919142,
+    "sha256": "c78f0bf191e1fea46a5b448bdda1405992a9c61d4a3401e983204ddfc8fe3980",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/counts/post-db0/step-plan",
+    "bytes": 27950888,
+    "sha256": "6773bd533a2302577d57af24862e2f9d17dfc74c66ba061989d2c8bb0029ea37",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/counts/pre-db0/step-plan",
+    "bytes": 27590201,
+    "sha256": "a0dc407a3c2772e0a70253558e2cef251fedd95f1f3e2b51f1a7fb9a114edb61",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/counts/pre-normal/step-plan",
+    "bytes": 27563652,
+    "sha256": "0bdaa3e9659005fda3f5ef340603b213a1ca16d5579c12910375727236173d75",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/156000-normal/step-plan",
+    "bytes": 27863995,
+    "sha256": "cd224ecf74a4f3b7e2d12f26de4e620418be240a4c3074040b7d0b2094ff9246",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/152000-normal/step-plan",
+    "bytes": 27819370,
+    "sha256": "f2cfd3d24bba679c6c7b12ff023128347bbcfeb89a556336aad3ef6a8dfaa310",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/154473-normal/step-plan",
+    "bytes": 27796121,
+    "sha256": "eb82fbc335c22763c2ab2c3d5509e2eeefdd88164b05b0a86a96562e9a448628",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/154772-normal/step-plan",
+    "bytes": 27790012,
+    "sha256": "43bd82d8e7b2574bc92625a87d9edb127fc66e94899b5bf98f0b8e460deb3225",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/153265-db0/step-plan",
+    "bytes": 27822575,
+    "sha256": "ae22b3ee056bdf2cc77f59e3318e3dda38d83048226471c2da29afbe49f46713",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/153000-normal/step-plan",
+    "bytes": 27824966,
+    "sha256": "dd4ed00e352c9e4b332ade20b71fb565504b1337c87c30d9775d50c70ad34c44",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/159000:16-db0/step-plan",
+    "bytes": 27926199,
+    "sha256": "e5ba728b51bb103c9f9db880f1fc9d37005b9b693bd4e759330d8c1b3e5e3bbf",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/154471-normal/step-plan",
+    "bytes": 27796044,
+    "sha256": "fb42b58efe9120482668b9f04453ed79e30dcb5a7d16d349b026f392dd925717",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/156000:16-normal/step-plan",
+    "bytes": 27866309,
+    "sha256": "be9b06a83974ffe28d68346187ca1ea1720158edaf6120078f893ae38794b689",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/155000:16-normal/step-plan",
+    "bytes": 27860832,
+    "sha256": "5da2551e767ba26430ec2678af9fc95de360ea1748b7e9d49ae397d5740ab1e1",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/157000:16-db0/step-plan",
+    "bytes": 27909439,
+    "sha256": "99a032e5203c837f3c3f0c4adb5a5356b08f75df26a27a3de17e7c546da708a7",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/160000:14-db0/step-plan",
+    "bytes": 27934153,
+    "sha256": "dd96d4ac18fdb8b8549b0d4be6cc2a9fdc93dad5efd9c6250b724981d63be8ea",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/156000:16-db0/step-plan",
+    "bytes": 27903413,
+    "sha256": "120e7d81a4f9328742c55673d16ea186916701bf5fdb2c96a1f113103eecafc5",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/157000:16-normal/step-plan",
+    "bytes": 27874568,
+    "sha256": "c6745857221c526d6c66d0714c39eb1da6f7888202b8ed06082f04f513d01f58",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/154770-normal/step-plan",
+    "bytes": 27789989,
+    "sha256": "b1487c9a7d99be367287dbc62a60717840d2e844a53cf227b30d6bd86b75462f",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/155000:16-db0/step-plan",
+    "bytes": 27893783,
+    "sha256": "ea7fc432bc5b0af63e47baa9f91119493d848bf95adcf43fb00a24f32e912c80",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/155000-db0/step-plan",
+    "bytes": 27892158,
+    "sha256": "28c5a567a0d0b44001bed0f40f872de7cc418776aed24ad39710708a737efd8b",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/152000-db0/step-plan",
+    "bytes": 27854750,
+    "sha256": "63de40732a91f668ccda3303e22bd921a351ddc68c5f8d21840a5318f63904b5",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/153564-db0/step-plan",
+    "bytes": 27822182,
+    "sha256": "c85f93d81b98c4278cf38275d8f340f47351c004aa09f8fec3e2b66b628bdcf8",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/153261-db0/step-plan",
+    "bytes": 27822479,
+    "sha256": "115ad7388f9a3ca211221b9dd8b48144a4c5878d0da567f6d766ae266527cf49",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/157000-normal/step-plan",
+    "bytes": 27873241,
+    "sha256": "746478422008efb44fd110a2fda20fd6ad40d4a43341a820d9c4cbb50d9203bb",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/153560-db0/step-plan",
+    "bytes": 27822020,
+    "sha256": "79528f357198eca67b7db768885f1472f684912fee6bfc2eff10a377f093f23a",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/156000-db0/step-plan",
+    "bytes": 27897436,
+    "sha256": "4ebf8caf9ee994197900ee65b2534d20b7aad386f8537103e842951251d80778",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/155000-normal/step-plan",
+    "bytes": 27855033,
+    "sha256": "5b49f586fbaacb31b924b81e6a1da32de6a800bfee16568ca386728895a4dfcd",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/154774-normal/step-plan",
+    "bytes": 27790218,
+    "sha256": "ace7b727cee7433f564136f16e83f46c951b33cc88f2d74d75c7c255710646d6",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/153562-db0/step-plan",
+    "bytes": 27822171,
+    "sha256": "5df4a7ed3289131446382831b4f9a9b4c402ec48c1209d8279f63df6911a87a3",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/153000-db0/step-plan",
+    "bytes": 27868896,
+    "sha256": "54e27148a9100475e02af65ea9d63bc2c8b691c81f4282b47391b35070f3a2f1",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/153263-db0/step-plan",
+    "bytes": 27822416,
+    "sha256": "18cb930ab9752d0067d83061be461e104af7815795c48a8593428ca2ce062558",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/160000:16-db0/step-plan",
+    "bytes": 27938229,
+    "sha256": "201eff89dfb1b581454fe1d22cc0f0eef1958eb66c0f0288b149f434ac1d6a18",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/158000:16-db0/step-plan",
+    "bytes": 27914825,
+    "sha256": "d3ef275d0c1a6300d4da112f1bdd28228bb98a0e685c2da4d23e66eb33da205c",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/158000:14-db0/step-plan",
+    "bytes": 27912171,
+    "sha256": "e903a852446603ff491ef5a7aa8f147579dbe5ce55e52bc334880528d51f3ec1",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/157000:14-db0/step-plan",
+    "bytes": 27902810,
+    "sha256": "35effb24b4197545577e3094b90041b8abe8baf519c3ef29afbf95dfb7cf1a1b",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/157000-db0/step-plan",
+    "bytes": 27904062,
+    "sha256": "5bd91ac06417c13c446fe06bf779d2d3d1cb4907b15bc53d2ef1debfa7a6d570",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/154469-normal/step-plan",
+    "bytes": 27796323,
+    "sha256": "d3275cfe39202100fc8fa24fafbc6171fb9a4d6561cac0b57012c96c5587f6db",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/live-counts/post-normal/step-plan",
+    "bytes": 27944326,
+    "sha256": "db75721063f68a34a467be463a72c02a74cbc8aad293cf8064f5502b812edb61",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/live-counts/post-db0/step-plan",
+    "bytes": 27981261,
+    "sha256": "3fe73911a01791186d66986e94561d2ad405b5926804ede137326d5bdd5569b9",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/live-counts/pre-db0/step-plan",
+    "bytes": 27617116,
+    "sha256": "6a07e3cba158ba915ca7fa41ff93de9f4525a99c9c9229c2d9b56cb00c595b67",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/live-counts/pre-normal/step-plan",
+    "bytes": 27590438,
+    "sha256": "32e3221979d842be082c171bab48f8bd2fd2c9a5114196b53670eb855f190d44",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/post/tomokv",
+    "bytes": 221658168,
+    "sha256": "30c2f1a537d2d2d833dbf4f103ebe4a679dbd35711eb4a989032a521b4693c60",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/post-cold/tomokv",
+    "bytes": 221640776,
+    "sha256": "f34095401f930c7747ecb11f951751c19c13377c56f23049bfe1bd6bb8d08a9c",
+    "reason": "superseded arm/trace plan; SHA and exact instruction counts retained"
   }
 ]

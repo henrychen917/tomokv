@@ -275,10 +275,24 @@ def storm(args, directory, mode, engine, atomic, oracle):
     extra = ('--appendonly', 'yes', '--appendfsync', 'always') if aof else ()
     saved = []
     expected_aof = None
+    sentinels = {}
     counts = dict(flushes=0, work=0, saves=0, flips=0, flip_refusals=0, cancelled_saves=0)
     with s.Boot(args, directory, mode, engine, atomic, oracle, extra=extra) as b:
         if aof:
-            b.c.must('SET', 'flushfix2:aof:must-disappear', 'before-flush')
+            for db in range(args.databases):
+                b.c.must('SELECT', db)
+                by_shard = {}
+                for i in range(4000):
+                    key = f'flushfix2:aof:must-disappear:{db}:{i}'
+                    sid = i if oracle else s.placement(b.c, key)[0]
+                    if sid not in by_shard:
+                        b.c.must('SET', key, 'before-flush')
+                        by_shard[sid] = key
+                    if len(by_shard) == 16:
+                        break
+                assert len(by_shard) == 16, 'AOF sentinel coverage missed a shard'
+                sentinels[db] = list(by_shard.values())
+            b.c.must('SELECT', 0)
         pair, _ = s.keys_for(b.c, 'flushfix2:storm', oracle, 2)
         def flush(stop):
             with conn(b, args) as c:
@@ -314,17 +328,26 @@ def storm(args, directory, mode, engine, atomic, oracle):
         def saver(stop):
             with conn(b, args) as c:
                 filename = c.must('CONFIG', 'GET', 'dbfilename')[1].decode()
+                s.wait(lambda: counts['flushes'] > 0, 'flush storm never started', args.stall)
                 while not stop.is_set():
+                    source = directory / filename
+                    def generation():
+                        if not source.exists():
+                            return None
+                        stat = source.stat()
+                        return stat.st_ino, stat.st_mtime_ns, stat.st_size
+                    before = generation()
                     c.must('BGSAVE')
                     s.wait(lambda: s.persistence(c)['rdb_bgsave_in_progress'] == '0', 'BGSAVE stalled', args.stall)
                     assert s.persistence(c)['rdb_last_bgsave_status'] == 'ok'
-                    source = directory / filename
-                    if oracle and not source.exists():
+                    after = generation()
+                    if oracle and (after is None or after == before):
                         # Redis 7.4 flushAllData() explicitly kills an active
                         # RDB child. Record that outcome, never count it as an
                         # image checked. The target must produce real images.
                         counts['cancelled_saves'] += 1
                         continue
+                    assert after is not None and after != before, 'BGSAVE did not publish a new image'
                     path = directory / f'captured-{len(saved)}.rdb'
                     shutil.copyfile(source, path)
                     saved.append(path)
@@ -355,9 +378,12 @@ def storm(args, directory, mode, engine, atomic, oracle):
         b.c.raw(encode('MULTI') + encode('SET', pair[0], 42) + encode('SET', pair[1], 42) + encode('EXEC'))
         assert [b.c.read() for _ in range(4)] == [b'OK', b'QUEUED', b'QUEUED', [b'OK', b'OK']]
         if aof:
-            assert b.c.must('GET', 'flushfix2:aof:must-disappear') is None
-            keys = sorted(b.c.must('KEYS', '*'))
-            expected_aof = (keys, b.c.must('MGET', *keys), b.c.must('DBSIZE'))
+            expected_aof = {}
+            for db, keys in sentinels.items():
+                b.c.must('SELECT', db)
+                assert b.c.must('MGET', *keys) == [None]*len(keys)
+                keys = sorted(b.c.must('KEYS', '*'))
+                expected_aof[db] = (keys, b.c.must('MGET', *keys) if keys else [], b.c.must('DBSIZE'))
     for image in saved:
         recover = directory / (image.stem + '-reload')
         recover.mkdir()
@@ -369,9 +395,12 @@ def storm(args, directory, mode, engine, atomic, oracle):
     if aof:
         with s.Boot(args, directory, mode, engine, atomic, oracle, extra=extra, name='restart') as b:
             assert b.c.must('MGET', *pair) == [b'42', b'42']
-            keys = sorted(b.c.must('KEYS', '*'))
-            assert (keys, b.c.must('MGET', *keys), b.c.must('DBSIZE')) == expected_aof
-    return dict(**counts, snapshots_checked=len(saved))
+            for db, expected in expected_aof.items():
+                b.c.must('SELECT', db)
+                keys = sorted(b.c.must('KEYS', '*'))
+                assert (keys, b.c.must('MGET', *keys) if keys else [], b.c.must('DBSIZE')) == expected
+    return dict(**counts, snapshots_checked=len(saved),
+                aof_sentinels=sum(map(len, sentinels.values())), aof_namespaces=len(sentinels))
 
 
 f.CASES = {'semantics': semantics, 'swapdb': swapdb, 'namespace-mutations': namespace_mutations,

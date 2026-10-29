@@ -76,6 +76,25 @@ def main():
                     row['details'].append(ref(detail) | dict(value=read(detail)))
                 inventories.append(row)
         (OUT/'sibling-receipts.json').write_text(json.dumps(inventories, indent=2)+'\n')
+        persistence = []
+        for label in ('final-rdb-generations', 'final-aof-all-shards'):
+            for path in sorted((ROOT/'build/flushfix2/siblings'/label).glob('*/results.json')):
+                results = read(path)
+                assert len(results) == 9 and all(r['pass'] for r in results), path
+                target = [r for r in results if not r['leg'].startswith('redis-')]
+                oracle = [r for r in results if r['leg'].startswith('redis-')]
+                images = [ref(p) for p in sorted(path.parent.rglob('captured-*.rdb'))]
+                checked = sum(r['value']['snapshots_checked'] for r in results)
+                assert len(images) == checked, (path, len(images), checked)
+                persistence.append(dict(run=label, case=path.parent.name, file=ref(path),
+                    target_legs=len(target), oracle_legs=len(oracle),
+                    target_images=sum(r['value']['snapshots_checked'] for r in target),
+                    oracle_images=sum(r['value']['snapshots_checked'] for r in oracle),
+                    oracle_cancelled=sum(r['value']['cancelled_saves'] for r in oracle),
+                    target_sentinels=[r['value']['aof_sentinels'] for r in target],
+                    target_namespaces=[r['value']['aof_namespaces'] for r in target],
+                    images=images))
+        (OUT/'persistence-final.json').write_text(json.dumps(persistence, indent=2)+'\n')
 
 
 if __name__ == '__main__':
