@@ -25,33 +25,33 @@ class Controls(unittest.TestCase):
         from types import SimpleNamespace
         from unittest.mock import patch
         import redis_tcl
-        name = redis_tcl.MONITOR_ORDER_TEST
-        original = dict(events=[dict(status='err', test=name)], failed=1, passed=0,
-                        error=None, complete=True, exit_code=1, seconds=0)
-        good = dict(events=[dict(status='ok', test=name)], failed=0, passed=1,
-                    error=None, complete=True, exit_code=0, seconds=0)
-        with tempfile.TemporaryDirectory(dir=ROOT/'build') as directory:
-            args=SimpleNamespace(output=Path(directory))
-            (args.output/'unit/introspection').mkdir(parents=True)
-            for result in (good, original, {**good, 'events': []},
-                           {**good, 'complete': False},
-                           {**good, 'events': good['events'] * 2}):
-                with patch.object(redis_tcl, 'run_file', return_value=copy.deepcopy(result)) as run:
-                    row=redis_tcl.retry_monitor_order(args, Path(directory), 'unit/introspection',
-                                                     copy.deepcopy(original), [])
-                self.assertEqual(run.call_count, 1)
-                self.assertEqual(run.call_args.kwargs['only'], [name.split(' in tests/')[0]])
-                self.assertIn('original_failure', row['monitor_order_retry'])
-                if result is good: validate_passing(row, [name])
-                else:
-                    with self.assertRaises(ValueError): validate_passing(row, [name])
-            for change in ({'complete': False}, {'error': 'timeout'}, {'failed': 2},
-                           {'events': [dict(status='err', test='another assertion')]},
-                           {'events': []}):
-                with patch.object(redis_tcl, 'run_file') as run:
-                    row=redis_tcl.retry_monitor_order(args, Path(directory), 'unit/introspection',
-                                                     dict(original, **change), [])
-                run.assert_not_called()
+        for unit, name in redis_tcl.ORDER_TESTS.items():
+            original = dict(events=[dict(status='err', test=name)], failed=1, passed=0,
+                            error=None, complete=True, exit_code=1, seconds=0)
+            good = dict(events=[dict(status='ok', test=name)], failed=0, passed=1,
+                        error=None, complete=True, exit_code=0, seconds=0)
+            with tempfile.TemporaryDirectory(dir=ROOT/'build') as directory:
+                args=SimpleNamespace(output=Path(directory))
+                (args.output/unit).mkdir(parents=True)
+                for result in (good, original, {**good, 'events': []},
+                               {**good, 'complete': False},
+                               {**good, 'events': good['events'] * 2}):
+                    with patch.object(redis_tcl, 'run_file', return_value=copy.deepcopy(result)) as run:
+                        row=redis_tcl.retry_monitor_order(args, Path(directory), unit,
+                                                         copy.deepcopy(original), [])
+                    self.assertEqual(run.call_count, 1)
+                    self.assertEqual(run.call_args.kwargs['only'], [name.split(' in tests/')[0]])
+                    self.assertIn('original_failure', row['monitor_order_retry'])
+                    if result is good: validate_passing(row, [name])
+                    else:
+                        with self.assertRaises(ValueError): validate_passing(row, [name])
+                for change in ({'complete': False}, {'error': 'timeout'}, {'failed': 2},
+                               {'events': [dict(status='err', test='another assertion')]},
+                               {'events': []}):
+                    with patch.object(redis_tcl, 'run_file') as run:
+                        row=redis_tcl.retry_monitor_order(args, Path(directory), unit,
+                                                         dict(original, **change), [])
+                    run.assert_not_called()
 
     def test_fresh_assertion_requires_its_own_complete_successful_receipt(self):
         from types import SimpleNamespace

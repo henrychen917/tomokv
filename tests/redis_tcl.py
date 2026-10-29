@@ -212,6 +212,8 @@ MONITOR_ORDER_TEST = 'MONITOR log blocked command only once in tests/unit/intros
 ORDER_TESTS = {
     'unit/introspection': MONITOR_ORDER_TEST,
     'unit/type/list': 'BRPOPLPUSH does not affect WATCH while still blocked in tests/unit/type/list.tcl',
+    # REGISTER SLOWLOG-EXEC-BLOCKED-ORDER: BLPOP can retire before its waking EXEC.
+    'unit/slowlog': 'SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl',
 }
 
 def retry_monitor_order(args, tree, unit, row, server_args):
