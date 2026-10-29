@@ -668,6 +668,8 @@ build/mdbqsbr-unit: build/mdbqsbr-asan/tests/mdbqsbr_unit.o $(MDBQSBR_ASAN_OBJ)
 build/mdbqsbr-unit-tsan: build/mdbqsbr-tsan/tests/mdbqsbr_unit.o $(MDBQSBR_TSAN_OBJ)
 	@mkdir -p $(dir $@)
 	$(CXX) $(MDBQSBR_FLAGS) -fsanitize=thread $^ -o $@ $(LDLIBS) -lm $(MDBQSBR_WRAP)
+# flipfix5: the stale-stage rows are included by the core fixture; rebuild it when they change.
+build/mdbqsbr-asan/tests/core_concurrency_unit.o build/mdbqsbr-tsan/tests/core_concurrency_unit.o: tests/flipfix5_checks.inc
 build/core-concurrency-mdbqsbr-asan: build/mdbqsbr-asan/tests/core_concurrency_unit.o $(MDBQSBR_ASAN_OBJ)
 	@mkdir -p $(dir $@)
 	$(CXX) $(MDBQSBR_FLAGS) -fsanitize=address,undefined $^ -o $@ $(LDLIBS) -lm
@@ -974,7 +976,7 @@ build/r7shadow-instr: tests/r7shadow_instr.cc $(wildcard src/*/*.h) $(wildcard s
 # Existing route row owns IO accounting/model/physical-placement proofs.
 build/mdbqsbr-asan/tests/core_concurrency_unit.o build/mdbqsbr-tsan/tests/core_concurrency_unit.o: tests/signalacct_core_checks.inc tests/flip_close_checks.inc tests/flipsettle_checks.inc tests/flipreport_checks.inc tests/flipfix_checks.inc tests/slowlog_completion_checks.inc tests/wave5_dispatch_checks.inc
 # Fast serverless lane entry; the gate uses its existing fully instrumented route row.
-build/signalacct-core-unit: tests/core_concurrency_unit.cc tests/signalacct_core_checks.inc tests/flip_close_checks.inc tests/flipsettle_checks.inc tests/flipreport_checks.inc tests/flipfix_checks.inc tests/slowlog_completion_checks.inc tests/wave5_dispatch_checks.inc $(CORE_TEST_OBJ)
+build/signalacct-core-unit: tests/core_concurrency_unit.cc tests/signalacct_core_checks.inc tests/flip_close_checks.inc tests/flipsettle_checks.inc tests/flipreport_checks.inc tests/flipfix_checks.inc tests/flipfix5_checks.inc tests/slowlog_completion_checks.inc tests/wave5_dispatch_checks.inc $(CORE_TEST_OBJ)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
