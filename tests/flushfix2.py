@@ -151,9 +151,14 @@ def namespace_only(args, directory, mode, engine, atomic, oracle):
         return result
 
 
+CASES = {'flush-pair': original.case_flush_pair,
+         'flush-script': lambda *a: original.case_flush_pair(*a, script=True),
+         'flush-only': original.case_flush_only, 'namespace': namespace_only}
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--case', choices=['flush-pair', 'flush-script', 'flush-only', 'namespace'], required=True)
+    p.add_argument('--case', choices=sorted(CASES), required=True)
     p.add_argument('--binary', required=True)
     p.add_argument('--oracle', required=True)
     p.add_argument('--cores', default='0-7')
@@ -173,9 +178,6 @@ def main():
     assert 20100 <= args.port < 20199
     os.environ['LC_ALL'] = 'C'
     s.Boot = VerifiedBoot
-    cases = {'flush-pair': original.case_flush_pair,
-             'flush-script': lambda *a: original.case_flush_pair(*a, script=True),
-             'flush-only': original.case_flush_only, 'namespace': namespace_only}
     legs = ([] if args.no_oracle else [('redis', 'redis', 0, True)]) + [
         (m, e, a, False) for m in args.modes for e in args.engines for a in args.atomics]
     results = []
@@ -186,7 +188,7 @@ def main():
                    command=args.command, flush_mode=args.flush_mode)
         began = time.monotonic()
         try:
-            row['value'] = cases[args.case](args, args.output / label, mode, engine, atomic, oracle)
+            row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)
             row['pass'] = True
         except Exception:
             row.update(pass_=False, error=traceback.format_exc())

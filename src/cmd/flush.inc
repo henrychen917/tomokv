@@ -166,6 +166,13 @@ ScatterFinish flush_complete(Server& server, ThreadCtx& self, Ring& ring,
         } else state.final_reply = FinalReply::Ok;
         return ScatterFinish::CommitQueued;
     }
+    // A wound can follow another shard's install while placement is still in
+    // progress. Its zero-key records need this explicit cleanup wave too;
+    // ordinary prefix promotion deliberately never consumes a range record.
+    if (state.epoch.load(std::memory_order_acquire) == kAtomicCancelledEpoch) {
+        state.phase = 1;
+        return txn_group_retry(server, self, ring, task);
+    }
     if (server.blocking_waiters()) blocking_atomic_published(server, self, ring, state);
     server.atomic_apply_close(self.id(), state.apply_open);
     return ScatterFinish::Final;

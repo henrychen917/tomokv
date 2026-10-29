@@ -1148,7 +1148,7 @@ plan_jobs(){
   for section in lruclock lfu; do
     for atomic in 0 1; do for mode in split armed; do JOB_NAMES+=("evict-$section-$mode-$atomic"); done; done
   done
-  JOB_NAMES+=(flushfix2 flipctl witness_contracts reorder_bounds rob_portable slotless wb_mixed inline_quoted)
+  JOB_NAMES+=(flushfix2 flushfix2_units flipctl witness_contracts reorder_bounds rob_portable slotless wb_mixed inline_quoted)
   for section in T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11a T11b T12 T13 T14 T15 T16 owner; do JOB_NAMES+=("at412-$section"); done
   local resp_case resp_engine
   for resp_case in fragment cpu neighbour; do for mode in 1s 2s; do
@@ -1412,6 +1412,19 @@ job_flushfix2(){
           >"$TMPDIR/$case-$databases.log" 2>&1 \
           && ok "$label" || bad "$label" "see $TMPDIR/$case-$databases.log"
     done
+  done
+}
+
+job_flushfix2_units(){
+  local target
+  pausable taskset -c "$BUILD_CORES" make -f Makefile -f tools/flushfix2.mk -j"$BUILD_JOBS" \
+      build/flushfix2-unit build/flushfix2-db0-unit >"$TMPDIR/build.log" 2>&1
+  for target in flushfix2-unit flushfix2-db0-unit; do
+    row_begin "$target ranges and rollback"
+    make -f Makefile -f tools/flushfix2.mk -q "build/$target" && \
+        taskset -c "$CORES" "build/$target" >"$TMPDIR/$target.log" 2>&1 \
+        && ok "$target ranges and rollback" \
+        || bad "$target ranges and rollback" "see $TMPDIR/build.log and $TMPDIR/$target.log"
   done
 }
 
@@ -5802,6 +5815,7 @@ collect_job asan
 collect_job config_unit
 collect_job source_identity
 collect_job flushfix2
+collect_job flushfix2_units
 # iofix rows are collected before the quick-tier exit; EXPECT remains owner-maintained.
 # iofix3: restore WB4.1 before quick exit (DQ=+1, DF=+1).
 collect_job iofix-deferred

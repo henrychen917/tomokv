@@ -1192,8 +1192,6 @@ private:
         atomic_pending_->conn_heads[bucket] = &entry;
         entry.linked = true;
         atomic_pending_->live++;
-        if (atomic_pending_->ranges && !entry.namespace_range)
-            atomic_flush_counters.post_versions.fetch_add(1, std::memory_order_relaxed);
         if (atomic_entries_) (*atomic_entries_)++;
         if (atomic_chain_max_ && atomic_pending_->live > *atomic_chain_max_)
             *atomic_chain_max_ = atomic_pending_->live;
@@ -1690,14 +1688,16 @@ private:
     // reach the owner's QSBR sink before its storage can be reclaimed or reused.
     template <bool ReadLocal>
     __attribute__((always_inline)) bool atomic_collapse_impl(uint64_t floor,
-                                                           uint64_t cleanup_cutoff) {
+                                                           uint64_t cleanup_cutoff,
+                                                           bool capture_prepared = false) {
         constexpr auto retire = ReadLocal ? &FlatStore::retire_detached_obj_read_local
                                           : &FlatStore::retire_detached_obj;
         constexpr auto free_entry = ReadLocal ? &FlatStore::atomic_free_entry_read_local
                                               : &FlatStore::atomic_free_entry;
         constexpr auto exchange = ReadLocal ? &FlatStore::atomic_exchange_physical_read_local
                                             : &FlatStore::atomic_exchange_physical;
-        if (!atomic_pending_ || !atomic_pending_->live || snapshot_active_) return false;
+        if (!atomic_pending_ || !atomic_pending_->live ||
+            (snapshot_active_ && !capture_prepared)) return false;
         uint64_t occurrences = 0;
         AtomicEntry* first_unselected = atomic_pending_->head;
         while (first_unselected) {

@@ -1,0 +1,240 @@
+#!/usr/bin/env python3
+"""Directed FLUSH siblings and liveness, using the same Redis 7.4 oracle.
+
+DEBUG reload cases deliberately return failure on a missing/torn observation.
+Those are witnesses for the separate database-boundary repair, not green rows.
+"""
+import contextlib
+import json
+from pathlib import Path
+import shutil
+import threading
+import time
+
+import flushfix2 as f
+import snapfix as s
+from _lib import Conn, RespError, encode
+
+ORACLE = {}
+
+
+def normalized(value):
+    if isinstance(value, RespError):
+        return value.message.decode()
+    if isinstance(value, bytes):
+        return value.decode()
+    if isinstance(value, list):
+        return [normalized(x) for x in value]
+    return value
+
+
+@contextlib.contextmanager
+def conn(b, args, db=0):
+    c = Conn('127.0.0.1', b.port, timeout=args.stall)
+    try:
+        c.must('SELECT', db)
+        yield c
+    finally:
+        c.close()
+
+
+def semantics(args, directory, mode, engine, atomic, oracle):
+    result = {}
+    with s.Boot(args, directory, mode, engine, atomic, oracle) as b:
+        c = b.c
+        pair, _ = s.keys_for(c, 'flushfix2:sibling', oracle, 2)
+        c.must('MSET', pair[0], 1, pair[1], 1)
+        c.must('SCRIPT', 'FLUSH', 'SYNC')
+        result['script_flush'] = c.must('MGET', *pair)
+        c.must('FUNCTION', 'FLUSH', 'SYNC')
+        result['function_flush'] = c.must('MGET', *pair)
+        dumped = c.must('DUMP', pair[0])
+        c.must('SET', pair[0], 2)
+        c.must('RESTORE', pair[0], 0, dumped, 'REPLACE')
+        result['restore_replace'] = c.must('MGET', *pair)
+        if args.databases > 1:
+            c.must('COPY', pair[0], pair[0], 'DB', 7, 'REPLACE')
+            with conn(b, args, 7) as other:
+                result['copy_db'] = [c.must('GET', pair[0]), other.must('GET', pair[0])]
+                c.must('MOVE', pair[1], 7)
+                result['move'] = [c.must('GET', pair[1]), other.must('GET', pair[1])]
+        with conn(b, args) as watcher:
+            watcher.must('WATCH', pair[0])
+            c.must('FLUSHALL')
+            watcher.raw(encode('MULTI') + encode('PING') + encode('EXEC'))
+            assert [watcher.read(), watcher.read()] == [b'OK', b'QUEUED']
+            result['watch_present'] = watcher.read()
+            watcher.must('WATCH', 'flushfix2:absent')
+            c.must('FLUSHALL')
+            watcher.raw(encode('MULTI') + encode('PING') + encode('EXEC'))
+            assert [watcher.read(), watcher.read()] == [b'OK', b'QUEUED']
+            result['watch_absent'] = watcher.read()
+        c.must('XGROUP', 'CREATE', 'flushfix2:stream', 'g', '$', 'MKSTREAM')
+        with conn(b, args) as reader:
+            reader.raw(encode('XREADGROUP', 'GROUP', 'g', 'c', 'BLOCK', 0,
+                              'STREAMS', 'flushfix2:stream', '>'))
+            s.wait(lambda: s.stats(c, 'clients').get('blocked_clients', 0) > 0,
+                   'stream waiter never blocked', args.stall)
+            c.must('FLUSHALL')
+            result['xreadgroup'] = reader.read()
+        c.must('SET', pair[0], 'old')
+        c.raw(encode('FLUSHALL') + encode('GET', pair[0]) + encode('SET', pair[0], 'new') +
+              encode('GET', pair[0]))
+        result['pipeline'] = [c.read() for _ in range(4)]
+        with conn(b, args) as tracker:
+            tracker.must('HELLO', 3)
+            tracker.must('CLIENT', 'TRACKING', 'ON', 'BCAST')
+            tracker.raw(encode('FLUSHALL') + encode('PING'))
+            result['tracking_order'] = [tracker.read() for _ in range(3)]
+        result = normalized(result) if not isinstance(result, dict) else {k: normalized(v) for k, v in result.items()}
+        (directory / 'siblings.json').write_text(json.dumps(result, indent=2) + '\n')
+        if oracle:
+            ORACLE[args.databases] = result
+        else:
+            assert args.databases in ORACLE, 'oracle must run before target'
+            assert result == ORACLE[args.databases], (result, ORACLE[args.databases])
+        return result
+
+
+def swapdb(args, directory, mode, engine, atomic, oracle):
+    assert args.databases == 16
+    with s.Boot(args, directory, mode, engine, atomic, oracle) as b:
+        pair, _ = s.keys_for(b.c, 'flushfix2:swap', oracle, 2)
+        for db in (0, 7):
+            b.c.must('SELECT', db)
+            b.c.must('MSET', pair[0], db, pair[1], db)
+        counts = dict(swaps=0, observations=0, torn=0)
+        def swap(stop):
+            with conn(b, args) as c:
+                while not stop.is_set():
+                    c.must('SWAPDB', 0, 7)
+                    counts['swaps'] += 1
+        def observe(stop):
+            with conn(b, args) as c:
+                while not stop.is_set():
+                    values = c.must('MGET', *pair)
+                    counts['observations'] += 1
+                    counts['torn'] += values not in ([b'0', b'0'], [b'7', b'7'])
+        errors = s.run_storm(args.seconds, [swap, observe], args.stall)
+        assert not errors and counts['swaps'] and counts['observations'] and not counts['torn'], (counts, errors)
+        return counts
+
+
+def reload(args, directory, mode, engine, atomic, oracle):
+    aof = args.case == 'debug-loadaof'
+    extra = ('--appendonly', 'yes', '--appendfsync', 'always') if aof else ()
+    with s.Boot(args, directory, mode, engine, atomic, oracle, extra=extra) as b:
+        c = b.c
+        pair, _ = s.keys_for(c, 'flushfix2:reload', oracle, 2)
+        for key in pair:
+            c.must('SET', key, 1)
+        for begin in range(0, 12000, 500):
+            c.raw(b''.join(encode('SET', f'flushfix2:bulk:{i}', 'v' * 64) for i in range(begin, begin+500)))
+            assert all(c.read() == b'OK' for _ in range(500))
+        c.must('SAVE')
+        counts = dict(loads=0, pair_reads=0, get_reads=0, torn=0, missing=0)
+        def load(stop):
+            with conn(b, args) as x:
+                while not stop.is_set():
+                    if aof:
+                        x.must('DEBUG', 'LOADAOF')
+                    else:
+                        x.must('DEBUG', 'RELOAD', 'NOSAVE')
+                    counts['loads'] += 1
+        def observe(stop):
+            with conn(b, args) as x:
+                while not stop.is_set():
+                    v = x.must('MGET', *pair)
+                    counts['pair_reads'] += 1
+                    counts['torn'] += v[0] != v[1]
+        def single(stop):
+            with conn(b, args) as x:
+                while not stop.is_set():
+                    v = x.must('GET', pair[0])
+                    counts['get_reads'] += 1
+                    counts['missing'] += v is None
+                    assert v in (None, b'1')
+        errors = s.run_storm(args.seconds, [load, observe, single], args.stall)
+        result = dict(**counts, errors=errors)
+        (directory / 'reload-witness.json').write_text(json.dumps(result, indent=2) + '\n')
+        assert not errors and counts['loads'] and counts['pair_reads'] and counts['get_reads'], result
+        assert not counts['torn'] and not counts['missing'], result
+        return result
+
+
+def storm(args, directory, mode, engine, atomic, oracle):
+    aof = args.case == 'aof-restart'
+    save = args.case in ('bgsave-straddle', 'live-bgsave')
+    extra = ('--appendonly', 'yes', '--appendfsync', 'always') if aof else ()
+    saved = []
+    counts = dict(flushes=0, work=0, saves=0, flips=0)
+    with s.Boot(args, directory, mode, engine, atomic, oracle, extra=extra) as b:
+        pair, _ = s.keys_for(b.c, 'flushfix2:storm', oracle, 2)
+        def flush(stop):
+            with conn(b, args) as c:
+                while not stop.is_set():
+                    c.raw(encode('MULTI') + encode('SET', pair[0], 1) + encode('SET', pair[1], 1) +
+                          encode('EXEC') + encode('FLUSHALL', args.flush_mode))
+                    assert [c.read() for _ in range(5)] == [b'OK', b'QUEUED', b'QUEUED', [b'OK', b'OK'], b'OK']
+                    counts['flushes'] += 1
+        def worker(stop):
+            with conn(b, args) as c:
+                workpair, _ = s.keys_for(c, 'flushfix2:live', oracle, 2)
+                while not stop.is_set():
+                    if args.case == 'live-script':
+                        c.must('EVAL', s.WRITE, 2, *workpair)
+                    elif args.case == 'live-watch':
+                        c.must('WATCH', *workpair)
+                        c.raw(encode('MULTI') + encode('INCR', workpair[0]) + encode('INCR', workpair[1]) + encode('EXEC'))
+                        assert [c.read() for _ in range(3)] == [b'OK', b'QUEUED', b'QUEUED']
+                        value = c.read()
+                        assert value is None or len(value) == 2
+                    else:
+                        c.must('DEL', *workpair)
+                        c.must('MSETNX', workpair[0], 1, workpair[1], 1)
+                    counts['work'] += 1
+        def saver(stop):
+            with conn(b, args) as c:
+                while not stop.is_set():
+                    c.must('BGSAVE')
+                    s.wait(lambda: s.persistence(c)['rdb_bgsave_in_progress'] == '0', 'BGSAVE stalled', args.stall)
+                    assert s.persistence(c)['rdb_last_bgsave_status'] == 'ok'
+                    path = directory / f'captured-{len(saved)}.rdb'
+                    shutil.copyfile(directory / 'dump.rdb', path)
+                    saved.append(path)
+                    counts['saves'] += 1
+        def flipper(stop):
+            with conn(b, args) as c:
+                while not stop.is_set():
+                    target = 4 if counts['flips'] % 2 == 0 else 6
+                    c.must('FLIP', target, 8-target)
+                    counts['flips'] += 1
+        workers = [flush, worker] + ([saver] if save else [])
+        if args.case == 'live-flip' and not oracle:
+            assert mode == '2s'
+            workers.append(flipper)
+        errors = s.run_storm(args.seconds, workers, args.stall)
+        assert not errors and counts['flushes'] and counts['work'], (counts, errors)
+        assert not save or counts['saves'], counts
+        assert args.case != 'live-flip' or oracle or counts['flips'], counts
+        b.c.raw(encode('MULTI') + encode('SET', pair[0], 42) + encode('SET', pair[1], 42) + encode('EXEC'))
+        assert [b.c.read() for _ in range(4)] == [b'OK', b'QUEUED', b'QUEUED', [b'OK', b'OK']]
+    for image in saved:
+        recover = directory / (image.stem + '-reload')
+        recover.mkdir()
+        shutil.copyfile(image, recover / 'dump.rdb')
+        with s.Boot(args, recover, mode, engine, atomic, oracle) as b:
+            v = b.c.must('MGET', *pair)
+            assert v in ([None, None], [b'1', b'1']), (image, v)
+        shutil.rmtree(recover)
+    if aof:
+        with s.Boot(args, directory, mode, engine, atomic, oracle, extra=extra, name='restart') as b:
+            assert b.c.must('MGET', *pair) == [b'42', b'42']
+    return dict(**counts, snapshots_checked=len(saved))
+
+
+f.CASES = {'semantics': semantics, 'swapdb': swapdb, 'debug-reload': reload, 'debug-loadaof': reload,
+           **{name: storm for name in ('live-cut', 'live-script', 'live-watch', 'live-bgsave',
+                                      'live-flip', 'bgsave-straddle', 'aof-restart')}}
+if __name__ == '__main__':
+    raise SystemExit(f.main())

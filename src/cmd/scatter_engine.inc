@@ -4287,7 +4287,8 @@ void xshard_flush_commits_impl(Server& server, ThreadCtx& self, Ring& ring,
                 aof_commit_scatter_group(*state, self, ring, ticket);
             else {
                 if (state->group_attempt() &&
-                    state->epoch.load(std::memory_order_acquire) == kAtomicCancelledEpoch) {
+                    state->epoch.load(std::memory_order_acquire) == kAtomicCancelledEpoch &&
+                    state->kind != Kind::Flush) {
                     txn_group_retry(server, self, ring,
                         Task{client, state->commit_op_id, state->commit_shard, state});
                     state = next;
