@@ -4,7 +4,7 @@
 
 Branch `cx-flushfix2`, base `393d6ceb129d8c99dffd70959d6a19267c525fe0`.
 No push. Landing requires the owner's design approval. The binaries and directed
-proof are frozen; broader correctness jobs below are still in progress. The
+proof are frozen; the last split differential engine is still in progress. The
 required FLUSH+FLIP liveness proof is FAIL: the unmodified PRE and final POST
 binaries both abort. This lane is not an all-green correctness result.
 No performance or throughput claim is made. The first full differential attempt
@@ -126,11 +126,15 @@ The supplemental `notifycompat` gate job passes all seven scored compatibility
 rows, including FLUSH per-key event/AOF compatibility, on the final binary.
 All 35 supplemental topology jobs also pass. Both fused differential engines
 pass 466 rows each, with standard seeds; their ten SORT skips per engine are
-listed below. Broad correctness and split differential runs remain in progress. The first
-broad invocation completed 49 jobs before it was stopped ahead of its embedded
-rate checks; the remaining 37 jobs run with the existing
+listed below. The selected broad coverage contains 86 jobs and 551 scored rows;
+all are green after the explicit rechecks described below. This is a partial
+selection, not a full gate receipt. The split io_uring differential run passes
+475 rows, zero failures; split epoll is still running. The first
+broad invocation wrote 49 job receipts before it was stopped ahead of its
+embedded rate checks (48 completed; debug-0 was interrupted during txniso).
+The remaining 37 jobs ran with the existing
 `GATE_PROOF_NO_RATES=1` option. Completed original jobs remain part of the proof;
-the interrupted job is rerun from a fresh server.
+the interrupted debug-0 job passed in full from a fresh server.
 The original T9 broad row failed because the blind-restart window did not open;
 a bounded fresh-server recheck of the unchanged complete T9 job passes all 27
 legs, with its restart counters nonzero. The original failure is retained in the
@@ -151,7 +155,9 @@ marked INCONCLUSIVE in `hazard-harness-revisions.json`.
 Initial mover/txnorder unit rows also failed because the frozen binary directory
 lacked their seven companion executables. Matching production units are now
 staged there with hashes in `companion-units.json`; their complete gate jobs are
-being rerun. These setup failures remain in the original ledgers.
+green on their complete gate-job reruns. These setup failures remain in the
+original ledgers. All 57 `make -q` freshness checks pass again after the fixture
+changes; the production server SHA is unchanged.
 
 ### Sibling sweep
 

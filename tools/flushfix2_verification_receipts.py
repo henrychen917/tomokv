@@ -83,20 +83,33 @@ def main():
     assert {r['phase'] for r in armed} == {'differ-armed-uring', 'differ-armed-epoll'}
     assert {r['phase'] for r in split} == {'differ-uring', 'differ-epoll'}
     assert 'status' in resumed
-    gates = {name:gate(RUN/(name+'.log')) for name in ('directed', 'broad-resume', 'notifycompat', 'topology')}
+    gates = {name:gate(RUN/(name+'.log')) for name in
+             ('directed', 'broad-resume', 'notifycompat', 'topology', 'fixture-rechecks', 'debug-recheck')}
     gates['broad-original'] = gate(RUN/'broad.log', interruption['completed'])
+    gates['t9-recheck'] = gate(RUN/'t9-rechecks/post-0.log')
     broad = {j['name']:j for name in ('broad-original', 'broad-resume') for j in gates[name]['jobs']}
     assert set(interruption['expected']) <= broad.keys(), set(interruption['expected'])-broad.keys()
     broad_rows = [row for job in broad.values() for row in job['rows']]
+    latest = broad.copy()
+    for name in ('fixture-rechecks', 't9-recheck', 'debug-recheck'):
+        latest.update({j['name']:j for j in gates[name]['jobs']})
+    latest_rows = [row for job in latest.values() for row in job['rows']]
     result = dict(binary=ref(args.binary.resolve()),
                   gate_source=ref(ROOT/'tests/gate.sh'), differ_source=ref(ROOT/'tests/differ_gate.sh'),
+                  fixture_sources=[ref(ROOT/p) for p in ('tests/atomic_hazards.py',
+                      'tests/multidb_unit.cc', 'tests/storesize_unit.cc', 'tests/flushfix2_fixture.h')],
                   runs=primary+[resumed]+armed+split,
                   broad_interruption=interruption,
                   broad_coverage=dict(jobs=sorted(broad), scored_rows=len(broad_rows),
                       verdicts=dict(Counter(r['verdict'] for r in broad_rows)),
                       failures=[r for r in broad_rows if r['verdict']=='FAIL']),
+                  broad_after_rechecks=dict(jobs=sorted(latest), scored_rows=len(latest_rows),
+                      verdicts=dict(Counter(r['verdict'] for r in latest_rows)),
+                      failures=[r for r in latest_rows if r['verdict']=='FAIL']),
                   topology_run=json.loads((RUN/'topology-run.json').read_text()),
                   notifycompat_run=json.loads((RUN/'notifycompat-run.json').read_text()),
+                  fixture_rechecks_run=json.loads((RUN/'fixture-rechecks-run.json').read_text()),
+                  debug_recheck_run=json.loads((RUN/'debug-recheck-run.json').read_text()),
                   t9_rechecks=json.loads((ROOT/'docs/flushfix2/t9-rechecks.json').read_text()),
                   flip_failure=ref(ROOT/'docs/flushfix2/flip-failure.json'),
                   gates=gates, differential=[differ(r['phase']) for r in armed] +

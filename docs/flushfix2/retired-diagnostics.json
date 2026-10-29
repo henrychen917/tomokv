@@ -1,0 +1,14 @@
+[
+  {
+    "path": "build/flushfix2/diagnostic-v2/pre-tomokv",
+    "bytes": 220088864,
+    "sha256": "4d2ca8e830d0ed12636c73c7cd2794f97d4133d98211f2b77c9d4f493b65a413",
+    "reason": "Diagnostic stacks, exact link commands, wrapper and symbolization retained in flip-failure.json; frozen delivery arms remain"
+  },
+  {
+    "path": "build/flushfix2/diagnostic-v2/post-tomokv",
+    "bytes": 222404760,
+    "sha256": "665a4565b506f7ca3bf9e2e2dac98aa1b02065b80c3ea2ec84bfeb4ba710731d",
+    "reason": "Diagnostic stacks, exact link commands, wrapper and symbolization retained in flip-failure.json; frozen delivery arms remain"
+  }
+]
