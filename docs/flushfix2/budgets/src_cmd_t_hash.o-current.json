@@ -1,0 +1,33 @@
+{
+  "unit": "src/cmd/t_hash.o",
+  "budget": "current",
+  "old_budget": 10000,
+  "initial": 20120,
+  "changed": [
+    "void tomo::(anonymous namespace)::cmd_hincrby<true>(tomo::Shard&, tomo::Op&)",
+    "void tomo::(anonymous namespace)::cmd_hlen<false>(tomo::Shard&, tomo::Op&)"
+  ],
+  "total": 74,
+  "command": [
+    "taskset",
+    "-c",
+    "0-15",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/cmd/t_hash.cc",
+    "-o",
+    "/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_cmd_t_hash.o-current.o",
+    "-g0",
+    "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_cmd_t_hash.o-current.inline"
+  ],
+  "revision": "3f2bcfa1af7399ca656402bfed80aa5869422c98"
+}

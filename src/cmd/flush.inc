@@ -1,6 +1,11 @@
 // FLUSH's whole-shard unit. Included in xshard.cc beside the other cold units.
 namespace tomo {
 
+// A cold boundary also gives the PAD-A control a single auditable routing edge.
+[[gnu::noinline]] bool xshard_flush_command(const Op& op) {
+    return op.cmd_name().eq_icase("flushall") || op.cmd_name().eq_icase("flushdb");
+}
+
 bool Shard::watch_reserve_flush(int physical_db, const void* token,
                                std::atomic<uint64_t>* epoch, std::atomic<bool>* aborted,
                                std::atomic<uint32_t>* refs) {

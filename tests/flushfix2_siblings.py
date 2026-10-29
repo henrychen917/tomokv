@@ -167,7 +167,7 @@ def storm(args, directory, mode, engine, atomic, oracle):
     save = args.case in ('bgsave-straddle', 'live-bgsave')
     extra = ('--appendonly', 'yes', '--appendfsync', 'always') if aof else ()
     saved = []
-    counts = dict(flushes=0, work=0, saves=0, flips=0)
+    counts = dict(flushes=0, work=0, saves=0, flips=0, flip_refusals=0, cancelled_saves=0)
     with s.Boot(args, directory, mode, engine, atomic, oracle, extra=extra) as b:
         pair, _ = s.keys_for(b.c, 'flushfix2:storm', oracle, 2)
         def flush(stop):
@@ -195,19 +195,35 @@ def storm(args, directory, mode, engine, atomic, oracle):
                     counts['work'] += 1
         def saver(stop):
             with conn(b, args) as c:
+                filename = c.must('CONFIG', 'GET', 'dbfilename')[1].decode()
                 while not stop.is_set():
                     c.must('BGSAVE')
                     s.wait(lambda: s.persistence(c)['rdb_bgsave_in_progress'] == '0', 'BGSAVE stalled', args.stall)
                     assert s.persistence(c)['rdb_last_bgsave_status'] == 'ok'
+                    source = directory / filename
+                    if oracle and not source.exists():
+                        # Redis 7.4 flushAllData() explicitly kills an active
+                        # RDB child. Record that outcome, never count it as an
+                        # image checked. The target must produce real images.
+                        counts['cancelled_saves'] += 1
+                        continue
                     path = directory / f'captured-{len(saved)}.rdb'
-                    shutil.copyfile(directory / 'dump.rdb', path)
+                    shutil.copyfile(source, path)
                     saved.append(path)
                     counts['saves'] += 1
+                    if len(saved) == 8:
+                        stop.wait()
+                        return
         def flipper(stop):
             with conn(b, args) as c:
                 while not stop.is_set():
                     target = 4 if counts['flips'] % 2 == 0 else 6
-                    c.must('FLIP', target, 8-target)
+                    reply = c.cmd('FLIP', target, 8-target)
+                    if isinstance(reply, RespError):
+                        assert reply.message.startswith(b'ERR FLIP cannot quiesce a connection:'), reply
+                        counts['flip_refusals'] += 1
+                        continue
+                    assert reply == b'OK', reply
                     counts['flips'] += 1
         workers = [flush, worker] + ([saver] if save else [])
         if args.case == 'live-flip' and not oracle:
@@ -215,14 +231,14 @@ def storm(args, directory, mode, engine, atomic, oracle):
             workers.append(flipper)
         errors = s.run_storm(args.seconds, workers, args.stall)
         assert not errors and counts['flushes'] and counts['work'], (counts, errors)
-        assert not save or counts['saves'], counts
+        assert not save or counts['saves'] or (oracle and counts['cancelled_saves']), counts
         assert args.case != 'live-flip' or oracle or counts['flips'], counts
         b.c.raw(encode('MULTI') + encode('SET', pair[0], 42) + encode('SET', pair[1], 42) + encode('EXEC'))
         assert [b.c.read() for _ in range(4)] == [b'OK', b'QUEUED', b'QUEUED', [b'OK', b'OK']]
     for image in saved:
         recover = directory / (image.stem + '-reload')
         recover.mkdir()
-        shutil.copyfile(image, recover / 'dump.rdb')
+        shutil.copyfile(image, recover / ('dump.rdb' if oracle else 'dump.tomo'))
         with s.Boot(args, recover, mode, engine, atomic, oracle) as b:
             v = b.c.must('MGET', *pair)
             assert v in ([None, None], [b'1', b'1']), (image, v)

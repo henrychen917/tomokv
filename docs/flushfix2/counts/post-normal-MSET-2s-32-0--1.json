@@ -6,10 +6,10 @@
   "batch": 32,
   "atomic": 0,
   "threshold": -1,
-  "steps": 354291,
+  "steps": 353971,
   "clock_calls": 32,
   "excluded_calls": 577,
-  "total": 341029,
+  "total": 340709,
   "functions": {
     "tomo::atomic_tripwire_enabled()": 1536,
     "tomo::FlatStore::hash_key(tomo::Slice)": 23296,
@@ -37,9 +37,9 @@
     "tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)": 2240,
     "tomo::xshard_retire(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*))": 1728,
     "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 12544,
-    "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 58048,
+    "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 57984,
     "tomo::xshard_complete(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 512,
-    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 60928,
+    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 60672,
     "tomo::Slice::key_eq(tomo::Slice const&) const": 7424,
     "tomo::Op::cmd_name() const": 384,
     "tomo::Op::Sink::reserve(unsigned long)": 768,
@@ -56,5 +56,5 @@
     "tomo::good_size(unsigned long)": 6144,
     "tomo::KvObj::val_ptr()": 4096
   },
-  "probe_sha256": "59bf0453d7b5159c6af6dcd0c93d5cc46d676995b4ffdaf5f0f563688df6070e"
+  "probe_sha256": "a0cb0f8820e385db8476321e50ebfb02ed3c13ffae4036c3709967f3c5440bea"
 }

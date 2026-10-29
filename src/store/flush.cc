@@ -278,9 +278,10 @@ AtomicResolved FlatStore::atomic_resolve_range(uint64_t hash, Slice key, uint64_
         // foreign group with its ticket still unpublished is the publication-race window.
         for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
             const bool walked = (entry->membership & bit) != 0;
-            for (uint32_t i = 0; i < entry->count; i++) {
-                if (atomic_entry_hash(*entry, i) != hash ||
-                    !atomic_entry_key(*entry, i).key_eq(key))
+            const bool range = atomic_range_covers(*entry, key);
+            for (uint32_t i = 0; i < (range ? 1u : entry->count); i++) {
+                if (!range && (atomic_entry_hash(*entry, i) != hash ||
+                    !atomic_entry_key(*entry, i).key_eq(key)))
                     continue;
                 if (!entry->group_epoch ||
                     (entry->group_aborted &&

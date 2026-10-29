@@ -45,6 +45,7 @@ struct AtomicEntry {
     uint8_t key_ns = 0;
     bool namespace_range = false;
     bool range_all = false;
+    uint16_t range_padding = 0; // merge tail initialization into the existing store
 
     KvObj** parked() { return reinterpret_cast<KvObj**>(this + 1); }
     KvObj* const* parked() const { return reinterpret_cast<KvObj* const*>(this + 1); }

@@ -1622,7 +1622,7 @@ template<bool ScriptOnly>
                op.cmd_name().eq_icase("debug") && op.arg(1).eq_icase("loadaof")
                    ? Kind::DebugLoadAof :
                op.cmd_name().eq_icase("debug") ? Kind::DebugReload :
-               (op.cmd_name().eq_icase("flushall") || op.cmd_name().eq_icase("flushdb"))
+               xshard_flush_command(op)
                    ? Kind::Flush : Kind::AllShards;
         if (kind == Kind::Flush)
             return xshard_prepare_flush(server, op, pool, owner_io, origin_conn_id, dispatch, force_atomic);
@@ -4296,7 +4296,12 @@ void xshard_flush_commits_impl(Server& server, ThreadCtx& self, Ring& ring,
                 }
                 aof_abort_scatter_group(*state);
             }
-            if (state->kind == Kind::Flush) {
+            // Reuse MSET's existing reply-kind branch: ordinary atomic MSET
+            // does not execute an extra FLUSH discriminator at commit.
+            if (state->kind == Kind::Mset && !state->aborted.load(std::memory_order_acquire)) {
+                reply_ok(op.sink());
+                op.zc_shard = Op::kScatterReplyMarker;
+            } else if (state->kind == Kind::Flush) {
                 flush_after_decision(server, self, ring, *state);
                 state = next;
                 continue;
@@ -4308,15 +4313,6 @@ void xshard_flush_commits_impl(Server& server, ThreadCtx& self, Ring& ring,
             if (op.spec->flags & CmdFlags::NotifySelected)
                 notify_xshard_finished(server.shard(state->commit_shard), op, *state);
             server.atomic_apply_close(self.id(), state->apply_open);
-
-            // Successful atomic MSET already has its final result. Publish that result with
-            // Done instead of advertising an opaque gather that forces WB to serve at once.
-            // Keep the arena attached: IO still owns group retirement and all lifetime pins.
-            // Errors and gathers retain their ordinary assembly/unknown-size marker.
-            if (state->kind == Kind::Mset && !state->aborted.load(std::memory_order_acquire)) {
-                reply_ok(op.sink());
-                op.zc_shard = Op::kScatterReplyMarker;
-            }
 
             // Capture `next` above: a fused self-notification may immediately retire the Op and
             // destroy this arena state. The release store remains the one reply-visibility edge.

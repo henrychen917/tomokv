@@ -1,5 +1,3 @@
-# wave9
-
-See [MEASURE-REQUEST-wave9.md](MEASURE-REQUEST-wave9.md), section `## wave9 integration`.
-The at412c storm recipe is preserved in `docs/at412c/MEASURE-REQUEST`.
-No performance measurements run in this lane.
+See MEASURE-REQUEST-flushfix2.md, section "flushfix2", for the owner's requested
+PRE/POST/PAD-A cells, proof status and decision criteria. Landing awaits design
+approval. No performance measurement is requested from a Codex lane.

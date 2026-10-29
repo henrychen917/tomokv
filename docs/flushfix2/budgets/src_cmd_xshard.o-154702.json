@@ -1,0 +1,43 @@
+{
+  "unit": "src/cmd/xshard.o",
+  "budget": "154702",
+  "old_budget": 153471,
+  "initial": 124944,
+  "changed": [
+    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int) [clone .cold]",
+    "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
+    "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*) [clone .cold]",
+    "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+    "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)"
+  ],
+  "total": 37,
+  "command": [
+    "taskset",
+    "-c",
+    "0-15",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=153471",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/cmd/xshard.cc",
+    "-o",
+    "/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_cmd_xshard.o-154702.o",
+    "--param",
+    "large-unit-insns=154702",
+    "-g0",
+    "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_cmd_xshard.o-154702.inline"
+  ],
+  "revision": "3f2bcfa1af7399ca656402bfed80aa5869422c98"
+}

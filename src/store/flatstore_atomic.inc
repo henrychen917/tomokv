@@ -55,9 +55,10 @@
         if (!atomic_pending_) return;
         const uint64_t bit = atomic_membership_bit(hash);
         for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
-            if (atomic_range_covers(*entry, key)) { visit(*entry); continue; }
             if (!(entry->membership & bit)) continue;
-            for (uint32_t i = 0; i < entry->count; ++i)
+            if (!entry->count) {
+                if (atomic_range_covers(*entry, key)) visit(*entry);
+            } else for (uint32_t i = 0; i < entry->count; ++i)
                 if (atomic_entry_hash(*entry, i) == hash && atomic_entry_key(*entry, i).key_eq(key)) {
                     visit(*entry);
                     break;
@@ -1169,9 +1170,10 @@ private:
         if (!atomic_pending_ || !atomic_pending_->live) return false;
         const uint64_t bit = atomic_membership_bit(hash);
         for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
-            if (atomic_range_covers(*entry, key)) return true;
             if (!(entry->membership & bit)) continue;
-            for (uint32_t i = 0; i < entry->count; i++)
+            if (!entry->count) {
+                if (atomic_range_covers(*entry, key)) return true;
+            } else for (uint32_t i = 0; i < entry->count; i++)
                 if (atomic_entry_hash(*entry, i) == hash && atomic_entry_key(*entry, i).key_eq(key))
                     return true;
         }

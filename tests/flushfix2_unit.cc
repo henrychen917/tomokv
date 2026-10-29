@@ -6,6 +6,53 @@ using namespace tomo;
 static void need(bool b, const char* why) {
     if (!b) { std::fprintf(stderr, "FAIL flushfix2: %s\n", why); std::exit(1); }
 }
+static void aof_groups() {
+    Config cfg;
+    cfg.databases = kSingleDatabase ? 1 : 16;
+    cfg.shards = 16;
+    cfg.even_ifid = 6; cfg.even_ex = 2;
+    cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
+    Server server;
+    need(server.prepare_boot(cfg) && server.init(cfg), "AOF fixture geometry");
+    command_bind_server(&server);
+    for (bool all : {false, true}) for (bool committed : {false, true})
+    for (bool legacy : {false, true}) {
+        AofReplayPlan plan;
+        plan.shard_count = server.nshards();
+        plan.sections.resize(server.nshards());
+        const Slice key("flushed", 7, kSingleDatabase ? 0 : 7);
+        const Slice control("control", 7, kSingleDatabase ? 0 : 11);
+        for (unsigned sid = 0; sid < server.nshards(); ++sid) {
+            auto& store = server.shard(sid).store();
+            store.clear();
+            need(store.insert(FlatStore::hash_key(key), kvobj_new_int(key, 5)) ==
+                 FlatStore::InsertResult::Inserted, "AOF seed");
+            need(store.insert(FlatStore::hash_key(control), kvobj_new_int(control, 7)) ==
+                 FlatStore::InsertResult::Inserted, "AOF control seed");
+            auto& record = plan.sections[sid];
+            record.resize(40);
+            snapshot_put_u32(record.data(), 0x43524f41);
+            record[4] = static_cast<uint8_t>(legacy ? AofRecordKind::Flush : AofRecordKind::GroupFlush);
+            record[5] = all ? 0 : 1;
+            record[7] = 1;
+            snapshot_put_u32(record.data() + 12, 40u | (uint32_t(all ? 0 : key.ns) << 16));
+            snapshot_put_u64(record.data() + 24, uint64_t(-1));
+            snapshot_put_u64(record.data() + 32, legacy ? 0 : 41);
+        }
+        if (committed) plan.committed_groups.insert(41);
+        std::string error;
+        for (unsigned sid = 0; sid < server.nshards(); ++sid) {
+            need(aof_load_shard(plan, server, server.shard(sid), error), "AOF replay flush fragment");
+            auto& store = server.shard(sid).store();
+            const bool applied = legacy || committed;
+            need(bool(store.find_no_touch(FlatStore::hash_key(key), key)) == !applied,
+                 "every flush fragment requires the same GCMT; legacy still replays");
+            need(bool(store.find_no_touch(FlatStore::hash_key(control), control)) ==
+                 !(applied && (all || kSingleDatabase)), "AOF namespace control");
+        }
+    }
+    std::puts("PASS flushfix2 GroupFlush all-or-none GCMT, namespace and legacy Flush replay");
+}
 int main() {
     static_assert(sizeof(AtomicEntry) == 144 && sizeof(AtomicPendingState) == 1352);
     for (bool armed : {false, true}) for (bool all : {false, true})
@@ -72,4 +119,5 @@ int main() {
         st.atomic_shutdown_release_records();
     }
     std::puts("PASS flushfix2 range cuts, PIN OCC, namespace, post-delete, abort rollback, local poison");
+    aof_groups();
 }

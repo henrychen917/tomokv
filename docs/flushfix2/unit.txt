@@ -1,1 +1,2 @@
 PASS flushfix2 range cuts, PIN OCC, namespace, post-delete, abort rollback, local poison
+PASS flushfix2 GroupFlush all-or-none GCMT, namespace and legacy Flush replay
