@@ -1,0 +1,218 @@
+[
+  {
+    "arm": "post",
+    "mode": "1s",
+    "engine": "uring",
+    "databases": 1,
+    "command": [
+      "taskset",
+      "-c",
+      "8-15",
+      "python3",
+      "tests/atomic_hazards.py",
+      "127.0.0.1",
+      "20196"
+    ],
+    "status": 1,
+    "binary_sha256": "7389c241a63ed94d17a03c447c90bba6ae1dde422f0fe6a9edb728006d13bad8",
+    "log": "build/flushfix2/hazard-range-v2/post-1s-uring-1/witness.log",
+    "log_sha256": "fcd793a7e1044813e8946e3f8a3ca2b95402a70c730e766c7a0d577ffcad6bc1",
+    "windows": [],
+    "failures": [
+      "  FAIL S1 FLUSH under a pinned floor leaves no finite read cut (RENAME after MSET sees its own write) armed=0/3 attempts=9; window never armed enough times; misses=['attempt 1: pin admission was not acknowledged before its deadline', 'attempt 2: pin admission was not acknowledged before its deadline', 'attempt 3: pin admission was not acknowledged before its deadline', 'attempt 4: pin admission was not acknowledged before its deadline', 'attempt 5: pin admission was not acknowledged before its deadline', 'attempt 6: pin admission was not acknowledged before its deadline', 'attempt 7: pin admission was not acknowledged before its deadline', 'attempt 8: pin admission was not acknowledged before its deadline', 'attempt 9: pin admission was not acknowledged before its deadline']",
+      "FAIL=1"
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "engine": "uring",
+    "databases": 16,
+    "command": [
+      "taskset",
+      "-c",
+      "8-15",
+      "python3",
+      "tests/atomic_hazards.py",
+      "127.0.0.1",
+      "20196"
+    ],
+    "status": 1,
+    "binary_sha256": "7389c241a63ed94d17a03c447c90bba6ae1dde422f0fe6a9edb728006d13bad8",
+    "log": "build/flushfix2/hazard-range-v2/post-1s-uring-16/witness.log",
+    "log_sha256": "86382df063000b20495950fc8ccad6f4dd40c42bca51a85db6fd68c14889ae5c",
+    "windows": [],
+    "failures": [
+      "  FAIL S1 FLUSH under a pinned floor leaves no finite read cut (RENAME after MSET sees its own write) armed=0/3 attempts=9; window never armed enough times; misses=['attempt 1: pin admission was not acknowledged before its deadline', 'attempt 2: pin admission was not acknowledged before its deadline', 'attempt 3: pin admission was not acknowledged before its deadline', 'attempt 4: pin admission was not acknowledged before its deadline', 'attempt 5: pin admission was not acknowledged before its deadline', 'attempt 6: pin admission was not acknowledged before its deadline', 'attempt 7: pin admission was not acknowledged before its deadline', 'attempt 8: pin admission was not acknowledged before its deadline', 'attempt 9: pin admission was not acknowledged before its deadline']",
+      "FAIL=1"
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "engine": "epoll",
+    "databases": 1,
+    "command": [
+      "taskset",
+      "-c",
+      "8-15",
+      "python3",
+      "tests/atomic_hazards.py",
+      "127.0.0.1",
+      "20196"
+    ],
+    "status": 1,
+    "binary_sha256": "7389c241a63ed94d17a03c447c90bba6ae1dde422f0fe6a9edb728006d13bad8",
+    "log": "build/flushfix2/hazard-range-v2/post-1s-epoll-1/witness.log",
+    "log_sha256": "2ced0f5be4b8034b7242dc7074493db2327aeedfe6790b190e7909618e65fdc5",
+    "windows": [],
+    "failures": [
+      "  FAIL S1 FLUSH under a pinned floor leaves no finite read cut (RENAME after MSET sees its own write) armed=0/3 attempts=9; window never armed enough times; misses=['attempt 1: pin admission was not acknowledged before its deadline', 'attempt 2: pin admission was not acknowledged before its deadline', 'attempt 3: pin admission was not acknowledged before its deadline', 'attempt 4: pin admission was not acknowledged before its deadline', 'attempt 5: pin admission was not acknowledged before its deadline', 'attempt 6: pin admission was not acknowledged before its deadline', 'attempt 7: pin admission was not acknowledged before its deadline', 'attempt 8: pin admission was not acknowledged before its deadline', 'attempt 9: pin admission was not acknowledged before its deadline']",
+      "FAIL=1"
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "engine": "epoll",
+    "databases": 16,
+    "command": [
+      "taskset",
+      "-c",
+      "8-15",
+      "python3",
+      "tests/atomic_hazards.py",
+      "127.0.0.1",
+      "20196"
+    ],
+    "status": 1,
+    "binary_sha256": "7389c241a63ed94d17a03c447c90bba6ae1dde422f0fe6a9edb728006d13bad8",
+    "log": "build/flushfix2/hazard-range-v2/post-1s-epoll-16/witness.log",
+    "log_sha256": "577bc83e50977000df1030bc31ae9061bc7ce7531355598ca1e6e8c68f888e79",
+    "windows": [],
+    "failures": [
+      "  FAIL S1 FLUSH under a pinned floor leaves no finite read cut (RENAME after MSET sees its own write) armed=0/3 attempts=9; window never armed enough times; misses=['attempt 1: pin admission was not acknowledged before its deadline', 'attempt 2: pin admission was not acknowledged before its deadline', 'attempt 3: pin admission was not acknowledged before its deadline', 'attempt 4: pin admission was not acknowledged before its deadline', 'attempt 5: pin admission was not acknowledged before its deadline', 'attempt 6: pin admission was not acknowledged before its deadline', 'attempt 7: pin admission was not acknowledged before its deadline', 'attempt 8: pin admission was not acknowledged before its deadline', 'attempt 9: pin admission was not acknowledged before its deadline']",
+      "FAIL=1"
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "engine": "uring",
+    "databases": 1,
+    "command": [
+      "taskset",
+      "-c",
+      "8-15",
+      "python3",
+      "tests/atomic_hazards.py",
+      "127.0.0.1",
+      "20196"
+    ],
+    "status": 1,
+    "binary_sha256": "7389c241a63ed94d17a03c447c90bba6ae1dde422f0fe6a9edb728006d13bad8",
+    "log": "build/flushfix2/hazard-range-v2/post-2s-uring-1/witness.log",
+    "log_sha256": "c1f2b3983e08321b8a1971e7972b15c20f131b13f61905a588068f5e42785587",
+    "windows": [],
+    "failures": [
+      "  FAIL S1 FLUSH under a pinned floor leaves no finite read cut (RENAME after MSET sees its own write) armed=0/3 attempts=9; window never armed enough times; misses=['attempt 1: pin admission was not acknowledged before its deadline', 'attempt 2: pin admission was not acknowledged before its deadline', 'attempt 3: pin admission was not acknowledged before its deadline', 'attempt 4: pin admission was not acknowledged before its deadline', 'attempt 5: pin admission was not acknowledged before its deadline', 'attempt 6: pin admission was not acknowledged before its deadline', 'attempt 7: pin admission was not acknowledged before its deadline', 'attempt 8: pin admission was not acknowledged before its deadline', 'attempt 9: pin admission was not acknowledged before its deadline']",
+      "FAIL=1"
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "engine": "uring",
+    "databases": 16,
+    "command": [
+      "taskset",
+      "-c",
+      "8-15",
+      "python3",
+      "tests/atomic_hazards.py",
+      "127.0.0.1",
+      "20196"
+    ],
+    "status": 1,
+    "binary_sha256": "7389c241a63ed94d17a03c447c90bba6ae1dde422f0fe6a9edb728006d13bad8",
+    "log": "build/flushfix2/hazard-range-v2/post-2s-uring-16/witness.log",
+    "log_sha256": "c1f2b3983e08321b8a1971e7972b15c20f131b13f61905a588068f5e42785587",
+    "windows": [],
+    "failures": [
+      "  FAIL S1 FLUSH under a pinned floor leaves no finite read cut (RENAME after MSET sees its own write) armed=0/3 attempts=9; window never armed enough times; misses=['attempt 1: pin admission was not acknowledged before its deadline', 'attempt 2: pin admission was not acknowledged before its deadline', 'attempt 3: pin admission was not acknowledged before its deadline', 'attempt 4: pin admission was not acknowledged before its deadline', 'attempt 5: pin admission was not acknowledged before its deadline', 'attempt 6: pin admission was not acknowledged before its deadline', 'attempt 7: pin admission was not acknowledged before its deadline', 'attempt 8: pin admission was not acknowledged before its deadline', 'attempt 9: pin admission was not acknowledged before its deadline']",
+      "FAIL=1"
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "engine": "epoll",
+    "databases": 1,
+    "command": [
+      "taskset",
+      "-c",
+      "8-15",
+      "python3",
+      "tests/atomic_hazards.py",
+      "127.0.0.1",
+      "20196"
+    ],
+    "status": 1,
+    "binary_sha256": "7389c241a63ed94d17a03c447c90bba6ae1dde422f0fe6a9edb728006d13bad8",
+    "log": "build/flushfix2/hazard-range-v2/post-2s-epoll-1/witness.log",
+    "log_sha256": "c1f2b3983e08321b8a1971e7972b15c20f131b13f61905a588068f5e42785587",
+    "windows": [],
+    "failures": [
+      "  FAIL S1 FLUSH under a pinned floor leaves no finite read cut (RENAME after MSET sees its own write) armed=0/3 attempts=9; window never armed enough times; misses=['attempt 1: pin admission was not acknowledged before its deadline', 'attempt 2: pin admission was not acknowledged before its deadline', 'attempt 3: pin admission was not acknowledged before its deadline', 'attempt 4: pin admission was not acknowledged before its deadline', 'attempt 5: pin admission was not acknowledged before its deadline', 'attempt 6: pin admission was not acknowledged before its deadline', 'attempt 7: pin admission was not acknowledged before its deadline', 'attempt 8: pin admission was not acknowledged before its deadline', 'attempt 9: pin admission was not acknowledged before its deadline']",
+      "FAIL=1"
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "engine": "epoll",
+    "databases": 16,
+    "command": [
+      "taskset",
+      "-c",
+      "8-15",
+      "python3",
+      "tests/atomic_hazards.py",
+      "127.0.0.1",
+      "20196"
+    ],
+    "status": 1,
+    "binary_sha256": "7389c241a63ed94d17a03c447c90bba6ae1dde422f0fe6a9edb728006d13bad8",
+    "log": "build/flushfix2/hazard-range-v2/post-2s-epoll-16/witness.log",
+    "log_sha256": "c1f2b3983e08321b8a1971e7972b15c20f131b13f61905a588068f5e42785587",
+    "windows": [],
+    "failures": [
+      "  FAIL S1 FLUSH under a pinned floor leaves no finite read cut (RENAME after MSET sees its own write) armed=0/3 attempts=9; window never armed enough times; misses=['attempt 1: pin admission was not acknowledged before its deadline', 'attempt 2: pin admission was not acknowledged before its deadline', 'attempt 3: pin admission was not acknowledged before its deadline', 'attempt 4: pin admission was not acknowledged before its deadline', 'attempt 5: pin admission was not acknowledged before its deadline', 'attempt 6: pin admission was not acknowledged before its deadline', 'attempt 7: pin admission was not acknowledged before its deadline', 'attempt 8: pin admission was not acknowledged before its deadline', 'attempt 9: pin admission was not acknowledged before its deadline']",
+      "FAIL=1"
+    ]
+  },
+  {
+    "arm": "pad-a",
+    "mode": "2s",
+    "engine": "uring",
+    "databases": 1,
+    "command": [
+      "taskset",
+      "-c",
+      "8-15",
+      "python3",
+      "tests/atomic_hazards.py",
+      "127.0.0.1",
+      "20196"
+    ],
+    "status": 1,
+    "binary_sha256": "2f7c9591acc21effb52787cc75194f9d6f9426e63e36538027c7f264d0b0832e",
+    "log": "build/flushfix2/hazard-range-v2/pad-a-2s-uring-1/witness.log",
+    "log_sha256": "c1f2b3983e08321b8a1971e7972b15c20f131b13f61905a588068f5e42785587",
+    "windows": [],
+    "failures": [
+      "  FAIL S1 FLUSH under a pinned floor leaves no finite read cut (RENAME after MSET sees its own write) armed=0/3 attempts=9; window never armed enough times; misses=['attempt 1: pin admission was not acknowledged before its deadline', 'attempt 2: pin admission was not acknowledged before its deadline', 'attempt 3: pin admission was not acknowledged before its deadline', 'attempt 4: pin admission was not acknowledged before its deadline', 'attempt 5: pin admission was not acknowledged before its deadline', 'attempt 6: pin admission was not acknowledged before its deadline', 'attempt 7: pin admission was not acknowledged before its deadline', 'attempt 8: pin admission was not acknowledged before its deadline', 'attempt 9: pin admission was not acknowledged before its deadline']",
+      "FAIL=1"
+    ]
+  }
+]

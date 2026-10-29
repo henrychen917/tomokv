@@ -45,6 +45,14 @@ def main():
         assert hashlib.sha256(binary.read_bytes()).hexdigest() == digest
         run_env = env.copy()
         if phase in ('directed', 'broad'):
+            if phase == 'broad':
+                # These gate jobs deliberately use the candidate's companion
+                # fixtures, not an arbitrary unit from another build/arm.
+                for name in ('moverfix-unit', 'moverfix-db0-unit', 'txnorder-wake-unit',
+                             'txnorder-episodes', 'txnorder-episodes-debug',
+                             'txnorder-watch-unit', 'txnorder-watch-db0-unit'):
+                    if not (binary.parent/name).is_file():
+                        raise FileNotFoundError(f'stage the matching candidate companion: {binary.parent/name}')
             run_env['GATE_ONLY_JOBS'] = 'flushfix2 flushfix2_units' if phase == 'directed' else ' '.join(BROAD)
             run_env['GATE_LEDGER'] = str(out/phase)
             cmd = ['taskset', '-c', '0-15', 'tests/gate.sh', 'quick',

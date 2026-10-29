@@ -136,6 +136,23 @@ a bounded fresh-server recheck of the unchanged complete T9 job passes all 27
 legs, with its restart counters nonzero. The original failure is retained in the
 broad ledger and `docs/flushfix2/t9-rechecks.json`; no tolerance was changed.
 
+The old multidb and storesize serverless drivers stopped after the install
+wave. They now drive FLUSH's real completion, shared decision and collapse
+before assembling the reply; their assertions and the storesize negative
+control pass. The old S1 hazard expected FLUSH to reply while its floor was
+pinned, contrary to this lane's reply-after-collapse contract. Its range arm
+instead acknowledges the decision, runs MSET/RENAME/GET on another connection
+under the live range, and requires retained records, unfinished pin/FLUSH
+sockets, and nonzero range-read/post-version counters. It retains the 600 ms
+deadline, three successful windows and nine fresh-attempt limit. All eight
+mode/engine/image legs pass; PAD-A fails. Intermediate harness mistakes remain
+marked INCONCLUSIVE in `hazard-harness-revisions.json`.
+
+Initial mover/txnorder unit rows also failed because the frozen binary directory
+lacked their seven companion executables. Matching production units are now
+staged there with hashes in `companion-units.json`; their complete gate jobs are
+being rerun. These setup failures remain in the original ledgers.
+
 ### Sibling sweep
 
 Raw observations, errors, commands and exit receipts are retained in

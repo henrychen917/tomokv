@@ -2,6 +2,7 @@
 // Real command/store identity checks without listeners, rings, or worker loops.
 #pragma GCC diagnostic ignored "-Wsubobject-linkage"
 #include "src/cmd/xshard.cc"
+#include "flushfix2_fixture.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -265,7 +266,8 @@ static std::string scatter(Server& server, uint8_t db,
     }
     ScatterArenaPool pool;
     ScatterDispatch dispatch;
-    const auto prepared = xshard_prepare(server, r.op, pool, 0, client.id(), dispatch, atomic);
+    const auto prepared = xshard_prepare(server, r.op, pool, 0, client.id(), dispatch,
+                                         atomic && !xshard_flush_command(r.op));
     if (prepared == ScatterPrepare::Error) return r.reply();
     require(prepared == ScatterPrepare::Ready, "scatter owner preparation");
     ScatterState& state = *dispatch.state;
@@ -287,7 +289,7 @@ static std::string scatter(Server& server, uint8_t db,
                 if (result == ScatterTaskResult::Retry) { parked[owner] = true; continue; }
                 if (result == ScatterTaskResult::Defer) continue;
                 completed[i] = true;
-                auto finish = xshard_multi_child_complete(state, r.op, server.worker_of_shard(s));
+                auto finish = flushfix2_fixture_complete(server, client, state, r.op, owner, s);
                 final = finish == MultiChildFinish::Final;
                 advanced = finish == MultiChildFinish::PhaseAdvanced;
             }
@@ -295,7 +297,8 @@ static std::string scatter(Server& server, uint8_t db,
         require(final || advanced, "scatter phases made bounded progress");
     }
     require(final, "scatter completed");
-    if (state.atomic_group && !state.aborted.load()) state.epoch.store(server.atomic_commit());
+    if (state.atomic_group && !state.aborted.load() && state.kind != Kind::Flush)
+        state.epoch.store(server.atomic_commit());
     assemble_final(client, r.op, state, nullptr, nullptr, nullptr);
     records_done(server);
     xshard_destroy(&state, pool, 0);

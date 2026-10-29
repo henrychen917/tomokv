@@ -1,0 +1,20 @@
+{
+  "final_test_sha256": "df9f168918f970e11372dbd8be969305a95cf03f626778979f428000cdd7fd11",
+  "final": "hazard-range.json: eight POST successes, three opened windows each; PAD-A fails to acknowledge a range decision",
+  "preserved_deadline_us": 600000,
+  "required_successful_windows": 3,
+  "fresh_attempt_bound": 9,
+  "earlier": [
+    {
+      "receipt": "hazard-range-initial.json",
+      "classification": "INCONCLUSIVE harness attempt",
+      "reason": "Full INFO can enter the delayed fanout, and atomic_fanout_cuts is not an atomic-1 admission counter. One RENAME failure was sampled without an acknowledged FLUSH decision, permitting FLUSH between MSET and RENAME; not a production-failure witness."
+    },
+    {
+      "receipt": "hazard-range-wrong-counter.json",
+      "classification": "INCONCLUSIVE harness attempt",
+      "reason": "INFO stats avoids the observation delay, but atomic_fanout_cuts counts atomic-OFF gap admissions; all arms correctly failed the unopened-window assertion."
+    }
+  ],
+  "final_window": "After the FLUSH unit counter advances, observe retained old MSET entries plus one range per shard; require post-decision GET absence then MSET/RENAME/GET success, unreadable pin and FLUSH sockets before the original deadline, intact old pinned MGET, and positive range-read/post-version counters after collapse."
+}
