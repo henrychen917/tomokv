@@ -1,0 +1,72 @@
+[
+  {
+    "arm": "final",
+    "archive": "docs/scriptfix3/instructions/final/traces.tar.gz",
+    "sha256": "26ea7ebd89c11e001871a8875ed8daab14e3e2bacf692d096748331e07ec2bc8",
+    "files": 864,
+    "counts": "docs/scriptfix3/instructions/final/counts.json"
+  },
+  {
+    "arm": "scriptfix2-stage0",
+    "archive": "docs/scriptfix3/instructions/scriptfix2-stage0/traces.tar.gz",
+    "sha256": "ef7188c3e5357598a228621f0d2a92a4eb03aee9f50f6797f225d03e2808cc5e",
+    "files": 288,
+    "counts": "docs/scriptfix3/instructions/scriptfix2-stage0/counts.json"
+  },
+  {
+    "arm": "post2",
+    "archive": "docs/scriptfix3/instructions/post2/traces.tar.gz",
+    "sha256": "bebda75e96306776341b3cb691206b02aa386c93a65b483638f7d9f7640e95a2",
+    "files": 864,
+    "counts": "docs/scriptfix3/instructions/post2/counts.json"
+  },
+  {
+    "arm": "headline",
+    "archive": "docs/scriptfix3/instructions/headline/traces.tar.gz",
+    "sha256": "72ee672289052be40899e4d0551002a9b6456f76f11ad6e3c7f21507c9dbaf26",
+    "files": 864,
+    "counts": "docs/scriptfix3/instructions/headline/counts.json"
+  },
+  {
+    "arm": "post",
+    "archive": "docs/scriptfix3/instructions/post/traces.tar.gz",
+    "sha256": "ff9dfdabe83d8717fead02c1c467f813c37b97bdbec88e74877f9c7ff1fc06bc",
+    "files": 864,
+    "counts": "docs/scriptfix3/instructions/post/counts.json"
+  },
+  {
+    "arm": "scriptfix2-stage2",
+    "archive": "docs/scriptfix3/instructions/scriptfix2-stage2/traces.tar.gz",
+    "sha256": "24e4c5afe9f7a4f0307b9ea23965f21dd39c5c02fc95f717d1d1008a0a128e64",
+    "files": 288,
+    "counts": "docs/scriptfix3/instructions/scriptfix2-stage2/counts.json"
+  },
+  {
+    "arm": "scriptfix2-stage1",
+    "archive": "docs/scriptfix3/instructions/scriptfix2-stage1/traces.tar.gz",
+    "sha256": "ab3666b6799a8d9a6a95134560c06b5cbed04f2d873b32cad194effe5d6133bc",
+    "files": 288,
+    "counts": "docs/scriptfix3/instructions/scriptfix2-stage1/counts.json"
+  },
+  {
+    "arm": "post3",
+    "archive": "docs/scriptfix3/instructions/post3/traces.tar.gz",
+    "sha256": "7c0683a85adb24ecc8114c998a7c7821cb6475de46b0e0d12adb1ee55f5170b9",
+    "files": 864,
+    "counts": "docs/scriptfix3/instructions/post3/counts.json"
+  },
+  {
+    "arm": "scriptfix2-stage3",
+    "archive": "docs/scriptfix3/instructions/scriptfix2-stage3/traces.tar.gz",
+    "sha256": "ce69723a21b22f8ea23f6f7760ce3eca49bf264ed6afb596481eb85792c740ca",
+    "files": 288,
+    "counts": "docs/scriptfix3/instructions/scriptfix2-stage3/counts.json"
+  },
+  {
+    "arm": "pre",
+    "archive": "docs/scriptfix3/instructions/pre/traces.tar.gz",
+    "sha256": "f74869b4e5d222152bd0e8abae9650aa7e62321a0e86c4f4c42cfb56948b7fc9",
+    "files": 864,
+    "counts": "docs/scriptfix3/instructions/pre/counts.json"
+  }
+]
