@@ -516,5 +516,14 @@
     }
   ],
   "conclusion": "All executable bytes, function symbols/addresses, and data layouts are identical. Only the two INFO build-commit strings differ in allocated program data; build-id and debug information also differ. No command-scope count or selected inlining budget changes.",
-  "frozen_new_binary": "/home/user/Projects/cx-wave10/build/wave10/arms/POST-source-labels"
+  "frozen_new_binary": "/home/user/Projects/cx-wave10/build/wave10/arms/POST-source-labels",
+  "strict_allocated_section_check": {
+    "pass": true,
+    "exceptions": [
+      ".note.gnu.build-id",
+      "Exactly two 8-byte INFO git identity strings: 11f52599 -> 9bacbe2d"
+    ],
+    "all_function_symbols_identical": true,
+    "no_other_allocated_bytes_differ": true
+  }
 }
