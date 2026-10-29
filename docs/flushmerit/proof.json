@@ -1,0 +1,401 @@
+{
+  "kind": "SMOKE_ONLY; no merit conclusions or rates",
+  "base": "e2b2379262ecc28e6fc3508526ba3403a98d68be",
+  "harness_code_commit": "c01d9d4ecd9f8aaaf291145ace1ce928d13de6ce",
+  "created_utc": "2026-10-29T19:33:42.536488+00:00",
+  "cpu_allocation": "0-15",
+  "server_cpus": "0-7",
+  "load_cpus": "8-15",
+  "production_changed": [],
+  "DQ": 0,
+  "DF": 0,
+  "make_q_all": 0,
+  "binary": {
+    "path": "build/tomokv",
+    "sha256": "c6c6459edec2e85276832b93f2523f51ad1f81d2cdf5777b73b1f1af4bdfc3d2"
+  },
+  "build_allocated_bytes": 1575481344,
+  "selftests": [
+    "flush_latency selftest: PASS",
+    "flush_writer_wait selftest: PASS",
+    "mget_under_exec selftest: PASS"
+  ],
+  "gates_test": {
+    "status": "PASS",
+    "tests": 76,
+    "log": "build/flushmerit/gates-test-final.log",
+    "sha256": "00e90af034a51ce2828caf2d39153541b737eae916a8477e19d07e2451374e25"
+  },
+  "smokes": [
+    {
+      "path": "build/flushmerit/verified-latency-smoke",
+      "summary": "flush_latency: status=VALID kind=SMOKE_ONLY valid=128/128 runs=128 DQ=0 DF=0",
+      "args": {
+        "selftest": false,
+        "candidate": "build/tomokv",
+        "reference": "build/tomokv",
+        "third": null,
+        "third_kind": null,
+        "output": "/home/user/Projects/cx-flushmerit/build/flushmerit/verified-latency-smoke",
+        "port": 20100,
+        "server_cores": "0-7",
+        "load_cores": "8-15",
+        "ratio": "6:2",
+        "blocks": 1,
+        "modes": "1s,2s",
+        "databases": "1,16",
+        "atomics": "0,1",
+        "flushes": "SYNC,ASYNC",
+        "smoke": true,
+        "timeout": 120,
+        "populations": "0,10000",
+        "trials": 2,
+        "empty_trials": 2,
+        "rss_settle": 0
+      },
+      "arms": {
+        "A": "/home/user/Projects/cx-flushmerit/build/tomokv",
+        "B": "/home/user/Projects/cx-flushmerit/build/tomokv"
+      },
+      "arm_sha256": {
+        "A": "c6c6459edec2e85276832b93f2523f51ad1f81d2cdf5777b73b1f1af4bdfc3d2",
+        "B": "c6c6459edec2e85276832b93f2523f51ad1f81d2cdf5777b73b1f1af4bdfc3d2"
+      },
+      "raw_record_sha256": "e6ceb6798b39e718647de0750d4da8ede057fef67e808796f73381e6ce5db7f6",
+      "summary_json_sha256": "fd206441b6c5a64e9be74a57e30be12abf91f502101499b80ff4d8e94f68eae9",
+      "runs": 128,
+      "all_valid": true
+    },
+    {
+      "path": "build/flushmerit/third-arm-smoke",
+      "summary": "flush_latency: status=VALID kind=SMOKE_ONLY valid=6/6 runs=6 DQ=0 DF=0",
+      "args": {
+        "selftest": false,
+        "candidate": "build/tomokv",
+        "reference": "build/tomokv",
+        "third": "build/tomokv",
+        "third_kind": "behaviour-twin",
+        "output": "/home/user/Projects/cx-flushmerit/build/flushmerit/third-arm-smoke",
+        "port": 20103,
+        "server_cores": "0-7",
+        "load_cores": "8-15",
+        "ratio": "6:2",
+        "blocks": 1,
+        "modes": "2s",
+        "databases": "1",
+        "atomics": "1",
+        "flushes": "SYNC",
+        "smoke": true,
+        "timeout": 120,
+        "populations": "10000",
+        "trials": 2,
+        "empty_trials": 2,
+        "rss_settle": 0
+      },
+      "arms": {
+        "A": "/home/user/Projects/cx-flushmerit/build/tomokv",
+        "B": "/home/user/Projects/cx-flushmerit/build/tomokv",
+        "C": "/home/user/Projects/cx-flushmerit/build/tomokv"
+      },
+      "arm_sha256": {
+        "A": "c6c6459edec2e85276832b93f2523f51ad1f81d2cdf5777b73b1f1af4bdfc3d2",
+        "B": "c6c6459edec2e85276832b93f2523f51ad1f81d2cdf5777b73b1f1af4bdfc3d2",
+        "C": "c6c6459edec2e85276832b93f2523f51ad1f81d2cdf5777b73b1f1af4bdfc3d2"
+      },
+      "raw_record_sha256": "5f9236b7009b5febc41cc0f16bd58c1d9421edf7c9bbd2053c6a2ac34d2eea7e",
+      "summary_json_sha256": "bffeac28ae1dc3ec1fbb3858842df9cc5f5147c7015164b1f99f9ce013130c4c",
+      "runs": 6,
+      "all_valid": true
+    },
+    {
+      "path": "build/flushmerit/isolated-writer-smoke",
+      "summary": "flush_writer_wait: status=VALID kind=SMOKE_ONLY valid=12/12 runs=12 DQ=0 DF=0",
+      "args": {
+        "selftest": false,
+        "candidate": "build/tomokv",
+        "reference": "build/tomokv",
+        "third": null,
+        "third_kind": null,
+        "output": "/home/user/Projects/cx-flushmerit/build/flushmerit/isolated-writer-smoke",
+        "port": 20101,
+        "server_cores": "0-7",
+        "load_cores": "8-15",
+        "ratio": "6:2",
+        "blocks": 1,
+        "modes": "2s",
+        "databases": "1",
+        "atomics": "1",
+        "flushes": "SYNC",
+        "smoke": true,
+        "timeout": 120,
+        "secs": 2.0,
+        "calibration_secs": 2.0,
+        "load_fraction": 0.5,
+        "max_lag_ms": 20,
+        "schedules": "same-key,disjoint-key,no-flush",
+        "population": 0
+      },
+      "arms": {
+        "A": "/home/user/Projects/cx-flushmerit/build/tomokv",
+        "B": "/home/user/Projects/cx-flushmerit/build/tomokv"
+      },
+      "arm_sha256": {
+        "A": "c6c6459edec2e85276832b93f2523f51ad1f81d2cdf5777b73b1f1af4bdfc3d2",
+        "B": "c6c6459edec2e85276832b93f2523f51ad1f81d2cdf5777b73b1f1af4bdfc3d2"
+      },
+      "raw_record_sha256": "a13e2174cd421c4c8828d7587322c0201409e224092c82bc3d9002de27c1fdbe",
+      "summary_json_sha256": "626321a183d48d4804d3b210ad41e6707adba37a07be80778743af5ce8f65d41",
+      "runs": 12,
+      "all_valid": true
+    },
+    {
+      "path": "build/flushmerit/verified-writer-fused-smoke",
+      "summary": "flush_writer_wait: status=VALID kind=SMOKE_ONLY valid=12/12 runs=12 DQ=0 DF=0",
+      "args": {
+        "selftest": false,
+        "candidate": "build/tomokv",
+        "reference": "build/tomokv",
+        "third": null,
+        "third_kind": null,
+        "output": "/home/user/Projects/cx-flushmerit/build/flushmerit/verified-writer-fused-smoke",
+        "port": 20101,
+        "server_cores": "0-7",
+        "load_cores": "8-15",
+        "ratio": "6:2",
+        "blocks": 1,
+        "modes": "1s",
+        "databases": "16",
+        "atomics": "0",
+        "flushes": "ASYNC",
+        "smoke": true,
+        "timeout": 120,
+        "secs": 2.0,
+        "calibration_secs": 2.0,
+        "load_fraction": 0.5,
+        "max_lag_ms": 20,
+        "schedules": "same-key,disjoint-key,no-flush",
+        "population": 10000
+      },
+      "arms": {
+        "A": "/home/user/Projects/cx-flushmerit/build/tomokv",
+        "B": "/home/user/Projects/cx-flushmerit/build/tomokv"
+      },
+      "arm_sha256": {
+        "A": "c6c6459edec2e85276832b93f2523f51ad1f81d2cdf5777b73b1f1af4bdfc3d2",
+        "B": "c6c6459edec2e85276832b93f2523f51ad1f81d2cdf5777b73b1f1af4bdfc3d2"
+      },
+      "raw_record_sha256": "299e95b04bbed3810721cb76c164c16fae33d059aae5dbe2273ce4c5c1606c65",
+      "summary_json_sha256": "8bd2953c2c51a4edf1c1437e142f295dbba07b4c7dc53c99dbb97db29dfe406d",
+      "runs": 12,
+      "all_valid": true
+    },
+    {
+      "path": "build/flushmerit/isolated-mget-profile-smoke",
+      "summary": "mget_under_exec: status=VALID kind=SMOKE_ONLY valid=16/16 runs=16 DQ=0 DF=0",
+      "args": {
+        "selftest": false,
+        "candidate": "build/tomokv",
+        "reference": "build/tomokv",
+        "third": null,
+        "third_kind": null,
+        "output": "/home/user/Projects/cx-flushmerit/build/flushmerit/isolated-mget-profile-smoke",
+        "port": 20102,
+        "server_cores": "0-7",
+        "load_cores": "8-15",
+        "ratio": "6:2",
+        "blocks": 1,
+        "modes": "1s,2s",
+        "databases": "1,16",
+        "atomics": "1",
+        "flushes": "SYNC,ASYNC",
+        "smoke": true,
+        "timeout": 120,
+        "secs": 2.0,
+        "calibration_secs": 2.0,
+        "load_fraction": 0.5,
+        "max_lag_ms": 20,
+        "profile": true
+      },
+      "arms": {
+        "A": "/home/user/Projects/cx-flushmerit/build/tomokv",
+        "B": "/home/user/Projects/cx-flushmerit/build/tomokv"
+      },
+      "arm_sha256": {
+        "A": "c6c6459edec2e85276832b93f2523f51ad1f81d2cdf5777b73b1f1af4bdfc3d2",
+        "B": "c6c6459edec2e85276832b93f2523f51ad1f81d2cdf5777b73b1f1af4bdfc3d2"
+      },
+      "raw_record_sha256": "453a1f963ca975f693576a3b270175eeeaa5fea334eb073fd94d2ead02420643",
+      "summary_json_sha256": "6c56424ee20c6976571a35ae3d6c8c0a1503ad2663a114b171fce6166364df67",
+      "runs": 16,
+      "all_valid": true,
+      "all_live_and_predecessor_witnesses": true,
+      "complete_profiles": 16,
+      "owner_geometry": {
+        "1s-a1-db1-mget-exec": [
+          [
+            0,
+            0
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            4,
+            4
+          ],
+          [
+            6,
+            6
+          ],
+          [
+            9,
+            1
+          ],
+          [
+            11,
+            3
+          ],
+          [
+            13,
+            5
+          ],
+          [
+            15,
+            7
+          ]
+        ],
+        "1s-a1-db16-mget-exec": [
+          [
+            0,
+            0
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            4,
+            4
+          ],
+          [
+            6,
+            6
+          ],
+          [
+            9,
+            1
+          ],
+          [
+            11,
+            3
+          ],
+          [
+            13,
+            5
+          ],
+          [
+            15,
+            7
+          ]
+        ],
+        "2s-a1-db1-mget-exec": [
+          [
+            0,
+            6
+          ],
+          [
+            2,
+            6
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            6,
+            6
+          ],
+          [
+            9,
+            7
+          ],
+          [
+            11,
+            7
+          ],
+          [
+            13,
+            7
+          ],
+          [
+            15,
+            7
+          ]
+        ],
+        "2s-a1-db16-mget-exec": [
+          [
+            0,
+            6
+          ],
+          [
+            2,
+            6
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            6,
+            6
+          ],
+          [
+            9,
+            7
+          ],
+          [
+            11,
+            7
+          ],
+          [
+            13,
+            7
+          ],
+          [
+            15,
+            7
+          ]
+        ]
+      }
+    }
+  ],
+  "prior_attempts": [
+    {
+      "path": "build/flushmerit/gates-test.log",
+      "status": "FAIL",
+      "reason": "one-slot scheduler fixture timeout while overlapping smoke runs"
+    },
+    {
+      "path": "build/flushmerit/final-writer-split-smoke",
+      "status": "INVALID",
+      "reason": "offered load not sustainable during overlapping harness self-tests"
+    },
+    {
+      "path": "build/flushmerit/final-mget-profile-smoke",
+      "status": "INVALID",
+      "reason": "generator schedule lag during overlapping harness self-tests"
+    },
+    {
+      "path": "build/flushmerit/mget-smoke",
+      "status": "SUPERSEDED",
+      "reason": "even shard IDs aliased one split executor; replaced by owner-balanced geometry"
+    }
+  ],
+  "not_run": [
+    {
+      "item": "real PRE/POST/PAD merit and full gate iteration",
+      "reason": "maintainer-only authorization"
+    }
+  ]
+}
