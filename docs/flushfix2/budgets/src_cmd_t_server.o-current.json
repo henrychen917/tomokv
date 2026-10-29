@@ -1,17 +1,14 @@
 {
   "unit": "src/cmd/t_server.o",
   "budget": "current",
-  "old_budget": 33142,
+  "old_budget": 33399,
   "initial": 27773,
   "changed": [
-    "tomo::(anonymous namespace)::cmd_client(tomo::Shard&, tomo::Op&)",
-    "tomo::(anonymous namespace)::cmd_client(tomo::Shard&, tomo::Op&) [clone .cold]",
     "tomo::(anonymous namespace)::cmd_bgrewriteaof(tomo::Shard&, tomo::Op&)",
     "tomo::(anonymous namespace)::cmd_bgrewriteaof(tomo::Shard&, tomo::Op&) [clone .cold]",
     "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)",
     "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]",
-    "unsigned int tomo::FlatStore::scan_home<tomo::(anonymous namespace)::cmd_scan(tomo::Shard&, tomo::Op&)::{lambda(tomo::KvObj*)#1}>(int, unsigned int, tomo::(anonymous namespace)::cmd_scan(tomo::Shard&, tomo::Op&)::{lambda(tomo::KvObj*)#1}&, bool)",
-    "unsigned int tomo::FlatStore::scan_home<tomo::(anonymous namespace)::cmd_scan(tomo::Shard&, tomo::Op&)::{lambda(tomo::KvObj*)#1}>(int, unsigned int, tomo::(anonymous namespace)::cmd_scan(tomo::Shard&, tomo::Op&)::{lambda(tomo::KvObj*)#1}&, bool) [clone .cold]"
+    "unsigned int tomo::FlatStore::scan_home<tomo::(anonymous namespace)::cmd_scan(tomo::Shard&, tomo::Op&)::{lambda(tomo::KvObj*)#1}>(int, unsigned int, tomo::(anonymous namespace)::cmd_scan(tomo::Shard&, tomo::Op&)::{lambda(tomo::KvObj*)#1}&, bool)"
   ],
   "total": 40,
   "command": [
@@ -29,7 +26,7 @@
     "--param",
     "inline-unit-growth=0",
     "--param",
-    "large-unit-insns=33142",
+    "large-unit-insns=33399",
     "-DTOMO_JEMALLOC",
     "-I.",
     "-c",
@@ -39,5 +36,6 @@
     "-g0",
     "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_cmd_t_server.o-current.inline"
   ],
-  "revision": "96ad88389e758f708a58e6219897f51f57c21328"
+  "revision": "cce47c5c13443e91bfb895ab5a4edf57606b0ac1:17f08a9b48c44a45ed2eecc6cfeea76ff8961b925d4b58649ad15d4577b6aa5a",
+  "object": "/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_cmd_t_server.o-current.o"
 }

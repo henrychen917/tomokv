@@ -50,14 +50,19 @@
         return atomic_key_pending(hash, key);
     }
     template <typename Visit>
+    [[gnu::cold, gnu::noinline]]
+    void atomic_visit_range_key(AtomicEntry& entry, Slice key, Visit& visit) {
+        if (atomic_range_covers(entry, key)) visit(entry);
+    }
+    template <typename Visit>
     __attribute__((noinline))
     void atomic_visit_key_groups(uint64_t hash, Slice key, Visit&& visit) {
         if (!atomic_pending_) return;
         const uint64_t bit = atomic_membership_bit(hash);
         for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
             if (!(entry->membership & bit)) continue;
-            if (!entry->count) {
-                if (atomic_range_covers(*entry, key)) visit(*entry);
+            if (__builtin_expect(!entry->count, false)) {
+                atomic_visit_range_key(*entry, key, visit);
                 continue;
             }
             for (uint32_t i = 0; i < entry->count; ++i)
@@ -86,7 +91,7 @@
     // record, so the competing write took the untracked physical path and validation had nothing
     // to find. Every caller that decides whether to materialize a plain version asks THIS, so
     // the answer cannot drift between call sites again.
-    bool atomic_needs_version(uint64_t hash, Slice key) const {
+    [[gnu::always_inline]] bool atomic_needs_version(uint64_t hash, Slice key) const {
         return atomic_has_record(hash, key) || atomic_has_script_intent(hash, key);
     }
 
@@ -1173,7 +1178,7 @@ private:
         const uint64_t bit = atomic_membership_bit(hash);
         for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
             if (!(entry->membership & bit)) continue;
-            if (!entry->count) {
+            if (__builtin_expect(!entry->count, false)) {
                 if (atomic_range_covers(*entry, key)) return true;
                 continue;
             }

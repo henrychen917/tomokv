@@ -1,11 +1,9 @@
 {
   "unit": "db0/src/snapshot/snapshot.o",
   "budget": "current",
-  "old_budget": 14756,
-  "initial": 11941,
-  "changed": [
-    "tomo_db0::FlatStore::insert_into(int, unsigned long, tomo_db0::KvObj*, bool)"
-  ],
+  "old_budget": 14788,
+  "initial": 11949,
+  "changed": [],
   "total": 7,
   "command": [
     "taskset",
@@ -22,7 +20,7 @@
     "--param",
     "inline-unit-growth=0",
     "--param",
-    "large-unit-insns=14756",
+    "large-unit-insns=14788",
     "-DTOMO_JEMALLOC",
     "-DTOMO_SINGLE_DATABASE=1",
     "-Dtomo=tomo_db0",
@@ -34,5 +32,6 @@
     "-g0",
     "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/db0_src_snapshot_snapshot.o-current.inline"
   ],
-  "revision": "96ad88389e758f708a58e6219897f51f57c21328"
+  "revision": "cce47c5c13443e91bfb895ab5a4edf57606b0ac1:17f08a9b48c44a45ed2eecc6cfeea76ff8961b925d4b58649ad15d4577b6aa5a",
+  "object": "/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/db0_src_snapshot_snapshot.o-current.o"
 }

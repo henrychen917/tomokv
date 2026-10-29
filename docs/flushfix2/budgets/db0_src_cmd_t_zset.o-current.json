@@ -1,10 +1,11 @@
 {
   "unit": "db0/src/cmd/t_zset.o",
   "budget": "current",
-  "old_budget": 33229,
-  "initial": 25324,
+  "old_budget": 33259,
+  "initial": 25329,
   "changed": [
-    "void tomo_db0::(anonymous namespace)::cmd_zpop_generic<false>(tomo_db0::Shard&, tomo_db0::Op&, bool)"
+    "void tomo_db0::(anonymous namespace)::cmd_zremrangebyrank<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "tomo_db0::FlatStore::find_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*)"
   ],
   "total": 107,
   "command": [
@@ -22,7 +23,7 @@
     "--param",
     "inline-unit-growth=0",
     "--param",
-    "large-unit-insns=33229",
+    "large-unit-insns=33259",
     "-DTOMO_JEMALLOC",
     "-DTOMO_SINGLE_DATABASE=1",
     "-Dtomo=tomo_db0",
@@ -34,5 +35,6 @@
     "-g0",
     "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/db0_src_cmd_t_zset.o-current.inline"
   ],
-  "revision": "96ad88389e758f708a58e6219897f51f57c21328"
+  "revision": "cce47c5c13443e91bfb895ab5a4edf57606b0ac1:17f08a9b48c44a45ed2eecc6cfeea76ff8961b925d4b58649ad15d4577b6aa5a",
+  "object": "/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/db0_src_cmd_t_zset.o-current.o"
 }

@@ -1,13 +1,11 @@
 {
   "unit": "src/cmd/t_string.o",
   "budget": "current",
-  "old_budget": 10600,
-  "initial": 14079,
+  "old_budget": 10626,
+  "initial": 14084,
   "changed": [
-    "tomo::cmd_get_tls(tomo::Shard&, tomo::Op&)",
     "void tomo::(anonymous namespace)::cmd_pfcount<false>(tomo::Shard&, tomo::Op&)",
-    "void tomo::(anonymous namespace)::cmd_pfcount<false>(tomo::Shard&, tomo::Op&) [clone .cold]",
-    "tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const"
+    "void tomo::(anonymous namespace)::cmd_pfcount<false>(tomo::Shard&, tomo::Op&) [clone .cold]"
   ],
   "total": 49,
   "command": [
@@ -23,7 +21,7 @@
     "-march=native",
     "-pthread",
     "--param",
-    "large-unit-insns=10600",
+    "large-unit-insns=10626",
     "-DTOMO_JEMALLOC",
     "-I.",
     "-c",
@@ -33,5 +31,6 @@
     "-g0",
     "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_cmd_t_string.o-current.inline"
   ],
-  "revision": "96ad88389e758f708a58e6219897f51f57c21328"
+  "revision": "cce47c5c13443e91bfb895ab5a4edf57606b0ac1:17f08a9b48c44a45ed2eecc6cfeea76ff8961b925d4b58649ad15d4577b6aa5a",
+  "object": "/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_cmd_t_string.o-current.o"
 }

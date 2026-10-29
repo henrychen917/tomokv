@@ -120,6 +120,64 @@ def swapdb(args, directory, mode, engine, atomic, oracle):
         return counts
 
 
+def namespace_mutations(args, directory, mode, engine, atomic, oracle):
+    """MOVE has one resident across DBs; COPY/RESTORE never expose a gap."""
+    result = dict(moves=0, copies=0, restores=0, move_reads=0, copy_reads=0, restore_reads=0)
+    with s.Boot(args, directory, mode, engine, atomic, oracle) as b:
+        c = b.c
+        c.must('MSET', 'move:key', 1, 'copy:key', 1, 'restore:key', 1)
+        dumped = c.must('DUMP', 'restore:key')
+        if args.databases > 1:
+            c.must('COPY', 'copy:key', 'copy:key', 'DB', 7)
+        def move(stop):
+            with conn(b, args) as c:
+                while not stop.is_set():
+                    for source, destination in ((0, 7), (7, 0)):
+                        c.must('SELECT', source)
+                        assert c.must('MOVE', 'move:key', destination) == 1
+                        result['moves'] += 1
+        def move_read(stop):
+            with conn(b, args) as c:
+                while not stop.is_set():
+                    c.raw(encode('MULTI') + encode('SELECT', 0) + encode('GET', 'move:key') +
+                          encode('SELECT', 7) + encode('GET', 'move:key') + encode('EXEC'))
+                    assert [c.read() for _ in range(5)] == [b'OK'] + [b'QUEUED']*4
+                    reply = c.read()
+                    assert reply in ([b'OK', b'1', b'OK', None], [b'OK', None, b'OK', b'1']), reply
+                    result['move_reads'] += 1
+        def copy(stop):
+            with conn(b, args) as c:
+                while not stop.is_set():
+                    assert c.must('COPY', 'copy:key', 'copy:key', 'DB', 7, 'REPLACE') == 1
+                    result['copies'] += 1
+        def copy_read(stop):
+            with conn(b, args, 7) as c:
+                while not stop.is_set():
+                    assert c.must('GET', 'copy:key') == b'1'
+                    result['copy_reads'] += 1
+        def restore(stop):
+            with conn(b, args) as c:
+                while not stop.is_set():
+                    assert c.must('RESTORE', 'restore:key', 0, dumped, 'REPLACE') == b'OK'
+                    result['restores'] += 1
+        def restore_read(stop):
+            with conn(b, args) as c:
+                while not stop.is_set():
+                    assert c.must('GET', 'restore:key') == b'1'
+                    result['restore_reads'] += 1
+        workers = [restore, restore_read]
+        if args.databases > 1:
+            workers += [move, move_read, copy, copy_read]
+        errors = s.run_storm(args.seconds, workers, args.stall)
+        result['errors'] = errors
+        (directory/'siblings.json').write_text(json.dumps(result, indent=2)+'\n')
+        assert not errors, result
+        assert result['restores'] and result['restore_reads'], result
+        if args.databases > 1:
+            assert all(result[k] for k in ('moves', 'move_reads', 'copies', 'copy_reads')), result
+        return result
+
+
 def reload(args, directory, mode, engine, atomic, oracle):
     aof = args.case == 'debug-loadaof'
     extra = ('--appendonly', 'yes', '--appendfsync', 'always') if aof else ()
@@ -173,9 +231,17 @@ def storm(args, directory, mode, engine, atomic, oracle):
         def flush(stop):
             with conn(b, args) as c:
                 while not stop.is_set():
-                    c.raw(encode('MULTI') + encode('SET', pair[0], 1) + encode('SET', pair[1], 1) +
-                          encode('EXEC') + encode('FLUSHALL', args.flush_mode))
-                    assert [c.read() for _ in range(5)] == [b'OK', b'QUEUED', b'QUEUED', [b'OK', b'OK'], b'OK']
+                    if args.case == 'live-flip':
+                        # Test FLUSH+FLIP without a retained MULTI session. The
+                        # independent live-flip-cut row retains that stronger
+                        # interaction and its PRE failure evidence.
+                        c.raw(encode('MSET', pair[0], 1, pair[1], 1) +
+                              encode('FLUSHALL', args.flush_mode))
+                        assert [c.read(), c.read()] == [b'OK', b'OK']
+                    else:
+                        c.raw(encode('MULTI') + encode('SET', pair[0], 1) + encode('SET', pair[1], 1) +
+                              encode('EXEC') + encode('FLUSHALL', args.flush_mode))
+                        assert [c.read() for _ in range(5)] == [b'OK', b'QUEUED', b'QUEUED', [b'OK', b'OK'], b'OK']
                     counts['flushes'] += 1
         def worker(stop):
             with conn(b, args) as c:
@@ -225,14 +291,15 @@ def storm(args, directory, mode, engine, atomic, oracle):
                         continue
                     assert reply == b'OK', reply
                     counts['flips'] += 1
-        workers = [flush, worker] + ([saver] if save else [])
-        if args.case == 'live-flip' and not oracle:
+        workers = [flush] + ([] if args.case == 'live-flip' else [worker]) + ([saver] if save else [])
+        if args.case in ('live-flip', 'live-flip-cut') and not oracle:
             assert mode == '2s'
             workers.append(flipper)
         errors = s.run_storm(args.seconds, workers, args.stall)
-        assert not errors and counts['flushes'] and counts['work'], (counts, errors)
+        assert not errors and counts['flushes'], (counts, errors)
+        assert args.case == 'live-flip' or counts['work'], counts
         assert not save or counts['saves'] or (oracle and counts['cancelled_saves']), counts
-        assert args.case != 'live-flip' or oracle or counts['flips'], counts
+        assert args.case not in ('live-flip', 'live-flip-cut') or oracle or counts['flips'], counts
         b.c.raw(encode('MULTI') + encode('SET', pair[0], 42) + encode('SET', pair[1], 42) + encode('EXEC'))
         assert [b.c.read() for _ in range(4)] == [b'OK', b'QUEUED', b'QUEUED', [b'OK', b'OK']]
     for image in saved:
@@ -249,8 +316,9 @@ def storm(args, directory, mode, engine, atomic, oracle):
     return dict(**counts, snapshots_checked=len(saved))
 
 
-f.CASES = {'semantics': semantics, 'swapdb': swapdb, 'debug-reload': reload, 'debug-loadaof': reload,
+f.CASES = {'semantics': semantics, 'swapdb': swapdb, 'namespace-mutations': namespace_mutations,
+           'debug-reload': reload, 'debug-loadaof': reload,
            **{name: storm for name in ('live-cut', 'live-script', 'live-watch', 'live-bgsave',
-                                      'live-flip', 'bgsave-straddle', 'aof-restart')}}
+                                      'live-flip', 'live-flip-cut', 'bgsave-straddle', 'aof-restart')}}
 if __name__ == '__main__':
     raise SystemExit(f.main())

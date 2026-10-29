@@ -6,10 +6,10 @@
   "batch": 32,
   "atomic": 1,
   "threshold": -1,
-  "steps": 972812,
+  "steps": 972564,
   "clock_calls": 32,
   "excluded_calls": 1176,
-  "total": 958046,
+  "total": 957798,
   "functions": {
     "unsigned long tomo_db0::kvobj_external_bytes<false>(tomo_db0::KvObj const*, void const*) [clone .isra.0]": 5120,
     "tomo_db0::FlatStore::track_expire(unsigned long, tomo_db0::KvObj*) [clone .isra.0]": 6400,
@@ -38,8 +38,8 @@
     "tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&)": 1344,
     "tomo_db0::xshard_atomic_key_slice(tomo_db0::ScatterState const*, unsigned int)": 107136,
     "tomo_db0::ScatterArenaPool::defer_destroy(tomo_db0::ScatterState*)": 942,
-    "tomo_db0::multi_cancel_record(tomo_db0::AtomicEntry&, tomo_db0::ScatterState const*)": 63488,
-    "void tomo_db0::FlatStore::atomic_visit_key_groups<tomo_db0::(anonymous namespace)::cancel_applied_scripts(tomo_db0::FlatStore&, unsigned long, tomo_db0::Slice, tomo_db0::ScatterState const*)::{lambda(auto:1&)#1}>(unsigned long, tomo_db0::Slice, tomo_db0::(anonymous namespace)::cancel_applied_scripts(tomo_db0::FlatStore&, unsigned long, tomo_db0::Slice, tomo_db0::ScatterState const*)::{lambda(auto:1&)#1}&&)": 259904,
+    "tomo_db0::multi_cancel_record(tomo_db0::AtomicEntry&, tomo_db0::ScatterState const*)": 59520,
+    "void tomo_db0::FlatStore::atomic_visit_key_groups<tomo_db0::(anonymous namespace)::cancel_applied_scripts(tomo_db0::FlatStore&, unsigned long, tomo_db0::Slice, tomo_db0::ScatterState const*)::{lambda(auto:1&)#1}>(unsigned long, tomo_db0::Slice, tomo_db0::(anonymous namespace)::cancel_applied_scripts(tomo_db0::FlatStore&, unsigned long, tomo_db0::Slice, tomo_db0::ScatterState const*)::{lambda(auto:1&)#1}&&)": 263624,
     "tomo_db0::NotifyExecutionScope::~NotifyExecutionScope()": 1280,
     "tomo_db0::(anonymous namespace)::aof_prepare_scatter_group(tomo_db0::ScatterState&)": 992,
     "tomo_db0::(anonymous namespace)::free_state_contents(tomo_db0::ScatterState&) [clone .part.0]": 3328,
@@ -64,5 +64,5 @@
     "tomo_db0::FlatStore::atomic_acquire_value_block(unsigned long)": 7936,
     "tomo_db0::l4prebuild_policy(unsigned int)": 896
   },
-  "probe_sha256": "ea877f2e3a76612882c38963d03502d73e1626685cd00180f3061a8226c0496f"
+  "probe_sha256": "0b9c89105dfef488dd2da9b7f1b2103e5cca29548d516584b943d8cc274b760c"
 }

@@ -1,8 +1,8 @@
 {
   "unit": "db0/src/main.o",
   "budget": "current",
-  "old_budget": 146080,
-  "initial": 101840,
+  "old_budget": 146118,
+  "initial": 101845,
   "changed": [],
   "total": 78,
   "command": [
@@ -20,7 +20,7 @@
     "--param",
     "inline-unit-growth=0",
     "--param",
-    "large-unit-insns=146080",
+    "large-unit-insns=146118",
     "--param",
     "max-inline-insns-auto=18",
     "-DTOMO_JEMALLOC",
@@ -34,5 +34,6 @@
     "-g0",
     "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/db0_src_main.o-current.inline"
   ],
-  "revision": "96ad88389e758f708a58e6219897f51f57c21328"
+  "revision": "cce47c5c13443e91bfb895ab5a4edf57606b0ac1:17f08a9b48c44a45ed2eecc6cfeea76ff8961b925d4b58649ad15d4577b6aa5a",
+  "object": "/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/db0_src_main.o-current.o"
 }

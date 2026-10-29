@@ -1,8 +1,8 @@
 {
   "unit": "db0/src/core/rl2s.o",
   "budget": "current",
-  "old_budget": 167496,
-  "initial": 117330,
+  "old_budget": 167533,
+  "initial": 117335,
   "changed": [],
   "total": 164,
   "command": [
@@ -20,7 +20,7 @@
     "--param",
     "inline-unit-growth=0",
     "--param",
-    "large-unit-insns=167496",
+    "large-unit-insns=167533",
     "-DTOMO_JEMALLOC",
     "-DTOMO_SINGLE_DATABASE=1",
     "-Dtomo=tomo_db0",
@@ -32,5 +32,6 @@
     "-g0",
     "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/db0_src_core_rl2s.o-current.inline"
   ],
-  "revision": "96ad88389e758f708a58e6219897f51f57c21328"
+  "revision": "cce47c5c13443e91bfb895ab5a4edf57606b0ac1:17f08a9b48c44a45ed2eecc6cfeea76ff8961b925d4b58649ad15d4577b6aa5a",
+  "object": "/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/db0_src_core_rl2s.o-current.o"
 }

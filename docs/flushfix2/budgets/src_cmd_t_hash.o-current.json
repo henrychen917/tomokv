@@ -1,15 +1,12 @@
 {
   "unit": "src/cmd/t_hash.o",
   "budget": "current",
-  "old_budget": 10000,
-  "initial": 20123,
+  "old_budget": 10025,
+  "initial": 20128,
   "changed": [
-    "void tomo::(anonymous namespace)::cmd_hincrby<true>(tomo::Shard&, tomo::Op&)",
     "void tomo::(anonymous namespace)::cmd_hrandfield<false>(tomo::Shard&, tomo::Op&)",
     "void tomo::(anonymous namespace)::cmd_hrandfield<false>(tomo::Shard&, tomo::Op&) [clone .cold]",
-    "void tomo::(anonymous namespace)::cmd_hrandfield<true>(tomo::Shard&, tomo::Op&)",
-    "void tomo::(anonymous namespace)::cmd_hrandfield<true>(tomo::Shard&, tomo::Op&) [clone .cold]",
-    "void tomo::(anonymous namespace)::cmd_hlen<false>(tomo::Shard&, tomo::Op&)"
+    "void tomo::(anonymous namespace)::cmd_hlen<true>(tomo::Shard&, tomo::Op&)"
   ],
   "total": 74,
   "command": [
@@ -24,6 +21,8 @@
     "-Wextra",
     "-march=native",
     "-pthread",
+    "--param",
+    "large-unit-insns=10025",
     "-DTOMO_JEMALLOC",
     "-I.",
     "-c",
@@ -33,5 +32,6 @@
     "-g0",
     "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_cmd_t_hash.o-current.inline"
   ],
-  "revision": "96ad88389e758f708a58e6219897f51f57c21328"
+  "revision": "cce47c5c13443e91bfb895ab5a4edf57606b0ac1:17f08a9b48c44a45ed2eecc6cfeea76ff8961b925d4b58649ad15d4577b6aa5a",
+  "object": "/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_cmd_t_hash.o-current.o"
 }

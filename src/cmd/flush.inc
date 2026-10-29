@@ -165,7 +165,7 @@ bool flush_redispatch(Server& server, ThreadCtx& self, Ring& ring, ScatterState&
     return true;
 }
 
-ScatterFinish flush_complete(Server& server, ThreadCtx& self, Ring& ring,
+[[gnu::cold, gnu::noinline]] ScatterFinish flush_complete(Server& server, ThreadCtx& self, Ring& ring,
                               const Task& task, Op&) {
     auto& state = *task.scatter;
     if (state.pending.fetch_sub(1, std::memory_order_acq_rel) != 1) return ScatterFinish::Waiting;

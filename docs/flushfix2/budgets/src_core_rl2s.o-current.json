@@ -1,15 +1,23 @@
 {
   "unit": "src/core/rl2s.o",
   "budget": "current",
-  "old_budget": 164610,
-  "initial": 118246,
+  "old_budget": 164638,
+  "initial": 118251,
   "changed": [
     "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
     "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
     "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
     "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
     "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+    "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+    "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
     "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+    "unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()",
+    "unsigned int tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)",
+    "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)",
+    "bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)",
+    "bool tomo::ExLoopT<true>::execute<true, false>(tomo::Task const&)",
+    "bool tomo::ExLoopT<true>::execute<true, true>(tomo::Task const&)",
     "tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)"
   ],
   "total": 173,
@@ -28,7 +36,7 @@
     "--param",
     "inline-unit-growth=0",
     "--param",
-    "large-unit-insns=164610",
+    "large-unit-insns=164638",
     "-DTOMO_JEMALLOC",
     "-I.",
     "-c",
@@ -38,5 +46,6 @@
     "-g0",
     "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_core_rl2s.o-current.inline"
   ],
-  "revision": "96ad88389e758f708a58e6219897f51f57c21328"
+  "revision": "cce47c5c13443e91bfb895ab5a4edf57606b0ac1:17f08a9b48c44a45ed2eecc6cfeea76ff8961b925d4b58649ad15d4577b6aa5a",
+  "object": "/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_core_rl2s.o-current.o"
 }

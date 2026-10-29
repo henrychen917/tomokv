@@ -746,9 +746,9 @@ ResultHeap* ensure_result(ScatterState& state) {
     return state.result;
 }
 
-ScatterTaskResult execute_flush(const Task&, Shard&, Op&);
-void flush_after_decision(Server&, ThreadCtx&, Ring&, ScatterState&);
-void flush_aof_emit(ScatterState&, Shard&, Op&);
+[[gnu::cold, gnu::noinline]] ScatterTaskResult execute_flush(const Task&, Shard&, Op&);
+[[gnu::cold, gnu::noinline]] void flush_after_decision(Server&, ThreadCtx&, Ring&, ScatterState&);
+[[gnu::cold, gnu::noinline]] void flush_aof_emit(ScatterState&, Shard&, Op&);
 
 bool aof_prepare_scatter_group(ScatterState& state) {
     if (!state.atomic_group || !state.server || !state.server->aof().recording()) return true;
@@ -1612,7 +1612,7 @@ template<bool ScriptOnly>
                              command_config_routes_all_shards(op, force_atomic)));
     Kind kind;
     if constexpr (ScriptOnly) kind = Kind::Script;
-    else if (all_shards) {
+    else if (__builtin_expect(all_shards, false)) {
         kind = op.cmd_name().eq_icase("randomkey") ? Kind::RandomKey :
                op.cmd_name().eq_icase("info") ? Kind::DatabaseInfo :
                op.cmd_name().eq_icase("swapdb") ? Kind::Swapdb :
@@ -1621,10 +1621,8 @@ template<bool ScriptOnly>
                    ? Kind::DebugBorrowCount :
                op.cmd_name().eq_icase("debug") && op.arg(1).eq_icase("loadaof")
                    ? Kind::DebugLoadAof :
-               op.cmd_name().eq_icase("debug") ? Kind::DebugReload :
-               xshard_flush_command(op)
-                   ? Kind::Flush : Kind::AllShards;
-        if (kind == Kind::Flush)
+               op.cmd_name().eq_icase("debug") ? Kind::DebugReload : Kind::AllShards;
+        if (kind == Kind::AllShards && xshard_flush_command(op))
             return xshard_prepare_flush(server, op, pool, owner_io, origin_conn_id, dispatch, force_atomic);
     } else if (!(op.spec->flags & CmdFlags::MultiShard) || !classify(op, kind))
         return ScatterPrepare::NotScatter;

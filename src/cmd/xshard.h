@@ -156,9 +156,9 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                               uint32_t owner_io, uint64_t origin_conn_id,
                               ScatterDispatch& dispatch, bool force_atomic = false,
                               Client* origin_client = nullptr);
-ScatterPrepare xshard_prepare_flush(Server&, Op&, ScatterArenaPool&, uint32_t, uint64_t,
+[[gnu::cold, gnu::noinline]] ScatterPrepare xshard_prepare_flush(Server&, Op&, ScatterArenaPool&, uint32_t, uint64_t,
                                       ScatterDispatch&, bool);
-bool xshard_flush_command(const Op&);
+[[gnu::cold, gnu::noinline]] bool xshard_flush_command(const Op&);
 uint32_t xshard_flush_snapshot_progress(Server&, ThreadCtx&);
 int32_t xshard_dispatch_shard(const ScatterDispatch& dispatch, uint32_t index);
 void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_io);

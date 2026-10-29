@@ -2,14 +2,26 @@
   "unit": "db0/src/core/genthread.o",
   "budget": "current",
   "old_budget": 131993,
-  "initial": 108603,
+  "initial": 108608,
   "changed": [
+    "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, false, false>()",
+    "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, true, false>()",
+    "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, false, false>()",
+    "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, true, false>()",
     "void tomo_db0::IoLoop::run_loop<false, false, false, true, false>()",
     "void tomo_db0::IoLoop::run_loop<false, false, true, true, false>()",
     "void tomo_db0::IoLoop::run_loop<false, true, false, true, false>()",
     "void tomo_db0::IoLoop::run_loop<false, true, true, true, false>()",
+    "void tomo_db0::IoLoop::run_loop<true, false, false, true, false>()",
     "void tomo_db0::IoLoop::run_loop<true, false, true, true, false>()",
-    "void tomo_db0::IoLoop::run_loop<true, true, true, true, false>()"
+    "void tomo_db0::IoLoop::run_loop<true, true, false, true, false>()",
+    "void tomo_db0::IoLoop::run_loop<true, true, true, true, false>()",
+    "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+    "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()",
+    "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+    "bool tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)",
+    "bool tomo_db0::ExLoopT<true>::execute<true, false>(tomo_db0::Task const&)",
+    "bool tomo_db0::ExLoopT<true>::execute<true, true>(tomo_db0::Task const&)"
   ],
   "total": 150,
   "command": [
@@ -40,5 +52,6 @@
     "-g0",
     "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/db0_src_core_genthread.o-current.inline"
   ],
-  "revision": "96ad88389e758f708a58e6219897f51f57c21328"
+  "revision": "cce47c5c13443e91bfb895ab5a4edf57606b0ac1:17f08a9b48c44a45ed2eecc6cfeea76ff8961b925d4b58649ad15d4577b6aa5a",
+  "object": "/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/db0_src_core_genthread.o-current.o"
 }
