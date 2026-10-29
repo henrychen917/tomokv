@@ -1,0 +1,19 @@
+{
+  "cells": {
+    "path": "docs/scriptfix3/merit-cells.txt",
+    "sha256": "f78393c6a4083ef01f20cd23c5816e184f18949e8021c270e3753f55887edf84",
+    "count": 18
+  },
+  "drivers": [
+    {
+      "path": "/home/user/Projects/calib/exec-merit.py",
+      "sha256": "efe613ea1c13aadb6048bd5ebdf808fae90b900e2c11b4c8d6af1cef3e4dc1d2",
+      "status": "read only; NOT RUN"
+    },
+    {
+      "path": "/home/user/Projects/calib/script-storm-merit.py",
+      "sha256": "5bc4bed6420aa6d5c1087d902798af623c514c76af26979a4594a127d90554f9",
+      "status": "read only; NOT RUN"
+    }
+  ]
+}

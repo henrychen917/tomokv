@@ -154,13 +154,35 @@ rebuild PAD-A. Current build usage is about 17 GiB.
 
 ### Maintainer measurement request — NOT RUN in this lane
 
-Run the contended-script storm **POST versus PRE, three blocks**, at the existing
-20-client/two-hot-key geometry with eight EVAL clients. Include the existing EXEC cells.
-Run PRE/POST/PAD-A on all fourteen generic cells exactly as specified in
-`docs/compat3/merit-cells.txt`:
+Run `/home/user/Projects/calib/script-storm-merit.py` with POST as candidate and PRE
+as reference, **`--blocks 3 --secs 30`**. Preserve its T6 shape: 2s, 6:2, 16 shards,
+atomic=0, databases=1, two keys on distinct owners, eight EVAL clients, four EXEC
+clients, four WATCH/EXEC clients and four plain writers. Require exact final data,
+zero script refusals and zero atomic order violations. Successful scripts/s is the
+storm verdict; retain EXEC/s, plain writes/s and WATCH aborts separately.
+
+Run `/home/user/Projects/calib/exec-merit.py` POST/PRE with
+`--conns 64 --threads 16 --cells all --blocks 3 --secs 20`, all eight cells:
+`x1s_a0_unc,x1s_a0_hot,x1s_a1_unc,x1s_a1_hot,x2s_a0_unc,x2s_a0_hot,x2s_a1_unc,x2s_a1_hot`.
+Keep pipeline=4, two children/transaction, four plain INCR writers on hot cells,
+databases=1, 1s read-local=1/64 shards, and 2s ratio=6:2/16 shards. Keep the driver's
+disabled balancing/automatic FLIP posture. Retain EXEC and competing plain-write
+rates separately and require zero atomic order violations. Record the chosen
+`--benchtxn` binary hash and use the same executable for both arms.
+
+Run PRE/POST/PAD-A on the 18 rows in `docs/scriptfix3/merit-cells.txt`: the first
+fourteen are exact copies of `docs/compat3/merit-cells.txt`, followed by four **null**
+2s GET/SET p1/p32 rows with the corresponding generic row's client layout and score.
+The generic IDs are
 `h05 h06 p8g p8s d1g_l0 d1s_l0 m8g_l0 v1g_l0 d128g_l0 d32g_l1 d8s_l1 d32s_l1 x9_32_l1 x9_32_l0`.
-Add the four **null** 2s GET/SET cells at p1/p32, eight server cores, 16 shards, 6:2,
-with the corresponding generic cell's matched client/offered-load geometry.
+The split controls are `scriptfix3_2s_get_p1`, `scriptfix3_2s_set_p1`,
+`scriptfix3_2s_get_p32`, and `scriptfix3_2s_set_p32`; use eight server cores,
+16 shards and ratio 6:2. Preserve each cell's rate/latency score and existing null rule.
+
+The driver and cell-file hashes are in `docs/scriptfix3/measurement-inputs.json`.
+The maintainer schedules the quiet box and supplies explicit server/load CPU masks,
+owned port and distinct output directories; keep these identical across arms and
+pin `LC_ALL=C` for every boot. These drivers were only read in this lane.
 
 Use the gate's own matched-offered-load instrument on the quiet box; retain all
 repetitions and per-cell rate, cycles/op, IPC and instructions/op. Rate at matched load
