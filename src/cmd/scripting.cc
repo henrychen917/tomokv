@@ -339,9 +339,6 @@ struct ScriptContext {
     uint32_t key_count = 0;
     uint64_t instructions = 0;
     uint32_t call_index = 0;
-    // Initialized by the first armed nested call. An unarmed activation never
-    // reads or initializes this cold field (including aggregate construction).
-    union { uint32_t monitor_multi_order; };
     bool timed_out = false;
     uint8_t script_resp = 2;
     // Set per call from the handler variant that entered (clean vs notify registry row). The
@@ -363,6 +360,9 @@ struct ScriptContext {
     int error_line = 0;
     uint8_t* cross_access = nullptr;
     uint32_t cross_access_count = 0;
+    // Only script_notify_begin initializes/reads this member. The anonymous
+    // union leaves it untouched in an unarmed aggregate initialization.
+    union { uint32_t monitor_multi_order; };
 };
 
 // Persistent per-thread engine. Building luaL_newstate + the sandbox + recompiling the source on
@@ -626,10 +626,26 @@ bool push_resp_value(lua_State* state, const char* data, size_t size, size_t& po
     return false;
 }
 
+__attribute__((noinline, cold)) void script_notify_begin(ScriptContext& context, Op& nested) {
+    if (!context.call_index) {
+        const auto* carrier = context.shard->notify_carrier();
+        context.monitor_multi_order = carrier && carrier->cmd_name().eq_icase("exec")
+            ? context.shard->notify_order_base() / 0x10000u : UINT32_MAX;
+    }
+    notify_execute_source(*context.shard, nested, context.call_index++ * 0x10000u);
+}
+
+__attribute__((noinline, cold)) void script_notify_end(ScriptContext& context, Op& nested) {
+    notify_monitor_script(*context.shard, *context.parent, nested, context.monitor_multi_order);
+    notify_execute_source(*context.shard, *context.parent, 0);
+}
+
 int redis_dispatch(lua_State* state, bool protected_call) {
     auto* slot = static_cast<ScriptContext**>(lua_touserdata(state, lua_upvalueindex(1)));
     ScriptContext* context = slot ? *slot : nullptr;
-    char deferred_error[2100] = {};
+    // Every failure below writes a complete snprintf result before this buffer
+    // is consumed. Successful calls need neither its bytes nor a 2 KiB clear.
+    char deferred_error[2100];
     bool failed = false;
     {
         const int argc = lua_gettop(state);
@@ -694,15 +710,7 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                 nested.hash = FlatStore::hash_key(key);
                 nested.shard = context->shard->id();
                 if (context->script_resp == 3) nested.mark_resp3();
-                if (context->notify) {
-                    if (!context->call_index) {
-                        const auto* carrier = context->shard->notify_carrier();
-                        context->monitor_multi_order = carrier && carrier->cmd_name().eq_icase("exec")
-                            ? context->shard->notify_order_base() / 0x10000u : UINT32_MAX;
-                    }
-                    notify_execute_source(*context->shard, nested,
-                                          context->call_index++ * 0x10000u);
-                }
+                if (context->notify) script_notify_begin(*context, nested);
                 bool modified = false;
                 WatchEffectScope effects(*context->shard, modified);
                 const bool logical_write = (spec->flags & CmdFlags::Write) &&
@@ -713,11 +721,13 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                     server->aof().reply_write_error(nested);
                     if (context->notify)
                         notify_execute_source(*context->shard, *context->parent, 0);
+                    goto nested_reply;
                 } else if ((spec->flags & CmdFlags::DenyOom) &&
                     !context->shard->store().budget_admit(key)) {
                     reply_maxmemory_oom(nested);
                     if (context->notify)
                         notify_execute_source(*context->shard, *context->parent, 0);
+                    goto nested_reply;
                 } else {
                     if (logical_write) context->persistence_write_started = true;
                     if (__builtin_expect(server && server->latency_tracking(), false)) {
@@ -725,14 +735,11 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                         LatencyTrackingScriptCall latency(executor, *context->parent, nested);
                         spec->handler(*context->shard, nested);
                     } else spec->handler(*context->shard, nested);
-                    // Reuse the existing armed source-restore branch. Rejected
-                    // admission above restores the source without a MONITOR line.
-                    if (context->notify) {
-                        notify_monitor_script(*context->shard, *context->parent, nested,
-                                              context->monitor_multi_order);
-                        notify_execute_source(*context->shard, *context->parent, 0);
-                    }
                 }
+                // Reuse the existing armed source-restore branch. Rejected
+                // admission above restores the source without a MONITOR line.
+                if (context->notify) script_notify_end(*context, nested);
+            nested_reply:
                 // A Write row that answered without an error has already changed the keyspace.
                 // Nothing later in this activation may reverse it, so record it here: this is the
                 // quantity a regression asserts on, not "no exception was thrown".
@@ -1512,9 +1519,13 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_h
 
 template <bool kNotify, bool kSha, bool kReadonly>
 void cmd_eval(Shard& shard, Op& op) {
+    // WATCH may call handler_notify with the original clean spec. Nested writes
+    // already select their WATCH observer independently; source/monitor routing
+    // is required only when IO selected the notification variant for this op.
+    const bool notify = kNotify && (op.spec->flags & CmdFlags::NotifySelected);
     if constexpr (!kSha) {
         // cache_source = false: routing already stored this source, in program order.
-        run_eval(shard, op, op.arg(1), false, Slice(), kNotify, kReadonly);
+        run_eval(shard, op, op.arg(1), false, Slice(), notify, kReadonly);
     } else {
         std::string source;
         if (!g_scripts.find(op.arg(1), source)) {
@@ -1522,7 +1533,7 @@ void cmd_eval(Shard& shard, Op& op) {
             return;
         }
         run_eval(shard, op, Slice(source.data(), static_cast<uint32_t>(source.size())), false,
-                 op.arg(1), kNotify, kReadonly);
+                 op.arg(1), notify, kReadonly);
     }
 }
 

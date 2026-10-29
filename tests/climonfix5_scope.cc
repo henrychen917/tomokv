@@ -3,6 +3,7 @@
 #include "src/core/io_loop.h"
 #include "src/cmd/acl.h"
 #include "src/cmd/scripting.h"
+#include <openssl/sha.h>
 #include <cstdio>
 #include <memory>
 #include <string>
@@ -178,16 +179,20 @@ struct CoreConcurrencyTest {
    }else{
     drive(frame({"SCRIPT","LOAD",code}));
     pre_header_rejected=header&&replies.back().starts_with("-ERR");
-    if(command.starts_with("EVALSHA")&&!pre_header_rejected){
-     need(replies.back().starts_with("$40\r\n"));
-     unit=frame({"EVALSHA",replies.back().substr(5,40),"2",keys[0],key2});
+    if(command.starts_with("EVALSHA")){
+     unsigned char digest[SHA_DIGEST_LENGTH];SHA1(reinterpret_cast<const unsigned char*>(code.data()),code.size(),digest);
+     std::string sha;for(unsigned char ch:digest){sha+="0123456789abcdef"[ch>>4];sha+="0123456789abcdef"[ch&15];}
+     if(!pre_header_rejected)need(replies.back()=="$40\r\n"+sha+"\r\n");
+     unit=frame({"EVALSHA",sha,"2",keys[0],key2});
     }else unit=frame({"EVAL",code,"2",keys[0],key2});
    }
    drive(unit); // warm interpreter and chunk outside the measured sequence
    if(!pre_header_rejected)need(replies.back().starts_with("*2\r\n"));
   }
   // Restore exact values after warmup, before arming WATCH.
-  drive(frame({"SET",keys[0],"0"})+frame({"SET",key2,"0"}));replies.clear();
+  drive(frame({"SET",keys[0],"0"})+frame({"SET",key2,"0"}));
+  if(command.find("watched")!=std::string::npos)drive(frame({"WATCH",keys[0],key2}));
+  replies.clear();
   scope_begin();
   if(aborted){
    for(unsigned i=0;i<n;i++){
@@ -213,7 +218,7 @@ struct CoreConcurrencyTest {
    else if(!header)expected+="*2\r\n:"+std::to_string(cross?i+1:2*i+1)+"\r\n:"+std::to_string(cross?i+1:2*i+2)+"\r\n";
   }
   std::string actual;for(const auto& r:replies)actual+=r;
-  if(pre_header_rejected){need(replies.size()==n);for(auto& r:replies)need(r.starts_with("-ERR"));}
+  if(pre_header_rejected){need(replies.size()==n);for(auto& r:replies)need(r.starts_with(command.starts_with("EVALSHA")?"-NOSCRIPT":"-ERR"));}
   else if(actual!=expected){std::fprintf(stderr,"expected [%s] actual [%s]\n",expected.c_str(),actual.c_str());need(false);}
   std::printf("PASS scope %s %s batch=%u header_rejected=%d replies=%zu\n",command.c_str(),Fused?"1s":"2s",n,int(pre_header_rejected),replies.size());
   std::fflush(stdout);std::_Exit(0);

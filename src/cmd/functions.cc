@@ -733,7 +733,9 @@ bool invoke_fcall(Shard& shard, Op& op, Prepare&& prepare) {
         call.style = ScriptArgStyle::Params;
         // no-writes makes the function read-only for EVERY caller, not only FCALL_RO (Redis 7).
         call.readonly = kReadonly || (flags & kFlagNoWrites) != 0;
-        call.notify = kNotify;
+        // WATCH invokes handler_notify on a clean spec too. Its mutation
+        // observer is independent of IO-selected notification/monitor routing.
+        call.notify = kNotify && (op.spec->flags & CmdFlags::NotifySelected);
         call.chunk = "user_function";
         call.tag = name;
         g_calls.fetch_add(1, std::memory_order_relaxed);

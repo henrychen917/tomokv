@@ -69,7 +69,8 @@ def prepare(arm, ns, kind):
     for pc, raw, asm, _ in instructions(subprocess.check_output(['objdump', '-dw', str(binary)], text=True)):
         idx = bisect.bisect_right(starts, pc) - 1
         fn = idx + 1 if idx >= 0 and pc < ranges[idx][1] else 0
-        call = (2 if 'clock_gettime' in asm else 1) if asm.startswith('call') else 0
+        nonreturn = any(name in asm for name in ('longjmp', '__cxa_throw', '__cxa_rethrow', '_Unwind_Resume'))
+        call = (3 if nonreturn else (2 if 'clock_gettime' in asm else 1)) if asm.startswith('call') else 0
         rows.append((pc, len(raw), call, fn))
     plan = binary.with_name('step-plan')
     plan.write_text(f'{begin:x} {end:x} {len(rows)} {len(ranges)}\n' + ''.join(
@@ -125,7 +126,7 @@ def main():
     commands = ['GET', 'SET', 'INCR', 'MGET', 'MSET']
     if args.kind == 'hot': commands += ['READLOCAL-GET']
     if args.kind == 'session':
-        commands = ['PING', 'WATCH'] + [v + '-' + s for v in ('EVAL', 'EVAL-header', 'EVALSHA', 'EVALSHA-header', 'FCALL', 'EXEC', 'EXEC-abort') for s in ('single', 'cross')]
+        commands = ['PING', 'WATCH'] + [v + '-' + s for v in ('EVAL', 'EVAL-header', 'EVALSHA', 'EVALSHA-header', 'FCALL', 'EXEC', 'EXEC-abort', 'EVAL-watched', 'EVALSHA-watched', 'FCALL-watched') for s in ('single', 'cross')]
     if args.command: commands = [args.command]
     cases = [(a, n, c, m, b, atomic) for a in arms for n in namespaces for c in commands
              for m in ((args.mode,) if args.mode else (('1s',) if c == 'READLOCAL-GET' else ('1s', '2s')))

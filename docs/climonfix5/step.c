@@ -14,14 +14,16 @@
 
 typedef struct { unsigned long pc; unsigned len, kind, fn; } Insn;
 static pid_t child;
+static unsigned long waiting_for, last_call;
 static void fail(const char *s) { perror(s); if(child>0)kill(child,SIGKILL); exit(1); }
 static long peek(unsigned long a) { errno=0;long v=ptrace(PTRACE_PEEKDATA,child,a,0);if(errno)fail("peek");return v; }
 static void poke(unsigned long a,long v) { if(ptrace(PTRACE_POKEDATA,child,a,v))fail("poke"); }
-static void stopped(void) { int s;if(waitpid(child,&s,0)!=child)fail("wait");if(!WIFSTOPPED(s)||WSTOPSIG(s)!=SIGTRAP){fprintf(stderr,"unexpected child status %x\n",s);fail("stop");} }
+static void stopped(void) { int s;if(waitpid(child,&s,0)!=child)fail("wait");if(!WIFSTOPPED(s)||WSTOPSIG(s)!=SIGTRAP){fprintf(stderr,"unexpected child status %x; waiting=%lx last_call=%lx\n",s,waiting_for,last_call);fail("stop");} }
 static struct user_regs_struct regs(void) { struct user_regs_struct r;if(ptrace(PTRACE_GETREGS,child,0,&r))fail("regs");return r; }
 static void putregs(struct user_regs_struct *r) { if(ptrace(PTRACE_SETREGS,child,0,r))fail("setregs"); }
 static void resume(int how) { if(ptrace(how,child,0,0))fail("resume");stopped(); }
 static void until(unsigned long address) {
+    waiting_for=address;
     long old=peek(address);poke(address,(old&~255L)|0xcc);
     resume(PTRACE_CONT);
     struct user_regs_struct r=regs();
@@ -50,22 +52,30 @@ int main(int argc,char **argv) {
     while(fgets(line,sizeof(line),f))if(strstr(line,argv[3])){unsigned long offset;char perm[8];if(sscanf(line,"%lx-%*x %7s %lx",&base,perm,&offset)!=3||offset)fail("base");break;}
     fclose(f);if(!base)fail("missing executable map");
     until(base+begin);
-    uint64_t steps=0,clocks=0,excluded=0;unsigned long previous=0;
+    uint64_t steps=0,clocks=0,excluded=0;unsigned long previous=0;int follow_longjmp=0;
     for(;steps<10000000;steps++) {
         struct user_regs_struct r=regs();if(r.rip==base+end)break;
         Insn *i=at(ins,n,r.rip-base);
         if(!i) {
+            // Lua's protected compile/runtime errors use libc longjmp. It does
+            // not return to the call site: follow the bounded external transfer
+            // until it re-enters this executable, without counting libc.
+            if(follow_longjmp){resume(PTRACE_SINGLESTEP);continue;}
             // A production wrapper can tail-jump through a PLT entry.
             unsigned long ret=(unsigned long)peek(r.rsp);
             if(!at(ins,n,ret-base)){fprintf(stderr,"external %llx prev %lx rsp %lx %lx %lx\n",r.rip-base,previous,ret-base,peek(r.rsp+8)-base,peek(r.rsp+16)-base);fail("unplanned external return");}
             excluded++;until(ret);continue;
         }
+        if(i->fn)follow_longjmp=0;
         previous=i->pc;
         if(i->fn){counts[i->fn]++;pc_counts[i-ins]++;}
         if(i->kind==2) {
             // Same deterministic clock as the established GDB fixture.
             poke(r.rsi,1000);poke(r.rsi+8,++clocks*1000);r.rax=0;r.rip+=i->len;putregs(&r);
+        } else if(i->kind==3) {
+            follow_longjmp=1;resume(PTRACE_SINGLESTEP);
         } else if(i->kind==1) {
+            last_call=i->pc;
             unsigned long ret=r.rip+i->len;resume(PTRACE_SINGLESTEP);
             struct user_regs_struct target=regs();Insn *callee=at(ins,n,target.rip-base);
             if(target.rip!=base+end && (!callee)){if(i->fn)excluded++;until(ret);}
