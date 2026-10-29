@@ -115,3 +115,18 @@ their headline reasons:
 - `SLOWLOG - logged entry sanity check`
 - `SLOWLOG - max entries is correctly handled`
 - `SLOWLOG - too long arguments are trimmed`
+
+### Compile-only budget selection
+
+All 31 budgeted translation units were compiled at the inherited value and the
+headline budget plus the measured IPA-size delta, with ±8 trials. Linked-body
+scoring selected one further change: DB0 `t_server.o`, 33883 → 33911. All other
+provisional merged budgets won or tied their trials. Full compiler commands,
+IPA sizes, digests and scores are in `docs/wave10/budgets/`.
+
+The new snapshot fixture initially tore down its sidecar before draining its
+private QSBR queue; those eight read-local subcases crashed during test cleanup.
+The fixture now drains before disarming and releasing the sidecar, matching
+production teardown. The complete `exec1s` gate job then passed all four public
+rows and their internal subcases, including the concurrent X2 reader falsifier.
+This was a fixture repair, with no production-path change.

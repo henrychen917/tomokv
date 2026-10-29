@@ -2,3 +2,22 @@ GATE(full): 32 physical cores; 1 correctness slots = min(8/8 server, 24/2 load),
   artifacts: /home/user/Projects/cx-wave10/build/gate-run.6hLw6x
 PARTIAL jobs (including prerequisites): release production_units exec1s
 PARTIAL jobs (including prerequisites): release production_units exec1s
+  row budget: 900s; median=-s; no-history-conservative-default; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; exec1s refinements (1s, atomic 0)
+tests/gate.sh: line 3142: 1978944 Segmentation fault      (core dumped) taskset -c "$CORES" ./build/exec1s-unit "$name" "$mode" "$atomic" > "$log" 2>&1
+tests/gate.sh: line 3142: 1978992 Segmentation fault      (core dumped) taskset -c "$CORES" ./build/exec1s-unit "$name" "$mode" "$atomic" > "$log" 2>&1
+  exec1s refinements (1s, atomic 0)                    FAIL (see /home/user/Projects/cx-wave10/build/gate-run.6hLw6x/jobs/exec1s/*-1s-0*)
+  row budget: 900s; median=-s; no-history-conservative-default; exec1s refinements (1s, atomic 1)
+tests/gate.sh: line 3142: 1985058 Segmentation fault      (core dumped) taskset -c "$CORES" ./build/exec1s-unit "$name" "$mode" "$atomic" > "$log" 2>&1
+tests/gate.sh: line 3142: 1985072 Segmentation fault      (core dumped) taskset -c "$CORES" ./build/exec1s-unit "$name" "$mode" "$atomic" > "$log" 2>&1
+  exec1s refinements (1s, atomic 1)                    FAIL (see /home/user/Projects/cx-wave10/build/gate-run.6hLw6x/jobs/exec1s/*-1s-1*)
+  row budget: 900s; median=-s; no-history-conservative-default; exec1s refinements (2s, atomic 0)
+tests/gate.sh: line 3142: 1988147 Segmentation fault      (core dumped) taskset -c "$CORES" ./build/exec1s-unit "$name" "$mode" "$atomic" > "$log" 2>&1
+tests/gate.sh: line 3142: 1988156 Segmentation fault      (core dumped) taskset -c "$CORES" ./build/exec1s-unit "$name" "$mode" "$atomic" > "$log" 2>&1
+  exec1s refinements (2s, atomic 0)                    FAIL (see /home/user/Projects/cx-wave10/build/gate-run.6hLw6x/jobs/exec1s/*-2s-0*)
+  row budget: 900s; median=-s; no-history-conservative-default; exec1s refinements (2s, atomic 1)
+tests/gate.sh: line 3142: 1990978 Segmentation fault      (core dumped) taskset -c "$CORES" ./build/exec1s-unit "$name" "$mode" "$atomic" > "$log" 2>&1
+tests/gate.sh: line 3142: 1990997 Segmentation fault      (core dumped) taskset -c "$CORES" ./build/exec1s-unit "$name" "$mode" "$atomic" > "$log" 2>&1
+  exec1s refinements (2s, atomic 1)                    FAIL (see /home/user/Projects/cx-wave10/build/gate-run.6hLw6x/jobs/exec1s/*-2s-1*)
+GATE(PARTIAL): 1 ok, 4 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave10/docs/wave10/jobs/exec-snapshot-initial.tsv.partial

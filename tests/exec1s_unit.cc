@@ -362,7 +362,30 @@ void blind_group_check(Server& server) {
     }
 }
 
-void reclaim_check(Server& server, bool pinned, unsigned snapshot_stage = 0) {
+// Retain every armed detached object until the directed schedule is finished.
+// This exercises the QSBR retirement route without inventing an immediate grace
+// period; exec1s-word-tsan separately overlaps an actual reader with X2 cleanup.
+struct Wave10Retirement {
+    struct Item { void* owner; void* object; size_t bytes; ReadLocalRetireSink::ReclaimFn reclaim; };
+    KvBlockCache blocks;
+    std::vector<Item> items;
+    void drain() {
+        for (const auto& item:items) item.reclaim(item.owner,item.object,item.bytes);
+        items.clear();
+        blocks.release_all();
+    }
+    void arm(FlatStore& store) {
+        require(store.prepare_read_local(),"wave10 read-local retirement allocated");
+        store.configure_read_local(true,{this,[](void* context,void* owner,void* object,size_t bytes,
+                                                ReadLocalRetireSink::ReclaimFn reclaim) {
+            static_cast<Wave10Retirement*>(context)->items.push_back({owner,object,bytes,reclaim});
+        },&blocks});
+    }
+};
+
+
+void reclaim_check(Server& server, bool pinned, unsigned snapshot_stage = 0,
+                   Wave10Retirement* retirement = nullptr) {
     const auto a=key_on(server,0,"exec1s-reclaim-a:"), b=key_on(server,0,"exec1s-reclaim-b:");
     require(local(server,{"SET",a,"0"})=="+OK\r\n" && local(server,{"SET",b,"0"})=="+OK\r\n", "predecessors seeded");
     const auto cut=server.atomic_snapshot();
@@ -456,6 +479,11 @@ void reclaim_check(Server& server, bool pinned, unsigned snapshot_stage = 0) {
     std::printf("reclaim pinned=%u collapses=%llu visits=%llu\n",pinned,
         (unsigned long long)(exec1s_counters[tid].eager_collapses-before.eager_collapses),
         (unsigned long long)(exec1s_counters[tid].record_visits-before.record_visits));
+    if (retirement) {
+        require(!retirement->items.empty(),"wave10 QSBR retirement actually used");
+        retirement->drain(); // real shutdown drains QSBR before destroying the store sidecar
+        store.configure_read_local(false,{});
+    }
     release_records(server);
     for(auto* state:states) destroy_multi_state(state);
 }
@@ -487,26 +515,6 @@ void publication_check(Server& server) {
     release_records(server);destroy_multi_state(state);
 }
 
-// Retain every armed detached object until the directed schedule is finished.
-// This exercises the QSBR retirement route without inventing an immediate grace
-// period; exec1s-word-tsan separately overlaps an actual reader with X2 cleanup.
-struct Wave10Retirement {
-    struct Item { void* owner; void* object; size_t bytes; ReadLocalRetireSink::ReclaimFn reclaim; };
-    KvBlockCache blocks;
-    std::vector<Item> items;
-    void drain() {
-        for (const auto& item:items) item.reclaim(item.owner,item.object,item.bytes);
-        items.clear();
-        blocks.release_all();
-    }
-    void arm(FlatStore& store) {
-        require(store.prepare_read_local(),"wave10 read-local retirement allocated");
-        store.configure_read_local(true,{this,[](void* context,void* owner,void* object,size_t bytes,
-                                                ReadLocalRetireSink::ReclaimFn reclaim) {
-            static_cast<Wave10Retirement*>(context)->items.push_back({owner,object,bytes,reclaim});
-        },&blocks});
-    }
-};
 }
 int main(int argc,char** argv) {
     require(argc>=4,"case mode atomic [shards]");
@@ -527,11 +535,10 @@ int main(int argc,char** argv) {
     else if(name=="floor") reclaim_check(server,true);
     else if(name=="publication") publication_check(server);
     else if(name=="reuse") reuse_check(server);
-    else if(name.starts_with("snapshot-prepared")) reclaim_check(server,true,1);
-    else if(name.starts_with("snapshot-capturing")) reclaim_check(server,true,2);
+    else if(name.starts_with("snapshot-prepared")) reclaim_check(server,true,1,name.ends_with("-rl") ? &retirement : nullptr);
+    else if(name.starts_with("snapshot-capturing")) reclaim_check(server,true,2,name.ends_with("-rl") ? &retirement : nullptr);
     else require(false,"known case");
     release_records(server);
-    if (name.ends_with("-rl")) require(!retirement.items.empty(),"wave10 QSBR retirement actually used");
     retirement.drain(); // callbacks name the still-live FlatStore
     std::printf("PASS exec1s %s\n",name.c_str());
 }
