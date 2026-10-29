@@ -1165,7 +1165,7 @@ plan_jobs(){
               iofix-deferred iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               atomfix5_watch atomfix5_accounting core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat crlffix boot_grammar dbdefault wait_units readonly
-              release_batteries atomic_batteries moverfix hexpread compat2 compat3 streamfix datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_watch datafix2_idle dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus rlfix3_zc rlfix3_info acl_recheck aclfix sort script_bounds scriptfix lualibs
+              release_batteries atomic_batteries moverfix hexpread compat2 compat3 streamfix datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_watch datafix2_idle dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus rlfix3_zc rlfix3_info acl_recheck aclfix sort script_bounds scriptfix scriptfix2 lualibs
               efficiency dump_restore auth authfix latencyfix_grammar latencyfix_shape latencyfix_off wave8b_off serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
               execfair txnorder_index txnorder_wound txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
@@ -3308,6 +3308,35 @@ job_scriptfix(){
       else
         bad "$label" "see $TMPDIR/scriptfix-$case-$mode.log"
       fi
+    done
+  done
+}
+
+# scriptfix2: each root is independently red on PRE, in both modes and engines.
+# Collected before the quick exit: DQ=DF=+48; EXPECT remains maintainer-owned.
+job_scriptfix2(){
+  stop
+  local mode engine root label databases atomic passed
+  for mode in 1s 2s; do
+    for engine in uring epoll; do
+      for root in EVAL-SHEBANG EVALSHA-SHA-CASE FCALL-NAME-CASE FUNCTION-LOAD-ENV FUNCTION-REGISTER-ARGS FUNCTION-SHEBANG-META FUNCTION-SUBCMD-ARGS LUA-REDIS-API LUA-SANDBOX-GLOBALS SCRIPT-ERROR-WORDING SCRIPT-NUMBER-ARG SCRIPT-REPLY-DEPTH; do
+        label="scriptfix2 $root ($mode, $engine)"
+        row_begin "$label"
+        passed=1
+        for databases in 1 16; do
+          for atomic in 0 1; do
+            py tests/scriptfix2.py --root "$root" --binary "$CANDIDATE_BINARY" \
+              --oracle "$REDIS74_ROOT/src/redis-server" --mode "$mode" --net-io "$engine" \
+              --cores "$CORES" --oracle-cores "$LOAD_CORES" --ratio "$GATE_RATIO" \
+              --databases "$databases" --atomic "$atomic" --port "$PORT" \
+              --output "$TMPDIR/$root-$mode-$engine-db$databases-a$atomic" \
+              >"$TMPDIR/$root-$mode-$engine-db$databases-a$atomic.log" 2>&1 || passed=0
+          done
+        done
+        if [ "$passed" = 1 ]; then
+          ok "$label"
+        else bad "$label" "see $TMPDIR/$root-$mode-$engine-db*.log"; fi
+      done
     done
   done
 }
@@ -6024,6 +6053,7 @@ for TM in fused split; do for AT in 0 1; do collect_job "txnorder-$TM-$AT"; done
 
 collect_job script_bounds
 collect_job scriptfix
+collect_job scriptfix2
 collect_job lualibs
 for AT412_CASE in T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11a T11b T12 T13 T14 T15 T16 owner; do collect_job "at412-$AT412_CASE"; done
 
