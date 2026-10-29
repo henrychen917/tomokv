@@ -6,10 +6,10 @@
   "batch": 1,
   "atomic": 0,
   "threshold": -1,
-  "steps": 11353,
+  "steps": 11338,
   "clock_calls": 1,
   "excluded_calls": 19,
-  "total": 10925,
+  "total": 10910,
   "functions": {
     "tomo_db0::atomic_tripwire_enabled()": 48,
     "tomo_db0::FlatStore::find_in(int, unsigned long, tomo_db0::Slice) const": 728,
@@ -39,13 +39,12 @@
     "tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int)": 69,
     "tomo_db0::xshard_retire(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*))": 54,
     "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 384,
-    "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1977,
+    "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1975,
     "tomo_db0::xshard_complete_iofused(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 16,
-    "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 2072,
+    "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 2080,
     "tomo_db0::Op::cmd_name() const": 12,
     "tomo_db0::Op::Sink::reserve(unsigned long)": 24,
     "tomo_db0::KvObj::key() const": 240,
-    "tomo_db0::now_realtime_ms()": 21,
     "tomo_db0::Server::atomic_apply_close(unsigned int, std::atomic<bool>&)": 10,
     "tomo_db0::ScatterState::ScatterState()": 91,
     "tomo_db0::ScatterState::~ScatterState()": 42,
@@ -58,5 +57,5 @@
     "tomo_db0::KvObj::val_ptr()": 128,
     "tomo_db0::l4prebuild_policy(unsigned int)": 28
   },
-  "probe_sha256": "7101a18bd3622ae8a36d24c1cfa3181b000f4cdc6f27bce92855fe87e039e71b"
+  "probe_sha256": "c287d27348c1df36db022311df590ee1142972f9767ef7012f687d40992e9132"
 }

@@ -2,7 +2,7 @@
   "unit": "db0/src/cmd/xshard.o",
   "budget": "157000",
   "old_budget": 152280,
-  "initial": 123361,
+  "initial": 123235,
   "changed": [
     "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
     "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
@@ -62,6 +62,6 @@
     "-g0",
     "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/db0_src_cmd_xshard.o-157000.inline"
   ],
-  "revision": "cce47c5c13443e91bfb895ab5a4edf57606b0ac1:b3294cf46e6cffad6b9f8468e1a5d6a914e34cb1e9885395e93c1b6bc6193289",
+  "revision": "8228424ea035579fd688e0b200e77220b6d55074:8fde0d1380d8f04c00ece23312380552307199248f07afb4c8ac5245e5cb5fcb",
   "object": "/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/db0_src_cmd_xshard.o-157000.o"
 }

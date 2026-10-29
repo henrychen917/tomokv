@@ -43,8 +43,11 @@ def trial(item):
     dump = BUILD / (label + '.inline')
     cmd = commands[unit].copy()
     old_budget = next((int(x.split('=')[1]) for x in cmd if x.startswith('large-unit-insns=')), 10000)
-    if value not in ('current', 'pre'):
-        cmd += ['--param', f'large-unit-insns={value}']
+    budget, _, auto = str(value).partition(':')
+    if budget not in ('current', 'pre'):
+        cmd += ['--param', f'large-unit-insns={budget}']
+    if auto:
+        cmd += ['--param', f'max-inline-insns-auto={int(auto)}']
     cmd[cmd.index('-o') + 1] = str(output)
     cmd = ['taskset', '-c', '0-15', *cmd, '-g0', f'-fdump-ipa-inline={dump}']
     cwd = ROOT / 'build/flushfix2/pre-source' if value == 'pre' else ROOT

@@ -341,7 +341,10 @@
             if (entry->group_epoch->load(std::memory_order_acquire) != 0) continue;
             if (entry->group_aborted && entry->group_aborted->load(std::memory_order_acquire))
                 continue;
-            if (atomic_range_covers(*entry, key)) return true;
+            if (__builtin_expect(!entry->count, false)) {
+                if (atomic_flush_covers(*entry, key)) return true;
+                continue;
+            }
             for (uint32_t i = 0; i < entry->count; i++)
                 if (atomic_entry_hash(*entry, i) == hash &&
                     atomic_entry_key(*entry, i).key_eq(key)) return true;
@@ -366,8 +369,11 @@
                 continue;
             for (uint32_t i = 0; i < count; i++) {
                 const auto [hash, key] = key_at(i);
-                if (atomic_range_covers(*entry, key)) return true;
                 if (!(entry->membership & atomic_membership_bit(hash))) continue;
+                if (__builtin_expect(!entry->count, false)) {
+                    if (atomic_flush_covers(*entry, key)) return true;
+                    continue;
+                }
                 for (uint32_t j = 0; j < entry->count; j++)
                     if (atomic_entry_hash(*entry, j) == hash &&
                         atomic_entry_key(*entry, j).key_eq(key)) return true;

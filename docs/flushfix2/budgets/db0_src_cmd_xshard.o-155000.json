@@ -2,7 +2,7 @@
   "unit": "db0/src/cmd/xshard.o",
   "budget": "155000",
   "old_budget": 152280,
-  "initial": 123676,
+  "initial": 123235,
   "changed": [
     "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
     "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
@@ -14,12 +14,17 @@
     "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)",
     "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&) [clone .cold]",
     "tomo_db0::FlatStore::insert_into(int, unsigned long, tomo_db0::KvObj*, bool)",
+    "tomo_db0::FlatStore::erase_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*, tomo_db0::FlatStore::EraseEvent)",
+    "tomo_db0::FlatStore::erase_resident(unsigned long, tomo_db0::Slice)",
     "tomo_db0::FlatStore::find_without_touch(unsigned long, tomo_db0::Slice)",
     "tomo_db0::FlatStore::erase_in_read_local(int, unsigned long, tomo_db0::Slice, bool*)",
     "tomo_db0::FlatStore::insert_into_read_local(int, unsigned long, tomo_db0::KvObj*, bool)",
     "void tomo_db0::FlatStore::atomic_visit_key_groups<tomo_db0::(anonymous namespace)::cancel_applied_scripts(tomo_db0::FlatStore&, unsigned long, tomo_db0::Slice, tomo_db0::ScatterState const*)::{lambda(auto:1&)#1}>(unsigned long, tomo_db0::Slice, tomo_db0::(anonymous namespace)::cancel_applied_scripts(tomo_db0::FlatStore&, unsigned long, tomo_db0::Slice, tomo_db0::ScatterState const*)::{lambda(auto:1&)#1}&&)",
     "void tomo_db0::FlatStore::atomic_visit_key_groups<tomo_db0::(anonymous namespace)::cancel_applied_scripts(tomo_db0::FlatStore&, unsigned long, tomo_db0::Slice, tomo_db0::ScatterState const*)::{lambda(auto:1&)#1}>(unsigned long, tomo_db0::Slice, tomo_db0::(anonymous namespace)::cancel_applied_scripts(tomo_db0::FlatStore&, unsigned long, tomo_db0::Slice, tomo_db0::ScatterState const*)::{lambda(auto:1&)#1}&&) [clone .cold]",
     "tomo_db0::FlatStore::erase_in(int, unsigned long, tomo_db0::Slice, bool*)",
+    "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, false>() const",
+    "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, true>() const",
+    "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
     "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda(unsigned long, tomo_db0::Slice)#1}::operator()(unsigned long, tomo_db0::Slice) const",
     "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda(unsigned long, tomo_db0::Slice)#1}::operator()(unsigned long, tomo_db0::Slice) const [clone .cold]"
   ],
@@ -53,6 +58,6 @@
     "-g0",
     "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/db0_src_cmd_xshard.o-155000.inline"
   ],
-  "revision": "cce47c5c13443e91bfb895ab5a4edf57606b0ac1:17f08a9b48c44a45ed2eecc6cfeea76ff8961b925d4b58649ad15d4577b6aa5a",
+  "revision": "8228424ea035579fd688e0b200e77220b6d55074:8fde0d1380d8f04c00ece23312380552307199248f07afb4c8ac5245e5cb5fcb",
   "object": "/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/db0_src_cmd_xshard.o-155000.o"
 }

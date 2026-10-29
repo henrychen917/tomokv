@@ -19,6 +19,7 @@ enum class Kind : uint8_t {
     Geosearchstore, Georadius, Georadiusbymember,
     Script, Flush,
 };
+static_assert(static_cast<unsigned>(Kind::Flush) == static_cast<unsigned>(Kind::Script) + 1);
 
 // Place: an escalated attempt's first wave (AT4.12 TO-B placement, then the read at UINT64_MAX).
 enum class ScriptPhase : uint8_t { None, Pin, Read, Run, Validate, Apply, Unpin, Place };
@@ -288,7 +289,7 @@ bool is_atomic_pop_kind(Kind kind) {
 }
 
 template <typename T>
-size_t carve_size(size_t& offset, uint32_t count) {
+[[gnu::always_inline]] inline size_t carve_size(size_t& offset, uint32_t count) {
     if (!count) return offset;
     const size_t align = alignof(T);
     offset = (offset + align - 1) & ~(align - 1);
@@ -2842,7 +2843,11 @@ ScatterTaskResult execute_script_phase(const Task& task, Shard& shard, Op& op) {
             // into xshard_execute) PRE-identical; see script_group_read.
             return script_group_read(state, shard, op);
         case ScriptPhase::Apply:
+            break;
         case ScriptPhase::None:
+            // FLUSH reuses this existing cold escape without adding a kind
+            // test to ordinary execution or to a live script phase.
+            if (state.kind == Kind::Flush) return execute_flush(task, shard, op);
             break;
     }
     return ScatterTaskResult::Complete;
@@ -2905,7 +2910,9 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
     // unconditional on the cross-shard path: two stores in, two out, and single-shard commands
     // never reach this function at all.
     PinnedNowMs now_cut(shard, state.now_cut_ms);
-    if (state.kind == Kind::Script &&
+    // Reuse the existing script escape for the appended cold kind. Ordinary
+    // kinds still execute one discriminator before their original owner path.
+    if (state.kind >= Kind::Script &&
         (state.script_phase != ScriptPhase::Apply || state.script_resume_post))
         return execute_script_phase(task, shard, op);
     ShardGroup& group = *group_for(state, shard.id());
@@ -2982,7 +2989,6 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
         if (state.atomic_direct)
             return execute_atomic_direct_rename(task, shard, op, execution_owner);
         if (state.atomic_apply) {
-            if (state.kind == Kind::Flush) return execute_flush(task, shard, op);
             if (state.phase == 2) {
                 if (state.kind == Kind::Script) {
                     state.server->note_script_apply_owner();

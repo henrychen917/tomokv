@@ -6,10 +6,10 @@
   "batch": 32,
   "atomic": 0,
   "threshold": -1,
-  "steps": 337396,
+  "steps": 337716,
   "clock_calls": 32,
   "excluded_calls": 1026,
-  "total": 324134,
+  "total": 324454,
   "functions": {
     "tomo::atomic_tripwire_enabled()": 1536,
     "tomo::FlatStore::hash_key(tomo::Slice)": 23296,
@@ -38,13 +38,12 @@
     "tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)": 2496,
     "tomo::xshard_retire(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*))": 4096,
     "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 12544,
-    "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 60736,
+    "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 61216,
     "tomo::xshard_complete_iofused(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 512,
-    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 41984,
+    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 42496,
     "tomo::Slice::key_eq(tomo::Slice const&) const": 7424,
     "tomo::Op::cmd_name() const": 384,
     "tomo::KvObj::key() const": 3328,
-    "tomo::now_realtime_ms()": 672,
     "tomo::Server::atomic_apply_close(unsigned int, std::atomic<bool>&)": 320,
     "tomo::ScatterState::ScatterState()": 2912,
     "tomo::ScatterState::~ScatterState()": 1344,
@@ -53,5 +52,5 @@
     "tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const": 736,
     "tomo::ScatterFinish tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 12256
   },
-  "probe_sha256": "499f8fa686ce2e17b4e855395fb7a3e1bc7a8e80ca87720e2d559a250354f77e"
+  "probe_sha256": "72685a6754532085f9cd04071cf8321a5750839424431f0b2574fefc8b65a5cf"
 }

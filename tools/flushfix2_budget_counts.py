@@ -16,6 +16,7 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--current', action='store_true')
     p.add_argument('--values', help='explicit compile-only trial budgets')
+    p.add_argument('--namespaces', default='normal,db0')
     args = p.parse_args()
     BUILD.mkdir(parents=True, exist_ok=True)
     OUT.mkdir(parents=True, exist_ok=True)
@@ -23,6 +24,8 @@ def main():
     subprocess.run(['gcc', '-O2', str(ROOT / 'tools/crlffix_step.c'), '-o', str(BUILD / 'step')], check=True)
     prepared = {}
     for ns, unit in [('normal', 'src/cmd/xshard.o'), ('db0', 'db0/src/cmd/xshard.o')]:
+        if ns not in args.namespaces.split(','):
+            continue
         stem = unit.replace('/', '_')
         pre = json.loads((ROOT / 'docs/flushfix2/budgets' / (stem+'-pre.json')).read_text())
         post = json.loads((ROOT / 'docs/flushfix2/budgets' / (stem+'-current.json')).read_text())
@@ -41,6 +44,7 @@ def main():
             link[link.index('-o')+1] = str(dest/'probe')
             subprocess.run(link, stdout=subprocess.DEVNULL, check=True)
             prepared[arm, ns] = counts.fast.prepare(arm, ns)
+            print('prepared', arm, ns, flush=True)
     cases = [(arm, ns, command, '1s', batch, atomic, -1) for arm, ns in prepared
              for command in ('MGET', 'MSET') for batch in (1, 32) for atomic in (0, 1)]
     with concurrent.futures.ThreadPoolExecutor(4) as pool:

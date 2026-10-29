@@ -58,5 +58,265 @@
     "path": "build/flushfix2/live-counts/pre-normal/probe",
     "sha256": "67d39a46f60b9dde901e506c241868a4d6834d3fe9b1462027f5c9c18ac01470",
     "bytes": 223567920
+  },
+  {
+    "path": "build/flushfix2/budget-counts/154000-db0/probe",
+    "sha256": "e08394c00d4e0b0fa7301057553aaae48a6c27235e5c1c5e05c82314c8499dbf",
+    "bytes": 214853336
+  },
+  {
+    "path": "build/flushfix2/budget-counts/156000-normal/probe",
+    "sha256": "3c3e532abd77c2f74e6b164a5bc3c4a8613320479f0a0c9ef3f86ca23dfaf34e",
+    "bytes": 214907560
+  },
+  {
+    "path": "build/flushfix2/budget-counts/152000-normal/probe",
+    "sha256": "f04da67811d75165e48a54d002316cb2c70eb6d25636b84493d000c786df0926",
+    "bytes": 214895960
+  },
+  {
+    "path": "build/flushfix2/budget-counts/154473-normal/probe",
+    "sha256": "93e2093333a929a1c40955150cc752b3bc8afbcbfee6d4f702d863199d89a5b5",
+    "bytes": 214887792
+  },
+  {
+    "path": "build/flushfix2/budget-counts/153265-db0/probe",
+    "sha256": "a74ea54cf66f04a55e32cb7b028be9e4d2fbd54f67197774a1de6ab0a7a8878a",
+    "bytes": 214824416
+  },
+  {
+    "path": "build/flushfix2/budget-counts/153000-normal/probe",
+    "sha256": "43b0e35a088974a2b97a2a469de139e208d51af35fc60193084f03e11e0149b8",
+    "bytes": 214895616
+  },
+  {
+    "path": "build/flushfix2/budget-counts/154471-normal/probe",
+    "sha256": "7bab4b1d5001a8c6d52755d23718277d40e3dd99414cd5f45dca21ac06269c05",
+    "bytes": 214887792
+  },
+  {
+    "path": "build/flushfix2/budget-counts/154000-normal/probe",
+    "sha256": "499f8fa686ce2e17b4e855395fb7a3e1bc7a8e80ca87720e2d559a250354f77e",
+    "bytes": 214903784
+  },
+  {
+    "path": "build/flushfix2/budget-counts/155000-db0/probe",
+    "sha256": "69857df67e34ed25319a53a5bbe0c78c7a72a95af3d00d72f5a18800379e011e",
+    "bytes": 214857296
+  },
+  {
+    "path": "build/flushfix2/budget-counts/152000-db0/probe",
+    "sha256": "a871d509edcccf52c1fb325498d463b7e2ea20fcda5e000146b2a703dfcc1479",
+    "bytes": 214849944
+  },
+  {
+    "path": "build/flushfix2/budget-counts/153261-db0/probe",
+    "sha256": "d670d97c43b5decb3cc95e28ac743736172c2874137a7254cf4fd89b31926249",
+    "bytes": 214824416
+  },
+  {
+    "path": "build/flushfix2/budget-counts/157000-normal/probe",
+    "sha256": "ae9e5a0170e95c888e79a462f4eeaaa91b6a8ca315abcdcda31e098e8d56e856",
+    "bytes": 214907640
+  },
+  {
+    "path": "build/flushfix2/budget-counts/156000-db0/probe",
+    "sha256": "fbfd026de0c884d20f25bd02095786412dc4d82a723dc9a413734443b84cc9e9",
+    "bytes": 214857296
+  },
+  {
+    "path": "build/flushfix2/budget-counts/155000-normal/probe",
+    "sha256": "3ade829ce76ca41fb40353e53a1f6940bee753e0a3979a076d7f3b821cfa17ef",
+    "bytes": 214903512
+  },
+  {
+    "path": "build/flushfix2/budget-counts/153000-db0/probe",
+    "sha256": "751222970d8c62b75ae3ca81c6b15f05321b0258b879348244503d93d1d2e7e2",
+    "bytes": 214849680
+  },
+  {
+    "path": "build/flushfix2/budget-counts/153263-db0/probe",
+    "sha256": "84c4942710a6693a36a1826e4dae39f33e8521d40d3ff03d6491d033a7436106",
+    "bytes": 214824416
+  },
+  {
+    "path": "build/flushfix2/budget-counts/157000-db0/probe",
+    "sha256": "d1245f71ae15ae1efdc5f6befd5e686b42c4d05b95d1c0a49b8ffe57e6c3eea9",
+    "bytes": 214857296
+  },
+  {
+    "path": "build/flushfix2/budget-counts/154469-normal/probe",
+    "sha256": "fef2c75b886fcec6990a8354893250afe543344b4cfe36fad253aff2713a15df",
+    "bytes": 214887792
+  },
+  {
+    "path": "build/flushfix2/budget-counts/156000-normal/probe",
+    "sha256": "d00fcbe59a2f728b5f23ddbf2e1554217432e08ff01f070699477b98c4f74f05",
+    "bytes": 214907304
+  },
+  {
+    "path": "build/flushfix2/budget-counts/current-normal/probe",
+    "sha256": "fe5464a5fa80f7dc9b0c2dfd0c8eb7285bba234b6971deb33a348d88a190801c",
+    "bytes": 214899128
+  },
+  {
+    "path": "build/flushfix2/budget-counts/157000-normal/probe",
+    "sha256": "6126da196dec3ed0b376bb4bf8425b3e023b3654ed10d7e14628a4607de38768",
+    "bytes": 214907304
+  },
+  {
+    "path": "build/flushfix2/budget-counts/156000-db0/probe",
+    "sha256": "5be5dbd15aec92cd84bccc999ee1dbd4c98b96fbd9c41195e069db23095a0a11",
+    "bytes": 214856944
+  },
+  {
+    "path": "build/flushfix2/budget-counts/current-db0/probe",
+    "sha256": "7dc1e1131caff2545aeff1f3c8e6f31aa50293545e8cc039b07fb45b3737b5aa",
+    "bytes": 214849512
+  },
+  {
+    "path": "build/flushfix2/budget-counts/157000-db0/probe",
+    "sha256": "f05ff9f8f7686fdc268c69ef2b5fc22582d0965a54cffde8fd9aa3fcb91e7fbf",
+    "bytes": 214856736
+  },
+  {
+    "path": "build/flushfix2/budget-counts/154000-db0/probe",
+    "sha256": "d46ff6b993190f7aa2f878d8d8cf31cad3c2aaea5c3337b57233b47f7bd2fd48",
+    "bytes": 214852848
+  },
+  {
+    "path": "build/flushfix2/budget-counts/156000-normal/probe",
+    "sha256": "2ce3376b06b7a03840b3245add23f5db908a35f8c7df0e00a0fb5d68db1e5bd6",
+    "bytes": 214907304
+  },
+  {
+    "path": "build/flushfix2/budget-counts/156000:18-normal/probe",
+    "sha256": "f92924496f6b1c63042127300d69a0c5d0f57ef88fe4b04e290d2342d1d72973",
+    "bytes": 214907448
+  },
+  {
+    "path": "build/flushfix2/budget-counts/156000:16-normal/probe",
+    "sha256": "96e1b66ed22987783cb88793ca76b58bb8391f6fedd0d03bfc7577f218e12f0c",
+    "bytes": 214907720
+  },
+  {
+    "path": "build/flushfix2/budget-counts/156000:20-normal/probe",
+    "sha256": "e599aafcd08193b9d7a9ff375ca8c6f8a32c3d0c0f4406a22da419efe984c583",
+    "bytes": 214907208
+  },
+  {
+    "path": "build/flushfix2/budget-counts/156000:16-db0/probe",
+    "sha256": "3d35491de2780bb1d441b2ac603bc3a5ae10421813e4e57e9f6f65aefd10c25e",
+    "bytes": 214861056
+  },
+  {
+    "path": "build/flushfix2/budget-counts/154000-normal/probe",
+    "sha256": "72685a6754532085f9cd04071cf8321a5750839424431f0b2574fefc8b65a5cf",
+    "bytes": 214903176
+  },
+  {
+    "path": "build/flushfix2/budget-counts/155000-db0/probe",
+    "sha256": "4a94c26e52d415af1437c585040d791d6db2b16065086bd80c24c21eba2921a3",
+    "bytes": 214856944
+  },
+  {
+    "path": "build/flushfix2/budget-counts/current-normal/probe",
+    "sha256": "0a095f683eb879e7907921c5405e2b94e9e0acd10cd17b0a719f00b7cdf0c6ff",
+    "bytes": 214903248
+  },
+  {
+    "path": "build/flushfix2/budget-counts/157000-normal/probe",
+    "sha256": "41738ae93e4c10cae7ac15da723ea1aa1e5c5c27bb18561e201e705c517eba03",
+    "bytes": 214907304
+  },
+  {
+    "path": "build/flushfix2/budget-counts/156000-db0/probe",
+    "sha256": "b63c91ce13870197f4160e907158b855979c5eed03ebac70aa3af5b36da24ed6",
+    "bytes": 214856944
+  },
+  {
+    "path": "build/flushfix2/budget-counts/155000-normal/probe",
+    "sha256": "9904b76e2a56c280346f03a7124a64516458a436abad8d51d2b89e8ac6bfbea9",
+    "bytes": 214903032
+  },
+  {
+    "path": "build/flushfix2/budget-counts/156000:18-db0/probe",
+    "sha256": "8fefb909957c23f7634d27ce1b59ba91a8cb8d82bd98057782734407a509b387",
+    "bytes": 214860624
+  },
+  {
+    "path": "build/flushfix2/budget-counts/current-db0/probe",
+    "sha256": "c287d27348c1df36db022311df590ee1142972f9767ef7012f687d40992e9132",
+    "bytes": 214849448
+  },
+  {
+    "path": "build/flushfix2/budget-counts/156000:20-db0/probe",
+    "sha256": "5eb0073e3a2abe668cb2155aaacaf7caab4d769a19ddefb8f7d5a28e1dd52376",
+    "bytes": 214860384
+  },
+  {
+    "path": "build/flushfix2/budget-counts/157000-db0/probe",
+    "sha256": "a91c45a721b2cebf0da940d0ddc397dbd1f6c4332134ddd4f2adaf3198fbc61e",
+    "bytes": 214856736
+  },
+  {
+    "path": "build/flushfix2/budget-counts/156000-normal/probe",
+    "sha256": "cd6ba79c78119578c5994f67cb9fb4b7f56062c80b5b87503da52b408ac4f62a",
+    "reason": "completed compile-only trial; exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/156000:16-normal/probe",
+    "sha256": "9558daafa4a7ef6fd0f0541d134d77dfbb767036bd4a090694f22cfb8f2cd44b",
+    "reason": "completed compile-only trial; exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/155000:16-normal/probe",
+    "sha256": "34ba021e8e117dd48cfd3527face9904c8ffad9101f13a5cee0c5946a6643e47",
+    "reason": "completed compile-only trial; exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/157000:16-db0/probe",
+    "sha256": "b2631ec88c968b8c16456c6dff5b35ede04f35da3610768f180d2dfcd06829b4",
+    "reason": "completed compile-only trial; exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/156000:16-db0/probe",
+    "sha256": "ff1bbf1638fed49ce37218f600df672d37a617f15db5ba3eda308c548cc236c0",
+    "reason": "completed compile-only trial; exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/157000:16-normal/probe",
+    "sha256": "1b5975e2138213236d1c7feb839a5ed0cf5055d792f7521a00ed9bdfc80fe0af",
+    "reason": "completed compile-only trial; exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/155000:16-db0/probe",
+    "sha256": "3a2a8dec3df4b9a566ea1adfa77e7e357b9ec24f22c2c9f234e7221b269344c8",
+    "reason": "completed compile-only trial; exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/155000-db0/probe",
+    "sha256": "c6c2ea7ec150c14dd691b0d985367ce187d2c93846fa17ed9bdeaa27c6f4fe5b",
+    "reason": "completed compile-only trial; exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/157000-normal/probe",
+    "sha256": "547f99ee470e1c883c855fe6145fdeec50935bfb1eb26c5dc9e0ded0f70ee1cd",
+    "reason": "completed compile-only trial; exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/156000-db0/probe",
+    "sha256": "e3063b7d29c39d3227d00590f251c340a0627371741a5f87531fdd7633f3360f",
+    "reason": "completed compile-only trial; exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/155000-normal/probe",
+    "sha256": "931b8204a19f7d38278d0c60a7a272222d9d0a1e203a6dc900506dabd8d1d7ff",
+    "reason": "completed compile-only trial; exact instruction counts retained"
+  },
+  {
+    "path": "build/flushfix2/budget-counts/157000-db0/probe",
+    "sha256": "0ea0ef4d4fcb6e95aac277946e4b26a1756c65c94d4efd8f719fa7ccc6d0d9d0",
+    "reason": "completed compile-only trial; exact instruction counts retained"
   }
 ]

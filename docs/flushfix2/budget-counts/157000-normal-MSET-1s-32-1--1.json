@@ -6,10 +6,10 @@
   "batch": 32,
   "atomic": 1,
   "threshold": -1,
-  "steps": 977020,
+  "steps": 977124,
   "clock_calls": 32,
   "excluded_calls": 1176,
-  "total": 962254,
+  "total": 962358,
   "functions": {
     "unsigned long tomo::kvobj_external_bytes<false>(tomo::KvObj const*, void const*) [clone .isra.0]": 5120,
     "tomo::FlatStore::track_expire(unsigned long, tomo::KvObj*) [clone .isra.0]": 6400,
@@ -25,8 +25,6 @@
     "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&) [clone .part.0]": 12480,
     "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 9216,
     "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 14688,
-    "unsigned long tomo::(anonymous namespace)::carve_size<tomo::OwnerRecordRefs>(unsigned long&, unsigned int) [clone .isra.0]": 544,
-    "unsigned long tomo::(anonymous namespace)::carve_size<unsigned short>(unsigned long&, unsigned int) [clone .isra.0]": 480,
     "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 1024,
     "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]": 4608,
     "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 864,
@@ -46,12 +44,11 @@
     "tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)": 2624,
     "tomo::xshard_retire(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*))": 1888,
     "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))": 6592,
-    "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 12544,
-    "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 58944,
+    "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 12288,
+    "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 59712,
     "tomo::xshard_complete_iofused(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 512,
-    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 111760,
+    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 113048,
     "tomo::Op::cmd_name() const": 384,
-    "tomo::now_realtime_ms()": 672,
     "tomo::FlatStore::atomic_install_group(void*, unsigned long, tomo::Slice, tomo::KvObj*)": 21248,
     "tomo::FlatStore::atomic_prepare_group(tomo::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)": 15424,
     "tomo::Server::atomic_try_admit(unsigned int, unsigned long&, bool)": 1600,
@@ -66,5 +63,5 @@
     "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)::{lambda(tomo::KvObj const*, bool)#1}::operator()(tomo::KvObj const*, bool) const": 15104,
     "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)": 6144
   },
-  "probe_sha256": "ae9e5a0170e95c888e79a462f4eeaaa91b6a8ca315abcdcda31e098e8d56e856"
+  "probe_sha256": "547f99ee470e1c883c855fe6145fdeec50935bfb1eb26c5dc9e0ded0f70ee1cd"
 }

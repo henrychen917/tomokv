@@ -6,10 +6,10 @@
   "batch": 1,
   "atomic": 0,
   "threshold": -1,
-  "steps": 11120,
+  "steps": 11121,
   "clock_calls": 1,
   "excluded_calls": 19,
-  "total": 10692,
+  "total": 10693,
   "functions": {
     "tomo::atomic_tripwire_enabled()": 48,
     "tomo::FlatStore::hash_key(tomo::Slice)": 728,
@@ -36,15 +36,14 @@
     "tomo::(anonymous namespace)::assemble_final(tomo::Client&, tomo::Op&, tomo::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))": 70,
     "tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)": 76,
     "tomo::xshard_retire(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*))": 54,
-    "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 392,
-    "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1949,
+    "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 384,
+    "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1971,
     "tomo::xshard_complete_iofused(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 16,
-    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 2000,
+    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 2008,
     "tomo::Slice::key_eq(tomo::Slice const&) const": 232,
     "tomo::Op::cmd_name() const": 12,
     "tomo::Op::Sink::reserve(unsigned long)": 24,
     "tomo::KvObj::key() const": 312,
-    "tomo::now_realtime_ms()": 21,
     "tomo::ScatterState::ScatterState()": 91,
     "tomo::ScatterState::~ScatterState()": 42,
     "tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const": 23,
@@ -56,5 +55,5 @@
     "tomo::KvObj::val_ptr()": 128,
     "tomo::l4prebuild_policy(unsigned int)": 28
   },
-  "probe_sha256": "ae9e5a0170e95c888e79a462f4eeaaa91b6a8ca315abcdcda31e098e8d56e856"
+  "probe_sha256": "547f99ee470e1c883c855fe6145fdeec50935bfb1eb26c5dc9e0ded0f70ee1cd"
 }

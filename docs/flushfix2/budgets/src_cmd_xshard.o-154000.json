@@ -2,7 +2,7 @@
   "unit": "src/cmd/xshard.o",
   "budget": "154000",
   "old_budget": 153471,
-  "initial": 124711,
+  "initial": 124264,
   "changed": [
     "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
     "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int) [clone .cold]",
@@ -13,8 +13,11 @@
     "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
     "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)",
     "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&) [clone .cold]",
+    "tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)",
     "void tomo::FlatStore::atomic_visit_key_groups<tomo::(anonymous namespace)::cancel_applied_scripts(tomo::FlatStore&, unsigned long, tomo::Slice, tomo::ScatterState const*)::{lambda(auto:1&)#1}>(unsigned long, tomo::Slice, tomo::(anonymous namespace)::cancel_applied_scripts(tomo::FlatStore&, unsigned long, tomo::Slice, tomo::ScatterState const*)::{lambda(auto:1&)#1}&&)",
     "void tomo::FlatStore::atomic_visit_key_groups<tomo::(anonymous namespace)::cancel_applied_scripts(tomo::FlatStore&, unsigned long, tomo::Slice, tomo::ScatterState const*)::{lambda(auto:1&)#1}>(unsigned long, tomo::Slice, tomo::(anonymous namespace)::cancel_applied_scripts(tomo::FlatStore&, unsigned long, tomo::Slice, tomo::ScatterState const*)::{lambda(auto:1&)#1}&&) [clone .cold]",
+    "tomo::FlatStore::erase(unsigned long, tomo::Slice)",
+    "tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const",
     "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)::{lambda(unsigned long, tomo::Slice)#1}::operator()(unsigned long, tomo::Slice) const",
     "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)::{lambda(unsigned long, tomo::Slice)#1}::operator()(unsigned long, tomo::Slice) const [clone .cold]"
   ],
@@ -46,6 +49,6 @@
     "-g0",
     "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_cmd_xshard.o-154000.inline"
   ],
-  "revision": "cce47c5c13443e91bfb895ab5a4edf57606b0ac1:17f08a9b48c44a45ed2eecc6cfeea76ff8961b925d4b58649ad15d4577b6aa5a",
+  "revision": "8228424ea035579fd688e0b200e77220b6d55074:65db88d73fb103db05831d3567607671b9e5b253c434e50aa4b0d824949ec5c7",
   "object": "/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_cmd_xshard.o-154000.o"
 }

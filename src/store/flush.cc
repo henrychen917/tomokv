@@ -1,6 +1,9 @@
 #include "flatstore.h"
+#include "../core/signal.h"
 
 namespace tomo {
+int64_t atomic_flush_now_ms() { return now_realtime_ms(); }
+bool atomic_flush_covers(const AtomicEntry& entry, Slice key) { return atomic_range_covers(entry, key); }
 // Namespace records: cold FLUSH publication, resolution and reclamation.
 AtomicEntry* FlatStore::atomic_install_flush(ScatterState* group, int ns,
                                  std::atomic<uint64_t>* epoch,
@@ -63,13 +66,15 @@ bool FlatStore::atomic_flush_ready(AtomicEntry* range, uint64_t floor, uint64_t 
 }
 
 bool FlatStore::atomic_flush_has_post(const AtomicEntry& range) const {
+    uint64_t versions = 0;
     for (auto* e = range.next; e; e = e->next)
         for (uint32_t i = 0; i < e->count; ++i)
-            if (atomic_range_covers(range, atomic_entry_key(*e, i))) {
-                atomic_flush_counters.post_versions.fetch_add(1, std::memory_order_relaxed);
-                return true;
-            }
-    return false;
+            versions += atomic_range_covers(range, atomic_entry_key(*e, i));
+    // Count actual installed key versions, from the cold reclamation task.
+    // Overlapping ranges can observe the same version; this is a window
+    // falsifier, not a count of unique client writes.
+    if (versions) atomic_flush_counters.post_versions.fetch_add(versions, std::memory_order_relaxed);
+    return versions != 0;
 }
 
 // The first later occurrence owns the pre-flush resident. Removing that

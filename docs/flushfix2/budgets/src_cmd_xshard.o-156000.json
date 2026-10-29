@@ -2,7 +2,7 @@
   "unit": "src/cmd/xshard.o",
   "budget": "156000",
   "old_budget": 153471,
-  "initial": 124396,
+  "initial": 124264,
   "changed": [
     "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
     "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int) [clone .cold]",
@@ -17,7 +17,6 @@
     "tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)",
     "tomo::FlatStore::erase_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*, tomo::FlatStore::EraseEvent)",
     "tomo::FlatStore::insert_notify(unsigned long, tomo::KvObj*, tomo::FlatNotifySink*)",
-    "tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)",
     "void tomo::FlatStore::atomic_visit_key_groups<tomo::(anonymous namespace)::cancel_applied_scripts(tomo::FlatStore&, unsigned long, tomo::Slice, tomo::ScatterState const*)::{lambda(auto:1&)#1}>(unsigned long, tomo::Slice, tomo::(anonymous namespace)::cancel_applied_scripts(tomo::FlatStore&, unsigned long, tomo::Slice, tomo::ScatterState const*)::{lambda(auto:1&)#1}&&)",
     "void tomo::FlatStore::atomic_visit_key_groups<tomo::(anonymous namespace)::cancel_applied_scripts(tomo::FlatStore&, unsigned long, tomo::Slice, tomo::ScatterState const*)::{lambda(auto:1&)#1}>(unsigned long, tomo::Slice, tomo::(anonymous namespace)::cancel_applied_scripts(tomo::FlatStore&, unsigned long, tomo::Slice, tomo::ScatterState const*)::{lambda(auto:1&)#1}&&) [clone .cold]",
     "tomo::FlatStore::erase(unsigned long, tomo::Slice)",
@@ -55,6 +54,6 @@
     "-g0",
     "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_cmd_xshard.o-156000.inline"
   ],
-  "revision": "cce47c5c13443e91bfb895ab5a4edf57606b0ac1:b3294cf46e6cffad6b9f8468e1a5d6a914e34cb1e9885395e93c1b6bc6193289",
+  "revision": "8228424ea035579fd688e0b200e77220b6d55074:8fde0d1380d8f04c00ece23312380552307199248f07afb4c8ac5245e5cb5fcb",
   "object": "/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_cmd_xshard.o-156000.o"
 }

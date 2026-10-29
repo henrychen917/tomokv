@@ -6,10 +6,10 @@
   "batch": 32,
   "atomic": 0,
   "threshold": -1,
-  "steps": 343092,
+  "steps": 342516,
   "clock_calls": 32,
   "excluded_calls": 1026,
-  "total": 329830,
+  "total": 329254,
   "functions": {
     "tomo_db0::atomic_tripwire_enabled()": 1536,
     "std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::~vector()": 736,
@@ -38,12 +38,11 @@
     "tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int)": 2464,
     "tomo_db0::xshard_retire(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*))": 4096,
     "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 12288,
-    "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 61792,
+    "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 61376,
     "tomo_db0::xshard_complete_iofused(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 512,
-    "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 42240,
+    "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 42752,
     "tomo_db0::Slice::key_eq(tomo_db0::Slice const&) const": 7424,
     "tomo_db0::Op::cmd_name() const": 384,
-    "tomo_db0::now_realtime_ms()": 672,
     "tomo_db0::Server::atomic_apply_close(unsigned int, std::atomic<bool>&)": 320,
     "tomo_db0::ScatterState::ScatterState()": 2912,
     "tomo_db0::ScatterState::~ScatterState()": 1344,
@@ -52,5 +51,5 @@
     "tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const": 736,
     "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 12256
   },
-  "probe_sha256": "7101a18bd3622ae8a36d24c1cfa3181b000f4cdc6f27bce92855fe87e039e71b"
+  "probe_sha256": "c287d27348c1df36db022311df590ee1142972f9767ef7012f687d40992e9132"
 }

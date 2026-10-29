@@ -162,6 +162,10 @@ struct AtomicFlushCounters {
     std::atomic<uint64_t> script_conflicts{0}, collapses{0}, slow_collapses{0};
 };
 inline AtomicFlushCounters atomic_flush_counters;
+// Keep the new cold clock caller outside the scatter translation unit: it
+// must not change inlining of the existing ordinary-command expiry cut.
+int64_t atomic_flush_now_ms();
+[[gnu::cold, gnu::noinline]] bool atomic_flush_covers(const AtomicEntry&, Slice);
 inline bool atomic_range_covers(const AtomicEntry& entry, Slice key) {
     return entry.namespace_range && (entry.range_all || entry.key_ns == key.ns);
 }

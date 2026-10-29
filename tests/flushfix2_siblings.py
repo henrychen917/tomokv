@@ -225,8 +225,11 @@ def storm(args, directory, mode, engine, atomic, oracle):
     save = args.case in ('bgsave-straddle', 'live-bgsave')
     extra = ('--appendonly', 'yes', '--appendfsync', 'always') if aof else ()
     saved = []
+    expected_aof = None
     counts = dict(flushes=0, work=0, saves=0, flips=0, flip_refusals=0, cancelled_saves=0)
     with s.Boot(args, directory, mode, engine, atomic, oracle, extra=extra) as b:
+        if aof:
+            b.c.must('SET', 'flushfix2:aof:must-disappear', 'before-flush')
         pair, _ = s.keys_for(b.c, 'flushfix2:storm', oracle, 2)
         def flush(stop):
             with conn(b, args) as c:
@@ -302,6 +305,10 @@ def storm(args, directory, mode, engine, atomic, oracle):
         assert args.case not in ('live-flip', 'live-flip-cut') or oracle or counts['flips'], counts
         b.c.raw(encode('MULTI') + encode('SET', pair[0], 42) + encode('SET', pair[1], 42) + encode('EXEC'))
         assert [b.c.read() for _ in range(4)] == [b'OK', b'QUEUED', b'QUEUED', [b'OK', b'OK']]
+        if aof:
+            assert b.c.must('GET', 'flushfix2:aof:must-disappear') is None
+            keys = sorted(b.c.must('KEYS', '*'))
+            expected_aof = (keys, b.c.must('MGET', *keys), b.c.must('DBSIZE'))
     for image in saved:
         recover = directory / (image.stem + '-reload')
         recover.mkdir()
@@ -313,6 +320,8 @@ def storm(args, directory, mode, engine, atomic, oracle):
     if aof:
         with s.Boot(args, directory, mode, engine, atomic, oracle, extra=extra, name='restart') as b:
             assert b.c.must('MGET', *pair) == [b'42', b'42']
+            keys = sorted(b.c.must('KEYS', '*'))
+            assert (keys, b.c.must('MGET', *keys), b.c.must('DBSIZE')) == expected_aof
     return dict(**counts, snapshots_checked=len(saved))
 
 

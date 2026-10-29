@@ -141,12 +141,19 @@ def namespace_only(args, directory, mode, engine, atomic, oracle):
                     counts['controls'] += 1
 
         errors = s.run_storm(args.seconds, [mutate, observe] + ([control] if db else []), args.stall)
+        control_final = True
+        if db:
+            b.c.must('SELECT', control_db)
+            control_final = b.c.must('MGET', *pair) == [b'control', b'control']
+            b.c.must('SELECT', db)
         result = dict(**counts, pair=pair, owners=owners, db=db,
                       control_db=control_db if db else None, examples=examples,
+                      control_final=control_final,
                       errors=errors, counters={} if oracle else s.stats(b.c))
         (directory / 'observations.json').write_text(json.dumps(result, indent=2) + '\n')
         assert not errors and counts['cycles'] > 0 and counts['observations'] > 0, result
         assert not db or counts['controls'] > 0, result
+        assert control_final, result
         assert counts['torn'] == 0, result
         return result
 

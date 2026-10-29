@@ -51,7 +51,7 @@ ScatterPrepare xshard_prepare_flush(Server& server, Op& op, ScatterArenaPool& po
     state->origin_conn_id = origin;
     state->admitted = !force_atomic;
     state->admission_generation = generation;
-    state->now_cut_ms = now_realtime_ms();
+    state->now_cut_ms = atomic_flush_now_ms();
     state->arena_bytes = bytes;
     state->group_cap = state->shard_slots = state->nsub = server.nshards();
     if (state->admitted) server.atomic_apply_open(io, state->apply_open);
@@ -92,7 +92,12 @@ ScatterTaskResult execute_flush(const Task& task, Shard& shard, Op& op) {
             return state.aborted.load(std::memory_order_acquire)
                 ? ScatterTaskResult::Complete : ScatterTaskResult::Defer;
         if (state.aborted.load(std::memory_order_acquire)) return ScatterTaskResult::Complete;
-        if (!group.aux) group.aux = new GroupAux;
+        if (!group.aux) group.aux = new (std::nothrow) GroupAux;
+        if (!group.aux) {
+            group.error = WorkError::Oom;
+            state.aborted.store(true, std::memory_order_release);
+            return ScatterTaskResult::Complete;
+        }
         group.aux->flush_changed = store.size() != 0;
         if (!shard.watch_reserve_flush(ns, &state, &state.epoch, &state.aborted, &state.watch_refs)) {
             group.error = WorkError::Oom;
