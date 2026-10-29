@@ -750,6 +750,40 @@
     ]
   },
   {
+    "name": "pad-boot",
+    "receipt": "docs/climonfix5/jobs/pad-boot.json",
+    "exit": 0,
+    "binary_sha256": "c5b445290dbf6919c270bd85075c59fbf5a416a80a9e54a5b1dc419616af038c",
+    "archive": "docs/climonfix5/job-evidence/pad-boot.tar.gz",
+    "archive_sha256": "3001c49337ae768739e1e910cb73053d3b28aafdf816a30de8f6367adb035bc0",
+    "files": 19,
+    "uncompressed_bytes": 47115,
+    "jobs": [
+      {
+        "name": "dbdefault",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.190000",
+            "label": "Redis default databases 16 (both modes)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "name": "production-build",
     "receipt": "docs/climonfix5/jobs/production-build.json",
     "exit": 130,

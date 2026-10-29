@@ -52,5 +52,23 @@
     "path": "build/gate-run.ClSnSR",
     "archive": "docs/climonfix5/job-evidence/tcl-initial4.tar.gz",
     "sha256": "d8a376669f969e1760b556e0171345f3568bbf2f88908b20ab02d4100f98c163"
+  },
+  {
+    "name": "negative-client-list-cmd-name",
+    "path": "build/gate-run.7mBnZH",
+    "archive": "docs/climonfix5/job-evidence/negative-client-list-cmd-name.tar.gz",
+    "sha256": "fa11645e065fb78bf5192373b64e1be3e785e7668499513b1a6d40e1b277203e"
+  },
+  {
+    "name": "negative-reset-clears-libname",
+    "path": "build/gate-run.4VW30N",
+    "archive": "docs/climonfix5/job-evidence/negative-reset-clears-libname.tar.gz",
+    "sha256": "7fbb7de3d1a303dd62bde43d870e153363a93ac2b1e5c4bb5646d492573be4ab"
+  },
+  {
+    "name": "negative-reset-monitor-echo",
+    "path": "build/gate-run.bOpfDZ",
+    "archive": "docs/climonfix5/job-evidence/negative-reset-monitor-echo.tar.gz",
+    "sha256": "443e0f621ed35277177e7c699302cb9b8439478082a3a3d4730431a76cde8c78"
   }
 ]

@@ -121,10 +121,15 @@ regressions rejected their named Tcl assertion in both modes; and
 `python3 tests/gates_test.py` passes 73/73. All 53 production-unit targets
 built; all 58 independent build/freshness checks pass, including `make all`,
 `make -q`, and the blockfix binding ([audit](docs/climonfix5/production-units.json)).
+Both Tcl modes pass all 1,704 assertions and all 14 climonfix4 promotions
+([named assertion audit](docs/climonfix5/full-tcl-promotions-in-campaign.json)).
 The remaining whole-job campaigns are still running.
 [Directed receipt](docs/climonfix5/jobs/directed-final-v11.json),
 [seven isolated controls](docs/climonfix5/isolated-regressions.json),
-[harness tests](docs/climonfix5/gates-test.json). The selected whole-job
+[harness tests](docs/climonfix5/gates-test.json). Five controls raise named
+assertion errors. PAUSE-SCRIPT-FLAGS and MONITOR-SCRIPT-CMDS reach the named
+witness, never report it passing, and fail at the unchanged Tcl runner deadline
+in both modes; their positive counterparts complete in the full-manifest 1s and 2s runs. The selected whole-job
 inventory is [job-selection.json](docs/climonfix5/job-selection.json).
 All server boots inherit `LC_ALL=C`; all lane processes are restricted to
 CPUs 16–31, builds use `-j16`, and correctness ports are in 20200–20299.
@@ -134,6 +139,9 @@ individual gate jobs retain their own explicit geometry overrides.
 NOT RUN: `flip_saturated`, because it starts `memtier_benchmark`, a load
 generator explicitly reserved to the maintainer. Its two rows are not claimed
 as passing. No full iteration, ABBA or performance benchmark was run.
+AT4.12 T6/T10 run only as their unchanged correctness jobs, with exact-value,
+progress and wound/FLIP assertions; their recorded command totals are not
+used as a rate comparison or a merit result.
 
 Development failures are retained rather than counted as successful proof:
 a mutable-binary relink interrupted one initial boot; a first full Tcl run
