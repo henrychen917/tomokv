@@ -1533,12 +1533,12 @@ else planted_ok=0; fi
 job_flipfix5(){
 # flipfix5 directed live row, every leg FLIP has (2s; FLIP is unavailable in 1s): both engines x
 # atomic 0/1 x databases 1/16, one fresh boot per leg. A FLIP storm runs against every operation
-# class whose step-1 storm aborted e2b237926 (pipelined MSET+FLUSHALL SYNC, FLUSHALL ASYNC, FLUSHDB,
-# SCAN, RANDOMKEY, EVAL): 6 s as is, then 4 s with DEBUG FLIP-STAGE-HOLD holding an executor that
-# already acknowledged ExInstall until the next FLIP is admitted. Each phase must complete FLIPs
-# with every worker progressing, and the held phase must raise flip_stale_stage_refusals; every
-# leg must exit cleanly. e2b237926 aborts on io_uring and PAD-A aborts on every leg. One row
-# before the quick exit: DQ=+1, DF=+1. EXPECT stays maintainer-owned.
+# class whose step-1 storm aborted e2b237926 (pipelined MSET+FLUSHALL SYNC, FLUSHALL ASYNC,
+# FLUSHDB, DBSIZE NOW, SCAN, RANDOMKEY, EVAL): 6 s as is, then 4 s with DEBUG FLIP-STAGE-HOLD
+# holding an executor that already acknowledged ExInstall until the next FLIP is admitted. Each
+# phase must complete FLIPs with every worker progressing, and the held phase must raise
+# flip_stale_stage_refusals; every leg must exit cleanly. e2b237926 aborts on io_uring and PAD-A
+# aborts on every leg. One row before the quick exit: DQ=+1, DF=+1. EXPECT stays maintainer-owned.
 row_begin "FLIP stale stage storm (all legs)"
 py tests/flipfix5.py --case row --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
     --seconds 10 --output "$TMPDIR/flipfix5-row" >"$TMPDIR/gate-flipfix5-row.txt" 2>&1 \

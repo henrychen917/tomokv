@@ -27,7 +27,7 @@ import flushfix2_siblings  # noqa: F401  (registers live-flip and its siblings i
 import snapfix as s
 from _lib import Conn, RespError, encode
 
-OPS = ('FLUSHALL', 'FLUSHALL-ASYNC', 'FLUSHDB', 'SWAPDB', 'DBSIZE', 'KEYS', 'SCAN',
+OPS = ('FLUSHALL', 'FLUSHALL-ASYNC', 'FLUSHDB', 'SWAPDB', 'DBSIZE', 'DBSIZE-NOW', 'KEYS', 'SCAN',
        'RANDOMKEY', 'BGSAVE', 'EXEC', 'EVAL', 'NONE')
 ABORT_RCS = (-6, 134)
 PORTS = range(20200, 20300)
@@ -81,6 +81,8 @@ def operation(b, args, pair, counts, op=None, key='ops', strict=True):
                     assert c.must('SWAPDB', 0, other) == b'OK'
                 elif op == 'DBSIZE':
                     assert isinstance(c.must('DBSIZE'), int)
+                elif op == 'DBSIZE-NOW':  # the exact form scatters to every owner
+                    assert isinstance(c.must('DBSIZE', 'NOW'), int)
                 elif op == 'KEYS':
                     assert isinstance(c.must('KEYS', 'flipfix5:resident:*'), list)
                 elif op == 'SCAN':
@@ -137,10 +139,11 @@ def op_flip(args, directory, mode, engine, atomic, oracle):
 
 
 # Every operation class whose step-1 FLIP storm aborted e2b237926 (always on io_uring legs). The
-# live-flip witness's own pipelined MSET + FLUSHALL SYNC is the FLUSHALL worker. EXEC aborted
-# only where FLIP could complete at all; it is reported separately (a pipelined cross-owner
-# MULTI/EXEC client holds every FLIP to its 5 s deadline, a distinct liveness defect).
-ROW_OPS = ('FLUSHALL', 'FLUSHALL-ASYNC', 'FLUSHDB', 'SCAN', 'RANDOMKEY', 'EVAL')
+# live-flip witness's own pipelined MSET + FLUSHALL SYNC is the FLUSHALL worker; plain DBSIZE
+# answers from published counts, DBSIZE NOW scatters and aborted. EXEC aborted only where FLIP
+# could complete at all; it is reported separately (a pipelined cross-owner MULTI/EXEC client
+# holds every FLIP to its 5 s deadline, a distinct liveness defect).
+ROW_OPS = ('FLUSHALL', 'FLUSHALL-ASYNC', 'FLUSHDB', 'DBSIZE-NOW', 'SCAN', 'RANDOMKEY', 'EVAL')
 
 
 def directed_row(args, directory, mode, engine, atomic, oracle):
