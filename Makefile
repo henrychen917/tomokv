@@ -274,10 +274,13 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # Final trials/scores: docs/wave8b/budgets-exact/selected.json, including
 # exact callback starts and WAIT slices. Identity is a proxy; merit is pending.
 # Instruction scopes and the maintainer merit still decide, not body identity.
-$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=153471
+# flushfix2: compile-only surveys and finite command scopes are retained in
+# docs/flushfix2/{budgets,budget-counts}. Keep the range escape cold and preserve
+# the ordinary cancellation leaves' inlining; full-body spillover is inventoried.
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=156000 --param max-inline-insns-auto=16
 # AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
 # perfex2: compensate the inline cold clear reset; every other emitted body is PRE-identical.
-$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=152280
+$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=159000 --param max-inline-insns-auto=16
 # ACL key extraction is isolated from the IO templates. Keep the merged baseline's
 # ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
 # aclfix grows the unit by 749/765 insns (+739/+750 here): the shared reply helpers this

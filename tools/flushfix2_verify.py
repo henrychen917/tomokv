@@ -14,7 +14,7 @@ aof-epoll aof-uring aof_frame aoforder notify_aof serverfix_waitaof iofix-signal
 climonfix txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1
 txnorder2 txnorder_wake txnorder_index txnorder_wound execfair txn_group_fused
 txn_group_split script_bounds scriptfix lualibs flip flipctl flip_saturated
-fliplisten flip_unit flipfix_units atomic_units atomic_batteries atomic_floor
+fliplisten flip_unit flipfix_units core_units atomic_units atomic_batteries atomic_floor
 atomfix5_watch atomfix5_accounting moverfix fused-0 fused-1 storage_units
 release_batteries feature-split-0 feature-split-1 feature-armed-0 feature-armed-1'''.split()
 BROAD += [f'multidb-{m}-{r}-{a}' for m in ('1s', '2s') for r in (0, 1) for a in (0, 1)]

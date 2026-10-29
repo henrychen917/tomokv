@@ -58,8 +58,9 @@ def falsify(b, args):
             delta = {k: after.get(k, 0) - before.get(k, 0) for k in (
                 'atomic_flush_units', 'atomic_flush_range_reads', 'atomic_flush_post_versions',
                 'atomic_flush_script_conflicts', 'atomic_flush_slow_collapses')}
-            history.append(delta)
+            history.append(dict(delta, script_reply=reply))
             if all(delta[k] > 0 for k in delta):
+                assert reply == [1, 1], 'OCC retry used the pre-flush script image'
                 assert c.must('GET', key) == b'post', 'collapse discarded a post-flush write'
                 return history
     raise AssertionError(('flush window did not fire on fresh attempts', history))
