@@ -205,7 +205,7 @@ $(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growt
 # perfex2: the two cold inline sample resets need 31737 to retain every ordinary
 # body from the merged perfex POST. Complete-body trials: docs/perfex2/budgets.py.
 # rlresize: see the budget note above $(BUILD_ROOT)/src/main.o.
-$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=33883 --param max-inline-insns-auto=16
+$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=33911 --param max-inline-insns-auto=16
 # PS4 AOF recovery adds cold code. Preserve 5146b78ee storage helper bodies
 # in both namespaces; the aoffix2 hot-body audit checks these compiler budgets.
 # rlresize: see the budget note above $(BUILD_ROOT)/src/main.o.
