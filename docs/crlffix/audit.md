@@ -78,3 +78,23 @@ central WorkError bridge; ten call `reply_err` directly. Protofix precedes this
 merge and is covered by its decoder row above. No added raw error/status writer
 was found. The integration's CR/LF stream key/group check also verifies that the
 next PING reply remains framed after a blocked-reader NOGROUP wake.
+
+## Wave10 integration additions
+
+The original inventory and wave9 supplement remain frozen. The 16 added or moved
+reply calls are enumerated in [wave10-added-sites.json](wave10-added-sites.json);
+two encode tracking arrays/bulk strings, and the other fourteen emit errors.
+
+| Lane / site | Disposition |
+| --- | --- |
+| scriptfix2 FUNCTION option, arity and RESTORE errors | `reply_wrong_args` / `reply_err_string` converge on the central length-aware `reply_err`. The merged LIST unknown-argument path retains crlffix's no-trim setting. Header, registration and compile errors are intermediate strings/Lua values until this safe builder emits them. |
+| scriptfix2 EVAL shebang and readonly/OOM errors | Header metadata passes through `reply_text_error` and central sanitation. Literal admission errors contain no request bytes. SHA/function case normalization affects lookup, not framing. |
+| scriptfix2 Lua API and deep replies | `redis.error_reply` and `redis.status_reply` construct Lua tables; the existing result encoder uses central error/status builders with their respective trailing-newline policies. Stack-limit errors are fixed `reply_err` literals. The crlffix job now includes both APIs, each with clean/CR/LF/CRLF/trailing/edge payloads and following PING/ECHO synchronization. |
+| exec1s-d sparse EXEC preparation | The moved MSET arity errors are fixed literals through `reply_err`; sparse storage adds no raw writer. |
+| blockfix3 NOGROUP accounting | The reply-site increment precedes the existing central sanitized builder. The old lane's manual writer was not restored. Readiness probes do not increment the counter. |
+| pubtrackfix BCAST batching | Keys remain length-delimited bulk members of an array; no error/status writer is added. Subscription confirmations likewise retain structured RESP. |
+| infofix offline AOF loading | Denial and timeout helpers use central errors; LOADAOF's Redis-compatible failure text is fixed. CPU/DOCS/latency output remains bulk/aggregate data. |
+| snapfix2 and rlfix4 | No new error/status writer. Parser errors retain wave9's central builders and protofix decoder. |
+
+No added direct `-`/`+` writer was found. This is a source audit; runtime results
+are recorded separately in the wave10 job receipts.

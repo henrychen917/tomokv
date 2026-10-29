@@ -51,6 +51,58 @@ Retain the existing `xshard_complete_script_final` close, omitting snapfix’s
 redundant `script_snapshot_done` close; every Final still closes owner-side.
 Initial Makefile choices are provisional until the compile-only budget trials.
 
+### Exact declaration inventory
+
+All seven lane merges are complete: snapfix2 `f146fdbca`, blockfix3 `047ccf869`,
+scriptfix2 `8fe881fa2`, exec1s-d `30a83e4d7`, pubtrackfix `87e964b71`, infofix
+`d47af69b2`, rlfix4 `d53549aa4`. The commit immediately before rlfix4 is
+`ba2130b37`; its production source is identical to the built slowlog-exclusion
+commit `e98831c81` (the intervening commit changes only the Tcl harness).
+
+The full source declaration inventory is 963, exactly matching the explicit
+fixture including duplicates. Required landing counts are **946/963**, from
+881/898 plus **65/65**: snapshot 4, restored blocking row 1, scripting 48,
+EXEC 4, pubsub/tracking 4, retained INFO/latency 4, read-local 0. Blockfix3 adds
+zero on its lane base but restores one row parked on this headline; infofix
+loses its global slowlog row. Neither exec1s-d nor pubtrackfix supplied their
+four labels in the merged fixture; those eight declarations are now explicitly
+listed. The interaction checks extend existing rows and add no public row.
+Collector positions and final receipts will be recorded after harness edits.
+
+### Interaction source findings and new witnesses
+
+- Snapshot preparation reserves at least the old table capacity. X2 calls the
+  existing bounded cleanup with the commit cutoff read before the reader floor;
+  collapse refuses an active capture. New `exec1s` subcases hold actual pending
+  EXEC versions, prepare/mark around eager cleanup, complete a real capture,
+  and check exact final values. Both modes and atomic settings run the same
+  cases, with ordinary and armed read-local retirement.
+- Eviction rejects candidates requiring versions and returns immediately during
+  capture. The new subcases require zero eviction while pins/capture are live,
+  then require actual eviction after their release. Prepared capacity and the
+  capture stream must remain usable throughout.
+- The X2 armed collapse still selects `atomic_free_entry_read_local` and QSBR
+  object retirement. rlfix4 changes admission/hash code and does not touch that
+  selection. The existing concurrent word/byte-wrap TSan falsifier remains in
+  every complete exec1s job; new snapshot subcases require deferred retirements.
+- scriptfix2's new invocation environment stays inside each optimistic attempt;
+  at412c's claim/wound/handoff machinery is retained. `tests/wave10.py`, attached
+  to the existing eight-leg execfair job, adds the witnessed nine-conflict
+  escalation schedule for a shebang script, uppercase EVALSHA, and uppercase
+  FCALL using restricted library initialization and numeric child arguments.
+  The existing at412 owner check still covers the wound-publication interval.
+- Blockfix3 owns the NOGROUP increment at the actual XREADGROUP reply. INFO reads
+  that counter and its RESETSTAT baseline. Infofix contains no generic formatter
+  accounting hook, so the merged tree does not introduce double accounting.
+- The new error sites retain central CR/LF builders; the complete supplement is
+  `docs/crlffix/wave10-added-sites.json` and the wave10 section of its audit.
+
+Harness changes so far: add the single named slowlog assertion to ORDER_TESTS
+under `SLOWLOG-EXEC-BLOCKED-ORDER`; expand the existing retry falsification test
+over every named map entry. All ten Tcl harness tests pass. No blanket retry,
+new timeout or assertion tolerance is introduced. New snapshot/eviction/script
+interaction checks and the two Lua reply-API CR/LF checks extend existing jobs.
+
 Global slowlog exclusion: restore `src/cmd/slowlog.cc` byte-for-byte from
 headline, dropping only that part of `7c50db206`. Omit the new `infofix_compat-slowlog`
 row (infofix contributes +4, not +5). Restore these seven named Tcl skips with

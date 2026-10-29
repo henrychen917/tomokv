@@ -3115,6 +3115,7 @@ job_execfair(){
       py tests/wave8.py "$PORT" >"$log-wave8.log" 2>&1 || passed=0
       py tests/wave8b.py "$PORT" >"$log-wave8b.log" 2>&1 || passed=0
       py tests/wave9.py "$PORT" >"$log-wave9.log" 2>&1 || passed=0
+      py tests/wave10.py "$PORT" >"$log-wave10.log" 2>&1 || passed=0
     else passed=0; fi
     stop
     shutdown_clean || passed=0
@@ -3139,7 +3140,7 @@ job_exec1s(){
           word "$TMPDIR/word-wide-control.log" || passed=0
     fi
     if unit_ready exec1s-unit; then
-      for name in ring incoming reclaim floor publication reuse; do
+      for name in ring incoming reclaim floor publication reuse snapshot-prepared snapshot-capturing snapshot-prepared-rl snapshot-capturing-rl; do
         log="$TMPDIR/$name-$mode-$atomic.log"
         taskset -c "$CORES" ./build/exec1s-unit "$name" "$mode" "$atomic" >"$log" 2>&1 || passed=0
       done

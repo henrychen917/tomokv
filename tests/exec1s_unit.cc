@@ -362,7 +362,7 @@ void blind_group_check(Server& server) {
     }
 }
 
-void reclaim_check(Server& server, bool pinned) {
+void reclaim_check(Server& server, bool pinned, unsigned snapshot_stage = 0) {
     const auto a=key_on(server,0,"exec1s-reclaim-a:"), b=key_on(server,0,"exec1s-reclaim-b:");
     require(local(server,{"SET",a,"0"})=="+OK\r\n" && local(server,{"SET",b,"0"})=="+OK\r\n", "predecessors seeded");
     const auto cut=server.atomic_snapshot();
@@ -395,6 +395,48 @@ void reclaim_check(Server& server, bool pinned) {
     auto& store=server.shard(0).store();
     if (pinned) {
         require(store.atomic_live_records()>=64,"registered old reader really retained records");
+        if (snapshot_stage) {
+            const auto pending = store.atomic_live_records();
+            const auto now = now_realtime_ms();
+            FlatStore::SnapshotWriteResult prepared = FlatStore::SnapshotWriteResult::Pending;
+            for (unsigned i=0; i<4096 && prepared==FlatStore::SnapshotWriteResult::Pending; ++i)
+                prepared=store.snapshot_prepare(server.atomic_snapshot(), now);
+            require(prepared==FlatStore::SnapshotWriteResult::Ready,
+                    "wave10 prepared snapshot with pinned sparse EXEC versions");
+            // The only physical keys are both pinned. The owner maintenance
+            // path must make no progress even with a genuinely exceeded cap.
+            store.configure_maxmemory(true,1,MaxmemoryPolicy::AllKeysRandom,64);
+            require(store.accounted_bytes()>1 && store.evict_over_limit()==0 &&
+                    store.size()==2 && store.atomic_live_records()==pending,
+                    "wave10 prepared eviction preserves pinned EXEC versions");
+            if (snapshot_stage==2) {
+                require(store.snapshot_mark(0,now),"wave10 capture window opened");
+                server.publish_atomic_read_floor(0,UINT64_MAX);
+                const auto collapses=exec1s_counters[tid].eager_collapses;
+                CoreConcurrencyTest::reclaim(server,server.shard(0));
+                require(store.snapshot_active() && store.atomic_live_records()==pending &&
+                        exec1s_counters[tid].eager_collapses==collapses &&
+                        store.evict_over_limit()==0 && store.size()==2,
+                        "wave10 active capture excludes eager collapse and eviction");
+            } else {
+                server.publish_atomic_read_floor(0,UINT64_MAX);
+                for (unsigned i=0;i<32 && store.atomic_live_records()>=8;++i)
+                    CoreConcurrencyTest::reclaim(server,server.shard(0));
+                require(store.atomic_live_records()<8,
+                        "wave10 eager collapse fired between snapshot prepare and mark");
+                require(store.snapshot_mark(0,now),"wave10 prepared table survives eager collapse");
+            }
+            // Materialize a complete real snapshot stream. A never-opened or
+            // stalled capture cannot satisfy the interaction witness.
+            unsigned chunks=0;
+            for (unsigned i=0;i<4096 && store.snapshot_active();++i) {
+                store.snapshot_progress(4096,2048);
+                if (store.snapshot_take_chunk()) { ++chunks; store.snapshot_handoff_complete(); }
+            }
+            require(chunks && !store.snapshot_active() && !store.snapshot_failed(),
+                    "wave10 snapshot capture completes after pinned EXECs");
+            store.configure_maxmemory(false,0,MaxmemoryPolicy::NoEviction,5);
+        }
         server.publish_atomic_read_floor(0,UINT64_MAX);
         for (unsigned i=0;i<32 && store.atomic_live_records()>=8;++i) CoreConcurrencyTest::reclaim(server,server.shard(0));
     }
@@ -402,6 +444,15 @@ void reclaim_check(Server& server, bool pinned) {
     require(exec1s_counters[tid].blind_clear>before.blind_clear,"zero-group O(1) scan fired");
     require(exec1s_counters[tid].record_visits>before.record_visits,"debug walks observed");
     require(local(server,{"GET",a})=="$2\r\n64\r\n" && local(server,{"GET",b})=="$2\r\n64\r\n","latest value survived eager reclamation");
+    if (snapshot_stage) {
+        // Once the pins and capture are gone, the same maintenance must evict.
+        store.configure_maxmemory(true,1,MaxmemoryPolicy::AllKeysRandom,64);
+        unsigned evicted=0;
+        for (unsigned i=0;i<4096 && store.size();++i) evicted+=store.evict_over_limit();
+        require(evicted==2 && store.size()==0,
+                "wave10 eviction resumes after capture and eager cleanup");
+        store.configure_maxmemory(false,0,MaxmemoryPolicy::NoEviction,5);
+    }
     std::printf("reclaim pinned=%u collapses=%llu visits=%llu\n",pinned,
         (unsigned long long)(exec1s_counters[tid].eager_collapses-before.eager_collapses),
         (unsigned long long)(exec1s_counters[tid].record_visits-before.record_visits));
@@ -435,6 +486,27 @@ void publication_check(Server& server) {
             "standalone transaction task publishes non-size statistics");
     release_records(server);destroy_multi_state(state);
 }
+
+// Retain every armed detached object until the directed schedule is finished.
+// This exercises the QSBR retirement route without inventing an immediate grace
+// period; exec1s-word-tsan separately overlaps an actual reader with X2 cleanup.
+struct Wave10Retirement {
+    struct Item { void* owner; void* object; size_t bytes; ReadLocalRetireSink::ReclaimFn reclaim; };
+    KvBlockCache blocks;
+    std::vector<Item> items;
+    void drain() {
+        for (const auto& item:items) item.reclaim(item.owner,item.object,item.bytes);
+        items.clear();
+        blocks.release_all();
+    }
+    void arm(FlatStore& store) {
+        require(store.prepare_read_local(),"wave10 read-local retirement allocated");
+        store.configure_read_local(true,{this,[](void* context,void* owner,void* object,size_t bytes,
+                                                ReadLocalRetireSink::ReclaimFn reclaim) {
+            static_cast<Wave10Retirement*>(context)->items.push_back({owner,object,bytes,reclaim});
+        },&blocks});
+    }
+};
 }
 int main(int argc,char** argv) {
     require(argc>=4,"case mode atomic [shards]");
@@ -445,7 +517,9 @@ int main(int argc,char** argv) {
     cfg.even_ifid=6; cfg.even_ex=2; cfg.key_lb=cfg.client_lb=cfg.flip_auto=0; cfg.save.clear();
     cfg.thread_mode=std::string(argv[2])=="1s"?ThreadMode::Fused:ThreadMode::Split; cfg.atomic=std::atoi(argv[3]);
     if(name=="incoming") { cfg.thread_mode=ThreadMode::Fused; cfg.read_local=0; }
+    Wave10Retirement retirement;
     Server server; require(server.prepare_boot(cfg)&&server.init(cfg),"production topology"); command_bind_server(&server);
+    if (name.ends_with("-rl")) retirement.arm(server.shard(0).store());
     std::string error;require(acl_initialize(server,cfg,error),"ACL");
     if(name=="incoming") CoreConcurrencyTest::incoming(server);
     else if(name=="participants") { client_counts(server); participants(server); }
@@ -453,6 +527,11 @@ int main(int argc,char** argv) {
     else if(name=="floor") reclaim_check(server,true);
     else if(name=="publication") publication_check(server);
     else if(name=="reuse") reuse_check(server);
+    else if(name.starts_with("snapshot-prepared")) reclaim_check(server,true,1);
+    else if(name.starts_with("snapshot-capturing")) reclaim_check(server,true,2);
     else require(false,"known case");
-    release_records(server); std::printf("PASS exec1s %s\n",name.c_str());
+    release_records(server);
+    if (name.ends_with("-rl")) require(!retirement.items.empty(),"wave10 QSBR retirement actually used");
+    retirement.drain(); // callbacks name the still-live FlatStore
+    std::printf("PASS exec1s %s\n",name.c_str());
 }

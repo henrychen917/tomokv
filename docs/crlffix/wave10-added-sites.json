@@ -1,0 +1,82 @@
+[
+  {
+    "file": "src/cmd/functions.cc",
+    "line": 1016,
+    "expression": "if (op.argc() < 3) { reply_wrong_args(op, \"load\"); return; }"
+  },
+  {
+    "file": "src/cmd/functions.cc",
+    "line": 1022,
+    "expression": "reply_err_string(op, \"Unknown option given: \" +"
+  },
+  {
+    "file": "src/cmd/functions.cc",
+    "line": 1057,
+    "expression": "if (op.argc() > 3) { reply_err_string(op, \"unknown subcommand or wrong number of arguments for '\" +"
+  },
+  {
+    "file": "src/cmd/functions.cc",
+    "line": 1080,
+    "expression": "if (op.argc() > 4) { reply_err_string(op, \"unknown subcommand or wrong number of arguments for '\" +"
+  },
+  {
+    "file": "src/cmd/functions.cc",
+    "line": 1082,
+    "expression": "if (op.argc() < 3) { reply_wrong_args(op, \"restore\"); return; }"
+  },
+  {
+    "file": "src/cmd/multi.inc",
+    "line": 1026,
+    "expression": "reply_err(command->op->sink(), (command->queued.verb == MultiVerb::V_mset)"
+  },
+  {
+    "file": "src/cmd/scatter_engine.inc",
+    "line": 1606,
+    "expression": "reply_debug_command_denied(op);"
+  },
+  {
+    "file": "src/cmd/scatter_engine.inc",
+    "line": 1617,
+    "expression": "reply_err(op.sink(), \"ERR timed out flushing AOF before reload\");"
+  },
+  {
+    "file": "src/cmd/scripting.cc",
+    "line": 1163,
+    "expression": "reply_err(output, \"ERR reached lua stack limit\");"
+  },
+  {
+    "file": "src/cmd/scripting.cc",
+    "line": 1596,
+    "expression": "reply_text_error(op, \"ERR\", header_error); return;"
+  },
+  {
+    "file": "src/cmd/scripting.cc",
+    "line": 1599,
+    "expression": "reply_text_error(op, \"ERR\", \"Can not execute a script with write flag using *_ro command.\");"
+  },
+  {
+    "file": "src/cmd/scripting.cc",
+    "line": 1604,
+    "expression": "reply_text_error(op, \"OOM\", \"allow-oom flag is not set on the script, \""
+  },
+  {
+    "file": "src/cmd/tracking.cc",
+    "line": 512,
+    "expression": "reply_array_header(array, keys.size());"
+  },
+  {
+    "file": "src/cmd/tracking.cc",
+    "line": 514,
+    "expression": "reply_bulk(array, Slice(key.data(), static_cast<uint32_t>(key.size())));"
+  },
+  {
+    "file": "src/cmd/xshard_commands.inc",
+    "line": 1872,
+    "expression": "reply_err(op.sink(), \"ERR Error trying to load the AOF files, check server logs.\");"
+  },
+  {
+    "file": "src/cmd/xshard_commands.inc",
+    "line": 1873,
+    "expression": "else reply_work_error(op, error);"
+  }
+]
