@@ -11,6 +11,16 @@ from redis_tcl import counts, load_manifest, sha, validate_passing, ROOT
 
 
 class Controls(unittest.TestCase):
+    def test_printver_requires_observed_body_output(self):
+        row = dict(file='unit/printver', events=[], failed=0, error=None,
+                   complete=True, exit_code=0,
+                   setup_stdout='Testing Redis version 7.4.10 (123456ab)\n')
+        validate_passing(row, [], setup_only=True)
+        for change in ({'setup_stdout': ''}, {'complete': False}, {'exit_code': 1},
+                       {'setup_stdout': row['setup_stdout'] * 2}, {'file': 'unit/other'}):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                validate_passing(dict(row, **change), [], setup_only=True)
+
     def test_monitor_retry_is_named_bounded_and_requires_a_complete_pass(self):
         from types import SimpleNamespace
         from unittest.mock import patch

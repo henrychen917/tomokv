@@ -1,0 +1,15 @@
+test_failed_or_missing_private_job_turns_existing_compatibility_row_red (__main__.Controls.test_failed_or_missing_private_job_turns_existing_compatibility_row_red) ... ok
+test_fresh_assertion_requires_its_own_complete_successful_receipt (__main__.Controls.test_fresh_assertion_requires_its_own_complete_successful_receipt) ... ok
+test_histogram_setup_only_enables_the_explicit_feature (__main__.Controls.test_histogram_setup_only_enables_the_explicit_feature) ... ok
+test_manifest_binds_upstream_bytes_and_names_every_known_failure (__main__.Controls.test_manifest_binds_upstream_bytes_and_names_every_known_failure) ... ok
+test_monitor_retry_is_named_bounded_and_requires_a_complete_pass (__main__.Controls.test_monitor_retry_is_named_bounded_and_requires_a_complete_pass) ... ok
+test_no_missing_failed_skipped_renamed_or_duplicate_assertion_can_pass (__main__.Controls.test_no_missing_failed_skipped_renamed_or_duplicate_assertion_can_pass) ... ok
+test_only_the_exact_named_block_setup_error_is_tolerated (__main__.Controls.test_only_the_exact_named_block_setup_error_is_tolerated) ... ok
+test_only_the_exact_post_completion_controller_eof_is_not_an_assertion (__main__.Controls.test_only_the_exact_post_completion_controller_eof_is_not_an_assertion) ... ok
+test_printver_requires_observed_body_output (__main__.Controls.test_printver_requires_observed_body_output) ... ok
+test_same_shard_arming_cannot_pass_when_no_fresh_boot_opens_it (__main__.Controls.test_same_shard_arming_cannot_pass_when_no_fresh_boot_opens_it) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.037s
+
+OK

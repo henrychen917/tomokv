@@ -71,6 +71,9 @@ ASSERT_DIRS := $(shell find src third_party/lua/helpers -type d)
 
 all: $(BIN) $(ASSERT_MAP)
 
+# Cold INFO identity only: leave execution translation units and their flags alone.
+$(BUILD_ROOT)/src/cmd/info_stats.o $(BUILD_ROOT)/db0/src/cmd/info_stats.o: CXXFLAGS += -DTOMO_INFO_GIT_SHA1='"$(shell git rev-parse --short=8 HEAD 2>/dev/null || echo 00000000)"' -DTOMO_INFO_GIT_DIRTY='"$(shell git diff --quiet -- src Makefile && echo 0 || echo 1)"'
+
 # The source map is a build artifact: duplicate ids or a Python/C++ hash mismatch
 # fail make all. Its mtime also participates in make -q freshness checks.
 $(ASSERT_MAP): tools/assert_map.py $(ASSERT_SOURCES) $(ASSERT_DIRS) Makefile

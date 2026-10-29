@@ -1,0 +1,8 @@
+m01 | 1s | rl=0 | ov=0 | ro=0 | MGET | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0
+m03 | 1s | rl=0 | ov=0 | ro=0 | MGET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m04 | 1s | rl=0 | ov=0 | ro=0 | MSET | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0
+m06 | 1s | rl=0 | ov=0 | ro=0 | MSET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m49 | 2s | rl=0 | ov=0 | ro=0 | MGET | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0
+m51 | 2s | rl=0 | ov=0 | ro=0 | MGET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m52 | 2s | rl=0 | ov=0 | ro=0 | MSET | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0
+m54 | 2s | rl=0 | ov=0 | ro=0 | MSET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0

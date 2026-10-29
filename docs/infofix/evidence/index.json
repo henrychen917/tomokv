@@ -1,0 +1,132 @@
+[
+  {
+    "archive": "docs/infofix/evidence/affected-initial-receipts.tar.gz",
+    "sha256": "dadd20194aaaedbf2bbf4ea1c84e17ee31f2a3ba3eb7f6ba456729a4679dd0e2",
+    "files": 1177,
+    "uncompressed_bytes": 15389285,
+    "source": "docs/infofix/affected-initial-receipts"
+  },
+  {
+    "archive": "docs/infofix/evidence/directed-receipts.tar.gz",
+    "sha256": "5d4d41efdb1522fcc210b4fa283f3cd13670915d82f4e5fe97852311e5cf6cd8",
+    "files": 162,
+    "uncompressed_bytes": 14278066,
+    "source": "docs/infofix/directed-receipts"
+  },
+  {
+    "archive": "docs/infofix/evidence/tcl-receipts.tar.gz",
+    "sha256": "41af6f4077af1db8fbad6704f3248490781eb4869dcfe884ff2f5b180e5ac9f7",
+    "files": 12,
+    "uncompressed_bytes": 7299799,
+    "source": "docs/infofix/tcl-receipts"
+  },
+  {
+    "archive": "docs/infofix/evidence/exbatch-receipts.tar.gz",
+    "sha256": "b9a461bfd88db674d655f6adeab3753564ef5c51da6280d60ff5b2d3b0d47ffb",
+    "files": 70,
+    "uncompressed_bytes": 277934,
+    "source": "docs/infofix/exbatch-receipts"
+  },
+  {
+    "archive": "docs/infofix/evidence/gate-run.dC1HbO.tar.gz",
+    "sha256": "1e22cf5e5080656ec9ea6737ed219432391ffd2157dc1740b66dd265d15c9fd5",
+    "files": 1188,
+    "uncompressed_bytes": 20571773,
+    "source": "build/gate-run.dC1HbO",
+    "note": "Superseded run: retained text/JSON evidence; removed recovery datasets."
+  },
+  {
+    "archive": "docs/infofix/evidence/gate-run.UpsGR0.tar.gz",
+    "sha256": "c16dfa03632a59e16a66a6280bc159f29a89996435cf44e01508b2bf73d0ed52",
+    "files": 2109,
+    "uncompressed_bytes": 2939300,
+    "source": "build/gate-run.UpsGR0",
+    "note": "Superseded run: retained text/JSON evidence; removed recovery datasets."
+  },
+  {
+    "archive": "docs/infofix/evidence/gate-run.nQFM2G.tar.gz",
+    "sha256": "4fef2b8c0b49e3f07dbd6ba8b85b4850bc30344825b2167450681719bcb52eab",
+    "files": 1114,
+    "uncompressed_bytes": 1026361,
+    "source": "build/gate-run.nQFM2G",
+    "note": "Superseded run: retained text/JSON evidence; removed recovery datasets."
+  },
+  {
+    "archive": "docs/infofix/evidence/latency-control-average-final.tar.gz",
+    "sha256": "e8143a4690deb9f05cb4b725fdae4f4ef6d38ef458a2aea8631f6051492b66ad",
+    "note": "Final latency negative-control gate artifacts."
+  },
+  {
+    "archive": "docs/infofix/evidence/latency-control-empty-entry-final.tar.gz",
+    "sha256": "1c1a67589e553201c00ea0286d0b5671e4d67b992eca3dc93dcf8a4cc1952355",
+    "note": "Final latency negative-control gate artifacts."
+  },
+  {
+    "archive": "docs/infofix/evidence/latency-control-no-batch-final.tar.gz",
+    "sha256": "519df4a941b119fcadeb724eb11d89b7d737fd7161cec5573c76aa56c09179e4",
+    "note": "Final latency negative-control gate artifacts."
+  },
+  {
+    "archive": "docs/infofix/evidence/latency-control-pre-final.tar.gz",
+    "sha256": "d7af78cd3ab856d0c0fb930ed91e647111229604df9a4c3de0497f79bc19835c",
+    "note": "Final latency negative-control gate artifacts."
+  },
+  {
+    "archive": "docs/infofix/evidence/exbatch-final.tar.gz",
+    "sha256": "9105415dca9b9cd9f5a2dd7cf2d076e6586dde361d6c5f1d84b52e366ca247a1",
+    "note": "Final exbatch checks, control maps and trace summaries; unit binary identities are in exbatch-identities-final.json."
+  },
+  {
+    "archive": "docs/infofix/evidence/affected-post-final.tar.gz",
+    "sha256": "177a22f05646c8022e298381669ce68b21014330f1a4406832b696e811b0b494",
+    "files": 1299,
+    "source": "build/gate-run.A0Vltg",
+    "note": "Completed final gate-job evidence; recovery data files retired."
+  },
+  {
+    "archive": "docs/infofix/evidence/regression-directed-final.tar.gz",
+    "sha256": "4e32c427331e0047e3fa0bc8e686b84523abfae2654cb03d61081b4a4be95b76",
+    "files": 112,
+    "source": "build/gate-run.7GPeoM",
+    "note": "Completed final gate-job evidence; recovery data files retired."
+  },
+  {
+    "archive": "docs/infofix/evidence/differ-uring-final.tar.gz",
+    "sha256": "914042ee28c8536d824449b749b3939ffec720ca831c43808bfdee2a2d17baf3",
+    "files": 2857,
+    "source": "build/gate-run.HvHCR6",
+    "note": "Complete final standard-seed differential matrix."
+  },
+  {
+    "archive": "docs/infofix/evidence/differ-epoll-final.tar.gz",
+    "sha256": "eb2fe37e1a555f6695fbd049a121e357cb2f19a1bdb35b8c471fdf4aade2d171",
+    "files": 2857,
+    "source": "build/gate-run.7lqvFn",
+    "note": "Complete final standard-seed differential matrix."
+  },
+  {
+    "archive": "docs/infofix/evidence/post-tcl-final.tar.gz",
+    "sha256": "48bb37ac7fe6b270303d55be0faa9421dabf2f483ef8a5fb23ea4414f1be3535",
+    "files": 399,
+    "source": "build/gate-run.ufnXvJ"
+  },
+  {
+    "archive": "docs/infofix/evidence/instrument-selftest-initial.tar.gz",
+    "sha256": "3f480db42e53e4332df89bd501520247bc4a78458101a9f7c033bc96b9c24c22",
+    "files": 9,
+    "source": "build/gate-run.JcgmFx"
+  },
+  {
+    "archive": "docs/infofix/evidence/slowlog-consumers-final.tar.gz",
+    "sha256": "8908b67fe2402f858ea4e531196073b437c3d4ea5c68336c8491612c34451117",
+    "files": 388,
+    "source": "build/gate-run.dHQ1HK"
+  },
+  {
+    "archive": "docs/infofix/evidence/instrument-fixture-final.tar.gz",
+    "sha256": "f8ec19886f0431fe2259bbc588a11a326d19a00d65ad6c4544e26c96961a18ed",
+    "files": 12,
+    "source": "build/gate-run.tYIgq3",
+    "note": "Final instrument job: source and fixture both 903; protected EXPECT_FULL remains 898. Receipt self-tests do not start past that guard."
+  }
+]

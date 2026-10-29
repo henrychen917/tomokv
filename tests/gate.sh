@@ -996,6 +996,7 @@ job_body(){
     iofix-hz) job_iofix_hz "$name";;
     iofix-sleep) job_iofix_sleep "$name";;
     iofix-signal) job_iofix_signal "$name";;
+    infofix_compat-*) job_infofix_compat "$name";;
     multifix-*) job_multifix "$name";;
     multidb-*) job_multidb "$name";;
     feature-cell-*) job_feature_cell "$name";;
@@ -1175,6 +1176,7 @@ plan_jobs(){
       JOB_NAMES+=("feature-cell-$FM-$FR-$FC-$FQ-$FF")
     done; done; done; done
   done
+  JOB_NAMES+=(infofix_latency infofix_compat-missing infofix_compat-docs infofix_compat-slowlog infofix_compat-loadaof)
   JOB_NAMES+=(feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto)
 }
 start_workers(){
@@ -2447,6 +2449,8 @@ job_cmd_metadata(){
 # command is at fault. Static, so it fires before any server starts.
 row_begin "cmdmeta covers every registered command"
 py tests/cmdmeta_coverage.py --redis-root "$REDIS74_ROOT" >$TMPDIR/gate-cmdmeta-coverage.txt 2>&1 \
+    && py tools/gen_cmddocs.py --redis-root "$REDIS74_ROOT" --check \
+        >>$TMPDIR/gate-cmdmeta-coverage.txt 2>&1 \
     && ok "cmdmeta covers every registered command" \
     || bad "cmdmeta covers every registered command" "see $TMPDIR/gate-cmdmeta-coverage.txt"
 }
@@ -5458,6 +5462,31 @@ job_pubtrackfix(){
   done
 }
 
+# infofix: each directed row owns both modes/engines and both database runtimes.
+job_infofix_latency(){
+  local passed=1 mode tracking batch label="Redis 7.4 infofix exact latency batch witness"
+  row_begin "$label"
+  pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" -f Makefile -f tools/infofix_latency.mk \
+      build/infofix-latency-unit >"$TMPDIR/build.log" 2>&1 &&
+      make -q -f Makefile -f tools/infofix_latency.mk build/infofix-latency-unit || passed=0
+  for mode in 1s 2s; do for tracking in 0 1; do for batch in 1 32; do
+    taskset -c "$CORES" "${GATE_INFOFIX_LATENCY_UNIT:-build/infofix-latency-unit}" "$mode" "$tracking" "$batch" \
+        >>"$TMPDIR/latency.log" 2>&1 || passed=0
+  done; done; done
+  [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/build.log and latency.log"
+}
+
+job_infofix_compat(){
+  local case=${1#infofix_compat-} label
+  label="Redis 7.4 infofix $case (both modes/engines/runtimes)"
+  row_begin "$label"
+  py tests/infofix_compat.py --case "$case" --binary "$CANDIDATE_BINARY" \
+      --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/infofix-$case" \
+      >"$TMPDIR/infofix-$case.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/infofix-$case.log"
+}
+
 job_redis_tcl(){
   local mode passed=1 label
   for mode in 2s 1s; do
@@ -6084,6 +6113,9 @@ done
 
 collect_job bplus
 collect_job rlfix3_zc
+# Five rows above the quick-tier exit: DQ=+5, DF=+5; EXPECT is owner-owned.
+collect_job infofix_latency
+for CASE in missing docs slowlog loadaof; do collect_job "infofix_compat-$CASE"; done
 collect_job rlfix3_info
 
 collect_job acl_recheck

@@ -1,0 +1,173 @@
+{
+  "INFO-ERRORSTATS": [
+    {
+      "file": "unit/introspection-2",
+      "test": "errors stats for GEOADD",
+      "modes": "1s,2s",
+      "pre": "named known failure",
+      "post": "named known failure",
+      "source_row": "| unit/introspection-2 | errors stats for GEOADD | 1s,2s | full-file | REAL compatibility defect | INFO-ERRORSTATS | cmdstat_geoadd is 'calls=1,rejected_calls=0' with no failed_calls (nor usec/usec_per_call) and INFO ERRORSTATS is empty after a WRONGTYPE GEOADD; Redis reports failed_calls=1 and errorstat_WRONGTYPE:count=1. |"
+    },
+    {
+      "file": "unit/scripting",
+      "test": "Consistent eval error reporting",
+      "modes": "1s,2s",
+      "pre": "named known failure",
+      "post": "named known failure",
+      "source_row": "| unit/scripting | Consistent eval error reporting | 1s,2s | full-file | REAL compatibility defect | INFO-ERRORSTATS | The script errors themselves match; `INFO errorstats` returns an empty string (no section at all), so errorstat_OOM:count=1 is missing. |"
+    }
+  ],
+  "INFO-CMDSTAT-FIELDS": [
+    {
+      "file": "unit/type/list",
+      "test": "Blocking command accounted only once in commandstats",
+      "modes": "1s,2s",
+      "pre": "named known failure",
+      "post": "named known failure",
+      "source_row": "| unit/type/list | Blocking command accounted only once in commandstats | 1s,2s | reach | REAL compatibility defect | INFO-CMDSTAT-FIELDS | Fresh --only run: cmdstat_blpop is 'calls=1,rejected_calls=0', which does not match '*calls=1,*,rejected_calls=0,failed_calls=0' (no usec/usec_per_call/failed_calls). The final reach pass failed it earlier via the stale-client cascade. |"
+    },
+    {
+      "file": "unit/type/list",
+      "test": "Blocking command accounted only once in commandstats after timeout",
+      "modes": "1s,2s",
+      "pre": "named known failure",
+      "post": "named known failure",
+      "source_row": "| unit/type/list | Blocking command accounted only once in commandstats after timeout | 1s,2s | reach | REAL compatibility defect | INFO-CMDSTAT-FIELDS | Fresh --only run: cmdstat_blpop lacks the usec and failed_calls fields. The final reach pass failed it earlier via the stale-client cascade. |"
+    }
+  ],
+  "INFO-MISSING-FIELDS": [
+    {
+      "file": "unit/info-command",
+      "test": "info command with at most one sub command",
+      "modes": "1s,2s",
+      "pre": "file not in passing subset",
+      "post": "required passing test",
+      "source_row": "| unit/info-command | info command with at most one sub command | 1s,2s | full-file | REAL compatibility defect | INFO-MISSING-FIELDS | assert [string match *used_cpu_user* $info] fails: TomoKV's INFO has no '# CPU' section (INFO CPU is an empty bulk), so used_cpu_user is absent; isolated rerun fails the same way while Redis passes. |"
+    },
+    {
+      "file": "unit/info-command",
+      "test": "info command with multiple sub-sections",
+      "modes": "1s,2s",
+      "pre": "file not in passing subset",
+      "post": "required passing test",
+      "source_row": "| unit/info-command | info command with multiple sub-sections | 1s,2s | full-file | REAL compatibility defect | INFO-MISSING-FIELDS | assert [string match *used_cpu_user* $info] fails: TomoKV's INFO has no '# CPU' section (INFO CPU is an empty bulk), so used_cpu_user is absent; isolated rerun fails the same way while Redis passes. |"
+    },
+    {
+      "file": "unit/info-command",
+      "test": "info command with one sub-section",
+      "modes": "1s,2s",
+      "pre": "file not in passing subset",
+      "post": "required passing test",
+      "source_row": "| unit/info-command | info command with one sub-section | 1s,2s | full-file | REAL compatibility defect | INFO-MISSING-FIELDS | assert [string match *used_cpu_user* $info] fails: TomoKV's INFO has no '# CPU' section (INFO CPU is an empty bulk), so used_cpu_user is absent; isolated rerun fails the same way while Redis passes. |"
+    },
+    {
+      "file": "unit/printver",
+      "test": "<file setup/teardown>",
+      "modes": "1s,2s",
+      "pre": "file not in passing subset",
+      "post": "required setup body",
+      "source_row": "| unit/printver | <file setup/teardown> | 1s,2s | full-file | REAL compatibility defect | INFO-MISSING-FIELDS | File body does regexp redis_git_sha1 on INFO and then reads $sha1: TomoKV's INFO server section has no redis_git_sha1 (nor redis_git_dirty/redis_build_id), so the file errors with 'can't read sha1'. |"
+    }
+  ],
+  "COMMAND-DOCS-INCOMPLETE": [
+    {
+      "file": "integration/redis-cli",
+      "test": "Non-interactive non-TTY CLI: Test command-line hinting - latest server",
+      "modes": "1s,2s",
+      "pre": "named known failure",
+      "post": "required passing test",
+      "source_row": "| integration/redis-cli | Non-interactive non-TTY CLI: Test command-line hinting - latest server | 1s,2s | full-file | REAL compatibility defect | COMMAND-DOCS-INCOMPLETE | redis-cli builds hints from COMMAND DOCS; TomoKV's docs have no 'arguments' array, so every hint is empty ('GET ' expected 'key', got ''). The 'old server' variant (cached commands.c) passes. |"
+    }
+  ],
+  "SLOWLOG-MAXLEN-PER-THREAD": [
+    {
+      "file": "unit/slowlog",
+      "test": "SLOWLOG - GET optional argument to limit output len works",
+      "modes": "1s,2s",
+      "pre": "named known failure",
+      "post": "required passing test",
+      "source_row": "| unit/slowlog | SLOWLOG - GET optional argument to limit output len works | 1s,2s | full-file | REAL compatibility defect | SLOWLOG-MAXLEN-PER-THREAD | 'slowlog get -1' returns 12 entries although slowlog-max-len is 10 (per-thread logs each trimmed separately). |"
+    },
+    {
+      "file": "unit/slowlog",
+      "test": "SLOWLOG - can clean older entries",
+      "modes": "1s,2s",
+      "pre": "named known failure",
+      "post": "required passing test",
+      "source_row": "| unit/slowlog | SLOWLOG - can clean older entries | 1s,2s | builder | REAL compatibility defect | SLOWLOG-MAXLEN-PER-THREAD; cascade of unit/slowlog: SLOWLOG - max entries is correctly handled | With the skipped 'max entries' test (which sets slowlog-max-len 10) missing, slowlog-max-len 0 from 'zero max length is correctly handled' persists and the expected entry is never kept; the same skip list would fail on Redis. Seen only in the first gated-subset builder run, whose --skipfile (the survey failures) changed the state later tests see; it passes in the full-file runs. Added at integration. |"
+    },
+    {
+      "file": "unit/slowlog",
+      "test": "SLOWLOG - commands with too many arguments are trimmed",
+      "modes": "1s,2s",
+      "pre": "named known failure",
+      "post": "required passing test",
+      "source_row": "| unit/slowlog | SLOWLOG - commands with too many arguments are trimmed | 1s,2s | builder | REAL compatibility defect | SLOWLOG-MAXLEN-PER-THREAD; cascade of unit/slowlog: SLOWLOG - max entries is correctly handled | With the skipped 'max entries' test (which sets slowlog-max-len 10) missing, slowlog-max-len 0 from 'zero max length is correctly handled' persists and the expected entry is never kept; the same skip list would fail on Redis. Seen only in the first gated-subset builder run, whose --skipfile (the survey failures) changed the state later tests see; it passes in the full-file runs. Added at integration. |"
+    },
+    {
+      "file": "unit/slowlog",
+      "test": "SLOWLOG - get all slow logs",
+      "modes": "1s,2s",
+      "pre": "named known failure",
+      "post": "required passing test",
+      "source_row": "| unit/slowlog | SLOWLOG - get all slow logs | 1s,2s | full-file | REAL compatibility defect | SLOWLOG-MAXLEN-PER-THREAD | With slowlog-max-len 3 and four keyed writes 'slowlog len' is 5 (Redis 3): per-thread logs each trimmed to max-len. |"
+    },
+    {
+      "file": "unit/slowlog",
+      "test": "SLOWLOG - logged entry sanity check",
+      "modes": "1s,2s",
+      "pre": "named known failure",
+      "post": "required passing test",
+      "source_row": "| unit/slowlog | SLOWLOG - logged entry sanity check | 1s,2s | builder | REAL compatibility defect | SLOWLOG-MAXLEN-PER-THREAD; cascade of unit/slowlog: SLOWLOG - max entries is correctly handled | With the skipped 'max entries' test (which sets slowlog-max-len 10) missing, slowlog-max-len 0 from 'zero max length is correctly handled' persists and the expected entry is never kept; the same skip list would fail on Redis. Seen only in the first gated-subset builder run, whose --skipfile (the survey failures) changed the state later tests see; it passes in the full-file runs. Added at integration. |"
+    },
+    {
+      "file": "unit/slowlog",
+      "test": "SLOWLOG - max entries is correctly handled",
+      "modes": "1s,2s",
+      "pre": "named known failure",
+      "post": "required passing test",
+      "source_row": "| unit/slowlog | SLOWLOG - max entries is correctly handled | 1s,2s | full-file | REAL compatibility defect | SLOWLOG-MAXLEN-PER-THREAD | With slowlog-max-len 10, 'slowlog len' is 11: TomoKV keeps one slowlog per thread, each trimmed to max-len, and LEN sums them (passes in some layouts, e.g. the 6:2 isolated rerun). |"
+    },
+    {
+      "file": "unit/slowlog",
+      "test": "SLOWLOG - too long arguments are trimmed",
+      "modes": "1s,2s",
+      "pre": "named known failure",
+      "post": "required passing test",
+      "source_row": "| unit/slowlog | SLOWLOG - too long arguments are trimmed | 1s,2s | builder | REAL compatibility defect | SLOWLOG-MAXLEN-PER-THREAD; cascade of unit/slowlog: SLOWLOG - max entries is correctly handled | With the skipped 'max entries' test (which sets slowlog-max-len 10) missing, slowlog-max-len 0 from 'zero max length is correctly handled' persists and the expected entry is never kept; the same skip list would fail on Redis. Seen only in the first gated-subset builder run, whose --skipfile (the survey failures) changed the state later tests see; it passes in the full-file runs. Added at integration. |"
+    }
+  ],
+  "DEBUG-LOADAOF-AOF-OFF": [
+    {
+      "file": "unit/other",
+      "test": "EXPIRES after a reload (snapshot + append only file rewrite)",
+      "modes": "1s,2s",
+      "pre": "named known failure",
+      "post": "required passing test",
+      "source_row": "| unit/other | EXPIRES after a reload (snapshot + append only file rewrite) | 1s,2s | full-file | REAL compatibility defect | DEBUG-LOADAOF-AOF-OFF | SAVE, DEBUG RELOAD and BGREWRITEAOF succeed, then 'debug loadaof' answers 'ERR appendonly is disabled' (Redis reloads the rewritten AOF with appendonly no and answers OK). |"
+    }
+  ],
+  "DEBUG-RELOAD-OPTIONS": [
+    {
+      "file": "unit/functions",
+      "test": "FUNCTION - test debug reload different options",
+      "modes": "1s,2s",
+      "pre": "named known failure",
+      "post": "named known failure",
+      "source_row": "| unit/functions | FUNCTION - test debug reload different options | 1s,2s | full-file | REAL compatibility defect | DEBUG-RELOAD-OPTIONS | DEBUG RELOAD NOFLUSH -> 'unknown subcommand ... debug' instead of 'Error trying to load the RDB'; TomoKV implements DEBUG RELOAD only without arguments. |"
+    },
+    {
+      "file": "unit/functions",
+      "test": "FUNCTION - test debug reload with nosave and noflush",
+      "modes": "1s,2s",
+      "pre": "named known failure",
+      "post": "named known failure",
+      "source_row": "| unit/functions | FUNCTION - test debug reload with nosave and noflush | 1s,2s | full-file | REAL compatibility defect | DEBUG-RELOAD-OPTIONS | DEBUG RELOAD NOSAVE NOFLUSH MERGE rejected ('unknown subcommand ... debug'). |"
+    }
+  ],
+  "LAT-HIST-2": [
+    {
+      "note": "No named latency skip existed on this base. Existing histogram Tcl assertions stay required; the new serverless row falsifies lost GET batching and averaged samples."
+    }
+  ]
+}

@@ -467,6 +467,11 @@
     "read-local borrow capability (2s, epoll, read-local 1)",
     "read-local borrow capability (2s, uring, read-local 0)",
     "read-local borrow capability (2s, uring, read-local 1)",
+    "Redis 7.4 infofix exact latency batch witness",
+    "Redis 7.4 infofix missing (both modes/engines/runtimes)",
+    "Redis 7.4 infofix docs (both modes/engines/runtimes)",
+    "Redis 7.4 infofix slowlog (both modes/engines/runtimes)",
+    "Redis 7.4 infofix loadaof (both modes/engines/runtimes)",
     "INFO selective collection (1s, epoll, read-local 0)",
     "INFO selective collection (1s, epoll, read-local 1)",
     "INFO selective collection (1s, uring, read-local 0)",
@@ -1294,5 +1299,15 @@
     "DQ": 48,
     "DF": 48,
     "note": "Twelve scripting compatibility probes, two modes and two network engines; collected before quick-tier exit. EXPECT constants remain maintainer-owned."
+  },
+  "infofix_supplement": {
+    "purpose": "Five source-declared rows before the quick exit: DQ=DF=+5; required quick/full 886/903. EXPECT constants remain maintainer-owned.",
+    "labels": [
+      "Redis 7.4 infofix exact latency batch witness",
+      "Redis 7.4 infofix missing (both modes/engines/runtimes)",
+      "Redis 7.4 infofix docs (both modes/engines/runtimes)",
+      "Redis 7.4 infofix slowlog (both modes/engines/runtimes)",
+      "Redis 7.4 infofix loadaof (both modes/engines/runtimes)"
+    ]
   }
 }

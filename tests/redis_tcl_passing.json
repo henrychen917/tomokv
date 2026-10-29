@@ -45,6 +45,7 @@
     "Non-interactive non-TTY CLI: Read last argument from file in tests/integration/redis-cli.tcl",
     "Non-interactive non-TTY CLI: Read last argument from pipe in tests/integration/redis-cli.tcl",
     "Non-interactive non-TTY CLI: Status reply in tests/integration/redis-cli.tcl",
+    "Non-interactive non-TTY CLI: Test command-line hinting - latest server in tests/integration/redis-cli.tcl",
     "Non-interactive non-TTY CLI: Test command-line hinting - no server in tests/integration/redis-cli.tcl",
     "Non-interactive non-TTY CLI: Test command-line hinting - old server in tests/integration/redis-cli.tcl",
     "Options -X with illegal argument in tests/integration/redis-cli.tcl",
@@ -60,8 +61,7 @@
     "Connecting as a replica": "failed on TomoKV 2s in the survey",
     "Dumping an RDB - functions only: no": "failed on TomoKV 2s in the survey",
     "Dumping an RDB - functions only: yes": "failed on TomoKV 2s in the survey",
-    "Non-interactive non-TTY CLI: ASK redirect test": "failed on TomoKV 2s in the survey",
-    "Non-interactive non-TTY CLI: Test command-line hinting - latest server": "failed on TomoKV 2s in the survey"
+    "Non-interactive non-TTY CLI: ASK redirect test": "failed on TomoKV 2s in the survey"
    }
   },
   "integration/replication-buffer": {
@@ -779,6 +779,7 @@
     "BGSAVE in tests/unit/other.tcl",
     "Coverage: MEMORY MALLOC-STATS in tests/unit/other.tcl",
     "Coverage: MEMORY PURGE in tests/unit/other.tcl",
+    "EXPIRES after a reload (snapshot + append only file rewrite) in tests/unit/other.tcl",
     "FLUSHDB in tests/unit/other.tcl",
     "FUZZ stresser with data model alpha in tests/unit/other.tcl",
     "FUZZ stresser with data model binary in tests/unit/other.tcl",
@@ -802,7 +803,6 @@
     "Check consistency of different data types after a reload": "failed on TomoKV 2s in the survey",
     "Coverage: HELP commands": "failed on TomoKV 2s in the survey",
     "EXPIRES after AOF reload (without rewrite)": "failed on TomoKV 2s in the survey",
-    "EXPIRES after a reload (snapshot + append only file rewrite)": "failed on TomoKV 2s in the survey",
     "RESET clears MONITOR state": "failed on TomoKV 2s in the survey",
     "Same dataset digest if saving/reloading as AOF?": "failed on TomoKV 2s in the survey"
    }
@@ -1197,13 +1197,20 @@
    "known_setup_errors": [],
    "passed_tests": [
     "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl",
+    "SLOWLOG - GET optional argument to limit output len works in tests/unit/slowlog.tcl",
     "SLOWLOG - RESET subcommand works in tests/unit/slowlog.tcl",
     "SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl",
     "SLOWLOG - blocking command is reported only after unblocked in tests/unit/slowlog.tcl",
     "SLOWLOG - can be disabled in tests/unit/slowlog.tcl",
+    "SLOWLOG - can clean older entries in tests/unit/slowlog.tcl",
     "SLOWLOG - check that it starts with an empty log in tests/unit/slowlog.tcl",
+    "SLOWLOG - commands with too many arguments are trimmed in tests/unit/slowlog.tcl",
     "SLOWLOG - count must be >= -1 in tests/unit/slowlog.tcl",
+    "SLOWLOG - get all slow logs in tests/unit/slowlog.tcl",
+    "SLOWLOG - logged entry sanity check in tests/unit/slowlog.tcl",
+    "SLOWLOG - max entries is correctly handled in tests/unit/slowlog.tcl",
     "SLOWLOG - only logs commands taking more time than specified in tests/unit/slowlog.tcl",
+    "SLOWLOG - too long arguments are trimmed in tests/unit/slowlog.tcl",
     "SLOWLOG - zero max length is correctly handled in tests/unit/slowlog.tcl"
    ],
    "seconds": {
@@ -1213,21 +1220,11 @@
    "sha256": "065eb61bfd9ac4f2168c9900f8f5774a18b492f0d60c3a8228c8d7085f3747fd",
    "skip_tests": {
     "SLOWLOG - Certain commands are omitted that contain sensitive information": "failed on TomoKV 2s in the survey",
-    "SLOWLOG - GET optional argument to limit output len works": "failed on TomoKV 2s in the survey",
-    "SLOWLOG - Some commands can redact sensitive fields": "failed on TomoKV 2s in the survey",
-    "SLOWLOG - can clean older entries": "failed or hung on TomoKV 2s in an earlier builder run (round 0)",
-    "SLOWLOG - commands with too many arguments are trimmed": "failed or hung on TomoKV 2s in an earlier builder run (round 0)",
-    "SLOWLOG - get all slow logs": "failed on TomoKV 2s in the survey",
-    "SLOWLOG - logged entry sanity check": "failed or hung on TomoKV 2s in an earlier builder run (round 0)",
-    "SLOWLOG - max entries is correctly handled": "failed on TomoKV 2s in the survey",
-    "SLOWLOG - too long arguments are trimmed": "failed or hung on TomoKV 2s in an earlier builder run (round 0)"
+    "SLOWLOG - Some commands can redact sensitive fields": "failed on TomoKV 2s in the survey"
    },
    "fresh_tests": [
     "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl"
-   ],
-   "isolated_tests": {
-    "SLOWLOG - Rewritten commands are logged as their original command": "The required zero-max-length test leaves slowlog-max-len=0; its restoring max-entries test remains skipped for SLOWLOG-MAXLEN-PER-THREAD. Run the unchanged required assertion on fresh default state."
-   }
+   ]
   },
   "unit/sort": {
    "extra_args": [],
@@ -2557,6 +2554,25 @@
    },
    "sha256": "9dd152bbc556065d7631d104c0c42c984c21700f1745846e4dcdc5eb24be5a8e",
    "skip_tests": {}
+  },
+  "unit/info-command": {
+   "extra_args": [],
+   "known_setup_errors": [],
+   "passed_tests": [
+    "info command with at most one sub command in tests/unit/info-command.tcl",
+    "info command with one sub-section in tests/unit/info-command.tcl",
+    "info command with multiple sub-sections in tests/unit/info-command.tcl"
+   ],
+   "skip_tests": {},
+   "sha256": "e39b27f165651e984dd4a8cd2cc42028a3c86504ef0b17224cb92ccb983e7e33"
+  },
+  "unit/printver": {
+   "extra_args": [],
+   "known_setup_errors": [],
+   "passed_tests": [],
+   "skip_tests": {},
+   "sha256": "5ac5139d52011f72535c3149a8c3d0b3e36306797e7e69480a5229b7cd02a9fe",
+   "setup_only": true
   }
  },
  "redis_version": "7.4.10",
@@ -2699,5 +2715,61 @@
   "promoted_assertions": 78,
   "source": "docs/scriptfix2/tcl-promotions.json",
   "remaining_dependencies": "MEASURE-REQUEST-scriptfix2.md"
- }
+ },
+ "infofix_promotions": [
+  {
+   "file": "integration/redis-cli",
+   "name": "Non-interactive non-TTY CLI: Test command-line hinting - latest server",
+   "root": "COMMAND-DOCS-INCOMPLETE",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/other",
+   "name": "EXPIRES after a reload (snapshot + append only file rewrite)",
+   "root": "DEBUG-LOADAOF-AOF-OFF",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/slowlog",
+   "name": "SLOWLOG - GET optional argument to limit output len works",
+   "root": "SLOWLOG-MAXLEN-PER-THREAD",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/slowlog",
+   "name": "SLOWLOG - can clean older entries",
+   "root": "SLOWLOG-MAXLEN-PER-THREAD; cascade of unit/slowlog: SLOWLOG - max entries is correctly handled",
+   "prior_reason": "failed or hung on TomoKV 2s in an earlier builder run (round 0)"
+  },
+  {
+   "file": "unit/slowlog",
+   "name": "SLOWLOG - commands with too many arguments are trimmed",
+   "root": "SLOWLOG-MAXLEN-PER-THREAD; cascade of unit/slowlog: SLOWLOG - max entries is correctly handled",
+   "prior_reason": "failed or hung on TomoKV 2s in an earlier builder run (round 0)"
+  },
+  {
+   "file": "unit/slowlog",
+   "name": "SLOWLOG - get all slow logs",
+   "root": "SLOWLOG-MAXLEN-PER-THREAD",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/slowlog",
+   "name": "SLOWLOG - logged entry sanity check",
+   "root": "SLOWLOG-MAXLEN-PER-THREAD; cascade of unit/slowlog: SLOWLOG - max entries is correctly handled",
+   "prior_reason": "failed or hung on TomoKV 2s in an earlier builder run (round 0)"
+  },
+  {
+   "file": "unit/slowlog",
+   "name": "SLOWLOG - max entries is correctly handled",
+   "root": "SLOWLOG-MAXLEN-PER-THREAD",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/slowlog",
+   "name": "SLOWLOG - too long arguments are trimmed",
+   "root": "SLOWLOG-MAXLEN-PER-THREAD; cascade of unit/slowlog: SLOWLOG - max entries is correctly handled",
+   "prior_reason": "failed or hung on TomoKV 2s in an earlier builder run (round 0)"
+  }
+ ]
 }

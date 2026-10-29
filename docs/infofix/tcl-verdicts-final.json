@@ -1,0 +1,96 @@
+{
+  "failures": {
+    "2s": [
+      {
+        "file": "integration/redis-cli",
+        "error": "passing subset failed, incomplete, or assertion inventory changed",
+        "events": [
+          {
+            "status": "err",
+            "file": "tests/integration/redis-cli.tcl",
+            "test": "Non-interactive non-TTY CLI: Test command-line hinting - latest server in tests/integration/redis-cli.tcl",
+            "data": "Non-interactive non-TTY CLI: Test command-line hinting - latest server in tests/integration/redis-cli.tcl\nExpected 'Test case 'MIGRATE ' FAILED: expected 'host port key|\"\" destination-db timeout [COPY] [REPLACE] [AUTH password|AUTH2 username password] [KEYS key [key ...]]', got '(null)'' to match '*SUCCESS*' (context: type eval line 4 cmd {assert_match \"*SUCCESS*\" $output} proc ::test) ",
+            "milliseconds": "0"
+          }
+        ]
+      }
+    ],
+    "1s": [
+      {
+        "file": "integration/redis-cli",
+        "error": "passing subset failed, incomplete, or assertion inventory changed",
+        "events": [
+          {
+            "status": "err",
+            "file": "tests/integration/redis-cli.tcl",
+            "test": "Non-interactive non-TTY CLI: Test command-line hinting - latest server in tests/integration/redis-cli.tcl",
+            "data": "Non-interactive non-TTY CLI: Test command-line hinting - latest server in tests/integration/redis-cli.tcl\nExpected 'Test case 'MIGRATE ' FAILED: expected 'host port key|\"\" destination-db timeout [COPY] [REPLACE] [AUTH password|AUTH2 username password] [KEYS key [key ...]]', got '(null)'' to match '*SUCCESS*' (context: type eval line 4 cmd {assert_match \"*SUCCESS*\" $output} proc ::test) ",
+            "milliseconds": "0"
+          }
+        ]
+      }
+    ]
+  },
+  "implemented_roots": {
+    "2s": [
+      {
+        "file": "unit/other",
+        "passed": 20,
+        "failed": 0,
+        "error": null,
+        "setup_stdout": ""
+      },
+      {
+        "file": "unit/slowlog",
+        "passed": 16,
+        "failed": 0,
+        "error": null,
+        "setup_stdout": ""
+      },
+      {
+        "file": "unit/info-command",
+        "passed": 3,
+        "failed": 0,
+        "error": null,
+        "setup_stdout": ""
+      },
+      {
+        "file": "unit/printver",
+        "passed": 0,
+        "failed": 0,
+        "error": null,
+        "setup_stdout": "Starting test server at port 20441\n[ready]: 3161185\n\u001b[1;37;49mTesting unit/printver\u001b[0m\nTesting Redis version 7.4.10 (27a6821a)\n[1/1 \u001b[0;33;49mdone\u001b[0m]: unit/printver (0 seconds)\n\n                   The End\n\nExecution time of different units:\n  0 seconds - unit/printver\n\n\u001b[1;37;49m\\o/\u001b[0m \u001b[1;32;49mAll tests passed without errors!\u001b[0m\n\n"
+      }
+    ],
+    "1s": [
+      {
+        "file": "unit/other",
+        "passed": 20,
+        "failed": 0,
+        "error": null,
+        "setup_stdout": ""
+      },
+      {
+        "file": "unit/slowlog",
+        "passed": 16,
+        "failed": 0,
+        "error": null,
+        "setup_stdout": ""
+      },
+      {
+        "file": "unit/info-command",
+        "passed": 3,
+        "failed": 0,
+        "error": null,
+        "setup_stdout": ""
+      },
+      {
+        "file": "unit/printver",
+        "passed": 0,
+        "failed": 0,
+        "error": null,
+        "setup_stdout": "Starting test server at port 20441\n[ready]: 3211632\n\u001b[1;37;49mTesting unit/printver\u001b[0m\nTesting Redis version 7.4.10 (27a6821a)\n[1/1 \u001b[0;33;49mdone\u001b[0m]: unit/printver (0 seconds)\n\n                   The End\n\nExecution time of different units:\n  0 seconds - unit/printver\n\n\u001b[1;37;49m\\o/\u001b[0m \u001b[1;32;49mAll tests passed without errors!\u001b[0m\n\n"
+      }
+    ]
+  }
+}

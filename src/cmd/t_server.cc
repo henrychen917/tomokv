@@ -1595,31 +1595,6 @@ void cmd_client(Shard&, Op& op) {
     }
 }
 
-const char* command_group(const CommandMetadata& metadata) {
-    const uint64_t categories = command_metadata_categories(metadata);
-    if (categories & (uint64_t{1} << 13)) return "server";
-    if (categories & (uint64_t{1} << 18)) return "connection";
-    return "generic";
-}
-
-void reply_command_docs(Op::Sink& sink, const CommandMetadata& metadata, bool resp3) {
-    // A RESP2 map is a flat array. These four fields are enough for redis-cli's live help parser.
-    reply_map_header(sink, 4, resp3);
-    reply_bulk(sink, Slice("summary", 7));
-    const Slice name = command_metadata_name(metadata);
-    std::string summary = "tomokv compatible ";
-    summary.append(name.p, name.n);
-    summary += " command";
-    reply_bulk(sink, Slice(summary.data(), summary.size()));
-    reply_bulk(sink, Slice("since", 5)); reply_bulk(sink, Slice("0.1.0", 5));
-    reply_bulk(sink, Slice("group", 5));
-    const char* group = command_group(metadata);
-    reply_bulk(sink, Slice(group, std::strlen(group)));
-    reply_bulk(sink, Slice("complexity", 10));
-    const char* complexity = "O(1) or proportional to returned work";
-    reply_bulk(sink, Slice(complexity, std::strlen(complexity)));
-}
-
 void cmd_command(Shard&, Op& op) {
     if (auth_arity_reply(op, *op.spec, false)) return;
     auto sink = op.sink();
@@ -1660,7 +1635,7 @@ void cmd_command(Shard&, Op& op) {
         reply_map_header(sink, specs.size(), op.resp3());
         for (const CommandMetadata* spec : specs) {
             reply_bulk(sink, command_metadata_name(*spec));
-            reply_command_docs(sink, *spec, op.resp3());
+            command_metadata_reply_docs(op, *spec);
         }
         return;
     }
@@ -2423,6 +2398,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(uptime),
                 static_cast<unsigned long long>(uptime / 86400),
                 info_executable(), info_config_file());
+        info_stats_build_fields(body);
         appendf(body, "hz:%u\r\nconfigured_hz:%u\r\n",
                 g_server ? g_server->client_hz() : ClientHz::kDefault,
                 g_server ? g_server->configured_hz() : ClientHz::kDefault);
@@ -3071,7 +3047,8 @@ void cmd_info(Shard&, Op& op) {
             appendf(body, "errorstat_NOGROUP:count=%llu\r\n",
                     static_cast<unsigned long long>(group_errors));
     }
-    if (info_section(op, "REPLICATION")) body += "# Replication\r\nrole:master\r\n";
+    if (info_section(op, "CPU")) info_stats_cpu_fields(body);
+    if (info_section(op, "REPLICATION")) body += "# Replication\r\nrole:master\r\nmaster_repl_offset:0\r\n";
     if (want_commands) {
         body += "# Commandstats\r\n";
         for (uint32_t id = 0; id < command_registry_size(); id++) {
