@@ -103,6 +103,9 @@ warmed before the bounded scope. WATCH-abort scopes perform the real WATCH,
 then deterministically set the connection's dirty indication before EXEC;
 a competing writer is not included in their count. Additional watched EVAL,
 EVALSHA and FCALL scopes catch the watcher-only handler-selection path.
+Keyspace notification and tracking consumers are off in these counted fixtures;
+armed feature combinations receive correctness coverage, not an instruction-cost
+verdict from this matrix.
 
 The tracer steps through the embedded Lua VM so indirect callbacks cannot
 escape, and counts instructions in the selected production namespace, including
@@ -128,7 +131,9 @@ built; all 58 independent build/freshness checks pass, including `make all`,
 `make -q`, and the blockfix binding ([audit](docs/climonfix5/production-units.json)).
 Both Tcl modes pass all 1,704 assertions and all 14 climonfix4 promotions
 ([named assertion audit](docs/climonfix5/full-tcl-promotions-in-campaign.json)).
-The remaining whole-job campaigns are still running.
+The affected whole-job campaign completes with **438 passed, 0 failed**
+([receipt](docs/climonfix5/jobs/affected-final.json)). A second Tcl confirmation,
+CLIENT REPLY full-tier rows, and both standard differential matrices remain in progress.
 [Directed receipt](docs/climonfix5/jobs/directed-final-v11.json),
 [seven isolated controls](docs/climonfix5/isolated-regressions.json),
 [harness tests](docs/climonfix5/gates-test.json). Five controls raise named

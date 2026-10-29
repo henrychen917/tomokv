@@ -64,7 +64,16 @@ def main():
     for row in counts['inputs']:
         assert digest(ROOT / row['file']) == row['sha256'], row['file']
     archives = []
-    for row in json.loads((DOC / 'job-evidence-index.json').read_text()):
+    archive_index = json.loads((DOC / 'job-evidence-index.json').read_text())
+    selection = json.loads((DOC / 'job-selection.json').read_text())
+    affected = next(row for row in archive_index if row['name'] == 'affected-final')
+    completed = {job['name']: job for job in affected['jobs']}
+    assert set(selection['jobs']) <= completed.keys(), 'requested job missing from evidence'
+    for name in selection['jobs']:
+        fields = completed[name]['done'].split('\t')
+        assert fields[0] == fields[-1] == '0', (name, fields)
+        assert all(row['verdict'] == 'ok' for row in completed[name]['rows']), name
+    for row in archive_index:
         path = ROOT / row['archive']
         assert digest(path) == row['archive_sha256'], path
         with tarfile.open(path, 'r:gz') as archive:
@@ -85,7 +94,8 @@ def main():
                 assert hashlib.sha256(data).hexdigest() == member['sha256'], member['path']
         archives.append(dict(path=str(path.relative_to(ROOT)), sha256=digest(path), files=len(index['files'])))
     result = dict(production_source='e4a0e13ab', arms=identities, campaigns=campaigns,
-                  freshness_checks=len(freshness), instruction_inputs=len(counts['inputs']),
+                  affected_jobs=len(selection['jobs']), freshness_checks=len(freshness),
+                  instruction_inputs=len(counts['inputs']),
                   archives=archives, passed=True)
     (DOC / 'artifact-integrity.json').write_text(json.dumps(result, indent=2) + '\n')
     print(json.dumps(dict(campaigns=len(campaigns), freshness=len(freshness),
