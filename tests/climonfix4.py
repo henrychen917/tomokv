@@ -152,7 +152,8 @@ def directed(host, port, root):
                 assert '] "MULTI"' in read(m, 1)
                 assert a.cmd("EVAL", script, 1, "mon", "watch-aborted") == b"QUEUED"
                 assert a.cmd("EXEC") is None
-                assert '] "EXEC"' in read(m, 1)
+                line = read(m, 1)
+                assert isinstance(line, str) and '] "EXEC"' in line, (protocol, line)
                 assert read(m, .05) == {"timeout": True}, "MONITOR logged a WATCH-aborted child"
         elif root == "RESET-CLEARS-LIBNAME":
             assert a.cmd("CLIENT", "SETINFO", "lib-name", "redis.py") == b"OK"

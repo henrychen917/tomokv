@@ -851,8 +851,11 @@ void IoLoop::climon_monitor_flush(ClimonConn& state, uint64_t completed, bool be
             const auto& rob = state.client->rob();
             if (pending.id < rob.dispatch_id() && rob.dispatch_id() - pending.id <= kRobWindow) {
                 const auto& op = rob.at(pending.id);
-                if (op.reply.size() && (op.reply.data()[0] == '-' || op.reply.data()[0] == '_' ||
-                    (op.reply.size() >= 3 && op.reply.data()[0] == '*' && op.reply.data()[1] == '-'))) {
+                const bool null_reply = op.reply_code_ == static_cast<uint8_t>(ReplyCode::NullArray) ||
+                                        op.reply_code_ == static_cast<uint8_t>(ReplyCode::NullResp3);
+                if (null_reply || (op.reply.size() && (op.reply.data()[0] == '-' ||
+                    op.reply.data()[0] == '_' ||
+                    (op.reply.size() >= 3 && op.reply.data()[0] == '*' && op.reply.data()[1] == '-')))) {
                     const uint64_t aborted = pending.id;
                     std::erase_if(state.monitor_pending, [aborted](const auto& record) {
                         return record.id == aborted && record.multi_order != UINT32_MAX;
