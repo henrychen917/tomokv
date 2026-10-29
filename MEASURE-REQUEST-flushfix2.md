@@ -125,7 +125,11 @@ The supplemental `notifycompat` gate job passes all seven scored compatibility
 rows, including FLUSH per-key event/AOF compatibility, on the final binary.
 All 35 supplemental topology jobs also pass. Both fused differential engines
 pass 466 rows each, with standard seeds; their ten SORT skips per engine are
-listed below. Broad correctness and split differential runs remain in progress.
+listed below. Broad correctness and split differential runs remain in progress. The first
+broad invocation completed 49 jobs before it was stopped ahead of its embedded
+rate checks; the remaining 37 jobs run with the existing
+`GATE_PROOF_NO_RATES=1` option. Completed original jobs remain part of the proof;
+the interrupted job is rerun from a fresh server.
 The original T9 broad row failed because the blind-restart window did not open;
 a bounded fresh-server recheck of the unchanged complete T9 job passes all 27
 legs, with its restart counters nonzero. The original failure is retained in the
@@ -251,6 +255,8 @@ by this lane. No debugger attaches to servers and no core-dump tool is used.
 
 - Performance cells, latency merit runs, writer-wait timing and the full
   `tests/gate.sh iteration`: NOT RUN; reserved for the maintainer by this task.
+- Embedded atomic RYOW rate comparison and atomic MGET rate floor: NOT RUN;
+  `GATE_PROOF_NO_RATES=1` keeps their correctness checks and prints explicit skips.
 - Serverless read-local-1 instruction cells: NOT RUN; the existing fixture
   explicitly disables that connection-side lane. Live read-local correctness
   and the fused differential suites cover its behavior separately.

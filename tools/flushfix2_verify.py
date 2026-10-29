@@ -27,13 +27,18 @@ def main():
     p.add_argument('--binary', type=Path, required=True)
     p.add_argument('--label', required=True)
     p.add_argument('--phases', default='directed,broad,differ-uring,differ-epoll')
+    p.add_argument('--server-cores', default='0-7')
+    p.add_argument('--load-cores', default='8-15')
+    p.add_argument('--ports', default='20100-20102')
+    p.add_argument('--differ-ports', nargs=2, default=['20110', '20111'])
     a = p.parse_args()
     binary = a.binary.resolve()
     assert binary.is_relative_to(ROOT/'build')
     out = ROOT/'build/flushfix2/verification'/a.label
     out.mkdir(parents=True, exist_ok=True)
     env = dict(os.environ, LC_ALL='C', REDIS74_ROOT='/home/user/Projects/redis',
-               GATE_LOAD_CORES='8-15', GATE_DIFFER_ORACLE_CORES='0-7')
+               GATE_LOAD_CORES=a.load_cores, GATE_DIFFER_ORACLE_CORES=a.server_cores,
+               GATE_PROOF_NO_RATES='1')
     digest = hashlib.sha256(binary.read_bytes()).hexdigest()
     rows = []
     for phase in a.phases.split(','):
@@ -43,13 +48,14 @@ def main():
             run_env['GATE_ONLY_JOBS'] = 'flushfix2 flushfix2_units' if phase == 'directed' else ' '.join(BROAD)
             run_env['GATE_LEDGER'] = str(out/phase)
             cmd = ['taskset', '-c', '0-15', 'tests/gate.sh', 'quick',
-                   '--server-cores', '0-7', '--load-cores', '8-15', '--load-smt', '',
-                   '--ports', '20100-20102', '--candidate-binary', str(binary)]
+                   '--server-cores', a.server_cores, '--load-cores', a.load_cores, '--load-smt', '',
+                   '--ports', a.ports, '--candidate-binary', str(binary)]
         else:
             assert phase in ('differ-uring', 'differ-epoll')
             run_env.update(GATE_DIFFER_NET_IO=phase.removeprefix('differ-'),
                            GATE_DIFFER_OUT=str(out/phase), GATE_DIFFER_GEOMETRY='split')
-            cmd = ['taskset', '-c', '8-15', 'tests/differ_gate.sh', str(binary), '20110', '20111', '0-7', '6:2']
+            cmd = ['taskset', '-c', a.load_cores, 'tests/differ_gate.sh', str(binary),
+                   *a.differ_ports, a.server_cores, '6:2']
         with (out/(phase+'.log')).open('w') as log:
             status = subprocess.run(cmd, cwd=ROOT, env=run_env, stdout=log, stderr=subprocess.STDOUT).returncode
         rows.append(dict(phase=phase, status=status, command=cmd, binary_sha256=digest,
