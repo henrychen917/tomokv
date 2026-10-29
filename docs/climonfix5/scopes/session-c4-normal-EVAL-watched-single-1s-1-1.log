@@ -1,2 +1,0 @@
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-PASS scope EVAL-watched-single 1s batch=1 header_rejected=0 replies=1

@@ -1,4 +1,0 @@
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-PASS scope EVAL-header-single 1s batch=1 header_rejected=1 replies=1
-unexpected child status 0; waiting=5a242b5150c9 last_call=590c4
-stop: Success
