@@ -130,3 +130,10 @@ The fixture now drains before disarming and releasing the sidecar, matching
 production teardown. The complete `exec1s` gate job then passed all four public
 rows and their internal subcases, including the concurrent X2 reader falsifier.
 This was a fixture repair, with no production-path change.
+
+Harness: extend the existing partial-only `GATE_PROOF_NO_RATES=1` to omit
+`--release-build` timing ratios from stream and xmove batteries. Their data,
+concurrency and mechanism checks remain present; full gate behavior is unchanged.
+The flag now rejects a non-partial invocation at entry. Those timing ratios,
+the atomic throughput floor, and the efficiency scaling benchmarks are NOT RUN
+in this lane and remain in the maintainer's landing gate.

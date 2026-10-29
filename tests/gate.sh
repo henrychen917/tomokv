@@ -82,6 +82,12 @@ fi
 GATE_STARTED=$SECONDS
 GATE_PARTIAL=0
 [ -z "${GATE_ONLY_JOBS:-}" ] || GATE_PARTIAL=1
+# Timing ratios remain maintainer work even inside a correctness battery.
+# This existing opt-out is legal only for an explicitly selected partial run.
+case "${GATE_PROOF_NO_RATES:-0}:$GATE_PARTIAL" in
+  0:*|1:1) ;;
+  *) echo 'GATE_PROOF_NO_RATES=1 requires selected partial jobs' >&2; exit 2;;
+esac
 PLAN=$(python3 tests/gateplan.py "$@") || exit $?
 eval "$PLAN"
 if [ "${GATE_PARTIAL:-0}" = 1 ] && [ "$TIER" = perf ]; then
@@ -896,7 +902,7 @@ feature_split_job(){
       || bad "feature battery boot (atomic $AT)"
   for t in $FEATURE_BATTERIES; do
     FEATURE_ARGS=()
-    [ "$t" = stream ] && FEATURE_ARGS+=(--release-build)
+    [ "$t" = stream ] && [ "${GATE_PROOF_NO_RATES:-0}" != 1 ] && FEATURE_ARGS+=(--release-build)
     row_begin "$t battery (atomic $AT)"
     py tests/feature_atomic.py 127.0.0.1 "$PORT" "$AT" \
         python3 tests/$t.py 127.0.0.1 "$PORT" "${FEATURE_ARGS[@]}" >$TMPDIR/gate-$t-$AT.txt 2>&1 \
@@ -949,7 +955,7 @@ feature_armed_job(){
   fi
   for t in $FEATURE_BATTERIES; do
     FEATURE_ARGS=()
-    [ "$t" = stream ] && FEATURE_ARGS+=(--release-build)
+    [ "$t" = stream ] && [ "${GATE_PROOF_NO_RATES:-0}" != 1 ] && FEATURE_ARGS+=(--release-build)
     row_begin "fused+armed $t battery (atomic $AT)"
     py tests/feature_atomic.py 127.0.0.1 "$PORT" "$AT" \
         python3 tests/$t.py 127.0.0.1 "$PORT" "${FEATURE_ARGS[@]}" >$TMPDIR/gate-fusedarmed-$t-$AT.txt 2>&1 \
@@ -3025,7 +3031,7 @@ local AT=${1##*-} mode=2s
   # a "fix" that merely hid the group's candidate would fail there.
   for t in lbsignals slowlog atomfix scriptatomic execatomic execiso execfix multires multirace session_monotonic xacct xmove xscript txn_nx txniso; do
     FEATURE_ARGS=()
-    [ "$t" = xmove ] && FEATURE_ARGS+=(--release-build)
+    [ "$t" = xmove ] && [ "${GATE_PROOF_NO_RATES:-0}" != 1 ] && FEATURE_ARGS+=(--release-build)
     row_begin "$t battery (atomic $AT)"
     if [ "$t" = txniso ]; then
       txniso_checks "$mode" "$AT" "$TMPDIR/gate-txniso-$AT.txt" \
