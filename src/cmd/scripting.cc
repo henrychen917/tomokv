@@ -148,41 +148,6 @@ struct SourceHash {
     }
 };
 
-// SHA input still needs case-insensitive hashing/comparison, as in Redis's
-// dictionary. Fold five words while hashing; never allocate or normalize a
-// cached digest on lookup. All stored keys are the original lowercase SHA1.
-struct ShaHash {
-    using is_transparent = void;
-    size_t operator()(std::string_view sha) const noexcept {
-        if (sha.size() != 40) return 0;
-        uint64_t hash = 0;
-        for (unsigned i = 0; i < 40; i += 8) {
-            uint64_t word;
-            std::memcpy(&word, sha.data() + i, sizeof(word));
-            hash = (hash ^ (word | UINT64_C(0x2020202020202020))) * UINT64_C(0x9e3779b185ebca87);
-        }
-        return hash;
-    }
-};
-struct ShaEqual {
-    using is_transparent = void;
-    bool operator()(std::string_view a, std::string_view b) const noexcept {
-        if (a.size() != 40 || b.size() != 40) return false;
-        for (unsigned i = 0; i < 40; i += 8) {
-            uint64_t x, y;
-            std::memcpy(&x, a.data() + i, sizeof(x));
-            std::memcpy(&y, b.data() + i, sizeof(y));
-            if ((x | UINT64_C(0x2020202020202020)) !=
-                (y | UINT64_C(0x2020202020202020))) return false;
-            // Digits must compare exactly: OR-folding alone also maps control
-            // bytes 0x10..0x19 onto '0'..'9'. A case difference is legal only
-            // for a letter (bit 0x40 set in the canonical hex byte).
-            if ((x ^ y) & (~(x | y) >> 1) & UINT64_C(0x2020202020202020)) return false;
-        }
-        return true;
-    }
-};
-
 class ScriptCache {
 public:
     bool store(Slice body, uint32_t flags, uint32_t offset, std::string& sha) {
@@ -195,7 +160,7 @@ public:
             if (scripts_.find(std::string_view(sha)) != scripts_.end()) return true;
             const auto inserted = sources_.emplace(std::string_view(entry->source), entry);
             try {
-                scripts_.emplace(std::string_view(entry->sha), entry);
+                scripts_.emplace(entry->sha, entry);
             } catch (...) {
                 if (inserted.second) sources_.erase(inserted.first);
                 throw;
@@ -208,7 +173,7 @@ public:
 
     ScriptSourceRef find(Slice sha) const {
         std::lock_guard<std::mutex> lock(mu_);
-        const auto it = scripts_.find(std::string_view(sha.p, sha.n));
+        const auto it = lookup(sha);
         return it == scripts_.end() ? ScriptSourceRef{} : it->second;
     }
 
@@ -220,7 +185,7 @@ public:
 
     bool exists(Slice sha) const {
         std::lock_guard<std::mutex> lock(mu_);
-        return scripts_.find(std::string_view(sha.p, sha.n)) != scripts_.end();
+        return lookup(sha) != scripts_.end();
     }
 
     void flush() {
@@ -231,15 +196,37 @@ public:
 
     uint64_t size() const {
         std::lock_guard<std::mutex> lock(mu_);
-        return scripts_.size();
+        return sources_.size();
     }
 
 private:
     mutable std::mutex mu_;
     // Views point into the immutable value, which stays owned until both indexes
     // and all active invocations release it. No source copy on a warm activation.
-    std::unordered_map<std::string_view, ScriptSourceRef, ShaHash, ShaEqual> scripts_;
+    using Digests = std::unordered_map<std::string, ScriptSourceRef, SourceHash, std::equal_to<>>;
+    mutable Digests scripts_;
     std::unordered_map<std::string_view, ScriptSourceRef, SourceHash, std::equal_to<>> sources_;
+
+    Digests::const_iterator lookup(Slice sha) const {
+        const std::string_view spelling(sha.p, sha.n);
+        const auto found = scripts_.find(spelling);
+        if (found != scripts_.end() || sha.n != 40) return found;
+        // Only a new spelling takes this cold path. Canonical digests and warm
+        // uppercase/mixed-case aliases use the same allocation-free lookup.
+        char normalized[40];
+        for (unsigned i = 0; i < 40; ++i) {
+            const char ch = sha.p[i];
+            normalized[i] = ch >= 'A' && ch <= 'Z' ? ch + ('a' - 'A') : ch;
+        }
+        const auto canonical = scripts_.find(std::string_view(normalized, sizeof(normalized)));
+        if (canonical == scripts_.end()) return canonical;
+        try {
+            return scripts_.emplace(std::string(spelling), canonical->second).first;
+        } catch (const std::bad_alloc&) {
+            // Caching an alias is optional; the already-present script remains usable.
+            return canonical;
+        }
+    }
 };
 
 ScriptCache g_scripts;

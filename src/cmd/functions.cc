@@ -511,8 +511,20 @@ bool run_library_body(lua_State* state, Slice code, RegisterSink& sink,
     const int status = script_pcall_library(state);
     *registration = RegisterSink{};
     lua_enablereadonlytable(state, environment, 0);
+    // Install the immutable runtime globals once after revoking registration.
+    // Callbacks inherit this table; direct fields avoid a proxy hop for every
+    // redis/math/helper read. _G retains its interpreter-global identity.
     lua_pushnil(state);
-    lua_setfield(state, environment, "redis");
+    while (lua_next(state, LUA_GLOBALSINDEX)) {
+        lua_pushvalue(state, -2);
+        lua_pushvalue(state, -2);
+        lua_rawset(state, environment);
+        lua_pop(state, 1);
+    }
+    // FUNCTION FLUSH replaces CJSON's mutable configuration after registry sync.
+    // Resolve that one changing root through the interpreter's globals.
+    lua_pushnil(state);
+    lua_setfield(state, environment, "cjson");
     lua_enablereadonlytable(state, environment, 1);
     lua_enablereadonlytable(state, environment_meta, 0);
     lua_pushvalue(state, LUA_GLOBALSINDEX);
@@ -722,10 +734,22 @@ bool invoke_fcall(Shard& shard, Op& op, Prepare&& prepare) {
     if (!function_thread_sync(state, error)) { reply_err_string(op, error); return true; }
 
     const Slice name = op.arg(1);
-    const std::string lookup = function_key(std::string_view(name.p, name.n));
     lua_getfield(state, LUA_REGISTRYINDEX, kRegistryFunctions);
-    lua_pushlstring(state, lookup.data(), lookup.size());
+    lua_pushlstring(state, name.p, name.n);
     lua_rawget(state, -2);
+    if (lua_isnil(state, -1)) {
+        lua_pop(state, 1);
+        const std::string lookup = function_key(std::string_view(name.p, name.n));
+        lua_pushlstring(state, lookup.data(), lookup.size());
+        lua_rawget(state, -2);
+        if (lua_istable(state, -1)) {
+            // Normalize each spelling only on insertion. Revision sync rebuilds
+            // this table, so aliases can never retain an old callback or flags.
+            lua_pushlstring(state, name.p, name.n);
+            lua_pushvalue(state, -2);
+            lua_rawset(state, -4);
+        }
+    }
     if (!lua_istable(state, -1)) {
         lua_settop(state, 0);
         reply_text_error(op, "ERR", "Function not found");
