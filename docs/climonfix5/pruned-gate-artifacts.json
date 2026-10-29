@@ -1,0 +1,56 @@
+[
+  {
+    "name": "c4-blocked-watch",
+    "path": "build/gate-run.Gy3UhT",
+    "archive": "docs/climonfix5/job-evidence/c4-blocked-watch.tar.gz",
+    "sha256": "e26533ee8a1fd2653f9a9f4108b4e182c63af012f2fbd1fe5a99c41f2487e1cf"
+  },
+  {
+    "name": "directed-final",
+    "path": "build/gate-run.w1WZF2",
+    "archive": "docs/climonfix5/job-evidence/directed-final.tar.gz",
+    "sha256": "5b8fc04a91e55e472adb6d38bf04769998a4734a5aa19d3584739b2847bddca4"
+  },
+  {
+    "name": "monitor-coded-fix",
+    "path": "build/gate-run.FWbCBL",
+    "archive": "docs/climonfix5/job-evidence/monitor-coded-fix.tar.gz",
+    "sha256": "7ee3dcaa50835f6136330be544cf441d1326f0a7dfe9becb9b456561f2a8e052"
+  },
+  {
+    "name": "negative-monitor-script-cmds",
+    "path": "build/gate-run.nvGm2x",
+    "archive": "docs/climonfix5/job-evidence/negative-monitor-script-cmds.tar.gz",
+    "sha256": "278b2902dac9b574fdd8c4932c0dd5a64b6375ad2fe39642b1399d0a990fcbb0"
+  },
+  {
+    "name": "negative-pause-blocked-count",
+    "path": "build/gate-run.5HQNTu",
+    "archive": "docs/climonfix5/job-evidence/negative-pause-blocked-count.tar.gz",
+    "sha256": "4608816b8a429ada0a7dd2a7ca1e7d2e22feff583a88e6cd7ec5114d4fadd267"
+  },
+  {
+    "name": "negative-pause-may-replicate",
+    "path": "build/gate-run.W3Vje3",
+    "archive": "docs/climonfix5/job-evidence/negative-pause-may-replicate.tar.gz",
+    "sha256": "5d48f43878c091868dcc541ad55b2ee57f28c214122d3328dbcec6dcfd24ccee"
+  },
+  {
+    "name": "negative-pause-script-flags",
+    "path": "build/gate-run.39klTz",
+    "archive": "docs/climonfix5/job-evidence/negative-pause-script-flags.tar.gz",
+    "sha256": "00bfd2428b0ca6f6016f3378ef08bce194db42902e63f73669a2474ec8f40d0c"
+  },
+  {
+    "name": "production-build",
+    "path": "build/gate-run.MeaID8",
+    "archive": "docs/climonfix5/job-evidence/production-build.tar.gz",
+    "sha256": "9ac6abec17568fffa6a234d2239e3a56794098eee589d005ceab42c57bf57548"
+  },
+  {
+    "name": "tcl-initial4",
+    "path": "build/gate-run.ClSnSR",
+    "archive": "docs/climonfix5/job-evidence/tcl-initial4.tar.gz",
+    "sha256": "d8a376669f969e1760b556e0171345f3568bbf2f88908b20ab02d4100f98c163"
+  }
+]

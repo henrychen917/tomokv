@@ -1,0 +1,16 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "16-19",
+    "env",
+    "LC_ALL=C",
+    "GATE_TEST_PORT=20295",
+    "python3",
+    "tests/gates_test.py"
+  ],
+  "exit": 0,
+  "tests": 73,
+  "log_sha256": "f26f534a7125f8b1d8d3b3566a00cf90d6050ad0cee45537381c657fb2d35e90",
+  "source_commit": "5402c6582c66d0e07f8368379797228656cfbe88"
+}

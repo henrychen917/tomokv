@@ -115,7 +115,14 @@ POST saves 1114–1138.0625 instructions per invocation across these cases.
 
 ### Correctness evidence
 
-Pending completion of the frozen-candidate campaigns. The selected whole-job
+Completed on frozen POST: all 28 climonfix4 rows (224 directed configurations,
+including the added RESP2/RESP3 WATCH-abort assertions); all seven isolated
+regressions rejected their named Tcl assertion in both modes; and
+`python3 tests/gates_test.py` passes 73/73. The remaining whole-job campaigns
+and final freshness audit are still running.
+[Directed receipt](docs/climonfix5/jobs/directed-final-v11.json),
+[seven isolated controls](docs/climonfix5/isolated-regressions.json),
+[harness tests](docs/climonfix5/gates-test.json). The selected whole-job
 inventory is [job-selection.json](docs/climonfix5/job-selection.json).
 All server boots inherit `LC_ALL=C`; all lane processes are restricted to
 CPUs 16–31, builds use `-j16`, and correctness ports are in 20200–20299.

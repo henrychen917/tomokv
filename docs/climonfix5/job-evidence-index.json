@@ -1,0 +1,830 @@
+[
+  {
+    "name": "c4-blocked-watch",
+    "receipt": "docs/climonfix5/jobs/c4-blocked-watch.json",
+    "exit": 0,
+    "binary_sha256": "81a33ef8cc968b5f044ce15e2c8db15b6d6ffc29b247b93af85e8525f035020e",
+    "archive": "docs/climonfix5/job-evidence/c4-blocked-watch.tar.gz",
+    "archive_sha256": "e26533ee8a1fd2653f9a9f4108b4e182c63af012f2fbd1fe5a99c41f2487e1cf",
+    "files": 29,
+    "uncompressed_bytes": 459434,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.710000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.720000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "directed-final-v11",
+    "receipt": "docs/climonfix5/jobs/directed-final-v11.json",
+    "exit": 0,
+    "binary_sha256": "5580e65fb3d5135ca6829d272cf4de89c2661715bc58247ad26a7163939a0f5f",
+    "archive": "docs/climonfix5/job-evidence/directed-final-v11.tar.gz",
+    "archive_sha256": "5db1808b700e880ada62e6f3dc0c24f42be98ed4344e1301adeeb2b40f529262",
+    "files": 476,
+    "uncompressed_bytes": 1618852,
+    "jobs": [
+      {
+        "name": "climonfix4-1s-epoll",
+        "done": "0\t7\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "11.840000",
+            "label": "climonfix4 PAUSE-BLOCKED-COUNT (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.350000",
+            "label": "climonfix4 PAUSE-MAY-REPLICATE (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.400000",
+            "label": "climonfix4 PAUSE-SCRIPT-FLAGS (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.450000",
+            "label": "climonfix4 MONITOR-SCRIPT-CMDS (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.410000",
+            "label": "climonfix4 RESET-CLEARS-LIBNAME (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.360000",
+            "label": "climonfix4 RESET-MONITOR-ECHO (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.390000",
+            "label": "climonfix4 CLIENT-LIST-CMD-NAME (1s epoll)"
+          }
+        ]
+      },
+      {
+        "name": "climonfix4-1s-uring",
+        "done": "0\t7\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "13.440000",
+            "label": "climonfix4 PAUSE-BLOCKED-COUNT (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.750000",
+            "label": "climonfix4 PAUSE-MAY-REPLICATE (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.730000",
+            "label": "climonfix4 PAUSE-SCRIPT-FLAGS (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "14.300000",
+            "label": "climonfix4 MONITOR-SCRIPT-CMDS (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.380000",
+            "label": "climonfix4 RESET-CLEARS-LIBNAME (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.340000",
+            "label": "climonfix4 RESET-MONITOR-ECHO (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.430000",
+            "label": "climonfix4 CLIENT-LIST-CMD-NAME (1s uring)"
+          }
+        ]
+      },
+      {
+        "name": "climonfix4-2s-epoll",
+        "done": "0\t7\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "11.830000",
+            "label": "climonfix4 PAUSE-BLOCKED-COUNT (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.320000",
+            "label": "climonfix4 PAUSE-MAY-REPLICATE (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.360000",
+            "label": "climonfix4 PAUSE-SCRIPT-FLAGS (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.420000",
+            "label": "climonfix4 MONITOR-SCRIPT-CMDS (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.360000",
+            "label": "climonfix4 RESET-CLEARS-LIBNAME (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.410000",
+            "label": "climonfix4 RESET-MONITOR-ECHO (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.410000",
+            "label": "climonfix4 CLIENT-LIST-CMD-NAME (2s epoll)"
+          }
+        ]
+      },
+      {
+        "name": "climonfix4-2s-uring",
+        "done": "0\t7\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "11.860000",
+            "label": "climonfix4 PAUSE-BLOCKED-COUNT (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.310000",
+            "label": "climonfix4 PAUSE-MAY-REPLICATE (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.330000",
+            "label": "climonfix4 PAUSE-SCRIPT-FLAGS (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.390000",
+            "label": "climonfix4 MONITOR-SCRIPT-CMDS (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.350000",
+            "label": "climonfix4 RESET-CLEARS-LIBNAME (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.340000",
+            "label": "climonfix4 RESET-MONITOR-ECHO (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.360000",
+            "label": "climonfix4 CLIENT-LIST-CMD-NAME (2s uring)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "directed-final",
+    "receipt": "docs/climonfix5/jobs/directed-final.json",
+    "exit": 1,
+    "binary_sha256": "da0b750ccc881ce363347d7e69e0cc39defe3fce71914a5c3cb17f6fef516a92",
+    "archive": "docs/climonfix5/job-evidence/directed-final.tar.gz",
+    "archive_sha256": "5b8fc04a91e55e472adb6d38bf04769998a4734a5aa19d3584739b2847bddca4",
+    "files": 476,
+    "uncompressed_bytes": 1629579,
+    "jobs": [
+      {
+        "name": "climonfix4-1s-epoll",
+        "done": "0\t6\t1",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "13.600000",
+            "label": "climonfix4 PAUSE-BLOCKED-COUNT (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.870000",
+            "label": "climonfix4 PAUSE-MAY-REPLICATE (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.390000",
+            "label": "climonfix4 PAUSE-SCRIPT-FLAGS (1s epoll)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "15.110000",
+            "label": "climonfix4 MONITOR-SCRIPT-CMDS (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.560000",
+            "label": "climonfix4 RESET-CLEARS-LIBNAME (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.550000",
+            "label": "climonfix4 RESET-MONITOR-ECHO (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.640000",
+            "label": "climonfix4 CLIENT-LIST-CMD-NAME (1s epoll)"
+          }
+        ]
+      },
+      {
+        "name": "climonfix4-1s-uring",
+        "done": "0\t6\t1",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "11.900000",
+            "label": "climonfix4 PAUSE-BLOCKED-COUNT (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.350000",
+            "label": "climonfix4 PAUSE-MAY-REPLICATE (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.370000",
+            "label": "climonfix4 PAUSE-SCRIPT-FLAGS (1s uring)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "13.070000",
+            "label": "climonfix4 MONITOR-SCRIPT-CMDS (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.550000",
+            "label": "climonfix4 RESET-CLEARS-LIBNAME (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.430000",
+            "label": "climonfix4 RESET-MONITOR-ECHO (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.720000",
+            "label": "climonfix4 CLIENT-LIST-CMD-NAME (1s uring)"
+          }
+        ]
+      },
+      {
+        "name": "climonfix4-2s-epoll",
+        "done": "0\t6\t1",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "13.420000",
+            "label": "climonfix4 PAUSE-BLOCKED-COUNT (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "14.010000",
+            "label": "climonfix4 PAUSE-MAY-REPLICATE (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.420000",
+            "label": "climonfix4 PAUSE-SCRIPT-FLAGS (2s epoll)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "16.730000",
+            "label": "climonfix4 MONITOR-SCRIPT-CMDS (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.960000",
+            "label": "climonfix4 RESET-CLEARS-LIBNAME (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.780000",
+            "label": "climonfix4 RESET-MONITOR-ECHO (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.390000",
+            "label": "climonfix4 CLIENT-LIST-CMD-NAME (2s epoll)"
+          }
+        ]
+      },
+      {
+        "name": "climonfix4-2s-uring",
+        "done": "0\t6\t1",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "13.530000",
+            "label": "climonfix4 PAUSE-BLOCKED-COUNT (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "14.310000",
+            "label": "climonfix4 PAUSE-MAY-REPLICATE (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.080000",
+            "label": "climonfix4 PAUSE-SCRIPT-FLAGS (2s uring)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "15.430000",
+            "label": "climonfix4 MONITOR-SCRIPT-CMDS (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.720000",
+            "label": "climonfix4 RESET-CLEARS-LIBNAME (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.630000",
+            "label": "climonfix4 RESET-MONITOR-ECHO (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.710000",
+            "label": "climonfix4 CLIENT-LIST-CMD-NAME (2s uring)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "monitor-coded-fix",
+    "receipt": "docs/climonfix5/jobs/monitor-coded-fix.json",
+    "exit": 0,
+    "binary_sha256": "cf60fdf58e27a569c1ab01d6a152e24aea53989f474632b966bb108a6e80ce05",
+    "archive": "docs/climonfix5/job-evidence/monitor-coded-fix.tar.gz",
+    "archive_sha256": "7ee3dcaa50835f6136330be544cf441d1326f0a7dfe9becb9b456561f2a8e052",
+    "files": 125,
+    "uncompressed_bytes": 385018,
+    "jobs": [
+      {
+        "name": "climonfix4-2s-uring",
+        "done": "0\t7\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "14.760000",
+            "label": "climonfix4 PAUSE-BLOCKED-COUNT (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "15.070000",
+            "label": "climonfix4 PAUSE-MAY-REPLICATE (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "14.240000",
+            "label": "climonfix4 PAUSE-SCRIPT-FLAGS (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "15.670000",
+            "label": "climonfix4 MONITOR-SCRIPT-CMDS (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.510000",
+            "label": "climonfix4 RESET-CLEARS-LIBNAME (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.660000",
+            "label": "climonfix4 RESET-MONITOR-ECHO (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.390000",
+            "label": "climonfix4 CLIENT-LIST-CMD-NAME (2s uring)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "negative-client-list-cmd-name",
+    "receipt": "docs/climonfix5/jobs/negative-client-list-cmd-name.json",
+    "exit": 1,
+    "binary_sha256": "2875434dad6bc5fa869a7fe086234abe2a542a18883dd0631710c5c05fee2fdd",
+    "archive": "docs/climonfix5/job-evidence/negative-client-list-cmd-name.tar.gz",
+    "archive_sha256": "fa11645e065fb78bf5192373b64e1be3e785e7668499513b1a6d40e1b277203e",
+    "files": 29,
+    "uncompressed_bytes": 155337,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "0.810000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "0.770000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "negative-monitor-script-cmds",
+    "receipt": "docs/climonfix5/jobs/negative-monitor-script-cmds.json",
+    "exit": 1,
+    "binary_sha256": "500e8f4e551a17695f19f596f2e4fd0f342f50bb1f39db5cb99df55af3aa80d6",
+    "archive": "docs/climonfix5/job-evidence/negative-monitor-script-cmds.tar.gz",
+    "archive_sha256": "278b2902dac9b574fdd8c4932c0dd5a64b6375ad2fe39642b1399d0a990fcbb0",
+    "files": 29,
+    "uncompressed_bytes": 94191,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "61.660000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "60.940000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "negative-pause-blocked-count",
+    "receipt": "docs/climonfix5/jobs/negative-pause-blocked-count.json",
+    "exit": 1,
+    "binary_sha256": "74e814a7c9a9c5683c0fa92f6889ef5ca2c4540399c68f9f555c92ea6f3f8d72",
+    "archive": "docs/climonfix5/job-evidence/negative-pause-blocked-count.tar.gz",
+    "archive_sha256": "4608816b8a429ada0a7dd2a7ca1e7d2e22feff583a88e6cd7ec5114d4fadd267",
+    "files": 29,
+    "uncompressed_bytes": 105598,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "5.730000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "5.720000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "negative-pause-may-replicate",
+    "receipt": "docs/climonfix5/jobs/negative-pause-may-replicate.json",
+    "exit": 1,
+    "binary_sha256": "14ff7e9430f89aa791b5a37ea32cb52a457356b3649a0b3f608be34d5f9f38af",
+    "archive": "docs/climonfix5/job-evidence/negative-pause-may-replicate.tar.gz",
+    "archive_sha256": "5d48f43878c091868dcc541ad55b2ee57f28c214122d3328dbcec6dcfd24ccee",
+    "files": 29,
+    "uncompressed_bytes": 105638,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "5.730000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "5.730000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "negative-pause-script-flags",
+    "receipt": "docs/climonfix5/jobs/negative-pause-script-flags.json",
+    "exit": 1,
+    "binary_sha256": "114006c93fca7eada9d855492e0236b0cb63ccd8113ca91e9c75579e652b9394",
+    "archive": "docs/climonfix5/job-evidence/negative-pause-script-flags.tar.gz",
+    "archive_sha256": "00bfd2428b0ca6f6016f3378ef08bce194db42902e63f73669a2474ec8f40d0c",
+    "files": 29,
+    "uncompressed_bytes": 87495,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "61.410000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "60.910000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "negative-reset-clears-libname",
+    "receipt": "docs/climonfix5/jobs/negative-reset-clears-libname.json",
+    "exit": 1,
+    "binary_sha256": "4ead321ee97309fff7ea8543e4af8e17814cc662c503572ba1fccb5ccf7d5ea2",
+    "archive": "docs/climonfix5/job-evidence/negative-reset-clears-libname.tar.gz",
+    "archive_sha256": "7fbb7de3d1a303dd62bde43d870e153363a93ac2b1e5c4bb5646d492573be4ab",
+    "files": 29,
+    "uncompressed_bytes": 156117,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "0.870000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "0.810000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "negative-reset-monitor-echo",
+    "receipt": "docs/climonfix5/jobs/negative-reset-monitor-echo.json",
+    "exit": 1,
+    "binary_sha256": "4272f64d7051a641eb2a0b1cd5677102129d785883ff94da8d290083a9024386",
+    "archive": "docs/climonfix5/job-evidence/negative-reset-monitor-echo.tar.gz",
+    "archive_sha256": "443e0f621ed35277177e7c699302cb9b8439478082a3a3d4730431a76cde8c78",
+    "files": 29,
+    "uncompressed_bytes": 115598,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "0.770000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "0.760000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "production-build",
+    "receipt": "docs/climonfix5/jobs/production-build.json",
+    "exit": 130,
+    "binary_sha256": "da0b750ccc881ce363347d7e69e0cc39defe3fce71914a5c3cb17f6fef516a92",
+    "archive": "docs/climonfix5/job-evidence/production-build.tar.gz",
+    "archive_sha256": "9ac6abec17568fffa6a234d2239e3a56794098eee589d005ceab42c57bf57548",
+    "files": 13,
+    "uncompressed_bytes": 1522340,
+    "jobs": [
+      {
+        "name": "production_units",
+        "done": "1\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "435.130000",
+            "label": "build dependency: make build/aoforder-scheduled,build/at15-db0-unit,build/at15-unit,build/at412-owner,build/atomic-survivors-unit,build/core-concurrency-unit,build/encodingfix-unit,build/exbatch-db0-unit,build/exbatch-unit,build/execabort-watch-db0-unit,build/execabort-watch-unit,build/expire-notify-unit,build/flushfix-units,build/gaterows5-units,build/ktls-keyupdate,build/ktls-keyupdate-unit,build/ktls-lifetime-unit,build/lbplanner-units,build/moverfix-db0-unit,build/moverfix-unit,build/multidb-boundary-unit,build/multidb-unit,build/netcap-unit,build/netcmd-unit,build/persistfix-units,build/publishfix-unit,build/racefix-climon,build/rehash-waits-unit,build/reorder-engagement-unit,build/reorder-engagement-unit-db0,build/respresume-migration,build/respresume-unit,build/rltopo-unit,build/shutdown-unit,build/splitlocal-unit,build/storesize-unit,build/txnorder-episodes,build/txnorder-episodes-debug,build/txnorder-index-db0-unit,build/txnorder-index-unit,build/txnorder-retry-unit,build/txnorder-wake-unit,build/txnorder-watch-db0-unit,build/txnorder-watch-unit,build/txnorder-wound-db0-unit,build/txnorder-wound-unit,build/waits-unit,build/wb-rule-units,build/wbland-units"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "0",
+            "label": "correctness family production_units"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tcl-initial4",
+    "receipt": "docs/climonfix5/jobs/tcl-initial4.json",
+    "exit": 1,
+    "binary_sha256": "12ccc556f71f1166324e57d21da275635493b9e78536b6f0cfd2666db8f80f9d",
+    "archive": "docs/climonfix5/job-evidence/tcl-initial4.tar.gz",
+    "archive_sha256": "d8a376669f969e1760b556e0171345f3568bbf2f88908b20ab02d4100f98c163",
+    "files": 387,
+    "uncompressed_bytes": 7101408,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t1\t1",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "219.660000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "212.190000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  }
+]
