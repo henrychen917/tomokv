@@ -48,7 +48,7 @@ def main():
                                   POST_minus_C4=counts['post']-counts['c4']))
     for name, rows in [('instruction-totals', totals), ('instruction-sites', sites)]:
         with (DOC/(name+'.csv')).open('w') as stream:
-            writer=csv.DictWriter(stream,fieldnames=list(rows[0]));writer.writeheader();writer.writerows(rows)
+            writer=csv.DictWriter(stream,fieldnames=list(rows[0]),lineterminator='\n');writer.writeheader();writer.writerows(rows)
     same = [r for r in totals if r['scope'] in session_kinds and r['comparable_to_pre']]
     headers = [r for r in totals if r['scope'] in session_kinds and not r['comparable_to_pre']]
     hot = [r for r in totals if r['scope'] not in session_kinds]

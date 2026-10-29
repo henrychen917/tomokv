@@ -3975,3 +3975,53 @@ session,normal,WATCH,2s,32,1,tomo::command_metadata_for(tomo::CommandSpec const&
 session,normal,WATCH,2s,32,1,"tomo::command_metadata_subcommand(tomo::CommandSpec const&, tomo::Slice)",0,1248,0,1248,0,-1248
 session,normal,WATCH,2s,32,1,"tomo::command_reply_container_subcommand_arity(tomo::Op&, tomo::CommandSpec const&, tomo::Client*)",0,768,0,768,0,-768
 session,normal,WATCH,2s,32,1,"tomo::multi_retire_entry(tomo::IoLoop&, tomo::Client&, tomo::Op&)",47,57,47,10,0,-10
+readonly,db0,FCALL-header-cross,1s,1,1,"tomo_db0::(anonymous namespace)::redis_dispatch(lua_State*, bool)",758,774,742,16,-16,-32
+readonly,db0,FCALL-header-cross,1s,1,1,"tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)",50,45,45,-5,-5,0
+readonly,db0,FCALL-header-cross,1s,1,1,"tomo_db0::notify_monitor_script(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::Op&, unsigned int)",0,54,0,54,0,-54
+readonly,db0,FCALL-header-cross,1s,1,1,"tomo_db0::script_execute(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::ScriptInvocation const&)",182,186,181,4,-1,-5
+readonly,db0,FCALL-header-cross,1s,32,1,"tomo_db0::(anonymous namespace)::redis_dispatch(lua_State*, bool)",24256,24768,23744,512,-512,-1024
+readonly,db0,FCALL-header-cross,1s,32,1,"tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)",1600,1440,1440,-160,-160,0
+readonly,db0,FCALL-header-cross,1s,32,1,"tomo_db0::notify_monitor_script(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::Op&, unsigned int)",0,1728,0,1728,0,-1728
+readonly,db0,FCALL-header-cross,1s,32,1,"tomo_db0::script_execute(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::ScriptInvocation const&)",5824,5952,5792,128,-32,-160
+readonly,db0,FCALL-header-cross,2s,1,1,"tomo_db0::(anonymous namespace)::redis_dispatch(lua_State*, bool)",758,774,742,16,-16,-32
+readonly,db0,FCALL-header-cross,2s,1,1,"tomo_db0::notify_monitor_script(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::Op&, unsigned int)",0,54,0,54,0,-54
+readonly,db0,FCALL-header-cross,2s,1,1,"tomo_db0::script_execute(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::ScriptInvocation const&)",182,186,181,4,-1,-5
+readonly,db0,FCALL-header-cross,2s,32,1,"tomo_db0::(anonymous namespace)::redis_dispatch(lua_State*, bool)",24256,24768,23744,512,-512,-1024
+readonly,db0,FCALL-header-cross,2s,32,1,"tomo_db0::notify_monitor_script(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::Op&, unsigned int)",0,1728,0,1728,0,-1728
+readonly,db0,FCALL-header-cross,2s,32,1,"tomo_db0::script_execute(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::ScriptInvocation const&)",5824,5952,5792,128,-32,-160
+readonly,db0,FCALL-header-single,1s,1,1,"tomo_db0::(anonymous namespace)::redis_dispatch(lua_State*, bool)",758,774,742,16,-16,-32
+readonly,db0,FCALL-header-single,1s,1,1,"tomo_db0::notify_monitor_script(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::Op&, unsigned int)",0,54,0,54,0,-54
+readonly,db0,FCALL-header-single,1s,1,1,"tomo_db0::script_execute(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::ScriptInvocation const&)",177,181,176,4,-1,-5
+readonly,db0,FCALL-header-single,1s,32,1,"tomo_db0::(anonymous namespace)::redis_dispatch(lua_State*, bool)",24256,24768,23744,512,-512,-1024
+readonly,db0,FCALL-header-single,1s,32,1,"tomo_db0::notify_monitor_script(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::Op&, unsigned int)",0,1728,0,1728,0,-1728
+readonly,db0,FCALL-header-single,1s,32,1,"tomo_db0::script_execute(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::ScriptInvocation const&)",5664,5792,5632,128,-32,-160
+readonly,db0,FCALL-header-single,2s,1,1,"tomo_db0::(anonymous namespace)::redis_dispatch(lua_State*, bool)",758,774,742,16,-16,-32
+readonly,db0,FCALL-header-single,2s,1,1,"tomo_db0::notify_monitor_script(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::Op&, unsigned int)",0,54,0,54,0,-54
+readonly,db0,FCALL-header-single,2s,1,1,"tomo_db0::script_execute(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::ScriptInvocation const&)",177,181,176,4,-1,-5
+readonly,db0,FCALL-header-single,2s,32,1,"tomo_db0::(anonymous namespace)::redis_dispatch(lua_State*, bool)",24256,24768,23744,512,-512,-1024
+readonly,db0,FCALL-header-single,2s,32,1,"tomo_db0::notify_monitor_script(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::Op&, unsigned int)",0,1728,0,1728,0,-1728
+readonly,db0,FCALL-header-single,2s,32,1,"tomo_db0::script_execute(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::ScriptInvocation const&)",5664,5792,5632,128,-32,-160
+readonly,normal,FCALL-header-cross,1s,1,1,"tomo::(anonymous namespace)::redis_dispatch(lua_State*, bool)",812,840,804,28,-8,-36
+readonly,normal,FCALL-header-cross,1s,1,1,"tomo::notify_monitor_script(tomo::Shard&, tomo::Op&, tomo::Op&, unsigned int)",0,54,0,54,0,-54
+readonly,normal,FCALL-header-cross,1s,1,1,"tomo::script_execute(tomo::Shard&, tomo::Op&, tomo::ScriptInvocation const&)",195,196,194,1,-1,-2
+readonly,normal,FCALL-header-cross,1s,32,1,"tomo::(anonymous namespace)::redis_dispatch(lua_State*, bool)",25984,26880,25728,896,-256,-1152
+readonly,normal,FCALL-header-cross,1s,32,1,"tomo::notify_monitor_script(tomo::Shard&, tomo::Op&, tomo::Op&, unsigned int)",0,1728,0,1728,0,-1728
+readonly,normal,FCALL-header-cross,1s,32,1,"tomo::script_execute(tomo::Shard&, tomo::Op&, tomo::ScriptInvocation const&)",6240,6272,6208,32,-32,-64
+readonly,normal,FCALL-header-cross,2s,1,1,"tomo::(anonymous namespace)::redis_dispatch(lua_State*, bool)",812,840,804,28,-8,-36
+readonly,normal,FCALL-header-cross,2s,1,1,"tomo::notify_monitor_script(tomo::Shard&, tomo::Op&, tomo::Op&, unsigned int)",0,54,0,54,0,-54
+readonly,normal,FCALL-header-cross,2s,1,1,"tomo::script_execute(tomo::Shard&, tomo::Op&, tomo::ScriptInvocation const&)",195,196,194,1,-1,-2
+readonly,normal,FCALL-header-cross,2s,32,1,"tomo::(anonymous namespace)::redis_dispatch(lua_State*, bool)",25984,26880,25728,896,-256,-1152
+readonly,normal,FCALL-header-cross,2s,32,1,"tomo::notify_monitor_script(tomo::Shard&, tomo::Op&, tomo::Op&, unsigned int)",0,1728,0,1728,0,-1728
+readonly,normal,FCALL-header-cross,2s,32,1,"tomo::script_execute(tomo::Shard&, tomo::Op&, tomo::ScriptInvocation const&)",6240,6272,6208,32,-32,-64
+readonly,normal,FCALL-header-single,1s,1,1,"tomo::(anonymous namespace)::redis_dispatch(lua_State*, bool)",812,840,804,28,-8,-36
+readonly,normal,FCALL-header-single,1s,1,1,"tomo::notify_monitor_script(tomo::Shard&, tomo::Op&, tomo::Op&, unsigned int)",0,54,0,54,0,-54
+readonly,normal,FCALL-header-single,1s,1,1,"tomo::script_execute(tomo::Shard&, tomo::Op&, tomo::ScriptInvocation const&)",190,191,189,1,-1,-2
+readonly,normal,FCALL-header-single,1s,32,1,"tomo::(anonymous namespace)::redis_dispatch(lua_State*, bool)",25984,26880,25728,896,-256,-1152
+readonly,normal,FCALL-header-single,1s,32,1,"tomo::notify_monitor_script(tomo::Shard&, tomo::Op&, tomo::Op&, unsigned int)",0,1728,0,1728,0,-1728
+readonly,normal,FCALL-header-single,1s,32,1,"tomo::script_execute(tomo::Shard&, tomo::Op&, tomo::ScriptInvocation const&)",6080,6112,6048,32,-32,-64
+readonly,normal,FCALL-header-single,2s,1,1,"tomo::(anonymous namespace)::redis_dispatch(lua_State*, bool)",812,840,804,28,-8,-36
+readonly,normal,FCALL-header-single,2s,1,1,"tomo::notify_monitor_script(tomo::Shard&, tomo::Op&, tomo::Op&, unsigned int)",0,54,0,54,0,-54
+readonly,normal,FCALL-header-single,2s,1,1,"tomo::script_execute(tomo::Shard&, tomo::Op&, tomo::ScriptInvocation const&)",190,191,189,1,-1,-2
+readonly,normal,FCALL-header-single,2s,32,1,"tomo::(anonymous namespace)::redis_dispatch(lua_State*, bool)",25984,26880,25728,896,-256,-1152
+readonly,normal,FCALL-header-single,2s,32,1,"tomo::notify_monitor_script(tomo::Shard&, tomo::Op&, tomo::Op&, unsigned int)",0,1728,0,1728,0,-1728
+readonly,normal,FCALL-header-single,2s,32,1,"tomo::script_execute(tomo::Shard&, tomo::Op&, tomo::ScriptInvocation const&)",6080,6112,6048,32,-32,-64

@@ -1,0 +1,24 @@
+{
+  "removed": [
+    {
+      "path": "build/climonfix5/scopes/readonly-scope.cc",
+      "sha256": "52b9a7b8f0cf65c0b16623e3cb4bb21660bdea1a04f49a098e5dc043f6e4016d",
+      "bytes": 12136
+    }
+  ],
+  "absent_superseded_sources_and_probes": [
+    "build/climonfix5/pre-source",
+    "build/climonfix5/c4-source",
+    "build/climonfix5/scopes/pre-normal-readonly",
+    "build/climonfix5/scopes/pre-db0-readonly",
+    "build/climonfix5/scopes/c4-normal-readonly",
+    "build/climonfix5/scopes/c4-db0-readonly",
+    "build/climonfix5/scopes/post-normal-readonly",
+    "build/climonfix5/scopes/post-db0-readonly"
+  ],
+  "build_allocated_bytes": 19248480256,
+  "build_allocated_gib": 17.926544189453125,
+  "build_apparent_bytes": 19183168893,
+  "lane_listeners": [],
+  "lane_server_processes": []
+}

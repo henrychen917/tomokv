@@ -3,14 +3,14 @@
 Candidate source: `e4a0e13ab` on `cx-climonfix5`, from `aaf658f85`.
 PRE is `393d6ceb1`; C4 production is `c369ccc41`. No push.
 
-The unarmed command-scope audit passes: **144/144 comparable script/transaction
+The unarmed command-scope audit passes: **160/160 comparable script/transaction
 triplets have POST <= PRE; all 92 retained hot-command triplets have
 PRE = C4 = POST.** The 32 no-writes-header triplets have POST < C4; PRE rejects
 that header, so their PRE error paths are explicitly not equivalent work.
 These are finite instruction counts, not throughput, cycles/op, IPC or latency
-claims. The equivalent no-writes FCALL cells are being added separately.
-Correctness validation is in progress; the final evidence below will replace
-this status before handoff.
+claims. Correctness validation passes on the frozen candidate as detailed
+below; the two `flip_saturated` rows remain NOT RUN because they invoke the
+maintainer-reserved performance load generator.
 
 ### Changes and scope
 
@@ -54,8 +54,9 @@ are unchanged.
 
 ### Instruction evidence
 
-[Totals](docs/climonfix5/instruction-totals.csv) contain all **268 PRE/C4/POST
-triplets**. [Sites](docs/climonfix5/instruction-sites.csv) report every changed
+[Totals](docs/climonfix5/instruction-totals.csv) contain all **284 PRE/C4/POST
+triplets (852 bounded executions)**: 192 session triplets and 92 retained hot
+triplets. [Sites](docs/climonfix5/instruction-sites.csv) report every changed
 production symbol in each triplet. [Summary](docs/climonfix5/instruction-summary.json)
 checks completeness, probe identities, no positive comparable session deltas,
 and exact equality of all 92 original hot scopes. Detailed per-symbol counts,
@@ -71,6 +72,8 @@ Representative absolute counts, normal namespace, split 6:2, batch 1:
 | EVALSHA, cross shard | 37804 | 37954 | 37796 | -8 |
 | FCALL, single shard | 11390 | 11483 | 11386 | -4 |
 | FCALL, cross shard | 37482 | 37574 | 37476 | -6 |
+| FCALL, no-writes two GET, single shard | 8717 | 8800 | 8708 | -9 |
+| FCALL, no-writes two GET, cross shard | 26354 | 26437 | 26345 | -9 |
 | MULTI + 2 INCR + EXEC, single shard | 21973 | 22319 | 21925 | -48 |
 | MULTI + 2 INCR + EXEC, cross shard | 26221 | 26567 | 26173 | -48 |
 | WATCH-aborted transaction, single shard | 64268 | 64827 | 64268 | 0 |
@@ -82,7 +85,8 @@ For the representative plain EVAL, C4's +139 instructions divide into
 `notify_monitor_script` +54. POST enters neither added helper and is -5 overall.
 For EVALSHA the same sites contribute +36/+23/+38/+54 in C4, versus POST -6.
 For FCALL, C4 adds +38 nested-dispatch, +54 monitor-helper and +1
-`script_execute`; POST is -4. The full CSV includes the compiler's secondary
+`script_execute`; POST is -4. For the no-writes two-GET FCALL, C4 adds
++28/+54/+1 at those sites; POST is -9. The full CSV includes the compiler's secondary
 changes, including the small flag-selection increases in WATCH-selected
 handlers and larger decreases in their formerly unnecessary source routing.
 No symbol delta is omitted from the site report.
@@ -120,6 +124,10 @@ EVALSHA returns NOSCRIPT. Those absolute counts remain in the CSV and are
 marked `comparable_to_pre=false`; no zero-cost claim compares successful
 POST execution to PRE's error. Against C4's successful read-only execution,
 POST saves 1114–1138.0625 instructions per invocation across these cases.
+The additional 16 FCALL no-writes triplets use an equivalent native function
+registration with a two-GET body; PRE supports that function flag, so these
+are comparable. Their generated fixture substitution and matching PRE/C4
+rebuild hashes are recorded in `readonly-{pre,c4,post}-source.json`.
 
 ### Correctness evidence
 
@@ -157,6 +165,14 @@ All server boots inherit `LC_ALL=C`; all lane processes are restricted to
 CPUs 16–31, builds use `-j16`, and correctness ports are in 20200–20299.
 The regular gate geometry is 16 shards on eight threads, split ratio 6:2;
 individual gate jobs retain their own explicit geometry overrides.
+
+The [final integrity audit](docs/climonfix5/artifact-integrity.json) verifies all
+four arm hashes, the frozen production source, all 852 instruction inputs,
+all 82 selected affected jobs and every member of 21 evidence archives. All
+57 final [freshness and binding checks](docs/climonfix5/final-freshness.json) pass.
+Completed gate logs have per-file manifests in `docs/climonfix5/job-evidence/`;
+loose scope and development logs are retained in the indexed
+`scope-logs.tar.gz` and `development-logs.tar.gz` archives.
 
 NOT RUN: `flip_saturated`, because it starts `memtier_benchmark`, a load
 generator explicitly reserved to the maintainer. Its two rows are not claimed
@@ -197,7 +213,9 @@ size in both namespaces on all four arms:
 Op=336, Client=1984, ThreadCtx=1408, Shard=1440, FlatStore=944,
 Rob<64>=192, AtomicEntry=144, Config=624.
 Superseded arm source/object trees and completed probe executables are removed
-after their hashes and counts are recorded.
+after their hashes and counts are recorded. The final
+[cleanup record](docs/climonfix5/final-cleanup.json) reports 17.93 GiB allocated
+under `build/`, with no lane server processes or listeners on 20200–20299.
 
 ### Maintainer measurement request
 

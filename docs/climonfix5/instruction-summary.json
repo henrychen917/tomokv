@@ -1,8 +1,8 @@
 {
-  "total_triplets": 268,
-  "session_triplets": 176,
+  "total_triplets": 284,
+  "session_triplets": 192,
   "hot_triplets": 92,
-  "same_semantics_triplets": 144,
+  "same_semantics_triplets": 160,
   "header_triplets": 32,
   "positive_session_deltas": [],
   "changed_hot_deltas": [],
@@ -2128,6 +2128,198 @@
     {
       "file": "docs/climonfix5/scopes/session-post-normal-WATCH-2s-32-1.json",
       "sha256": "5f09d8dcddea1cd1016a900a30847812da7ac36f839c36759ea5460f5b3ca25d"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-pre-db0-FCALL-header-cross-1s-1-1.json",
+      "sha256": "f6cf80a9a550d08ea358f61ade3e4d4122208e1bebd43a799e83bfeb0822363f"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-c4-db0-FCALL-header-cross-1s-1-1.json",
+      "sha256": "66107d11d07b5a2ca7b00f6b54f74cdfd67298922889f783b96de81803d7a0ea"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-post-db0-FCALL-header-cross-1s-1-1.json",
+      "sha256": "e5458d2d3a1d9aa217f65a6abfd04522bb8fe4195c3dd568cbdf6d66a67ffe46"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-pre-db0-FCALL-header-cross-1s-32-1.json",
+      "sha256": "04ae7216a4d419c9ed239f0aa9d500c14f4293b213d874e328982260e5da7c67"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-c4-db0-FCALL-header-cross-1s-32-1.json",
+      "sha256": "b7b27bf167afcbb4737f6f3a1a12984cd80aa4c23fd97e423d061bf847c8635b"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-post-db0-FCALL-header-cross-1s-32-1.json",
+      "sha256": "e8a9313e25e99fbeb5e94b142903d9483c6cda120b2ccd8e7e30930ce0c9a920"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-pre-db0-FCALL-header-cross-2s-1-1.json",
+      "sha256": "a0eb097922c3c0d72b3acd36d0ae170391889abb2b798b4c585b0e97dd6b0b2a"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-c4-db0-FCALL-header-cross-2s-1-1.json",
+      "sha256": "49809211aa146ac8141bbe5c1dfb9b4b3f949335a89b09556d83259be18a35e1"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-post-db0-FCALL-header-cross-2s-1-1.json",
+      "sha256": "70eae640395a904e110e868af9ab1d98f320861ff1cc6bf7ced4ebd13b464eea"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-pre-db0-FCALL-header-cross-2s-32-1.json",
+      "sha256": "6aff5e3a1074a03914d5926818ed704b828ab37e77e4e95e04e13c106eea5abe"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-c4-db0-FCALL-header-cross-2s-32-1.json",
+      "sha256": "0b61751c46665e570fa0211007e53bb58b572b71769bd0b578d7e1ef1214842f"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-post-db0-FCALL-header-cross-2s-32-1.json",
+      "sha256": "8c58d554129ee37a43e1ed0488e51fb69f6ecb501a1b65210d182a947eecc2d2"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-pre-db0-FCALL-header-single-1s-1-1.json",
+      "sha256": "e0128e6f36cf14f1a70c72e048c63c1e5b9d555e3465dd9b1744b3c2aa783df5"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-c4-db0-FCALL-header-single-1s-1-1.json",
+      "sha256": "62d557ef1c72f2b301940d31dbb615057c502890d0a65483ed50ea101c21469e"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-post-db0-FCALL-header-single-1s-1-1.json",
+      "sha256": "cb24d1145b86afe99113c85ef4f662cf77d527677f720bdda9579ad3cca9a8a4"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-pre-db0-FCALL-header-single-1s-32-1.json",
+      "sha256": "029c6149333454f731da5f7a23b89bf228022d24b8603dcf4ed9303101b6bda2"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-c4-db0-FCALL-header-single-1s-32-1.json",
+      "sha256": "527e3e302315880714e02a2fe787596b0335bb4a89382a0df593b2330145c625"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-post-db0-FCALL-header-single-1s-32-1.json",
+      "sha256": "8d0f940645a29f3cb19cc758503301849b291f6e29fdd1bc7e24550a5a75507f"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-pre-db0-FCALL-header-single-2s-1-1.json",
+      "sha256": "986d0c8d562ce2e1707636b8112813e1b960df70bcdb6a3d4e26c8fa66eb9ad0"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-c4-db0-FCALL-header-single-2s-1-1.json",
+      "sha256": "0b90610fdb9824f27612c1d3954c1df2c794070be1dac7c55ed72c40d11cf829"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-post-db0-FCALL-header-single-2s-1-1.json",
+      "sha256": "5f7bbe13dea67603c5326372886e10f0e2fe1315cb34043bb3947b0d5b8656d6"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-pre-db0-FCALL-header-single-2s-32-1.json",
+      "sha256": "144f91a9d4ccbc5f5e83e1e719a6473810673b2d575dec03c92abe73d813e2ea"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-c4-db0-FCALL-header-single-2s-32-1.json",
+      "sha256": "370c04e49bbb9f71ca8ac3b12991aad65861f5f6a7f7ddea9c69b9d4ac45a6e6"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-post-db0-FCALL-header-single-2s-32-1.json",
+      "sha256": "96b78517060c42864adc86671e93c04af9670fea20e7cf03c3c7f1ccf5eb1d2b"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-pre-normal-FCALL-header-cross-1s-1-1.json",
+      "sha256": "ca125c16fe8df52c61ce0a2a3445e18dfade769827fdf3b9108b9c5a587fd671"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-c4-normal-FCALL-header-cross-1s-1-1.json",
+      "sha256": "6538ac8d07c552c4ba26bd5dae8d86169aeb8787fede2e7e461efa58e61ae67a"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-post-normal-FCALL-header-cross-1s-1-1.json",
+      "sha256": "8954c28ae9eaa2d4e303bfc620a7491ad7cc8ac4487c8b8ecd3147970054ee2f"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-pre-normal-FCALL-header-cross-1s-32-1.json",
+      "sha256": "79e76c9eadc85c0f5c3eb38713f628404e0984a717e62c787761f7a31fa634b8"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-c4-normal-FCALL-header-cross-1s-32-1.json",
+      "sha256": "d30867d4bd09d7c1aab0d54ef78196a82754d46bc989b5bb78d0f0af9fbbd9a2"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-post-normal-FCALL-header-cross-1s-32-1.json",
+      "sha256": "881a453de9a1e8b7b373de1f6d5a8e8c4d80073ea65694d38a2b8fe820c5af02"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-pre-normal-FCALL-header-cross-2s-1-1.json",
+      "sha256": "1ab27762643d7014c2a1970cd5e9ce8179e9055ff3ddd94fad3b9c4276c00c82"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-c4-normal-FCALL-header-cross-2s-1-1.json",
+      "sha256": "3b9d16164a07dc6c55bb4a141aab23e7e3b234a99b0704373a47cf1535a1c5da"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-post-normal-FCALL-header-cross-2s-1-1.json",
+      "sha256": "488691e8d8437e703d51286d7a4b5e67cfe1a58da848ff0b6ec1d04ff0da3580"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-pre-normal-FCALL-header-cross-2s-32-1.json",
+      "sha256": "f85257901dfb32934217325e87ff8d82116f09c723fb94c80b7943f67c165a42"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-c4-normal-FCALL-header-cross-2s-32-1.json",
+      "sha256": "3e6f353baade52f7f4b8b064044562a14eab70ad59fda32fb1f03ba61da16a04"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-post-normal-FCALL-header-cross-2s-32-1.json",
+      "sha256": "cb0924a59e14378469ae4b937c8a6f5026d007fc3cb729d003b72bbb2400b5b3"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-pre-normal-FCALL-header-single-1s-1-1.json",
+      "sha256": "ec745527ea99f077f422a4bbc2049a93258d369b43eeb11749c02cf23864fc4a"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-c4-normal-FCALL-header-single-1s-1-1.json",
+      "sha256": "dfaa780bfde86c50881a47fe06d81029b089655d195ae84b1bbb609e3ee5bdec"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-post-normal-FCALL-header-single-1s-1-1.json",
+      "sha256": "96f100172c7dc18cdf8ce9248cd366e8b60448bdbdf059593ba047b8af606731"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-pre-normal-FCALL-header-single-1s-32-1.json",
+      "sha256": "870e04b7ab4508d11aff384716d559b686cb17fa9729951e3626d16bd98932c5"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-c4-normal-FCALL-header-single-1s-32-1.json",
+      "sha256": "5bdef5dfb74abb664db68910cee5be97e1034aeed5a775e14c36afd335cf5d77"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-post-normal-FCALL-header-single-1s-32-1.json",
+      "sha256": "86438950fffb303ab4045f1c10eecf9c3e8abe2aad9d476c643ef0facd11c8fa"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-pre-normal-FCALL-header-single-2s-1-1.json",
+      "sha256": "50f843aee3b060f81487e607fbe5a85587f814089754b06a611da15732b38a42"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-c4-normal-FCALL-header-single-2s-1-1.json",
+      "sha256": "4f61f7efd9b3d2de4de97ae5997ac89c8f80a6ae44e7b39025cf8bdba68e9d86"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-post-normal-FCALL-header-single-2s-1-1.json",
+      "sha256": "44707f4165833c0b934aff2d53e782a88b5d5e7d27e65cdec80a198d59a0c409"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-pre-normal-FCALL-header-single-2s-32-1.json",
+      "sha256": "6915cca53bd37b8ea18d7659e4bcc459f734f10fce4bf3ded85239653b91b281"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-c4-normal-FCALL-header-single-2s-32-1.json",
+      "sha256": "710361f9e81bb6ed9a5b0de16d61c22ba07de45d1ad4354a219488c642cf5713"
+    },
+    {
+      "file": "docs/climonfix5/scopes/readonly-post-normal-FCALL-header-single-2s-32-1.json",
+      "sha256": "901f098ecb799bc525c889f75cdfea5bcba8a1c7454154ba74483f5a75012d34"
     },
     {
       "file": "docs/climonfix5/scopes/hot-pre-db0-GET-1s-1-1.json",
