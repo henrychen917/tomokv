@@ -716,7 +716,7 @@ bool invoke_fcall(Shard& shard, Op& op, Prepare&& prepare) {
         reply_text_error(op, "ERR", "invalid function key declaration");
         return true;
     }
-    lua_State* state = script_thread_state();
+    lua_State* state = script_thread_state(ScriptArgStyle::Params);
     if (!state) { reply_text_error(op, "ERR", "out of memory"); return true; }
     std::string error;
     if (!function_thread_sync(state, error)) { reply_err_string(op, error); return true; }
@@ -734,7 +734,7 @@ bool invoke_fcall(Shard& shard, Op& op, Prepare&& prepare) {
     lua_getfield(state, -1, "name");
     size_t registered_length = 0;
     const char* registered_name = lua_tolstring(state, -1, &registered_length);
-    const std::string registered(registered_name, registered_length);
+    // The registry roots this immutable name until the next library sync.
     lua_pop(state, 1);
     lua_getfield(state, -1, "flags");
     const uint32_t flags = static_cast<uint32_t>(lua_tonumber(state, -1));
@@ -776,7 +776,7 @@ bool invoke_fcall(Shard& shard, Op& op, Prepare&& prepare) {
         call.readonly = kReadonly || (flags & kFlagNoWrites) != 0;
         call.notify = kNotify;
         call.chunk = "user_function";
-        call.tag = Slice(registered.data(), registered.size());
+        call.tag = Slice(registered_name, registered_length);
         g_calls.fetch_add(1, std::memory_order_relaxed);
         script_execute(shard, op, call);
     };

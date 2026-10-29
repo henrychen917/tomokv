@@ -391,7 +391,10 @@ struct LuaEngine {
         if (state) lua_close(state);
     }
 };
+// EVAL and FUNCTION have different immutable APIs and mutable helper state.
+// Allocate either VM lazily; selecting a call never rebuilds or rebinds globals.
 thread_local LuaEngine t_lua_engine;
+thread_local LuaEngine t_function_engine;
 struct ScriptCrossBinding {
     Op* op = nullptr;
     uint8_t* access = nullptr;
@@ -1042,7 +1045,7 @@ void reset_cjson_environment(lua_State* state, const char* registry_name) {
 
 // Built ONCE per thread state: libraries, strips, the redis table (closures over the stable
 // per-state context slot), the hook registry entry, and — last — the globals protection.
-void create_sandbox_static(lua_State* state, ScriptContext** slot) {
+void create_sandbox_static(lua_State* state, ScriptContext** slot, bool function = false) {
     open_library(state, luaopen_base, "");
     open_library(state, luaopen_table, LUA_TABLIBNAME);
     open_library(state, luaopen_string, LUA_STRLIBNAME);
@@ -1120,6 +1123,13 @@ void create_sandbox_static(lua_State* state, ScriptContext** slot) {
         lua_pop(state, 1);
     }
     lua_pop(state, 1);
+    // Both API tables are frozen before this cold selection. Closures (including
+    // load/loadstring) inherit this interpreter's globals for their whole life.
+    if (function) {
+        select_cjson_environment(state, true);
+        lua_getfield(state, LUA_REGISTRYINDEX, "tomo_function_redis");
+        set_global_raw(state, "redis");
+    }
 }
 
 // Rebuilt per call: only the tables whose contents depend on the op. Leaves the two tables on the
@@ -1377,9 +1387,10 @@ std::string script_runtime_error(lua_State* state, const ScriptContext& context,
 
 }  // namespace
 
-lua_State* script_thread_state() {
-    LuaEngine& engine = t_lua_engine;
-    if (engine.state &&
+lua_State* script_thread_state(ScriptArgStyle style) {
+    const bool function = style == ScriptArgStyle::Params;
+    LuaEngine& engine = function ? t_function_engine : t_lua_engine;
+    if (!function && engine.state &&
         engine.flush_generation != g_script_flushes.load(std::memory_order_acquire)) {
         // EVAL's compiled chunks belong to SCRIPT FLUSH; FUNCTION closures and their mutable
         // upvalues do not. Keep the readonly environment and the function registry roots alive.
@@ -1392,7 +1403,7 @@ lua_State* script_thread_state() {
         engine.state = luaL_newstate();
         if (!engine.state) return nullptr;
         engine.flush_generation = g_script_flushes.load(std::memory_order_acquire);
-        create_sandbox_static(engine.state, &engine.current);
+        create_sandbox_static(engine.state, &engine.current, function);
         lua_newtable(engine.state);
         lua_setfield(engine.state, LUA_REGISTRYINDEX, "tomo_chunks");
         g_state_rebuilds.fetch_add(1, std::memory_order_relaxed);
@@ -1494,7 +1505,7 @@ FunctionMemoryScope::~FunctionMemoryScope() {
 void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
     if (__builtin_expect(shard.server() && shard.server()->latency_tracking(), false))
         latency_tracking_script_begin(op);
-    LuaEngine& engine = t_lua_engine;
+    LuaEngine& engine = call.style == ScriptArgStyle::Params ? t_function_engine : t_lua_engine;
     lua_State* state = engine.state;
     ScriptContext context{&shard, &op, call.key_first, call.key_count};
     if (t_script_cross.op == &op) {
@@ -1505,10 +1516,6 @@ void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
     context.readonly = call.readonly;
     context.function_admitted = call.style == ScriptArgStyle::Params || call.memory_admitted;
     engine.current = &context;
-    select_cjson_environment(state, call.style == ScriptArgStyle::Params);
-    lua_getfield(state, LUA_REGISTRYINDEX, call.style == ScriptArgStyle::Params
-        ? "tomo_function_redis" : "tomo_eval_redis");
-    set_global_raw(state, "redis");
 
     ScriptEvictionGuard eviction_guard(shard);
     FunctionMemoryScope memory_scope(shard.store(), context.function_admitted);
