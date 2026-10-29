@@ -52,7 +52,7 @@ def main():
     for after in post['rows']:
         before = old[key(after)]
         differences = {name: after['functions'].get(name, 0) - before['functions'].get(name, 0)
-                       for name in before['functions'].keys() | after['functions'].keys()}
+                       for name in sorted(before['functions'].keys() | after['functions'].keys())}
         differences = {name: value for name, value in differences.items() if value}
         delta = after['total'] - before['total']
         assert sum(differences.values()) == delta
