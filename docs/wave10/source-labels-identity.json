@@ -500,5 +500,21 @@
       "new_sha256": "c6da8efe4852bbebc765f389c369e48145f1fa81381c924abefc2854bd33ddcd"
     }
   ],
-  "symbols_equal": true
+  "symbols_equal": true,
+  "rodata_differences": [
+    {
+      "offset": 89527,
+      "address": "0x884db7",
+      "old": "6f3a252e32660d0a0000000000000072656469735f6769745f736861313a31316635323539390d0a72656469735f6769745f64697274793a300d0a72656469735f627569",
+      "new": "6f3a252e32660d0a0000000000000072656469735f6769745f736861313a39626163626532640d0a72656469735f6769745f64697274793a300d0a72656469735f627569"
+    },
+    {
+      "offset": 573583,
+      "address": "0x8fb08f",
+      "old": "61696c61626c6520666f722065766572656469735f6769745f736861313a31316635323539390d0a72656469735f676469735f6769745f64697274793a300d0a72656469",
+      "new": "61696c61626c6520666f722065766572656469735f6769745f736861313a39626163626532640d0a72656469735f676469735f6769745f64697274793a300d0a72656469"
+    }
+  ],
+  "conclusion": "All executable bytes, function symbols/addresses, and data layouts are identical. Only the two INFO build-commit strings differ in allocated program data; build-id and debug information also differ. No command-scope count or selected inlining budget changes.",
+  "frozen_new_binary": "/home/user/Projects/cx-wave10/build/wave10/arms/POST-source-labels"
 }
