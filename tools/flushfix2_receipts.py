@@ -60,6 +60,25 @@ def main():
                 'atomic_flush_post_versions', 'atomic_flush_script_conflicts', 'atomic_flush_slow_collapses'))
             assert fired['script_reply'] == [1, 1]
         (OUT/'post-final-witnesses.json').write_text(json.dumps(rows, indent=2)+'\n')
+        pre = read(OUT/'pre-final-witnesses.json')
+        targets = [r for r in rows if not r['leg'].startswith('redis-')]
+        keys = ('case', 'command', 'flush_mode', 'databases')
+        groups = sorted({tuple(r[k] for k in keys) for r in targets})
+        lines = ['# Directed FLUSH proof', '',
+            'Each row aggregates eight target legs; JSON receipts retain every leg and fresh-state attempt. Counts are correctness observations, not throughput measurements.', '',
+            '| Case | Command | Option | DBs | PRE tears / observations | POST tears / observations | POST fired legs |',
+            '|---|---|---|---:|---:|---:|---:|']
+        for group in groups:
+            sums = []
+            for arm in (pre, targets):
+                legs = [r for r in arm if not r['leg'].startswith('redis-') and
+                        tuple(r[k] for k in keys) == group]
+                assert len(legs) == 8
+                sums.append([sum(a[name] for r in legs for a in r['attempts'])
+                             for name in ('torn', 'observations')])
+            lines.append('| ' + ' | '.join(map(str, group)) +
+                         f' | {sums[0][0]} / {sums[0][1]} | {sums[1][0]} / {sums[1][1]} | 8 |')
+        (OUT/'directed-table.md').write_text('\n'.join(lines)+'\n')
     if a.pad:
         rows = directed(a.pad_root.resolve(), 16)
         assert all(not r['pass'] and any(x['torn'] for x in r['attempts']) for r in rows)
