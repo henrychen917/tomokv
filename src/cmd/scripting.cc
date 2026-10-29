@@ -1870,12 +1870,12 @@ bool command_script_key_range(const Op& op, uint32_t& first, uint32_t& count) {
 // SCRIPT LOAD has always done.
 static bool script_route_store(Op& op) {
     const char* name = op.spec ? op.spec->name : "";
+    if (std::strncmp(name, "EVAL", 4)) return true;      // FCALL / FCALL_RO own no source
     if (!std::strncmp(name, "EVALSHA", 7)) {
         if (g_scripts.exists(op.arg(1))) return true;
         reply_text_error(op, "NOSCRIPT", "No matching script. Please use EVAL.");
         return false;
     }
-    if (std::strncmp(name, "EVAL", 4)) return true;      // FCALL / FCALL_RO own no source
     const Slice source = op.arg(1);
     if (source.n > kScriptMaxBytes) {
         reply_text_error(op, "ERR", "script exceeds the 1 MiB limit");
