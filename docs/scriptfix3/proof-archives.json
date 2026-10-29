@@ -10,5 +10,17 @@
     "archive": "docs/scriptfix3/job-archives/compatibility.tar.gz",
     "sha256": "ddeb753325c54358da4996734d3283a9c8f1f8af0342219653ecb97806b4601e",
     "files": 1607
+  },
+  {
+    "name": "final-uring",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 249 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-scriptfix3/docs/scriptfix3/jobs/final-uring.tsv.partial"
+    ],
+    "binary_sha256": "d9f883e8babf349d9d7f3435bb0e27b0a2973cdd307fd67830923b18475abe01",
+    "binary_unchanged": true,
+    "archive": "docs/scriptfix3/job-archives/final-uring.tar.gz",
+    "sha256": "fd7a07be1679c3e955f2d022b2709a8e166bf8a29b584ef500352a682c6c6e4d",
+    "files": 4283
   }
 ]

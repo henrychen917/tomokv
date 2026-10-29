@@ -7,8 +7,8 @@ Tcl manifest and assertions are unchanged.
 
 All **192 scripting comparisons are at or below the headline**, and all **96 ordinary
 command comparisons are exactly PRE**. These are serverless instruction counts within
-the scopes described below, not throughput measurements. Correctness receipts are
-being collected; the final proof table will replace the pending section below.
+the scopes described below, not throughput measurements. The main selected-job proof passes 249 rows; the remaining engine and persistence
+receipts are still being collected.
 
 ### Production change
 
@@ -33,8 +33,9 @@ Call-dependent readonly, no-writes, allow-oom and memory-admission checks remain
 The numeric-argument lifetime fix, deep replies, API behavior, original errors and all
 other implemented scriptfix2 behavior remain. The pre-existing compatibility boundaries
 listed in `cx-scriptfix2:MEASURE-REQUEST-scriptfix2.md` are not expanded by this lane.
-The cost moved to cold work is a second lazy VM on threads that use both APIs, immutable
-cache metadata/source indexes, and aliases for observed SHA/function-name spellings.
+The cost moved to cold work is a second lazy VM on threads that use both APIs (and
+its thread-local handle), immutable cache metadata/source indexes, and aliases for
+observed SHA/function-name spellings.
 No public configuration or locked object layout changes.
 
 ### Instruction evidence and attribution
@@ -100,17 +101,25 @@ is in `docs/scriptfix3/instruction-sites/`.
 ### Correctness proof
 
 All work uses CPUs 32–47. Builds use `-j16`; gate jobs use server CPUs 32–39 and
-load/oracle CPUs 40–47, ports 20300–20309, 16 shards and ratio 6:2. `LC_ALL=C` is
+load/oracle CPUs 40–47, ports 20300–20309, 16 shards and ratio 6:2. The oracle is
+Redis 7.4.10, SHA-256 `ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b`.
+`LC_ALL=C` is
 inherited by every server and oracle. Selected jobs use gate.sh's `GATE_ONLY_JOBS`
 interface with `GATE_PROOF_NO_RATES=1`; no full iteration or performance job is selected.
 The wrapper records argv, environment, binary hash, source state, exit and original ledger.
 
+* Main selected-job run: **249 passed rows, zero failures**. This includes all five
+  io_uring differential parts and the full scripting/compatibility selection.
+* Original scriptfix2 rows: **48/48 pass**, **192 geometry legs**, **3,584 exact wire
+  comparisons**, zero differences. The gate and original battery files match PRE.
 * `python3 tests/gates_test.py`: **73/73 pass**.
 * Additional warm spelling/environment/flush oracle witnesses: **32/32 legs**, **1,360
   exact wire comparisons**, no differences; both modes, engines, namespaces and atomic settings.
 * `make all` and every `job_production_units` target built; **56 make -q invocations
   pass**, including the recursive mdbqsbr alias and both extra makefiles.
-* Both final Tcl modes passed. Remaining selected gate jobs are **PENDING**.
+* Final Tcl job: **37 files and 1,803 passed assertions per mode**, including 130 scripting
+  and 86 FUNCTION assertions. Each mode retains five exact, manifest-approved setup
+  exceptions (two in scripting). Remaining selected gate jobs are **PENDING**.
 
 The earlier candidate's compatibility run passed 65 rows and failed the fused Tcl row
 on a `unit/tracking` timeout after ten assertions. This was not a scripting/FUNCTION
@@ -141,7 +150,7 @@ or data layout.** Do not interpret it as eliminating every layout effect.
 
 Superseded arm trees/probes were removed after preserving hashes, counts and visited-site
 disassembly (`pruned-arms.json`, `pruned-probes.json`). PRE objects remain available to
-rebuild PAD-A. Current build usage is about 18 GiB.
+rebuild PAD-A. Current build usage is about 17 GiB.
 
 ### Maintainer measurement request — NOT RUN in this lane
 
