@@ -2760,6 +2760,84 @@
     ]
   },
   {
+    "name": "differ-uring",
+    "receipt": "docs/climonfix5/jobs/differ-uring.json",
+    "exit": 0,
+    "binary_sha256": "5580e65fb3d5135ca6829d272cf4de89c2661715bc58247ad26a7163939a0f5f",
+    "archive": "docs/climonfix5/job-evidence/differ-uring.tar.gz",
+    "archive_sha256": "debf19785418984e2404124ca38fa9c2861863b90b9fd4023b71679c56829b19",
+    "files": 2113,
+    "uncompressed_bytes": 2992761,
+    "jobs": [
+      {
+        "name": "differ-armed-0",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "527.450000",
+            "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+          }
+        ]
+      },
+      {
+        "name": "differ-armed-1",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "527.510000",
+            "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+          }
+        ]
+      },
+      {
+        "name": "differ-equivalence",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "21.460000",
+            "label": "mode equivalence part (all execution modes and knobs)"
+          }
+        ]
+      },
+      {
+        "name": "differ-split-0",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "532.210000",
+            "label": "Redis 7.4 differential part (split, atomic 0)"
+          }
+        ]
+      },
+      {
+        "name": "differ-split-1",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "538.280000",
+            "label": "Redis 7.4 differential part (split, atomic 1)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "name": "directed-final-v11",
     "receipt": "docs/climonfix5/jobs/directed-final-v11.json",
     "exit": 0,

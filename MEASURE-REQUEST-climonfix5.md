@@ -136,8 +136,10 @@ The affected whole-job campaign completes with **438 passed, 0 failed**
 again passes 1,704 assertions and all 14 promotions in each mode
 ([receipt](docs/climonfix5/jobs/tcl-final.json), [promotion audit](docs/climonfix5/full-tcl-promotions.json)).
 Both CLIENT REPLY OFF/SKIP atomic rows pass
-([receipt](docs/climonfix5/jobs/replyoff-final.json)). The standard differential
-matrices on both engines remain in progress.
+([receipt](docs/climonfix5/jobs/replyoff-final.json)). The standard io_uring differential
+matrix passes all four mode/atomic legs and mode equivalence: six gate rows,
+zero failures ([receipt](docs/climonfix5/jobs/differ-uring.json),
+[seed/part summary](docs/climonfix5/differ-uring-summary.json)). Epoll remains in progress.
 [Directed receipt](docs/climonfix5/jobs/directed-final-v11.json),
 [seven isolated controls](docs/climonfix5/isolated-regressions.json),
 [harness tests](docs/climonfix5/gates-test.json). Five controls raise named
