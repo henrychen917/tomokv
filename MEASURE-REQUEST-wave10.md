@@ -148,6 +148,9 @@ climonfix4, flushfix2, execfifo and lineshare-a/b are not merged.
   satisfying the headline's source-identity rule. Its whole source-identity job
   passes. All executable bytes, symbols/addresses and data layouts remain exact;
   only two INFO git strings, build-id and debug information differ after rebuild.
+- `d9ed7de01` adds exact selected socket/epoll/IO destination diagnostics to the
+  existing FLIP assertion. Both assertions remain unchanged; the earlier failure
+  remains documented as unreproduced.
 - `75cb895ab` repairs a stale DEBUG battery expectation for offline LOADAOF. It
   requires Redis's exact missing-file error, deletion of a seeded key and
   appendonly staying disabled. No assertion or row is removed.
@@ -269,8 +272,9 @@ receipt fixtures. The real-tree standalone scheduler
 suite also passes 73/73. EXPECT was changed only in the throwaway copy.
 
 `make all` passes its footprint locks. All 56 production-unit target freshness
-checks and `make -q all` pass again after the telemetry-label rebuild; see
-[freshness-after-labels.json](docs/wave10/freshness-after-labels.json). Three initial attempted names
+checks and `make -q all` pass again after the final fixture rebuild. Both native
+INFO companions are fresh too: **59/59** recorded checks in
+[freshness-final.json](docs/wave10/freshness-final.json). Three initial attempted names
 were parbuild readiness markers, not Makefile targets; their lookup errors remain
 in `freshness-discovery.json`. Disposable lottery/publishfix build hashes and
 freshness are in [variant-builds.json](docs/wave10/variant-builds.json). All six
@@ -353,7 +357,11 @@ receipts remain. Build storage remains below the 40G limit; the final size will 
   allocation-correct integration helpers instead.
 
 All `_schedule.py`/`_build.py` entry points and their gate/Makefile consumers
-are listed in [builder-consumers.json](docs/wave10/builder-consumers.json).
+are listed in [builder-consumers.json](docs/wave10/builder-consumers.json). The
+complete `trackfix_order`, `notifycompat`, `aoforder` and `racefix_climon` jobs
+pass (1/7/3/1 rows respectively); [builder-job-proof.json](docs/wave10/builder-job-proof.json)
+binds their ledgers. Lottery and publishfix full builds/netio receipts are
+recorded separately in `variant-builds.json`.
 
 ### Maintainer measurement plan — NOT RUN
 
