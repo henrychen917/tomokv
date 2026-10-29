@@ -2660,6 +2660,13 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->aof().auto_rewrite_backoff_skips() : 0));
     }
     if (want_stats) {
+        const auto& f = atomic_flush_counters;
+        body += "atomic_flush_units:" + std::to_string(f.units.load()) + "\r\n";
+        body += "atomic_flush_range_reads:" + std::to_string(f.range_reads.load()) + "\r\n";
+        body += "atomic_flush_post_versions:" + std::to_string(f.post_versions.load()) + "\r\n";
+        body += "atomic_flush_script_conflicts:" + std::to_string(f.script_conflicts.load()) + "\r\n";
+        body += "atomic_flush_collapses:" + std::to_string(f.collapses.load()) + "\r\n";
+        body += "atomic_flush_slow_collapses:" + std::to_string(f.slow_collapses.load()) + "\r\n";
         const ScriptStats scripting = script_stats();
         const FunctionStats functions = function_stats();
         const AtomicTripwireCounts tripwire = atomic_tripwire_counts();

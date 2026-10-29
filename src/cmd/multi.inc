@@ -315,7 +315,8 @@ void multi_cancel_record(AtomicEntry& entry, const ScatterState* self) {
     if (!entry.group || entry.group == self) return;
     ScatterState& script = *entry.group;
     if (script.group_attempt()) {
-        const uint32_t shard = script.keys[script.key_order[entry.begin]].shard;
+        const uint32_t shard = entry.namespace_range ? entry.begin
+            : script.keys[script.key_order[entry.begin]].shard;
         if (!self) txn_group_cancel(script, shard);
         return;
     }

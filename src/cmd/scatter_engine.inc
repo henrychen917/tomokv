@@ -17,7 +17,7 @@ enum class Kind : uint8_t {
     Bitop, Pfmerge,
     Lmpop, Zmpop, Zrangestore, Sort,
     Geosearchstore, Georadius, Georadiusbymember,
-    Script,
+    Script, Flush,
 };
 
 // Place: an escalated attempt's first wave (AT4.12 TO-B placement, then the read at UINT64_MAX).
@@ -90,6 +90,8 @@ struct GroupAux {
     std::vector<DatabaseKey> flush_keys;
     std::vector<std::string> keys_result;
     bool flush_keys_built = false;
+    AtomicEntry* flush_range = nullptr;
+    bool flush_changed = false;
     std::unique_ptr<DatabaseStatsTable> database_stats;
 };
 
@@ -743,6 +745,10 @@ ResultHeap* ensure_result(ScatterState& state) {
     if (!state.result) state.result = new (std::nothrow) ResultHeap;
     return state.result;
 }
+
+ScatterTaskResult execute_flush(const Task&, Shard&, Op&);
+void flush_after_decision(Server&, ThreadCtx&, Ring&, ScatterState&);
+void flush_aof_emit(ScatterState&, Shard&, Op&);
 
 bool aof_prepare_scatter_group(ScatterState& state) {
     if (!state.atomic_group || !state.server || !state.server->aof().recording()) return true;
@@ -1606,7 +1612,7 @@ template<bool ScriptOnly>
                              command_config_routes_all_shards(op, force_atomic)));
     Kind kind;
     if constexpr (ScriptOnly) kind = Kind::Script;
-    else if (all_shards)
+    else if (all_shards) {
         kind = op.cmd_name().eq_icase("randomkey") ? Kind::RandomKey :
                op.cmd_name().eq_icase("info") ? Kind::DatabaseInfo :
                op.cmd_name().eq_icase("swapdb") ? Kind::Swapdb :
@@ -1615,8 +1621,12 @@ template<bool ScriptOnly>
                    ? Kind::DebugBorrowCount :
                op.cmd_name().eq_icase("debug") && op.arg(1).eq_icase("loadaof")
                    ? Kind::DebugLoadAof :
-               op.cmd_name().eq_icase("debug") ? Kind::DebugReload : Kind::AllShards;
-    else if (!(op.spec->flags & CmdFlags::MultiShard) || !classify(op, kind))
+               op.cmd_name().eq_icase("debug") ? Kind::DebugReload :
+               (op.cmd_name().eq_icase("flushall") || op.cmd_name().eq_icase("flushdb"))
+                   ? Kind::Flush : Kind::AllShards;
+        if (kind == Kind::Flush)
+            return xshard_prepare_flush(server, op, pool, owner_io, origin_conn_id, dispatch, force_atomic);
+    } else if (!(op.spec->flags & CmdFlags::MultiShard) || !classify(op, kind))
         return ScatterPrepare::NotScatter;
 
     if (kind == Kind::Swapdb && origin_client) {
@@ -2351,6 +2361,7 @@ bool xshard_is_local(const Op& op) { return op.local_xshard(); }
 
 void xshard_aof_emit(const Task& task, Shard& shard, Op& op, AofOwnerContext& context) {
     ScatterState& state = *task.scatter;
+    if (state.kind == Kind::Flush) { flush_aof_emit(state, shard, op); return; }
     if (!xshard_owner_mutation_phase(state, op)) return;
     if (state.atomic_group) {
         if (!state.aof_group) return;
@@ -2973,6 +2984,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
         if (state.atomic_direct)
             return execute_atomic_direct_rename(task, shard, op, execution_owner);
         if (state.atomic_apply) {
+            if (state.kind == Kind::Flush) return execute_flush(task, shard, op);
             if (state.phase == 2) {
                 if (state.kind == Kind::Script) {
                     state.server->note_script_apply_owner();
@@ -4282,6 +4294,11 @@ void xshard_flush_commits_impl(Server& server, ThreadCtx& self, Ring& ring,
                     continue;
                 }
                 aof_abort_scatter_group(*state);
+            }
+            if (state->kind == Kind::Flush) {
+                flush_after_decision(server, self, ring, *state);
+                state = next;
+                continue;
             }
             // Atomic MSET/DEL publish in phase one as well: replacement of a
             // stream must reprobe its group readers at the commit decision.

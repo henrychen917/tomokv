@@ -1,0 +1,175 @@
+// FLUSH's whole-shard unit. Included in xshard.cc beside the other cold units.
+namespace tomo {
+
+bool Shard::watch_reserve_flush(int physical_db, const void* token,
+                               std::atomic<uint64_t>* epoch, std::atomic<bool>* aborted,
+                               std::atomic<uint32_t>* refs) {
+    try {
+        for (const auto& [owned, entries] : watchers_) {
+            const uint8_t ns = static_cast<uint8_t>(owned[0]);
+            if (physical_db >= 0 && ns != physical_db) continue;
+            const Slice key(owned.data() + 1, owned.size() - 1, ns);
+            bool dirty = store_.find_no_touch(FlatStore::hash_key(key), key) != nullptr;
+            for (const auto& e : entries)
+                dirty |= e.expire_at_ms >= 0 && e.expire_at_ms < now_ms_;
+            if (dirty) watch_reserve_write(key, nullptr, 0, token, epoch, aborted, refs);
+        }
+        return !aborted->load(std::memory_order_acquire);
+    } catch (const std::bad_alloc&) { return false; }
+}
+
+ScatterPrepare xshard_prepare_flush(Server& server, Op& op, ScatterArenaPool& pool,
+                              uint32_t io, uint64_t origin, ScatterDispatch& dispatch,
+                              bool force_atomic) {
+    if (!command_validate_all_shards(op)) return ScatterPrepare::Error;
+    uint64_t generation = 0;
+    if (!force_atomic && !server.atomic_try_admit(io, generation, true))
+        return ScatterPrepare::Backpressure;
+    const size_t bytes = arena_layout_bytes(Kind::Flush, 0, server.nshards(),
+        server.nshards(), false, true, server.nthreads(), false);
+    bool pooled = false;
+    void* memory = pool.acquire(bytes, pooled);
+    if (!memory) {
+        if (!force_atomic) server.atomic_retire_group(io, generation);
+        set_oom(op);
+        return ScatterPrepare::Error;
+    }
+    auto* state = new (memory) ScatterState;
+    state->kind = Kind::Flush;
+    state->atomic_apply = state->atomic_group = true;
+    state->server = &server;
+    state->phase = 1;
+    state->barrier = true;
+    state->pooled = pooled;
+    state->owner_io = io;
+    state->owner_slots = server.nthreads();
+    state->origin_conn_id = origin;
+    state->admitted = !force_atomic;
+    state->admission_generation = generation;
+    state->now_cut_ms = now_realtime_ms();
+    state->arena_bytes = bytes;
+    state->group_cap = state->shard_slots = state->nsub = server.nshards();
+    if (state->admitted) server.atomic_apply_open(io, state->apply_open);
+    init_arena_arrays(*state);
+    for (uint32_t i = 0; i < state->nsub; ++i) {
+        state->groups[i].shard = i;
+        state->shard_groups[i] = i;
+    }
+    state->pending.store(state->nsub, std::memory_order_relaxed);
+    if (!force_atomic && (!txn_group_prepare(*state, server, io, &pool) ||
+                          !aof_prepare_scatter_group(*state))) {
+        xshard_abandon_unpublished(state, pool, io);
+        set_oom(op);
+        return ScatterPrepare::Error;
+    }
+    dispatch.state = state;
+    dispatch.nshards = state->nsub;
+    dispatch.barrier = dispatch.atomic_write = true;
+    return ScatterPrepare::Ready;
+}
+
+namespace {
+
+ScatterTaskResult execute_flush(const Task& task, Shard& shard, Op& op) {
+    auto& state = *task.scatter;
+    auto& group = *group_for(state, shard.id());
+    auto& store = shard.store();
+    const int ns = op.cmd_name().eq_icase("flushdb") ? op.physical_db : -1;
+    if (state.phase == 1) {
+        if (!txn_group_ready(state, shard, op))
+            return state.aborted.load(std::memory_order_acquire)
+                ? ScatterTaskResult::Complete : ScatterTaskResult::Defer;
+        if (state.aborted.load(std::memory_order_acquire)) return ScatterTaskResult::Complete;
+        if (!group.aux) group.aux = new GroupAux;
+        group.aux->flush_changed = store.size() != 0;
+        if (!shard.watch_reserve_flush(ns, &state, &state.epoch, &state.aborted, &state.watch_refs)) {
+            group.error = WorkError::Oom;
+            state.aborted.store(true, std::memory_order_release);
+            return ScatterTaskResult::Complete;
+        }
+        group.aux->flush_range = store.atomic_install_flush(&state, ns, &state.epoch,
+            &state.aborted, &state.record_refs, state.origin_conn_id, shard.id());
+        if (!group.aux->flush_range) {
+            group.error = WorkError::Oom;
+            state.aborted.store(true, std::memory_order_release);
+        }
+        return ScatterTaskResult::Complete;
+    }
+    auto* range = group.aux ? group.aux->flush_range : nullptr;
+    if (!range) return ScatterTaskResult::Complete;
+    const uint64_t cutoff = state.server->atomic_snapshot();
+    const uint64_t floor = state.server->atomic_read_floor();
+    if (!store.atomic_flush_ready(range, floor, cutoff)) return ScatterTaskResult::Defer;
+    if (!state.aborted.load(std::memory_order_acquire)) {
+        if (!store.atomic_flush_has_post(*range)) op.spec->handler(shard, op);
+        else {
+            store.atomic_flush_erase(*range);
+            if (group.aux->flush_changed && (shard.notify_mask() & NOTIFY_SAVE)) shard.note_save_change();
+            shard.publish_size();
+        }
+        if (shard.has_blocking_waiters()) shard.set_blocking_dirty();
+        atomic_flush_counters.collapses.fetch_add(1, std::memory_order_relaxed);
+    }
+    group.aux->flush_range = nullptr;
+    store.atomic_flush_release(range);
+    return ScatterTaskResult::Complete;
+}
+
+void flush_aof_emit(ScatterState& state, Shard& shard, Op& op) {
+    if (state.phase != 1 || !state.aof_group || state.aborted.load(std::memory_order_acquire)) return;
+    auto& producer = shard.store().aof();
+    if (!producer.begin_group(state.aof_group)) return;
+    bool ok = producer.record_group_flush(op.cmd_name().eq_icase("flushdb") ? op.physical_db : -1);
+    ok &= producer.finish_group();
+    if (!ok) aof_abort_scatter_group(state);
+}
+
+// The existing IO retry lane owns phase-two dispatch backpressure, so a full
+// owner channel can never discard an already committed flush.
+void flush_after_decision(Server& server, ThreadCtx& self, Ring& ring, ScatterState& state) {
+    if (!state.aborted.load(std::memory_order_acquire))
+        atomic_flush_counters.units.fetch_add(1, std::memory_order_relaxed);
+    state.phase = 2;
+    multi_enqueue_node(server, state.owner_io, state.group_attempt()->retry);
+    server.thread(state.owner_io).wake_if_parked(ring, self.sig());
+}
+
+template <bool IofusedPrivateQueue>
+bool flush_redispatch(Server& server, ThreadCtx& self, Ring& ring, ScatterState& state) {
+    uint32_t needed[kMaxThreads] = {};
+    for (uint32_t i = 0; i < state.nsub; ++i)
+        ++needed[server.worker_of_shard(state.groups[i].shard)];
+    for (uint32_t tid = 0; tid < server.nthreads(); ++tid)
+        if (needed[tid] && scatter_task_free_slots<IofusedPrivateQueue>(server.thread(tid), self.id()) < needed[tid])
+            return false;
+    state.pending.store(state.nsub, std::memory_order_release);
+    for (uint32_t i = 0; i < state.nsub; ++i) {
+        const auto sid = state.groups[i].shard;
+        auto& owner = server.thread(server.worker_of_shard(sid));
+        const Task task{state.commit_client, state.commit_op_id, sid, &state};
+        if (!scatter_post_tasks_quiet<IofusedPrivateQueue>(owner, self.id(), &task, 1, self.sig())) std::abort();
+        owner.flush_task_notify(self.id(), ring, self.sig());
+    }
+    return true;
+}
+
+ScatterFinish flush_complete(Server& server, ThreadCtx& self, Ring& ring,
+                              const Task& task, Op&) {
+    auto& state = *task.scatter;
+    if (state.pending.fetch_sub(1, std::memory_order_acq_rel) != 1) return ScatterFinish::Waiting;
+    if (state.phase == 1) {
+        WorkError error;
+        if (first_error(state, error)) {
+            state.aborted.store(true, std::memory_order_release);
+            state.final_reply = FinalReply::Work;
+            state.final_error = error;
+        } else state.final_reply = FinalReply::Ok;
+        return ScatterFinish::CommitQueued;
+    }
+    if (server.blocking_waiters()) blocking_atomic_published(server, self, ring, state);
+    server.atomic_apply_close(self.id(), state.apply_open);
+    return ScatterFinish::Final;
+}
+
+} // namespace
+} // namespace tomo

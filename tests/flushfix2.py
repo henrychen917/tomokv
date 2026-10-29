@@ -16,7 +16,67 @@ import traceback
 
 import snapfix as s
 import snapfix2_flush as original
-from _lib import Conn
+from _lib import Conn, encode
+
+
+def falsify(b, args):
+    """Pin a pre-flush script cut, then read/write under the committed range.
+
+    Counter acknowledgements, not sleep, establish each edge. Fresh scripts and
+    keys bound rearming; a window that never opened is always a failure.
+    """
+    c = b.c
+    c.must('SELECT', 7 if args.command == 'FLUSHDB' and args.databases > 1 else 0)
+    history = []
+    for attempt in range(4):
+        pair, _ = s.keys_for(c, f'flushfix2:armed:{attempt}', False, 2)
+        for key in pair:
+            c.must('SET', key, 5)
+        before = s.stats(c)
+        with contextlib.closing(Conn('127.0.0.1', b.port, timeout=args.stall)) as script, \
+             contextlib.closing(Conn('127.0.0.1', b.port, timeout=args.stall)) as flush:
+            db = 7 if args.command == 'FLUSHDB' and args.databases > 1 else 0
+            script.must('SELECT', db)
+            flush.must('SELECT', db)
+            c.must('DEBUG', 'SCRIPT-STAGE-DEFER', 500000)
+            c.must('DEBUG', 'SCRIPT-STAGE-WATCH', script.must('CLIENT', 'ID'))
+            script.raw(encode('EVAL', s.WRITE, 2, *pair))
+            s.wait(lambda: s.stats(c)['script_stage_watch_tasks'] > 0, 'script never gathered', args.stall)
+            flush.raw(encode(args.command, args.flush_mode))
+            s.wait(lambda: s.stats(c).get('atomic_flush_units', 0) > before.get('atomic_flush_units', 0),
+                   'flush never decided', args.stall)
+            # These commands run after T while the old script still protects its
+            # cut. A separate key avoids legitimately aborting the script here.
+            key = f'flushfix2:post:{attempt}'
+            assert c.must('GET', key) is None
+            assert c.must('SET', key, 'post') == b'OK'
+            c.must('DEBUG', 'SCRIPT-STAGE-DEFER', 0)
+            reply = script.read()
+            assert reply in ([1, 1], [6, 6]), reply
+            assert flush.read() == b'OK'
+            after = s.stats(c)
+            delta = {k: after.get(k, 0) - before.get(k, 0) for k in (
+                'atomic_flush_units', 'atomic_flush_range_reads', 'atomic_flush_post_versions',
+                'atomic_flush_script_conflicts', 'atomic_flush_slow_collapses')}
+            history.append(delta)
+            if all(delta[k] > 0 for k in delta):
+                assert c.must('GET', key) == b'post', 'collapse discarded a post-flush write'
+                return history
+    raise AssertionError(('flush window did not fire on fresh attempts', history))
+
+
+class VerifiedBoot(s.Boot):
+    def __init__(self, args, *a, **kw):
+        self.args = args
+        super().__init__(args, *a, **kw)
+
+    def __exit__(self, kind, value, tb):
+        try:
+            if kind is None and not self.oracle and self.args.require_counters:
+                result = falsify(self, self.args)
+                (self.directory / 'falsifiers.json').write_text(json.dumps(result, indent=2) + '\n')
+        finally:
+            super().__exit__(kind, value, tb)
 
 
 def namespace_only(args, directory, mode, engine, atomic, oracle):
@@ -70,15 +130,17 @@ def namespace_only(args, directory, mode, engine, atomic, oracle):
                                 counts['torn'] += 1
                                 if len(examples) < 20:
                                     examples.append([None if v is None else int(v) for v in values])
-                            if db:
-                                c.must('SELECT', control_db)
-                                assert c.must('MGET', *pair) == [b'control', b'control']
-                                counts['controls'] += 1
-                                c.must('SELECT', db)
                     finally:
                         done.set()
 
-        errors = s.run_storm(args.seconds, [mutate, observe], args.stall)
+        def control(stop):
+            with contextlib.closing(Conn('127.0.0.1', b.port, timeout=args.stall)) as c:
+                c.must('SELECT', control_db)
+                while not stop.is_set():
+                    assert c.must('MGET', *pair) == [b'control', b'control']
+                    counts['controls'] += 1
+
+        errors = s.run_storm(args.seconds, [mutate, observe] + ([control] if db else []), args.stall)
         result = dict(**counts, pair=pair, owners=owners, db=db,
                       control_db=control_db if db else None, examples=examples,
                       errors=errors, counters={} if oracle else s.stats(b.c))
@@ -106,9 +168,11 @@ def main():
     p.add_argument('--seconds', type=float, default=6)
     p.add_argument('--stall', type=float, default=10)
     p.add_argument('--no-oracle', action='store_true')
+    p.add_argument('--require-counters', type=int, choices=[0, 1], default=0)
     args = p.parse_args()
     assert 20100 <= args.port < 20199
     os.environ['LC_ALL'] = 'C'
+    s.Boot = VerifiedBoot
     cases = {'flush-pair': original.case_flush_pair,
              'flush-script': lambda *a: original.case_flush_pair(*a, script=True),
              'flush-only': original.case_flush_only, 'namespace': namespace_only}

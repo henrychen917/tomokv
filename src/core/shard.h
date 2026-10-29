@@ -297,6 +297,9 @@ public:
     void watch_physical_delete(Slice key, bool expired);
     bool watch_all_write_ready(const void* token = nullptr);
     bool watch_flush(int physical_db = -1);
+    bool watch_reserve_flush(int physical_db, const void* token,
+                             std::atomic<uint64_t>* epoch, std::atomic<bool>* aborted,
+                             std::atomic<uint32_t>* refs);
     bool watch_finalize_reservation(const std::string& key);
     bool watch_finalize_queue(const std::string& key, TxnKeyQueue& queue);
     bool watch_append_reservation(const std::string& key, const WatchReservation& reservation,

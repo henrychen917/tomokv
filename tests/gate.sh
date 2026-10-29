@@ -1406,6 +1406,7 @@ job_flushfix2(){
       label="flushfix2 $case (databases $databases)"
       row_begin "$label"
       py tests/flushfix2.py --case "$case" --databases "$databases" --command "$command" \
+          --require-counters "${GATE_FLUSHFIX2_REQUIRE_COUNTERS:-1}" \
           --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
           --cores "$CORES" --port "$PORT" --output "$TMPDIR/$case-$databases" \
           >"$TMPDIR/$case-$databases.log" 2>&1 \

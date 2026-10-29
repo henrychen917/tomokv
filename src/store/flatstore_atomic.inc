@@ -55,6 +55,7 @@
         if (!atomic_pending_) return;
         const uint64_t bit = atomic_membership_bit(hash);
         for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
+            if (atomic_range_covers(*entry, key)) { visit(*entry); continue; }
             if (!(entry->membership & bit)) continue;
             for (uint32_t i = 0; i < entry->count; ++i)
                 if (atomic_entry_hash(*entry, i) == hash && atomic_entry_key(*entry, i).key_eq(key)) {
@@ -98,6 +99,10 @@
         uint64_t ticket = 0;
         for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
             if (!(entry->membership & bit)) continue;
+            if (atomic_range_covers(*entry, key)) {
+                const uint64_t candidate = atomic_epoch(*entry);
+                if (candidate && (!ticket || candidate < ticket)) ticket = candidate;
+            }
             for (uint32_t i = 0; i < entry->count; i++) {
                 if (atomic_entry_hash(*entry, i) != hash || !atomic_entry_key(*entry, i).key_eq(key))
                     continue;
@@ -265,7 +270,7 @@
         if (!atomic_pending_) return;
         const uint64_t bit = atomic_membership_bit(hash);
         for (auto* entry = atomic_pending_->head; entry; entry = entry->next) {
-            if (wildcard) { visit(*entry); continue; }
+            if (wildcard || atomic_range_covers(*entry, key)) { visit(*entry); continue; }
             if (!(entry->membership & bit)) continue;
             for (uint32_t i = 0; i < entry->count; ++i)
                 if (atomic_entry_hash(*entry, i) == hash && atomic_entry_key(*entry, i).key_eq(key)) {
@@ -293,6 +298,13 @@
             if (!(entry->membership & bit)) continue;
             if (entry->group_epoch && entry->group_aborted &&
                 entry->group_aborted->load(std::memory_order_acquire)) continue;
+            if (atomic_range_covers(*entry, key)) {
+                const uint64_t epoch = atomic_epoch(*entry);
+                if (!epoch || epoch > cut) {
+                    atomic_flush_counters.script_conflicts.fetch_add(1, std::memory_order_relaxed);
+                    return true;
+                }
+            }
             for (uint32_t i = 0; i < entry->count; i++) {
                 if (atomic_entry_hash(*entry, i) != hash ||
                     !atomic_entry_key(*entry, i).key_eq(key)) continue;
@@ -321,6 +333,7 @@
             if (entry->group_epoch->load(std::memory_order_acquire) != 0) continue;
             if (entry->group_aborted && entry->group_aborted->load(std::memory_order_acquire))
                 continue;
+            if (atomic_range_covers(*entry, key)) return true;
             for (uint32_t i = 0; i < entry->count; i++)
                 if (atomic_entry_hash(*entry, i) == hash &&
                     atomic_entry_key(*entry, i).key_eq(key)) return true;
@@ -345,6 +358,7 @@
                 continue;
             for (uint32_t i = 0; i < count; i++) {
                 const auto [hash, key] = key_at(i);
+                if (atomic_range_covers(*entry, key)) return true;
                 if (!(entry->membership & atomic_membership_bit(hash))) continue;
                 for (uint32_t j = 0; j < entry->count; j++)
                     if (atomic_entry_hash(*entry, j) == hash &&
@@ -762,6 +776,7 @@
     uint64_t atomic_resolved_size(uint64_t snapshot) {
         int64_t logical = size();
         if (!atomic_pending_) return static_cast<uint64_t>(logical);
+        if (atomic_pending_->ranges) return atomic_flush_resolved_size(snapshot);
         atomic_for_each_unique_key([&](uint64_t hash, Slice key) {
             const bool physical = atomic_find_physical(hash, key) != nullptr;
             const bool visible = atomic_resolve(hash, key, snapshot) != nullptr;
@@ -1154,6 +1169,7 @@ private:
         if (!atomic_pending_ || !atomic_pending_->live) return false;
         const uint64_t bit = atomic_membership_bit(hash);
         for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
+            if (atomic_range_covers(*entry, key)) return true;
             if (!(entry->membership & bit)) continue;
             for (uint32_t i = 0; i < entry->count; i++)
                 if (atomic_entry_hash(*entry, i) == hash && atomic_entry_key(*entry, i).key_eq(key))
@@ -1176,6 +1192,8 @@ private:
         atomic_pending_->conn_heads[bucket] = &entry;
         entry.linked = true;
         atomic_pending_->live++;
+        if (atomic_pending_->ranges && !entry.namespace_range)
+            atomic_flush_counters.post_versions.fetch_add(1, std::memory_order_relaxed);
         if (atomic_entries_) (*atomic_entries_)++;
         if (atomic_chain_max_ && atomic_pending_->live > *atomic_chain_max_)
             *atomic_chain_max_ = atomic_pending_->live;
@@ -1204,6 +1222,8 @@ private:
         KvObj* physical_value = atomic_find_physical(hash, key);
         if (!atomic_pending_ || !atomic_pending_->live)
             return AtomicResolved{atomic_live_value(physical_value), false, true};
+        if (__builtin_expect(atomic_pending_->ranges != 0, false))
+            return atomic_resolve_range(hash, key, snapshot, count_predecessor);
         const uint64_t bit = atomic_membership_bit(hash);
         AtomicEntry* previous = nullptr;
         KvObj* base = nullptr;
@@ -1682,6 +1702,7 @@ private:
         AtomicEntry* first_unselected = atomic_pending_->head;
         while (first_unselected) {
             AtomicEntry* entry = first_unselected;
+            if (entry->namespace_range) break; // its phase-two task owns reclamation
             const bool aborted = entry->group_epoch && entry->group_aborted &&
                 entry->group_aborted->load(std::memory_order_acquire);
             const uint64_t epoch = atomic_epoch(*entry);
@@ -2067,6 +2088,13 @@ private:
         for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next)
             if (entry->group_epoch && atomic_epoch(*entry) == 0 && entry->group_aborted)
                 entry->group_aborted->store(true, std::memory_order_relaxed);
+        // No observer survives shutdown; remove range lifetimes before reclaiming
+        // the ordinary chains and the physical tables.
+        for (auto* entry = atomic_pending_->head; entry;) {
+            auto* next = entry->next;
+            if (entry->namespace_range) atomic_flush_release(entry);
+            entry = next;
+        }
         if (atomic_pending_->live && !atomic_collapse(UINT64_MAX, UINT64_MAX)) std::abort();
         atomic_destroy_pending();
         atomic_version_bytes_ = 0;
@@ -2110,6 +2138,8 @@ public:
     // foreign group still has a candidate for this key. The caller holds the shard owner;
     // publication can decide a group concurrently, but cannot install/move its local objects.
     // Keep this cold predicate separate from the resolver and every ordinary string body.
+    #include "flatstore_flush.inc"
+
     bool atomic_read_owns_value(uint64_t hash, Slice key, const KvObj* value) const {
         if (!atomic_has_record(hash, key)) return true;
         if (atomic_find_physical(hash, key) != value) return false;
@@ -2120,6 +2150,7 @@ public:
                 entry->group_epoch->load(std::memory_order_acquire) != 0 ||
                 (entry->group_aborted && entry->group_aborted->load(std::memory_order_acquire)))
                 continue;
+            if (atomic_range_covers(*entry, key)) return false;
             for (uint32_t i = 0; i < entry->count; ++i)
                 if (atomic_entry_hash(*entry, i) == hash && atomic_entry_key(*entry, i).key_eq(key))
                     return false;

@@ -43,6 +43,8 @@ struct AtomicEntry {
     // key. The flag consumes header padding; AtomicEntry's locked size stays unchanged.
     bool copied_group_keys = false;
     uint8_t key_ns = 0;
+    bool namespace_range = false;
+    bool range_all = false;
 
     KvObj** parked() { return reinterpret_cast<KvObj**>(this + 1); }
     KvObj* const* parked() const { return reinterpret_cast<KvObj* const*>(this + 1); }
@@ -141,6 +143,7 @@ struct AtomicPendingState {
     // Owner-task-only: an install span has physical candidates but is not linked yet. Eviction
     // cannot resolve their ownership until publication. Uses existing padding; offsets stay put.
     bool group_installing = false;
+    uint16_t ranges = 0;
     uint64_t cleanup_fast = 0;
     uint64_t cleanup_slow = 0;
     size_t cached_entry_bytes = 0;
@@ -149,6 +152,18 @@ struct AtomicPendingState {
 
 static_assert(sizeof(AtomicPendingState) == 1352);
 static_assert(offsetof(AtomicPendingState, read_local_extended) == 1316);
+static_assert(offsetof(AtomicPendingState, ranges) == 1318);
+
+// Only range-record paths touch these process-cold witnesses. Separate image
+// namespaces keep the ordinary store and thread layouts unchanged.
+struct AtomicFlushCounters {
+    std::atomic<uint64_t> units{0}, range_reads{0}, post_versions{0};
+    std::atomic<uint64_t> script_conflicts{0}, collapses{0}, slow_collapses{0};
+};
+inline AtomicFlushCounters atomic_flush_counters;
+inline bool atomic_range_covers(const AtomicEntry& entry, Slice key) {
+    return entry.namespace_range && (entry.range_all || entry.key_ns == key.ns);
+}
 
 struct AtomicResolved {
     KvObj* value = nullptr;
