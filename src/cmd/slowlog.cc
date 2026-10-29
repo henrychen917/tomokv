@@ -252,15 +252,11 @@ void slowlog_finish(uint32_t thread_id, SlowlogEntry& entry, uint64_t duration_n
         if (duration_ms >= arm.latency_ms)
             latency_add("command", now_ms, static_cast<uint32_t>(duration_ms));
     }
-    if (arm.slowlog_us < 0) return;
-    const bool record = entry.duration_us >= static_cast<uint64_t>(arm.slowlog_us);
+    if (arm.slowlog_us < 0 || entry.duration_us < static_cast<uint64_t>(arm.slowlog_us)) return;
     if (!g_slowlog_max_len.load(std::memory_order_acquire) || thread_id >= g_slowlog.size()) return;
 
-    // Redis owns one bounded history. Physical executor-local histories can
-    // exceed max-len and resurrect discarded entries after a limit increase.
-    // The recorder is entered only for a qualifying armed sample; disabled
-    // batches still allocate nothing and never acquire this mutex.
-    SlowlogShard* target = record ? recorder(0) : g_slowlog[0].load(std::memory_order_acquire);
+    entry.id = g_slowlog_next_id.fetch_add(1, std::memory_order_relaxed);
+    SlowlogShard* target = recorder(thread_id);
     if (!target) return;
     SlowlogShard& shard = *target;
     {
@@ -268,14 +264,11 @@ void slowlog_finish(uint32_t thread_id, SlowlogEntry& entry, uint64_t duration_n
         // Re-read under the lock so a concurrent CONFIG SET slowlog-max-len 0 cannot be raced.
         const uint64_t live_max = g_slowlog_max_len.load(std::memory_order_acquire);
         if (!live_max) return;
-        if (record) {
-            entry.id = g_slowlog_next_id.fetch_add(1, std::memory_order_relaxed);
-            try { shard.entries.push_front(std::move(entry)); }
-            catch (const std::bad_alloc&) { return; }
-        }
+        try { shard.entries.push_front(std::move(entry)); }
+        catch (const std::bad_alloc&) { return; }
         while (shard.entries.size() > live_max) shard.entries.pop_back();
     }
-    if (record) g_entries_recorded.fetch_add(1, std::memory_order_relaxed);
+    g_entries_recorded.fetch_add(1, std::memory_order_relaxed);
 }
 
 std::vector<SlowlogEntry> collect_slowlog(size_t limit) {
@@ -689,9 +682,14 @@ void slowlog_set_threshold(int64_t threshold) {
 }
 
 void slowlog_set_max_len(uint64_t max_len) {
-    // Like Redis, disabled logging retains existing history. The next armed
-    // completion trims it, even if that command is below the duration threshold.
     g_slowlog_max_len.store(max_len, std::memory_order_release);
+    for (auto& slot : g_slowlog) {
+        auto* target = slot.load(std::memory_order_acquire);
+        if (!target) continue;
+        SlowlogShard& shard = *target;
+        std::lock_guard<std::mutex> lock(shard.mutex);
+        while (shard.entries.size() > max_len) shard.entries.pop_back();
+    }
 }
 
 uint64_t slowlog_entries_recorded() { return g_entries_recorded.load(std::memory_order_relaxed); }

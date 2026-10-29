@@ -6115,7 +6115,7 @@ collect_job bplus
 collect_job rlfix3_zc
 # Five rows above the quick-tier exit: DQ=+5, DF=+5; EXPECT is owner-owned.
 collect_job infofix_latency
-for CASE in missing docs slowlog loadaof; do collect_job "infofix_compat-$CASE"; done
+for CASE in missing docs loadaof; do collect_job "infofix_compat-$CASE"; done
 collect_job rlfix3_info
 
 collect_job acl_recheck

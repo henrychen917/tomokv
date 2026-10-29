@@ -50,3 +50,16 @@ Snapshot merge resolution: retain wave 9’s stronger at412 APPLY-window witness
 Retain the existing `xshard_complete_script_final` close, omitting snapfix’s
 redundant `script_snapshot_done` close; every Final still closes owner-side.
 Initial Makefile choices are provisional until the compile-only budget trials.
+
+Global slowlog exclusion: restore `src/cmd/slowlog.cc` byte-for-byte from
+headline, dropping only that part of `7c50db206`. Omit the new `infofix_compat-slowlog`
+row (infofix contributes +4, not +5). Restore these seven named Tcl skips with
+their headline reasons:
+
+- `SLOWLOG - GET optional argument to limit output len works`
+- `SLOWLOG - can clean older entries`
+- `SLOWLOG - commands with too many arguments are trimmed`
+- `SLOWLOG - get all slow logs`
+- `SLOWLOG - logged entry sanity check`
+- `SLOWLOG - max entries is correctly handled`
+- `SLOWLOG - too long arguments are trimmed`

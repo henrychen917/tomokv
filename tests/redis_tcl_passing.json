@@ -1197,20 +1197,13 @@
    "known_setup_errors": [],
    "passed_tests": [
     "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl",
-    "SLOWLOG - GET optional argument to limit output len works in tests/unit/slowlog.tcl",
     "SLOWLOG - RESET subcommand works in tests/unit/slowlog.tcl",
     "SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl",
     "SLOWLOG - blocking command is reported only after unblocked in tests/unit/slowlog.tcl",
     "SLOWLOG - can be disabled in tests/unit/slowlog.tcl",
-    "SLOWLOG - can clean older entries in tests/unit/slowlog.tcl",
     "SLOWLOG - check that it starts with an empty log in tests/unit/slowlog.tcl",
-    "SLOWLOG - commands with too many arguments are trimmed in tests/unit/slowlog.tcl",
     "SLOWLOG - count must be >= -1 in tests/unit/slowlog.tcl",
-    "SLOWLOG - get all slow logs in tests/unit/slowlog.tcl",
-    "SLOWLOG - logged entry sanity check in tests/unit/slowlog.tcl",
-    "SLOWLOG - max entries is correctly handled in tests/unit/slowlog.tcl",
     "SLOWLOG - only logs commands taking more time than specified in tests/unit/slowlog.tcl",
-    "SLOWLOG - too long arguments are trimmed in tests/unit/slowlog.tcl",
     "SLOWLOG - zero max length is correctly handled in tests/unit/slowlog.tcl"
    ],
    "seconds": {
@@ -1220,7 +1213,14 @@
    "sha256": "065eb61bfd9ac4f2168c9900f8f5774a18b492f0d60c3a8228c8d7085f3747fd",
    "skip_tests": {
     "SLOWLOG - Certain commands are omitted that contain sensitive information": "failed on TomoKV 2s in the survey",
-    "SLOWLOG - Some commands can redact sensitive fields": "failed on TomoKV 2s in the survey"
+    "SLOWLOG - Some commands can redact sensitive fields": "failed on TomoKV 2s in the survey",
+    "SLOWLOG - GET optional argument to limit output len works": "failed on TomoKV 2s in the survey",
+    "SLOWLOG - can clean older entries": "failed or hung on TomoKV 2s in an earlier builder run (round 0)",
+    "SLOWLOG - commands with too many arguments are trimmed": "failed or hung on TomoKV 2s in an earlier builder run (round 0)",
+    "SLOWLOG - get all slow logs": "failed on TomoKV 2s in the survey",
+    "SLOWLOG - logged entry sanity check": "failed or hung on TomoKV 2s in an earlier builder run (round 0)",
+    "SLOWLOG - max entries is correctly handled": "failed on TomoKV 2s in the survey",
+    "SLOWLOG - too long arguments are trimmed": "failed or hung on TomoKV 2s in an earlier builder run (round 0)"
    },
    "fresh_tests": [
     "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl"
@@ -2728,48 +2728,6 @@
    "name": "EXPIRES after a reload (snapshot + append only file rewrite)",
    "root": "DEBUG-LOADAOF-AOF-OFF",
    "prior_reason": "failed on TomoKV 2s in the survey"
-  },
-  {
-   "file": "unit/slowlog",
-   "name": "SLOWLOG - GET optional argument to limit output len works",
-   "root": "SLOWLOG-MAXLEN-PER-THREAD",
-   "prior_reason": "failed on TomoKV 2s in the survey"
-  },
-  {
-   "file": "unit/slowlog",
-   "name": "SLOWLOG - can clean older entries",
-   "root": "SLOWLOG-MAXLEN-PER-THREAD; cascade of unit/slowlog: SLOWLOG - max entries is correctly handled",
-   "prior_reason": "failed or hung on TomoKV 2s in an earlier builder run (round 0)"
-  },
-  {
-   "file": "unit/slowlog",
-   "name": "SLOWLOG - commands with too many arguments are trimmed",
-   "root": "SLOWLOG-MAXLEN-PER-THREAD; cascade of unit/slowlog: SLOWLOG - max entries is correctly handled",
-   "prior_reason": "failed or hung on TomoKV 2s in an earlier builder run (round 0)"
-  },
-  {
-   "file": "unit/slowlog",
-   "name": "SLOWLOG - get all slow logs",
-   "root": "SLOWLOG-MAXLEN-PER-THREAD",
-   "prior_reason": "failed on TomoKV 2s in the survey"
-  },
-  {
-   "file": "unit/slowlog",
-   "name": "SLOWLOG - logged entry sanity check",
-   "root": "SLOWLOG-MAXLEN-PER-THREAD; cascade of unit/slowlog: SLOWLOG - max entries is correctly handled",
-   "prior_reason": "failed or hung on TomoKV 2s in an earlier builder run (round 0)"
-  },
-  {
-   "file": "unit/slowlog",
-   "name": "SLOWLOG - max entries is correctly handled",
-   "root": "SLOWLOG-MAXLEN-PER-THREAD",
-   "prior_reason": "failed on TomoKV 2s in the survey"
-  },
-  {
-   "file": "unit/slowlog",
-   "name": "SLOWLOG - too long arguments are trimmed",
-   "root": "SLOWLOG-MAXLEN-PER-THREAD; cascade of unit/slowlog: SLOWLOG - max entries is correctly handled",
-   "prior_reason": "failed or hung on TomoKV 2s in an earlier builder run (round 0)"
   }
  ]
 }

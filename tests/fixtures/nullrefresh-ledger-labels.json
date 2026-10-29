@@ -470,7 +470,6 @@
     "Redis 7.4 infofix exact latency batch witness",
     "Redis 7.4 infofix missing (both modes/engines/runtimes)",
     "Redis 7.4 infofix docs (both modes/engines/runtimes)",
-    "Redis 7.4 infofix slowlog (both modes/engines/runtimes)",
     "Redis 7.4 infofix loadaof (both modes/engines/runtimes)",
     "INFO selective collection (1s, epoll, read-local 0)",
     "INFO selective collection (1s, epoll, read-local 1)",
@@ -1301,12 +1300,11 @@
     "note": "Twelve scripting compatibility probes, two modes and two network engines; collected before quick-tier exit. EXPECT constants remain maintainer-owned."
   },
   "infofix_supplement": {
-    "purpose": "Five source-declared rows before the quick exit: DQ=DF=+5; required quick/full 886/903. EXPECT constants remain maintainer-owned.",
+    "purpose": "Four retained rows before quick exit: CPU fields, command docs, offline AOF and exact latency histograms; global slowlog ring excluded by owner ruling.",
     "labels": [
       "Redis 7.4 infofix exact latency batch witness",
       "Redis 7.4 infofix missing (both modes/engines/runtimes)",
       "Redis 7.4 infofix docs (both modes/engines/runtimes)",
-      "Redis 7.4 infofix slowlog (both modes/engines/runtimes)",
       "Redis 7.4 infofix loadaof (both modes/engines/runtimes)"
     ]
   }
