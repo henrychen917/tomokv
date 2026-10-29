@@ -3,9 +3,9 @@
 ## wave10 integration
 
 Integrated on `cx-wave10` in `/home/user/Projects/cx-wave10`, from headline
-`393d6ceb129d8c99dffd70959d6a19267c525fe0`. No push. Production integration and
-instruction proofs are complete; the remaining correctness campaign is still
-running. This report will receive its final verification inventory before delivery.
+`393d6ceb129d8c99dffd70959d6a19267c525fe0`. No push. Production integration,
+instruction proofs and the requested correctness job matrix are complete.
+The Tcl/compat2 job remains red for the named compatibility failures below.
 No throughput claim is made.
 
 All builds and correctness work use CPUs 64–95; servers use ports 20000–20099.
@@ -237,13 +237,21 @@ in other allocated data.
 
 ### Correctness receipts and visible failures
 
-The active campaigns use [run_jobs.py](docs/wave10/run_jobs.py), which invokes
+The completed campaigns use [run_jobs.py](docs/wave10/run_jobs.py), which invokes
 whole `GATE_ONLY_JOBS` jobs, retains every exit, binary hash and artifact path,
 and never emits a full-gate receipt. The planned mode/engine expansion is
 [correctness-matrix.json](docs/wave10/correctness-matrix.json); the completed-run
 index is [correctness-jobs.json](docs/wave10/correctness-jobs.json). The final rebuilt candidate passes all 70 rows in the complete new-lane,
 execfair interaction, disabled-latency, CRLF and netio job set. The repaired
-whole AUTH job also passes in uring 1s. Final remaining coverage is pending.
+whole AUTH job also passes in uring 1s. All **334/334 planned job geometries**
+have complete attempts; **332 have a passing attempt**. The two red requirements
+are `redis_tcl` and `compat2`, detailed below. This is partial-job coverage, not a
+full-gate pass. [correctness-coverage.json](docs/wave10/correctness-coverage.json)
+maps every requirement to all of its complete attempts. Start-of-run source
+revisions and in-flight harness-only repairs are distinguished in
+`campaign-harness-repairs.json`; each affected job finished before its fix and
+was rerun whole afterwards, with the candidate executable unchanged. The four final quiet
+zero-copy jobs pass 24/0 across 1s/2s and uring/epoll.
 
 Both complete standard differential matrices pass. Each engine runs all 47
 suites, permanent seeds 7/19/20/23 and rotating seed **22**, split and fused armed,
@@ -287,8 +295,11 @@ socket/epoll/IO destination diagnostics while preserving the assertions.
 
 Two blocking companion checks initially failed because the frozen arm directory
 had no matching unit executables/cost binding. Their live protocol legs, including
-the restored stream-removal row, passed. The remaining campaign now uses the
-byte-verified `build/tomokv` with its fresh native companions. The original serial
+the restored stream-removal row, passed. The complete repeated blocking jobs pass
+7/0 and 1/0 from byte-verified `build/tomokv` with its fresh native companions.
+The final 158-job campaign reports 587 pass / 11 fail rows: all 11 are the
+atomic-survivor, reorder-inventory and INFO-union fixture mismatches repaired
+and rerun above. Every other job in that campaign passes. The original serial
 campaign was explicitly stopped and every unfinished/failed whole job was
 rescheduled; completed jobs and the cancellation are retained in
 `main-campaign-restart.json` and `remaining-uring-plan.json`.
@@ -339,7 +350,10 @@ No PAD-B is supplied.
 Superseded trial objects, arm source trees and step traces were removed only after
 hashes/counts were recorded. Digests are retained in `pruned-artifacts.json.gz`,
 `pruned-trial-receipts.json.gz` and `pruned-traces.json.gz`. Counts and final binding
-receipts remain. Build storage remains below the 40G limit; the final size will be recorded after cleanup.
+receipts remain. Build storage is about 33G after cleanup, below the 40G limit. Final disposable
+source/object cleanup is hashed in `pruned-builder-artifacts.json.gz`; mutant
+sources/objects are hashed in `pruned-mutant-builds.json.gz`. All job logs and
+ledgers remain. No owned build executable is left running.
 
 ### Verification boundaries — NOT RUN
 
@@ -361,7 +375,10 @@ are listed in [builder-consumers.json](docs/wave10/builder-consumers.json). The
 complete `trackfix_order`, `notifycompat`, `aoforder` and `racefix_climon` jobs
 pass (1/7/3/1 rows respectively); [builder-job-proof.json](docs/wave10/builder-job-proof.json)
 binds their ledgers. Lottery and publishfix full builds/netio receipts are
-recorded separately in `variant-builds.json`.
+recorded separately in `variant-builds.json`. Final cleanup detected lottery
+was older than the telemetry-label header; its current-source rebuild and
+freshness and passing whole netio jobs (3/0) are recorded in
+`lottery-final-build.json`, preserving the earlier receipt.
 
 ### Maintainer measurement plan — NOT RUN
 

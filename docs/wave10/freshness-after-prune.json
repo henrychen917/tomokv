@@ -1,0 +1,22 @@
+[
+  {
+    "target": "build/aoforder-scheduled",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/racefix-climon",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/lottery/tomokv",
+    "exit": 1,
+    "output": ""
+  },
+  {
+    "target": "all",
+    "exit": 0,
+    "output": ""
+  }
+]

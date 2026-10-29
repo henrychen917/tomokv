@@ -4516,6 +4516,143 @@
       ]
     },
     {
+      "name": "final-info-exec-harness-fixed",
+      "receipt": "docs/wave10/jobs/final-info-exec-harness-fixed.json",
+      "receipt_sha256": "81fc32bc3f289934dde25036fd297133f3d07f7625f81e968124c60898f50cc0",
+      "binary_sha256": "844cf188071bae335a80e8ae15c2acaec2d1f583f235edf4bf4496421299660e",
+      "source_commit": "c72654394cbc65e6156c7c787382c99f947ad95d",
+      "gate_sha256": "ef483d43ddd0466e4ffd62b120c97f11faeb590209d397e077e895a150e8a38c",
+      "env": {
+        "LANG": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_ONLY_JOBS": "rlfix3_info exec1s",
+        "GATE_NET_IO": "uring",
+        "GATE_PROOF_NET_IO": "uring",
+        "GATE_ZC_NET_IO": "uring",
+        "GATE_SHUTDOWN_NET_IO": "uring",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TEST_PORT": "20098",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave10/docs/wave10/jobs/final-info-exec-harness-fixed.tsv"
+      },
+      "exit": 0,
+      "seconds": 81.81493782997131,
+      "summary": [
+        "GATE(PARTIAL): 13 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave10/docs/wave10/jobs/final-info-exec-harness-fixed.tsv.partial"
+      ],
+      "jobs": [
+        {
+          "name": "exec1s",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.VfumvX/jobs/exec1s",
+          "exit": 0,
+          "passed": 4,
+          "failed": 0,
+          "ledger_sha256": "5fe587b6d3fb11f460c30f7f1964a92e3888dfbdcd1ce6567bae9ef93fbaf65a",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "22.160000",
+              "label": "exec1s refinements (1s, atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "17.770000",
+              "label": "exec1s refinements (1s, atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "3.010000",
+              "label": "exec1s refinements (2s, atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "17.800000",
+              "label": "exec1s refinements (2s, atomic 1)"
+            }
+          ]
+        },
+        {
+          "name": "production_units",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.VfumvX/jobs/production_units",
+          "exit": 0,
+          "passed": 0,
+          "failed": 0,
+          "ledger_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rows": []
+        },
+        {
+          "name": "release",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.VfumvX/jobs/release",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "release build (+footprint locks)"
+            }
+          ]
+        },
+        {
+          "name": "rlfix3_info",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.VfumvX/jobs/rlfix3_info",
+          "exit": 0,
+          "passed": 8,
+          "failed": 0,
+          "ledger_sha256": "e3d244aafac65211c9969fdef05092c660095917e2e61a2cd2d2d8bb337b4c6d",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.750000",
+              "label": "INFO selective collection (1s, epoll, read-local 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.750000",
+              "label": "INFO selective collection (1s, epoll, read-local 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.750000",
+              "label": "INFO selective collection (1s, uring, read-local 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.760000",
+              "label": "INFO selective collection (1s, uring, read-local 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.760000",
+              "label": "INFO selective collection (2s, epoll, read-local 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.760000",
+              "label": "INFO selective collection (2s, epoll, read-local 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.750000",
+              "label": "INFO selective collection (2s, uring, read-local 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.750000",
+              "label": "INFO selective collection (2s, uring, read-local 1)"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "final-lanes-labels",
       "receipt": "docs/wave10/jobs/final-lanes-labels.json",
       "receipt_sha256": "39db368218bc8b743b48508c3e3bd675802a74245cf5b220ed8d03475ec0d64d",
@@ -5092,6 +5229,83 @@
       ]
     },
     {
+      "name": "final-lottery-current-source",
+      "receipt": "docs/wave10/jobs/final-lottery-current-source.json",
+      "receipt_sha256": "438e562f47a1dbc52accd7a92b8f2f011bd48b247c6439fe5205984cb1b08b2a",
+      "binary_sha256": "caf62aa1d822b66a7cbee87048d60d73f82143a7404691087c59b082c49516d3",
+      "source_commit": "e619168f5b37b8e4794b55a75ccf8b263d7e88ff",
+      "gate_sha256": "ef483d43ddd0466e4ffd62b120c97f11faeb590209d397e077e895a150e8a38c",
+      "env": {
+        "LANG": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_ONLY_JOBS": "netio-1s netio-2s",
+        "GATE_NET_IO": "uring",
+        "GATE_PROOF_NET_IO": "uring",
+        "GATE_ZC_NET_IO": "uring",
+        "GATE_SHUTDOWN_NET_IO": "uring",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TEST_PORT": "20098",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave10/docs/wave10/jobs/final-lottery-current-source.tsv"
+      },
+      "exit": 0,
+      "seconds": 7.79609489440918,
+      "summary": [
+        "GATE(PARTIAL): 3 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave10/docs/wave10/jobs/final-lottery-current-source.tsv.partial"
+      ],
+      "jobs": [
+        {
+          "name": "netio-1s",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.4vr5z4/jobs/netio-1s",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "b04a678d9f035f0b36bde02d67561d36f24233cdca0e30dd6a2abf8aed026944",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "2.950000",
+              "label": "epoll directed correctness (1s)"
+            }
+          ]
+        },
+        {
+          "name": "netio-2s",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.4vr5z4/jobs/netio-2s",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "75cb8b989447602789774b5f3ffb77dfd576daf6c53190b387366ec299174b05",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "2.940000",
+              "label": "epoll directed correctness (2s)"
+            }
+          ]
+        },
+        {
+          "name": "release",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.4vr5z4/jobs/release",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "release build (+footprint locks)"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "final-source-identity",
       "receipt": "docs/wave10/jobs/final-source-identity.json",
       "receipt_sha256": "e549f67c0f040eab37d69b93d757374a1331e7e1c7135b5aaeb7cfa3e52acce3",
@@ -5147,6 +5361,223 @@
               "status": "ok",
               "seconds": "125.520000",
               "label": "production source identity + stable assertion ids"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "final-survivors-reorder-fixed",
+      "receipt": "docs/wave10/jobs/final-survivors-reorder-fixed.json",
+      "receipt_sha256": "7ea319be7706b96d0f4804789e78a7b6be0f2bac7f1e9e2a0b3e0b493f4309fa",
+      "binary_sha256": "844cf188071bae335a80e8ae15c2acaec2d1f583f235edf4bf4496421299660e",
+      "source_commit": "4be4311b2832d4af66e37c0523a4d4e78aa80354",
+      "gate_sha256": "ef483d43ddd0466e4ffd62b120c97f11faeb590209d397e077e895a150e8a38c",
+      "env": {
+        "LANG": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_ONLY_JOBS": "atomic_units reorder_identity",
+        "GATE_NET_IO": "uring",
+        "GATE_PROOF_NET_IO": "uring",
+        "GATE_ZC_NET_IO": "uring",
+        "GATE_SHUTDOWN_NET_IO": "uring",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TEST_PORT": "20098",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave10/docs/wave10/jobs/final-survivors-reorder-fixed.tsv"
+      },
+      "exit": 0,
+      "seconds": 254.45924162864685,
+      "summary": [
+        "GATE(PARTIAL): 29 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave10/docs/wave10/jobs/final-survivors-reorder-fixed.tsv.partial"
+      ],
+      "jobs": [
+        {
+          "name": "atomic_units",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.JAFSBY/jobs/atomic_units",
+          "exit": 0,
+          "passed": 27,
+          "failed": 0,
+          "ledger_sha256": "ec64999a542255c2c44bdaaeb4c974cca21fc9c356b639daa7b151117cc91c71",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "atomic commit publication catches up at quiescence"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.200000",
+              "label": "flushfix flush witnesses"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.050000",
+              "label": "flushfix headers witnesses"
+            },
+            {
+              "status": "ok",
+              "seconds": "3.490000",
+              "label": "multidb serverless owners"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.040000",
+              "label": "multidb global namespace boundary"
+            },
+            {
+              "status": "ok",
+              "seconds": "11.820000",
+              "label": "storesize published monitoring"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.210000",
+              "label": "MULTI admin command replies"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.070000",
+              "label": "EXECABORT releases WATCH reservation"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "atomic survivors unit build"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: admission"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "atomic survivor: closure"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "atomic survivor: script_keys"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: rename_overlay"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: write_latest"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: script_apply"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: post_apply_probe"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: lua_conversion"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: watch_parent"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: watch_cycle"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: mset_arity"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: watch_oom"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: lua_lines"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: library_limit"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "atomic survivor: stage_flag"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: instruction_limit"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "armed resize retirement: atomic-growth"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "armed resize retirement: flush-prepared"
+            }
+          ]
+        },
+        {
+          "name": "production_units",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.JAFSBY/jobs/production_units",
+          "exit": 0,
+          "passed": 0,
+          "failed": 0,
+          "ledger_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rows": []
+        },
+        {
+          "name": "release",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.JAFSBY/jobs/release",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "release build (+footprint locks)"
+            }
+          ]
+        },
+        {
+          "name": "reorder_identity",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.JAFSBY/jobs/reorder_identity",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "d6fc2dfc777113f0aff9d291623e698852c49e427273cd08253ffc0d6547c7be",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "125.920000",
+              "label": "R7 FIFO twin off-path identity + negative controls"
             }
           ]
         }
@@ -9120,6 +9551,5204 @@
               "status": "ok",
               "seconds": "0.650000",
               "label": "witness falsification contracts (testmap + placement)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "final-uring-remaining",
+      "receipt": "docs/wave10/jobs/final-uring-remaining.json",
+      "receipt_sha256": "73e4fe60b13225f90c97e2e9299f8960f1d3f728394a4d617cbb65623849e9e9",
+      "binary_sha256": "844cf188071bae335a80e8ae15c2acaec2d1f583f235edf4bf4496421299660e",
+      "source_commit": "d9ed7de013b709ede5c9bd0252f58d20c647eef1",
+      "gate_sha256": "ef483d43ddd0466e4ffd62b120c97f11faeb590209d397e077e895a150e8a38c",
+      "env": {
+        "LANG": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_ONLY_JOBS": "lualibs latencyfix_grammar latencyfix_shape latencyfix_off iofix-deferred iofix-hz iofix-sleep iofix-signal txnorder_index txnorder2 txnorder_wake reorder_identity reorder_sync reorder_engagement wb_rule_units wbland_units scriptfix atomfix5_watch datafix2_watch blockfix_registry serverfix_slowlog rlfix3_info compat3 netcmd_units atomic_units splitlocal_units exbatch_units moverfix core_units wait_units serverfix_waitaof netfix_query_stats ntfix_input persistfix2_lastsave racefix_counters notify_aof notify_order notifycompat exbatch_live atomfix5_accounting acl_recheck aclfix authfix rlcache blockfix2 txnorder_wound trackfix_order trackfix_accounting tracking_redirect aoforder racefix_climon dispatch_arity dispatch_errors dispatch_children serverfix_lines serverfix_scalar serverfix_hello serverfix_config bplus clientfix perfio_stream climonfix ntnew4_live perfex_units perfex_live netcap netfix_unix netfix_config netfix_tls netfix_idle_buffers boot_grammar dbdefault readonly hexpread serverfix_hll serverfix_acllog rlfix3_zc aof_frame sort lbplanner_units persistfix_units flipfix_units lb-stationary-1s lb-stationary-2s acl_subcommands router_uniform datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_idle auth persistfix2_shutdown persistfix2_commands persistfix2_errors tls feature-cell-1s-0-0-0-0 feature-cell-1s-0-0-0-1 feature-cell-1s-0-0-1-0 feature-cell-1s-0-0-1-1 feature-cell-1s-0-1-0-0 feature-cell-1s-0-1-0-1 feature-cell-1s-0-1-1-0 feature-cell-1s-0-1-1-1 feature-cell-1s-1-0-0-0 feature-cell-1s-1-0-0-1 feature-cell-1s-1-0-1-0 feature-cell-1s-1-0-1-1 feature-cell-1s-1-1-0-0 feature-cell-1s-1-1-0-1 feature-cell-1s-1-1-1-0 feature-cell-1s-1-1-1-1 feature-cell-2s-0-0-0-0 feature-cell-2s-0-0-0-1 feature-cell-2s-0-0-1-0 feature-cell-2s-0-0-1-1 feature-cell-2s-0-1-0-0 feature-cell-2s-0-1-0-1 feature-cell-2s-0-1-1-0 feature-cell-2s-0-1-1-1 feature-cell-2s-1-0-0-0 feature-cell-2s-1-0-0-1 feature-cell-2s-1-0-1-0 feature-cell-2s-1-0-1-1 feature-cell-2s-1-1-0-0 feature-cell-2s-1-1-0-1 feature-cell-2s-1-1-1-0 feature-cell-2s-1-1-1-1 feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto globcase fused-0 fused-1 txn_group_fused txn_group_split txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 replyoff wb_policy respcompat flip fliplisten flip_saturated aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1 script_bounds notify asan_batteries atomic_batteries release_batteries dump_restore atomic_floor",
+        "GATE_NET_IO": "uring",
+        "GATE_PROOF_NET_IO": "uring",
+        "GATE_ZC_NET_IO": "uring",
+        "GATE_SHUTDOWN_NET_IO": "uring",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TEST_PORT": "20098",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave10/docs/wave10/jobs/final-uring-remaining.tsv"
+      },
+      "exit": 1,
+      "seconds": 1851.1520841121674,
+      "summary": [
+        "GATE(PARTIAL): 587 ok, 11 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave10/docs/wave10/jobs/final-uring-remaining.tsv.partial"
+      ],
+      "jobs": [
+        {
+          "name": "acl_recheck",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/acl_recheck",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "15d242c67d64edacea3869f21a33fe6c5d30320ae18f34146c5def8c32bbfe31",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "6.100000",
+              "label": "ACL recheck one-reply battery (2s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "6.200000",
+              "label": "ACL recheck one-reply battery (1s)"
+            }
+          ]
+        },
+        {
+          "name": "acl_subcommands",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/acl_subcommands",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "4e9ae7f9749e494a406b300e01eaa4ab7fe4de4e4a0d199dbc674a5e0ab10f63",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "14.780000",
+              "label": "dispatchfix CC4.15 ACL subcommand grants"
+            }
+          ]
+        },
+        {
+          "name": "aclfix",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/aclfix",
+          "exit": 0,
+          "passed": 12,
+          "failed": 0,
+          "ledger_sha256": "3cda053b85e752187f37cdf25417ef389ed739cc64af6f182dc65fcc5c4bf83a",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.070000",
+              "label": "aclfix sort (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.060000",
+              "label": "aclfix streams-name (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.070000",
+              "label": "aclfix save-load (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.050000",
+              "label": "aclfix capacity (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.080000",
+              "label": "aclfix wake-pop (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.080000",
+              "label": "aclfix wake-scatter (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.070000",
+              "label": "aclfix sort (2s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.060000",
+              "label": "aclfix streams-name (2s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.070000",
+              "label": "aclfix save-load (2s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.870000",
+              "label": "aclfix capacity (2s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.080000",
+              "label": "aclfix wake-pop (2s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.070000",
+              "label": "aclfix wake-scatter (2s)"
+            }
+          ]
+        },
+        {
+          "name": "aof-epoll",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/aof-epoll",
+          "exit": 0,
+          "passed": 54,
+          "failed": 0,
+          "ledger_sha256": "bdac596aadd1ced2228543f7720cda311f2d238f0d3a42f7d134be36f2e15d34",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.070000",
+              "label": "configuration reduction + actual geometry (epoll, atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.430000",
+              "label": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.040000",
+              "label": "AOF writer fired (records=N)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.040000",
+              "label": "AOF process-restart script replay (epoll, atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "AOF native snapshot streams byte-exact"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "AOF replay fired (records=N skipped=N)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.070000",
+              "label": "configuration reduction + actual geometry (epoll, atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.430000",
+              "label": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.040000",
+              "label": "AOF writer fired (records=N)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.040000",
+              "label": "AOF process-restart script replay (epoll, atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.040000",
+              "label": "AOF native snapshot streams byte-exact"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "AOF replay fired (records=N skipped=N)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.240000",
+              "label": "AOF directed group interruption fired"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.050000",
+              "label": "AOF atomic-group recovery + writer order"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "AOF group shutdown invariants"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "AOF always sync + reply gate fired"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "AOF always recovery after quiescent SIGKILL"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.910000",
+              "label": "AOF in-window kill recovery (2s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "3.860000",
+              "label": "AOF in-window term recovery (2s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.900000",
+              "label": "AOF in-window kill recovery (1s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.280000",
+              "label": "AOF in-window term recovery (1s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.810000",
+              "label": "shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.840000",
+              "label": "shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.000000",
+              "label": "shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.030000",
+              "label": "shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.300000",
+              "label": "AOF everysec write gate + idle sync fired"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "AOF everysec durability window + tail warning"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "AOF no-sync bypassed sync + reply gate"
+            },
+            {
+              "status": "ok",
+              "seconds": "5.270000",
+              "label": "AOF rewrite atomic/stage/corruption matrix"
+            },
+            {
+              "status": "ok",
+              "seconds": "5.620000",
+              "label": "AOF rewrite triggers + observability matrix"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "AOF-off negative-control seed landed"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "AOF-off negative control lost data"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.430000",
+              "label": "aoffix2 snapshot (1s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.540000",
+              "label": "aoffix2 filename (1s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.170000",
+              "label": "aoffix2 error (1s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.550000",
+              "label": "aoffix2 tickets (1s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.560000",
+              "label": "aoffix2 exec_tickets (1s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.560000",
+              "label": "aoffix2 resurrection (1s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.410000",
+              "label": "aoffix2 rewrite_fail2 (1s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.310000",
+              "label": "aoffix2 manifest_missing (1s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.290000",
+              "label": "aoffix2 off-writer acknowledgement everysec (1s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.290000",
+              "label": "aoffix2 off-writer acknowledgement always (1s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.430000",
+              "label": "aoffix2 snapshot (2s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.530000",
+              "label": "aoffix2 filename (2s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.170000",
+              "label": "aoffix2 error (2s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.560000",
+              "label": "aoffix2 tickets (2s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.560000",
+              "label": "aoffix2 exec_tickets (2s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.550000",
+              "label": "aoffix2 resurrection (2s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.420000",
+              "label": "aoffix2 rewrite_fail2 (2s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.310000",
+              "label": "aoffix2 manifest_missing (2s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.290000",
+              "label": "aoffix2 off-writer acknowledgement everysec (2s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.300000",
+              "label": "aoffix2 off-writer acknowledgement always (2s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.360000",
+              "label": "aoffix2 large (1s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.210000",
+              "label": "aoffix2 large_placed (1s, epoll)"
+            }
+          ]
+        },
+        {
+          "name": "aof-uring",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/aof-uring",
+          "exit": 0,
+          "passed": 54,
+          "failed": 0,
+          "ledger_sha256": "52154152cc849fb9de48554f63d8adf8f38b633abb9e2870d8d462b933076fd3",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.060000",
+              "label": "configuration reduction + actual geometry (uring, atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.430000",
+              "label": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.040000",
+              "label": "AOF writer fired (records=N)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.040000",
+              "label": "AOF process-restart script replay (uring, atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.040000",
+              "label": "AOF native snapshot streams byte-exact"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "AOF replay fired (records=N skipped=N)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.060000",
+              "label": "configuration reduction + actual geometry (uring, atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.440000",
+              "label": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.050000",
+              "label": "AOF writer fired (records=N)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.050000",
+              "label": "AOF process-restart script replay (uring, atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.040000",
+              "label": "AOF native snapshot streams byte-exact"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "AOF replay fired (records=N skipped=N)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.260000",
+              "label": "AOF directed group interruption fired"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.050000",
+              "label": "AOF atomic-group recovery + writer order"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "AOF group shutdown invariants"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "AOF always sync + reply gate fired"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "AOF always recovery after quiescent SIGKILL"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.940000",
+              "label": "AOF in-window kill recovery (2s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "3.400000",
+              "label": "AOF in-window term recovery (2s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.890000",
+              "label": "AOF in-window kill recovery (1s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.620000",
+              "label": "AOF in-window term recovery (1s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.840000",
+              "label": "shutdown cancels AOF rewrite capture (1s, atomic 0, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.920000",
+              "label": "shutdown cancels AOF rewrite capture (1s, atomic 1, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.000000",
+              "label": "shutdown cancels AOF rewrite capture (2s, atomic 0, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.050000",
+              "label": "shutdown cancels AOF rewrite capture (2s, atomic 1, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.300000",
+              "label": "AOF everysec write gate + idle sync fired"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "AOF everysec durability window + tail warning"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "AOF no-sync bypassed sync + reply gate"
+            },
+            {
+              "status": "ok",
+              "seconds": "5.260000",
+              "label": "AOF rewrite atomic/stage/corruption matrix"
+            },
+            {
+              "status": "ok",
+              "seconds": "5.680000",
+              "label": "AOF rewrite triggers + observability matrix"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "AOF-off negative-control seed landed"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "AOF-off negative control lost data"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.430000",
+              "label": "aoffix2 snapshot (1s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.460000",
+              "label": "aoffix2 filename (1s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.180000",
+              "label": "aoffix2 error (1s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.560000",
+              "label": "aoffix2 tickets (1s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.560000",
+              "label": "aoffix2 exec_tickets (1s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.540000",
+              "label": "aoffix2 resurrection (1s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.410000",
+              "label": "aoffix2 rewrite_fail2 (1s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.310000",
+              "label": "aoffix2 manifest_missing (1s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.290000",
+              "label": "aoffix2 off-writer acknowledgement everysec (1s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.290000",
+              "label": "aoffix2 off-writer acknowledgement always (1s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.430000",
+              "label": "aoffix2 snapshot (2s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.480000",
+              "label": "aoffix2 filename (2s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.180000",
+              "label": "aoffix2 error (2s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.550000",
+              "label": "aoffix2 tickets (2s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.550000",
+              "label": "aoffix2 exec_tickets (2s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.550000",
+              "label": "aoffix2 resurrection (2s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.330000",
+              "label": "aoffix2 rewrite_fail2 (2s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.300000",
+              "label": "aoffix2 manifest_missing (2s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.280000",
+              "label": "aoffix2 off-writer acknowledgement everysec (2s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.290000",
+              "label": "aoffix2 off-writer acknowledgement always (2s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.340000",
+              "label": "aoffix2 large (1s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.200000",
+              "label": "aoffix2 large_placed (1s, uring)"
+            }
+          ]
+        },
+        {
+          "name": "aof_frame",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/aof_frame",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "bc0615493645c1b27d8a0cd1565cfd7f88d493e5fc088dab1cfcc86421029924",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.320000",
+              "label": "AOF control frame never inside a large record (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.330000",
+              "label": "AOF control frame never inside a large record (atomic 1)"
+            }
+          ]
+        },
+        {
+          "name": "aoforder",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/aoforder",
+          "exit": 0,
+          "passed": 3,
+          "failed": 0,
+          "ledger_sha256": "e418419431242ef6fa0eaf710fa2a855f6394ddb17b6f555bab59e3d5a135b18",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "10.280000",
+              "label": "AOF commit order single"
+            },
+            {
+              "status": "ok",
+              "seconds": "4.520000",
+              "label": "AOF commit order crossing"
+            },
+            {
+              "status": "ok",
+              "seconds": "4.740000",
+              "label": "AOF commit order rewrite"
+            }
+          ]
+        },
+        {
+          "name": "asan",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/asan",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "627e7d2a8d9df4b29c4632cff1cbe1c66ad817c57aba588dca4e9c9e0334e36f",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.180000",
+              "label": "ASAN build"
+            }
+          ]
+        },
+        {
+          "name": "asan_batteries",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/asan_batteries",
+          "exit": 0,
+          "passed": 5,
+          "failed": 0,
+          "ledger_sha256": "c2f2d7cb4736c71a8c316e7536f9e4d9a23a999e0b1286a7edbc4a038740b51d",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "6.940000",
+              "label": "torture under ASAN"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.030000",
+              "label": "RYOW under ASAN"
+            },
+            {
+              "status": "ok",
+              "seconds": "27.850000",
+              "label": "atomic torn/window under ASAN"
+            },
+            {
+              "status": "ok",
+              "seconds": "4.080000",
+              "label": "atomic RYOW under ASAN"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "ASAN clean"
+            }
+          ]
+        },
+        {
+          "name": "atomfix5_accounting",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/atomfix5_accounting",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "b98721b6ef28bcec58dc2d7a3a303ca845098ab39c45b2da5900e84222ffa303",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "13.980000",
+              "label": "atomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1)"
+            }
+          ]
+        },
+        {
+          "name": "atomfix5_watch",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/atomfix5_watch",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "aa029a0e82c09205bc22668082129a4c861f6923146a6776747e4d06a2d8287b",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.990000",
+              "label": "atomfix5 WATCH key count (both modes, both engines, atomic 0/1)"
+            }
+          ]
+        },
+        {
+          "name": "atomic_batteries",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/atomic_batteries",
+          "exit": 0,
+          "passed": 4,
+          "failed": 0,
+          "ledger_sha256": "d5ec82ce8009675710be28df2c07f374e19de2afd62244b66a88ff3f235f7975",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "32.840000",
+              "label": "atomic torn/window battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "4.070000",
+              "label": "atomic RYOW/mixed-write battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "4.230000",
+              "label": "atomic owner-local hazard battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "atomic shutdown invariants"
+            }
+          ]
+        },
+        {
+          "name": "atomic_floor",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/atomic_floor",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "29ed49913f0e144639bc525e6a92ecf6f8313c8e718473b871b20fadc7d895e2",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "tripwire arm/disarm round-trip"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.070000",
+              "label": "pipelined same-conn program order (400 rolls)"
+            }
+          ]
+        },
+        {
+          "name": "atomic_units",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/atomic_units",
+          "exit": 0,
+          "passed": 25,
+          "failed": 2,
+          "ledger_sha256": "16d9b0afc4e6d85ae3af0f62e87e654b8197805031eb736b117c6017650ac329",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "atomic commit publication catches up at quiescence"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.200000",
+              "label": "flushfix flush witnesses"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.050000",
+              "label": "flushfix headers witnesses"
+            },
+            {
+              "status": "ok",
+              "seconds": "3.500000",
+              "label": "multidb serverless owners"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.050000",
+              "label": "multidb global namespace boundary"
+            },
+            {
+              "status": "ok",
+              "seconds": "12.210000",
+              "label": "storesize published monitoring"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.210000",
+              "label": "MULTI admin command replies"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.070000",
+              "label": "EXECABORT releases WATCH reservation"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "atomic survivors unit build"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: admission"
+            },
+            {
+              "status": "FAIL",
+              "seconds": "0.010000",
+              "label": "atomic survivor: closure"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: script_keys"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: rename_overlay"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "atomic survivor: write_latest"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "atomic survivor: script_apply"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "atomic survivor: post_apply_probe"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "atomic survivor: lua_conversion"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "atomic survivor: watch_parent"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "atomic survivor: watch_cycle"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: mset_arity"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "atomic survivor: watch_oom"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "atomic survivor: lua_lines"
+            },
+            {
+              "status": "FAIL",
+              "seconds": "0.000000",
+              "label": "atomic survivor: library_limit"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "atomic survivor: stage_flag"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "atomic survivor: instruction_limit"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "armed resize retirement: atomic-growth"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "armed resize retirement: flush-prepared"
+            }
+          ]
+        },
+        {
+          "name": "auth",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/auth",
+          "exit": 0,
+          "passed": 7,
+          "failed": 0,
+          "ledger_sha256": "6561bed7ebd002b82b42b25035152e23c84f76c7b0f9663fe62efd18c4f0ce8e",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "reject bad protected-mode"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "reject bad enable-debug-command"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.150000",
+              "label": "AUTH/HELLO/protected state machine"
+            },
+            {
+              "status": "ok",
+              "seconds": "5.570000",
+              "label": "ACL battery (atomic off)"
+            },
+            {
+              "status": "ok",
+              "seconds": "5.570000",
+              "label": "ACL battery (atomic on)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.470000",
+              "label": "DEBUG toggle/reload battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.120000",
+              "label": "typed snapshot round-trip incl stream"
+            }
+          ]
+        },
+        {
+          "name": "authfix",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/authfix",
+          "exit": 0,
+          "passed": 5,
+          "failed": 0,
+          "ledger_sha256": "695be21e48c39a1631b8d9cdfa9e5c689043bb22c597cdad80144922d0da7c07",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.910000",
+              "label": "authfix CG4.1 binary config requirepass"
+            },
+            {
+              "status": "ok",
+              "seconds": "3.470000",
+              "label": "authfix CG4.2 missing config value refuses boot"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.910000",
+              "label": "authfix SV4.2 binary requirepass rewrite restart"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.310000",
+              "label": "authfix SV4.1 slowlog credential redaction (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.300000",
+              "label": "authfix SV4.1 slowlog credential redaction (2s)"
+            }
+          ]
+        },
+        {
+          "name": "blockfix2",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/blockfix2",
+          "exit": 0,
+          "passed": 7,
+          "failed": 0,
+          "ledger_sha256": "8dafc4b0e15ab577fdcbb3180c59df319690b2e89f2bbed7a3d62348972dd84b",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "34.270000",
+              "label": "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE"
+            },
+            {
+              "status": "ok",
+              "seconds": "36.730000",
+              "label": "blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK"
+            },
+            {
+              "status": "ok",
+              "seconds": "34.060000",
+              "label": "blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS"
+            },
+            {
+              "status": "ok",
+              "seconds": "33.640000",
+              "label": "blockfix2 MULTI-XREADGROUP-BLOCK-HANG"
+            },
+            {
+              "status": "ok",
+              "seconds": "33.850000",
+              "label": "blockfix2 INFO-TOTAL-BLOCKING-KEYS"
+            },
+            {
+              "status": "ok",
+              "seconds": "33.720000",
+              "label": "blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "blockfix2 BLOCK-SERVE-REFUSED-DROP"
+            }
+          ]
+        },
+        {
+          "name": "blockfix_registry",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/blockfix_registry",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "87f4ea7064e1fe8b402b093a9488b1018b3624c3dab408df99ce58b7d47479e9",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "39.020000",
+              "label": "blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4"
+            }
+          ]
+        },
+        {
+          "name": "boot_grammar",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/boot_grammar",
+          "exit": 0,
+          "passed": 7,
+          "failed": 0,
+          "ledger_sha256": "e3be8329f8782a72ac10b04bb05cecfe1f0c37730badf35d6b776f44ed742ac2",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "reject --mode (flag deleted)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "reject --spread"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "reject --nodes"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "reject 3-part ratio"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "reject missing conf"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "reject bad conf key"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "reject aclfile + conf user lines"
+            }
+          ]
+        },
+        {
+          "name": "bplus",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/bplus",
+          "exit": 0,
+          "passed": 8,
+          "failed": 0,
+          "ledger_sha256": "329b38aac4af58ea5274f280b66ce2e13c76acd26b7d6e4fddfd1a5a87691618",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "2.140000",
+              "label": "B+ held-group GET/MGET filter battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.170000",
+              "label": "read-local lane admission battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.090000",
+              "label": "read-local MGET fence battery (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.930000",
+              "label": "read-local GET miss battery (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.140000",
+              "label": "read-local one-key delete battery (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.400000",
+              "label": "read-local MGET fence battery (2s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.930000",
+              "label": "read-local GET miss battery (2s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.130000",
+              "label": "read-local one-key delete battery (2s)"
+            }
+          ]
+        },
+        {
+          "name": "clientfix",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/clientfix",
+          "exit": 0,
+          "passed": 14,
+          "failed": 0,
+          "ledger_sha256": "a6d758576dd3edbe679cd4bff626264e6aae40de15b0d96d0c69966d3f4e279d",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.750000",
+              "label": "clientfix tracking-cap (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "6.850000",
+              "label": "clientfix tracking-pipeline (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "13.820000",
+              "label": "clientfix reply-skip (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.300000",
+              "label": "clientfix pattern-cleanup (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.120000",
+              "label": "clientfix pause-deadline (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.110000",
+              "label": "clientfix geo-count (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.110000",
+              "label": "clientfix geo-store (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.750000",
+              "label": "clientfix tracking-cap (2s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "6.850000",
+              "label": "clientfix tracking-pipeline (2s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "11.610000",
+              "label": "clientfix reply-skip (2s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.300000",
+              "label": "clientfix pattern-cleanup (2s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.120000",
+              "label": "clientfix pause-deadline (2s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.110000",
+              "label": "clientfix geo-count (2s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.110000",
+              "label": "clientfix geo-store (2s)"
+            }
+          ]
+        },
+        {
+          "name": "climonfix",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/climonfix",
+          "exit": 0,
+          "passed": 7,
+          "failed": 0,
+          "ledger_sha256": "7b4c8933eb76aab8df338144aac127ebdc0172af244ac368fe704123cc50e8e1",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "shutdown policy + signal handoff serverless"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.340000",
+              "label": "shutdown persistence (1s, command)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.130000",
+              "label": "shutdown persistence (1s, sigterm)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.140000",
+              "label": "shutdown persistence (1s, sigint)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.340000",
+              "label": "shutdown persistence (2s, command)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.130000",
+              "label": "shutdown persistence (2s, sigterm)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.130000",
+              "label": "shutdown persistence (2s, sigint)"
+            }
+          ]
+        },
+        {
+          "name": "compat3",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/compat3",
+          "exit": 0,
+          "passed": 6,
+          "failed": 0,
+          "ledger_sha256": "ab4e9041b8034513a7821de1838b38df0c25b491c740918477ce1855383ade93",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "35.580000",
+              "label": "compat3 CC4.12 pubsub vs Redis 7.4"
+            },
+            {
+              "status": "ok",
+              "seconds": "35.570000",
+              "label": "compat3 CC4.13 pending vs Redis 7.4"
+            },
+            {
+              "status": "ok",
+              "seconds": "35.530000",
+              "label": "compat3 CC4.14 history vs Redis 7.4"
+            },
+            {
+              "status": "ok",
+              "seconds": "35.590000",
+              "label": "compat3 CC4.16 grammar vs Redis 7.4"
+            },
+            {
+              "status": "ok",
+              "seconds": "35.550000",
+              "label": "compat3 CC4.5 glob vs Redis 7.4"
+            },
+            {
+              "status": "ok",
+              "seconds": "37.780000",
+              "label": "compat3 CC4.17 flags vs Redis 7.4"
+            }
+          ]
+        },
+        {
+          "name": "core_tsan_build",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/core_tsan_build",
+          "exit": 0,
+          "passed": 0,
+          "failed": 0,
+          "ledger_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rows": []
+        },
+        {
+          "name": "core_units",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/core_units",
+          "exit": 0,
+          "passed": 9,
+          "failed": 0,
+          "ledger_sha256": "f4a310882914de205f720b70baa08e570ca55cf464d35a486a9f1987de80ca73",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.110000",
+              "label": "core concurrency watch"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.320000",
+              "label": "core concurrency lifetime"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.120000",
+              "label": "core concurrency drain"
+            },
+            {
+              "status": "ok",
+              "seconds": "7.060000",
+              "label": "core concurrency route"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.120000",
+              "label": "core concurrency snapshot"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.170000",
+              "label": "core concurrency config"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.170000",
+              "label": "core concurrency notify"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.570000",
+              "label": "read-local topology demotion (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.570000",
+              "label": "read-local topology demotion (2s)"
+            }
+          ]
+        },
+        {
+          "name": "datafix2_encoding",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/datafix2_encoding",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "1390ff894920a660bd38dd662000ea9bba85aa41623b896c4818a75682f417ce",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "34.020000",
+              "label": "datafix2 CD4.15 string encoding vs Redis 7.4"
+            }
+          ]
+        },
+        {
+          "name": "datafix2_idle",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/datafix2_idle",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "6f3a515a8b9e6fdf3e810e3331cf19d7a4a0c8ce5176e7e40f975f008dc16fae",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "599.720000",
+              "label": "datafix2 SO4.2 OBJECT IDLETIME vs Redis 7.4"
+            }
+          ]
+        },
+        {
+          "name": "datafix2_notouch",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/datafix2_notouch",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "c806c6d645abc8c64deda584ee78797ca145abf7482da73b15cdc530e5724b0e",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "34.830000",
+              "label": "datafix2 CD4.7 no-touch lookups vs Redis 7.4"
+            }
+          ]
+        },
+        {
+          "name": "datafix2_subkeys",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/datafix2_subkeys",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "70f52cc74c5f6ad7cfa7ee3f195f3666b9f54285a4386e153d4f305335a911d5",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "59.920000",
+              "label": "datafix2 CD4.14 expired_subkeys vs Redis 7.4"
+            }
+          ]
+        },
+        {
+          "name": "datafix2_watch",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/datafix2_watch",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "dbea146981b0d71c98c832096789ef20957b11adfae436130b02fbbf854402f1",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "121.050000",
+              "label": "datafix2 CD4.9 write WATCH table vs Redis 7.4"
+            }
+          ]
+        },
+        {
+          "name": "dbdefault",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/dbdefault",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "c9e40c26a6fa3bb9d8fdec44b3daad024cd3ce6637c5288c19c66645f579ae94",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.300000",
+              "label": "Redis default databases 16 (both modes)"
+            }
+          ]
+        },
+        {
+          "name": "debug-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/debug-0",
+          "exit": 0,
+          "passed": 16,
+          "failed": 0,
+          "ledger_sha256": "b6065230118b3a189658423f92712b58f79fd378a9ef35ea48d1c43cf4b88a03",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "9.170000",
+              "label": "plain-write lost updates (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.160000",
+              "label": "lbsignals battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.490000",
+              "label": "slowlog battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.040000",
+              "label": "atomfix battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.130000",
+              "label": "scriptatomic battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "14.470000",
+              "label": "execatomic battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "11.880000",
+              "label": "execiso battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.440000",
+              "label": "execfix battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.110000",
+              "label": "multires battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.780000",
+              "label": "multirace battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "30.590000",
+              "label": "session_monotonic battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.360000",
+              "label": "xacct battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "xmove battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "3.270000",
+              "label": "xscript battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.990000",
+              "label": "txn_nx battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "9.320000",
+              "label": "txniso battery (atomic 0)"
+            }
+          ]
+        },
+        {
+          "name": "debug-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/debug-1",
+          "exit": 0,
+          "passed": 16,
+          "failed": 0,
+          "ledger_sha256": "745f4764776fa85b30a338a45457eb308d0b5b4a1f61e7b9f50015d169c3a6f8",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "6.160000",
+              "label": "plain-write lost updates (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.170000",
+              "label": "lbsignals battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.480000",
+              "label": "slowlog battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.040000",
+              "label": "atomfix battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.130000",
+              "label": "scriptatomic battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "14.460000",
+              "label": "execatomic battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "11.860000",
+              "label": "execiso battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.440000",
+              "label": "execfix battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.110000",
+              "label": "multires battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.780000",
+              "label": "multirace battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "30.600000",
+              "label": "session_monotonic battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.360000",
+              "label": "xacct battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "xmove battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "3.270000",
+              "label": "xscript battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.330000",
+              "label": "txn_nx battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "9.470000",
+              "label": "txniso battery (atomic 1)"
+            }
+          ]
+        },
+        {
+          "name": "dispatch_arity",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/dispatch_arity",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "79983ced8fcf8b9c0c2221f4b94f907a37a6de8c064708ce571a57208ffce4e6",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.910000",
+              "label": "dispatchfix EX4.10 container outer arity"
+            }
+          ]
+        },
+        {
+          "name": "dispatch_children",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/dispatch_children",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "f4d70a930408cd2d5bf2ea26501cc391f7de08e647cdc5a4041c3694cc92d440",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.470000",
+              "label": "dispatchfix EX4.4 advertised children"
+            }
+          ]
+        },
+        {
+          "name": "dispatch_errors",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/dispatch_errors",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "bf5572e1c08de6c1ee221d09c514652ed4c116daffbb3e6641ccf441b121081a",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.940000",
+              "label": "dispatchfix EX4.11 container errors"
+            }
+          ]
+        },
+        {
+          "name": "dump_restore",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/dump_restore",
+          "exit": 0,
+          "passed": 3,
+          "failed": 0,
+          "ledger_sha256": "41bbffb4b8cdc1a9403e31fc7ec7327a7aab5b64e21526d02d31477e39807247",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.070000",
+              "label": "DUMP/RESTORE prepare + native SAVE"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.050000",
+              "label": "DUMP/RESTORE cross-restart round-trip"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "DUMP/RESTORE restart shutdown invariants"
+            }
+          ]
+        },
+        {
+          "name": "exbatch_live",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/exbatch_live",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "07ad079f3a8b2428a44491862ec9bf062fc4b1e50f9a9bac223ab15beaa2df1c",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.270000",
+              "label": "exbatch publication and WATCH lifecycle (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.280000",
+              "label": "exbatch publication and WATCH lifecycle (2s)"
+            }
+          ]
+        },
+        {
+          "name": "exbatch_units",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/exbatch_units",
+          "exit": 0,
+          "passed": 3,
+          "failed": 0,
+          "ledger_sha256": "6fac29f63b71a5ba622d62f850879b659d24b5078efa55a4baef0734e4389bb1",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "15.980000",
+              "label": "exbatch publication unit + negative controls"
+            },
+            {
+              "status": "ok",
+              "seconds": "42.190000",
+              "label": "exbatch watch unit + negative controls"
+            },
+            {
+              "status": "ok",
+              "seconds": "17.520000",
+              "label": "exbatch metadata unit + negative controls"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-1s-0-0-0-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-0-0-0-0",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "edd8a9e512b480fe88d6d416870b6edecd00f124e1ec0641ba22c153382246ee",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.230000",
+              "label": "feature 1s-0-0-0-0"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-1s-0-0-0-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-0-0-0-1",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "e42a9119463d5b4eb07e48b643b87e5cb82fc045f49ce138f40ec2de272fa1bf",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.110000",
+              "label": "feature 1s-0-0-0-1"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-1s-0-0-1-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-0-0-1-0",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "33b30d35618af1ffd8137b2a72c12ecd5e6d5ace2444294f5c2f6d9671935a0b",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.240000",
+              "label": "feature 1s-0-0-1-0"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-1s-0-0-1-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-0-0-1-1",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "c63eacf093b7cbd617954c1648889d0d1453dd079338c4446f80626bd66cbe85",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.100000",
+              "label": "feature 1s-0-0-1-1"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-1s-0-1-0-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-0-1-0-0",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "d7ea2ee3f5f67bc5f91b3bfb1f46ff0fb9539c89defbbbe330584f22eed6073f",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.240000",
+              "label": "feature 1s-0-1-0-0"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-1s-0-1-0-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-0-1-0-1",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "1cf1b85493b4080710781a0f06811d4d6d8846616330f0e8ba3bb31a2b4be10a",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.100000",
+              "label": "feature 1s-0-1-0-1"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-1s-0-1-1-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-0-1-1-0",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "99754a257deee5a82c099a4c587347a9593d904ada4996997c9ef4716202e061",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.230000",
+              "label": "feature 1s-0-1-1-0"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-1s-0-1-1-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-0-1-1-1",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "21b684dd36e2cf660b3960fdeb9e5762b0b93841e5ca4ed5c2c5ca8dffce588c",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.110000",
+              "label": "feature 1s-0-1-1-1"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-1s-1-0-0-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-1-0-0-0",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "75c3cdb4452e5a93edf7cde23fa46705aab20840d10a19d8352f80c21c9a825c",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.240000",
+              "label": "feature 1s-1-0-0-0"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-1s-1-0-0-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-1-0-0-1",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "f799cf5f0b78b3b9b5dc05846927444a967fcc9a5274507517a1bc11f209e874",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.100000",
+              "label": "feature 1s-1-0-0-1"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-1s-1-0-1-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-1-0-1-0",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "40a2a8541aeea2e528168c805002b9ee8a22dd9fcdeaf45f64257efc3de4b064",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.240000",
+              "label": "feature 1s-1-0-1-0"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-1s-1-0-1-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-1-0-1-1",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "e6d2492b190c0850b4526fc47760f558621ed0fac193ba129fbd21d2d5c85b35",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.110000",
+              "label": "feature 1s-1-0-1-1"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-1s-1-1-0-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-1-1-0-0",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "d73e0e21c33d10d954ca9e83feb6dfe8e00b0e2b49a044fdfd7a5a41fd5deafa",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.250000",
+              "label": "feature 1s-1-1-0-0"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-1s-1-1-0-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-1-1-0-1",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "a0cac974c2e21a378afe124432873767f3330f62a7314e0907bfb2f1c7505326",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.110000",
+              "label": "feature 1s-1-1-0-1"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-1s-1-1-1-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-1-1-1-0",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "748f698639fad0f16e47965bc236b9d3e7e4a4a7fa993dcf4ee7566250eb7117",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.250000",
+              "label": "feature 1s-1-1-1-0"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-1s-1-1-1-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-1-1-1-1",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "ee71553a74fa7554f451a3147288195f9d14c991d9c0c1653a3655e8ac6490dd",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.110000",
+              "label": "feature 1s-1-1-1-1"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-2s-0-0-0-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-0-0-0-0",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "710679f42695a70f4adbf9f45687a105f07dfa07233c573bfb44787a2df97fbd",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.240000",
+              "label": "feature 2s-0-0-0-0"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-2s-0-0-0-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-0-0-0-1",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "6a44c652655530e4d22e2c3949203a50bd9674789d1467ccac22f27a99497c9b",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.250000",
+              "label": "feature 2s-0-0-0-1"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-2s-0-0-1-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-0-0-1-0",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "e470e2ae4f24ebb2ece21f5055d967c88bd44973f9fa76181ef700218cdbd4e8",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.240000",
+              "label": "feature 2s-0-0-1-0"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-2s-0-0-1-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-0-0-1-1",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "6ba4087b6cea245ebd1e1027c06efa0222b612bdd7dcba4f04103e0b9618b426",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.240000",
+              "label": "feature 2s-0-0-1-1"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-2s-0-1-0-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-0-1-0-0",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "17b695e2c5687c49dd4bb72cbc4a14c76648ac3d754f0dafc2e2b5087a7f9eb9",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.240000",
+              "label": "feature 2s-0-1-0-0"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-2s-0-1-0-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-0-1-0-1",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "03c8c92ace97616e77e35ed1e9490f309e8bf2cf2405aadde21007179b4a48fd",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.240000",
+              "label": "feature 2s-0-1-0-1"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-2s-0-1-1-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-0-1-1-0",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "db5ddfd7efa95ae8ad8af774105c4b23ef4ae6364fb7a2ddee0349cead5499c7",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.240000",
+              "label": "feature 2s-0-1-1-0"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-2s-0-1-1-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-0-1-1-1",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "d3740f59963013fa1b660de8c813f7be4cc3e628fa89965b2e251d295d52f11b",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "2.340000",
+              "label": "feature 2s-0-1-1-1"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-2s-1-0-0-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-1-0-0-0",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "d3fcc30215150e907637dfaf790c35b1efbbebb0d61df3e8e575bf64c1c352bb",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.230000",
+              "label": "feature 2s-1-0-0-0"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-2s-1-0-0-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-1-0-0-1",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "c5de37776d9dbc619aa6e795346eee5e527628644338e1ec902db7b1e87ceb65",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.240000",
+              "label": "feature 2s-1-0-0-1"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-2s-1-0-1-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-1-0-1-0",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "81937325f1182b563ae33366d1a877942d882c306df1f6e68a7d30696a9ea838",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.240000",
+              "label": "feature 2s-1-0-1-0"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-2s-1-0-1-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-1-0-1-1",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "d8d69c3ed1ab5dffb1e7f3c6da2747893cd5af2acd4f798c29839a81eed3f56d",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.240000",
+              "label": "feature 2s-1-0-1-1"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-2s-1-1-0-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-1-1-0-0",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "f83a0d56fe9552a8c79590135a9161bf3f1f9f9db5e23f7c5440bbd1d9462a31",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.250000",
+              "label": "feature 2s-1-1-0-0"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-2s-1-1-0-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-1-1-0-1",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "e442f89b4597d43d2b35ec1f246c6319fa9c9859ab386454e79dab5390cf821a",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.240000",
+              "label": "feature 2s-1-1-0-1"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-2s-1-1-1-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-1-1-1-0",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "6ac98cafea5764896525744b7b9678b24c07c1b0e56e2c4848c44eb778297c6b",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "2.360000",
+              "label": "feature 2s-1-1-1-0"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-2s-1-1-1-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-1-1-1-1",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "0d20f38ae522cd650e08db80dd1a31eef35d749520219698c5e874cac82c8f7a",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.240000",
+              "label": "feature 2s-1-1-1-1"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-fused-home-max-nopin",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-fused-home-max-nopin",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "01ba68883ccf8430d459f89dd0c48fa91d09d6de7b3e199e03780e35c8ca003a",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.240000",
+              "label": "feature fused-home-max-nopin"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-split-home-min",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-split-home-min",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "bd13f1b16a96a8fa7166f22e2281fabb746552cbb8cc29e2971d158de7384575",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.240000",
+              "label": "feature split-home-min"
+            }
+          ]
+        },
+        {
+          "name": "feature-cell-split-shards-auto",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-split-shards-auto",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "e1a401aa05d14d1312e29aaa8f766c7e131dac271ef7a1c9d2554a51921e5716",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.240000",
+              "label": "feature split-shards-auto"
+            }
+          ]
+        },
+        {
+          "name": "flip",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/flip",
+          "exit": 0,
+          "passed": 9,
+          "failed": 0,
+          "ledger_sha256": "51215b8f263bd8851a8dc297d846ee459c92b3b1884ff3d26490afdde3a2b1a8",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.150000",
+              "label": "FLIP state battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.040000",
+              "label": "FLIP under verified load"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.440000",
+              "label": "FLIP TTL + expiry events"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.230000",
+              "label": "partial-frame conn parks (no io spin)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.250000",
+              "label": "FLIP close during FLIP (uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.210000",
+              "label": "FLIP close during FLIP (epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.180000",
+              "label": "FLIP signal stop during FLIP + second SIGINT"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.540000",
+              "label": "perfio stale epoll registration (epoll-flip)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.100000",
+              "label": "perfio stale epoll registration (epoll-lb)"
+            }
+          ]
+        },
+        {
+          "name": "flip_saturated",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/flip_saturated",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "60326415fa309e731d647df147dbde8a0d12939d26b231de1039e5c4dea35ad8",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "6.110000",
+              "label": "FLIP applies under saturated load"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "flip battery shutdown invariants"
+            }
+          ]
+        },
+        {
+          "name": "flipfix_units",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/flipfix_units",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "963ef83bec0757998b066c3bdabdf5609c723b1466e77dd38137d201a3572129",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.130000",
+              "label": "FLIP planned-connection close lifetime (ASAN+TSAN)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.130000",
+              "label": "FLIP fingerprint publication (ASAN+TSAN)"
+            }
+          ]
+        },
+        {
+          "name": "fliplisten",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/fliplisten",
+          "exit": 0,
+          "passed": 4,
+          "failed": 0,
+          "ledger_sha256": "31c71cbd1c786b1e56f4e0bf6d64c44672db052bb2083b55756e1502f3514323",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "29.780000",
+              "label": "FLIP listener conservation (io-ex, complete)"
+            },
+            {
+              "status": "ok",
+              "seconds": "29.970000",
+              "label": "FLIP listener conservation (io-ex, rollback)"
+            },
+            {
+              "status": "ok",
+              "seconds": "29.300000",
+              "label": "FLIP listener conservation (ex-io, complete)"
+            },
+            {
+              "status": "ok",
+              "seconds": "29.440000",
+              "label": "FLIP listener conservation (ex-io, rollback)"
+            }
+          ]
+        },
+        {
+          "name": "fused-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/fused-0",
+          "exit": 0,
+          "passed": 9,
+          "failed": 0,
+          "ledger_sha256": "5bc694f4bbbfb4615e2505cacd7a42392dcf76194f0a3642b62c7ab808ecb857",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.260000",
+              "label": "fused boot line (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.190000",
+              "label": "fused s6 battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.110000",
+              "label": "fused multi_exec battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.760000",
+              "label": "fused edgeproto battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.070000",
+              "label": "fused atomfix battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.230000",
+              "label": "fused spinprobe battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.160000",
+              "label": "fused shutdown report (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.630000",
+              "label": "fused txn_nx battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "9.730000",
+              "label": "fused txniso battery (atomic 0)"
+            }
+          ]
+        },
+        {
+          "name": "fused-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/fused-1",
+          "exit": 0,
+          "passed": 9,
+          "failed": 0,
+          "ledger_sha256": "acaab6d6c3136be21f770e94751e37499154aeebfb003dccdd4fb80c3f9af3c7",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.260000",
+              "label": "fused boot line (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.180000",
+              "label": "fused s6 battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.100000",
+              "label": "fused multi_exec battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.730000",
+              "label": "fused edgeproto battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.080000",
+              "label": "fused atomfix battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.230000",
+              "label": "fused spinprobe battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.160000",
+              "label": "fused shutdown report (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.910000",
+              "label": "fused txn_nx battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "8.820000",
+              "label": "fused txniso battery (atomic 1)"
+            }
+          ]
+        },
+        {
+          "name": "globcase",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/globcase",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "0ba410b9fd6f8a36bbf9fc61cf74804ab5dbaf227e983088cd0d10ab6830f1a0",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "2.050000",
+              "label": "glob/scan grammar parity vs Redis 7.4"
+            }
+          ]
+        },
+        {
+          "name": "hexpread",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/hexpread",
+          "exit": 0,
+          "passed": 8,
+          "failed": 0,
+          "ledger_sha256": "8b9729e4511d4df6a52d9fd8ddea68b6ac812ff1625c0de1b599f970b275232b",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.170000",
+              "label": "hexpread torn (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "3.350000",
+              "label": "hexpread replies (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.170000",
+              "label": "hexpread deferred (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.160000",
+              "label": "hexpread OBJECT expiry (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.160000",
+              "label": "hexpread torn (2s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "3.350000",
+              "label": "hexpread replies (2s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.180000",
+              "label": "hexpread deferred (2s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.170000",
+              "label": "hexpread OBJECT expiry (2s)"
+            }
+          ]
+        },
+        {
+          "name": "iofix-deferred",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/iofix-deferred",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "8687d9d21b6e34a959ae260add35bd7ec330d273616a4603dbfc6a9ce6ec32ed",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "26.970000",
+              "label": "iofix WB4.1 deferred IO parks"
+            }
+          ]
+        },
+        {
+          "name": "iofix-hz",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/iofix-hz",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "8b9df671eb496f94244a46d52415bd3872b8cad9d590373741c07e522d4df4df",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "39.860000",
+              "label": "iofix IO4.9 Redis hz cron"
+            }
+          ]
+        },
+        {
+          "name": "iofix-signal",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/iofix-signal",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "fcc2a13950032629e305a61c99d05114f89dd77f0434e6c72e62369e70813b05",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "18.520000",
+              "label": "iofix IO4.17 immediate signal shutdown"
+            }
+          ]
+        },
+        {
+          "name": "iofix-sleep",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/iofix-sleep",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "345c12688a6c99023826adb20a44ee0a5b5594576fcf13ed6a53d2923b126ce0",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "31.750000",
+              "label": "iofix IO4.10 global DEBUG SLEEP"
+            }
+          ]
+        },
+        {
+          "name": "latencyfix_grammar",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/latencyfix_grammar",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "0bd64c306a0c159283621d5db5b927ae4b4cbe0df1f3f5e5c3bfa254493e9ef4",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "6.320000",
+              "label": "latencyfix LAT-HIST-1 knob grammar"
+            }
+          ]
+        },
+        {
+          "name": "latencyfix_off",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/latencyfix_off",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "f12773b24bafb342ff01928df6f9661ea10a0f938c67d29d7f47e7cc109e98d8",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "13.400000",
+              "label": "latencyfix LAT-HIST-1 zero allocations off"
+            }
+          ]
+        },
+        {
+          "name": "latencyfix_shape",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/latencyfix_shape",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "102b2744743bd32ed41e5ebcba3823a08d505c5450f786abb3045401bb95c0c2",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.780000",
+              "label": "latencyfix LAT-HIST-1 histogram and latencystats"
+            }
+          ]
+        },
+        {
+          "name": "lb-stationary-1s",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/lb-stationary-1s",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "b78dff419956e67defc67688258137a6ece337636845601c2dc909edc7bd12a8",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "42.380000",
+              "label": "stationary balanced LB holds still (1s)"
+            }
+          ]
+        },
+        {
+          "name": "lb-stationary-2s",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/lb-stationary-2s",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "124ffddca2494703fca691b828a5d5444d94cefbe4dc3a061afde6848787dd04",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "42.370000",
+              "label": "stationary balanced LB holds still (2s)"
+            }
+          ]
+        },
+        {
+          "name": "lbplanner_units",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/lbplanner_units",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "8895ae4137181169547549cdc88d9b36434b434b667a7d0c21f6fa646b308850",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.200000",
+              "label": "LB sampler exceptional cleanup + negative control"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.200000",
+              "label": "LB monitor plan handoff + negative controls"
+            }
+          ]
+        },
+        {
+          "name": "lualibs",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/lualibs",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "905107ad9216aa17af08315f0e9e284e6c23b99eeb3d391e1f076861496aa4e2",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "38.850000",
+              "label": "lualibs CC4.7 vs Redis 7.4"
+            }
+          ]
+        },
+        {
+          "name": "moverfix",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/moverfix",
+          "exit": 0,
+          "passed": 8,
+          "failed": 0,
+          "ledger_sha256": "d3548c5a9c063789aca941b600b3405d73f84423987f92a1d6a50c43a64655ac",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "2.700000",
+              "label": "moverfix conservation (1s, uring, databases 1, atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.700000",
+              "label": "moverfix conservation (1s, uring, databases 16, atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.740000",
+              "label": "moverfix conservation (1s, epoll, databases 1, atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.710000",
+              "label": "moverfix conservation (1s, epoll, databases 16, atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.690000",
+              "label": "moverfix conservation (2s, uring, databases 1, atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.690000",
+              "label": "moverfix conservation (2s, uring, databases 16, atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.680000",
+              "label": "moverfix conservation (2s, epoll, databases 1, atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.680000",
+              "label": "moverfix conservation (2s, epoll, databases 16, atomic 0)"
+            }
+          ]
+        },
+        {
+          "name": "netcap",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/netcap",
+          "exit": 0,
+          "passed": 4,
+          "failed": 0,
+          "ledger_sha256": "405fa48e915d917e6406e0b83b55d8d0f58488f189a6b78dc1c86dd9a682276f",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.310000",
+              "label": "NET1 inline + query cap (1s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.310000",
+              "label": "NET1 inline + query cap (1s, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.310000",
+              "label": "NET1 inline + query cap (2s, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.300000",
+              "label": "NET1 inline + query cap (2s, epoll)"
+            }
+          ]
+        },
+        {
+          "name": "netcmd_units",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/netcmd_units",
+          "exit": 0,
+          "passed": 16,
+          "failed": 0,
+          "ledger_sha256": "114d4e318970b90bc908243fbc89e04491203ad8832c2dc2e48c6d33f7995ee2",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "netcmd regression build"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "netcmd streams regression"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "netcmd zpop regression"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "netcmd notify-oom regression"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "netcmd notify-retry regression"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "netcmd flush regression"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "netcmd output regression"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "netcmd pubsub regression"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "netcmd receive regression"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.040000",
+              "label": "netcmd config regression"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "netcmd wb-small-pipe regression"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "netcmd wb-complete-visits regression"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "netcmd hexpire-oom regression"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "encodingfix knob"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "encodingfix precedence"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "NET1 serverless bounds + scan + reclamation"
+            }
+          ]
+        },
+        {
+          "name": "netfix_config",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/netfix_config",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "b3562c96b3121cff62d19560802da075ec96dca468f93603facaa7131534074e",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "2.570000",
+              "label": "netfix NT4.8 network CONFIG error parity"
+            }
+          ]
+        },
+        {
+          "name": "netfix_idle_buffers",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/netfix_idle_buffers",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "bc51fcf879f78c3cb9e46480287f606e2f8742ecc31311b225d82b38dffdb2e0",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "316.180000",
+              "label": "netfix NT4.19 idle buffer reclamation"
+            }
+          ]
+        },
+        {
+          "name": "netfix_query_stats",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/netfix_query_stats",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "d9373e47e582d41bf013dba87817fc084e819fbf889c8d8b7a609ef5be04ae3c",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.670000",
+              "label": "netfix NT4.6 query-limit INFO parity"
+            }
+          ]
+        },
+        {
+          "name": "netfix_tls",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/netfix_tls",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "8b207b8ee6e1c690390de2df6e0ea92ec13036eb4485a604aff55f8da2871250",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "11.370000",
+              "label": "netfix NT4.7 TLS default cipher parity"
+            }
+          ]
+        },
+        {
+          "name": "netfix_unix",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/netfix_unix",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "6c5a291cc27eeed98142f2afe69aef9840ff156a6d614e0f887c06d3e12ebe9c",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.140000",
+              "label": "netfix NT4.11 Unix pathname parity"
+            }
+          ]
+        },
+        {
+          "name": "notify",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/notify",
+          "exit": 0,
+          "passed": 6,
+          "failed": 0,
+          "ledger_sha256": "b82746d9af52aa76ccea1104d335650fa49c4b90f2660c06cfe0e3a3efff2fef",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "2.080000",
+              "label": "MULTI feature battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.580000",
+              "label": "blocking feature battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.900000",
+              "label": "pubsub feature battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "Lua feature battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "46.660000",
+              "label": "keyspace notification battery (atomic 0/1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "feature battery shutdown invariants"
+            }
+          ]
+        },
+        {
+          "name": "notify_aof",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/notify_aof",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "2733d148628690aa0ede43cef0ccd2fa2676d5c922c373c99d5f800b7f34b9b8",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "13.270000",
+              "label": "local script notification AOF vs Redis 7.4"
+            }
+          ]
+        },
+        {
+          "name": "notify_order",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/notify_order",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "15d5cebea6328bd672663f4f94ef9b3012fc58c00f4305a2bf82b3ab7d72f0fa",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "73.590000",
+              "label": "keyspace lazy-expiry order vs Redis 7.4"
+            }
+          ]
+        },
+        {
+          "name": "notifycompat",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/notifycompat",
+          "exit": 0,
+          "passed": 7,
+          "failed": 0,
+          "ledger_sha256": "d86e922c68dbb68ea8a41592363e6e7d94576e56e6cacefa7594c3d270eb1061",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "22.570000",
+              "label": "notification compatibility setbit vs Redis 7.4"
+            },
+            {
+              "status": "ok",
+              "seconds": "41.510000",
+              "label": "notification compatibility setpast vs Redis 7.4"
+            },
+            {
+              "status": "ok",
+              "seconds": "50.810000",
+              "label": "notification compatibility emptystore vs Redis 7.4"
+            },
+            {
+              "status": "ok",
+              "seconds": "42.850000",
+              "label": "notification compatibility writemiss vs Redis 7.4"
+            },
+            {
+              "status": "ok",
+              "seconds": "43.770000",
+              "label": "notification compatibility objectmiss vs Redis 7.4"
+            },
+            {
+              "status": "ok",
+              "seconds": "144.800000",
+              "label": "notification compatibility expiredstore vs Redis 7.4"
+            },
+            {
+              "status": "ok",
+              "seconds": "57.040000",
+              "label": "notification compatibility flush vs Redis 7.4"
+            }
+          ]
+        },
+        {
+          "name": "ntfix_input",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/ntfix_input",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "fc45e95b4dc160915b8a69043c124dfb2f5ed529118e612c5bd1a7057cc6fe62",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "5.570000",
+              "label": "INFO received bytes exact (ntfix N1)"
+            }
+          ]
+        },
+        {
+          "name": "ntnew4_live",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/ntnew4_live",
+          "exit": 0,
+          "passed": 3,
+          "failed": 0,
+          "ledger_sha256": "f27faca8b94da1eeb7be5d6485c79737897d43daee33786af06577a5f1772987",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.170000",
+              "label": "NT-new-4 command clock after dequeue (2s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.180000",
+              "label": "NT-new-4 command clock after dequeue (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.170000",
+              "label": "NT-new-4 command clock after dequeue (2s, epoll)"
+            }
+          ]
+        },
+        {
+          "name": "perfex_live",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/perfex_live",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "95f099e4f04908400a1efc7a7c20db2af8ed8f883c89c9bfcb41a7dc44ad960a",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "15.240000",
+              "label": "perfex TTL sampler beat (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "15.240000",
+              "label": "perfex TTL sampler beat (2s)"
+            }
+          ]
+        },
+        {
+          "name": "perfex_units",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/perfex_units",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "0574f64a3e75d01224d03ea2d342fd1e274a0d136f73d4157412a29caceed5fb",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.130000",
+              "label": "perfex clock binary regression"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.130000",
+              "label": "perfex batch binary regression"
+            }
+          ]
+        },
+        {
+          "name": "perfio_stream",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/perfio_stream",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "30fe8f91bbe422ebdb4d7a8f49b5bff6ef3afa5fc8514b540817e5fca422ee37",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.400000",
+              "label": "perfio XREADGROUP bounded delivery + Redis metadata (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.400000",
+              "label": "perfio XREADGROUP bounded delivery + Redis metadata (2s)"
+            }
+          ]
+        },
+        {
+          "name": "persistfix2_commands",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/persistfix2_commands",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "4dfc082336bc3a31d0b883a19a827ddb8a318e4a824684c84637c1a487160e9c",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "55.240000",
+              "label": "persistfix2 persistence command replies and scheduling"
+            }
+          ]
+        },
+        {
+          "name": "persistfix2_errors",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/persistfix2_errors",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "f1aac3b1c41a8d16325a7074746d63660aafda52d38e2ff7067ea3e08cc9d18f",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "4.370000",
+              "label": "persistfix2 AOF write-error refusal and read availability"
+            }
+          ]
+        },
+        {
+          "name": "persistfix2_lastsave",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/persistfix2_lastsave",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "bd2942ec49bf77d54a8afc017d1e26d294ebd203e08c27a6e35189e7b9cf8a11",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "7.830000",
+              "label": "persistfix2 LASTSAVE and rewrite INFO"
+            }
+          ]
+        },
+        {
+          "name": "persistfix2_shutdown",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/persistfix2_shutdown",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "0f57ac4cc8a6834e4cfcbee4cdfe8300a20df203c3a9aec674ff184a2958a938",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "62.310000",
+              "label": "persistfix2 shutdown modifiers and signal policy"
+            }
+          ]
+        },
+        {
+          "name": "persistfix_units",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/persistfix_units",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "8f438245cbb9e7624b5920f92f35c3f05d405f05342f7a4cb5170740d1066e0b",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.040000",
+              "label": "AOF publication/shutdown witnesses + negative controls"
+            }
+          ]
+        },
+        {
+          "name": "production_units",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/production_units",
+          "exit": 0,
+          "passed": 0,
+          "failed": 0,
+          "ledger_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rows": []
+        },
+        {
+          "name": "racefix_climon",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/racefix_climon",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "9fd99064c3a671a1f402ab90df8ea8fdc2b838af932e097b26a06baeda2bbe98",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.590000",
+              "label": "Climon armed refresh + stale-store suppression control"
+            }
+          ]
+        },
+        {
+          "name": "racefix_counters",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/racefix_counters",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "53833f651d1026b6ffc1e29c7e8a9e740e52392253de1e86a1d73b4a8051929b",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.430000",
+              "label": "INFO command/socket counters (TSan, both modes)"
+            }
+          ]
+        },
+        {
+          "name": "racefix_tsan_build",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/racefix_tsan_build",
+          "exit": 0,
+          "passed": 0,
+          "failed": 0,
+          "ledger_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rows": []
+        },
+        {
+          "name": "readonly",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/readonly",
+          "exit": 0,
+          "passed": 4,
+          "failed": 0,
+          "ledger_sha256": "fe567eeca3ec60e32c72907fd5aef31985617267304edd405acceed76be093a9",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "2.140000",
+              "label": "read-only resize split read-local=0"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.140000",
+              "label": "read-only resize split read-local=1"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.630000",
+              "label": "read-only resize fused read-local=0"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.640000",
+              "label": "read-only resize fused read-local=1"
+            }
+          ]
+        },
+        {
+          "name": "release",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/release",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "release build (+footprint locks)"
+            }
+          ]
+        },
+        {
+          "name": "release_batteries",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/release_batteries",
+          "exit": 0,
+          "passed": 8,
+          "failed": 0,
+          "ledger_sha256": "e3a2ebd85b3b8a56ccea141c19d91d53de5f285d343be36e1e1edc57655539ab",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "6.630000",
+              "label": "torture battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.020000",
+              "label": "RYOW battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "ACL category runtime table"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "ACL LOAD/SAVE no-file errors"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.030000",
+              "label": "idle loop ceiling (LBSIGNALS, 1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.050000",
+              "label": "shutdown invariants (nothing stuck)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "direct-reply fired (direct=N)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.040000",
+              "label": "dispatched==executed (N)"
+            }
+          ]
+        },
+        {
+          "name": "reorder_engagement",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/reorder_engagement",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "580ad37ac9cda360b4bce66b29862c947b334d8caeea98c0d60a9726e99a0613",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "14.460000",
+              "label": "R7 production engagement (both database runtimes)"
+            }
+          ]
+        },
+        {
+          "name": "reorder_identity",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/reorder_identity",
+          "exit": 0,
+          "passed": 0,
+          "failed": 1,
+          "ledger_sha256": "8955ed824b6a24023ea92bb96d85ec5719704e9b39acfa0803448f60e5bb919c",
+          "rows": [
+            {
+              "status": "FAIL",
+              "seconds": "71.230000",
+              "label": "R7 FIFO twin off-path identity + negative controls"
+            }
+          ]
+        },
+        {
+          "name": "reorder_sync",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/reorder_sync",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "cbf6d55fa62ba26562635aeddc12de2f767e4b84c2a6bf1c9b9a5fe4be5b5d98",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.010000",
+              "label": "R7 generated envelope parity"
+            }
+          ]
+        },
+        {
+          "name": "replyoff",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/replyoff",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "0484b9fa3bb87b5175ba5eee2a383b49029b452da0a84454f520f451ed65c2f6",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.240000",
+              "label": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.230000",
+              "label": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)"
+            }
+          ]
+        },
+        {
+          "name": "respcompat",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/respcompat",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "96d60de844eae708b52dd87c454e886f7af7da6097fa83aa90f19dbda38ceb1b",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "539.300000",
+              "label": "RESP protocol error compatibility"
+            }
+          ]
+        },
+        {
+          "name": "rlcache",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/rlcache",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "ae1e3f3d28d298cc349c63ba42a6871d17be3d7132f8b1edf937b4ff89aec4cf",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "25.210000",
+              "label": "armed block-cache churn battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "read-local ownership invariants"
+            }
+          ]
+        },
+        {
+          "name": "rldbg",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/rldbg",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "b0b5ba2305b3d58c56fd02c5de68bcdf8cb5c08070fad58d3924455ee1cc03c9",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "75.620000",
+              "label": "read-local ownership-invariant build"
+            }
+          ]
+        },
+        {
+          "name": "rlfix3_info",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/rlfix3_info",
+          "exit": 0,
+          "passed": 0,
+          "failed": 8,
+          "ledger_sha256": "38fe2e6f44f93879a589c4867df8a3aafbab295a12cad26e8e79dd44b0ee024b",
+          "rows": [
+            {
+              "status": "FAIL",
+              "seconds": "0.350000",
+              "label": "INFO selective collection (1s, epoll, read-local 0)"
+            },
+            {
+              "status": "FAIL",
+              "seconds": "0.360000",
+              "label": "INFO selective collection (1s, epoll, read-local 1)"
+            },
+            {
+              "status": "FAIL",
+              "seconds": "0.350000",
+              "label": "INFO selective collection (1s, uring, read-local 0)"
+            },
+            {
+              "status": "FAIL",
+              "seconds": "0.350000",
+              "label": "INFO selective collection (1s, uring, read-local 1)"
+            },
+            {
+              "status": "FAIL",
+              "seconds": "0.350000",
+              "label": "INFO selective collection (2s, epoll, read-local 0)"
+            },
+            {
+              "status": "FAIL",
+              "seconds": "0.340000",
+              "label": "INFO selective collection (2s, epoll, read-local 1)"
+            },
+            {
+              "status": "FAIL",
+              "seconds": "0.350000",
+              "label": "INFO selective collection (2s, uring, read-local 0)"
+            },
+            {
+              "status": "FAIL",
+              "seconds": "0.360000",
+              "label": "INFO selective collection (2s, uring, read-local 1)"
+            }
+          ]
+        },
+        {
+          "name": "rlfix3_zc",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/rlfix3_zc",
+          "exit": 0,
+          "passed": 8,
+          "failed": 0,
+          "ledger_sha256": "f0de93eed6987051e4809f65b49c7967294565dd5eba359a1cfa1612ae690218",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.290000",
+              "label": "read-local borrow capability (1s, epoll, read-local 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.290000",
+              "label": "read-local borrow capability (1s, epoll, read-local 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.330000",
+              "label": "read-local borrow capability (1s, uring, read-local 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.280000",
+              "label": "read-local borrow capability (1s, uring, read-local 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.290000",
+              "label": "read-local borrow capability (2s, epoll, read-local 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.290000",
+              "label": "read-local borrow capability (2s, epoll, read-local 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.290000",
+              "label": "read-local borrow capability (2s, uring, read-local 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.300000",
+              "label": "read-local borrow capability (2s, uring, read-local 1)"
+            }
+          ]
+        },
+        {
+          "name": "router_uniform",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/router_uniform",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "7173be90dc20216523e9db9b55ff982134014dc7dfb6596363b00e8e53200ea1",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "5.200000",
+              "label": "dispatchfix EX4.17 uniform routing and legacy recovery"
+            }
+          ]
+        },
+        {
+          "name": "script_bounds",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/script_bounds",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "905867aec5a50260e19679ca17353727f4726f3935d946f5e6c62b2ebd10b4e0",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.050000",
+              "label": "xscript limit control"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.040000",
+              "label": "xscript window control"
+            }
+          ]
+        },
+        {
+          "name": "scriptfix",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/scriptfix",
+          "exit": 0,
+          "passed": 8,
+          "failed": 0,
+          "ledger_sha256": "68808564127bf60b9e0ce4b92e1401726656933568a49670017ebf66dad0ccb7",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.120000",
+              "label": "scriptfix sandbox (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.120000",
+              "label": "scriptfix functions (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.710000",
+              "label": "scriptfix replies (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.450000",
+              "label": "scriptfix dump (1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.120000",
+              "label": "scriptfix sandbox (2s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.110000",
+              "label": "scriptfix functions (2s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.710000",
+              "label": "scriptfix replies (2s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.460000",
+              "label": "scriptfix dump (2s)"
+            }
+          ]
+        },
+        {
+          "name": "serverfix_acllog",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/serverfix_acllog",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "2444c6916a631a5c311ac95fcf4a62eadbbcc8fb0b4c05c4d8e791f64f8e16d8",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "14.280000",
+              "label": "serverfix CC4.26 disabled ACL log allocation"
+            }
+          ]
+        },
+        {
+          "name": "serverfix_config",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/serverfix_config",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "2c0f1bc369daa4a48bcc6807b28ba5b8449d6fd40286832fe3fc77d88a8c0a5b",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.980000",
+              "label": "serverfix SV4.6 CONFIG validation matrix"
+            }
+          ]
+        },
+        {
+          "name": "serverfix_hello",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/serverfix_hello",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "a91878d6af9fa54970f0fbba5b439a2d254796f9f50a2bec2b769fdc6019db50",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.790000",
+              "label": "serverfix SV4.7 HELLO canonical protocol"
+            }
+          ]
+        },
+        {
+          "name": "serverfix_hll",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/serverfix_hll",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "9241ac3479cbf1e60ec8d49c1afed64fcdb976002bcc06b57757c16ae26bd81f",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "6.150000",
+              "label": "serverfix SV4.8 HyperLogLog self-test controls"
+            }
+          ]
+        },
+        {
+          "name": "serverfix_lines",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/serverfix_lines",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "dc1e6a9d5f57ad5e0da106fa4dd7880abc18f7e4791bdddae215416449cd0f6b",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "8.520000",
+              "label": "serverfix CG4.3 physical config lines"
+            }
+          ]
+        },
+        {
+          "name": "serverfix_scalar",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/serverfix_scalar",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "dac172affb415d924c7d1ee61a73aa1875d47e333aece8850ef120e5930b5ee4",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "19.760000",
+              "label": "serverfix CG4.4 shared scalar grammar"
+            }
+          ]
+        },
+        {
+          "name": "serverfix_slowlog",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/serverfix_slowlog",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "831cd25e5275a1b3d422fc68d526dd81b27be6ff5f34cb6d89abb9c9b3eedbd5",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "13.650000",
+              "label": "serverfix SV4.14 disabled slowlog allocation"
+            }
+          ]
+        },
+        {
+          "name": "serverfix_waitaof",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/serverfix_waitaof",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "2b0da85f62c2686fb9b60bb65a86d862b0fa3e86589bfc512a080539da8a04b4",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "6.880000",
+              "label": "serverfix SV4.5 WAITAOF wait lifecycle"
+            }
+          ]
+        },
+        {
+          "name": "snapshot-epoll",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/snapshot-epoll",
+          "exit": 0,
+          "passed": 16,
+          "failed": 0,
+          "ledger_sha256": "e4f30a093a645677a675019597d07948847aeb14326f67d076ed98b9d173b002",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.650000",
+              "label": "snapshot concurrent cut (epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.190000",
+              "label": "snapshot cut reload (epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.830000",
+              "label": "snapshot never tears a cross-shard MSET group (epoll, atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "5.340000",
+              "label": "snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.050000",
+              "label": "typed snapshot save (epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.050000",
+              "label": "typed snapshot reload (epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.160000",
+              "label": "typed snapshot preimage race (epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.060000",
+              "label": "typed snapshot race reload (epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.830000",
+              "label": "shutdown keeps acknowledged writes (1s, sigterm, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.820000",
+              "label": "shutdown keeps acknowledged writes (1s, command, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.980000",
+              "label": "shutdown cancels BGSAVE capture (1s, atomic 0, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.970000",
+              "label": "shutdown cancels BGSAVE capture (1s, atomic 1, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.840000",
+              "label": "shutdown keeps acknowledged writes (2s, sigterm, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.840000",
+              "label": "shutdown keeps acknowledged writes (2s, command, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.090000",
+              "label": "shutdown cancels BGSAVE capture (2s, atomic 0, epoll)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.080000",
+              "label": "shutdown cancels BGSAVE capture (2s, atomic 1, epoll)"
+            }
+          ]
+        },
+        {
+          "name": "snapshot-uring",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/snapshot-uring",
+          "exit": 0,
+          "passed": 16,
+          "failed": 0,
+          "ledger_sha256": "53ebf5b41d4aa56f64a3a5b748dea170162098b111b207cdf1acdace4d345790",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.630000",
+              "label": "snapshot concurrent cut (uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.170000",
+              "label": "snapshot cut reload (uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.770000",
+              "label": "snapshot never tears a cross-shard MSET group (uring, atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "5.300000",
+              "label": "snapshot never tears a MULTI/EXEC group (uring, default atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.050000",
+              "label": "typed snapshot save (uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.050000",
+              "label": "typed snapshot reload (uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.160000",
+              "label": "typed snapshot preimage race (uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.060000",
+              "label": "typed snapshot race reload (uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.850000",
+              "label": "shutdown keeps acknowledged writes (1s, sigterm, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.830000",
+              "label": "shutdown keeps acknowledged writes (1s, command, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.990000",
+              "label": "shutdown cancels BGSAVE capture (1s, atomic 0, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.980000",
+              "label": "shutdown cancels BGSAVE capture (1s, atomic 1, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.840000",
+              "label": "shutdown keeps acknowledged writes (2s, sigterm, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.840000",
+              "label": "shutdown keeps acknowledged writes (2s, command, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.090000",
+              "label": "shutdown cancels BGSAVE capture (2s, atomic 0, uring)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.070000",
+              "label": "shutdown cancels BGSAVE capture (2s, atomic 1, uring)"
+            }
+          ]
+        },
+        {
+          "name": "sort",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/sort",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "0b6fc273991fc36ebe696c5c424130e45ddc9060fe714e76f40a54264106e711",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.120000",
+              "label": "cross-owner SORT battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.120000",
+              "label": "cross-owner SORT battery (atomic 1)"
+            }
+          ]
+        },
+        {
+          "name": "splitlocal_units",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/splitlocal_units",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "966f2e9ec769993ca50a1e5476ae3e4124727cc075a9f51d9e8ccdc3a7b46588",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.020000",
+              "label": "splitlocal template forwarding + old-argument controls"
+            }
+          ]
+        },
+        {
+          "name": "tls",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/tls",
+          "exit": 0,
+          "passed": 20,
+          "failed": 0,
+          "ledger_sha256": "c786f0f06e793263b39f2efc5e14bda3c61cf13db538596221846077992c4d95",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.880000",
+              "label": "TLS ephemeral CA/server/client certificates"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.040000",
+              "label": "NET2 serverless RX policy and KeyUpdate controls"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "reject TLS listener without certificate"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "reject invalid tls-protocols"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "reject invalid tls-ciphers"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.050000",
+              "label": "TLS client-auth yes matrix"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "TLS yes shutdown invariants"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.060000",
+              "label": "TLS client-auth optional matrix"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "kTLS TLS 1.2 engaged live (default boot)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.170000",
+              "label": "TLS 1.3 KeyUpdate survives (NET2)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.170000",
+              "label": "TLS 1.3 userspace KeyUpdate survives (NET2)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "TLS optional shutdown invariants"
+            },
+            {
+              "status": "ok",
+              "seconds": "15.090000",
+              "label": "TLS pipeline/torn-record/coexistence battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "TLS shutdown invariants"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "TLS application send path error-free"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.060000",
+              "label": "TLS connection slots all freed (N/N)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "TLS zc borrow gates fired (suppressed=N)"
+            },
+            {
+              "status": "ok",
+              "seconds": "5.810000",
+              "label": "TLS silent-peer close after reply (ntfix N2)"
+            },
+            {
+              "status": "ok",
+              "seconds": "10.620000",
+              "label": "RESP pre-AUTH limit errors (ntfix N3)"
+            },
+            {
+              "status": "ok",
+              "seconds": "15.030000",
+              "label": "RESP query-buffer frontier (ntfix N4)"
+            }
+          ]
+        },
+        {
+          "name": "trackfix_accounting",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/trackfix_accounting",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "00c5b1f81a86cf92e09e494323fd8853a1f86b37071005edb224077f25608653",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "54.850000",
+              "label": "tracking-only delivery/drop accounting vs Redis 7.4"
+            }
+          ]
+        },
+        {
+          "name": "trackfix_order",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/trackfix_order",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "05f63fee51b60b9c19a270ad192cdf0fa27f88e558fbc133792855b369ae2b31",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "220.710000",
+              "label": "tracking delayed-write order vs Redis 7.4"
+            }
+          ]
+        },
+        {
+          "name": "tracking_redirect",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/tracking_redirect",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "3e8a0a2751c4b49148f045d9ddf311833ea262d50336e90ee1d850349358ffcf",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "37.450000",
+              "label": "tracking REDIRECT close vs Redis 7.4"
+            }
+          ]
+        },
+        {
+          "name": "txn_group_fused",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/txn_group_fused",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "9b356625b2000a491180d201117dfd5a93b5db95c80ed338ff33bd01d5d65310",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "12.870000",
+              "label": "fused txngroup battery (atomic 1)"
+            }
+          ]
+        },
+        {
+          "name": "txn_group_split",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/txn_group_split",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "f4f0e6bd15e5f4a97f8979433d87c89330fd069e3c0b934d9a0deb12c32500e2",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "12.880000",
+              "label": "txngroup battery (atomic 1)"
+            }
+          ]
+        },
+        {
+          "name": "txnorder-fused-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/txnorder-fused-0",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "97dd24347a30a15a45684539c276d5edc172fd39325f3b47b18d0bd448e8d07c",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "49.000000",
+              "label": "txnorder battery (fused, atomic 0)"
+            }
+          ]
+        },
+        {
+          "name": "txnorder-fused-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/txnorder-fused-1",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "d4dac97d335dd9613af5190dbc7dd6d1c262ea09c43acf4afb46565d9321788b",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "49.020000",
+              "label": "txnorder battery (fused, atomic 1)"
+            }
+          ]
+        },
+        {
+          "name": "txnorder-split-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/txnorder-split-0",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "25effe19cdb50d0e1cf024d5eaadd4cfde87a66b5475f617651d8a9f1a75ee02",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "49.780000",
+              "label": "txnorder battery (split, atomic 0)"
+            }
+          ]
+        },
+        {
+          "name": "txnorder-split-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/txnorder-split-1",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "3bb5a6a876e9190b68a9864eb6447f57e7c9834acd2e20a8336f14138bc77493",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "48.680000",
+              "label": "txnorder battery (split, atomic 1)"
+            }
+          ]
+        },
+        {
+          "name": "txnorder2",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/txnorder2",
+          "exit": 0,
+          "passed": 16,
+          "failed": 0,
+          "ledger_sha256": "3273d7a92d0808a00f0b086ee4fa389da2af44d6bfd27d3cb00c35b82ee831df",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "txnorder2 writer episode R1"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "txnorder2 writer episode R2"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "txnorder2 writer episode R3"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "txnorder2 writer episode R4"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "txnorder2 writer episode R5"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "txnorder2 writer episode R6"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "txnorder2 writer episode R7"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.070000",
+              "label": "txnorder2 writer episode R8"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "txnorder2 writer episode R9"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "txnorder2 writer episode R10"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "txnorder2 writer episode R11"
+            },
+            {
+              "status": "ok",
+              "seconds": "4.560000",
+              "label": "txnorder2 writer episode R12"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.050000",
+              "label": "txnorder2 direct RENAME owner join"
+            },
+            {
+              "status": "ok",
+              "seconds": "22.690000",
+              "label": "txnorder2 WATCH serve"
+            },
+            {
+              "status": "ok",
+              "seconds": "30.370000",
+              "label": "txnorder2 WATCH flush"
+            },
+            {
+              "status": "ok",
+              "seconds": "27.920000",
+              "label": "txnorder2 WATCH readonly"
+            }
+          ]
+        },
+        {
+          "name": "txnorder_index",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/txnorder_index",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "d13142abc9c7899fcc945f8deaf9e759817a332f6cf4914b5a6156765472cce0",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "102.250000",
+              "label": "txnorder index oracle"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.550000",
+              "label": "txnorder index complexity"
+            }
+          ]
+        },
+        {
+          "name": "txnorder_wake",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/txnorder_wake",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "490d89d154be3dde9e1ebe91450a51c0a4fb82383d0b2d283aaab72c8012b589",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "txnorder2 busy owner inbox wake"
+            }
+          ]
+        },
+        {
+          "name": "txnorder_wound",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/txnorder_wound",
+          "exit": 0,
+          "passed": 4,
+          "failed": 0,
+          "ledger_sha256": "54d72c28956a256e2b26a8ed4663f5b0d2b3e1d99e5ab240e92bca2f7152b4bc",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "txnorder wound group"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "txnorder wound exec"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "txnorder wound oom"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.090000",
+              "label": "txnorder wound d2"
+            }
+          ]
+        },
+        {
+          "name": "wait_units",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/wait_units",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "d4810c586b8e891daf8257931479858db59edd5b38cb844f1ece64ed70d699b4",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.050000",
+              "label": "waits config publication + admission unit"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.010000",
+              "label": "reads never wait for retirement quiescence"
+            }
+          ]
+        },
+        {
+          "name": "waits_tsan_build",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/waits_tsan_build",
+          "exit": 0,
+          "passed": 0,
+          "failed": 0,
+          "ledger_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rows": []
+        },
+        {
+          "name": "wb_policy",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/wb_policy",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "4d86f4d1e4a5e40c2e9314d6d232a5018c2a6e93f31cfc8bc88e5dfc8d99df86",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "5.980000",
+              "label": "writeback policies 0/1: 22 standard fixtures"
+            }
+          ]
+        },
+        {
+          "name": "wb_rule_units",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/wb_rule_units",
+          "exit": 0,
+          "passed": 4,
+          "failed": 0,
+          "ledger_sha256": "c3d0793043baa62e30760f3de2eb7edb10ba8434b6770c4ed93cc71bed3f70b4",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.100000",
+              "label": "writeback c12 policy witnesses + negative controls"
+            },
+            {
+              "status": "ok",
+              "seconds": "5.330000",
+              "label": "writeback c12 phase witnesses + negative controls"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.090000",
+              "label": "writeback c12 stages witnesses + negative controls"
+            },
+            {
+              "status": "ok",
+              "seconds": "5.750000",
+              "label": "writeback c12 split-phase witnesses + negative controls"
+            }
+          ]
+        },
+        {
+          "name": "wbland_units",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/wbland_units",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "b88c9ea71e2ff94e08b8175f92b6cda0b1ff6ebbd40fe68642f1b3431815a19f",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "7.120000",
+              "label": "writeback policy clauses witnesses + negative controls"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.100000",
+              "label": "writeback policy paths witnesses + negative controls"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "final-zc-epoll-1s",
+      "receipt": "docs/wave10/jobs/final-zc-epoll-1s.json",
+      "receipt_sha256": "4862f8df651ea8f7510e01b62a720efa6bf712571e02f9886b3601b4e7da8bc8",
+      "binary_sha256": "844cf188071bae335a80e8ae15c2acaec2d1f583f235edf4bf4496421299660e",
+      "source_commit": "e619168f5b37b8e4794b55a75ccf8b263d7e88ff",
+      "gate_sha256": "ef483d43ddd0466e4ffd62b120c97f11faeb590209d397e077e895a150e8a38c",
+      "env": {
+        "LANG": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_ONLY_JOBS": "zc",
+        "GATE_NET_IO": "epoll",
+        "GATE_PROOF_NET_IO": "epoll",
+        "GATE_ZC_NET_IO": "epoll",
+        "GATE_SHUTDOWN_NET_IO": "epoll",
+        "GATE_DIFFER_NET_IO": "epoll",
+        "GATE_TXN_FUSED": "1",
+        "GATE_TEST_PORT": "20098",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave10/docs/wave10/jobs/final-zc-epoll-1s.tsv"
+      },
+      "exit": 0,
+      "seconds": 10.540673732757568,
+      "summary": [
+        "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave10/docs/wave10/jobs/final-zc-epoll-1s.tsv.partial"
+      ],
+      "jobs": [
+        {
+          "name": "asan",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.AmFtoh/jobs/asan",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "3d0fa69957c41cbd84e8cfe7d8fa2624f7803ca763e0445194f16b2510e2f8a2",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.210000",
+              "label": "ASAN build"
+            }
+          ]
+        },
+        {
+          "name": "release",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.AmFtoh/jobs/release",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "release build (+footprint locks)"
+            }
+          ]
+        },
+        {
+          "name": "zc",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.AmFtoh/jobs/zc",
+          "exit": 0,
+          "passed": 4,
+          "failed": 0,
+          "ledger_sha256": "3053d730d3553f5bf38daca4b4ad1f237a62c8b7e40a483cfb62efcb8b92e825",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.360000",
+              "label": "zc borrow battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "zc fired (zc_sends=N)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.410000",
+              "label": "zc borrow battery under ASAN"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "zc ASAN clean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "final-zc-epoll-2s",
+      "receipt": "docs/wave10/jobs/final-zc-epoll-2s.json",
+      "receipt_sha256": "c9d0ac6effabcd938d8e5f0ace5b85996250e04384182347e000edcb5507ca06",
+      "binary_sha256": "844cf188071bae335a80e8ae15c2acaec2d1f583f235edf4bf4496421299660e",
+      "source_commit": "e619168f5b37b8e4794b55a75ccf8b263d7e88ff",
+      "gate_sha256": "ef483d43ddd0466e4ffd62b120c97f11faeb590209d397e077e895a150e8a38c",
+      "env": {
+        "LANG": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_ONLY_JOBS": "zc",
+        "GATE_NET_IO": "epoll",
+        "GATE_PROOF_NET_IO": "epoll",
+        "GATE_ZC_NET_IO": "epoll",
+        "GATE_SHUTDOWN_NET_IO": "epoll",
+        "GATE_DIFFER_NET_IO": "epoll",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TEST_PORT": "20098",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave10/docs/wave10/jobs/final-zc-epoll-2s.tsv"
+      },
+      "exit": 0,
+      "seconds": 10.572434902191162,
+      "summary": [
+        "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave10/docs/wave10/jobs/final-zc-epoll-2s.tsv.partial"
+      ],
+      "jobs": [
+        {
+          "name": "asan",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.XYSEG5/jobs/asan",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "2bbffbe49da1b3dac9671a193d0cf08ef748080b5ae75412ef63e25e1bd15411",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.220000",
+              "label": "ASAN build"
+            }
+          ]
+        },
+        {
+          "name": "release",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.XYSEG5/jobs/release",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "release build (+footprint locks)"
+            }
+          ]
+        },
+        {
+          "name": "zc",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.XYSEG5/jobs/zc",
+          "exit": 0,
+          "passed": 4,
+          "failed": 0,
+          "ledger_sha256": "4a3dc0c898029fad8923a2c96a2b0a59eb8a45ffbe7d4a0c17e96e5dd896755c",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.360000",
+              "label": "zc borrow battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "zc fired (zc_sends=N)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.430000",
+              "label": "zc borrow battery under ASAN"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "zc ASAN clean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "final-zc-uring-1s",
+      "receipt": "docs/wave10/jobs/final-zc-uring-1s.json",
+      "receipt_sha256": "b8032bf8db349a71d34d07132d67c820a0945a720b34d7ef8d3d442a88196bfd",
+      "binary_sha256": "844cf188071bae335a80e8ae15c2acaec2d1f583f235edf4bf4496421299660e",
+      "source_commit": "e619168f5b37b8e4794b55a75ccf8b263d7e88ff",
+      "gate_sha256": "ef483d43ddd0466e4ffd62b120c97f11faeb590209d397e077e895a150e8a38c",
+      "env": {
+        "LANG": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_ONLY_JOBS": "zc",
+        "GATE_NET_IO": "uring",
+        "GATE_PROOF_NET_IO": "uring",
+        "GATE_ZC_NET_IO": "uring",
+        "GATE_SHUTDOWN_NET_IO": "uring",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TXN_FUSED": "1",
+        "GATE_TEST_PORT": "20098",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave10/docs/wave10/jobs/final-zc-uring-1s.tsv"
+      },
+      "exit": 0,
+      "seconds": 10.534047365188599,
+      "summary": [
+        "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave10/docs/wave10/jobs/final-zc-uring-1s.tsv.partial"
+      ],
+      "jobs": [
+        {
+          "name": "asan",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.YbEZEQ/jobs/asan",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "39cc55c4a88fa60f08ba75e085f758e013b875f975019f01efafd57cf6b043d6",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.200000",
+              "label": "ASAN build"
+            }
+          ]
+        },
+        {
+          "name": "release",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.YbEZEQ/jobs/release",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "309c13c2922aae5ea759e31f5aee12f47b67cb6b06c5e43555af42a805f491c5",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "release build (+footprint locks)"
+            }
+          ]
+        },
+        {
+          "name": "zc",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.YbEZEQ/jobs/zc",
+          "exit": 0,
+          "passed": 4,
+          "failed": 0,
+          "ledger_sha256": "f6cd1bf9f511a7a03080843c72f4d6798a5f406e23f6e011cb510a8ffebbcfae",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.370000",
+              "label": "zc borrow battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "zc fired (zc_sends=N)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.400000",
+              "label": "zc borrow battery under ASAN"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "zc ASAN clean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "final-zc-uring-2s",
+      "receipt": "docs/wave10/jobs/final-zc-uring-2s.json",
+      "receipt_sha256": "c869b5a64be69228890767f5775381b95d2957630cf1acf0e0fffb424c00ae1e",
+      "binary_sha256": "844cf188071bae335a80e8ae15c2acaec2d1f583f235edf4bf4496421299660e",
+      "source_commit": "e619168f5b37b8e4794b55a75ccf8b263d7e88ff",
+      "gate_sha256": "ef483d43ddd0466e4ffd62b120c97f11faeb590209d397e077e895a150e8a38c",
+      "env": {
+        "LANG": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_ONLY_JOBS": "zc",
+        "GATE_NET_IO": "uring",
+        "GATE_PROOF_NET_IO": "uring",
+        "GATE_ZC_NET_IO": "uring",
+        "GATE_SHUTDOWN_NET_IO": "uring",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TEST_PORT": "20098",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave10/docs/wave10/jobs/final-zc-uring-2s.tsv"
+      },
+      "exit": 0,
+      "seconds": 10.565519571304321,
+      "summary": [
+        "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave10/docs/wave10/jobs/final-zc-uring-2s.tsv.partial"
+      ],
+      "jobs": [
+        {
+          "name": "asan",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.WU7531/jobs/asan",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "3d0fa69957c41cbd84e8cfe7d8fa2624f7803ca763e0445194f16b2510e2f8a2",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.210000",
+              "label": "ASAN build"
+            }
+          ]
+        },
+        {
+          "name": "release",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.WU7531/jobs/release",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "release build (+footprint locks)"
+            }
+          ]
+        },
+        {
+          "name": "zc",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.WU7531/jobs/zc",
+          "exit": 0,
+          "passed": 4,
+          "failed": 0,
+          "ledger_sha256": "34f0e1562df104ba8460d05c72c30c852185e716af861e51e60ecc04f230bbcd",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.370000",
+              "label": "zc borrow battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "zc fired (zc_sends=N)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.410000",
+              "label": "zc borrow battery under ASAN"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "zc ASAN clean"
             }
           ]
         }

@@ -34,72 +34,152 @@
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "lualibs",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/lualibs",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "latencyfix_grammar",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "latencyfix_grammar",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/latencyfix_grammar",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "latencyfix_shape",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "latencyfix_shape",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/latencyfix_shape",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "latencyfix_off",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "latencyfix_off",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/latencyfix_off",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "iofix-deferred",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "iofix-deferred",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/iofix-deferred",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "iofix-hz",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "iofix-hz",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/iofix-hz",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "iofix-sleep",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "iofix-sleep",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/iofix-sleep",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "iofix-signal",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "iofix-signal",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/iofix-signal",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "execfair",
@@ -125,99 +205,218 @@
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "txnorder_index",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/txnorder_index",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "txnorder2",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "txnorder2",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/txnorder2",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "txnorder_wake",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "txnorder_wake",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/txnorder_wake",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "reorder_identity",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "reorder_identity",
+          "run": "final-survivors-reorder-fixed",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.JAFSBY/jobs/reorder_identity",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        },
+        {
+          "name": "reorder_identity",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/reorder_identity",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": false
+        }
+      ]
     },
     {
       "name": "reorder_sync",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "reorder_sync",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/reorder_sync",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "reorder_engagement",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "reorder_engagement",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/reorder_engagement",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "wb_rule_units",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "wb_rule_units",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/wb_rule_units",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "wbland_units",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "wbland_units",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/wbland_units",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "scriptfix",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "scriptfix",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/scriptfix",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "atomfix5_watch",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "atomfix5_watch",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/atomfix5_watch",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "datafix2_watch",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "datafix2_watch",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/datafix2_watch",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "blockfix_structure",
@@ -244,7 +443,7 @@
       "fused": null,
       "atomic": null,
       "complete": true,
-      "passed": false,
+      "passed": true,
       "attempts": [
         {
           "name": "blockfix_registry",
@@ -254,6 +453,15 @@
           "fused": "0",
           "atomic": "1",
           "passed": false
+        },
+        {
+          "name": "blockfix_registry",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/blockfix_registry",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
         }
       ]
     },
@@ -281,99 +489,227 @@
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "serverfix_slowlog",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/serverfix_slowlog",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "rlfix3_info",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "rlfix3_info",
+          "run": "final-info-exec-harness-fixed",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.VfumvX/jobs/rlfix3_info",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        },
+        {
+          "name": "rlfix3_info",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/rlfix3_info",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": false
+        }
+      ]
     },
     {
       "name": "compat3",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "compat3",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/compat3",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "netcmd_units",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "netcmd_units",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/netcmd_units",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "atomic_units",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "atomic_units",
+          "run": "final-survivors-reorder-fixed",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.JAFSBY/jobs/atomic_units",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        },
+        {
+          "name": "atomic_units",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/atomic_units",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": false
+        }
+      ]
     },
     {
       "name": "splitlocal_units",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "splitlocal_units",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/splitlocal_units",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "exbatch_units",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "exbatch_units",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/exbatch_units",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "moverfix",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "moverfix",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/moverfix",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "core_units",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "core_units",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/core_units",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "wait_units",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "wait_units",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/wait_units",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "serverfix_waitaof",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "serverfix_waitaof",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/serverfix_waitaof",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "netio-1s",
@@ -474,6 +810,51 @@
           "fused": "0",
           "atomic": "1",
           "passed": true
+        },
+        {
+          "name": "asan",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/asan",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        },
+        {
+          "name": "asan",
+          "run": "final-zc-epoll-1s",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.AmFtoh/jobs/asan",
+          "engine": "epoll",
+          "fused": "1",
+          "atomic": "1",
+          "passed": true
+        },
+        {
+          "name": "asan",
+          "run": "final-zc-epoll-2s",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.XYSEG5/jobs/asan",
+          "engine": "epoll",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        },
+        {
+          "name": "asan",
+          "run": "final-zc-uring-1s",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.YbEZEQ/jobs/asan",
+          "engine": "uring",
+          "fused": "1",
+          "atomic": "1",
+          "passed": true
+        },
+        {
+          "name": "asan",
+          "run": "final-zc-uring-2s",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.WU7531/jobs/asan",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
         }
       ]
     },
@@ -493,6 +874,15 @@
           "fused": "0",
           "atomic": "1",
           "passed": true
+        },
+        {
+          "name": "rldbg",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/rldbg",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
         }
       ]
     },
@@ -501,108 +891,228 @@
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "netfix_query_stats",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/netfix_query_stats",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "ntfix_input",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "ntfix_input",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/ntfix_input",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "persistfix2_lastsave",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "persistfix2_lastsave",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/persistfix2_lastsave",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "racefix_counters",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "racefix_counters",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/racefix_counters",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "notify_aof",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "notify_aof",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/notify_aof",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "notify_order",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "notify_order",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/notify_order",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "notifycompat",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "notifycompat",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/notifycompat",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "exbatch_live",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "exbatch_live",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/exbatch_live",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "atomfix5_accounting",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "atomfix5_accounting",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/atomfix5_accounting",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "acl_recheck",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "acl_recheck",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/acl_recheck",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "aclfix",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "aclfix",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/aclfix",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "authfix",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "authfix",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/authfix",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "bugs5",
@@ -628,9 +1138,19 @@
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "rlcache",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/rlcache",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "inline_quoted",
@@ -780,7 +1300,7 @@
       "fused": null,
       "atomic": null,
       "complete": true,
-      "passed": false,
+      "passed": true,
       "attempts": [
         {
           "name": "blockfix2",
@@ -799,6 +1319,15 @@
           "fused": "0",
           "atomic": "1",
           "passed": false
+        },
+        {
+          "name": "blockfix2",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/blockfix2",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
         }
       ]
     },
@@ -807,9 +1336,19 @@
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "txnorder_wound",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/txnorder_wound",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "witness_contracts",
@@ -930,117 +1469,247 @@
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "trackfix_order",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/trackfix_order",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "trackfix_accounting",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "trackfix_accounting",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/trackfix_accounting",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "tracking_redirect",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "tracking_redirect",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/tracking_redirect",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "aoforder",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "aoforder",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/aoforder",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "racefix_climon",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "racefix_climon",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/racefix_climon",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "dispatch_arity",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "dispatch_arity",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/dispatch_arity",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "dispatch_errors",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "dispatch_errors",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/dispatch_errors",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "dispatch_children",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "dispatch_children",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/dispatch_children",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "serverfix_lines",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "serverfix_lines",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/serverfix_lines",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "serverfix_scalar",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "serverfix_scalar",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/serverfix_scalar",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "serverfix_hello",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "serverfix_hello",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/serverfix_hello",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "serverfix_config",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "serverfix_config",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/serverfix_config",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "bplus",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "bplus",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/bplus",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "at412-T1",
@@ -1389,9 +2058,19 @@
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "clientfix",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/clientfix",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "respresume-fragment-1s-epoll",
@@ -1626,153 +2305,323 @@
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "perfio_stream",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/perfio_stream",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "climonfix",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "climonfix",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/climonfix",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "ntnew4_live",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "ntnew4_live",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/ntnew4_live",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "perfex_units",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "perfex_units",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/perfex_units",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "perfex_live",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "perfex_live",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/perfex_live",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "netcap",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "netcap",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/netcap",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "netfix_unix",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "netfix_unix",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/netfix_unix",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "netfix_config",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "netfix_config",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/netfix_config",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "netfix_tls",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "netfix_tls",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/netfix_tls",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "netfix_idle_buffers",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "netfix_idle_buffers",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/netfix_idle_buffers",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "boot_grammar",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "boot_grammar",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/boot_grammar",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "dbdefault",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "dbdefault",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/dbdefault",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "readonly",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "readonly",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/readonly",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "hexpread",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "hexpread",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/hexpread",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "serverfix_hll",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "serverfix_hll",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/serverfix_hll",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "serverfix_acllog",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "serverfix_acllog",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/serverfix_acllog",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "rlfix3_zc",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "rlfix3_zc",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/rlfix3_zc",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "config_unit",
@@ -1855,45 +2704,95 @@
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "lbplanner_units",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/lbplanner_units",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "persistfix_units",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "persistfix_units",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/persistfix_units",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "flipfix_units",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "flipfix_units",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/flipfix_units",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "lb-stationary-1s",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "lb-stationary-1s",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/lb-stationary-1s",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "lb-stationary-2s",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "lb-stationary-2s",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/lb-stationary-2s",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "storage_units",
@@ -1957,54 +2856,114 @@
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "acl_subcommands",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/acl_subcommands",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "router_uniform",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "router_uniform",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/router_uniform",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "datafix2_notouch",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "datafix2_notouch",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/datafix2_notouch",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "datafix2_encoding",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "datafix2_encoding",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/datafix2_encoding",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "datafix2_subkeys",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "datafix2_subkeys",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/datafix2_subkeys",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "datafix2_idle",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "datafix2_idle",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/datafix2_idle",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "evict-lfu-split-0",
@@ -2296,360 +3255,760 @@
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "persistfix2_shutdown",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/persistfix2_shutdown",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "persistfix2_commands",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "persistfix2_commands",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/persistfix2_commands",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "persistfix2_errors",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "persistfix2_errors",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/persistfix2_errors",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "tls",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "tls",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/tls",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-1s-0-0-0-0",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-1s-0-0-0-0",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-0-0-0-0",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-1s-0-0-0-1",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-1s-0-0-0-1",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-0-0-0-1",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-1s-0-0-1-0",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-1s-0-0-1-0",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-0-0-1-0",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-1s-0-0-1-1",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-1s-0-0-1-1",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-0-0-1-1",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-1s-0-1-0-0",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-1s-0-1-0-0",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-0-1-0-0",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-1s-0-1-0-1",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-1s-0-1-0-1",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-0-1-0-1",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-1s-0-1-1-0",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-1s-0-1-1-0",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-0-1-1-0",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-1s-0-1-1-1",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-1s-0-1-1-1",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-0-1-1-1",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-1s-1-0-0-0",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-1s-1-0-0-0",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-1-0-0-0",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-1s-1-0-0-1",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-1s-1-0-0-1",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-1-0-0-1",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-1s-1-0-1-0",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-1s-1-0-1-0",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-1-0-1-0",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-1s-1-0-1-1",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-1s-1-0-1-1",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-1-0-1-1",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-1s-1-1-0-0",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-1s-1-1-0-0",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-1-1-0-0",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-1s-1-1-0-1",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-1s-1-1-0-1",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-1-1-0-1",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-1s-1-1-1-0",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-1s-1-1-1-0",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-1-1-1-0",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-1s-1-1-1-1",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-1s-1-1-1-1",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-1s-1-1-1-1",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-2s-0-0-0-0",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-2s-0-0-0-0",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-0-0-0-0",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-2s-0-0-0-1",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-2s-0-0-0-1",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-0-0-0-1",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-2s-0-0-1-0",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-2s-0-0-1-0",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-0-0-1-0",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-2s-0-0-1-1",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-2s-0-0-1-1",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-0-0-1-1",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-2s-0-1-0-0",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-2s-0-1-0-0",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-0-1-0-0",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-2s-0-1-0-1",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-2s-0-1-0-1",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-0-1-0-1",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-2s-0-1-1-0",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-2s-0-1-1-0",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-0-1-1-0",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-2s-0-1-1-1",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-2s-0-1-1-1",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-0-1-1-1",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-2s-1-0-0-0",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-2s-1-0-0-0",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-1-0-0-0",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-2s-1-0-0-1",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-2s-1-0-0-1",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-1-0-0-1",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-2s-1-0-1-0",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-2s-1-0-1-0",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-1-0-1-0",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-2s-1-0-1-1",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-2s-1-0-1-1",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-1-0-1-1",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-2s-1-1-0-0",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-2s-1-1-0-0",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-1-1-0-0",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-2s-1-1-0-1",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-2s-1-1-0-1",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-1-1-0-1",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-2s-1-1-1-0",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-2s-1-1-1-0",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-1-1-1-0",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-2s-1-1-1-1",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-2s-1-1-1-1",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-2s-1-1-1-1",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-split-home-min",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-split-home-min",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-split-home-min",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-fused-home-max-nopin",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-fused-home-max-nopin",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-fused-home-max-nopin",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "feature-cell-split-shards-auto",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "feature-cell-split-shards-auto",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/feature-cell-split-shards-auto",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "globcase",
       "engine": null,
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "globcase",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/globcase",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "exec1s",
@@ -2659,6 +4018,15 @@
       "complete": true,
       "passed": true,
       "attempts": [
+        {
+          "name": "exec1s",
+          "run": "final-info-exec-harness-fixed",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.VfumvX/jobs/exec1s",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        },
         {
           "name": "exec1s",
           "run": "final-lanes-labels",
@@ -2874,9 +4242,19 @@
       "engine": null,
       "fused": "0",
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "aof-epoll",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/aof-epoll",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "aof-epoll",
@@ -2902,9 +4280,19 @@
       "engine": null,
       "fused": "0",
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "aof-uring",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/aof-uring",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "aof-uring",
@@ -2930,9 +4318,19 @@
       "engine": null,
       "fused": "0",
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "snapshot-epoll",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/snapshot-epoll",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "snapshot-epoll",
@@ -2958,9 +4356,19 @@
       "engine": null,
       "fused": "0",
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "snapshot-uring",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/snapshot-uring",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "snapshot-uring",
@@ -3138,9 +4546,19 @@
       "engine": "uring",
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "fused-0",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/fused-0",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "fused-0",
@@ -3166,9 +4584,19 @@
       "engine": "uring",
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "fused-1",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/fused-1",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "fused-1",
@@ -3194,9 +4622,19 @@
       "engine": "uring",
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "txn_group_fused",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/txn_group_fused",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "txn_group_fused",
@@ -3222,9 +4660,19 @@
       "engine": "uring",
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "txn_group_split",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/txn_group_split",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "txn_group_split",
@@ -3250,9 +4698,19 @@
       "engine": "uring",
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "txnorder-fused-0",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/txnorder-fused-0",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "txnorder-fused-0",
@@ -3278,9 +4736,19 @@
       "engine": "uring",
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "txnorder-fused-1",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/txnorder-fused-1",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "txnorder-fused-1",
@@ -3306,9 +4774,19 @@
       "engine": "uring",
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "txnorder-split-0",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/txnorder-split-0",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "txnorder-split-0",
@@ -3334,9 +4812,19 @@
       "engine": "uring",
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "txnorder-split-1",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/txnorder-split-1",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "txnorder-split-1",
@@ -3362,9 +4850,19 @@
       "engine": "uring",
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "wb_policy",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/wb_policy",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "wb_policy",
@@ -3694,9 +5192,19 @@
       "engine": "uring",
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "respcompat",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/respcompat",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "respcompat",
@@ -3722,9 +5230,19 @@
       "engine": "uring",
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "flip",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/flip",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "flip",
@@ -3759,9 +5277,19 @@
       "engine": "uring",
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "fliplisten",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/fliplisten",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "fliplisten",
@@ -3825,9 +5353,19 @@
       "engine": "uring",
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "flip_saturated",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/flip_saturated",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "flip_saturated",
@@ -3853,9 +5391,19 @@
       "engine": "uring",
       "fused": null,
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "atomic_floor",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/atomic_floor",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "atomic_floor",
@@ -3881,9 +5429,19 @@
       "engine": "uring",
       "fused": "0",
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "debug-0",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/debug-0",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "debug-0",
@@ -3947,9 +5505,19 @@
       "engine": "uring",
       "fused": "0",
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "debug-1",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/debug-1",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "debug-1",
@@ -4023,6 +5591,15 @@
           "engine": "uring",
           "fused": "0",
           "atomic": "0",
+          "passed": true
+        },
+        {
+          "name": "script_bounds",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/script_bounds",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
           "passed": true
         }
       ]
@@ -4116,9 +5693,19 @@
       "engine": "uring",
       "fused": "0",
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "notify",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/notify",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "notify",
@@ -4182,9 +5769,19 @@
       "engine": "uring",
       "fused": "0",
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "asan_batteries",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/asan_batteries",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "asan_batteries",
@@ -4248,9 +5845,19 @@
       "engine": "uring",
       "fused": "0",
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "atomic_batteries",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/atomic_batteries",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "atomic_batteries",
@@ -4314,9 +5921,19 @@
       "engine": "uring",
       "fused": "0",
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "release_batteries",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/release_batteries",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "release_batteries",
@@ -4380,9 +5997,19 @@
       "engine": "uring",
       "fused": "0",
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "dump_restore",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/dump_restore",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "dump_restore",
@@ -4446,9 +6073,19 @@
       "engine": "uring",
       "fused": "0",
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "sort",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/sort",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "sort",
@@ -4512,9 +6149,19 @@
       "engine": "uring",
       "fused": "0",
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "auth",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/auth",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "auth",
@@ -4587,9 +6234,19 @@
       "engine": "uring",
       "fused": "0",
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "aof_frame",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/aof_frame",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "aof_frame",
@@ -4653,9 +6310,19 @@
       "engine": "uring",
       "fused": "0",
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "replyoff",
+          "run": "final-uring-remaining",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.jMGrIV/jobs/replyoff",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "replyoff",
@@ -4719,36 +6386,76 @@
       "engine": "uring",
       "fused": "0",
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "zc",
+          "run": "final-zc-uring-2s",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.WU7531/jobs/zc",
+          "engine": "uring",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "zc",
       "engine": "uring",
       "fused": "1",
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "zc",
+          "run": "final-zc-uring-1s",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.YbEZEQ/jobs/zc",
+          "engine": "uring",
+          "fused": "1",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "zc",
       "engine": "epoll",
       "fused": "0",
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "zc",
+          "run": "final-zc-epoll-2s",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.XYSEG5/jobs/zc",
+          "engine": "epoll",
+          "fused": "0",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "zc",
       "engine": "epoll",
       "fused": "1",
       "atomic": null,
-      "complete": false,
-      "passed": false,
-      "attempts": []
+      "complete": true,
+      "passed": true,
+      "attempts": [
+        {
+          "name": "zc",
+          "run": "final-zc-epoll-1s",
+          "artifact": "/home/user/Projects/cx-wave10/build/gate-run.AmFtoh/jobs/zc",
+          "engine": "epoll",
+          "fused": "1",
+          "atomic": "1",
+          "passed": true
+        }
+      ]
     },
     {
       "name": "script_bounds",
