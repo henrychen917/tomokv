@@ -63,8 +63,10 @@ def seed(c, args):
     c.must('SELECT', 0)
 
 
-def operation(b, args, pair, counts):
-    op = args.op
+def operation(b, args, pair, counts, op=None, key='ops', strict=True):
+    """One worker looping `op`. `strict` also checks cross-key equality where the op alone
+    guarantees it; the mixed directed row runs FLUSH beside EXEC/EVAL, where it does not."""
+    op = op or args.op
     other = 7 if args.databases > 1 else 0
 
     def run(stop):
@@ -102,17 +104,19 @@ def operation(b, args, pair, counts):
                           encode('EXEC'))
                     assert [c.read() for _ in range(3)] == [b'OK', b'QUEUED', b'QUEUED']
                     value = c.read()
-                    assert isinstance(value, list) and len(value) == 2 and value[0] == value[1], value
+                    assert isinstance(value, list) and len(value) == 2 and (
+                        not strict or value[0] == value[1]), value
                 elif op == 'EVAL':
                     reply = c.cmd('EVAL', s.WRITE, 2, *pair)
                     if isinstance(reply, RespError) and str(reply).startswith(s.REFUSALS):
                         counts['refused'] += 1
                         continue
-                    assert isinstance(reply, list) and len(reply) == 2 and reply[0] == reply[1], reply
+                    assert isinstance(reply, list) and len(reply) == 2 and (
+                        not strict or reply[0] == reply[1]), reply
                 elif op == 'NONE':
                     stop.wait(.05)
                     continue
-                counts['ops'] += 1
+                counts[key] += 1
     run.__name__ = f'op_{op.lower()}'
     return run
 
@@ -132,7 +136,62 @@ def op_flip(args, directory, mode, engine, atomic, oracle):
         return result
 
 
-CASES = dict(f.CASES, **{'op-flip': op_flip})
+# Every operation class whose step-1 FLIP storm aborted e2b237926 (always on io_uring legs). The
+# live-flip witness's own pipelined MSET + FLUSHALL SYNC is the FLUSHALL worker. EXEC aborted
+# only where FLIP could complete at all; it is reported separately (a pipelined cross-owner
+# MULTI/EXEC client holds every FLIP to its 5 s deadline, a distinct liveness defect).
+ROW_OPS = ('FLUSHALL', 'FLUSHALL-ASYNC', 'FLUSHDB', 'SCAN', 'RANDOMKEY', 'EVAL')
+
+
+def directed_row(args, directory, mode, engine, atomic, oracle):
+    """One FLIP storm against every aborting operation class at once, on a fresh boot.
+
+    Phase "natural" runs the storm as is (io_uring kernel work opened the hold window on PRE).
+    Phase "held" arms DEBUG FLIP-STAGE-HOLD, which holds an executor that already acknowledged
+    ExInstall until the next FLIP is admitted: the measured hold, made deterministic on both
+    engines. Each phase passes with no worker error or stall, at least --min-flips completed
+    FLIPs and progress in every operation worker; the held phase must also raise
+    flip_stale_stage_refusals (the window opened and the stale sample was refused). The leg passes
+    with a clean server exit. FLUSH runs beside EVAL here, so EVAL checks reply shape only
+    (cross-key FLUSH atomicity belongs to flushfix2, not this row).
+    """
+    assert not oracle and mode == '2s'
+    phases = []
+    with s.Boot(args, directory, mode, engine, atomic, oracle) as b:
+        seed(b.c, args)
+        pair, owners = s.keys_for(b.c, 'flipfix5:pair', False, 2)
+        b.c.must('MSET', pair[0], 0, pair[1], 0)
+        for phase, seconds in (('natural', args.seconds - args.held_seconds),
+                               ('held', args.held_seconds)):
+            counts = dict(flips=0, flip_refusals=0, refused=0, **{op: 0 for op in ROW_OPS})
+            refusals = {}
+            if phase == 'held':
+                reply = b.c.cmd('DEBUG', 'FLIP-STAGE-HOLD', args.hold_us)
+                assert reply == b'OK', ('DEBUG FLIP-STAGE-HOLD unavailable: cannot open the window', reply)
+            before = s.stats(b.c).get('flip_stale_stage_refusals')
+            workers = [flipper(b, args, counts, refusals)] + [
+                operation(b, args, pair, counts, op=op, key=op, strict=False) for op in ROW_OPS]
+            errors = s.run_storm(seconds, workers, args.stall)
+            after = None
+            if not errors:
+                if phase == 'held':
+                    assert b.c.must('DEBUG', 'FLIP-STAGE-HOLD', 0) == b'OK'
+                after = s.stats(b.c).get('flip_stale_stage_refusals')
+            stale = None if before is None or after is None else after - before
+            result = dict(phase=phase, seconds=seconds, **counts, refusal_kinds=refusals,
+                          flip_stale_stage_refusals=stale)
+            phases.append(result)
+            (directory / 'row.json').write_text(json.dumps(dict(owners=owners, phases=phases), indent=2) + '\n')
+            assert not errors, (result, errors)
+            assert counts['flips'] >= args.min_flips, ('too few completed FLIPs', result)
+            assert all(counts[op] for op in ROW_OPS), ('an operation worker made no progress', result)
+            if phase == 'held':
+                assert stale, ('held phase refused no stale stage sample', result)
+        return dict(owners=owners, phases=phases,
+                    flip_stale_stage_refusals=sum(x['flip_stale_stage_refusals'] or 0 for x in phases))
+
+
+CASES = dict(f.CASES, **{'op-flip': op_flip, 'row': directed_row})
 
 
 def server_exit(directory):
@@ -156,7 +215,7 @@ def counts_from_error(error):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument('--case', choices=['live-flip', 'op-flip'], required=True)
+    p.add_argument('--case', choices=['live-flip', 'op-flip', 'row'], required=True)
     p.add_argument('--op', choices=OPS, default='FLUSHALL')
     p.add_argument('--binary', required=True)
     p.add_argument('--oracle', default='/home/user/Projects/redis/src/redis-server')
@@ -172,9 +231,15 @@ def main():
     p.add_argument('--attempts', type=int, default=1, help='fresh boots per leg')
     p.add_argument('--population', type=int, default=2000)
     p.add_argument('--stop-on-abort', type=int, choices=[0, 1], default=0)
+    p.add_argument('--min-flips', type=int, default=1000, help='row: completed FLIPs per leg')
+    p.add_argument('--held-seconds', type=float, default=4,
+                   help='row: the last part of each leg runs with DEBUG FLIP-STAGE-HOLD armed')
+    p.add_argument('--hold-us', type=int, default=2000, help='row: FLIP-STAGE-HOLD bound')
     args = p.parse_args()
-    assert args.port in PORTS, 'flipfix5 owns ports 20200-20299'
+    # The gate supplies its slot port; every lane and gate port stays below the ephemeral range.
+    assert 1024 <= args.port < 32768, args.port
     assert 1 <= args.attempts <= 200
+    assert args.case != 'row' or 0 < args.held_seconds < args.seconds
     os.environ['LC_ALL'] = 'C'
     # flushfix2's witness reads these knobs from its own parser.
     args.command, args.require_counters, args.no_oracle, args.fresh_attempts = 'FLUSHALL', 0, True, 1
@@ -215,7 +280,8 @@ def main():
                     if record['outcome'] == 'abort' and args.stop_on_abort:
                         break
                 tally = {k: sum(o['outcome'] == k for o in outcomes) for k in ('pass', 'abort', 'fail')}
-                rows.append(dict(case=args.case, op=args.op if args.case == 'op-flip' else 'FLUSHALL',
+                rows.append(dict(case=args.case, op={'op-flip': args.op, 'row': '+'.join(ROW_OPS)}.get(
+                                     args.case, 'FLUSHALL'),
                                  flush_mode=args.flush_mode, leg=leg, databases=databases,
                                  engine=engine, atomic=atomic, attempts=len(outcomes),
                                  seconds_per_attempt=args.seconds, tally=tally, outcomes=outcomes))

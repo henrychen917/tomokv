@@ -357,6 +357,9 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # wave4 (compat2 +3, moverfix +8, clockcut +3, notifyorder +2, all collected before the
 # quick exit): DQ=+16, DF=+16 over 8656f9fa9's 669/686, so required counts are 685/702.
 # The constants below read 672/689 from the maintainer's compat2 commit a7e318a14.
+# flipfix5: job_flipfix5_units (two serverless rows) and job_flipfix5 (one live row), all three
+# collected before the quick exit: DQ=+3, DF=+3. Maintainer updates 946/963 -> 949/966 and adds
+# the three labels to the label fixture.
 EXPECT_QUICK=946
 EXPECT_FULL=963                 # ABBA reports only; self-test remains counted.
 # txnfix/txnfix2: four txniso, four txn_nx, two txngroup rows before the quick exit:
@@ -1173,7 +1176,7 @@ plan_jobs(){
               reorder_sync reorder_engagement reorder_identity
               atomfix5_watch atomfix5_accounting core_units flipfix_units flipfix5_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat crlffix boot_grammar dbdefault wait_units readonly
               release_batteries atomic_batteries moverfix hexpread compat2 compat3 streamfix datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_watch datafix2_idle dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus rlfix3_zc rlfix3_info acl_recheck aclfix sort script_bounds scriptfix scriptfix2 lualibs
-              efficiency dump_restore auth authfix latencyfix_grammar latencyfix_shape latencyfix_off wave8b_off serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
+              efficiency dump_restore auth authfix latencyfix_grammar latencyfix_shape latencyfix_off wave8b_off serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated flipfix5 atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
               execfair exec1s txnorder_index txnorder_wound txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
@@ -1525,6 +1528,22 @@ if unit_ready core-concurrency-unit; then
 else planted_ok=0; fi
 [ "$planted_ok" = 1 ] && ok "FLIP stale stage planted pre-fix controls fail" \
     || bad "FLIP stale stage planted pre-fix controls fail" "see $TMPDIR/gate-flipfix5-planted*.txt"
+}
+
+job_flipfix5(){
+# flipfix5 directed live row, every leg FLIP has (2s; FLIP is unavailable in 1s): both engines x
+# atomic 0/1 x databases 1/16, one fresh boot per leg. A FLIP storm runs against every operation
+# class whose step-1 storm aborted e2b237926 (pipelined MSET+FLUSHALL SYNC, FLUSHALL ASYNC, FLUSHDB,
+# SCAN, RANDOMKEY, EVAL): 6 s as is, then 4 s with DEBUG FLIP-STAGE-HOLD holding an executor that
+# already acknowledged ExInstall until the next FLIP is admitted. Each phase must complete FLIPs
+# with every worker progressing, and the held phase must raise flip_stale_stage_refusals; every
+# leg must exit cleanly. e2b237926 aborts on io_uring and PAD-A aborts on every leg. One row
+# before the quick exit: DQ=+1, DF=+1. EXPECT stays maintainer-owned.
+row_begin "FLIP stale stage storm (all legs)"
+py tests/flipfix5.py --case row --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
+    --seconds 10 --output "$TMPDIR/flipfix5-row" >"$TMPDIR/gate-flipfix5-row.txt" 2>&1 \
+    && ok "FLIP stale stage storm (all legs)" \
+    || bad "FLIP stale stage storm (all legs)" "see $TMPDIR/gate-flipfix5-row.txt"
 }
 
 job_filter_unit(){
@@ -6247,6 +6266,8 @@ collect_job fliplisten
 
 collect_job flipctl
 collect_job flip_saturated
+# flipfix5: one live directed row before the quick exit (DQ=+1, DF=+1); EXPECT is owner-owned.
+collect_job flipfix5
 
 collect_job atomic_floor
 
