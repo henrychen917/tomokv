@@ -174,8 +174,12 @@ def main():
     p.add_argument('--stall', type=float, default=10)
     p.add_argument('--no-oracle', action='store_true')
     p.add_argument('--require-counters', type=int, choices=[0, 1], default=0)
+    p.add_argument('--fresh-attempts', type=int, default=1,
+                   help='bounded fresh boots after a clean observation (PRE reproduction only)')
     args = p.parse_args()
     assert 20100 <= args.port < 20199
+    assert 1 <= args.fresh_attempts <= 8
+    assert args.fresh_attempts == 1 or not args.require_counters
     os.environ['LC_ALL'] = 'C'
     s.Boot = VerifiedBoot
     legs = ([] if args.no_oracle else [('redis', 'redis', 0, True)]) + [
@@ -187,11 +191,21 @@ def main():
         row = dict(case=args.case, leg=label, databases=args.databases,
                    command=args.command, flush_mode=args.flush_mode)
         began = time.monotonic()
-        try:
-            row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)
-            row['pass'] = True
-        except Exception:
-            row.update(pass_=False, error=traceback.format_exc())
+        attempts = []
+        for attempt in range(1 if oracle else args.fresh_attempts):
+            directory = args.output / label
+            if args.fresh_attempts > 1:
+                directory /= f'attempt-{attempt}'
+            try:
+                value = CASES[args.case](args, directory, mode, engine, atomic, oracle)
+                attempts.append(dict(value=value, passed=True))
+                row.update(value=value, **{'pass': True})
+            except Exception:
+                error = traceback.format_exc()
+                attempts.append(dict(passed=False, error=error))
+                row.update(error=error, **{'pass': False})
+                break
+        row['attempts'] = attempts
         row['seconds'] = round(time.monotonic() - began, 3)
         results.append(row)
         print(json.dumps(row), flush=True)

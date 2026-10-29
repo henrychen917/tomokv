@@ -1,0 +1,418 @@
+[
+  {
+    "unit": "db0/src/cmd/hexpread.o",
+    "pre_initial": 4044,
+    "post_initial": 4084,
+    "old_budget": 10000,
+    "selected": 10040,
+    "changed": 0
+  },
+  {
+    "unit": "db0/src/cmd/l4prebuild.o",
+    "pre_initial": 7937,
+    "post_initial": 7969,
+    "old_budget": 10000,
+    "selected": 10030,
+    "changed": 0
+  },
+  {
+    "unit": "db0/src/cmd/latency_tracking.o",
+    "pre_initial": 10042,
+    "post_initial": 10062,
+    "old_budget": 10000,
+    "selected": 10020,
+    "changed": 0
+  },
+  {
+    "unit": "db0/src/cmd/multi_admin.o",
+    "pre_initial": 1435,
+    "post_initial": 1467,
+    "old_budget": 10000,
+    "selected": 10032,
+    "changed": 0
+  },
+  {
+    "unit": "db0/src/cmd/multidb.o",
+    "pre_initial": 4988,
+    "post_initial": 5020,
+    "old_budget": 10000,
+    "selected": 10032,
+    "changed": 0
+  },
+  {
+    "unit": "db0/src/cmd/objectpread.o",
+    "pre_initial": 2285,
+    "post_initial": 2297,
+    "old_budget": 10000,
+    "selected": 10012,
+    "changed": 0
+  },
+  {
+    "unit": "db0/src/cmd/pfdebug.o",
+    "pre_initial": 4335,
+    "post_initial": 4347,
+    "old_budget": 10000,
+    "selected": 10012,
+    "changed": 0
+  },
+  {
+    "unit": "db0/src/cmd/scripting.o",
+    "pre_initial": 11978,
+    "post_initial": 11998,
+    "old_budget": 10000,
+    "selected": 10020,
+    "changed": 0
+  },
+  {
+    "unit": "db0/src/cmd/serialize.o",
+    "pre_initial": 11176,
+    "post_initial": 11208,
+    "old_budget": 10000,
+    "selected": 10032,
+    "changed": 0
+  },
+  {
+    "unit": "db0/src/cmd/t_hash.o",
+    "pre_initial": 19841,
+    "post_initial": 19873,
+    "old_budget": 10000,
+    "selected": 10032,
+    "changed": 1
+  },
+  {
+    "unit": "db0/src/cmd/t_hash_ttl.o",
+    "pre_initial": 8487,
+    "post_initial": 8527,
+    "old_budget": 10000,
+    "selected": 10040,
+    "changed": 0
+  },
+  {
+    "unit": "db0/src/cmd/t_list.o",
+    "pre_initial": 19299,
+    "post_initial": 19331,
+    "old_budget": 10000,
+    "selected": 10032,
+    "changed": 0
+  },
+  {
+    "unit": "db0/src/cmd/t_server.o",
+    "pre_initial": 27221,
+    "post_initial": 27487,
+    "old_budget": 33883,
+    "selected": 34149,
+    "changed": 6
+  },
+  {
+    "unit": "db0/src/cmd/t_set.o",
+    "pre_initial": 19591,
+    "post_initial": 19623,
+    "old_budget": 26651,
+    "selected": 26685,
+    "changed": 0
+  },
+  {
+    "unit": "db0/src/cmd/t_stream.o",
+    "pre_initial": 25560,
+    "post_initial": 25592,
+    "old_budget": 10000,
+    "selected": 10032,
+    "changed": 0
+  },
+  {
+    "unit": "db0/src/cmd/t_stream_groups.o",
+    "pre_initial": 18525,
+    "post_initial": 18537,
+    "old_budget": 10000,
+    "selected": 10012,
+    "changed": 2
+  },
+  {
+    "unit": "db0/src/cmd/t_string.o",
+    "pre_initial": 13836,
+    "post_initial": 13869,
+    "old_budget": 10600,
+    "selected": 10633,
+    "changed": 0
+  },
+  {
+    "unit": "db0/src/cmd/t_string_notify.o",
+    "pre_initial": 13603,
+    "post_initial": 13635,
+    "old_budget": 10000,
+    "selected": 10032,
+    "changed": 0
+  },
+  {
+    "unit": "db0/src/cmd/t_zset.o",
+    "pre_initial": 25292,
+    "post_initial": 25324,
+    "old_budget": 33229,
+    "selected": 33259,
+    "changed": 0
+  },
+  {
+    "unit": "db0/src/cmd/xshard.o",
+    "pre_initial": 122693,
+    "post_initial": 123916,
+    "old_budget": 152280,
+    "selected": 153505,
+    "changed": 6
+  },
+  {
+    "unit": "db0/src/core/genthread.o",
+    "pre_initial": 108566,
+    "post_initial": 108603,
+    "old_budget": 131993,
+    "selected": 131993,
+    "changed": 6
+  },
+  {
+    "unit": "db0/src/core/reorder.o",
+    "pre_initial": 121051,
+    "post_initial": 121088,
+    "old_budget": 150089,
+    "selected": 150128,
+    "changed": 2
+  },
+  {
+    "unit": "db0/src/core/rl2s.o",
+    "pre_initial": 117293,
+    "post_initial": 117330,
+    "old_budget": 167496,
+    "selected": 167533,
+    "changed": 0
+  },
+  {
+    "unit": "db0/src/main.o",
+    "pre_initial": 101802,
+    "post_initial": 101840,
+    "old_budget": 146080,
+    "selected": 146118,
+    "changed": 0
+  },
+  {
+    "unit": "db0/src/persist/aof.o",
+    "pre_initial": 30286,
+    "post_initial": 30364,
+    "old_budget": 39024,
+    "selected": 39102,
+    "changed": 0
+  },
+  {
+    "unit": "db0/src/snapshot/snapshot.o",
+    "pre_initial": 11909,
+    "post_initial": 11941,
+    "old_budget": 14756,
+    "selected": 14788,
+    "changed": 0
+  },
+  {
+    "unit": "src/cmd/hexpread.o",
+    "pre_initial": 4108,
+    "post_initial": 4143,
+    "old_budget": 10000,
+    "selected": 10035,
+    "changed": 0
+  },
+  {
+    "unit": "src/cmd/l4prebuild.o",
+    "pre_initial": 8043,
+    "post_initial": 8068,
+    "old_budget": 10000,
+    "selected": 10025,
+    "changed": 0
+  },
+  {
+    "unit": "src/cmd/latency_tracking.o",
+    "pre_initial": 10104,
+    "post_initial": 10117,
+    "old_budget": 10000,
+    "selected": 10013,
+    "changed": 0
+  },
+  {
+    "unit": "src/cmd/multi_admin.o",
+    "pre_initial": 1484,
+    "post_initial": 1509,
+    "old_budget": 10000,
+    "selected": 10025,
+    "changed": 0
+  },
+  {
+    "unit": "src/cmd/multidb.o",
+    "pre_initial": 6869,
+    "post_initial": 6894,
+    "old_budget": 10000,
+    "selected": 10025,
+    "changed": 0
+  },
+  {
+    "unit": "src/cmd/objectpread.o",
+    "pre_initial": 2328,
+    "post_initial": 2340,
+    "old_budget": 10000,
+    "selected": 10012,
+    "changed": 0
+  },
+  {
+    "unit": "src/cmd/pfdebug.o",
+    "pre_initial": 4404,
+    "post_initial": 4416,
+    "old_budget": 10000,
+    "selected": 10012,
+    "changed": 0
+  },
+  {
+    "unit": "src/cmd/scripting.o",
+    "pre_initial": 33042,
+    "post_initial": 33055,
+    "old_budget": 10000,
+    "selected": 10013,
+    "changed": 0
+  },
+  {
+    "unit": "src/cmd/serialize.o",
+    "pre_initial": 11281,
+    "post_initial": 11306,
+    "old_budget": 10000,
+    "selected": 10025,
+    "changed": 1
+  },
+  {
+    "unit": "src/cmd/t_hash.o",
+    "pre_initial": 20098,
+    "post_initial": 20123,
+    "old_budget": 10000,
+    "selected": 10025,
+    "changed": 6
+  },
+  {
+    "unit": "src/cmd/t_hash_ttl.o",
+    "pre_initial": 8593,
+    "post_initial": 8628,
+    "old_budget": 10000,
+    "selected": 10000,
+    "changed": 0
+  },
+  {
+    "unit": "src/cmd/t_list.o",
+    "pre_initial": 19552,
+    "post_initial": 19577,
+    "old_budget": 25608,
+    "selected": 25633,
+    "changed": 0
+  },
+  {
+    "unit": "src/cmd/t_server.o",
+    "pre_initial": 27514,
+    "post_initial": 27773,
+    "old_budget": 33142,
+    "selected": 33399,
+    "changed": 6
+  },
+  {
+    "unit": "src/cmd/t_set.o",
+    "pre_initial": 19789,
+    "post_initial": 19814,
+    "old_budget": 26451,
+    "selected": 26476,
+    "changed": 1
+  },
+  {
+    "unit": "src/cmd/t_stream.o",
+    "pre_initial": 25817,
+    "post_initial": 25842,
+    "old_budget": 10000,
+    "selected": 10025,
+    "changed": 1
+  },
+  {
+    "unit": "src/cmd/t_stream_groups.o",
+    "pre_initial": 18909,
+    "post_initial": 18921,
+    "old_budget": 10000,
+    "selected": 10012,
+    "changed": 0
+  },
+  {
+    "unit": "src/cmd/t_string.o",
+    "pre_initial": 14053,
+    "post_initial": 14079,
+    "old_budget": 10600,
+    "selected": 10626,
+    "changed": 4
+  },
+  {
+    "unit": "src/cmd/t_string_notify.o",
+    "pre_initial": 13816,
+    "post_initial": 13841,
+    "old_budget": 10000,
+    "selected": 10025,
+    "changed": 3
+  },
+  {
+    "unit": "src/cmd/t_zset.o",
+    "pre_initial": 25608,
+    "post_initial": 25633,
+    "old_budget": 33447,
+    "selected": 33472,
+    "changed": 3
+  },
+  {
+    "unit": "src/cmd/xshard.o",
+    "pre_initial": 123711,
+    "post_initial": 124953,
+    "old_budget": 153471,
+    "selected": 154713,
+    "changed": 6
+  },
+  {
+    "unit": "src/core/genthread.o",
+    "pre_initial": 109352,
+    "post_initial": 109382,
+    "old_budget": 131218,
+    "selected": 131248,
+    "changed": 2
+  },
+  {
+    "unit": "src/core/reorder.o",
+    "pre_initial": 121968,
+    "post_initial": 121998,
+    "old_budget": 149103,
+    "selected": 149103,
+    "changed": 0
+  },
+  {
+    "unit": "src/core/rl2s.o",
+    "pre_initial": 118216,
+    "post_initial": 118246,
+    "old_budget": 164610,
+    "selected": 164638,
+    "changed": 7
+  },
+  {
+    "unit": "src/main.o",
+    "pre_initial": 102546,
+    "post_initial": 102577,
+    "old_budget": 147838,
+    "selected": 147869,
+    "changed": 0
+  },
+  {
+    "unit": "src/persist/aof.o",
+    "pre_initial": 30366,
+    "post_initial": 30439,
+    "old_budget": 37173,
+    "selected": 37173,
+    "changed": 0
+  },
+  {
+    "unit": "src/snapshot/snapshot.o",
+    "pre_initial": 12034,
+    "post_initial": 12059,
+    "old_budget": 15335,
+    "selected": 15360,
+    "changed": 0
+  }
+]

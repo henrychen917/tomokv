@@ -2,6 +2,7 @@
 """Compile-only IPA surveys and trials; every child inherits CPUs 0-15."""
 import argparse
 import concurrent.futures
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -15,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / 'build/flushfix2/budgets'
 OUT = ROOT / 'docs/flushfix2/budgets'
 PRE = ROOT / 'build/flushfix2/pre'
-SELECT = re.compile(HOT.pattern + r'|::cmd_\w+(?:<|\()|xshard_(?:prepare|execute)\(')
+SELECT = re.compile(HOT.pattern + r'|::cmd_\w+(?:<|\()|xshard_(?:prepare|execute|task_should_defer)\(|atomic_visit_key_groups|multi_cancel_record')
 
 
 def recipes():
@@ -31,12 +32,12 @@ def recipes():
 
 
 def trial(item):
-    unit, value, commands, revision = item
+    unit, value, commands, revision, keep = item
     label = unit.replace('/', '_') + '-' + str(value)
     receipt = OUT / (label + '.json')
     if receipt.exists():
         row = json.loads(receipt.read_text())
-        if row.get('revision') == revision:
+        if row.get('revision') == revision and (not keep or Path(row['object']).exists()):
             return row
     output = BUILD / (label + '.o')
     dump = BUILD / (label + '.inline')
@@ -61,9 +62,10 @@ def trial(item):
             total += 1
             if symbol not in new or a.canonical(old[symbol]) != b.canonical(new[symbol]):
                 changed.append(name)
-    output.unlink()
+    if not keep:
+        output.unlink()
     row = dict(unit=unit, budget=value, old_budget=old_budget, initial=initial,
-               changed=changed, total=total, command=cmd, revision=revision)
+               changed=changed, total=total, command=cmd, revision=revision, object=str(output))
     receipt.write_text(json.dumps(row, indent=2) + '\n')
     print(unit, value, initial, len(changed), flush=True)
     return row
@@ -75,11 +77,14 @@ def main():
     p.add_argument('--values', default='pre,current')
     p.add_argument('--derive', action='store_true')
     p.add_argument('--jobs', type=int, default=8)
+    p.add_argument('--keep-objects', action='store_true')
     args = p.parse_args()
     BUILD.mkdir(parents=True, exist_ok=True)
     OUT.mkdir(parents=True, exist_ok=True)
     commands = recipes()
     revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
+    revision += ':' + hashlib.sha256(subprocess.check_output(
+        ['git', 'diff', 'HEAD', '--', 'src', 'Makefile', 'tools/flushfix2_budget.py'], cwd=ROOT)).hexdigest()
     if args.units == 'changed':
         changed = json.loads((ROOT / 'docs/flushfix2/identity-cold/changed-bodies.json').read_text())
         units = sorted({r['object'] for r in changed})
@@ -92,9 +97,9 @@ def main():
             stem = unit.replace('/', '_')
             a = json.loads((OUT / (stem + '-pre.json')).read_text())
             b = json.loads((OUT / (stem + '-current.json')).read_text())
-            centre = b['old_budget'] + b['initial'] - a['initial']
+            centre = a['old_budget'] + b['initial'] - a['initial']
             values = [str(centre + offset) for offset in (-2, 0, 2)]
-        work += [(unit, v, commands, revision) for v in values]
+        work += [(unit, v, commands, revision, args.keep_objects) for v in values]
     with concurrent.futures.ThreadPoolExecutor(args.jobs) as pool:
         rows = list(pool.map(trial, work))
     print('Trials', len(rows), flush=True)

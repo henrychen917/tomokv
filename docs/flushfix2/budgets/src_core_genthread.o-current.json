@@ -2,11 +2,10 @@
   "unit": "src/core/genthread.o",
   "budget": "current",
   "old_budget": 131218,
-  "initial": 109379,
+  "initial": 109382,
   "changed": [
     "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
-    "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)",
-    "unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()"
+    "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)"
   ],
   "total": 151,
   "command": [
@@ -34,5 +33,5 @@
     "-g0",
     "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_core_genthread.o-current.inline"
   ],
-  "revision": "3f2bcfa1af7399ca656402bfed80aa5869422c98"
+  "revision": "96ad88389e758f708a58e6219897f51f57c21328"
 }

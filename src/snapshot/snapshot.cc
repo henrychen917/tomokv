@@ -590,6 +590,7 @@ bool SnapshotManager::drain_atomic_groups(Server& server, ThreadCtx& writer, uin
     while (server.atomic_apply_inflight() != 0 &&
            !server.shutting_down().load(std::memory_order_relaxed)) {
         if (deadline_ns && now_ns() >= deadline_ns) return false;
+        xshard_flush_snapshot_progress(server, writer);
         writer.progress_fused_executor();
         std::this_thread::yield();
     }

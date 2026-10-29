@@ -75,6 +75,13 @@ ScatterPrepare xshard_prepare_flush(Server& server, Op& op, ScatterArenaPool& po
 
 namespace {
 
+[[gnu::noinline]] void flush_cancel_group_record(AtomicEntry& entry) {
+    auto& group = *entry.group;
+    const uint32_t shard = entry.namespace_range ? entry.begin
+        : group.keys[group.key_order[entry.begin]].shard;
+    txn_group_cancel(group, shard);
+}
+
 ScatterTaskResult execute_flush(const Task& task, Shard& shard, Op& op) {
     auto& state = *task.scatter;
     auto& group = *group_for(state, shard.id());
@@ -184,4 +191,29 @@ ScatterFinish flush_complete(Server& server, ThreadCtx& self, Ring& ring,
 }
 
 } // namespace
+
+// SAVE/BGSAVE can occupy the IO that admitted this unit. Its drain must
+// advance the already-admitted collapse continuation and completed read cuts;
+// waiting for the ordinary IO pass here would wait on itself. No parsing,
+// reply retirement, new admission or reader retry occurs in this cold pump.
+uint32_t xshard_flush_snapshot_progress(Server& server, ThreadCtx& writer) {
+    auto* loop = static_cast<IoLoop*>(writer.io_role_context_);
+    if (!loop) return 0; // serverless snapshot fixtures have no IO loop
+    uint32_t work = loop->scatter_pool_.refresh_snapshot_floor(server, writer.id());
+    auto* node = server.multi_retry_lane(writer.id()).head.exchange(nullptr, std::memory_order_acq_rel);
+    while (node) {
+        auto* next = node->next;
+        bool posted = false;
+        if (node->kind == MultiRetryNode::Kind::Group) {
+            auto& state = *static_cast<ScatterState*>(node->unit);
+            if (state.kind == Kind::Flush && state.phase == 2) {
+                posted = flush_redispatch<false>(server, writer, loop->ring_, state);
+                work += posted;
+            }
+        }
+        if (!posted) multi_enqueue_node(server, writer.id(), *node);
+        node = next;
+    }
+    return work;
+}
 } // namespace tomo

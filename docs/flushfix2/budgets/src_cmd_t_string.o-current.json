@@ -2,7 +2,7 @@
   "unit": "src/cmd/t_string.o",
   "budget": "current",
   "old_budget": 10600,
-  "initial": 14076,
+  "initial": 14079,
   "changed": [
     "tomo::cmd_get_tls(tomo::Shard&, tomo::Op&)",
     "void tomo::(anonymous namespace)::cmd_pfcount<false>(tomo::Shard&, tomo::Op&)",
@@ -33,5 +33,5 @@
     "-g0",
     "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_cmd_t_string.o-current.inline"
   ],
-  "revision": "3f2bcfa1af7399ca656402bfed80aa5869422c98"
+  "revision": "96ad88389e758f708a58e6219897f51f57c21328"
 }

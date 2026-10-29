@@ -2,10 +2,8 @@
   "unit": "db0/src/cmd/t_string_notify.o",
   "budget": "current",
   "old_budget": 10000,
-  "initial": 13632,
-  "changed": [
-    "void tomo_db0::(anonymous namespace)::cmd_setrange<true>(tomo_db0::Shard&, tomo_db0::Op&)"
-  ],
+  "initial": 13635,
+  "changed": [],
   "total": 87,
   "command": [
     "taskset",
@@ -30,5 +28,5 @@
     "-g0",
     "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/db0_src_cmd_t_string_notify.o-current.inline"
   ],
-  "revision": "3f2bcfa1af7399ca656402bfed80aa5869422c98"
+  "revision": "96ad88389e758f708a58e6219897f51f57c21328"
 }

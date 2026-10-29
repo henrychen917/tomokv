@@ -2,9 +2,9 @@
   "unit": "db0/src/cmd/t_hash.o",
   "budget": "current",
   "old_budget": 10000,
-  "initial": 19870,
+  "initial": 19873,
   "changed": [
-    "void tomo_db0::(anonymous namespace)::cmd_hlen<false>(tomo_db0::Shard&, tomo_db0::Op&)"
+    "void tomo_db0::(anonymous namespace)::cmd_hlen<true>(tomo_db0::Shard&, tomo_db0::Op&)"
   ],
   "total": 74,
   "command": [
@@ -30,5 +30,5 @@
     "-g0",
     "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/db0_src_cmd_t_hash.o-current.inline"
   ],
-  "revision": "3f2bcfa1af7399ca656402bfed80aa5869422c98"
+  "revision": "96ad88389e758f708a58e6219897f51f57c21328"
 }

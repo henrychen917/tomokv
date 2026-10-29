@@ -2,8 +2,11 @@
   "unit": "src/cmd/latency_tracking.o",
   "budget": "current",
   "old_budget": 10000,
-  "initial": 10114,
-  "changed": [],
+  "initial": 10117,
+  "changed": [
+    "tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)",
+    "tomo::FlatStore::erase(unsigned long, tomo::Slice)"
+  ],
   "total": 44,
   "command": [
     "taskset",
@@ -26,5 +29,5 @@
     "-g0",
     "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_cmd_latency_tracking.o-current.inline"
   ],
-  "revision": "3f2bcfa1af7399ca656402bfed80aa5869422c98"
+  "revision": "96ad88389e758f708a58e6219897f51f57c21328"
 }

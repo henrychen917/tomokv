@@ -2,7 +2,7 @@
   "unit": "src/cmd/t_server.o",
   "budget": "current",
   "old_budget": 33142,
-  "initial": 27770,
+  "initial": 27773,
   "changed": [
     "tomo::(anonymous namespace)::cmd_client(tomo::Shard&, tomo::Op&)",
     "tomo::(anonymous namespace)::cmd_client(tomo::Shard&, tomo::Op&) [clone .cold]",
@@ -39,5 +39,5 @@
     "-g0",
     "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_cmd_t_server.o-current.inline"
   ],
-  "revision": "3f2bcfa1af7399ca656402bfed80aa5869422c98"
+  "revision": "96ad88389e758f708a58e6219897f51f57c21328"
 }

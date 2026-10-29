@@ -2,9 +2,11 @@
   "unit": "src/cmd/t_string_notify.o",
   "budget": "current",
   "old_budget": 10000,
-  "initial": 13838,
+  "initial": 13841,
   "changed": [
-    "void tomo::(anonymous namespace)::cmd_get<true, false>(tomo::Shard&, tomo::Op&)"
+    "void tomo::(anonymous namespace)::cmd_get<true, false>(tomo::Shard&, tomo::Op&)",
+    "void tomo::(anonymous namespace)::cmd_pfadd<true>(tomo::Shard&, tomo::Op&)",
+    "void tomo::(anonymous namespace)::cmd_pfadd<true>(tomo::Shard&, tomo::Op&) [clone .cold]"
   ],
   "total": 87,
   "command": [
@@ -28,5 +30,5 @@
     "-g0",
     "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_cmd_t_string_notify.o-current.inline"
   ],
-  "revision": "3f2bcfa1af7399ca656402bfed80aa5869422c98"
+  "revision": "96ad88389e758f708a58e6219897f51f57c21328"
 }

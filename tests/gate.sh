@@ -1398,19 +1398,24 @@ pausable taskset -c "$BUILD_CORES" tests/parbuild.sh $ASAN "$PWD/build/gate-cach
 # readability-a0: one row collected before quick exit (DQ=+1, DF=+1).
 # EXPECT constants remain maintainer-owned.
 job_flushfix2(){
-  local case databases command label
+  local case databases command mode label failed commands modes
   for case in flush-pair flush-script flush-only namespace; do
     for databases in 16 1; do
-      command=FLUSHALL
-      [ "$case:$databases" != namespace:16 ] || command=FLUSHDB
-      label="flushfix2 $case (databases $databases)"
+      commands=FLUSHALL; modes=SYNC
+      if [ "$case" = namespace ]; then commands='FLUSHALL FLUSHDB'; modes='SYNC ASYNC'; fi
+      for command in $commands; do
+      for mode in $modes; do
+      label="flushfix2 $case $command $mode (databases $databases)"
       row_begin "$label"
       py tests/flushfix2.py --case "$case" --databases "$databases" --command "$command" \
+          --flush-mode "$mode" --fresh-attempts "${GATE_FLUSHFIX2_FRESH_ATTEMPTS:-1}" \
           --require-counters "${GATE_FLUSHFIX2_REQUIRE_COUNTERS:-1}" \
           --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
-          --cores "$CORES" --port "$PORT" --output "$TMPDIR/$case-$databases" \
-          >"$TMPDIR/$case-$databases.log" 2>&1 \
-          && ok "$label" || bad "$label" "see $TMPDIR/$case-$databases.log"
+          --cores "$CORES" --port "$PORT" --output "$TMPDIR/$case-$databases-$command-$mode" \
+          >"$TMPDIR/$case-$databases-$command-$mode.log" 2>&1 \
+          && ok "$label" || bad "$label" "see $TMPDIR/$case-$databases-$command-$mode.log"
+      done
+      done
     done
   done
 }

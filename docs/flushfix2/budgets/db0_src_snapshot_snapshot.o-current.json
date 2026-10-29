@@ -2,7 +2,7 @@
   "unit": "db0/src/snapshot/snapshot.o",
   "budget": "current",
   "old_budget": 14756,
-  "initial": 11938,
+  "initial": 11941,
   "changed": [
     "tomo_db0::FlatStore::insert_into(int, unsigned long, tomo_db0::KvObj*, bool)"
   ],
@@ -34,5 +34,5 @@
     "-g0",
     "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/db0_src_snapshot_snapshot.o-current.inline"
   ],
-  "revision": "3f2bcfa1af7399ca656402bfed80aa5869422c98"
+  "revision": "96ad88389e758f708a58e6219897f51f57c21328"
 }

@@ -159,6 +159,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
 ScatterPrepare xshard_prepare_flush(Server&, Op&, ScatterArenaPool&, uint32_t, uint64_t,
                                       ScatterDispatch&, bool);
 bool xshard_flush_command(const Op&);
+uint32_t xshard_flush_snapshot_progress(Server&, ThreadCtx&);
 int32_t xshard_dispatch_shard(const ScatterDispatch& dispatch, uint32_t index);
 void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_io);
 // Prepared states may already carry pre-counted owner lifetime pins. A caller that proves no task
