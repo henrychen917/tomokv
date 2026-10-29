@@ -45,7 +45,6 @@
     "Non-interactive non-TTY CLI: Read last argument from file in tests/integration/redis-cli.tcl",
     "Non-interactive non-TTY CLI: Read last argument from pipe in tests/integration/redis-cli.tcl",
     "Non-interactive non-TTY CLI: Status reply in tests/integration/redis-cli.tcl",
-    "Non-interactive non-TTY CLI: Test command-line hinting - latest server in tests/integration/redis-cli.tcl",
     "Non-interactive non-TTY CLI: Test command-line hinting - no server in tests/integration/redis-cli.tcl",
     "Non-interactive non-TTY CLI: Test command-line hinting - old server in tests/integration/redis-cli.tcl",
     "Options -X with illegal argument in tests/integration/redis-cli.tcl",
@@ -61,7 +60,8 @@
     "Connecting as a replica": "failed on TomoKV 2s in the survey",
     "Dumping an RDB - functions only: no": "failed on TomoKV 2s in the survey",
     "Dumping an RDB - functions only: yes": "failed on TomoKV 2s in the survey",
-    "Non-interactive non-TTY CLI: ASK redirect test": "failed on TomoKV 2s in the survey"
+    "Non-interactive non-TTY CLI: ASK redirect test": "failed on TomoKV 2s in the survey",
+    "Non-interactive non-TTY CLI: Test command-line hinting - latest server": "requires MIGRATE, which TomoKV does not implement (owner decision D17d); its COMMAND DOCS part was fixed by infofix (wave 10)"
    }
   },
   "integration/replication-buffer": {
@@ -1198,7 +1198,6 @@
    "passed_tests": [
     "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl",
     "SLOWLOG - RESET subcommand works in tests/unit/slowlog.tcl",
-    "SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl",
     "SLOWLOG - blocking command is reported only after unblocked in tests/unit/slowlog.tcl",
     "SLOWLOG - can be disabled in tests/unit/slowlog.tcl",
     "SLOWLOG - check that it starts with an empty log in tests/unit/slowlog.tcl",
@@ -1220,14 +1219,13 @@
     "SLOWLOG - get all slow logs": "failed on TomoKV 2s in the survey",
     "SLOWLOG - logged entry sanity check": "failed or hung on TomoKV 2s in an earlier builder run (round 0)",
     "SLOWLOG - max entries is correctly handled": "failed on TomoKV 2s in the survey",
-    "SLOWLOG - too long arguments are trimmed": "failed or hung on TomoKV 2s in an earlier builder run (round 0)"
+    "SLOWLOG - too long arguments are trimmed": "failed or hung on TomoKV 2s in an earlier builder run (round 0)",
+    "SLOWLOG - Rewritten commands are logged as their original command": "cross-connection order: a BLPOP woken by an EXEC can be served and logged before that EXEC's queued SLOWLOG RESET retires, which then erases it (REGISTER SLOWLOG-EXEC-BLOCKED-ORDER; owner design review D11). About 8% of fresh 1s runs on 393d6ceb1, more often with exec1s-d"
    },
    "fresh_tests": [
     "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl"
    ],
-   "isolated_tests": {
-    "SLOWLOG - Rewritten commands are logged as their original command": "The required zero-max-length test leaves slowlog-max-len=0; its restoring max-entries test remains skipped for SLOWLOG-MAXLEN-PER-THREAD. Run the unchanged required assertion on fresh default state."
-   }
+   "isolated_tests": {}
   },
   "unit/sort": {
    "extra_args": [],
@@ -2724,7 +2722,8 @@
    "file": "integration/redis-cli",
    "name": "Non-interactive non-TTY CLI: Test command-line hinting - latest server",
    "root": "COMMAND-DOCS-INCOMPLETE",
-   "prior_reason": "failed on TomoKV 2s in the survey"
+   "prior_reason": "failed on TomoKV 2s in the survey",
+   "status": "reverted to skip in wave 10: the assertion also needs MIGRATE (D17d)"
   },
   {
    "file": "unit/other",
