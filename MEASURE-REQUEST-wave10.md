@@ -2,111 +2,58 @@
 
 ## wave10 integration
 
-Worktree `/home/user/Projects/cx-wave10`, branch `cx-wave10`, headline
-`393d6ceb129d8c99dffd70959d6a19267c525fe0`. No push. Builds and authorized
-correctness work use CPUs 64–95 and ports 20000–20099. Performance runs and the
-full gate iteration remain with the maintainer. This is an in-progress record;
-unrecorded verification is not a pass.
+Integrated on `cx-wave10` in `/home/user/Projects/cx-wave10`, from headline
+`393d6ceb129d8c99dffd70959d6a19267c525fe0`. No push. Production integration and
+instruction proofs are complete; the remaining correctness campaign is still
+running. This report will receive its final verification inventory before delivery.
+No throughput claim is made.
 
-Merge order: snapfix2, blockfix3, scriptfix2, exec1s-d, pubtrackfix, infofix,
-rlfix4. Every lane is merged with `--no-ff`. The committed blockfix3 report is
-the `## blockfix3` section of `MEASURE-REQUEST-blockfix2.md`; the separately
-named `MEASURE-REQUEST-blockfix3.md` does not exist on that branch.
+All builds and correctness work use CPUs 64–95; servers use ports 20000–20099.
+Direct builds use `taskset -c 64-95 make -j32`. Gate workers use their own assigned
+CPU subsets and job interfaces. The main correctness geometry remains eight
+server threads, 16 shards, split ratio 6:2; jobs that declare another geometry
+retain it. Correctness servers, Redis 7.4, Tcl and differential jobs were run under
+the explicit lane authorization. Performance and full gate iteration remain with
+the maintainer.
 
-LAT-HIST-2 is included under the maintainer's 2026-10-29 ruling, with exact
-individual command timing. The global slowlog ring is excluded. Protected
-EXPECT assignments remain unchanged; final declared rows and their collector
-positions will determine the requested landing counts.
+### Merges and exact row arithmetic
 
-### Semantic interactions
+Each branch was merged, in the requested order, with a `--no-ff` merge commit.
+The lane branches were not edited. The blockfix3 report is the `## blockfix3`
+section of [MEASURE-REQUEST-blockfix2.md](MEASURE-REQUEST-blockfix2.md); the separately
+named blockfix3 report does not exist on that branch.
 
-Pending source audit and directed checks: prepared snapshot capacity with eager
-EXEC reclamation; shutdown/script apply brackets and EXEC retirement; eviction
-with prepared/capturing snapshots and pinned versions; script escalation and
-wound publication; NOGROUP accounting; disabled EXEC latency timing; read-local
-readers with X2; central CR/LF error framing; and the Tcl promotion union and
-planted regression.
+| Lane | Merge | Added quick/full rows | Collector line(s) |
+|---|---|---:|---|
+| snapfix2, including snapfix | `f146fdbca` | 4/4 | 6181, 6182, 6183, 6185 |
+| blockfix3 | `047ccf869` | 1/1 | 6083 |
+| scriptfix2 | `8fe881fa2` | 48/48 | 6152 |
+| exec1s-d, including exec1s-c | `30a83e4d7` | 4/4 | 6143 |
+| pubtrackfix | `87e964b71` | 4/4 | 6189 |
+| infofix, excluding global slowlog | `d47af69b2` | 4/4 | 6124, 6125 |
+| rlfix4, merged last | `d53549aa4` | 0/0 | — |
+| Total | | **65/65** | |
 
-### harness
+The landing counts are **946 quick / 963 full**, from 881/898. Every added
+collector is before the quick-tier exit at **line 6263**. Blockfix3 adds zero
+relative to its lane base but restores the headline's one parked stream-removal
+row. Infofix contributes four instead of five because its global-ring row is
+excluded. The EXEC and pubtrack lanes each omitted their four declared labels
+from the fixture; all eight are now listed. Interaction checks extend existing
+rows. The complete declaration multiset, including duplicates, exactly equals
+the fixture. See [row-inventory.json](docs/wave10/row-inventory.json) and its
+source-line counter [inventory.py](docs/wave10/inventory.py).
 
-The named slowlog ordering assertion will use the existing one-fresh-server
-ORDER_TESTS mechanism, under REGISTER item `SLOWLOG-EXEC-BLOCKED-ORDER`.
+**The real EXPECT_QUICK/EXPECT_FULL assignments remain 881/898.** Only the
+explicitly authorized throwaway selftest copy uses 946/963.
 
-### owner-visible
-
-rlfix4 retains `no_stack_protector` on `FlatStore::hash_key`. This is an explicit
-hardening relaxation. Its integrated-layout merit remains for the maintainer.
-exec1s-d's historical seed-22 SAVE rejection and X3 idle rotation's seven extra
-instructions remain open evidence, not claimed fixes.
-
-### Delivery and measurement
-
-Required arms: PRE, POST, POST-minus-rlfix4, and PAD-A (kind A, PRE behaviour with
-candidate layout control). Final hashes, control limitations, instruction/body
-receipts, correctness results, NOT RUN items and exact maintainer cells will be
-recorded here before delivery. No throughput claim is made.
-
-Snapshot merge resolution: retain wave 9’s stronger at412 APPLY-window witness.
-Retain the existing `xshard_complete_script_final` close, omitting snapfix’s
-redundant `script_snapshot_done` close; every Final still closes owner-side.
-Initial Makefile choices are provisional until the compile-only budget trials.
-
-### Exact declaration inventory
-
-All seven lane merges are complete: snapfix2 `f146fdbca`, blockfix3 `047ccf869`,
-scriptfix2 `8fe881fa2`, exec1s-d `30a83e4d7`, pubtrackfix `87e964b71`, infofix
-`d47af69b2`, rlfix4 `d53549aa4`. The commit immediately before rlfix4 is
-`ba2130b37`; its production source is identical to the built slowlog-exclusion
-commit `e98831c81` (the intervening commit changes only the Tcl harness).
-
-The full source declaration inventory is 963, exactly matching the explicit
-fixture including duplicates. Required landing counts are **946/963**, from
-881/898 plus **65/65**: snapshot 4, restored blocking row 1, scripting 48,
-EXEC 4, pubsub/tracking 4, retained INFO/latency 4, read-local 0. Blockfix3 adds
-zero on its lane base but restores one row parked on this headline; infofix
-loses its global slowlog row. Neither exec1s-d nor pubtrackfix supplied their
-four labels in the merged fixture; those eight declarations are now explicitly
-listed. The interaction checks extend existing rows and add no public row.
-Collector positions and final receipts will be recorded after harness edits.
-
-### Interaction source findings and new witnesses
-
-- Snapshot preparation reserves at least the old table capacity. X2 calls the
-  existing bounded cleanup with the commit cutoff read before the reader floor;
-  collapse refuses an active capture. New `exec1s` subcases hold actual pending
-  EXEC versions, prepare/mark around eager cleanup, complete a real capture,
-  and check exact final values. Both modes and atomic settings run the same
-  cases, with ordinary and armed read-local retirement.
-- Eviction rejects candidates requiring versions and returns immediately during
-  capture. The new subcases require zero eviction while pins/capture are live,
-  then require actual eviction after their release. Prepared capacity and the
-  capture stream must remain usable throughout.
-- The X2 armed collapse still selects `atomic_free_entry_read_local` and QSBR
-  object retirement. rlfix4 changes admission/hash code and does not touch that
-  selection. The existing concurrent word/byte-wrap TSan falsifier remains in
-  every complete exec1s job; new snapshot subcases require deferred retirements.
-- scriptfix2's new invocation environment stays inside each optimistic attempt;
-  at412c's claim/wound/handoff machinery is retained. `tests/wave10.py`, attached
-  to the existing eight-leg execfair job, adds the witnessed nine-conflict
-  escalation schedule for a shebang script, uppercase EVALSHA, and uppercase
-  FCALL using restricted library initialization and numeric child arguments.
-  The existing at412 owner check still covers the wound-publication interval.
-- Blockfix3 owns the NOGROUP increment at the actual XREADGROUP reply. INFO reads
-  that counter and its RESETSTAT baseline. Infofix contains no generic formatter
-  accounting hook, so the merged tree does not introduce double accounting.
-- The new error sites retain central CR/LF builders; the complete supplement is
-  `docs/crlffix/wave10-added-sites.json` and the wave10 section of its audit.
-
-Harness changes so far: add the single named slowlog assertion to ORDER_TESTS
-under `SLOWLOG-EXEC-BLOCKED-ORDER`; expand the existing retry falsification test
-over every named map entry. All ten Tcl harness tests pass. No blanket retry,
-new timeout or assertion tolerance is introduced. New snapshot/eviction/script
-interaction checks and the two Lua reply-API CR/LF checks extend existing jobs.
-
-Global slowlog exclusion: restore `src/cmd/slowlog.cc` byte-for-byte from
-headline, dropping only that part of `7c50db206`. Omit the new `infofix_compat-slowlog`
-row (infofix contributes +4, not +5). Restore these seven named Tcl skips with
-their headline reasons:
+LAT-HIST-2 is included under the owner's 2026-10-29 ruling. Individual command
+timers remain exact; no outlier averaging was added. Commit `e98831c81` removes
+only the global slowlog-ring portion of `7c50db206`; `src/cmd/slowlog.cc` is
+byte-for-byte headline. Its formatter/global synchronization could obstruct a
+GET behind another owner's SET, so it is not part of this landing. The omitted
+public row is `infofix_compat-slowlog`. These seven Tcl names return to their
+headline skips and reasons:
 
 - `SLOWLOG - GET optional argument to limit output len works`
 - `SLOWLOG - can clean older entries`
@@ -116,126 +63,229 @@ their headline reasons:
 - `SLOWLOG - max entries is correctly handled`
 - `SLOWLOG - too long arguments are trimmed`
 
-### Compile-only budget selection
+climonfix4, flushfix2, execfifo and lineshare-a/b are not merged.
 
-All 31 budgeted translation units were compiled at the inherited value and the
-headline budget plus the measured IPA-size delta, with ±8 trials. Linked-body
-scoring selected one further change: DB0 `t_server.o`, 33883 → 33911. All other
-provisional merged budgets won or tied their trials. Full compiler commands,
-IPA sizes, digests and scores are in `docs/wave10/budgets/`.
+### Semantic interactions and directed checks
 
-The new snapshot fixture initially tore down its sidecar before draining its
-private QSBR queue; those eight read-local subcases crashed during test cleanup.
-The fixture now drains before disarming and releasing the sidecar, matching
-production teardown. The complete `exec1s` gate job then passed all four public
-rows and their internal subcases, including the concurrent X2 reader falsifier.
-This was a fixture repair, with no production-path change.
+1. **Prepared tables, sparse EXEC versions and X2.** Snapshot preparation retains
+   at least the old capacity, using `max(old, 2*min(live, old))`. X2 reads its
+   commit cutoff before the reader floor and refuses collapse during capture.
+   New `exec1s` subcases run 64 two-INCR transactions, pin their actual pending
+   versions, and cut a snapshot while eager cleanup operates. Both modes,
+   atomic 0/1, prepared/capturing stages, and ordinary/armed-read-local retirement
+   are covered. They require a real capture, exact values and actual reclamation.
+2. **Eviction and snapshots/pins.** The same cases require zero eviction while
+   versions are pinned and during active capture, complete the snapshot stream,
+   then require exactly two evictions after pins/capture end. This checks the
+   pubtrack maintenance path against both snapshot sizing and X2 retirement.
+3. **Shutdown, EXEC retirement and escalated scripts.** The merge retains
+   wave 9's stronger at412 APPLY witness and its existing owner-side
+   `xshard_complete_script_final` close. Snapfix's redundant close is omitted;
+   each Final closes once. Shutdown releases abandoned PIN ownership before
+   records can retire. Complete snapfix, snapshot, shutdown, at412 T11a/T11b,
+   EXEC and AOF jobs retain their declared legs and exact-data checks.
+4. **Scripting with escalation, handoff and wound publication.** scriptfix2's
+   invocation environment stays inside each optimistic attempt; at412c's claims,
+   handoff and wound machinery remain intact. [tests/wave10.py](tests/wave10.py),
+   attached to all eight execfair mode/engine/atomic legs, forces nine conflicts
+   for shebang EVAL, uppercase EVALSHA and uppercase FCALL with numeric child
+   arguments. It requires eight retries, one escalation, an APPLY writer wait,
+   exact replies and balanced pins. The existing owner/wound witnesses remain.
+5. **NOGROUP accounting.** Blockfix3 increments its dedicated error counter at
+   the actual XREADGROUP error reply. INFO reads that counter and RESETSTAT's
+   baseline. Infofix adds no generic formatter accounting hook; there is no
+   second error-accounting path.
+6. **LAT-HIST-2 with EXEC retirement.** The exact batched histogram implementation
+   is retained. The existing wave8b disabled-timing witness and latency jobs check
+   the unarmed path; the serverless EXEC scopes show no integration-only additions.
+7. **rlfix4 with X2 readers.** Armed collapse still selects
+   `atomic_free_entry_read_local` and QSBR retirement. rlfix4 changes admission
+   and hashing, not that selection. The complete exec1s job includes the
+   concurrent word/byte-wrap reader TSan falsifier; new snapshot subcases require
+   deferred retirement. No reader retry or seqlock is introduced.
+8. **Central CR/LF replies — real interaction repaired.** scriptfix2 sanitized
+   FUNCTION LOAD's unknown-option argument before crlffix could trim its trailing
+   CR/LF. The existing job rejected 32 exact comparisons. Commit `5e57bbdfd`
+   passes the raw length-bearing argument to the central builder. The complete
+   job passes after repair, including following PING/ECHO framing. Two Lua
+   error/status API checks extend that job. All 16 new/moved sites are recorded
+   in [the CR/LF audit](docs/crlffix/audit.md) and
+   [wave10-added-sites.json](docs/crlffix/wave10-added-sites.json).
+9. **Tcl promotion union.** The reconciled manifest removes 87 headline skips and
+   introduces none; the seven exclusions above remain. XGROUP DESTROY's NOGROUP
+   assertion is promoted. JSON remains `indent=1, ensure_ascii=True`.
+   [tcl-manifest-union.json](docs/wave10/tcl-manifest-union.json) records the union.
+   The planted SCRIPT-ERROR-WORDING mutant fails the promoted no-arguments
+   redis.call/pcall assertion in both modes, while POST passes it. The named
+   failure is retained separately from the mutant's later GC timeout and CLI
+   failure; see [tcl-final-proof.json](docs/wave10/tcl-final-proof.json).
 
-Harness: extend the existing partial-only `GATE_PROOF_NO_RATES=1` to omit
-`--release-build` timing ratios from stream and xmove batteries. Their data,
-concurrency and mechanism checks remain present; full gate behavior is unchanged.
-The flag now rejects a non-partial invocation at entry. Those timing ratios,
-the atomic throughput floor, and the efficiency scaling benchmarks are NOT RUN
-in this lane and remain in the maintainer's landing gate.
+### harness
 
-Real interaction found: scriptfix2 pre-sanitized the FUNCTION LOAD unknown-option
-argument before crlffix's central error builder. Trailing CR/LF had already become
-spaces, so the builder could no longer trim them as Redis does. The existing
-CR/LF job rejected 32 exact comparisons (two suffix shapes × all 16 configurations).
-Pass the raw length-bearing argument to the same central builder instead. The
-new Lua error/status API checks passed; framing and following PING/ECHO remain
-mandatory. This repair has its own commit and the whole CR/LF job will be rerun.
+- `ba2130b37` adds exactly `SLOWLOG - Rewritten commands are logged as their original command`
+  to ORDER_TESTS, citing REGISTER `SLOWLOG-EXEC-BLOCKED-ORDER`. Its sole retry is
+  the existing named, fresh-server retry. `64ce11477` restores headline slowlog
+  isolated setup after excluding the global ring and applies that same bounded
+  retry to isolated assertions. The zero-maxlen predecessor otherwise leaves
+  capacity zero. Ten Tcl harness tests pass; no blanket retry is used.
+- `5cf54663a` adds the directed snapshot/eviction/escalation/CRLF checks above.
+  `b286c5070` fixes their private fixture cleanup: drain QSBR before disarming
+  and destroying the sidecar. Its original eight read-local cleanup crashes are
+  retained. This changes no production retirement behavior.
+- `093d2b650` adds the eight missing fixture labels and extends partial-only
+  `GATE_PROOF_NO_RATES=1` to omit stream/xmove release timing ratios. Data and
+  mechanism assertions remain. A non-partial invocation with this flag is
+  rejected. The atomic throughput floor and efficiency measurements remain
+  with the maintainer; the full gate's behavior is unchanged.
+- `435cc32f1` updates the lottery disposable-source builder's exact-count anchor
+  for pubtrack's new `tracking_emit_invalidation(..., bool batched)` signature.
+  The initial zero-anchor failure is retained. Lottery and publishfix schedule
+  builds then succeed, are fresh, and pass whole gate netio jobs.
+- `14fe9b924` removes the stale `infofix_compat-slowlog` scheduler entry as well as
+  its already removed collector. The initial scheduler failures are preserved.
+  The repaired real-tree `tests/gates_test.py` passes all 73 tests.
+- `9bacbe2d6` replaces exec1s metric-name stringification with explicit labels,
+  satisfying the headline's source-identity rule. Its whole source-identity job
+  passes. All executable bytes, symbols/addresses and data layouts remain exact;
+  only two INFO git strings, build-id and debug information differ after rebuild.
+- `75cb895ab` repairs a stale DEBUG battery expectation for offline LOADAOF. It
+  requires Redis's exact missing-file error, deletion of a seeded key and
+  appendonly staying disabled. No assertion or row is removed.
 
-Harness interaction found in the complete Tcl receipts: excluding the global
-ring also requires restoring headline slowlog `isolated_tests`. The zero-capacity
-assertion otherwise leaves the rewritten-command check with capacity zero.
-Restore its exact isolated setup and apply the named ORDER_TESTS retry to isolated
-assertions too. This retains the original assertion and its one-retry bound.
-Concurrent-build Tcl runs also timed out in the Lua GC assertion before reaching
-the planted uppercase-SHA regression; those attempts do not prove falsification.
-They are retained and Tcl will run again without concurrent compilation.
+### Compile-only budgets and remaining bodies
 
-Harness: the lottery disposable-source builder rejected pubtrackfix’s new
-`tracking_emit_invalidation(..., bool batched)` signature. Update its exact-count
-anchor; the observation stays at the same entry point and no production hook
-is introduced. The rejected build log is retained before the complete rebuild.
+All 31 budgeted units were compiled at inherited values and at headline budget
+plus measured IPA-size delta, with ±8 trials. Only DB0 `t_server.o` changes
+further, **33883 → 33911** (`11f52599c`). Recipes, sizes, digests and scoring are
+in [budgets](docs/wave10/budgets/).
 
-### Final serverless instruction evidence
+The linked inventory has **10,109 groups: 8,411 headline-identical, 1,310 changed
+groups matching a supplied lane POST, and 388 composite/compiler-propagated
+remainders**. The hot inventory includes all counted scope bodies: 1,212 groups,
+770 headline-identical, 323 lane-identical, 119 remaining. Every remaining body
+and reason is listed in [changed-bodies.md](docs/wave10/identity-final/changed-bodies.md)
+and its JSON companion.
 
-`docs/wave10/instructions/comparison.md` contains all 116 PRE/POST cells.
-GET and SET are exactly flat; INCR is flat in DB0 and -11 per operation in the
-normal namespace. MGET/MSET have no positive total. EXEC totals fall by
-1,924–4,044 instructions; read-local GET falls by 10/23 at batch 1 and 320/612
-at batch 32 (normal/DB0). EVAL single-shard adds 686/637 and cross-shard adds
-283/266 (normal/DB0), principally scriptfix2’s case-normalized SHA lookup and
-protected invocation environment. These are instruction counts, not rate claims.
+The exact-all-hot-body target is **not fully met**. Direct GET/SET/MGET/MSET
+handler variants match headline except normal-namespace notification-enabled,
+no-borrow GET (`cmd_get<true,false>`), 799 → 792 bytes. That body exactly matches
+four supplied lane POSTs; the missing-key sink advance is outlined. Additional
+notification-budget trials restored it while changing ordinary notification
+GET/SET bodies, so those trials were not selected. Ordinary requested scopes add
+no instructions; TLS/notification misses are outside that instruction scope.
+Identity remains a proxy and the maintainer decides merit. See the
+[identity inventory's limits](docs/wave10/identity-final/README.md).
 
-The 47 positive body subtotals in EXEC/EVAL/read-local all have lane/commit
-attribution in `comparison.json`; both signs are retained, including changes
-in outlined function signatures. The only integration production repair is the
-FUNCTION LOAD error suffix, outside these scopes. Every counted body binds to
-its same-arm server: PRE 547/547 and POST 551/551, zero mismatches. PRE binds
-to the supplied frozen headline, not merely the local source rebuild.
+### Serverless integration-cost proof
 
-The final normalizer resolves actual 10-byte x87 and 16-byte SIMD constants
-and checked switch-table destinations. It preserves opcodes, registers,
-immediates, member offsets, padding and branch destinations. Moving the fixture’s
-preparsed EVAL hash before the scope removed a private fixture clone from counts;
-the earlier counts and their mismatches remain marked as superseded evidence.
+[comparison.md](docs/wave10/instructions/comparison.md) and
+[comparison.json](docs/wave10/instructions/comparison.json) contain all **116 paired
+cases**: 48 ordinary command/batch cells; 48 EXEC cells; 16 EVAL cells; four
+read-local GET cells. Both namespaces and modes are covered; EXEC/EVAL and MSET
+include atomic 0/1. Counts are native production-namespace instructions, REP
+counted once, excluding fixture code and shared libraries. The clock is fixed.
+Each case has fresh initialized state; only EVAL warms one invocation and counts
+its second. Exact replies are checked.
 
-Harness: the real scheduler self-tests rejected a stale
-`infofix_compat-slowlog` queue entry left after its collector was removed.
-Remove that entry as part of the global-ring exclusion; the collector/fixture
-inventory remains 946/963. The initial concurrent standalone/selftest attempts
-also collided on reserved port 20098. Preserve those failures and rerun these
-controls sequentially; no timeout or assertion is relaxed.
+| Scope | Normal namespace POST−PRE | DB0 POST−PRE |
+|---|---:|---:|
+| GET / SET, batches 1 and 32 | 0 | 0 |
+| INCR, batch 1 / 32 | −11 / −352 | 0 / 0 |
+| MGET / MSET | no positive total | no positive total |
+| EXEC, 1/2/4 children, all placements | −1,924 to −4,044 overall | included in overall range |
+| EVAL, two INCRs on one shard | +686 | +637 |
+| EVAL, two INCRs across shards | +283 | +266 |
+| Read-local GET, batch 1 / 32 | −10 / −320 | −23 / −612 |
 
-The repaired real-tree `python3 tests/gates_test.py` passes all **73 tests**.
-The earlier 15 failures comprise the stale slowlog queue entry, scheduler
-deadlines under concurrent selftests, and the shared-port collision; those logs
-are retained. The final run is sequential with the other selftest campaign.
+EXEC-same repeats one key. EXEC-cross uses distinct shards; its one-child case
+is necessarily a degenerate one-shard control. Two/four children use two/four
+shards. MGET/MSET use eight keys on eight shards. EVAL uses actual routing to
+choose same/cross-shard keys.
 
-Both disposable lottery and publishfix schedule builds succeeded and are fresh
-under `make -q`; hashes and exact commands are in `variant-builds.json`.
-The separately delivered current-layout no-rlfix4 control removes only rlfix4’s
-production diff from final POST. This supplements the requested literal
-pre-rlfix4-merge arm, which predates the later cold CR/LF repair and DB0 budget
-selection. It gives the maintainer a direct integrated-layout inclusion control.
+All 47 positive EXEC/EVAL/read-local body subtotals have lane/commit attribution
+in the JSON, including signature/outline movements. EVAL additions principally
+come from scriptfix2's normalized SHA lookup and protected environment. No
+integration-only instruction additions remain. PRE's 547/547 and POST's 551/551
+counted bodies bind to their same-arm server with zero mismatches; PRE binds to
+the supplied headline binary, not merely a local source rebuild. The normalizer
+resolves exact literal bytes and checked switch destinations, preserving opcodes,
+registers, immediates, offsets and padding. The explicit-label rebuild is bridged
+by [source-labels-identity.json](docs/wave10/source-labels-identity.json): every
+executable byte is identical, with only two eight-byte INFO git metadata changes
+in other allocated data.
 
-All **56 production-unit freshness checks**, plus `make -q all`, pass.
-An initial discovery probe also attempted three parbuild-only readiness marker
-names as Makefile targets; they have no such rules. Those lookup errors remain
-in `freshness-discovery.json`, separate from the required 56 checks.
+### Correctness receipts and visible failures
 
-Final Tcl positive attempt (`final-tcl`): both modes completed, with only
-infofix’s documented promoted CLI-hint failure for unsupported MIGRATE. The
-restored isolated slowlog assertion and all other required scripting/INFO/reload
-assertions pass. This is **not a green Tcl job**. No skip was added for MIGRATE.
+The active campaigns use [run_jobs.py](docs/wave10/run_jobs.py), which invokes
+whole `GATE_ONLY_JOBS` jobs, retains every exit, binary hash and artifact path,
+and never emits a full-gate receipt. The planned mode/engine expansion is
+[correctness-matrix.json](docs/wave10/correctness-matrix.json); the completed-run
+index is [correctness-jobs.json](docs/wave10/correctness-jobs.json). Final remaining
+coverage and the quiet selftest results are pending.
 
-### Additional integration repairs and artifact equivalence
+Both complete standard differential matrices pass. Each engine runs all 47
+suites, permanent seeds 7/19/20/23 and rotating seed **22**, split and fused armed,
+atomic 0/1, plus mode equivalence and the normal MULTI repeats. Separate histories
+reserve unused rotation 21 without claiming a run, so 22 is explicitly exercised
+without removing any standard seed. Seed 22 includes **32 SAVE comparisons**
+across eight mode/engine/atomic geometries and passes them all. The historical
+SAVE failure is **not reproduced**, not declared fixed. See
+[differential-final.json](docs/wave10/differential-final.json).
 
-The source-identity gate rejected exec1s's telemetry field-name stringification.
-Commit `9bacbe2d6` replaces it with explicit literal metric labels. The rebuild
-has exactly identical executable bytes, function symbols, addresses and data
-layouts. The only allocated-data changes are two eight-byte INFO build-commit
-strings (`11f52599` to `9bacbe2d`); the GNU build ID and debug data also change.
-`source-labels-identity.json` checks every other allocated byte, with no opcode
-normalization. The frozen rebuild is `POST-source-labels`, SHA-256
-`844cf188071bae335a80e8ae15c2acaec2d1f583f235edf4bf4496421299660e`.
-The earlier `ed88bd...` correctness and instruction receipts remain valid evidence
-for the identical command code; their original hashes are preserved.
+The first complete POST Tcl run has one unexpected failure in each mode:
+`Non-interactive non-TTY CLI: Test command-line hinting - latest server`, because
+MIGRATE is absent. Infofix itself documents that promoted failure. A later full
+compat2 prerequisite run also fails the known rewritten-slowlog ordering
+assertion in 1s, including its one permitted fresh retry. Both attempts are
+retained; no new skip or retry was added. The Tcl/compat2 job is **not green**.
 
-The complete AUTH job exposed one stale DEBUG assertion: it still expected
-`ERR appendonly is disabled`. Commit `75cb895ab` checks the accepted offline
-LOADAOF behavior instead: Redis's exact missing-file error, destruction of a
-seeded key, and appendonly remaining disabled. The existing infofix oracle row
-independently compares this behavior with Redis. No row is removed.
+The throwaway abba_selftest attempts are not yet green. The first exposed the
+removed-ring scheduler entry and a concurrent selftest port collision; the
+corrected attempt passed the other controls but had one scheduler fixture fail
+with Bash aborting while interpreting an EXIT trap. These failures remain
+recorded, with a quiet whole-job rerun pending. The real-tree standalone scheduler
+suite passes 73/73. EXPECT was changed only in the throwaway copy.
 
-The named Tcl planted-error proof is now explicit in `tcl-final-proof.json`.
-`SCRIPT-ERROR-WORDING` makes the promoted no-arguments redis.call/pcall assertion
-fail in both modes; final POST passes that assertion. The mutant's later Lua GC
-timeout and known CLI-hint failure are recorded separately, and do not substitute
-for the named failure.
+`make all` passes its footprint locks. Before the telemetry-label rebuild all
+56 production-unit target freshness checks and `make -q all` passed; final
+freshness after the equivalent rebuild is pending. Three initial attempted names
+were parbuild readiness markers, not Makefile targets; their lookup errors remain
+in `freshness-discovery.json`. Disposable lottery/publishfix build hashes and
+freshness are in [variant-builds.json](docs/wave10/variant-builds.json). All six
+original arms and both variants pass netio jobs in 1s/2s and uring/epoll.
+
+### owner-visible
+
+- rlfix4 keeps `no_stack_protector` on `FlatStore::hash_key`: an explicit hardening
+  relaxation. Its inclusion still needs the integrated-layout merit comparison.
+- The global slowlog ring is excluded for the no-write-obstructed-read law;
+  per-thread slowlog behavior and its named failures remain visible.
+- exec1s-d's X3 idle rotation still has its documented +7 instructions. The
+  historical seed-22 SAVE discrepancy remains an unreproduced item despite the
+  passing standard seed-22 matrices here.
+- The notification/no-borrow GET identity exception and common-image PAD limit
+  are explicit above; neither is used to claim performance.
+
+### Frozen arms and storage
+
+Final delivery hashes and the post-rebuild path will be consolidated after the
+active jobs finish. The required literal pre-rlfix4 arm is commit `ba2130b37`
+(production-identical to `e98831c81`). It predates the later cold CRLF repair and
+DB0 budget selection. `POST-without-rlfix4-current` additionally reverses only
+rlfix4's production diff from integrated POST, giving a fair current-layout
+inclusion control.
+
+**PAD-A is kind A, a behavior twin of POST-layout:** PRE behavior in the common
+image with candidate code linked first and symbol-isolated PRE second. A five-byte
+entry jump selects the implementation; sections, symbols and function addresses
+are identical between the pair. This controls the larger common image, not the
+smaller release POST. Measure POST-layout/PAD-A separately from the release null.
+No PAD-B is supplied.
+
+Superseded trial objects, arm source trees and step traces were removed only after
+hashes/counts were recorded. Digests are retained in `pruned-artifacts.json.gz`,
+`pruned-trial-receipts.json.gz` and `pruned-traces.json.gz`. Counts and final binding
+receipts remain. Build storage is currently about 26G, below the 40G limit.
 
 ### Maintainer measurement plan — NOT RUN
 

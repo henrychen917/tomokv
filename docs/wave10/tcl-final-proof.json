@@ -230,5 +230,82 @@
         "milliseconds": "0"
       }
     ]
+  },
+  {
+    "tag": "compat2-required-tcl",
+    "path": "/home/user/Projects/cx-wave10/build/gate-run.6tJ6GH/jobs/redis_tcl/redis-tcl-2s/summary.json",
+    "mode": "2s",
+    "binary_sha256": "ed88bd649b62eeec920e23aa21f360470e67df968f02f8e351340b8aad2a2173",
+    "rows": 38,
+    "errors": [
+      {
+        "file": "integration/redis-cli",
+        "failed": 1,
+        "complete": true,
+        "error": "passing subset failed, incomplete, or assertion inventory changed",
+        "events": [
+          {
+            "status": "err",
+            "test": "Non-interactive non-TTY CLI: Test command-line hinting - latest server in tests/integration/redis-cli.tcl",
+            "data": "Non-interactive non-TTY CLI: Test command-line hinting - latest server in tests/integration/redis-cli.tcl\nExpected 'Test case 'MIGRATE ' FAILED: expected 'host port key|\"\" destination-db timeout [COPY] [REPLACE] [AUTH password|AUTH2 username password] [KEYS key [key ...]]', got '(null)'' to match '*SUCCESS*' (context: type eval line 4 cmd {assert_match \"*SUCCESS*\" $output} proc ::test) "
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "compat2-required-tcl",
+    "path": "/home/user/Projects/cx-wave10/build/gate-run.6tJ6GH/jobs/redis_tcl/redis-tcl-1s/summary.json",
+    "mode": "1s",
+    "binary_sha256": "ed88bd649b62eeec920e23aa21f360470e67df968f02f8e351340b8aad2a2173",
+    "rows": 38,
+    "errors": [
+      {
+        "file": "integration/redis-cli",
+        "failed": 1,
+        "complete": true,
+        "error": "passing subset failed, incomplete, or assertion inventory changed",
+        "events": [
+          {
+            "status": "err",
+            "test": "Non-interactive non-TTY CLI: Test command-line hinting - latest server in tests/integration/redis-cli.tcl",
+            "data": "Non-interactive non-TTY CLI: Test command-line hinting - latest server in tests/integration/redis-cli.tcl\nExpected 'Test case 'MIGRATE ' FAILED: expected 'host port key|\"\" destination-db timeout [COPY] [REPLACE] [AUTH password|AUTH2 username password] [KEYS key [key ...]]', got '(null)'' to match '*SUCCESS*' (context: type eval line 4 cmd {assert_match \"*SUCCESS*\" $output} proc ::test) "
+          }
+        ]
+      },
+      {
+        "file": "unit/slowlog",
+        "failed": 1,
+        "complete": true,
+        "error": "passing subset failed, incomplete, or assertion inventory changed",
+        "events": [
+          {
+            "status": "err",
+            "test": "SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl",
+            "data": "SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl\nExpected 'blpop l 0' to be equal to 'slowlog reset' (context: type eval line 45 cmd {assert_equal {blpop l 0} [lindex [lindex [r slowlog get] 0] 3]} proc ::test)"
+          }
+        ],
+        "named_retry": {
+          "original_failure": {
+            "status": "err",
+            "file": "tests/unit/slowlog.tcl",
+            "test": "SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl",
+            "data": "SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl\nExpected 'blpop l 0' to be equal to 'slowlog reset' (context: type eval line 45 cmd {assert_equal {blpop l 0} [lindex [lindex [r slowlog get] 0] 3]} proc ::test)",
+            "milliseconds": "0"
+          },
+          "result": "/home/user/Projects/cx-wave10/build/gate-run.6tJ6GH/jobs/redis_tcl/redis-tcl-1s/isolated/3dfdfea19e717092/unit/slowlog/monitor-retry/unit/slowlog/result.json",
+          "passed": false
+        },
+        "retry_result": {
+          "passed": 0,
+          "failed": 1,
+          "complete": true,
+          "exit_code": 1
+        },
+        "retry_errors": [
+          "SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl\nExpected 'blpop l 0' to be equal to 'slowlog reset' (context: type eval line 45 cmd {assert_equal {blpop l 0} [lindex [lindex [r slowlog get] 0] 3]} proc ::test)"
+        ]
+      }
+    ]
   }
 ]
