@@ -1685,6 +1685,9 @@ public:
     }
 
 
+    // Cold owner maintenance; ordinary admission keeps its existing instruction path.
+    uint32_t evict_over_limit();
+
     // Takes ownership of `o` only on success; frees anything it displaces.
     InsertResult insert(uint64_t h, KvObj* o) {
         if (__builtin_expect(read_local_enabled_, false)) return insert_read_local(h, o);
@@ -2414,9 +2417,10 @@ private:
         return o;
     }
 
+    template <bool ProtectKey = true>
     KvObj* choose_victim(Slice protected_key) {
         if (__builtin_expect(read_local_enabled_, false))
-            return choose_victim_read_local(protected_key);
+            return choose_victim_read_local<ProtectKey>(protected_key);
         KvObj* best = nullptr;
         KvObj* seen[64];
         uint32_t seen_count = 0;
@@ -2424,7 +2428,8 @@ private:
         for (uint32_t i = 0; i < maxmemory_samples_; i++) {
             KvObj* candidate = maxmemory_policy_is_volatile(maxmemory_policy_)
                 ? random_volatile_candidate() : random_allkeys_candidate();
-            if (!candidate || candidate->key().key_eq(protected_key)) continue;
+            if (!candidate) continue;
+            if constexpr (ProtectKey) if (candidate->key().key_eq(protected_key)) continue;
             if (atomic_needs_version(hash_key(candidate->key()), candidate->key())) continue;
             bool duplicate = false;
             for (uint32_t j = 0; j < seen_count; j++)
@@ -3101,6 +3106,7 @@ private:
         write_eviction_meta_read_local(o, count);
     }
 
+    template <bool ProtectKey = true>
     KvObj* choose_victim_read_local(Slice protected_key) {
         KvObj* best = nullptr;
         KvObj* seen[64];
@@ -3109,7 +3115,8 @@ private:
         for (uint32_t i = 0; i < maxmemory_samples_; i++) {
             KvObj* candidate = maxmemory_policy_is_volatile(maxmemory_policy_)
                 ? random_volatile_candidate() : random_allkeys_candidate();
-            if (!candidate || candidate->key().key_eq(protected_key)) continue;
+            if (!candidate) continue;
+            if constexpr (ProtectKey) if (candidate->key().key_eq(protected_key)) continue;
             if (atomic_needs_version(hash_key(candidate->key()), candidate->key())) continue;
             bool duplicate = false;
             for (uint32_t j = 0; j < seen_count; j++)

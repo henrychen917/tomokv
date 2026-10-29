@@ -1527,6 +1527,7 @@ private:
         if (now != expire_beat_ms_) {
             expire_beat_ms_ = now;
             work += active_expire_cycle();
+            if (maxmemory_enabled_) work += eviction_cycle();
             if constexpr (kSingleDatabase) keyspace_sample_cycle();
         }
         if constexpr (Fused)
@@ -1785,6 +1786,18 @@ private:
             shard->store().publish_keyspace_sample();
             break;
         }
+    }
+
+    [[gnu::noinline]] uint32_t eviction_cycle() {
+        if (snapshot_blocks_tasks()) return 0;
+        uint32_t removed = 0;
+        for (Shard* sh : self_->shards()) {
+            sh->set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
+            const uint32_t n = sh->store().evict_over_limit();
+            if (n) sh->publish_size();
+            removed += n;
+        }
+        return removed;
     }
 
     uint32_t active_expire_cycle() {

@@ -404,6 +404,7 @@ bool IoLoop::client_routing_install(void* opaque, Client* client, uint32_t sourc
         auto inserted = climon_conn_.insert(std::move(routing->climon));
         if (!inserted.inserted) return false;
         const ClimonConn& state = inserted.position->second;
+        if (!state.tracking_bcast_pending.empty()) pubsub_pass_pending_ = true;
         if (state.monitor) climon_local_monitors_++;
         if (state.tracking_on || state.tracking_draining) climon_local_trackers_++;
         if (state.reply_mode != kClimonReplyOn) climon_local_reply_++;

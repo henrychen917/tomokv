@@ -1,0 +1,32 @@
+[
+  {
+    "arm": "oracle",
+    "mode": "redis",
+    "iterations": 128,
+    "failures": []
+  },
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "iterations": 128,
+    "failures": []
+  },
+  {
+    "arm": "pre",
+    "mode": "2s",
+    "iterations": 128,
+    "failures": []
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "iterations": 128,
+    "failures": []
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "iterations": 128,
+    "failures": []
+  }
+]

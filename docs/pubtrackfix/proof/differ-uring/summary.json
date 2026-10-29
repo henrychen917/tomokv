@@ -1,0 +1,27 @@
+{
+  "run": "/home/user/Projects/cx-pubtrackfix/build/gate-run.nhvvWh",
+  "log": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/gate-differ-uring.log",
+  "jobs": {
+    "differ-armed-0": {
+      "done": "0\t1\t0\n"
+    },
+    "differ-armed-1": {
+      "done": "0\t1\t0\n"
+    },
+    "differ-equivalence": {
+      "done": "0\t1\t0\n"
+    },
+    "differ-split-0": {
+      "done": "0\t1\t0\n"
+    },
+    "differ-split-1": {
+      "done": "0\t1\t0\n"
+    },
+    "release": {
+      "done": "0\t1\t0\n"
+    }
+  },
+  "summary": [
+    "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-pubtrackfix/build/gate-run.nhvvWh/ledger.partial"
+  ]
+}

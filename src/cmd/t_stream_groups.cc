@@ -41,6 +41,22 @@ struct XreadgroupTiming {
     }
 };
 
+// Redis dirties consumer metadata and emits its keyspace event, but does not
+// signalModifiedKey: creating a consumer must not invalidate tracked reads.
+// A parked XREADGROUP has no retiring Op yet, so it uses the keyless route.
+void notify_implicit_consumer(Shard& shard, Op* source, Slice key) {
+    const uint32_t mask = shard.notify_mask();
+    if (mask & NOTIFY_SAVE) shard.note_save_change();
+    const uint32_t routes = notify_routes_for_class(mask, NOTIFY_STREAM) & ~NOTIFY_TRACKING;
+    if (!routes) return;
+    if (source)
+        notify_record_slow(shard, *source, routes, NOTIFY_STREAM,
+                           NotifyEventId::XgroupCreateconsumer, key);
+    else
+        notify_record_keyless_slow(shard, routes, NOTIFY_STREAM,
+                                   NotifyEventId::XgroupCreateconsumer, key);
+}
+
 int id_compare(const StreamID& a, const StreamID& b) {
     if (a.ms != b.ms) return a.ms < b.ms ? -1 : 1;
     if (a.seq != b.seq) return a.seq < b.seq ? -1 : 1;
@@ -784,6 +800,8 @@ void cmd_xclaim(Shard& shard, Op& op) {
     if (!create_consumer(*groups, *group, op.arg(3), now, consumer, created)) {
         reply_err(op.sink(), "ERR out of memory"); return;
     }
+    if constexpr (kNotify) if (created)
+        notify_implicit_consumer(shard, &op, op.arg(1));
     consumer->seen_time = now;
     std::vector<StreamOwnedEntry> claimed;
     try { claimed.reserve(ids.size()); }
@@ -888,6 +906,8 @@ void cmd_xautoclaim(Shard& shard, Op& op) {
     if (!create_consumer(*groups, *group, op.arg(3), now, consumer, created)) {
         reply_err(op.sink(), "ERR out of memory"); return;
     }
+    if constexpr (kNotify) if (created)
+        notify_implicit_consumer(shard, &op, op.arg(1));
     consumer->seen_time = now;
     std::vector<StreamOwnedEntry> claimed;
     const size_t capacity = std::min<uint64_t>(count, group->pending.size());
@@ -1338,6 +1358,10 @@ StreamGroupProbe stream_group_prepare_waiter(Shard& shard, Slice key, uint64_t h
     StreamConsumer* consumer = nullptr; bool created = false;
     if (!create_consumer(*groups, *group, consumer_name, shard.now_ms(), consumer, created))
         return StreamGroupProbe::Oom;
+    // The blocked command may stay parked indefinitely. Creation is already visible,
+    // so publish on the owner maintenance route instead of waiting for its reply.
+    if (created)
+        notify_implicit_consumer(shard, nullptr, key);
     consumer->seen_time = shard.now_ms();
     return stream_object_has_live_after(object, group->last_delivered)
         ? StreamGroupProbe::Ready : StreamGroupProbe::Empty;
@@ -1369,6 +1393,8 @@ bool stream_xreadgroup_execute(Shard& shard, Op& op, bool may_block) {
     if (!create_consumer(*groups, *group, op.arg(parsed.consumer_arg), now, consumer, created)) {
         reply_err(op.sink(), "ERR out of memory"); return true;
     }
+    if (created && (op.spec->flags & CmdFlags::NotifySelected))
+        notify_implicit_consumer(shard, &op, key);
     consumer->seen_time = now;
     const std::string consumer_name(op.arg(parsed.consumer_arg).p,
                                     op.arg(parsed.consumer_arg).n);

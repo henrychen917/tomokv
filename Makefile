@@ -49,6 +49,7 @@ SRC      += src/cmd/autharity.cc
 SRC      += src/core/fliplisten.cc
 SRC      += src/core/shutdown.cc
 SRC      += src/cmd/latency_tracking.cc
+SRC      += src/cmd/eviction.cc
 # The entry wrapper belongs only to server links using --wrap=main.
 SERVER_ONLY_SRC := src/core/version.cc
 LDLIBS   += -lssl -lcrypto

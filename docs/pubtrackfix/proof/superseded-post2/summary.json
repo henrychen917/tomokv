@@ -1,0 +1,18 @@
+{
+  "run": "/home/user/Projects/cx-pubtrackfix/build/gate-run.4KCk7q",
+  "log": "build/pubtrackfix/gate-post2.log",
+  "jobs": {
+    "pubtrackfix": {
+      "done": "0\t4\t0\n"
+    },
+    "redis_tcl": {
+      "done": "0\t1\t1\n"
+    },
+    "release": {
+      "done": "0\t1\t0\n"
+    }
+  },
+  "summary": [
+    "GATE(PARTIAL): 6 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-pubtrackfix/build/gate-run.4KCk7q/ledger.partial"
+  ]
+}

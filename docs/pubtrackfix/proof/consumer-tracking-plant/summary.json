@@ -1,0 +1,15 @@
+{
+  "run": "/home/user/Projects/cx-pubtrackfix/build/gate-run.5GdQFA",
+  "log": "build/pubtrackfix/gate-consumer-tracking-plant.log",
+  "jobs": {
+    "pubtrackfix": {
+      "done": "0\t3\t1\n"
+    },
+    "release": {
+      "done": "0\t1\t0\n"
+    }
+  },
+  "summary": [
+    "GATE(PARTIAL): 4 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-pubtrackfix/build/gate-run.5GdQFA/ledger.partial"
+  ]
+}

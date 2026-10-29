@@ -1,0 +1,1530 @@
+{
+  "runs": {
+    "post-affected-final": {
+      "gate_summary": [
+        "GATE(PARTIAL): 245 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-pubtrackfix/build/gate-run.NVsc7g/ledger.partial"
+      ],
+      "jobs": {
+        "blockfix_mkstream": {
+          "done": "0\t1\t0\n"
+        },
+        "clientfix": {
+          "done": "0\t14\t0\n"
+        },
+        "climonfix": {
+          "done": "0\t7\t0\n"
+        },
+        "cmd_metadata": {
+          "done": "0\t1\t0\n"
+        },
+        "compat2": {
+          "done": "0\t3\t0\n"
+        },
+        "config_unit": {
+          "done": "0\t2\t0\n"
+        },
+        "core_tsan_build": {
+          "done": "0\t0\t0\n"
+        },
+        "core_units": {
+          "done": "0\t9\t0\n"
+        },
+        "evict-lfu-armed-0": {
+          "done": "0\t1\t0\n"
+        },
+        "evict-lfu-armed-1": {
+          "done": "0\t1\t0\n"
+        },
+        "evict-lfu-split-0": {
+          "done": "0\t1\t0\n"
+        },
+        "evict-lfu-split-1": {
+          "done": "0\t1\t0\n"
+        },
+        "evict-lruclock-armed-0": {
+          "done": "0\t1\t0\n"
+        },
+        "evict-lruclock-armed-1": {
+          "done": "0\t1\t0\n"
+        },
+        "evict-lruclock-split-0": {
+          "done": "0\t1\t0\n"
+        },
+        "evict-lruclock-split-1": {
+          "done": "0\t1\t0\n"
+        },
+        "feature-armed-0": {
+          "done": "0\t35\t0\n"
+        },
+        "feature-armed-1": {
+          "done": "0\t35\t0\n"
+        },
+        "feature-split-0": {
+          "done": "0\t34\t0\n"
+        },
+        "feature-split-1": {
+          "done": "0\t34\t0\n"
+        },
+        "netcmd_units": {
+          "done": "0\t16\t0\n"
+        },
+        "notify": {
+          "done": "0\t6\t0\n"
+        },
+        "notify_aof": {
+          "done": "0\t1\t0\n"
+        },
+        "notify_order": {
+          "done": "0\t1\t0\n"
+        },
+        "notifycompat": {
+          "done": "0\t7\t0\n"
+        },
+        "production_units": {
+          "done": "0\t0\t0\n"
+        },
+        "pubtrackfix": {
+          "done": "0\t4\t0\n"
+        },
+        "racefix_climon": {
+          "done": "0\t1\t0\n"
+        },
+        "redis_tcl": {
+          "done": "0\t2\t0\n"
+        },
+        "release": {
+          "done": "0\t1\t0\n"
+        },
+        "source_identity": {
+          "done": "0\t1\t0\n"
+        },
+        "storage_units": {
+          "done": "0\t13\t0\n"
+        },
+        "streamfix": {
+          "done": "0\t6\t0\n"
+        },
+        "trackfix_accounting": {
+          "done": "0\t1\t0\n"
+        },
+        "trackfix_order": {
+          "done": "0\t1\t0\n"
+        },
+        "tracking_redirect": {
+          "done": "0\t1\t0\n"
+        }
+      },
+      "directed": {
+        "TRACK-BCAST-BATCH oracle": {
+          "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+          "legs": 1,
+          "passed": 1,
+          "failed_labels": []
+        },
+        "TRACK-BCAST-BATCH candidate": {
+          "sha256": "faef9b9099cf0777685dd914571fda687ecc0f5c356191d11c02af6841f45b84",
+          "legs": 32,
+          "passed": 32,
+          "failed_labels": []
+        },
+        "PUBSUB-REPLY-OFF-PUSH oracle": {
+          "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+          "legs": 1,
+          "passed": 1,
+          "failed_labels": []
+        },
+        "PUBSUB-REPLY-OFF-PUSH candidate": {
+          "sha256": "faef9b9099cf0777685dd914571fda687ecc0f5c356191d11c02af6841f45b84",
+          "legs": 32,
+          "passed": 32,
+          "failed_labels": []
+        },
+        "PUBSUB-IMPLICIT-CONSUMER-EVENT oracle": {
+          "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+          "legs": 1,
+          "passed": 1,
+          "failed_labels": []
+        },
+        "PUBSUB-IMPLICIT-CONSUMER-EVENT candidate": {
+          "sha256": "faef9b9099cf0777685dd914571fda687ecc0f5c356191d11c02af6841f45b84",
+          "legs": 32,
+          "passed": 32,
+          "failed_labels": []
+        },
+        "PUBSUB-EVICT-ON-MAXMEMORY oracle": {
+          "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+          "legs": 2,
+          "passed": 2,
+          "failed_labels": []
+        },
+        "PUBSUB-EVICT-ON-MAXMEMORY candidate": {
+          "sha256": "faef9b9099cf0777685dd914571fda687ecc0f5c356191d11c02af6841f45b84",
+          "legs": 64,
+          "passed": 64,
+          "failed_labels": []
+        }
+      },
+      "tcl": {
+        "1s": {
+          "sha256": "faef9b9099cf0777685dd914571fda687ecc0f5c356191d11c02af6841f45b84",
+          "files": 35,
+          "file_runs": 36,
+          "passed_assertions": 1721,
+          "promoted_passed": 31,
+          "promoted_missing": []
+        },
+        "2s": {
+          "sha256": "faef9b9099cf0777685dd914571fda687ecc0f5c356191d11c02af6841f45b84",
+          "files": 35,
+          "file_runs": 36,
+          "passed_assertions": 1721,
+          "promoted_passed": 31,
+          "promoted_missing": []
+        }
+      }
+    },
+    "differ-uring": {
+      "gate_summary": [
+        "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-pubtrackfix/build/gate-run.nhvvWh/ledger.partial"
+      ],
+      "jobs": {
+        "differ-armed-0": {
+          "done": "0\t1\t0\n"
+        },
+        "differ-armed-1": {
+          "done": "0\t1\t0\n"
+        },
+        "differ-equivalence": {
+          "done": "0\t1\t0\n"
+        },
+        "differ-split-0": {
+          "done": "0\t1\t0\n"
+        },
+        "differ-split-1": {
+          "done": "0\t1\t0\n"
+        },
+        "release": {
+          "done": "0\t1\t0\n"
+        }
+      },
+      "differential": {
+        "comparisons": 954,
+        "complete": true,
+        "parts": {
+          "split-0": {
+            "schema": 1,
+            "part": "split-0",
+            "run": "iteration:gate-run.nhvvWh",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              21
+            ],
+            "comparisons": 235,
+            "complete": true
+          },
+          "split-1": {
+            "schema": 1,
+            "part": "split-1",
+            "run": "iteration:gate-run.nhvvWh",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              21
+            ],
+            "comparisons": 239,
+            "complete": true
+          },
+          "armed-0": {
+            "schema": 1,
+            "part": "armed-0",
+            "run": "iteration:gate-run.nhvvWh",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              21
+            ],
+            "comparisons": 230,
+            "complete": true
+          },
+          "armed-1": {
+            "schema": 1,
+            "part": "armed-1",
+            "run": "iteration:gate-run.nhvvWh",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              21
+            ],
+            "comparisons": 234,
+            "complete": true
+          },
+          "equivalence": {
+            "schema": 1,
+            "part": "equivalence",
+            "run": "iteration:gate-run.nhvvWh",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              21
+            ],
+            "comparisons": 16,
+            "complete": true
+          }
+        },
+        "plan": {
+          "schema": 1,
+          "manifest": {
+            "run": "iteration:gate-run.nhvvWh",
+            "permanent": [
+              7,
+              19,
+              20,
+              23
+            ],
+            "failed": [],
+            "rotating": 21,
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              21
+            ],
+            "history": "/home/user/Projects/cx-pubtrackfix/.gate-history/differ"
+          },
+          "suites": [
+            "string",
+            "list",
+            "set",
+            "zset",
+            "hash",
+            "hexpire",
+            "edgetime",
+            "xshard",
+            "xmove",
+            "bitmap",
+            "hll",
+            "bitfield",
+            "cgaps",
+            "stream",
+            "script",
+            "streamgrp",
+            "zsetops",
+            "geo",
+            "doubles",
+            "scan",
+            "multi",
+            "encodingfix",
+            "edgeenc",
+            "edgeproto",
+            "cmdgap",
+            "cmdgap2",
+            "sort",
+            "servertail",
+            "arity",
+            "storeorder",
+            "infofix",
+            "multidb",
+            "blocking",
+            "pubsub",
+            "fanout",
+            "spubsub",
+            "notify",
+            "wiredump",
+            "climon",
+            "compatintro",
+            "aclsel",
+            "aclkeys",
+            "cmdmeta",
+            "s6fix",
+            "ccfix",
+            "psfix",
+            "monitor"
+          ],
+          "repeats": 4,
+          "equivalence_seeds": [
+            21
+          ]
+        }
+      }
+    },
+    "differ-epoll": {
+      "gate_summary": [
+        "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-pubtrackfix/build/gate-run.IXfG76/ledger.partial"
+      ],
+      "jobs": {
+        "differ-armed-0": {
+          "done": "0\t1\t0\n"
+        },
+        "differ-armed-1": {
+          "done": "0\t1\t0\n"
+        },
+        "differ-equivalence": {
+          "done": "0\t1\t0\n"
+        },
+        "differ-split-0": {
+          "done": "0\t1\t0\n"
+        },
+        "differ-split-1": {
+          "done": "0\t1\t0\n"
+        },
+        "release": {
+          "done": "0\t1\t0\n"
+        }
+      },
+      "differential": {
+        "comparisons": 954,
+        "complete": true,
+        "parts": {
+          "split-0": {
+            "schema": 1,
+            "part": "split-0",
+            "run": "iteration:gate-run.IXfG76",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              22
+            ],
+            "comparisons": 235,
+            "complete": true
+          },
+          "split-1": {
+            "schema": 1,
+            "part": "split-1",
+            "run": "iteration:gate-run.IXfG76",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              22
+            ],
+            "comparisons": 239,
+            "complete": true
+          },
+          "armed-0": {
+            "schema": 1,
+            "part": "armed-0",
+            "run": "iteration:gate-run.IXfG76",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              22
+            ],
+            "comparisons": 230,
+            "complete": true
+          },
+          "armed-1": {
+            "schema": 1,
+            "part": "armed-1",
+            "run": "iteration:gate-run.IXfG76",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              22
+            ],
+            "comparisons": 234,
+            "complete": true
+          },
+          "equivalence": {
+            "schema": 1,
+            "part": "equivalence",
+            "run": "iteration:gate-run.IXfG76",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              22
+            ],
+            "comparisons": 16,
+            "complete": true
+          }
+        },
+        "plan": {
+          "schema": 1,
+          "manifest": {
+            "run": "iteration:gate-run.IXfG76",
+            "permanent": [
+              7,
+              19,
+              20,
+              23
+            ],
+            "failed": [],
+            "rotating": 22,
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              22
+            ],
+            "history": "/home/user/Projects/cx-pubtrackfix/.gate-history/differ"
+          },
+          "suites": [
+            "string",
+            "list",
+            "set",
+            "zset",
+            "hash",
+            "hexpire",
+            "edgetime",
+            "xshard",
+            "xmove",
+            "bitmap",
+            "hll",
+            "bitfield",
+            "cgaps",
+            "stream",
+            "script",
+            "streamgrp",
+            "zsetops",
+            "geo",
+            "doubles",
+            "scan",
+            "multi",
+            "encodingfix",
+            "edgeenc",
+            "edgeproto",
+            "cmdgap",
+            "cmdgap2",
+            "sort",
+            "servertail",
+            "arity",
+            "storeorder",
+            "infofix",
+            "multidb",
+            "blocking",
+            "pubsub",
+            "fanout",
+            "spubsub",
+            "notify",
+            "wiredump",
+            "climon",
+            "compatintro",
+            "aclsel",
+            "aclkeys",
+            "cmdmeta",
+            "s6fix",
+            "ccfix",
+            "psfix",
+            "monitor"
+          ],
+          "repeats": 4,
+          "equivalence_seeds": [
+            22
+          ]
+        }
+      }
+    },
+    "pre-directed": {
+      "gate_summary": [
+        "GATE(PARTIAL): 1 ok, 4 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-pubtrackfix/build/gate-run.BUHUDI/ledger.partial"
+      ],
+      "jobs": {
+        "pubtrackfix": {
+          "done": "0\t0\t4\n"
+        },
+        "release": {
+          "done": "0\t1\t0\n"
+        }
+      },
+      "directed": {
+        "TRACK-BCAST-BATCH oracle": {
+          "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+          "legs": 1,
+          "passed": 1,
+          "failed_labels": []
+        },
+        "TRACK-BCAST-BATCH candidate": {
+          "sha256": "0cac9819e46cfdcb7836fd04d5ab55ef9a49e92403b13212d9d3edea8427d16f",
+          "legs": 32,
+          "passed": 0,
+          "failed_labels": [
+            "1s-uring-db1-a0-r0",
+            "1s-uring-db1-a0-r1",
+            "1s-uring-db1-a1-r0",
+            "1s-uring-db1-a1-r1",
+            "1s-uring-db16-a0-r0",
+            "1s-uring-db16-a0-r1",
+            "1s-uring-db16-a1-r0",
+            "1s-uring-db16-a1-r1",
+            "1s-epoll-db1-a0-r0",
+            "1s-epoll-db1-a0-r1",
+            "1s-epoll-db1-a1-r0",
+            "1s-epoll-db1-a1-r1",
+            "1s-epoll-db16-a0-r0",
+            "1s-epoll-db16-a0-r1",
+            "1s-epoll-db16-a1-r0",
+            "1s-epoll-db16-a1-r1",
+            "2s-uring-db1-a0-r0",
+            "2s-uring-db1-a0-r1",
+            "2s-uring-db1-a1-r0",
+            "2s-uring-db1-a1-r1",
+            "2s-uring-db16-a0-r0",
+            "2s-uring-db16-a0-r1",
+            "2s-uring-db16-a1-r0",
+            "2s-uring-db16-a1-r1",
+            "2s-epoll-db1-a0-r0",
+            "2s-epoll-db1-a0-r1",
+            "2s-epoll-db1-a1-r0",
+            "2s-epoll-db1-a1-r1",
+            "2s-epoll-db16-a0-r0",
+            "2s-epoll-db16-a0-r1",
+            "2s-epoll-db16-a1-r0",
+            "2s-epoll-db16-a1-r1"
+          ]
+        },
+        "PUBSUB-REPLY-OFF-PUSH oracle": {
+          "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+          "legs": 1,
+          "passed": 1,
+          "failed_labels": []
+        },
+        "PUBSUB-REPLY-OFF-PUSH candidate": {
+          "sha256": "0cac9819e46cfdcb7836fd04d5ab55ef9a49e92403b13212d9d3edea8427d16f",
+          "legs": 32,
+          "passed": 0,
+          "failed_labels": [
+            "1s-uring-db1-a0-r0",
+            "1s-uring-db1-a0-r1",
+            "1s-uring-db1-a1-r0",
+            "1s-uring-db1-a1-r1",
+            "1s-uring-db16-a0-r0",
+            "1s-uring-db16-a0-r1",
+            "1s-uring-db16-a1-r0",
+            "1s-uring-db16-a1-r1",
+            "1s-epoll-db1-a0-r0",
+            "1s-epoll-db1-a0-r1",
+            "1s-epoll-db1-a1-r0",
+            "1s-epoll-db1-a1-r1",
+            "1s-epoll-db16-a0-r0",
+            "1s-epoll-db16-a0-r1",
+            "1s-epoll-db16-a1-r0",
+            "1s-epoll-db16-a1-r1",
+            "2s-uring-db1-a0-r0",
+            "2s-uring-db1-a0-r1",
+            "2s-uring-db1-a1-r0",
+            "2s-uring-db1-a1-r1",
+            "2s-uring-db16-a0-r0",
+            "2s-uring-db16-a0-r1",
+            "2s-uring-db16-a1-r0",
+            "2s-uring-db16-a1-r1",
+            "2s-epoll-db1-a0-r0",
+            "2s-epoll-db1-a0-r1",
+            "2s-epoll-db1-a1-r0",
+            "2s-epoll-db1-a1-r1",
+            "2s-epoll-db16-a0-r0",
+            "2s-epoll-db16-a0-r1",
+            "2s-epoll-db16-a1-r0",
+            "2s-epoll-db16-a1-r1"
+          ]
+        },
+        "PUBSUB-IMPLICIT-CONSUMER-EVENT oracle": {
+          "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+          "legs": 1,
+          "passed": 1,
+          "failed_labels": []
+        },
+        "PUBSUB-IMPLICIT-CONSUMER-EVENT candidate": {
+          "sha256": "0cac9819e46cfdcb7836fd04d5ab55ef9a49e92403b13212d9d3edea8427d16f",
+          "legs": 32,
+          "passed": 0,
+          "failed_labels": [
+            "1s-uring-db1-a0-r0",
+            "1s-uring-db1-a0-r1",
+            "1s-uring-db1-a1-r0",
+            "1s-uring-db1-a1-r1",
+            "1s-uring-db16-a0-r0",
+            "1s-uring-db16-a0-r1",
+            "1s-uring-db16-a1-r0",
+            "1s-uring-db16-a1-r1",
+            "1s-epoll-db1-a0-r0",
+            "1s-epoll-db1-a0-r1",
+            "1s-epoll-db1-a1-r0",
+            "1s-epoll-db1-a1-r1",
+            "1s-epoll-db16-a0-r0",
+            "1s-epoll-db16-a0-r1",
+            "1s-epoll-db16-a1-r0",
+            "1s-epoll-db16-a1-r1",
+            "2s-uring-db1-a0-r0",
+            "2s-uring-db1-a0-r1",
+            "2s-uring-db1-a1-r0",
+            "2s-uring-db1-a1-r1",
+            "2s-uring-db16-a0-r0",
+            "2s-uring-db16-a0-r1",
+            "2s-uring-db16-a1-r0",
+            "2s-uring-db16-a1-r1",
+            "2s-epoll-db1-a0-r0",
+            "2s-epoll-db1-a0-r1",
+            "2s-epoll-db1-a1-r0",
+            "2s-epoll-db1-a1-r1",
+            "2s-epoll-db16-a0-r0",
+            "2s-epoll-db16-a0-r1",
+            "2s-epoll-db16-a1-r0",
+            "2s-epoll-db16-a1-r1"
+          ]
+        },
+        "PUBSUB-EVICT-ON-MAXMEMORY oracle": {
+          "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+          "legs": 2,
+          "passed": 2,
+          "failed_labels": []
+        },
+        "PUBSUB-EVICT-ON-MAXMEMORY candidate": {
+          "sha256": "0cac9819e46cfdcb7836fd04d5ab55ef9a49e92403b13212d9d3edea8427d16f",
+          "legs": 64,
+          "passed": 0,
+          "failed_labels": [
+            "1s-uring-db1-a0-r0-foo",
+            "1s-uring-db1-a0-r0-empty-key",
+            "1s-uring-db1-a0-r1-foo",
+            "1s-uring-db1-a0-r1-empty-key",
+            "1s-uring-db1-a1-r0-foo",
+            "1s-uring-db1-a1-r0-empty-key",
+            "1s-uring-db1-a1-r1-foo",
+            "1s-uring-db1-a1-r1-empty-key",
+            "1s-uring-db16-a0-r0-foo",
+            "1s-uring-db16-a0-r0-empty-key",
+            "1s-uring-db16-a0-r1-foo",
+            "1s-uring-db16-a0-r1-empty-key",
+            "1s-uring-db16-a1-r0-foo",
+            "1s-uring-db16-a1-r0-empty-key",
+            "1s-uring-db16-a1-r1-foo",
+            "1s-uring-db16-a1-r1-empty-key",
+            "1s-epoll-db1-a0-r0-foo",
+            "1s-epoll-db1-a0-r0-empty-key",
+            "1s-epoll-db1-a0-r1-foo",
+            "1s-epoll-db1-a0-r1-empty-key",
+            "1s-epoll-db1-a1-r0-foo",
+            "1s-epoll-db1-a1-r0-empty-key",
+            "1s-epoll-db1-a1-r1-foo",
+            "1s-epoll-db1-a1-r1-empty-key",
+            "1s-epoll-db16-a0-r0-foo",
+            "1s-epoll-db16-a0-r0-empty-key",
+            "1s-epoll-db16-a0-r1-foo",
+            "1s-epoll-db16-a0-r1-empty-key",
+            "1s-epoll-db16-a1-r0-foo",
+            "1s-epoll-db16-a1-r0-empty-key",
+            "1s-epoll-db16-a1-r1-foo",
+            "1s-epoll-db16-a1-r1-empty-key",
+            "2s-uring-db1-a0-r0-foo",
+            "2s-uring-db1-a0-r0-empty-key",
+            "2s-uring-db1-a0-r1-foo",
+            "2s-uring-db1-a0-r1-empty-key",
+            "2s-uring-db1-a1-r0-foo",
+            "2s-uring-db1-a1-r0-empty-key",
+            "2s-uring-db1-a1-r1-foo",
+            "2s-uring-db1-a1-r1-empty-key",
+            "2s-uring-db16-a0-r0-foo",
+            "2s-uring-db16-a0-r0-empty-key",
+            "2s-uring-db16-a0-r1-foo",
+            "2s-uring-db16-a0-r1-empty-key",
+            "2s-uring-db16-a1-r0-foo",
+            "2s-uring-db16-a1-r0-empty-key",
+            "2s-uring-db16-a1-r1-foo",
+            "2s-uring-db16-a1-r1-empty-key",
+            "2s-epoll-db1-a0-r0-foo",
+            "2s-epoll-db1-a0-r0-empty-key",
+            "2s-epoll-db1-a0-r1-foo",
+            "2s-epoll-db1-a0-r1-empty-key",
+            "2s-epoll-db1-a1-r0-foo",
+            "2s-epoll-db1-a1-r0-empty-key",
+            "2s-epoll-db1-a1-r1-foo",
+            "2s-epoll-db1-a1-r1-empty-key",
+            "2s-epoll-db16-a0-r0-foo",
+            "2s-epoll-db16-a0-r0-empty-key",
+            "2s-epoll-db16-a0-r1-foo",
+            "2s-epoll-db16-a0-r1-empty-key",
+            "2s-epoll-db16-a1-r0-foo",
+            "2s-epoll-db16-a1-r0-empty-key",
+            "2s-epoll-db16-a1-r1-foo",
+            "2s-epoll-db16-a1-r1-empty-key"
+          ]
+        }
+      },
+      "negative_failure_witnesses": {
+        "TRACK-BCAST-BATCH": {
+          "legs": 32,
+          "wire_witnesses": 32,
+          "expected_exception": "AssertionError",
+          "expected_exceptions": 32
+        },
+        "PUBSUB-REPLY-OFF-PUSH": {
+          "legs": 32,
+          "wire_witnesses": 32,
+          "expected_exception": "TimeoutError",
+          "expected_exceptions": 32
+        },
+        "PUBSUB-IMPLICIT-CONSUMER-EVENT": {
+          "legs": 32,
+          "wire_witnesses": 32,
+          "expected_exception": "TimeoutError",
+          "expected_exceptions": 32
+        },
+        "PUBSUB-EVICT-ON-MAXMEMORY": {
+          "legs": 64,
+          "wire_witnesses": 64,
+          "expected_exception": "TimeoutError",
+          "expected_exceptions": 64
+        }
+      }
+    },
+    "pad-directed": {
+      "gate_summary": [
+        "GATE(PARTIAL): 1 ok, 4 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-pubtrackfix/build/gate-run.CCZYTL/ledger.partial"
+      ],
+      "jobs": {
+        "pubtrackfix": {
+          "done": "0\t0\t4\n"
+        },
+        "release": {
+          "done": "0\t1\t0\n"
+        }
+      },
+      "directed": {
+        "TRACK-BCAST-BATCH oracle": {
+          "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+          "legs": 1,
+          "passed": 1,
+          "failed_labels": []
+        },
+        "TRACK-BCAST-BATCH candidate": {
+          "sha256": "f44826532e0afe1ddbc315ac1d8d7cd721e67983ac53ca119e76d91e6ad592f9",
+          "legs": 32,
+          "passed": 0,
+          "failed_labels": [
+            "1s-uring-db1-a0-r0",
+            "1s-uring-db1-a0-r1",
+            "1s-uring-db1-a1-r0",
+            "1s-uring-db1-a1-r1",
+            "1s-uring-db16-a0-r0",
+            "1s-uring-db16-a0-r1",
+            "1s-uring-db16-a1-r0",
+            "1s-uring-db16-a1-r1",
+            "1s-epoll-db1-a0-r0",
+            "1s-epoll-db1-a0-r1",
+            "1s-epoll-db1-a1-r0",
+            "1s-epoll-db1-a1-r1",
+            "1s-epoll-db16-a0-r0",
+            "1s-epoll-db16-a0-r1",
+            "1s-epoll-db16-a1-r0",
+            "1s-epoll-db16-a1-r1",
+            "2s-uring-db1-a0-r0",
+            "2s-uring-db1-a0-r1",
+            "2s-uring-db1-a1-r0",
+            "2s-uring-db1-a1-r1",
+            "2s-uring-db16-a0-r0",
+            "2s-uring-db16-a0-r1",
+            "2s-uring-db16-a1-r0",
+            "2s-uring-db16-a1-r1",
+            "2s-epoll-db1-a0-r0",
+            "2s-epoll-db1-a0-r1",
+            "2s-epoll-db1-a1-r0",
+            "2s-epoll-db1-a1-r1",
+            "2s-epoll-db16-a0-r0",
+            "2s-epoll-db16-a0-r1",
+            "2s-epoll-db16-a1-r0",
+            "2s-epoll-db16-a1-r1"
+          ]
+        },
+        "PUBSUB-REPLY-OFF-PUSH oracle": {
+          "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+          "legs": 1,
+          "passed": 1,
+          "failed_labels": []
+        },
+        "PUBSUB-REPLY-OFF-PUSH candidate": {
+          "sha256": "f44826532e0afe1ddbc315ac1d8d7cd721e67983ac53ca119e76d91e6ad592f9",
+          "legs": 32,
+          "passed": 0,
+          "failed_labels": [
+            "1s-uring-db1-a0-r0",
+            "1s-uring-db1-a0-r1",
+            "1s-uring-db1-a1-r0",
+            "1s-uring-db1-a1-r1",
+            "1s-uring-db16-a0-r0",
+            "1s-uring-db16-a0-r1",
+            "1s-uring-db16-a1-r0",
+            "1s-uring-db16-a1-r1",
+            "1s-epoll-db1-a0-r0",
+            "1s-epoll-db1-a0-r1",
+            "1s-epoll-db1-a1-r0",
+            "1s-epoll-db1-a1-r1",
+            "1s-epoll-db16-a0-r0",
+            "1s-epoll-db16-a0-r1",
+            "1s-epoll-db16-a1-r0",
+            "1s-epoll-db16-a1-r1",
+            "2s-uring-db1-a0-r0",
+            "2s-uring-db1-a0-r1",
+            "2s-uring-db1-a1-r0",
+            "2s-uring-db1-a1-r1",
+            "2s-uring-db16-a0-r0",
+            "2s-uring-db16-a0-r1",
+            "2s-uring-db16-a1-r0",
+            "2s-uring-db16-a1-r1",
+            "2s-epoll-db1-a0-r0",
+            "2s-epoll-db1-a0-r1",
+            "2s-epoll-db1-a1-r0",
+            "2s-epoll-db1-a1-r1",
+            "2s-epoll-db16-a0-r0",
+            "2s-epoll-db16-a0-r1",
+            "2s-epoll-db16-a1-r0",
+            "2s-epoll-db16-a1-r1"
+          ]
+        },
+        "PUBSUB-IMPLICIT-CONSUMER-EVENT oracle": {
+          "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+          "legs": 1,
+          "passed": 1,
+          "failed_labels": []
+        },
+        "PUBSUB-IMPLICIT-CONSUMER-EVENT candidate": {
+          "sha256": "f44826532e0afe1ddbc315ac1d8d7cd721e67983ac53ca119e76d91e6ad592f9",
+          "legs": 32,
+          "passed": 0,
+          "failed_labels": [
+            "1s-uring-db1-a0-r0",
+            "1s-uring-db1-a0-r1",
+            "1s-uring-db1-a1-r0",
+            "1s-uring-db1-a1-r1",
+            "1s-uring-db16-a0-r0",
+            "1s-uring-db16-a0-r1",
+            "1s-uring-db16-a1-r0",
+            "1s-uring-db16-a1-r1",
+            "1s-epoll-db1-a0-r0",
+            "1s-epoll-db1-a0-r1",
+            "1s-epoll-db1-a1-r0",
+            "1s-epoll-db1-a1-r1",
+            "1s-epoll-db16-a0-r0",
+            "1s-epoll-db16-a0-r1",
+            "1s-epoll-db16-a1-r0",
+            "1s-epoll-db16-a1-r1",
+            "2s-uring-db1-a0-r0",
+            "2s-uring-db1-a0-r1",
+            "2s-uring-db1-a1-r0",
+            "2s-uring-db1-a1-r1",
+            "2s-uring-db16-a0-r0",
+            "2s-uring-db16-a0-r1",
+            "2s-uring-db16-a1-r0",
+            "2s-uring-db16-a1-r1",
+            "2s-epoll-db1-a0-r0",
+            "2s-epoll-db1-a0-r1",
+            "2s-epoll-db1-a1-r0",
+            "2s-epoll-db1-a1-r1",
+            "2s-epoll-db16-a0-r0",
+            "2s-epoll-db16-a0-r1",
+            "2s-epoll-db16-a1-r0",
+            "2s-epoll-db16-a1-r1"
+          ]
+        },
+        "PUBSUB-EVICT-ON-MAXMEMORY oracle": {
+          "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+          "legs": 2,
+          "passed": 2,
+          "failed_labels": []
+        },
+        "PUBSUB-EVICT-ON-MAXMEMORY candidate": {
+          "sha256": "f44826532e0afe1ddbc315ac1d8d7cd721e67983ac53ca119e76d91e6ad592f9",
+          "legs": 64,
+          "passed": 0,
+          "failed_labels": [
+            "1s-uring-db1-a0-r0-foo",
+            "1s-uring-db1-a0-r0-empty-key",
+            "1s-uring-db1-a0-r1-foo",
+            "1s-uring-db1-a0-r1-empty-key",
+            "1s-uring-db1-a1-r0-foo",
+            "1s-uring-db1-a1-r0-empty-key",
+            "1s-uring-db1-a1-r1-foo",
+            "1s-uring-db1-a1-r1-empty-key",
+            "1s-uring-db16-a0-r0-foo",
+            "1s-uring-db16-a0-r0-empty-key",
+            "1s-uring-db16-a0-r1-foo",
+            "1s-uring-db16-a0-r1-empty-key",
+            "1s-uring-db16-a1-r0-foo",
+            "1s-uring-db16-a1-r0-empty-key",
+            "1s-uring-db16-a1-r1-foo",
+            "1s-uring-db16-a1-r1-empty-key",
+            "1s-epoll-db1-a0-r0-foo",
+            "1s-epoll-db1-a0-r0-empty-key",
+            "1s-epoll-db1-a0-r1-foo",
+            "1s-epoll-db1-a0-r1-empty-key",
+            "1s-epoll-db1-a1-r0-foo",
+            "1s-epoll-db1-a1-r0-empty-key",
+            "1s-epoll-db1-a1-r1-foo",
+            "1s-epoll-db1-a1-r1-empty-key",
+            "1s-epoll-db16-a0-r0-foo",
+            "1s-epoll-db16-a0-r0-empty-key",
+            "1s-epoll-db16-a0-r1-foo",
+            "1s-epoll-db16-a0-r1-empty-key",
+            "1s-epoll-db16-a1-r0-foo",
+            "1s-epoll-db16-a1-r0-empty-key",
+            "1s-epoll-db16-a1-r1-foo",
+            "1s-epoll-db16-a1-r1-empty-key",
+            "2s-uring-db1-a0-r0-foo",
+            "2s-uring-db1-a0-r0-empty-key",
+            "2s-uring-db1-a0-r1-foo",
+            "2s-uring-db1-a0-r1-empty-key",
+            "2s-uring-db1-a1-r0-foo",
+            "2s-uring-db1-a1-r0-empty-key",
+            "2s-uring-db1-a1-r1-foo",
+            "2s-uring-db1-a1-r1-empty-key",
+            "2s-uring-db16-a0-r0-foo",
+            "2s-uring-db16-a0-r0-empty-key",
+            "2s-uring-db16-a0-r1-foo",
+            "2s-uring-db16-a0-r1-empty-key",
+            "2s-uring-db16-a1-r0-foo",
+            "2s-uring-db16-a1-r0-empty-key",
+            "2s-uring-db16-a1-r1-foo",
+            "2s-uring-db16-a1-r1-empty-key",
+            "2s-epoll-db1-a0-r0-foo",
+            "2s-epoll-db1-a0-r0-empty-key",
+            "2s-epoll-db1-a0-r1-foo",
+            "2s-epoll-db1-a0-r1-empty-key",
+            "2s-epoll-db1-a1-r0-foo",
+            "2s-epoll-db1-a1-r0-empty-key",
+            "2s-epoll-db1-a1-r1-foo",
+            "2s-epoll-db1-a1-r1-empty-key",
+            "2s-epoll-db16-a0-r0-foo",
+            "2s-epoll-db16-a0-r0-empty-key",
+            "2s-epoll-db16-a0-r1-foo",
+            "2s-epoll-db16-a0-r1-empty-key",
+            "2s-epoll-db16-a1-r0-foo",
+            "2s-epoll-db16-a1-r0-empty-key",
+            "2s-epoll-db16-a1-r1-foo",
+            "2s-epoll-db16-a1-r1-empty-key"
+          ]
+        }
+      },
+      "negative_failure_witnesses": {
+        "TRACK-BCAST-BATCH": {
+          "legs": 32,
+          "wire_witnesses": 32,
+          "expected_exception": "AssertionError",
+          "expected_exceptions": 32
+        },
+        "PUBSUB-REPLY-OFF-PUSH": {
+          "legs": 32,
+          "wire_witnesses": 32,
+          "expected_exception": "TimeoutError",
+          "expected_exceptions": 32
+        },
+        "PUBSUB-IMPLICIT-CONSUMER-EVENT": {
+          "legs": 32,
+          "wire_witnesses": 32,
+          "expected_exception": "TimeoutError",
+          "expected_exceptions": 32
+        },
+        "PUBSUB-EVICT-ON-MAXMEMORY": {
+          "legs": 64,
+          "wire_witnesses": 64,
+          "expected_exception": "TimeoutError",
+          "expected_exceptions": 64
+        }
+      }
+    },
+    "plant-bcast": {
+      "gate_summary": [
+        "GATE(PARTIAL): 1 ok, 2 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-pubtrackfix/build/gate-run.41aQC0/ledger.partial"
+      ],
+      "jobs": {
+        "redis_tcl": {
+          "done": "0\t0\t2\n"
+        },
+        "release": {
+          "done": "0\t1\t0\n"
+        }
+      },
+      "tcl": {
+        "1s": {
+          "sha256": "ac785a8cf03a4a1ea59c7752a1c4043bfce8c6ab20a483b69f4e235cb5deb6f4",
+          "files": 35,
+          "file_runs": 36,
+          "passed_assertions": 1688,
+          "promoted_passed": 5,
+          "promoted_missing": [
+            [
+              "unit/tracking",
+              "Able to redirect to a RESP3 client"
+            ],
+            [
+              "unit/tracking",
+              "Adding prefixes to BCAST mode works"
+            ],
+            [
+              "unit/tracking",
+              "After switching from normal tracking to BCAST mode, no invalidation message is produced for pre-BCAST keys"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking bcast mode"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking off"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking on"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking on with options"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking optin"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking optout"
+            ],
+            [
+              "unit/tracking",
+              "Clients can enable the BCAST mode with prefixes"
+            ],
+            [
+              "unit/tracking",
+              "Different clients can redirect to the same connection"
+            ],
+            [
+              "unit/tracking",
+              "Different clients using different protocols can track the same key"
+            ],
+            [
+              "unit/tracking",
+              "Invalidation message sent when using OPTIN option with CLIENT CACHING yes"
+            ],
+            [
+              "unit/tracking",
+              "Invalidation message sent when using OPTOUT option"
+            ],
+            [
+              "unit/tracking",
+              "Invalidations of new keys can be redirected after switching to RESP3"
+            ],
+            [
+              "unit/tracking",
+              "Invalidations of previous keys can be redirected after switching to RESP3"
+            ],
+            [
+              "unit/tracking",
+              "No invalidation message when using OPTIN option"
+            ],
+            [
+              "unit/tracking",
+              "No invalidation message when using OPTOUT option with CLIENT CACHING no"
+            ],
+            [
+              "unit/tracking",
+              "RESP3 Client gets tracking-redir-broken push message after cached key changed when rediretion client is terminated"
+            ],
+            [
+              "unit/tracking",
+              "RESP3 tracking redirection"
+            ],
+            [
+              "unit/tracking",
+              "The connection gets invalidation messages about all the keys"
+            ],
+            [
+              "unit/tracking",
+              "Tracking NOLOOP mode in BCAST mode works"
+            ],
+            [
+              "unit/tracking",
+              "Tracking NOLOOP mode in standard mode works"
+            ],
+            [
+              "unit/tracking",
+              "Tracking gets notification of expired keys"
+            ],
+            [
+              "unit/tracking",
+              "Tracking gets notification of lazy expired keys"
+            ],
+            [
+              "unit/tracking",
+              "hdel deliver invalidate message after response in the same connection"
+            ]
+          ],
+          "root_witness": {
+            "file": "unit/tracking",
+            "test": "The connection gets invalidation messages about all the keys",
+            "started": true,
+            "passed": false,
+            "file_complete": false,
+            "file_error": "passing subset failed, incomplete, or assertion inventory changed",
+            "failure_events": [
+              "The connection gets invalidation messages about all the keys in tests/unit/tracking.tcl\nExpected a{t} eq {a{t} b{t} c{t}} (context: type eval line 4 cmd {assert {$keys eq {a{t} b{t} c{t}}}} proc ::test)"
+            ],
+            "detected": true
+          }
+        },
+        "2s": {
+          "sha256": "ac785a8cf03a4a1ea59c7752a1c4043bfce8c6ab20a483b69f4e235cb5deb6f4",
+          "files": 35,
+          "file_runs": 36,
+          "passed_assertions": 1689,
+          "promoted_passed": 5,
+          "promoted_missing": [
+            [
+              "unit/tracking",
+              "Able to redirect to a RESP3 client"
+            ],
+            [
+              "unit/tracking",
+              "Adding prefixes to BCAST mode works"
+            ],
+            [
+              "unit/tracking",
+              "After switching from normal tracking to BCAST mode, no invalidation message is produced for pre-BCAST keys"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking bcast mode"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking off"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking on"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking on with options"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking optin"
+            ],
+            [
+              "unit/tracking",
+              "CLIENT TRACKINGINFO provides reasonable results when tracking optout"
+            ],
+            [
+              "unit/tracking",
+              "Clients can enable the BCAST mode with prefixes"
+            ],
+            [
+              "unit/tracking",
+              "Different clients can redirect to the same connection"
+            ],
+            [
+              "unit/tracking",
+              "Different clients using different protocols can track the same key"
+            ],
+            [
+              "unit/tracking",
+              "Invalidation message sent when using OPTIN option with CLIENT CACHING yes"
+            ],
+            [
+              "unit/tracking",
+              "Invalidation message sent when using OPTOUT option"
+            ],
+            [
+              "unit/tracking",
+              "Invalidations of new keys can be redirected after switching to RESP3"
+            ],
+            [
+              "unit/tracking",
+              "Invalidations of previous keys can be redirected after switching to RESP3"
+            ],
+            [
+              "unit/tracking",
+              "No invalidation message when using OPTIN option"
+            ],
+            [
+              "unit/tracking",
+              "No invalidation message when using OPTOUT option with CLIENT CACHING no"
+            ],
+            [
+              "unit/tracking",
+              "RESP3 Client gets tracking-redir-broken push message after cached key changed when rediretion client is terminated"
+            ],
+            [
+              "unit/tracking",
+              "RESP3 tracking redirection"
+            ],
+            [
+              "unit/tracking",
+              "The connection gets invalidation messages about all the keys"
+            ],
+            [
+              "unit/tracking",
+              "Tracking NOLOOP mode in BCAST mode works"
+            ],
+            [
+              "unit/tracking",
+              "Tracking NOLOOP mode in standard mode works"
+            ],
+            [
+              "unit/tracking",
+              "Tracking gets notification of expired keys"
+            ],
+            [
+              "unit/tracking",
+              "Tracking gets notification of lazy expired keys"
+            ],
+            [
+              "unit/tracking",
+              "hdel deliver invalidate message after response in the same connection"
+            ]
+          ],
+          "root_witness": {
+            "file": "unit/tracking",
+            "test": "The connection gets invalidation messages about all the keys",
+            "started": true,
+            "passed": false,
+            "file_complete": false,
+            "file_error": "passing subset failed, incomplete, or assertion inventory changed",
+            "failure_events": [
+              "The connection gets invalidation messages about all the keys in tests/unit/tracking.tcl\nExpected a{t} eq {a{t} b{t} c{t}} (context: type eval line 4 cmd {assert {$keys eq {a{t} b{t} c{t}}}} proc ::test)"
+            ],
+            "detected": true
+          }
+        }
+      }
+    },
+    "plant-reply-off": {
+      "gate_summary": [
+        "GATE(PARTIAL): 1 ok, 2 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-pubtrackfix/build/gate-run.z9A8sp/ledger.partial"
+      ],
+      "jobs": {
+        "redis_tcl": {
+          "done": "0\t0\t2\n"
+        },
+        "release": {
+          "done": "0\t1\t0\n"
+        }
+      },
+      "tcl": {
+        "1s": {
+          "sha256": "c6642ec96ece147e7b1c9623eefcba5ec93cfb571c951e71e490566434907e0d",
+          "files": 35,
+          "file_runs": 36,
+          "passed_assertions": 1698,
+          "promoted_passed": 26,
+          "promoted_missing": [
+            [
+              "unit/pubsub",
+              "Keyspace notifications: evicted events"
+            ],
+            [
+              "unit/pubsub",
+              "Keyspace notifications: stream events test"
+            ],
+            [
+              "unit/pubsub",
+              "Keyspace notifications: we receive keyevent notifications"
+            ],
+            [
+              "unit/pubsub",
+              "Keyspace notifications: we receive keyspace notifications"
+            ],
+            [
+              "unit/pubsub",
+              "PubSub messages with CLIENT REPLY OFF"
+            ]
+          ],
+          "root_witness": {
+            "file": "unit/pubsub",
+            "test": "PubSub messages with CLIENT REPLY OFF",
+            "started": true,
+            "passed": false,
+            "file_complete": false,
+            "file_error": "passing subset failed, incomplete, or assertion inventory changed",
+            "failure_events": [],
+            "detected": true
+          }
+        },
+        "2s": {
+          "sha256": "c6642ec96ece147e7b1c9623eefcba5ec93cfb571c951e71e490566434907e0d",
+          "files": 35,
+          "file_runs": 36,
+          "passed_assertions": 1700,
+          "promoted_passed": 26,
+          "promoted_missing": [
+            [
+              "unit/pubsub",
+              "Keyspace notifications: evicted events"
+            ],
+            [
+              "unit/pubsub",
+              "Keyspace notifications: stream events test"
+            ],
+            [
+              "unit/pubsub",
+              "Keyspace notifications: we receive keyevent notifications"
+            ],
+            [
+              "unit/pubsub",
+              "Keyspace notifications: we receive keyspace notifications"
+            ],
+            [
+              "unit/pubsub",
+              "PubSub messages with CLIENT REPLY OFF"
+            ]
+          ],
+          "root_witness": {
+            "file": "unit/pubsub",
+            "test": "PubSub messages with CLIENT REPLY OFF",
+            "started": true,
+            "passed": false,
+            "file_complete": false,
+            "file_error": "passing subset failed, incomplete, or assertion inventory changed",
+            "failure_events": [],
+            "detected": true
+          }
+        }
+      }
+    },
+    "plant-consumer": {
+      "gate_summary": [
+        "GATE(PARTIAL): 1 ok, 2 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-pubtrackfix/build/gate-run.PaQK6G/ledger.partial"
+      ],
+      "jobs": {
+        "redis_tcl": {
+          "done": "0\t0\t2\n"
+        },
+        "release": {
+          "done": "0\t1\t0\n"
+        }
+      },
+      "tcl": {
+        "1s": {
+          "sha256": "49743c99bbcb09c653d95bd3882844723714a94ae752cfc807861e551fb815ce",
+          "files": 35,
+          "file_runs": 36,
+          "passed_assertions": 1720,
+          "promoted_passed": 30,
+          "promoted_missing": [
+            [
+              "unit/pubsub",
+              "Keyspace notifications: stream events test"
+            ]
+          ],
+          "root_witness": {
+            "file": "unit/pubsub",
+            "test": "Keyspace notifications: stream events test",
+            "started": true,
+            "passed": false,
+            "file_complete": true,
+            "file_error": "passing subset failed, incomplete, or assertion inventory changed",
+            "failure_events": [
+              "Keyspace notifications: stream events test in tests/unit/pubsub.tcl\nExpected 'pmessage * __keyspace@0__:mystream xgroup-createconsumer' to be equal to 'pmessage * __keyspace@0__:mystream xgroup-delconsumer' (context: type eval line 19 cmd {assert_equal \"pmessage * __keyspace@${db}__:mystream xgroup-createconsumer\" [$rd1 read]} proc ::test)"
+            ],
+            "detected": true
+          }
+        },
+        "2s": {
+          "sha256": "49743c99bbcb09c653d95bd3882844723714a94ae752cfc807861e551fb815ce",
+          "files": 35,
+          "file_runs": 36,
+          "passed_assertions": 1720,
+          "promoted_passed": 30,
+          "promoted_missing": [
+            [
+              "unit/pubsub",
+              "Keyspace notifications: stream events test"
+            ]
+          ],
+          "root_witness": {
+            "file": "unit/pubsub",
+            "test": "Keyspace notifications: stream events test",
+            "started": true,
+            "passed": false,
+            "file_complete": true,
+            "file_error": "passing subset failed, incomplete, or assertion inventory changed",
+            "failure_events": [
+              "Keyspace notifications: stream events test in tests/unit/pubsub.tcl\nExpected 'pmessage * __keyspace@0__:mystream xgroup-createconsumer' to be equal to 'pmessage * __keyspace@0__:mystream xgroup-delconsumer' (context: type eval line 19 cmd {assert_equal \"pmessage * __keyspace@${db}__:mystream xgroup-createconsumer\" [$rd1 read]} proc ::test)"
+            ],
+            "detected": true
+          }
+        }
+      }
+    },
+    "plant-eviction": {
+      "gate_summary": [
+        "GATE(PARTIAL): 1 ok, 2 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-pubtrackfix/build/gate-run.n0xhnT/ledger.partial"
+      ],
+      "jobs": {
+        "redis_tcl": {
+          "done": "0\t0\t2\n"
+        },
+        "release": {
+          "done": "0\t1\t0\n"
+        }
+      },
+      "tcl": {
+        "1s": {
+          "sha256": "e1fa58877098c672839bf664c71f4cc22fef05f06248854c4e02e2efa8f3d610",
+          "files": 35,
+          "file_runs": 36,
+          "passed_assertions": 1718,
+          "promoted_passed": 30,
+          "promoted_missing": [
+            [
+              "unit/pubsub",
+              "Keyspace notifications: evicted events"
+            ]
+          ],
+          "root_witness": {
+            "file": "unit/pubsub",
+            "test": "Keyspace notifications: evicted events",
+            "started": true,
+            "passed": false,
+            "file_complete": false,
+            "file_error": "passing subset failed, incomplete, or assertion inventory changed",
+            "failure_events": [],
+            "detected": true
+          }
+        },
+        "2s": {
+          "sha256": "e1fa58877098c672839bf664c71f4cc22fef05f06248854c4e02e2efa8f3d610",
+          "files": 35,
+          "file_runs": 36,
+          "passed_assertions": 1718,
+          "promoted_passed": 30,
+          "promoted_missing": [
+            [
+              "unit/pubsub",
+              "Keyspace notifications: evicted events"
+            ]
+          ],
+          "root_witness": {
+            "file": "unit/pubsub",
+            "test": "Keyspace notifications: evicted events",
+            "started": true,
+            "passed": false,
+            "file_complete": false,
+            "file_error": "passing subset failed, incomplete, or assertion inventory changed",
+            "failure_events": [],
+            "detected": true
+          }
+        }
+      }
+    }
+  },
+  "missing_runs": []
+}

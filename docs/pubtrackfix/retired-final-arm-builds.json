@@ -1,0 +1,22 @@
+[
+  {
+    "path": "build/pubtrackfix/pad-a/source",
+    "bytes": 5785337
+  },
+  {
+    "path": "build/pubtrackfix/pad-a/objects",
+    "bytes": 862332217
+  },
+  {
+    "path": "build/pubtrackfix/counts/post-normal",
+    "bytes": 265750120
+  },
+  {
+    "path": "build/pubtrackfix/counts/post-db0",
+    "bytes": 265866248
+  },
+  {
+    "path": "build/pubtrackfix/pass-boundary-control/overlay",
+    "bytes": 69461
+  }
+]
