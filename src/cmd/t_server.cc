@@ -2932,7 +2932,8 @@ void cmd_info(Shard&, Op& op) {
         appendf(body,
                 "flip_completed:%llu\r\nflip_refused:%llu\r\n"
                 "flip_clients_transferred:%llu\r\nflip_last_transfers:%llu\r\n"
-                "flip_conservation_checks:%llu\r\nflip_conservation_violations:%llu\r\n",
+                "flip_conservation_checks:%llu\r\nflip_conservation_violations:%llu\r\n"
+                "flip_stale_stage_refusals:%llu\r\n",
                 static_cast<unsigned long long>(g_server ? g_server->flip_completed() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->flip_refused() : 0),
                 static_cast<unsigned long long>(
@@ -2942,7 +2943,9 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(
                     g_server ? g_server->flip_conservation_checks() : 0),
                 static_cast<unsigned long long>(
-                    g_server ? g_server->flip_conservation_violations() : 0));
+                    g_server ? g_server->flip_conservation_violations() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->flip_stale_stage_refusals() : 0));
         appendf(body,
                 "foreign_read_unsafe_refs:%llu\r\n"
                 "foreign_read_occupied_cells:%llu\r\n"
