@@ -8,7 +8,7 @@
   "steps": 38270,
   "clock_calls": 1,
   "excluded_calls": 360,
-  "pc_trace_sha256": "88673e395b4caabcbfa7149829a55a058d304a1620efb4f81b930a77704d9dbe",
+  "pc_trace_sha256": "d3ba12098dd54624097394ff3c2c0e3e93d0c49cb1be4fcd6810fbd900a80fef",
   "pc_trace_entries": 6692,
   "scope": "session",
   "total": 30055,
@@ -34,10 +34,10 @@
     "tomo::command_lookup_registry(tomo::Slice)": 102,
     "tomo::command_notify_variant(tomo::CommandSpec const*)": 34,
     "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 105,
+    "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 108,
     "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 400,
     "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 34,
     "tomo::(anonymous namespace)::multi_name(tomo::Op const&, char const*)": 184,
-    "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 108,
     "tomo::multi_task_tagged(tomo::Task const&)": 8,
     "tomo::multi_session_query_bytes(tomo::Client const&)": 7,
     "tomo::WatchEffectScope::WatchEffectScope(tomo::Shard&, bool&)": 16,
@@ -131,5 +131,5 @@
     "tomo::Op* tomo::Rob<64u>::acquire<true>(unsigned char)": 90,
     "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 513
   },
-  "probe_sha256": "bb92bfe1a0aaaed9e29ed8b9174345da6fdd2d955604891c91ab78a5cb25c69b"
+  "probe_sha256": "f831cad9c63dfc478a126060496df223e22808aee7de6772f17dc68ec25e9c25"
 }

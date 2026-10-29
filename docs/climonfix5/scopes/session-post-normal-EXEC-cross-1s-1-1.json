@@ -5,13 +5,13 @@
   "mode": "1s",
   "batch": 1,
   "atomic": 1,
-  "steps": 31163,
+  "steps": 31115,
   "clock_calls": 3,
   "excluded_calls": 261,
-  "pc_trace_sha256": "cb3ee9d307ff346d799df45bb9bc5f92f351c1c9ba0304f6832f0ce1191c3e9e",
-  "pc_trace_entries": 9712,
+  "pc_trace_sha256": "5332d11b6faaa7da9730385a3a88f8c2e075bbee78f499cf64f7e484dec011c6",
+  "pc_trace_entries": 9688,
   "scope": "session",
-  "total": 26574,
+  "total": 26526,
   "functions": {
     "void tomo::reply_simple<tomo::Op::Sink&>(tomo::Op::Sink&, char const*, unsigned long)": 208,
     "tomo::multi_handle_io(tomo::Server&, tomo::Client&, tomo::Op&, unsigned int, tomo::MultiExecState*&) [clone .cold]": 22,
@@ -86,7 +86,7 @@
     "tomo::multi_handle_io(tomo::Server&, tomo::Client&, tomo::Op&, unsigned int, tomo::MultiExecState*&)": 883,
     "tomo::multi_dispatch_entry(tomo::IoLoop&, tomo::Client&, tomo::Op&, unsigned int)": 8,
     "tomo::(anonymous namespace)::prepare_write_key(tomo::Server&, tomo::MultiExecState&, tomo::Shard&, tomo::Slice, unsigned long, unsigned int, void const*, std::atomic<unsigned int>*, bool) [clone .isra.0]": 608,
-    "tomo::(anonymous namespace)::prepare_local_write_keys(tomo::Server&, tomo::MultiExecState&, tomo::MultiCommand&, tomo::Shard&, unsigned int)": 198,
+    "tomo::(anonymous namespace)::prepare_local_write_keys(tomo::Server&, tomo::MultiExecState&, tomo::MultiCommand&, tomo::Shard&, unsigned int)": 150,
     "tomo::multi_execute_task(tomo::Server&, tomo::Task const&, tomo::Shard&, unsigned int, unsigned int, tomo::AofOwnerContext*, tomo::MultiRetryPromoter const*)": 1874,
     "tomo::Slice::key_eq(tomo::Slice const&) const": 348,
     "tomo::Op::cmd_name() const": 48,
@@ -163,5 +163,5 @@
     "tomo::Op* tomo::Rob<64u>::acquire<true>(unsigned char)": 180,
     "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 772
   },
-  "probe_sha256": "bb92bfe1a0aaaed9e29ed8b9174345da6fdd2d955604891c91ab78a5cb25c69b"
+  "probe_sha256": "f831cad9c63dfc478a126060496df223e22808aee7de6772f17dc68ec25e9c25"
 }

@@ -8,7 +8,7 @@
   "steps": 59540,
   "clock_calls": 1,
   "excluded_calls": 275,
-  "pc_trace_sha256": "b1a00f9d329c2d309324a82de812e988d06a9879d0becf0ca49d3ed4d4935071",
+  "pc_trace_sha256": "f3e7ab6f357be1510d1faaf6cdd456e33da0cf5d6bc1e06cc3d816f8af4b3320",
   "pc_trace_entries": 10239,
   "scope": "session",
   "total": 48045,
@@ -34,6 +34,7 @@
     "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 15,
     "tomo::(anonymous namespace)::script_select_positions(tomo::ScatterState&, tomo::(anonymous namespace)::ScriptPhase)": 152,
     "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 35,
+    "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 36,
     "tomo::(anonymous namespace)::complete_owner_record_wave(tomo::ScatterState&, unsigned int)": 56,
     "tomo::(anonymous namespace)::script_window_release(tomo::ScatterState&)": 14,
     "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&) [clone .part.0]": 126,
@@ -48,7 +49,6 @@
     "tomo::FlatStore::atomic_alloc_entry(unsigned int, unsigned long) [clone .isra.0]": 106,
     "tomo::(anonymous namespace)::reset_groups(tomo::ScatterState&)": 256,
     "tomo::(anonymous namespace)::script_window_admit(tomo::ScatterState&)": 27,
-    "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 36,
     "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 14,
     "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::ScriptApplyPins::~ScriptApplyPins()": 102,
     "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
@@ -168,5 +168,5 @@
     "tomo::Op* tomo::Rob<64u>::acquire<true>(unsigned char)": 45,
     "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 427
   },
-  "probe_sha256": "bb92bfe1a0aaaed9e29ed8b9174345da6fdd2d955604891c91ab78a5cb25c69b"
+  "probe_sha256": "f831cad9c63dfc478a126060496df223e22808aee7de6772f17dc68ec25e9c25"
 }

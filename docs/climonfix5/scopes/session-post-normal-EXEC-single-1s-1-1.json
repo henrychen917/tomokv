@@ -5,13 +5,13 @@
   "mode": "1s",
   "batch": 1,
   "atomic": 1,
-  "steps": 25534,
+  "steps": 25486,
   "clock_calls": 3,
   "excluded_calls": 236,
-  "pc_trace_sha256": "e5a4bc60f5f0ac72e402bfa9f338d40f4f79b07f986346a55306aeb3e5fc0e58",
-  "pc_trace_entries": 9846,
+  "pc_trace_sha256": "6b75fc796626ba3532d9dab7e64f340eae0f75ab312fc0c2b7a600d09afe3973",
+  "pc_trace_entries": 9822,
   "scope": "session",
-  "total": 22326,
+  "total": 22278,
   "functions": {
     "void tomo::reply_simple<tomo::Op::Sink&>(tomo::Op::Sink&, char const*, unsigned long)": 208,
     "tomo::multi_handle_io(tomo::Server&, tomo::Client&, tomo::Op&, unsigned int, tomo::MultiExecState*&) [clone .cold]": 22,
@@ -87,7 +87,7 @@
     "tomo::multi_handle_io(tomo::Server&, tomo::Client&, tomo::Op&, unsigned int, tomo::MultiExecState*&)": 883,
     "tomo::multi_dispatch_entry(tomo::IoLoop&, tomo::Client&, tomo::Op&, unsigned int)": 8,
     "tomo::(anonymous namespace)::prepare_write_key(tomo::Server&, tomo::MultiExecState&, tomo::Shard&, tomo::Slice, unsigned long, unsigned int, void const*, std::atomic<unsigned int>*, bool) [clone .isra.0]": 474,
-    "tomo::(anonymous namespace)::prepare_local_write_keys(tomo::Server&, tomo::MultiExecState&, tomo::MultiCommand&, tomo::Shard&, unsigned int)": 198,
+    "tomo::(anonymous namespace)::prepare_local_write_keys(tomo::Server&, tomo::MultiExecState&, tomo::MultiCommand&, tomo::Shard&, unsigned int)": 150,
     "tomo::multi_execute_task(tomo::Server&, tomo::Task const&, tomo::Shard&, unsigned int, unsigned int, tomo::AofOwnerContext*, tomo::MultiRetryPromoter const*)": 901,
     "tomo::Slice::key_eq(tomo::Slice const&) const": 319,
     "tomo::Op::cmd_name() const": 48,
@@ -164,5 +164,5 @@
     "tomo::Op* tomo::Rob<64u>::acquire<true>(unsigned char)": 180,
     "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)": 754
   },
-  "probe_sha256": "bb92bfe1a0aaaed9e29ed8b9174345da6fdd2d955604891c91ab78a5cb25c69b"
+  "probe_sha256": "f831cad9c63dfc478a126060496df223e22808aee7de6772f17dc68ec25e9c25"
 }

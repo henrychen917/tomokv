@@ -5,10 +5,10 @@
   "mode": "2s",
   "batch": 1,
   "atomic": 1,
-  "steps": 47087,
+  "steps": 47082,
   "clock_calls": 1,
   "excluded_calls": 218,
-  "pc_trace_sha256": "19e3dcbdf0ce85a9bb3a46c47c852fca9048e23d8d2914addd36879361df1aff",
+  "pc_trace_sha256": "973a1869510ed3b257c2729d4fa349c9c4e1aa6ef4e8212962dd5a849f4c0be0",
   "pc_trace_entries": 8199,
   "scope": "session",
   "total": 36863,
@@ -32,6 +32,7 @@
     "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 15,
     "tomo::(anonymous namespace)::script_select_positions(tomo::ScatterState&, tomo::(anonymous namespace)::ScriptPhase)": 76,
     "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 35,
+    "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 36,
     "tomo::(anonymous namespace)::script_window_release(tomo::ScatterState&)": 14,
     "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&)": 8,
     "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 234,
@@ -42,7 +43,6 @@
     "tomo::ScatterArenaPool::unregister_snapshot(tomo::Server&, tomo::SnapshotCut*, unsigned int) [clone .part.0]": 52,
     "tomo::(anonymous namespace)::reset_groups(tomo::ScatterState&)": 128,
     "tomo::(anonymous namespace)::script_window_admit(tomo::ScatterState&)": 27,
-    "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 36,
     "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 14,
     "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 22,
     "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 22,
@@ -130,5 +130,5 @@
     "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)": 48,
     "tomo::FlatStore::storesize_clear()": 2063
   },
-  "probe_sha256": "bb92bfe1a0aaaed9e29ed8b9174345da6fdd2d955604891c91ab78a5cb25c69b"
+  "probe_sha256": "f831cad9c63dfc478a126060496df223e22808aee7de6772f17dc68ec25e9c25"
 }
