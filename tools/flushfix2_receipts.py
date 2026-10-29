@@ -92,7 +92,7 @@ def main():
             for path in sorted(folder.rglob('results.json')):
                 row = dict(run=folder.name, file=ref(path), results=read(path), details=[])
                 for detail in sorted(path.parent.rglob('*.json')):
-                    if detail.name not in ('siblings.json', 'reload-witness.json', 'server.exit.json'):
+                    if detail.name not in ('siblings.json', 'reload-witness.json', 'server.exit.json', 'pipeline-lane.json'):
                         continue
                     row['details'].append(ref(detail) | dict(value=read(detail)))
                 inventories.append(row)

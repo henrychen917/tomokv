@@ -86,9 +86,21 @@ def semantics(args, directory, mode, engine, atomic, oracle):
             c.must('FLUSHALL')
             result['xreadgroup'] = reader.read()
         c.must('SET', pair[0], 'old')
+        before_pipeline = {} if oracle else s.stats(c)
         c.raw(encode('FLUSHALL') + encode('GET', pair[0]) + encode('SET', pair[0], 'new') +
               encode('GET', pair[0]))
         result['pipeline'] = [c.read() for _ in range(4)]
+        after_pipeline = {} if oracle else s.stats(c)
+        assert [c.must('GET', key) for key in pair] == [b'new', None]
+        after_clean = {} if oracle else s.stats(c)
+        lane = dict(pipeline={k:after_pipeline.get(k, 0)-before_pipeline.get(k, 0)
+                             for k in ('read_local_hits', 'read_local_fallbacks',
+                                       'read_local_fallback_inflight_write')},
+                    clean_hits=after_clean.get('read_local_hits', 0)-after_pipeline.get('read_local_hits', 0))
+        (directory / 'pipeline-lane.json').write_text(json.dumps(lane, indent=2)+'\n')
+        if not oracle and mode == '1s':
+            assert lane['pipeline']['read_local_hits'] + lane['pipeline']['read_local_fallbacks'] >= 2, lane
+            assert lane['clean_hits'] > 0, ('read-local lane did not resume after FLUSH', lane)
         with conn(b, args) as tracker:
             tracker.must('HELLO', 3)
             tracker.must('CLIENT', 'TRACKING', 'ON', 'BCAST')

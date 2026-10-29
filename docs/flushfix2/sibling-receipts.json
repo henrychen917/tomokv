@@ -16068,6 +16068,558 @@
     ]
   },
   {
+    "run": "pipeline-lane-armed",
+    "file": {
+      "path": "build/flushfix2/siblings/pipeline-lane-armed/results.json",
+      "sha256": "3b05542f4ae303f451a12da39c4b5fdf5b5296fab3b86ab52ddfd604cb3367da"
+    },
+    "results": [
+      {
+        "case": "semantics",
+        "leg": "redis-redis-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "script_flush": [
+            "1",
+            "1"
+          ],
+          "function_flush": [
+            "1",
+            "1"
+          ],
+          "script_flush_async": [
+            "1",
+            "1"
+          ],
+          "function_flush_async": [
+            "1",
+            "1"
+          ],
+          "restore_replace": [
+            "1",
+            "1"
+          ],
+          "copy_db": [
+            "1",
+            "1"
+          ],
+          "move": [
+            null,
+            "1"
+          ],
+          "watch_present": null,
+          "watch_absent": [
+            "PONG"
+          ],
+          "xreadgroup": "NOGROUP No such key 'flushfix2:stream' or consumer group 'g' in XREADGROUP with GROUP option",
+          "pipeline": [
+            "OK",
+            null,
+            "OK",
+            "new"
+          ],
+          "tracking_order": [
+            [
+              "invalidate",
+              null
+            ],
+            "OK",
+            "PONG"
+          ]
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "script_flush": [
+                "1",
+                "1"
+              ],
+              "function_flush": [
+                "1",
+                "1"
+              ],
+              "script_flush_async": [
+                "1",
+                "1"
+              ],
+              "function_flush_async": [
+                "1",
+                "1"
+              ],
+              "restore_replace": [
+                "1",
+                "1"
+              ],
+              "copy_db": [
+                "1",
+                "1"
+              ],
+              "move": [
+                null,
+                "1"
+              ],
+              "watch_present": null,
+              "watch_absent": [
+                "PONG"
+              ],
+              "xreadgroup": "NOGROUP No such key 'flushfix2:stream' or consumer group 'g' in XREADGROUP with GROUP option",
+              "pipeline": [
+                "OK",
+                null,
+                "OK",
+                "new"
+              ],
+              "tracking_order": [
+                [
+                  "invalidate",
+                  null
+                ],
+                "OK",
+                "PONG"
+              ]
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 0.138
+      },
+      {
+        "case": "semantics",
+        "leg": "1s-uring-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2_siblings.py\", line 115, in semantics\n    assert result == ORACLE[args.databases], (result, ORACLE[args.databases])\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ({'script_flush': ['1', '1'], 'function_flush': ['1', '1'], 'script_flush_async': ['1', '1'], 'function_flush_async': ['1', '1'], 'restore_replace': ['1', '1'], 'copy_db': ['1', '1'], 'move': [None, '1'], 'watch_present': None, 'watch_absent': ['PONG'], 'xreadgroup': \"NOGROUP No such key 'flushfix2:stream' or consumer group 'g' in XREADGROUP with GROUP option\", 'pipeline': ['OK', None, 'OK', 'new'], 'tracking_order': ['OK', ['invalidate', None], 'PONG']}, {'script_flush': ['1', '1'], 'function_flush': ['1', '1'], 'script_flush_async': ['1', '1'], 'function_flush_async': ['1', '1'], 'restore_replace': ['1', '1'], 'copy_db': ['1', '1'], 'move': [None, '1'], 'watch_present': None, 'watch_absent': ['PONG'], 'xreadgroup': \"NOGROUP No such key 'flushfix2:stream' or consumer group 'g' in XREADGROUP with GROUP option\", 'pipeline': ['OK', None, 'OK', 'new'], 'tracking_order': [['invalidate', None], 'OK', 'PONG']})\n",
+        "pass": false,
+        "attempts": [
+          {
+            "passed": false,
+            "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2_siblings.py\", line 115, in semantics\n    assert result == ORACLE[args.databases], (result, ORACLE[args.databases])\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ({'script_flush': ['1', '1'], 'function_flush': ['1', '1'], 'script_flush_async': ['1', '1'], 'function_flush_async': ['1', '1'], 'restore_replace': ['1', '1'], 'copy_db': ['1', '1'], 'move': [None, '1'], 'watch_present': None, 'watch_absent': ['PONG'], 'xreadgroup': \"NOGROUP No such key 'flushfix2:stream' or consumer group 'g' in XREADGROUP with GROUP option\", 'pipeline': ['OK', None, 'OK', 'new'], 'tracking_order': ['OK', ['invalidate', None], 'PONG']}, {'script_flush': ['1', '1'], 'function_flush': ['1', '1'], 'script_flush_async': ['1', '1'], 'function_flush_async': ['1', '1'], 'restore_replace': ['1', '1'], 'copy_db': ['1', '1'], 'move': [None, '1'], 'watch_present': None, 'watch_absent': ['PONG'], 'xreadgroup': \"NOGROUP No such key 'flushfix2:stream' or consumer group 'g' in XREADGROUP with GROUP option\", 'pipeline': ['OK', None, 'OK', 'new'], 'tracking_order': [['invalidate', None], 'OK', 'PONG']})\n"
+          }
+        ],
+        "seconds": 0.09
+      },
+      {
+        "case": "semantics",
+        "leg": "1s-uring-1",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2_siblings.py\", line 115, in semantics\n    assert result == ORACLE[args.databases], (result, ORACLE[args.databases])\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ({'script_flush': ['1', '1'], 'function_flush': ['1', '1'], 'script_flush_async': ['1', '1'], 'function_flush_async': ['1', '1'], 'restore_replace': ['1', '1'], 'copy_db': ['1', '1'], 'move': [None, '1'], 'watch_present': None, 'watch_absent': ['PONG'], 'xreadgroup': \"NOGROUP No such key 'flushfix2:stream' or consumer group 'g' in XREADGROUP with GROUP option\", 'pipeline': ['OK', None, 'OK', 'new'], 'tracking_order': ['OK', ['invalidate', None], 'PONG']}, {'script_flush': ['1', '1'], 'function_flush': ['1', '1'], 'script_flush_async': ['1', '1'], 'function_flush_async': ['1', '1'], 'restore_replace': ['1', '1'], 'copy_db': ['1', '1'], 'move': [None, '1'], 'watch_present': None, 'watch_absent': ['PONG'], 'xreadgroup': \"NOGROUP No such key 'flushfix2:stream' or consumer group 'g' in XREADGROUP with GROUP option\", 'pipeline': ['OK', None, 'OK', 'new'], 'tracking_order': [['invalidate', None], 'OK', 'PONG']})\n",
+        "pass": false,
+        "attempts": [
+          {
+            "passed": false,
+            "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2_siblings.py\", line 115, in semantics\n    assert result == ORACLE[args.databases], (result, ORACLE[args.databases])\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ({'script_flush': ['1', '1'], 'function_flush': ['1', '1'], 'script_flush_async': ['1', '1'], 'function_flush_async': ['1', '1'], 'restore_replace': ['1', '1'], 'copy_db': ['1', '1'], 'move': [None, '1'], 'watch_present': None, 'watch_absent': ['PONG'], 'xreadgroup': \"NOGROUP No such key 'flushfix2:stream' or consumer group 'g' in XREADGROUP with GROUP option\", 'pipeline': ['OK', None, 'OK', 'new'], 'tracking_order': ['OK', ['invalidate', None], 'PONG']}, {'script_flush': ['1', '1'], 'function_flush': ['1', '1'], 'script_flush_async': ['1', '1'], 'function_flush_async': ['1', '1'], 'restore_replace': ['1', '1'], 'copy_db': ['1', '1'], 'move': [None, '1'], 'watch_present': None, 'watch_absent': ['PONG'], 'xreadgroup': \"NOGROUP No such key 'flushfix2:stream' or consumer group 'g' in XREADGROUP with GROUP option\", 'pipeline': ['OK', None, 'OK', 'new'], 'tracking_order': [['invalidate', None], 'OK', 'PONG']})\n"
+          }
+        ],
+        "seconds": 0.04
+      },
+      {
+        "case": "semantics",
+        "leg": "1s-epoll-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2_siblings.py\", line 115, in semantics\n    assert result == ORACLE[args.databases], (result, ORACLE[args.databases])\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ({'script_flush': ['1', '1'], 'function_flush': ['1', '1'], 'script_flush_async': ['1', '1'], 'function_flush_async': ['1', '1'], 'restore_replace': ['1', '1'], 'copy_db': ['1', '1'], 'move': [None, '1'], 'watch_present': None, 'watch_absent': ['PONG'], 'xreadgroup': \"NOGROUP No such key 'flushfix2:stream' or consumer group 'g' in XREADGROUP with GROUP option\", 'pipeline': ['OK', None, 'OK', 'new'], 'tracking_order': ['OK', ['invalidate', None], 'PONG']}, {'script_flush': ['1', '1'], 'function_flush': ['1', '1'], 'script_flush_async': ['1', '1'], 'function_flush_async': ['1', '1'], 'restore_replace': ['1', '1'], 'copy_db': ['1', '1'], 'move': [None, '1'], 'watch_present': None, 'watch_absent': ['PONG'], 'xreadgroup': \"NOGROUP No such key 'flushfix2:stream' or consumer group 'g' in XREADGROUP with GROUP option\", 'pipeline': ['OK', None, 'OK', 'new'], 'tracking_order': [['invalidate', None], 'OK', 'PONG']})\n",
+        "pass": false,
+        "attempts": [
+          {
+            "passed": false,
+            "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2_siblings.py\", line 115, in semantics\n    assert result == ORACLE[args.databases], (result, ORACLE[args.databases])\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ({'script_flush': ['1', '1'], 'function_flush': ['1', '1'], 'script_flush_async': ['1', '1'], 'function_flush_async': ['1', '1'], 'restore_replace': ['1', '1'], 'copy_db': ['1', '1'], 'move': [None, '1'], 'watch_present': None, 'watch_absent': ['PONG'], 'xreadgroup': \"NOGROUP No such key 'flushfix2:stream' or consumer group 'g' in XREADGROUP with GROUP option\", 'pipeline': ['OK', None, 'OK', 'new'], 'tracking_order': ['OK', ['invalidate', None], 'PONG']}, {'script_flush': ['1', '1'], 'function_flush': ['1', '1'], 'script_flush_async': ['1', '1'], 'function_flush_async': ['1', '1'], 'restore_replace': ['1', '1'], 'copy_db': ['1', '1'], 'move': [None, '1'], 'watch_present': None, 'watch_absent': ['PONG'], 'xreadgroup': \"NOGROUP No such key 'flushfix2:stream' or consumer group 'g' in XREADGROUP with GROUP option\", 'pipeline': ['OK', None, 'OK', 'new'], 'tracking_order': [['invalidate', None], 'OK', 'PONG']})\n"
+          }
+        ],
+        "seconds": 0.086
+      },
+      {
+        "case": "semantics",
+        "leg": "1s-epoll-1",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2_siblings.py\", line 115, in semantics\n    assert result == ORACLE[args.databases], (result, ORACLE[args.databases])\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ({'script_flush': ['1', '1'], 'function_flush': ['1', '1'], 'script_flush_async': ['1', '1'], 'function_flush_async': ['1', '1'], 'restore_replace': ['1', '1'], 'copy_db': ['1', '1'], 'move': [None, '1'], 'watch_present': None, 'watch_absent': ['PONG'], 'xreadgroup': \"NOGROUP No such key 'flushfix2:stream' or consumer group 'g' in XREADGROUP with GROUP option\", 'pipeline': ['OK', None, 'OK', 'new'], 'tracking_order': ['OK', ['invalidate', None], 'PONG']}, {'script_flush': ['1', '1'], 'function_flush': ['1', '1'], 'script_flush_async': ['1', '1'], 'function_flush_async': ['1', '1'], 'restore_replace': ['1', '1'], 'copy_db': ['1', '1'], 'move': [None, '1'], 'watch_present': None, 'watch_absent': ['PONG'], 'xreadgroup': \"NOGROUP No such key 'flushfix2:stream' or consumer group 'g' in XREADGROUP with GROUP option\", 'pipeline': ['OK', None, 'OK', 'new'], 'tracking_order': [['invalidate', None], 'OK', 'PONG']})\n",
+        "pass": false,
+        "attempts": [
+          {
+            "passed": false,
+            "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2.py\", line 208, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flushfix2/tests/flushfix2_siblings.py\", line 115, in semantics\n    assert result == ORACLE[args.databases], (result, ORACLE[args.databases])\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ({'script_flush': ['1', '1'], 'function_flush': ['1', '1'], 'script_flush_async': ['1', '1'], 'function_flush_async': ['1', '1'], 'restore_replace': ['1', '1'], 'copy_db': ['1', '1'], 'move': [None, '1'], 'watch_present': None, 'watch_absent': ['PONG'], 'xreadgroup': \"NOGROUP No such key 'flushfix2:stream' or consumer group 'g' in XREADGROUP with GROUP option\", 'pipeline': ['OK', None, 'OK', 'new'], 'tracking_order': ['OK', ['invalidate', None], 'PONG']}, {'script_flush': ['1', '1'], 'function_flush': ['1', '1'], 'script_flush_async': ['1', '1'], 'function_flush_async': ['1', '1'], 'restore_replace': ['1', '1'], 'copy_db': ['1', '1'], 'move': [None, '1'], 'watch_present': None, 'watch_absent': ['PONG'], 'xreadgroup': \"NOGROUP No such key 'flushfix2:stream' or consumer group 'g' in XREADGROUP with GROUP option\", 'pipeline': ['OK', None, 'OK', 'new'], 'tracking_order': [['invalidate', None], 'OK', 'PONG']})\n"
+          }
+        ],
+        "seconds": 0.035
+      }
+    ],
+    "details": [
+      {
+        "path": "build/flushfix2/siblings/pipeline-lane-armed/1s-epoll-0/pipeline-lane.json",
+        "sha256": "bd37881c6a2933ee5ae94bfca5f7fc0be15ab3de71c65afb1cf02af7ed95dde6",
+        "value": {
+          "pipeline": {
+            "read_local_hits": 0,
+            "read_local_fallbacks": 2,
+            "read_local_fallback_inflight_write": 2
+          },
+          "clean_hits": 2
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/pipeline-lane-armed/1s-epoll-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/pipeline-lane-armed/1s-epoll-0/siblings.json",
+        "sha256": "9396c678626922502ddcb40fc31c951ee2ca966074df760c8496fb00e0743cc8",
+        "value": {
+          "script_flush": [
+            "1",
+            "1"
+          ],
+          "function_flush": [
+            "1",
+            "1"
+          ],
+          "script_flush_async": [
+            "1",
+            "1"
+          ],
+          "function_flush_async": [
+            "1",
+            "1"
+          ],
+          "restore_replace": [
+            "1",
+            "1"
+          ],
+          "copy_db": [
+            "1",
+            "1"
+          ],
+          "move": [
+            null,
+            "1"
+          ],
+          "watch_present": null,
+          "watch_absent": [
+            "PONG"
+          ],
+          "xreadgroup": "NOGROUP No such key 'flushfix2:stream' or consumer group 'g' in XREADGROUP with GROUP option",
+          "pipeline": [
+            "OK",
+            null,
+            "OK",
+            "new"
+          ],
+          "tracking_order": [
+            "OK",
+            [
+              "invalidate",
+              null
+            ],
+            "PONG"
+          ]
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/pipeline-lane-armed/1s-epoll-1/pipeline-lane.json",
+        "sha256": "bd37881c6a2933ee5ae94bfca5f7fc0be15ab3de71c65afb1cf02af7ed95dde6",
+        "value": {
+          "pipeline": {
+            "read_local_hits": 0,
+            "read_local_fallbacks": 2,
+            "read_local_fallback_inflight_write": 2
+          },
+          "clean_hits": 2
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/pipeline-lane-armed/1s-epoll-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/pipeline-lane-armed/1s-epoll-1/siblings.json",
+        "sha256": "9396c678626922502ddcb40fc31c951ee2ca966074df760c8496fb00e0743cc8",
+        "value": {
+          "script_flush": [
+            "1",
+            "1"
+          ],
+          "function_flush": [
+            "1",
+            "1"
+          ],
+          "script_flush_async": [
+            "1",
+            "1"
+          ],
+          "function_flush_async": [
+            "1",
+            "1"
+          ],
+          "restore_replace": [
+            "1",
+            "1"
+          ],
+          "copy_db": [
+            "1",
+            "1"
+          ],
+          "move": [
+            null,
+            "1"
+          ],
+          "watch_present": null,
+          "watch_absent": [
+            "PONG"
+          ],
+          "xreadgroup": "NOGROUP No such key 'flushfix2:stream' or consumer group 'g' in XREADGROUP with GROUP option",
+          "pipeline": [
+            "OK",
+            null,
+            "OK",
+            "new"
+          ],
+          "tracking_order": [
+            "OK",
+            [
+              "invalidate",
+              null
+            ],
+            "PONG"
+          ]
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/pipeline-lane-armed/1s-uring-0/pipeline-lane.json",
+        "sha256": "bd37881c6a2933ee5ae94bfca5f7fc0be15ab3de71c65afb1cf02af7ed95dde6",
+        "value": {
+          "pipeline": {
+            "read_local_hits": 0,
+            "read_local_fallbacks": 2,
+            "read_local_fallback_inflight_write": 2
+          },
+          "clean_hits": 2
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/pipeline-lane-armed/1s-uring-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/pipeline-lane-armed/1s-uring-0/siblings.json",
+        "sha256": "9396c678626922502ddcb40fc31c951ee2ca966074df760c8496fb00e0743cc8",
+        "value": {
+          "script_flush": [
+            "1",
+            "1"
+          ],
+          "function_flush": [
+            "1",
+            "1"
+          ],
+          "script_flush_async": [
+            "1",
+            "1"
+          ],
+          "function_flush_async": [
+            "1",
+            "1"
+          ],
+          "restore_replace": [
+            "1",
+            "1"
+          ],
+          "copy_db": [
+            "1",
+            "1"
+          ],
+          "move": [
+            null,
+            "1"
+          ],
+          "watch_present": null,
+          "watch_absent": [
+            "PONG"
+          ],
+          "xreadgroup": "NOGROUP No such key 'flushfix2:stream' or consumer group 'g' in XREADGROUP with GROUP option",
+          "pipeline": [
+            "OK",
+            null,
+            "OK",
+            "new"
+          ],
+          "tracking_order": [
+            "OK",
+            [
+              "invalidate",
+              null
+            ],
+            "PONG"
+          ]
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/pipeline-lane-armed/1s-uring-1/pipeline-lane.json",
+        "sha256": "bd37881c6a2933ee5ae94bfca5f7fc0be15ab3de71c65afb1cf02af7ed95dde6",
+        "value": {
+          "pipeline": {
+            "read_local_hits": 0,
+            "read_local_fallbacks": 2,
+            "read_local_fallback_inflight_write": 2
+          },
+          "clean_hits": 2
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/pipeline-lane-armed/1s-uring-1/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/pipeline-lane-armed/1s-uring-1/siblings.json",
+        "sha256": "9396c678626922502ddcb40fc31c951ee2ca966074df760c8496fb00e0743cc8",
+        "value": {
+          "script_flush": [
+            "1",
+            "1"
+          ],
+          "function_flush": [
+            "1",
+            "1"
+          ],
+          "script_flush_async": [
+            "1",
+            "1"
+          ],
+          "function_flush_async": [
+            "1",
+            "1"
+          ],
+          "restore_replace": [
+            "1",
+            "1"
+          ],
+          "copy_db": [
+            "1",
+            "1"
+          ],
+          "move": [
+            null,
+            "1"
+          ],
+          "watch_present": null,
+          "watch_absent": [
+            "PONG"
+          ],
+          "xreadgroup": "NOGROUP No such key 'flushfix2:stream' or consumer group 'g' in XREADGROUP with GROUP option",
+          "pipeline": [
+            "OK",
+            null,
+            "OK",
+            "new"
+          ],
+          "tracking_order": [
+            "OK",
+            [
+              "invalidate",
+              null
+            ],
+            "PONG"
+          ]
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/pipeline-lane-armed/redis-redis-0/pipeline-lane.json",
+        "sha256": "13d09ec0a080a2f5ac3775905f2b3551b60ed7b0f354ce089cee22b44338da0e",
+        "value": {
+          "pipeline": {
+            "read_local_hits": 0,
+            "read_local_fallbacks": 0,
+            "read_local_fallback_inflight_write": 0
+          },
+          "clean_hits": 0
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/pipeline-lane-armed/redis-redis-0/server.exit.json",
+        "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+        "value": {
+          "rc": 0,
+          "forced": false
+        }
+      },
+      {
+        "path": "build/flushfix2/siblings/pipeline-lane-armed/redis-redis-0/siblings.json",
+        "sha256": "723c181121f4f495ffec81c90d4293507f537d831b3119292b4b329cccad8e65",
+        "value": {
+          "script_flush": [
+            "1",
+            "1"
+          ],
+          "function_flush": [
+            "1",
+            "1"
+          ],
+          "script_flush_async": [
+            "1",
+            "1"
+          ],
+          "function_flush_async": [
+            "1",
+            "1"
+          ],
+          "restore_replace": [
+            "1",
+            "1"
+          ],
+          "copy_db": [
+            "1",
+            "1"
+          ],
+          "move": [
+            null,
+            "1"
+          ],
+          "watch_present": null,
+          "watch_absent": [
+            "PONG"
+          ],
+          "xreadgroup": "NOGROUP No such key 'flushfix2:stream' or consumer group 'g' in XREADGROUP with GROUP option",
+          "pipeline": [
+            "OK",
+            null,
+            "OK",
+            "new"
+          ],
+          "tracking_order": [
+            [
+              "invalidate",
+              null
+            ],
+            "OK",
+            "PONG"
+          ]
+        }
+      }
+    ]
+  },
+  {
     "run": "post-first",
     "file": {
       "path": "build/flushfix2/siblings/post-first/aof-restart-1/results.json",
