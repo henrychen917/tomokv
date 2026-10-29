@@ -2760,6 +2760,84 @@
     ]
   },
   {
+    "name": "differ-epoll",
+    "receipt": "docs/climonfix5/jobs/differ-epoll.json",
+    "exit": 0,
+    "binary_sha256": "5580e65fb3d5135ca6829d272cf4de89c2661715bc58247ad26a7163939a0f5f",
+    "archive": "docs/climonfix5/job-evidence/differ-epoll.tar.gz",
+    "archive_sha256": "e5890ff16de0a28fac7b7825f04e224563db3ec8ac4ce9b99d2276d85dba128f",
+    "files": 2113,
+    "uncompressed_bytes": 2997547,
+    "jobs": [
+      {
+        "name": "differ-armed-0",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "521.640000",
+            "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+          }
+        ]
+      },
+      {
+        "name": "differ-armed-1",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "526.500000",
+            "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+          }
+        ]
+      },
+      {
+        "name": "differ-equivalence",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "21.430000",
+            "label": "mode equivalence part (all execution modes and knobs)"
+          }
+        ]
+      },
+      {
+        "name": "differ-split-0",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "528.360000",
+            "label": "Redis 7.4 differential part (split, atomic 0)"
+          }
+        ]
+      },
+      {
+        "name": "differ-split-1",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "530.570000",
+            "label": "Redis 7.4 differential part (split, atomic 1)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "name": "differ-uring",
     "receipt": "docs/climonfix5/jobs/differ-uring.json",
     "exit": 0,

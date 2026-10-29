@@ -139,7 +139,13 @@ Both CLIENT REPLY OFF/SKIP atomic rows pass
 ([receipt](docs/climonfix5/jobs/replyoff-final.json)). The standard io_uring differential
 matrix passes all four mode/atomic legs and mode equivalence: six gate rows,
 zero failures ([receipt](docs/climonfix5/jobs/differ-uring.json),
-[seed/part summary](docs/climonfix5/differ-uring-summary.json)). Epoll remains in progress.
+[seed/part summary](docs/climonfix5/differ-uring-summary.json)). The same standard epoll
+matrix also passes all six gate rows with zero failures
+([receipt](docs/climonfix5/jobs/differ-epoll.json),
+[seed/part summary](docs/climonfix5/differ-epoll-summary.json)). Each engine passes
+941 internal checks: 938 suite streams, two read-local lane witnesses and one
+mode-equivalence check. Permanent seeds are 7/19/20/23; the gate selects rotating
+seed 21 for io_uring and 22 for epoll. No suite or seed override was used.
 [Directed receipt](docs/climonfix5/jobs/directed-final-v11.json),
 [seven isolated controls](docs/climonfix5/isolated-regressions.json),
 [harness tests](docs/climonfix5/gates-test.json). Five controls raise named

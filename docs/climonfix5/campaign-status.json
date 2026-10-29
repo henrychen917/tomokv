@@ -18,5 +18,9 @@
   {
     "name": "differ-uring",
     "exit": 0
+  },
+  {
+    "name": "differ-epoll",
+    "exit": 0
   }
 ]
