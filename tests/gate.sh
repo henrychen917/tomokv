@@ -1148,7 +1148,7 @@ plan_jobs(){
   for section in lruclock lfu; do
     for atomic in 0 1; do for mode in split armed; do JOB_NAMES+=("evict-$section-$mode-$atomic"); done; done
   done
-  JOB_NAMES+=(flipctl witness_contracts reorder_bounds rob_portable slotless wb_mixed inline_quoted)
+  JOB_NAMES+=(flushfix2 flipctl witness_contracts reorder_bounds rob_portable slotless wb_mixed inline_quoted)
   for section in T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11a T11b T12 T13 T14 T15 T16 owner; do JOB_NAMES+=("at412-$section"); done
   local resp_case resp_engine
   for resp_case in fragment cpu neighbour; do for mode in 1s 2s; do
@@ -1397,6 +1397,23 @@ pausable taskset -c "$BUILD_CORES" tests/parbuild.sh $ASAN "$PWD/build/gate-cach
 
 # readability-a0: one row collected before quick exit (DQ=+1, DF=+1).
 # EXPECT constants remain maintainer-owned.
+job_flushfix2(){
+  local case databases command label
+  for case in flush-pair flush-script flush-only namespace; do
+    for databases in 16 1; do
+      command=FLUSHALL
+      [ "$case:$databases" != namespace:16 ] || command=FLUSHDB
+      label="flushfix2 $case (databases $databases)"
+      row_begin "$label"
+      py tests/flushfix2.py --case "$case" --databases "$databases" --command "$command" \
+          --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
+          --cores "$CORES" --port "$PORT" --output "$TMPDIR/$case-$databases" \
+          >"$TMPDIR/$case-$databases.log" 2>&1 \
+          && ok "$label" || bad "$label" "see $TMPDIR/$case-$databases.log"
+    done
+  done
+}
+
 job_source_identity(){
   local label="production source identity + stable assertion ids"
   row_begin "$label"
@@ -5783,6 +5800,7 @@ collect_job release
 collect_job asan
 collect_job config_unit
 collect_job source_identity
+collect_job flushfix2
 # iofix rows are collected before the quick-tier exit; EXPECT remains owner-maintained.
 # iofix3: restore WB4.1 before quick exit (DQ=+1, DF=+1).
 collect_job iofix-deferred
