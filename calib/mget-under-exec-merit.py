@@ -2,7 +2,7 @@
 """Atomic-1 MGET under EXEC load, fresh-server ABBA / optional ABCCBA.
 
 64 reader connections at pipeline 8; eight writers, one MULTI/SET x8/EXEC in
-flight each, on eight fixed 16-byte keys occupying shards 0,2,...,14. Each
+flight each, on eight fixed 16-byte keys occupying shards 0,2,4,6,9,11,13,15. Each
 transaction writes the same unique 64-byte token to all keys. Every MGET must
 return eight identical valid tokens; read tokens must belong to acknowledged
 transactions after the writers drain. Every run requires LIVE atomic_entries
@@ -28,6 +28,21 @@ def cells(args):
     return [dict(name=f'{mode}-a1-db{db}-mget-exec', mode=mode, atomic=1, databases=int(db), read_local=0)
             for mode in fm.choices(args.modes, ('1s', '2s'))
             for db in fm.choices(args.databases, ('1', '16'))]
+
+
+def select_keys(all_keys, all_routes):
+    # Plain even IDs alias one owner in 6:2 and four owners in 24:8 because
+    # initial shard ownership is round-robin. Alternate parity across halves.
+    shards = (0, 2, 4, 6, 9, 11, 13, 15)
+    keys = [all_keys[sid] for sid in shards]
+    geometry = [all_routes[sid] for sid in shards]
+    fm.require([row[0] for row in geometry] == list(shards), 'eight-key shard coverage changed')
+    owners = {row[1] for row in all_routes}
+    counts = [sum(row[1] == owner for row in geometry) for owner in owners]
+    fm.require(len(owners) > 1 and max(counts) - min(counts) <= 1 and
+               len({row[1] for row in geometry}) == min(8, len(owners)),
+               'eight-key geometry is not balanced across shard owners')
+    return keys, geometry
 
 
 def token(writer, seq):
@@ -94,8 +109,7 @@ def final_data(conn, keys, readers, writers):
 def run(args, cell, binary, folder, offered):
     with fm.server(args, cell, binary, folder) as (process, conn):
         all_keys, all_routes = fm.pick_keys(conn)
-        keys, geometry = all_keys[::2], all_routes[::2]
-        fm.require([row[0] for row in geometry] == list(range(0, 16, 2)), 'eight-key shard coverage changed')
+        keys, geometry = select_keys(all_keys, all_routes)
         fm.ok(conn.cmd('MSET', *(part for key in keys for part in (key, INITIAL))))
         fm.check_size(conn, 8)
         packet = fm.encode('MGET', *keys) * 8
@@ -165,6 +179,10 @@ def calibrate(args, arms, selected):
 
 def selftest():
     fm.base_selftest()
+    for owners in (2, 8, 16):
+        _, geometry = select_keys(list(range(16)), [[sid, sid % owners] for sid in range(16)])
+        assert len({row[1] for row in geometry}) == min(8, owners)
+    fm.rejects(lambda: select_keys(list(range(16)), [[sid, 0] for sid in range(16)]))
     c = Mock()
     c.read.side_effect = [b'OK'] + [b'QUEUED'] * 8 + [[b'OK'] * 8]
     validate_exec(c)

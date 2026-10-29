@@ -16,7 +16,7 @@ populated, subsequent flush sizes are observed, never described as replenished.
 import math
 import sys
 import time
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import flushmerit as fm
 
@@ -159,6 +159,21 @@ def selftest():
     fm.rejects(lambda: final_data(c, keys, rows, [], 0))
     actual[0] = None
     fm.rejects(lambda: final_data(c, keys, rows, [], 0))
+    # The same final SETs cannot survive a definitely later flush.
+    actual = [None] * 16
+    c.cmd.side_effect = lambda *a: actual if a[0] == 'MGET' else 0 if a[0] == 'DBSIZE' else b''
+    assert final_data(c, keys, rows, [dict(start=4, end=5)], 0) == [None] * 16
+    fm.rejects(lambda: final_data(c, keys, rows, [dict(start=0, end=1)], 0))
+    stop = Mock()
+    stop.is_set.return_value = False
+    c.cmd.side_effect = lambda *a: 16 if a[0] == 'DBSIZE' else b'OK'
+    with patch.object(fm, 'sleep_until'), patch.object(fm, 'rss', return_value=100), \
+            patch.object(time, 'monotonic', side_effect=[.05, .06, .15, .16]):
+        flushed = flusher(c, 0, .2, stop, 'SYNC', 123)
+    assert len(flushed['events']) == 2 and abs(flushed['events'][1]['scheduled'] - .15) < 1e-12
+    with patch.object(fm, 'sleep_until'), patch.object(fm, 'rss', return_value=100), \
+            patch.object(time, 'monotonic', side_effect=[.3, .31, .32, .33]):
+        fm.rejects(lambda: flusher(c, 0, .2, stop, 'ASYNC', 123))
     good = dict(completed=10, scheduled=10, within_window=10, lag_ns=[0] * 10, elapsed=1)
     fm.offered_valid([good], 1, 20)
     for poison in (dict(completed=9), dict(within_window=0), dict(lag_ns=[30_000_000]), dict(elapsed=4)):

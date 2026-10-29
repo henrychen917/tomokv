@@ -239,7 +239,8 @@ def campaign(args, tool, cells, runner, calibrate=None):
                 for seq, arm in enumerate(order(arms), 1):
                     folder = args.output / cell['name'] / f'b{block}-{seq}-{arm}'
                     folder.mkdir(parents=True)
-                    record = dict(cell=cell, block=block, seq=seq, arm=arm, valid=False, folder=str(folder))
+                    record = dict(cell=cell, block=block, seq=seq, arm=arm, valid=False, folder=str(folder),
+                                  kind='SMOKE_ONLY' if args.smoke else 'MERIT')
                     try:
                         record.update(runner(args, cell, arms[arm], folder, calibration))
                         require(record.get('valid'), 'invalid run')
@@ -706,7 +707,7 @@ def aggregate(output, tool, records):
         groups.setdefault((record['cell']['name'], record['arm']), []).append(record)
     result = []
     for (cell, arm), rows in groups.items():
-        row = dict(cell=cell, arm=arm, runs=len(rows))
+        row = dict(cell=cell, arm=arm, runs=len(rows), kind=rows[0]['kind'])
         if tool == 'flush_latency':
             observations = [item for r in rows for item in json.loads(Path(r['observations_file']).read_text())]
             row['latency'] = distribution([item['latency_ns'] for item in observations])
@@ -729,6 +730,8 @@ def aggregate(output, tool, records):
                                      min=min(r['rates'][key] for r in rows), max=max(r['rates'][key] for r in rows))
                             for key in rows[0]['rates']}
         counter_rows = [r.get('counters', r.get('info_delta', {})) for r in rows]
+        for key in COUNTERS:
+            require(len({r.get(key) is None for r in counter_rows}) == 1, f'counter availability changed for {arm}: {key}')
         row['info_delta_sum'] = {key: None if any(r.get(key) is None for r in counter_rows) else
                                 sum(r[key] for r in counter_rows) for key in COUNTERS}
         result.append(row)
