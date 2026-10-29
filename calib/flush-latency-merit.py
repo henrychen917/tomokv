@@ -52,7 +52,8 @@ def observe(conn, pid, seed, flush, settle):
     row = dict(latency_ns=latency, seeded=seeded, seed_ns=seed_ns,
                rss_before_seed_bytes=rss_before, rss_after_seed_bytes=rss_seed,
                rss_after_flush_bytes=rss_flush, rss_reclaimed_bytes=rss_seed - rss_flush,
-               info_before=before, info_after=after, info_delta=fm.deltas(before, after))
+               info_before={key: before.get(key) for key in fm.COUNTERS},
+               info_after={key: after.get(key) for key in fm.COUNTERS}, info_delta=fm.deltas(before, after))
     if settle:
         time.sleep(settle)
         row['rss_settled_bytes'] = fm.rss(pid)

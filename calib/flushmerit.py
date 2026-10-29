@@ -6,6 +6,7 @@ placement, durable per-run evidence and a single final queue verdict.
 """
 import argparse
 import contextlib
+from collections import Counter
 import hashlib
 import json
 import math
@@ -222,13 +223,15 @@ def summary(tool, records, expected, smoke=False, error=None):
 
 def campaign(args, tool, cells, runner, calibrate=None):
     records, expected, error, arms, hashes = [], 0, None, {}, {}
+    owns_output = False
     try:
         arms = configure(args)
+        owns_output = True
         hashes = {arm: sha256(binary) for arm, binary in arms.items()}
         expected = len(cells) * args.blocks * len(order(arms))
         save(args.output / 'manifest.json', dict(args=vars(args), arms=arms, sha256=hashes,
              order=order(arms), cells=cells, expected_runs=expected,
-             quantiles='nearest-rank', clock='CLOCK_MONOTONIC', tool_sha256={
+             quantiles='nearest-rank; load-client histograms round up by <1000 ns', clock='CLOCK_MONOTONIC', tool_sha256={
                  p.name: sha256(p) for p in Path(__file__).parent.glob('*.py')}))
         calibration = calibrate(args, arms, cells) if calibrate else None
         for block in range(1, args.blocks + 1):
@@ -236,7 +239,7 @@ def campaign(args, tool, cells, runner, calibrate=None):
                 for seq, arm in enumerate(order(arms), 1):
                     folder = args.output / cell['name'] / f'b{block}-{seq}-{arm}'
                     folder.mkdir(parents=True)
-                    record = dict(cell=cell, block=block, seq=seq, arm=arm, valid=False)
+                    record = dict(cell=cell, block=block, seq=seq, arm=arm, valid=False, folder=str(folder))
                     try:
                         record.update(runner(args, cell, arms[arm], folder, calibration))
                         require(record.get('valid'), 'invalid run')
@@ -249,11 +252,12 @@ def campaign(args, tool, cells, runner, calibrate=None):
                         save(args.output / 'records.json', records)
                         print(f'{tool}: {cell["name"]} b{block} {seq}:{arm} valid={record["valid"]}', flush=True)
         require(hashes == {arm: sha256(binary) for arm, binary in arms.items()}, 'binary changed during campaign')
+        aggregate(args.output, tool, records)
     except (Exception, KeyboardInterrupt) as exc:
         error = f'{type(exc).__name__}: {exc}'
         print(error, file=sys.stderr, flush=True)
     line, valid = summary(tool, records, expected, args.smoke, error)
-    if args.output and args.output.is_dir():
+    if owns_output:
         save(args.output / 'verdict.json', dict(valid=valid, error=error, summary=line))
         (args.output / 'summary.txt').write_text(line + '\n')
     print(line, flush=True)
@@ -477,6 +481,12 @@ def worker_entry(index, port, cpu, timeout, ready, start, epoch, stop, folder, f
     finally:
         if conn:
             conn.close()
+    # Streaming clients retain lossless counts in 1-us upper-edge buckets.
+    # This bounds disk growth independently of the number of completed writes;
+    # the worst quantile rounding error is <1 us. FLUSH observations stay raw.
+    for key in ('rtt_ns', 'lag_ns', 'response_ns'):
+        if key in result:
+            result[key + '_hist'] = histogram(result.pop(key))
     save(folder / f'worker-{index}.json', result)
 
 
@@ -530,7 +540,11 @@ def load_window(args, process, conn, folder, count, function, sample=False, prof
         result = dict(workers=rows, info_before=before, info_after=after, info_delta=delta,
                       samples=samples, start_monotonic=epoch.value, end_monotonic=finished,
                       offered_seconds=args.secs, drain_seconds=max(0, finished - end))
-        save(folder / 'window.json', result)
+        # Client histograms live once in worker-N.json; the window keeps
+        # small summaries rather than duplicating every histogram.
+        compact = dict(result, workers=[{key: value for key, value in row.items()
+                       if key not in ('rtt_ns_hist', 'lag_ns_hist', 'response_ns_hist')} for row in rows])
+        save(folder / 'window.json', compact)
         return result
     finally:
         stop.set()
@@ -552,7 +566,7 @@ def offered_valid(rows, seconds, max_lag_ms, min_fraction=.99):
     for row in rows:
         require(row['completed'] == row['scheduled'] and row['completed'] > 0, 'missed offered operations')
         require(row['within_window'] >= min_fraction * row['scheduled'], 'offered load not sustainable')
-        require(distribution(row['lag_ns'])['p99'] <= max_lag_ms * 1e6, 'generator schedule lag too high')
+        require(row_distribution(row, 'lag_ns')['p99'] <= max_lag_ms * 1e6, 'generator schedule lag too high')
         require(row['elapsed'] <= seconds + max(1, seconds * .05), 'excessive drain')
 
 
@@ -565,6 +579,7 @@ def calibrated_floor(runs, fraction):
 
 def base_selftest():
     import io
+    import tempfile
     from unittest.mock import Mock
     assert distribution(list(range(1, 1001))) == dict(p50=500, p95=950, p99=990,
         **{'p99.9': 999}, max=1000, n=1000, unit='ns', method='nearest-rank')
@@ -593,6 +608,33 @@ def base_selftest():
     assert not summary('test', [{'valid': True}] * 3, 4)[1]
     assert not summary('test', [{'valid': False}] * 4, 4)[1]
     rejects(lambda: distribution([]))
+    assert hist_distribution(histogram([0, 1, 999, 1000, 1001]))['max'] == 2000
+    hist = hist_distribution(histogram(list(range(1, 1001))))
+    assert hist['n'] == 1000 and hist['p50'] == 1000 and hist['quantum_ns'] == 1000
+    rejects(lambda: hist_distribution({}))
+    rejects(lambda: hist_distribution({'-1000': 1}))
+    rejects(lambda: hist_distribution({'1000': 0}))
+    with tempfile.TemporaryDirectory() as directory:
+        folder = Path(directory)
+        seed_conn = Mock()
+        seed_conn.cmd.side_effect = lambda *args: [[i % 16, i % 2] for i in range(len(args) - 2)]
+        seed = Seed(seed_conn, 16, folder)
+        assert seed.counts == [1] * 16 and seed.batches == 1
+        seed_conn.cmd.side_effect = [0, 16, b'db0:keys=16,expires=0\r\n', [b'v' * 64] * 16]
+        seed_conn.read.return_value = b'OK'
+        seed.replay(seed_conn)
+        packet = seed_conn.sock.sendall.call_args[0][0]
+        parser = object.__new__(Resp)
+        parser.file = io.BytesIO(packet)
+        parsed = parser.read()
+        assert parsed[0] == b'MSET' and len(parsed) == 33
+        assert len(set(parsed[1::2])) == 16 and all(len(key) == 16 for key in parsed[1::2])
+        assert parsed[2::2] == [b'v' * 64] * 16
+        seed_conn.cmd.side_effect = [0]
+        seed_conn.read.return_value = b'BAD'
+        rejects(lambda: seed.replay(seed_conn))
+        seed.close()
+        assert not seed.path.exists()
 
 
 def rejects(function):
@@ -652,3 +694,75 @@ def check_pacing(args):
     require(args.secs > 0 and args.calibration_secs > 0 and 0 < args.load_fraction < 1 and args.max_lag_ms > 0,
             'invalid pacing settings')
     require(args.smoke or args.secs >= 10, 'merit windows must be at least ten seconds')
+
+
+def aggregate(output, tool, records):
+    """Pool exact latency observations by cell/arm; rates retain per-visit medians.
+    Per-block/visit records remain available for paired comparisons. No rates
+    are printed for smoke runs; their artifacts are explicitly SMOKE_ONLY.
+    """
+    groups = {}
+    for record in records:
+        groups.setdefault((record['cell']['name'], record['arm']), []).append(record)
+    result = []
+    for (cell, arm), rows in groups.items():
+        row = dict(cell=cell, arm=arm, runs=len(rows))
+        if tool == 'flush_latency':
+            observations = [item for r in rows for item in json.loads(Path(r['observations_file']).read_text())]
+            row['latency'] = distribution([item['latency_ns'] for item in observations])
+            row['rss'] = {key: dict(min=min(r[key] for r in observations),
+                                   median=statistics.median(r[key] for r in observations),
+                                   max=max(r[key] for r in observations)) for key in
+                          ('rss_before_seed_bytes', 'rss_after_seed_bytes', 'rss_after_flush_bytes', 'rss_reclaimed_bytes')}
+        elif tool == 'flush_writer_wait':
+            raw = {key: Counter() for key in ('rtt_ns', 'lag_ns', 'response_ns')}
+            for r in rows:
+                for index in range(16):
+                    worker = json.loads((Path(r['folder']) / f'worker-{index}.json').read_text())
+                    for key in raw:
+                        raw[key].update(worker[key + '_hist'])
+            row.update({key: hist_distribution(values) for key, values in raw.items()})
+            row['latency_label'] = rows[0]['latency_label']
+            row['claim_wait_duration_histogram'] = None
+        if 'rates' in rows[0]:
+            row['rates'] = {key: dict(median=statistics.median(r['rates'][key] for r in rows),
+                                     min=min(r['rates'][key] for r in rows), max=max(r['rates'][key] for r in rows))
+                            for key in rows[0]['rates']}
+        counter_rows = [r.get('counters', r.get('info_delta', {})) for r in rows]
+        row['info_delta_sum'] = {key: None if any(r.get(key) is None for r in counter_rows) else
+                                sum(r[key] for r in counter_rows) for key in COUNTERS}
+        result.append(row)
+    save(output / 'summary.json', result)
+    return result
+
+
+def histogram(values):
+    require(all(type(x) is int and x >= 0 for x in values), 'invalid histogram observation')
+    return dict(Counter(str(((x + 999) // 1000) * 1000) for x in values))
+
+
+def hist_distribution(counts):
+    require(counts and all(type(v) is int and v > 0 for v in counts.values()), 'invalid/empty histogram')
+    entries = sorted((int(key), count) for key, count in counts.items())
+    require(entries[0][0] >= 0 and all(key % 1000 == 0 for key, _ in entries), 'bad histogram bucket')
+    total = sum(counts.values())
+    answer = dict(n=total, max=entries[-1][0], unit='ns', method='nearest-rank-upper-bucket', quantum_ns=1000)
+    for name, q in (('p50', .5), ('p95', .95), ('p99', .99), ('p99.9', .999)):
+        rank, cumulative = math.ceil(q * total), 0
+        for value, count in entries:
+            cumulative += count
+            if cumulative >= rank:
+                answer[name] = value
+                break
+    return answer
+
+
+def row_distribution(row, key):
+    return distribution(row[key]) if key in row else hist_distribution(row[key + '_hist'])
+
+
+def pool_distribution(rows, key):
+    pooled = Counter()
+    for row in rows:
+        pooled.update(row[key + '_hist'])
+    return hist_distribution(pooled)

@@ -74,7 +74,14 @@ def final_data(conn, keys, readers, writers):
     fm.check_size(conn, 8)
     fm.check_keyspace(conn, 8)
     observed = {}
-    validate_read(conn.cmd('MGET', *keys), observed)
+    final = conn.cmd('MGET', *keys)
+    validate_read(final, observed)
+    fm.require(final[0] != INITIAL, 'final state still contains the initial token')
+    final_writer, final_sequence = next(iter(observed.items()))
+    winner = writers[int(final_writer)]
+    fm.require(final_sequence == winner['completed'], "final token is not that writer's last committed transaction")
+    fm.require(not any(w['last_start'] > winner['last_end'] for w in writers),
+               'final token precedes a definitely later transaction')
     for reader in readers:
         for writer, sequence in reader['observed'].items():
             observed[writer] = max(observed.get(writer, 0), sequence)
@@ -100,6 +107,7 @@ def run(args, cell, binary, folder, offered):
             rate = offered[metric] / conns / batch if offered else None
             batches = completed = within = 0
             observed, lags = {}, []
+            last_start = last_end = epoch
             end = epoch + args.secs
             expected_batches = max(0, math.ceil(args.secs * rate - wid / conns - 1e-9)) if rate else None
             while not stop.is_set():
@@ -118,13 +126,14 @@ def run(args, cell, binary, folder, offered):
                     transaction = fm.encode('MULTI') + b''.join(fm.encode('SET', key, data) for key in keys) + fm.encode('EXEC')
                     c.sock.sendall(transaction)
                     validate_exec(c)
+                    last_start, last_end = started, time.monotonic()
                     within += time.monotonic() <= end
                 completed += batch
                 batches += 1
                 lags.append(max(0, int((started - when) * 1e9)) if rate else 0)
             return dict(kind=metric, completed=completed, scheduled=expected_batches * batch if rate else completed,
                         within_window=within, elapsed=time.monotonic() - epoch, observed=observed, lag_ns=lags,
-                        commands=completed if reader else completed * 10)
+                        commands=completed if reader else completed * 10, last_start=last_start, last_end=last_end)
         window = fm.load_window(args, process, conn, folder, 72, worker, sample=True,
                                 profile=args.profile and offered is not None)
         readers, writers = window['workers'][:64], window['workers'][64:]
@@ -141,7 +150,7 @@ def run(args, cell, binary, folder, offered):
             rate_units=dict(readers='MGET commands/s (eight values each)', writers='committed transactions/s (eight SETs each)'),
             witness=witnessed, observed_tokens=observed, info_delta=window['info_delta'],
             keys=[key.decode() for key in keys], geometry=geometry,
-            schedule_lag=fm.distribution([x for row in window['workers'] for x in row['lag_ns']]))
+            schedule_lag=fm.pool_distribution(window['workers'], 'lag_ns'))
         if args.profile and offered is not None:
             profile = json.loads((folder / 'cpu-profile.json').read_text())
             fm.require(profile['status'] == 'COMPLETE', 'incomplete server profile')
@@ -176,6 +185,16 @@ def selftest():
                    dict(samples=[dict(t=.5, atomic_entries=0, atomic_pending_entries=0)]),
                    dict(samples=[dict(t=.5, atomic_entries=20, atomic_pending_entries=0)]), dict(info_delta=dict(atomic_predecessor_reads=0))):
         fm.rejects(lambda: witnesses(dict(window, **poison)))
+    c = Mock()
+    final = [token(0, 2)] * 8
+    c.cmd.side_effect = lambda *a: 8 if a[0] == 'DBSIZE' else (final if a[0] == 'MGET' else b'db0:keys=8,expires=0\r\n')
+    writers = [dict(completed=2, last_start=1, last_end=2) for _ in range(8)]
+    assert final_data(c, ['k'] * 8, [dict(observed={'0': 1})], writers) == {'0': 2}
+    fm.rejects(lambda: final_data(c, ['k'] * 8, [dict(observed={'0': 3})], writers))
+    final = [INITIAL] * 8
+    fm.rejects(lambda: final_data(c, ['k'] * 8, [], writers))
+    final = [token(0, 1)] * 8
+    fm.rejects(lambda: final_data(c, ['k'] * 8, [], writers))
     line, valid = fm.summary('mget_under_exec', [{'valid': True}] * 4, 4)
     assert valid and line.startswith('mget_under_exec: status=VALID') and '\n' not in line
     print('mget_under_exec selftest: PASS')
