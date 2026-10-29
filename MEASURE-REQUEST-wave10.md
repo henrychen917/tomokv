@@ -220,8 +220,10 @@ The active campaigns use [run_jobs.py](docs/wave10/run_jobs.py), which invokes
 whole `GATE_ONLY_JOBS` jobs, retains every exit, binary hash and artifact path,
 and never emits a full-gate receipt. The planned mode/engine expansion is
 [correctness-matrix.json](docs/wave10/correctness-matrix.json); the completed-run
-index is [correctness-jobs.json](docs/wave10/correctness-jobs.json). Final remaining
-coverage and the quiet selftest results are pending.
+index is [correctness-jobs.json](docs/wave10/correctness-jobs.json). The final rebuilt candidate passes all 70 rows in the complete new-lane,
+execfair interaction, disabled-latency, CRLF and netio job set. The repaired
+whole AUTH job also passes in uring 1s. Final remaining coverage and the quiet
+selftest results are pending.
 
 Both complete standard differential matrices pass. Each engine runs all 47
 suites, permanent seeds 7/19/20/23 and rotating seed **22**, split and fused armed,
@@ -246,9 +248,9 @@ with Bash aborting while interpreting an EXIT trap. These failures remain
 recorded, with a quiet whole-job rerun pending. The real-tree standalone scheduler
 suite passes 73/73. EXPECT was changed only in the throwaway copy.
 
-`make all` passes its footprint locks. Before the telemetry-label rebuild all
-56 production-unit target freshness checks and `make -q all` passed; final
-freshness after the equivalent rebuild is pending. Three initial attempted names
+`make all` passes its footprint locks. All 56 production-unit target freshness
+checks and `make -q all` pass again after the telemetry-label rebuild; see
+[freshness-after-labels.json](docs/wave10/freshness-after-labels.json). Three initial attempted names
 were parbuild readiness markers, not Makefile targets; their lookup errors remain
 in `freshness-discovery.json`. Disposable lottery/publishfix build hashes and
 freshness are in [variant-builds.json](docs/wave10/variant-builds.json). All six

@@ -12729,5 +12729,7 @@
         }
       ]
     }
-  ]
+  ],
+  "delivered_post_sha256": "844cf188071bae335a80e8ae15c2acaec2d1f583f235edf4bf4496421299660e",
+  "delivery_binding": "docs/wave10/source-labels-identity.json: all executable bytes, symbols and addresses identical; only two INFO git strings differ in allocated program data"
 }
