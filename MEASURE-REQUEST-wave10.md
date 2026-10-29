@@ -222,8 +222,7 @@ and never emits a full-gate receipt. The planned mode/engine expansion is
 [correctness-matrix.json](docs/wave10/correctness-matrix.json); the completed-run
 index is [correctness-jobs.json](docs/wave10/correctness-jobs.json). The final rebuilt candidate passes all 70 rows in the complete new-lane,
 execfair interaction, disabled-latency, CRLF and netio job set. The repaired
-whole AUTH job also passes in uring 1s. Final remaining coverage and the quiet
-selftest results are pending.
+whole AUTH job also passes in uring 1s. Final remaining coverage is pending.
 
 Both complete standard differential matrices pass. Each engine runs all 47
 suites, permanent seeds 7/19/20/23 and rotating seed **22**, split and fused armed,
@@ -241,14 +240,15 @@ compat2 prerequisite run also fails the known rewritten-slowlog ordering
 assertion in 1s, including its one permitted fresh retry. Both attempts are
 retained; no new skip or retry was added. The Tcl/compat2 job is **not green**.
 
-The throwaway abba_selftest attempts are not yet green. The first exposed the
+The complete staged-copy **abba_selftest job passes** (`final-abba-selftest-complete-copy`, 1/0). Earlier attempts are retained. The first exposed the
 removed-ring scheduler entry and a concurrent selftest port collision; the
 corrected attempt also had one scheduler fixture fail with Bash aborting while
 interpreting an EXIT trap. All three early throwaway attempts additionally
 omitted `.githooks/pre-push`, causing 21 receipt-fixture setup errors. That staging
 omission is repaired; no production test is changed. These failures remain
-recorded, with a complete staged-copy whole-job rerun pending. The real-tree standalone scheduler
-suite passes 73/73. EXPECT was changed only in the throwaway copy.
+recorded; the complete staged-copy rerun passes every control, including the 21
+receipt fixtures. The real-tree standalone scheduler
+suite also passes 73/73. EXPECT was changed only in the throwaway copy.
 
 `make all` passes its footprint locks. All 56 production-unit target freshness
 checks and `make -q all` pass again after the telemetry-label rebuild; see
@@ -257,6 +257,19 @@ were parbuild readiness markers, not Makefile targets; their lookup errors remai
 in `freshness-discovery.json`. Disposable lottery/publishfix build hashes and
 freshness are in [variant-builds.json](docs/wave10/variant-builds.json). All six
 original arms and both variants pass netio jobs in 1s/2s and uring/epoll.
+
+The epoll 2s matrix had one directed client-LB destination assertion fail. Whole
+FLIP jobs then pass on both headline and final POST. This is an **unreproduced
+observation**, not a declared fix or noise. Commit `d9ed7de01` adds exact selected
+socket/epoll/IO destination diagnostics while preserving the assertions.
+
+Two blocking companion checks initially failed because the frozen arm directory
+had no matching unit executables/cost binding. Their live protocol legs, including
+the restored stream-removal row, passed. The remaining campaign now uses the
+byte-verified `build/tomokv` with its fresh native companions. The original serial
+campaign was explicitly stopped and every unfinished/failed whole job was
+rescheduled; completed jobs and the cancellation are retained in
+`main-campaign-restart.json` and `remaining-uring-plan.json`.
 
 ### owner-visible
 
