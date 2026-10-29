@@ -1,0 +1,4930 @@
+[
+  {
+    "case": "flush-only",
+    "leg": "redis-redis-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/results.json",
+      "sha256": "0e1088bd10463c06e13e908e761aed110a9c99c405254e95b58bb93a7f13bf12"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/redis-redis-0/observations.json",
+        "sha256": "cdfe845b3b8943d78f2f087ad8ee1bbc426dabe9111c9fc614f262557e722259",
+        "cycles": 36343,
+        "observations": 161600,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ]
+  },
+  {
+    "case": "flush-only",
+    "leg": "1s-uring-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/results.json",
+      "sha256": "0e1088bd10463c06e13e908e761aed110a9c99c405254e95b58bb93a7f13bf12"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/1s-uring-0/observations.json",
+        "sha256": "a211a4512f2bd6c61309f8f0fc7563f2643c6336f18b8e729d9eb7ae3451fbfb",
+        "cycles": 1054,
+        "observations": 187168,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/1s-uring-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-only",
+    "leg": "1s-uring-1",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/results.json",
+      "sha256": "0e1088bd10463c06e13e908e761aed110a9c99c405254e95b58bb93a7f13bf12"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/1s-uring-1/observations.json",
+        "sha256": "4754152fa61a5a3406549ed10ed774e8f5879f54af4b92d4193ec3efc44b218d",
+        "cycles": 6849,
+        "observations": 173037,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/1s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-only",
+    "leg": "1s-epoll-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/results.json",
+      "sha256": "0e1088bd10463c06e13e908e761aed110a9c99c405254e95b58bb93a7f13bf12"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/1s-epoll-0/observations.json",
+        "sha256": "11995f41f4e1031bdb853a11566286e98304859ac13d653a5d387afc149232fe",
+        "cycles": 1974,
+        "observations": 147873,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/1s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-only",
+    "leg": "1s-epoll-1",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/results.json",
+      "sha256": "0e1088bd10463c06e13e908e761aed110a9c99c405254e95b58bb93a7f13bf12"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/1s-epoll-1/observations.json",
+        "sha256": "07acb776ce92752095e6675aafb4fbf2f4bef18aa0851583e1010977d549d9f2",
+        "cycles": 1649,
+        "observations": 134593,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/1s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-only",
+    "leg": "2s-uring-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/results.json",
+      "sha256": "0e1088bd10463c06e13e908e761aed110a9c99c405254e95b58bb93a7f13bf12"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/2s-uring-0/observations.json",
+        "sha256": "5bd957de3778b22e14e1f6f78ff05ed209940266b397ec28fe98e87e5cfeabb8",
+        "cycles": 20894,
+        "observations": 64394,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/2s-uring-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-only",
+    "leg": "2s-uring-1",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/results.json",
+      "sha256": "0e1088bd10463c06e13e908e761aed110a9c99c405254e95b58bb93a7f13bf12"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/2s-uring-1/observations.json",
+        "sha256": "3bbe978283fa1d429331d70ae03e0798133e82e844b98efe7c4902a16351a070",
+        "cycles": 25710,
+        "observations": 80202,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/2s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-only",
+    "leg": "2s-epoll-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/results.json",
+      "sha256": "0e1088bd10463c06e13e908e761aed110a9c99c405254e95b58bb93a7f13bf12"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/2s-epoll-0/observations.json",
+        "sha256": "ad08dd0025bda427aff548f1e7d718f8cd1f5a3ba89596e1f5293291e5e8a3e4",
+        "cycles": 34350,
+        "observations": 111347,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/2s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-only",
+    "leg": "2s-epoll-1",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/results.json",
+      "sha256": "0e1088bd10463c06e13e908e761aed110a9c99c405254e95b58bb93a7f13bf12"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/2s-epoll-1/observations.json",
+        "sha256": "a7f7453d2a1e7536ea172cf698ae1974da2a4c2f2226d81604ba691c9e3d409f",
+        "cycles": 25423,
+        "observations": 78010,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-1-FLUSHALL-SYNC/2s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-only",
+    "leg": "redis-redis-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/results.json",
+      "sha256": "55ae08821c252200e2bb9e4a3576fb40d4ca2f8858a016d93d2176fcad0ebf6c"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/redis-redis-0/observations.json",
+        "sha256": "3331c04c2bf469987f3c7baea48d4ab7dd396e7213b5e4ba45fa9f1e227fbed4",
+        "cycles": 36258,
+        "observations": 163577,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ]
+  },
+  {
+    "case": "flush-only",
+    "leg": "1s-uring-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/results.json",
+      "sha256": "55ae08821c252200e2bb9e4a3576fb40d4ca2f8858a016d93d2176fcad0ebf6c"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/1s-uring-0/observations.json",
+        "sha256": "0d330e0f305e4990f3afd45a016ad8779e9f7b18c963ebdb649f56d430b13e6a",
+        "cycles": 4017,
+        "observations": 126168,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/1s-uring-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-only",
+    "leg": "1s-uring-1",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/results.json",
+      "sha256": "55ae08821c252200e2bb9e4a3576fb40d4ca2f8858a016d93d2176fcad0ebf6c"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/1s-uring-1/observations.json",
+        "sha256": "4fc06aabee54a2a8644b4a73f761821c4674d29169d97abd7b52081393b596ea",
+        "cycles": 795,
+        "observations": 85474,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/1s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-only",
+    "leg": "1s-epoll-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/results.json",
+      "sha256": "55ae08821c252200e2bb9e4a3576fb40d4ca2f8858a016d93d2176fcad0ebf6c"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/1s-epoll-0/observations.json",
+        "sha256": "514f743cc45d6f237655b8d9a608f8682addc608dc2d7cb9b6e27e20144d5a1e",
+        "cycles": 988,
+        "observations": 89634,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/1s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-only",
+    "leg": "1s-epoll-1",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/results.json",
+      "sha256": "55ae08821c252200e2bb9e4a3576fb40d4ca2f8858a016d93d2176fcad0ebf6c"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/1s-epoll-1/observations.json",
+        "sha256": "0ccb25c5e4e1101f721f581ebab801502255a0ca15634dc7c569801f4a63d5e6",
+        "cycles": 1015,
+        "observations": 93069,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/1s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-only",
+    "leg": "2s-uring-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/results.json",
+      "sha256": "55ae08821c252200e2bb9e4a3576fb40d4ca2f8858a016d93d2176fcad0ebf6c"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/2s-uring-0/observations.json",
+        "sha256": "b19f571f72fbb77884fb47a54fabbba02dd8e536909d98a55aed05db1ee61b95",
+        "cycles": 6527,
+        "observations": 68291,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 2,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/2s-uring-0/falsifiers.json",
+      "sha256": "b40979a48defac01c1b27355d12b7540e8462ec963dff79a439e3f78888f4f1c"
+    }
+  },
+  {
+    "case": "flush-only",
+    "leg": "2s-uring-1",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/results.json",
+      "sha256": "55ae08821c252200e2bb9e4a3576fb40d4ca2f8858a016d93d2176fcad0ebf6c"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/2s-uring-1/observations.json",
+        "sha256": "e86c8b6db036d65a3b410b88fc8a5ec6698ee000f91edf17520b0b98bca2be0f",
+        "cycles": 7095,
+        "observations": 79228,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/2s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-only",
+    "leg": "2s-epoll-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/results.json",
+      "sha256": "55ae08821c252200e2bb9e4a3576fb40d4ca2f8858a016d93d2176fcad0ebf6c"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/2s-epoll-0/observations.json",
+        "sha256": "2aabcb389c6b476a549ba427e244fc15f5af8174717f2e84cfaee752d2e03252",
+        "cycles": 19801,
+        "observations": 86673,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 2,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/2s-epoll-0/falsifiers.json",
+      "sha256": "b40979a48defac01c1b27355d12b7540e8462ec963dff79a439e3f78888f4f1c"
+    }
+  },
+  {
+    "case": "flush-only",
+    "leg": "2s-epoll-1",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/results.json",
+      "sha256": "55ae08821c252200e2bb9e4a3576fb40d4ca2f8858a016d93d2176fcad0ebf6c"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/2s-epoll-1/observations.json",
+        "sha256": "338a1aa15752558ad51ce5e1e6eb0f2b4c31a09a5189066d724dde163650dc7d",
+        "cycles": 18262,
+        "observations": 66876,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-only-16-FLUSHALL-SYNC/2s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-pair",
+    "leg": "redis-redis-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/results.json",
+      "sha256": "6b3c87a911e52d89c45571fafaf24b657784c31e91b935fd266fc9fd7846d5a9"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/redis-redis-0/observations.json",
+        "sha256": "fea3e2a2f9d3504fd0122ee4403b88c3c06d93b1f935f9e817c0454da4efb645",
+        "cycles": 87324,
+        "observations": 218425,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ]
+  },
+  {
+    "case": "flush-pair",
+    "leg": "1s-uring-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/results.json",
+      "sha256": "6b3c87a911e52d89c45571fafaf24b657784c31e91b935fd266fc9fd7846d5a9"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/1s-uring-0/observations.json",
+        "sha256": "8846633cd37464f6d85d2c9e58d3844942c7fb3fbf49393c127d18bcfea65265",
+        "cycles": 922,
+        "observations": 213357,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/1s-uring-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-pair",
+    "leg": "1s-uring-1",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/results.json",
+      "sha256": "6b3c87a911e52d89c45571fafaf24b657784c31e91b935fd266fc9fd7846d5a9"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/1s-uring-1/observations.json",
+        "sha256": "2e8a02d8eb6464c043983224c88725caa40cf78bd53e9f3573498b3298577ab1",
+        "cycles": 598,
+        "observations": 212710,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/1s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-pair",
+    "leg": "1s-epoll-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/results.json",
+      "sha256": "6b3c87a911e52d89c45571fafaf24b657784c31e91b935fd266fc9fd7846d5a9"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/1s-epoll-0/observations.json",
+        "sha256": "a546cd19d0fd822ca1615407df8dc9c254ba2376ec829f91e5a68ff1b6721bb3",
+        "cycles": 38850,
+        "observations": 202312,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/1s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-pair",
+    "leg": "1s-epoll-1",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/results.json",
+      "sha256": "6b3c87a911e52d89c45571fafaf24b657784c31e91b935fd266fc9fd7846d5a9"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/1s-epoll-1/observations.json",
+        "sha256": "4910ad5dab9c1396b3378867657e4fefdc80a7d19b0686560f1d821046bc5ea5",
+        "cycles": 979,
+        "observations": 147634,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/1s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-pair",
+    "leg": "2s-uring-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/results.json",
+      "sha256": "6b3c87a911e52d89c45571fafaf24b657784c31e91b935fd266fc9fd7846d5a9"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/2s-uring-0/observations.json",
+        "sha256": "584a3ae1b604eeb6d6765c01bbf4bd3f1c3072ef2e7b013b836f2dd2611c1755",
+        "cycles": 4328,
+        "observations": 14678,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 2,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/2s-uring-0/falsifiers.json",
+      "sha256": "b40979a48defac01c1b27355d12b7540e8462ec963dff79a439e3f78888f4f1c"
+    }
+  },
+  {
+    "case": "flush-pair",
+    "leg": "2s-uring-1",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/results.json",
+      "sha256": "6b3c87a911e52d89c45571fafaf24b657784c31e91b935fd266fc9fd7846d5a9"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/2s-uring-1/observations.json",
+        "sha256": "894174382ed0d7e40563a571d404e6c69c4e481c24f743c2110059252886ad8e",
+        "cycles": 17314,
+        "observations": 51249,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/2s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-pair",
+    "leg": "2s-epoll-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/results.json",
+      "sha256": "6b3c87a911e52d89c45571fafaf24b657784c31e91b935fd266fc9fd7846d5a9"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/2s-epoll-0/observations.json",
+        "sha256": "f64719987a96b01167011c95ec015d59f09a350f32a73c9842475eba55ca5d0b",
+        "cycles": 16233,
+        "observations": 48636,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/2s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-pair",
+    "leg": "2s-epoll-1",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/results.json",
+      "sha256": "6b3c87a911e52d89c45571fafaf24b657784c31e91b935fd266fc9fd7846d5a9"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/2s-epoll-1/observations.json",
+        "sha256": "2ffbea618686d9e68a464839274a86886ffbea63391b0c74b3023ba0a28ec960",
+        "cycles": 56875,
+        "observations": 115298,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-1-FLUSHALL-SYNC/2s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-pair",
+    "leg": "redis-redis-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/results.json",
+      "sha256": "bd5bcf6c6c1024c7de40836850a2b8b154372861fec71e00a300c02fa53d2f08"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/redis-redis-0/observations.json",
+        "sha256": "88b5ac7256358e22f4f862eeeaffc59b179e078d3fe8f75103c80ee83a5a1554",
+        "cycles": 88604,
+        "observations": 218620,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ]
+  },
+  {
+    "case": "flush-pair",
+    "leg": "1s-uring-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/results.json",
+      "sha256": "bd5bcf6c6c1024c7de40836850a2b8b154372861fec71e00a300c02fa53d2f08"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/1s-uring-0/observations.json",
+        "sha256": "c0ec89d843a9686686533ee035528e68ab9676005bc897c487a2391eef7a3010",
+        "cycles": 1118,
+        "observations": 218597,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/1s-uring-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-pair",
+    "leg": "1s-uring-1",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/results.json",
+      "sha256": "bd5bcf6c6c1024c7de40836850a2b8b154372861fec71e00a300c02fa53d2f08"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/1s-uring-1/observations.json",
+        "sha256": "0c08497a5a09aa2462dcf0ddf893d509efcf7c941a53502d7f83ea5fa5199d6b",
+        "cycles": 46813,
+        "observations": 160675,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/1s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-pair",
+    "leg": "1s-epoll-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/results.json",
+      "sha256": "bd5bcf6c6c1024c7de40836850a2b8b154372861fec71e00a300c02fa53d2f08"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/1s-epoll-0/observations.json",
+        "sha256": "597c06a5c6bc6caa0bbdf0b00c9bf46222df8558ca5e8a9406fe9fbff1a9a25f",
+        "cycles": 1592,
+        "observations": 204017,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/1s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-pair",
+    "leg": "1s-epoll-1",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/results.json",
+      "sha256": "bd5bcf6c6c1024c7de40836850a2b8b154372861fec71e00a300c02fa53d2f08"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/1s-epoll-1/observations.json",
+        "sha256": "c0c2b6b97395f381ba6c1e2ecb26cbc3f9941285344aa40a6b67444f67f45c30",
+        "cycles": 50163,
+        "observations": 213672,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 2,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/1s-epoll-1/falsifiers.json",
+      "sha256": "b40979a48defac01c1b27355d12b7540e8462ec963dff79a439e3f78888f4f1c"
+    }
+  },
+  {
+    "case": "flush-pair",
+    "leg": "2s-uring-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/results.json",
+      "sha256": "bd5bcf6c6c1024c7de40836850a2b8b154372861fec71e00a300c02fa53d2f08"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/2s-uring-0/observations.json",
+        "sha256": "3f9465cad7a3f511dcf3fdf3d6069fb5a9976748439ae3c2aae5a56b6d1c31c9",
+        "cycles": 84047,
+        "observations": 203626,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/2s-uring-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-pair",
+    "leg": "2s-uring-1",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/results.json",
+      "sha256": "bd5bcf6c6c1024c7de40836850a2b8b154372861fec71e00a300c02fa53d2f08"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/2s-uring-1/observations.json",
+        "sha256": "0fc9f22bd743d8f0f34fbd08f7591e432ca79147a9d75d2c0e5b816e1b6b668d",
+        "cycles": 83123,
+        "observations": 205628,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/2s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-pair",
+    "leg": "2s-epoll-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/results.json",
+      "sha256": "bd5bcf6c6c1024c7de40836850a2b8b154372861fec71e00a300c02fa53d2f08"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/2s-epoll-0/observations.json",
+        "sha256": "f54e9759567a54b3e9fa2602259b704f2d5b515e13ef181e94a844dcb025c660",
+        "cycles": 86507,
+        "observations": 191466,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/2s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-pair",
+    "leg": "2s-epoll-1",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/results.json",
+      "sha256": "bd5bcf6c6c1024c7de40836850a2b8b154372861fec71e00a300c02fa53d2f08"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/2s-epoll-1/observations.json",
+        "sha256": "69ebc3e9ffabe203640e0fbbe402d7196b5ce17b61f1e473eeb8981e0af460ba",
+        "cycles": 86251,
+        "observations": 186917,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-pair-16-FLUSHALL-SYNC/2s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-script",
+    "leg": "redis-redis-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/results.json",
+      "sha256": "eca67b5885a99d42d2a72a53c9fc6a1fd68db35c304af000a9970880d1ca79a9"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/redis-redis-0/observations.json",
+        "sha256": "3b65c46c05861d57ad1329edecff5cf09af1e5b7ce36887d322150d4af990e9e",
+        "cycles": 66888,
+        "observations": 166129,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ]
+  },
+  {
+    "case": "flush-script",
+    "leg": "1s-uring-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/results.json",
+      "sha256": "eca67b5885a99d42d2a72a53c9fc6a1fd68db35c304af000a9970880d1ca79a9"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/1s-uring-0/observations.json",
+        "sha256": "e27c3628176e043f4c564462253e07a1a63e82c280484a94837b191f8c6c88f5",
+        "cycles": 1025,
+        "observations": 180437,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/1s-uring-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-script",
+    "leg": "1s-uring-1",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/results.json",
+      "sha256": "eca67b5885a99d42d2a72a53c9fc6a1fd68db35c304af000a9970880d1ca79a9"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/1s-uring-1/observations.json",
+        "sha256": "7273723a2ec5e3a5d775d72c2ba97bf0c8801cc18f9006d4e0656eedbdaf5af8",
+        "cycles": 926,
+        "observations": 195989,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/1s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-script",
+    "leg": "1s-epoll-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/results.json",
+      "sha256": "eca67b5885a99d42d2a72a53c9fc6a1fd68db35c304af000a9970880d1ca79a9"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/1s-epoll-0/observations.json",
+        "sha256": "18ac5c273f81cff56c12233dde1aebbe9b7b8a0c40f3ff2073b44ed4fb655eb8",
+        "cycles": 1755,
+        "observations": 130798,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/1s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-script",
+    "leg": "1s-epoll-1",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/results.json",
+      "sha256": "eca67b5885a99d42d2a72a53c9fc6a1fd68db35c304af000a9970880d1ca79a9"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/1s-epoll-1/observations.json",
+        "sha256": "20eba6c155e15a66cb1f63a01313846009e16a543d93f72d1cef561df03306f0",
+        "cycles": 1113,
+        "observations": 179309,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/1s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-script",
+    "leg": "2s-uring-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/results.json",
+      "sha256": "eca67b5885a99d42d2a72a53c9fc6a1fd68db35c304af000a9970880d1ca79a9"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/2s-uring-0/observations.json",
+        "sha256": "2bb70eb19221c2cdc3b09ec5076e8699d89d1ae6c0c42eb81ad8ee21f4ff8d50",
+        "cycles": 40269,
+        "observations": 150364,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 2,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/2s-uring-0/falsifiers.json",
+      "sha256": "b40979a48defac01c1b27355d12b7540e8462ec963dff79a439e3f78888f4f1c"
+    }
+  },
+  {
+    "case": "flush-script",
+    "leg": "2s-uring-1",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/results.json",
+      "sha256": "eca67b5885a99d42d2a72a53c9fc6a1fd68db35c304af000a9970880d1ca79a9"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/2s-uring-1/observations.json",
+        "sha256": "aa39388cfb034e875d6534d8390fe1039a07a20792aad1665e1bf5513bcd1c60",
+        "cycles": 47148,
+        "observations": 121538,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/2s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-script",
+    "leg": "2s-epoll-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/results.json",
+      "sha256": "eca67b5885a99d42d2a72a53c9fc6a1fd68db35c304af000a9970880d1ca79a9"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/2s-epoll-0/observations.json",
+        "sha256": "fd04a4bdd0cbc008ebf7b75d754ea282ed455660b8ce7c4877010ee494e5f5f7",
+        "cycles": 38339,
+        "observations": 105592,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/2s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-script",
+    "leg": "2s-epoll-1",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/results.json",
+      "sha256": "eca67b5885a99d42d2a72a53c9fc6a1fd68db35c304af000a9970880d1ca79a9"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/2s-epoll-1/observations.json",
+        "sha256": "930ec3c7fe1589f2557ba21f077ccad55da615f0adc99e153c4949e8f5beba23",
+        "cycles": 37676,
+        "observations": 105248,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-1-FLUSHALL-SYNC/2s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-script",
+    "leg": "redis-redis-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/results.json",
+      "sha256": "8f7022b520006b97cb70f103d0993f4a5e33ab2f0444eb59275d65455982ff32"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/redis-redis-0/observations.json",
+        "sha256": "759a5d357c3d894f068556205448f3b58fcdb422293370d6613be447f422d031",
+        "cycles": 66515,
+        "observations": 163732,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ]
+  },
+  {
+    "case": "flush-script",
+    "leg": "1s-uring-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/results.json",
+      "sha256": "8f7022b520006b97cb70f103d0993f4a5e33ab2f0444eb59275d65455982ff32"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/1s-uring-0/observations.json",
+        "sha256": "00f9b76136bf3bf3cf3ade9a9c5eb1dff6d0158e1703d20c477434a74a2416e0",
+        "cycles": 1588,
+        "observations": 111017,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/1s-uring-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-script",
+    "leg": "1s-uring-1",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/results.json",
+      "sha256": "8f7022b520006b97cb70f103d0993f4a5e33ab2f0444eb59275d65455982ff32"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/1s-uring-1/observations.json",
+        "sha256": "5db2c46f66bb063a1746cf8c214e4d4f1b8a23ac1f32a3ef33917560b3faaf92",
+        "cycles": 2032,
+        "observations": 86587,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/1s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-script",
+    "leg": "1s-epoll-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/results.json",
+      "sha256": "8f7022b520006b97cb70f103d0993f4a5e33ab2f0444eb59275d65455982ff32"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/1s-epoll-0/observations.json",
+        "sha256": "3ac290fb1a5d70f0c047bf7e5d04da738714a52160c660287098b2a333231dcb",
+        "cycles": 2343,
+        "observations": 157112,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 2,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/1s-epoll-0/falsifiers.json",
+      "sha256": "b40979a48defac01c1b27355d12b7540e8462ec963dff79a439e3f78888f4f1c"
+    }
+  },
+  {
+    "case": "flush-script",
+    "leg": "1s-epoll-1",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/results.json",
+      "sha256": "8f7022b520006b97cb70f103d0993f4a5e33ab2f0444eb59275d65455982ff32"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/1s-epoll-1/observations.json",
+        "sha256": "4cee5a389bf2b0492745878c10d33e68c5f0a9cb648b3cb23cc20f22ffb38747",
+        "cycles": 20419,
+        "observations": 191773,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/1s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-script",
+    "leg": "2s-uring-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/results.json",
+      "sha256": "8f7022b520006b97cb70f103d0993f4a5e33ab2f0444eb59275d65455982ff32"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/2s-uring-0/observations.json",
+        "sha256": "1edc034859674264e08a9b48ead04c65ac6145de320d6527f2aaa95c066e5d06",
+        "cycles": 31348,
+        "observations": 104728,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/2s-uring-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-script",
+    "leg": "2s-uring-1",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/results.json",
+      "sha256": "8f7022b520006b97cb70f103d0993f4a5e33ab2f0444eb59275d65455982ff32"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/2s-uring-1/observations.json",
+        "sha256": "944eeb5211326ef4053bcf1499d79ea1cb3c5910cb7187ba592832b1b418c53c",
+        "cycles": 30893,
+        "observations": 101179,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/2s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-script",
+    "leg": "2s-epoll-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/results.json",
+      "sha256": "8f7022b520006b97cb70f103d0993f4a5e33ab2f0444eb59275d65455982ff32"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/2s-epoll-0/observations.json",
+        "sha256": "fbb518dcc53ad3a69fbbe9f759f4c53164e2807c14cd3f73c73d56bd9f736886",
+        "cycles": 37192,
+        "observations": 132480,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/2s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "flush-script",
+    "leg": "2s-epoll-1",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/results.json",
+      "sha256": "8f7022b520006b97cb70f103d0993f4a5e33ab2f0444eb59275d65455982ff32"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/2s-epoll-1/observations.json",
+        "sha256": "fcb532c7fbafc6b22b6186c2e3c2a3b316491a88f3e8016b5bee8f68a4521e4c",
+        "cycles": 36988,
+        "observations": 117207,
+        "torn": 0,
+        "controls": null,
+        "control_final": null,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/flush-script-16-FLUSHALL-SYNC/2s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "redis-redis-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/results.json",
+      "sha256": "be584fa26ce92e672efc863f708ae58e7b97f00ae15d148ae39a7884918c6345"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/redis-redis-0/observations.json",
+        "sha256": "d501f5c22e88b017272428bae84495b6291ea46f12538b66dade3278dba3c01c",
+        "cycles": 46770,
+        "observations": 140179,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ]
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-uring-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/results.json",
+      "sha256": "be584fa26ce92e672efc863f708ae58e7b97f00ae15d148ae39a7884918c6345"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/1s-uring-0/observations.json",
+        "sha256": "3dfce9d96568ebd533255cfe4bd0fdf3e333eb042b4a695600d4c084a1ef9f6c",
+        "cycles": 1024,
+        "observations": 206813,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 2,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/1s-uring-0/falsifiers.json",
+      "sha256": "b40979a48defac01c1b27355d12b7540e8462ec963dff79a439e3f78888f4f1c"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-uring-1",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/results.json",
+      "sha256": "be584fa26ce92e672efc863f708ae58e7b97f00ae15d148ae39a7884918c6345"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/1s-uring-1/observations.json",
+        "sha256": "cfd7fd2c4720cc620e10e918bc38bd280f8f50f9ddf161b61d53f34f5d95433b",
+        "cycles": 949,
+        "observations": 207826,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/1s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-epoll-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/results.json",
+      "sha256": "be584fa26ce92e672efc863f708ae58e7b97f00ae15d148ae39a7884918c6345"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/1s-epoll-0/observations.json",
+        "sha256": "8f460f29d0bf2834a3b1ff9daac893081ad69ac0a1690de2ff02b4e9a7f0096d",
+        "cycles": 1119,
+        "observations": 196573,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/1s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-epoll-1",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/results.json",
+      "sha256": "be584fa26ce92e672efc863f708ae58e7b97f00ae15d148ae39a7884918c6345"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/1s-epoll-1/observations.json",
+        "sha256": "f4d14cec96313325bbd7719514a60db8323fa598023a68064f777e06f91a8b4d",
+        "cycles": 2142,
+        "observations": 197605,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/1s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-uring-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/results.json",
+      "sha256": "be584fa26ce92e672efc863f708ae58e7b97f00ae15d148ae39a7884918c6345"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/2s-uring-0/observations.json",
+        "sha256": "b3935f01083cae8f8dd2478b10752aa4d3c3a63ffbf33fb5cd9cd7b80d9908bd",
+        "cycles": 43506,
+        "observations": 134147,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/2s-uring-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-uring-1",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/results.json",
+      "sha256": "be584fa26ce92e672efc863f708ae58e7b97f00ae15d148ae39a7884918c6345"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/2s-uring-1/observations.json",
+        "sha256": "c1ebd1da72dbebf4072f61c4e023c9f640083cf93a3a1e380960fd73deb7e7fd",
+        "cycles": 43560,
+        "observations": 133981,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/2s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-epoll-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/results.json",
+      "sha256": "be584fa26ce92e672efc863f708ae58e7b97f00ae15d148ae39a7884918c6345"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/2s-epoll-0/observations.json",
+        "sha256": "51cbfac7868258b4e322147fcb9580e1cd21bf5b2d7e3649f782de893ed8d3a7",
+        "cycles": 40330,
+        "observations": 122040,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/2s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-epoll-1",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/results.json",
+      "sha256": "be584fa26ce92e672efc863f708ae58e7b97f00ae15d148ae39a7884918c6345"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/2s-epoll-1/observations.json",
+        "sha256": "a45bdbc20b21debb8b631af3a5ec75827709f8408fb70a18ea1f8a3d00293e13",
+        "cycles": 39854,
+        "observations": 120893,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-ASYNC/2s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "redis-redis-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/results.json",
+      "sha256": "e88b98c1f0caaae2eec09e25d82b59cca4117b50275791d109d85b13002da4f2"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/redis-redis-0/observations.json",
+        "sha256": "9a1e4f404868eaa4d66ca789fb46fead8330f7f069f6e6170a1945b1d02afbad",
+        "cycles": 34534,
+        "observations": 153222,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ]
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-uring-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/results.json",
+      "sha256": "e88b98c1f0caaae2eec09e25d82b59cca4117b50275791d109d85b13002da4f2"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/1s-uring-0/observations.json",
+        "sha256": "3fb9b80fde5a3d80fd037630468e4cb6d16a66ac1dda6a4a8dc8ebada0aa38cd",
+        "cycles": 1630,
+        "observations": 76174,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 2,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/1s-uring-0/falsifiers.json",
+      "sha256": "b40979a48defac01c1b27355d12b7540e8462ec963dff79a439e3f78888f4f1c"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-uring-1",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/results.json",
+      "sha256": "e88b98c1f0caaae2eec09e25d82b59cca4117b50275791d109d85b13002da4f2"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/1s-uring-1/observations.json",
+        "sha256": "c9b0fe0809d0efb18692feb290eaad86da704946d51fe8afbbb19558302a6114",
+        "cycles": 2260,
+        "observations": 173896,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/1s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-epoll-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/results.json",
+      "sha256": "e88b98c1f0caaae2eec09e25d82b59cca4117b50275791d109d85b13002da4f2"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/1s-epoll-0/observations.json",
+        "sha256": "d7a73419c497554b6ef654ceee1f9c4b73b2243fc2d1e021eef95bd63630c97e",
+        "cycles": 1822,
+        "observations": 113280,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/1s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-epoll-1",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/results.json",
+      "sha256": "e88b98c1f0caaae2eec09e25d82b59cca4117b50275791d109d85b13002da4f2"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/1s-epoll-1/observations.json",
+        "sha256": "d25ed7b2c8176887ea2e08d7f5d8b3e83411d670de008f5cee2c1f60f09abbd8",
+        "cycles": 1110,
+        "observations": 189178,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/1s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-uring-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/results.json",
+      "sha256": "e88b98c1f0caaae2eec09e25d82b59cca4117b50275791d109d85b13002da4f2"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/2s-uring-0/observations.json",
+        "sha256": "f9e38187ed339dc10b4d554401a1a559960f9c40fdcad875158fe3b40263d675",
+        "cycles": 27030,
+        "observations": 85437,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/2s-uring-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-uring-1",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/results.json",
+      "sha256": "e88b98c1f0caaae2eec09e25d82b59cca4117b50275791d109d85b13002da4f2"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/2s-uring-1/observations.json",
+        "sha256": "7cb2ae8400be8d1eec873966a5d720b4da330f223a225667c0835f246fdf4f8f",
+        "cycles": 43168,
+        "observations": 134587,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/2s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-epoll-0",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/results.json",
+      "sha256": "e88b98c1f0caaae2eec09e25d82b59cca4117b50275791d109d85b13002da4f2"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/2s-epoll-0/observations.json",
+        "sha256": "80760e5ef479053d7656579a8945c2e28dde0fdc30dfa42780302b9fd2c57567",
+        "cycles": 39961,
+        "observations": 122383,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/2s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-epoll-1",
+    "databases": 1,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/results.json",
+      "sha256": "e88b98c1f0caaae2eec09e25d82b59cca4117b50275791d109d85b13002da4f2"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/2s-epoll-1/observations.json",
+        "sha256": "4f3055bb86be58d5be3377f2509eeca3057306a3d7a6d8473ee4873cb0c994f4",
+        "cycles": 40035,
+        "observations": 122575,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHALL-SYNC/2s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "redis-redis-0",
+    "databases": 1,
+    "command": "FLUSHDB",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/results.json",
+      "sha256": "76325f521fe4492273ac599c56adc868cbd70ff7437df83992be5dc4c86b8290"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/redis-redis-0/observations.json",
+        "sha256": "c22255a49bbcd0d31cc46fef5a24f7fe76924a8f7702c0247f7664edc5fa9400",
+        "cycles": 46706,
+        "observations": 139901,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ]
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-uring-0",
+    "databases": 1,
+    "command": "FLUSHDB",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/results.json",
+      "sha256": "76325f521fe4492273ac599c56adc868cbd70ff7437df83992be5dc4c86b8290"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/1s-uring-0/observations.json",
+        "sha256": "a140ddc31b6d5859637b3d80d307755b8af24d33066cce069fd34a86b72d7798",
+        "cycles": 31031,
+        "observations": 135386,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/1s-uring-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-uring-1",
+    "databases": 1,
+    "command": "FLUSHDB",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/results.json",
+      "sha256": "76325f521fe4492273ac599c56adc868cbd70ff7437df83992be5dc4c86b8290"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/1s-uring-1/observations.json",
+        "sha256": "c8a31b78460328f7a21601cbca3c480dccc8f9032ab3c1aaeec9a4e1d9c22542",
+        "cycles": 926,
+        "observations": 207881,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/1s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-epoll-0",
+    "databases": 1,
+    "command": "FLUSHDB",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/results.json",
+      "sha256": "76325f521fe4492273ac599c56adc868cbd70ff7437df83992be5dc4c86b8290"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/1s-epoll-0/observations.json",
+        "sha256": "75e9377612d07381a0a95c4952f4a16365b7e995244c781de5c48fe44da27005",
+        "cycles": 1608,
+        "observations": 202702,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/1s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-epoll-1",
+    "databases": 1,
+    "command": "FLUSHDB",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/results.json",
+      "sha256": "76325f521fe4492273ac599c56adc868cbd70ff7437df83992be5dc4c86b8290"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/1s-epoll-1/observations.json",
+        "sha256": "03227b828fd0561b533e86b08be2ae1ba0bc31368e8ec555585690ba4f77dcab",
+        "cycles": 2004,
+        "observations": 202303,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/1s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-uring-0",
+    "databases": 1,
+    "command": "FLUSHDB",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/results.json",
+      "sha256": "76325f521fe4492273ac599c56adc868cbd70ff7437df83992be5dc4c86b8290"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/2s-uring-0/observations.json",
+        "sha256": "b9cb762760458782232ba5c5a21006f50559c6a0cdfff7209bc5dfe5ccd9fe5b",
+        "cycles": 42893,
+        "observations": 135828,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 2,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/2s-uring-0/falsifiers.json",
+      "sha256": "b40979a48defac01c1b27355d12b7540e8462ec963dff79a439e3f78888f4f1c"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-uring-1",
+    "databases": 1,
+    "command": "FLUSHDB",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/results.json",
+      "sha256": "76325f521fe4492273ac599c56adc868cbd70ff7437df83992be5dc4c86b8290"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/2s-uring-1/observations.json",
+        "sha256": "7ce7eff6881c3ae721b5776f63960e6b5fd4920782be1ffcf9c7328bf75c4815",
+        "cycles": 43390,
+        "observations": 133785,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 2,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/2s-uring-1/falsifiers.json",
+      "sha256": "b40979a48defac01c1b27355d12b7540e8462ec963dff79a439e3f78888f4f1c"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-epoll-0",
+    "databases": 1,
+    "command": "FLUSHDB",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/results.json",
+      "sha256": "76325f521fe4492273ac599c56adc868cbd70ff7437df83992be5dc4c86b8290"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/2s-epoll-0/observations.json",
+        "sha256": "85360f4eb71277968713d0495f00fe4a134c402806d3967ef82b63b6a4f4b8ae",
+        "cycles": 40325,
+        "observations": 120977,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/2s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-epoll-1",
+    "databases": 1,
+    "command": "FLUSHDB",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/results.json",
+      "sha256": "76325f521fe4492273ac599c56adc868cbd70ff7437df83992be5dc4c86b8290"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/2s-epoll-1/observations.json",
+        "sha256": "3c7c6a23dcbd39a613a63b6f1a6a739199aa4d113d348c86403a8720630fad92",
+        "cycles": 40315,
+        "observations": 121955,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-ASYNC/2s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "redis-redis-0",
+    "databases": 1,
+    "command": "FLUSHDB",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/results.json",
+      "sha256": "6bf503a552a3d10018d1725e687ea3af031fb307b81158d8adf0d1532283cedc"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/redis-redis-0/observations.json",
+        "sha256": "88001fc79dce3c9e50f48f3c7ad3a4693702438b9bc1329ef9152759c4dfdf9c",
+        "cycles": 45273,
+        "observations": 139955,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ]
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-uring-0",
+    "databases": 1,
+    "command": "FLUSHDB",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/results.json",
+      "sha256": "6bf503a552a3d10018d1725e687ea3af031fb307b81158d8adf0d1532283cedc"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/1s-uring-0/observations.json",
+        "sha256": "ab6347b485658a9d1275308b4077e13457cb81d966fa34122fef7dfea24c07a7",
+        "cycles": 968,
+        "observations": 207571,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/1s-uring-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-uring-1",
+    "databases": 1,
+    "command": "FLUSHDB",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/results.json",
+      "sha256": "6bf503a552a3d10018d1725e687ea3af031fb307b81158d8adf0d1532283cedc"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/1s-uring-1/observations.json",
+        "sha256": "07bc3d90b7a3799cb301989b6e2d3849497f4b15977be71294f65dadc4b2f743",
+        "cycles": 1088,
+        "observations": 205147,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/1s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-epoll-0",
+    "databases": 1,
+    "command": "FLUSHDB",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/results.json",
+      "sha256": "6bf503a552a3d10018d1725e687ea3af031fb307b81158d8adf0d1532283cedc"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/1s-epoll-0/observations.json",
+        "sha256": "f1e994815b356ab3187ded136c74c1486fb2a30268fbce57c3c2900a61132b58",
+        "cycles": 1823,
+        "observations": 196767,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/1s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-epoll-1",
+    "databases": 1,
+    "command": "FLUSHDB",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/results.json",
+      "sha256": "6bf503a552a3d10018d1725e687ea3af031fb307b81158d8adf0d1532283cedc"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/1s-epoll-1/observations.json",
+        "sha256": "d8775041c440029730e9df988d77f7e3583c07ea0e51ac7b04f1f8c990651aad",
+        "cycles": 1746,
+        "observations": 201631,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/1s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-uring-0",
+    "databases": 1,
+    "command": "FLUSHDB",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/results.json",
+      "sha256": "6bf503a552a3d10018d1725e687ea3af031fb307b81158d8adf0d1532283cedc"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/2s-uring-0/observations.json",
+        "sha256": "d7c2a43a0734072698ac9331a0ef8602c45f27bbcf886613dbcd129cea489f70",
+        "cycles": 42668,
+        "observations": 135706,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 2,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/2s-uring-0/falsifiers.json",
+      "sha256": "b40979a48defac01c1b27355d12b7540e8462ec963dff79a439e3f78888f4f1c"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-uring-1",
+    "databases": 1,
+    "command": "FLUSHDB",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/results.json",
+      "sha256": "6bf503a552a3d10018d1725e687ea3af031fb307b81158d8adf0d1532283cedc"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/2s-uring-1/observations.json",
+        "sha256": "e1086abe744d4c4ae3d864cf62d866a1268b43a18d66a62dd1068f07702dd43f",
+        "cycles": 43543,
+        "observations": 133873,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/2s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-epoll-0",
+    "databases": 1,
+    "command": "FLUSHDB",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/results.json",
+      "sha256": "6bf503a552a3d10018d1725e687ea3af031fb307b81158d8adf0d1532283cedc"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/2s-epoll-0/observations.json",
+        "sha256": "84e6539eda93855464a7d3bbe29537bc134ff55d76b10073ebabc18e870ee641",
+        "cycles": 40132,
+        "observations": 122435,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/2s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-epoll-1",
+    "databases": 1,
+    "command": "FLUSHDB",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/results.json",
+      "sha256": "6bf503a552a3d10018d1725e687ea3af031fb307b81158d8adf0d1532283cedc"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/2s-epoll-1/observations.json",
+        "sha256": "0113bcafdac75e1110aed9fd6562070ac0bc969a92a6045c2301a542effe1488",
+        "cycles": 40382,
+        "observations": 121146,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-1-FLUSHDB-SYNC/2s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "redis-redis-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/results.json",
+      "sha256": "fd862e2b66b32592c9689315345c79898811ad23323925eb1fed9d6168eeaa69"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/redis-redis-0/observations.json",
+        "sha256": "d877f70a3c5a223771e4b0d3fddd126778c3b3532b76bda128e23e1e326bd8bc",
+        "cycles": 43940,
+        "observations": 128046,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ]
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-uring-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/results.json",
+      "sha256": "fd862e2b66b32592c9689315345c79898811ad23323925eb1fed9d6168eeaa69"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/1s-uring-0/observations.json",
+        "sha256": "e15ee0a3a2024fe88de128c9affb1fefee180c3fe63bbb6a64e4f7d2ddf59e17",
+        "cycles": 17326,
+        "observations": 177275,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/1s-uring-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-uring-1",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/results.json",
+      "sha256": "fd862e2b66b32592c9689315345c79898811ad23323925eb1fed9d6168eeaa69"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/1s-uring-1/observations.json",
+        "sha256": "2666ed2e632b17e0d0ffd0092cd2dabff7d538dd586726b1689a3baf96969e13",
+        "cycles": 16778,
+        "observations": 158164,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/1s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-epoll-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/results.json",
+      "sha256": "fd862e2b66b32592c9689315345c79898811ad23323925eb1fed9d6168eeaa69"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/1s-epoll-0/observations.json",
+        "sha256": "6aeea45e69d75c7976122951639f40313a8f3b9a9aa4d00a96d55f5a90cc2769",
+        "cycles": 2147,
+        "observations": 147794,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 2,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/1s-epoll-0/falsifiers.json",
+      "sha256": "b40979a48defac01c1b27355d12b7540e8462ec963dff79a439e3f78888f4f1c"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-epoll-1",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/results.json",
+      "sha256": "fd862e2b66b32592c9689315345c79898811ad23323925eb1fed9d6168eeaa69"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/1s-epoll-1/observations.json",
+        "sha256": "dc1d820473a54ecfb4a890136a758443295e1bbf1177c85008ff75af5d628e49",
+        "cycles": 869,
+        "observations": 110811,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/1s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-uring-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/results.json",
+      "sha256": "fd862e2b66b32592c9689315345c79898811ad23323925eb1fed9d6168eeaa69"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/2s-uring-0/observations.json",
+        "sha256": "a50b4f7e1fba6043058eb8313005ab17f319e8fc824400527fa3a90ce1d97f86",
+        "cycles": 27132,
+        "observations": 89443,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/2s-uring-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-uring-1",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/results.json",
+      "sha256": "fd862e2b66b32592c9689315345c79898811ad23323925eb1fed9d6168eeaa69"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/2s-uring-1/observations.json",
+        "sha256": "8b9d267eb0f527676bba24ce0c22c15ddc9dbeb471298a5ab85c57e07d937dcc",
+        "cycles": 10003,
+        "observations": 43563,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/2s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-epoll-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/results.json",
+      "sha256": "fd862e2b66b32592c9689315345c79898811ad23323925eb1fed9d6168eeaa69"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/2s-epoll-0/observations.json",
+        "sha256": "e250367402029559455e1503c1a7a722b748ab23d8eb4a9595a365b95177848d",
+        "cycles": 8582,
+        "observations": 31911,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 2,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/2s-epoll-0/falsifiers.json",
+      "sha256": "b40979a48defac01c1b27355d12b7540e8462ec963dff79a439e3f78888f4f1c"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-epoll-1",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/results.json",
+      "sha256": "fd862e2b66b32592c9689315345c79898811ad23323925eb1fed9d6168eeaa69"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/2s-epoll-1/observations.json",
+        "sha256": "cc206f75f8079a50788d5aca3d7b1a44a936c29872049332224a8a3531688e67",
+        "cycles": 9465,
+        "observations": 36613,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 2,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-ASYNC/2s-epoll-1/falsifiers.json",
+      "sha256": "b40979a48defac01c1b27355d12b7540e8462ec963dff79a439e3f78888f4f1c"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "redis-redis-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/results.json",
+      "sha256": "5177ec325e910a65d87a4baacb7ea36d220e7bb221c783712dbd30f6affca943"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/redis-redis-0/observations.json",
+        "sha256": "04d7eb4e218a407e89147ef64ecea1d8a5eb0e14183250c9bc0e778cc64d5f0c",
+        "cycles": 33426,
+        "observations": 148934,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ]
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-uring-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/results.json",
+      "sha256": "5177ec325e910a65d87a4baacb7ea36d220e7bb221c783712dbd30f6affca943"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/1s-uring-0/observations.json",
+        "sha256": "e3347710c2eef9f0f01135664cefbcc5720ca2037ac8d373eb6c2aa6acd18ea7",
+        "cycles": 20579,
+        "observations": 148934,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/1s-uring-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-uring-1",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/results.json",
+      "sha256": "5177ec325e910a65d87a4baacb7ea36d220e7bb221c783712dbd30f6affca943"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/1s-uring-1/observations.json",
+        "sha256": "564bb3b9c8ec25a2c32667cd6c38b07bd7c7bb68c91ad0e99ad7f5787bcd5ff0",
+        "cycles": 1197,
+        "observations": 155725,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/1s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-epoll-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/results.json",
+      "sha256": "5177ec325e910a65d87a4baacb7ea36d220e7bb221c783712dbd30f6affca943"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/1s-epoll-0/observations.json",
+        "sha256": "43a23f3defa2b28b660db9822babf2fa0d42694a71bc55f38d9589c1b8e506a5",
+        "cycles": 1958,
+        "observations": 197841,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/1s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-epoll-1",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/results.json",
+      "sha256": "5177ec325e910a65d87a4baacb7ea36d220e7bb221c783712dbd30f6affca943"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/1s-epoll-1/observations.json",
+        "sha256": "3622cff87518c647403e73d04e0dd8b0471380bd42382a672f8bffb271b5d147",
+        "cycles": 8240,
+        "observations": 204649,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/1s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-uring-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/results.json",
+      "sha256": "5177ec325e910a65d87a4baacb7ea36d220e7bb221c783712dbd30f6affca943"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/2s-uring-0/observations.json",
+        "sha256": "a3e033c2c116261b9e14b7759ca55c402d5b1f974ee64a240b8ff7696ff37c96",
+        "cycles": 38138,
+        "observations": 122670,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/2s-uring-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-uring-1",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/results.json",
+      "sha256": "5177ec325e910a65d87a4baacb7ea36d220e7bb221c783712dbd30f6affca943"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/2s-uring-1/observations.json",
+        "sha256": "955066c7cbe3a959a3802b4a016701d38636ebc3a8dacb311a2d6bb3e1c9ca00",
+        "cycles": 21024,
+        "observations": 66064,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/2s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-epoll-0",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/results.json",
+      "sha256": "5177ec325e910a65d87a4baacb7ea36d220e7bb221c783712dbd30f6affca943"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/2s-epoll-0/observations.json",
+        "sha256": "074a1e06a45f0343438b8dc926d7f0248156cd1ea92e6c300eca6051e6f18402",
+        "cycles": 20457,
+        "observations": 61672,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/2s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-epoll-1",
+    "databases": 16,
+    "command": "FLUSHALL",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/results.json",
+      "sha256": "5177ec325e910a65d87a4baacb7ea36d220e7bb221c783712dbd30f6affca943"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/2s-epoll-1/observations.json",
+        "sha256": "2ddd1418dff3338eaf99ba2615b99059e2b2f40e0c9ff67e869b8ffbe834de42",
+        "cycles": 31518,
+        "observations": 94680,
+        "torn": 0,
+        "controls": 0,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHALL-SYNC/2s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "redis-redis-0",
+    "databases": 16,
+    "command": "FLUSHDB",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/results.json",
+      "sha256": "64e5b2fec8f40d2fc959a03cf68b9953780b43513a59ed3757143608e55969ca"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/redis-redis-0/observations.json",
+        "sha256": "40d75aaadda5879145190013472909af8bfcd6d3d4a6227dc8ebe085186ae6cb",
+        "cycles": 25721,
+        "observations": 68626,
+        "torn": 0,
+        "controls": 124938,
+        "control_final": true,
+        "errors": []
+      }
+    ]
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-uring-0",
+    "databases": 16,
+    "command": "FLUSHDB",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/results.json",
+      "sha256": "64e5b2fec8f40d2fc959a03cf68b9953780b43513a59ed3757143608e55969ca"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/1s-uring-0/observations.json",
+        "sha256": "2cd6c911949f0ef59502aebb0e3e95ec20616d1a744bfcdd6965737211d08e7f",
+        "cycles": 1308,
+        "observations": 79061,
+        "torn": 0,
+        "controls": 123738,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 2,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/1s-uring-0/falsifiers.json",
+      "sha256": "b40979a48defac01c1b27355d12b7540e8462ec963dff79a439e3f78888f4f1c"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-uring-1",
+    "databases": 16,
+    "command": "FLUSHDB",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/results.json",
+      "sha256": "64e5b2fec8f40d2fc959a03cf68b9953780b43513a59ed3757143608e55969ca"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/1s-uring-1/observations.json",
+        "sha256": "89c89292f0bbcc663dec05d19214b49d9375ccd904f07eebe84a47f613c57df5",
+        "cycles": 1348,
+        "observations": 112267,
+        "torn": 0,
+        "controls": 126426,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 2,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/1s-uring-1/falsifiers.json",
+      "sha256": "b40979a48defac01c1b27355d12b7540e8462ec963dff79a439e3f78888f4f1c"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-epoll-0",
+    "databases": 16,
+    "command": "FLUSHDB",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/results.json",
+      "sha256": "64e5b2fec8f40d2fc959a03cf68b9953780b43513a59ed3757143608e55969ca"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/1s-epoll-0/observations.json",
+        "sha256": "25729433d7b831a74e367b4a61abaf976391331f26ccd15d31e1a6c61fcf02a6",
+        "cycles": 1918,
+        "observations": 78480,
+        "torn": 0,
+        "controls": 190416,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/1s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-epoll-1",
+    "databases": 16,
+    "command": "FLUSHDB",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/results.json",
+      "sha256": "64e5b2fec8f40d2fc959a03cf68b9953780b43513a59ed3757143608e55969ca"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/1s-epoll-1/observations.json",
+        "sha256": "98b7668cdd703abc8d6cd10ed135f4532d7f0caac7d57ddd40d1d678bf29c049",
+        "cycles": 1501,
+        "observations": 82168,
+        "torn": 0,
+        "controls": 192134,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 2,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/1s-epoll-1/falsifiers.json",
+      "sha256": "b40979a48defac01c1b27355d12b7540e8462ec963dff79a439e3f78888f4f1c"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-uring-0",
+    "databases": 16,
+    "command": "FLUSHDB",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/results.json",
+      "sha256": "64e5b2fec8f40d2fc959a03cf68b9953780b43513a59ed3757143608e55969ca"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/2s-uring-0/observations.json",
+        "sha256": "7ff325ca3437d3418c3ec5b55de177f342b1c76a9e61e0a4d5bf2dc65872c07e",
+        "cycles": 6999,
+        "observations": 25918,
+        "torn": 0,
+        "controls": 44108,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/2s-uring-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-uring-1",
+    "databases": 16,
+    "command": "FLUSHDB",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/results.json",
+      "sha256": "64e5b2fec8f40d2fc959a03cf68b9953780b43513a59ed3757143608e55969ca"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/2s-uring-1/observations.json",
+        "sha256": "44580eb1c62e491b03ce128c41d1a1b27598df582b7b080cc28fdfb3d47b0c43",
+        "cycles": 6082,
+        "observations": 24552,
+        "torn": 0,
+        "controls": 61394,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/2s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-epoll-0",
+    "databases": 16,
+    "command": "FLUSHDB",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/results.json",
+      "sha256": "64e5b2fec8f40d2fc959a03cf68b9953780b43513a59ed3757143608e55969ca"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/2s-epoll-0/observations.json",
+        "sha256": "7e426191f1176de902d4a22a768a1cf07cfaca2fd0854a86167c81ec301507b4",
+        "cycles": 4033,
+        "observations": 19712,
+        "torn": 0,
+        "controls": 31013,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/2s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-epoll-1",
+    "databases": 16,
+    "command": "FLUSHDB",
+    "flush_mode": "ASYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/results.json",
+      "sha256": "64e5b2fec8f40d2fc959a03cf68b9953780b43513a59ed3757143608e55969ca"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/2s-epoll-1/observations.json",
+        "sha256": "c0d0b1f34f98b605498061cd03dc441df575571c3df4f7cef2b6836b5eb1b9d3",
+        "cycles": 6255,
+        "observations": 21735,
+        "torn": 0,
+        "controls": 33768,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-ASYNC/2s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "redis-redis-0",
+    "databases": 16,
+    "command": "FLUSHDB",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/results.json",
+      "sha256": "037afa44cf1852dd892707198945478e827c5f65a46ee86cc37f221c4edc6603"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/redis-redis-0/observations.json",
+        "sha256": "695d819883d5ba2795ba2df1b073c9f7525bdbd0d2fe6d1f2e258bc8b13e54ec",
+        "cycles": 10187,
+        "observations": 50165,
+        "torn": 0,
+        "controls": 71590,
+        "control_final": true,
+        "errors": []
+      }
+    ]
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-uring-0",
+    "databases": 16,
+    "command": "FLUSHDB",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/results.json",
+      "sha256": "037afa44cf1852dd892707198945478e827c5f65a46ee86cc37f221c4edc6603"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/1s-uring-0/observations.json",
+        "sha256": "e33623c9b243f5a1c1bfb041e06360a23b31628a0f5221be59eedc55f22cbf29",
+        "cycles": 634,
+        "observations": 73246,
+        "torn": 0,
+        "controls": 94036,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/1s-uring-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-uring-1",
+    "databases": 16,
+    "command": "FLUSHDB",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/results.json",
+      "sha256": "037afa44cf1852dd892707198945478e827c5f65a46ee86cc37f221c4edc6603"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/1s-uring-1/observations.json",
+        "sha256": "71e17da213281fe03b9fb2a2184c722c5b1e4177d79d34eeed911856723c6d70",
+        "cycles": 870,
+        "observations": 64730,
+        "torn": 0,
+        "controls": 84593,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/1s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-epoll-0",
+    "databases": 16,
+    "command": "FLUSHDB",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/results.json",
+      "sha256": "037afa44cf1852dd892707198945478e827c5f65a46ee86cc37f221c4edc6603"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/1s-epoll-0/observations.json",
+        "sha256": "a504164aa024e070f57c57cea7fc4eca8fa5a31ed7854a4d60ef766c10295422",
+        "cycles": 12751,
+        "observations": 124490,
+        "torn": 0,
+        "controls": 163945,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/1s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "1s-epoll-1",
+    "databases": 16,
+    "command": "FLUSHDB",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/results.json",
+      "sha256": "037afa44cf1852dd892707198945478e827c5f65a46ee86cc37f221c4edc6603"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/1s-epoll-1/observations.json",
+        "sha256": "298e3ec207d835b09314d635195457cb9995031af841dacfed19105038ef9eb9",
+        "cycles": 7544,
+        "observations": 156797,
+        "torn": 0,
+        "controls": 176020,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/1s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-uring-0",
+    "databases": 16,
+    "command": "FLUSHDB",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/results.json",
+      "sha256": "037afa44cf1852dd892707198945478e827c5f65a46ee86cc37f221c4edc6603"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/2s-uring-0/observations.json",
+        "sha256": "3ce1311d8c20cd93f85d1ef1b496f5ef3769fb47a35f196ac928bafd0ca4e021",
+        "cycles": 10532,
+        "observations": 35802,
+        "torn": 0,
+        "controls": 82003,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/2s-uring-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-uring-1",
+    "databases": 16,
+    "command": "FLUSHDB",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/results.json",
+      "sha256": "037afa44cf1852dd892707198945478e827c5f65a46ee86cc37f221c4edc6603"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/2s-uring-1/observations.json",
+        "sha256": "42d075b735701093cc32da90efb6fd2324e9083922aa5e6b82787600e85f2b20",
+        "cycles": 8027,
+        "observations": 29786,
+        "torn": 0,
+        "controls": 47904,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/2s-uring-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-epoll-0",
+    "databases": 16,
+    "command": "FLUSHDB",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/results.json",
+      "sha256": "037afa44cf1852dd892707198945478e827c5f65a46ee86cc37f221c4edc6603"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/2s-epoll-0/observations.json",
+        "sha256": "fc24c70ea715eecd355ac8b03593d6479d868d6e12e63909c947cfbe204c0f4c",
+        "cycles": 10009,
+        "observations": 38903,
+        "torn": 0,
+        "controls": 60938,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/2s-epoll-0/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  },
+  {
+    "case": "namespace",
+    "leg": "2s-epoll-1",
+    "databases": 16,
+    "command": "FLUSHDB",
+    "flush_mode": "SYNC",
+    "pass": true,
+    "result_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/results.json",
+      "sha256": "037afa44cf1852dd892707198945478e827c5f65a46ee86cc37f221c4edc6603"
+    },
+    "attempts": [
+      {
+        "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/2s-epoll-1/observations.json",
+        "sha256": "7069ccccc06a1bb752cfd24115921e8732c7b37f8c0f6be0e47c3dd4525b499c",
+        "cycles": 18584,
+        "observations": 72862,
+        "torn": 0,
+        "controls": 118829,
+        "control_final": true,
+        "errors": []
+      }
+    ],
+    "falsifiers": [
+      {
+        "atomic_flush_units": 1,
+        "atomic_flush_range_reads": 5,
+        "atomic_flush_post_versions": 3,
+        "atomic_flush_script_conflicts": 2,
+        "atomic_flush_slow_collapses": 3,
+        "script_reply": [
+          1,
+          1
+        ]
+      }
+    ],
+    "falsifier_file": {
+      "path": "build/gate-run.XQeBb8/jobs/flushfix2/namespace-16-FLUSHDB-SYNC/2s-epoll-1/falsifiers.json",
+      "sha256": "750b9f3fa252844539c6c2140031369e2925e31f79bf485353af0c5c07d4f91b"
+    }
+  }
+]

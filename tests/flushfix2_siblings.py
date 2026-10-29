@@ -192,39 +192,80 @@ def reload(args, directory, mode, engine, atomic, oracle):
     with s.Boot(args, directory, mode, engine, atomic, oracle, extra=extra) as b:
         c = b.c
         pair, _ = s.keys_for(c, 'flushfix2:reload', oracle, 2)
-        for key in pair:
-            c.must('SET', key, 1)
         for begin in range(0, 12000, 500):
             c.raw(b''.join(encode('SET', f'flushfix2:bulk:{i}', 'v' * 64) for i in range(begin, begin+500)))
             assert all(c.read() == b'OK' for _ in range(500))
+        # Put the observed keys at the end of the AOF: loading the intervening
+        # residents exposes the clear-to-reinsert window to stamped reads.
+        for key in pair:
+            c.must('SET', key, 1)
         c.must('SAVE')
-        counts = dict(loads=0, pair_reads=0, get_reads=0, torn=0, missing=0)
+        counts = dict(loads=0, pair_reads=0, get_reads=0, torn=0, missing=0,
+                      pair_missing=0, loading_replies=0, writes=0, script_torn=0,
+                      load_errors=0, get_regressions=0)
+        observer_ready = threading.Event()
+        single_ready = threading.Event()
+        writer_ready = threading.Event()
+        def loading(value):
+            if isinstance(value, RespError) and value.message.startswith(b'LOADING '):
+                assert oracle, value
+                counts['loading_replies'] += 1
+                return True
+            if isinstance(value, RespError):
+                raise value
+            return False
         def load(stop):
             with conn(b, args) as x:
+                assert observer_ready.wait(args.stall), 'reload observer never armed'
+                assert single_ready.wait(args.stall), 'single-key observer never armed'
+                assert writer_ready.wait(args.stall), 'reload writer never armed'
                 while not stop.is_set():
-                    if aof:
-                        x.must('DEBUG', 'LOADAOF')
-                    else:
-                        x.must('DEBUG', 'RELOAD', 'NOSAVE')
+                    reply = x.cmd('DEBUG', 'LOADAOF' if aof else 'RELOAD')
+                    if isinstance(reply, RespError):
+                        counts['load_errors'] += 1
+                        continue
+                    assert reply == b'OK', reply
                     counts['loads'] += 1
         def observe(stop):
             with conn(b, args) as x:
                 while not stop.is_set():
-                    v = x.must('MGET', *pair)
+                    v = x.cmd('MGET', *pair)
+                    if loading(v):
+                        continue
                     counts['pair_reads'] += 1
+                    observer_ready.set()
                     counts['torn'] += v[0] != v[1]
+                    counts['pair_missing'] += any(value is None for value in v)
         def single(stop):
             with conn(b, args) as x:
+                previous = 0
                 while not stop.is_set():
-                    v = x.must('GET', pair[0])
+                    v = x.cmd('GET', pair[0])
+                    if loading(v):
+                        continue
                     counts['get_reads'] += 1
+                    single_ready.set()
                     counts['missing'] += v is None
-                    assert v in (None, b'1')
-        errors = s.run_storm(args.seconds, [load, observe, single], args.stall)
+                    assert v is None or int(v) > 0
+                    if v is not None:
+                        current = int(v)
+                        counts['get_regressions'] += current < previous
+                        previous = current
+        def write(stop):
+            with conn(b, args) as x:
+                while not stop.is_set():
+                    reply = x.cmd('EVAL', s.WRITE, 2, *pair)
+                    if loading(reply):
+                        continue
+                    assert isinstance(reply, list) and len(reply) == 2, reply
+                    counts['script_torn'] += reply[0] != reply[1]
+                    counts['writes'] += 1
+                    writer_ready.set()
+        errors = s.run_storm(args.seconds, [load, observe, single, write], args.stall)
         result = dict(**counts, errors=errors)
         (directory / 'reload-witness.json').write_text(json.dumps(result, indent=2) + '\n')
-        assert not errors and counts['loads'] and counts['pair_reads'] and counts['get_reads'], result
-        assert not counts['torn'] and not counts['missing'], result
+        assert not errors and counts['loads'] and counts['pair_reads'] and counts['get_reads'] and counts['writes'], result
+        assert not any(counts[k] for k in ('torn', 'missing', 'pair_missing', 'script_torn', 'load_errors', 'get_regressions')), result
         return result
 
 
