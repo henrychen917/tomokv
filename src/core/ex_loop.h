@@ -1550,7 +1550,18 @@ private:
         // Planted regression for the serverless negative control: the pre-flipfix5 test.
         if (test_live_epoch_ack_test_) return !srv_->flip_acked(self_->id(), stage);
 #endif
+        if (__builtin_expect(srv_->debug_flip_stage_hold_us() != 0, false))
+            debug_flip_stage_hold(stage);
         return srv_->flip_stage_owed(self_->id(), stage);
+    }
+
+    // DEBUG FLIP-STAGE-HOLD: bounded spin; only ExInstall that this executor already acknowledged.
+    __attribute__((noinline, cold)) void debug_flip_stage_hold(FlipStage stage) const {
+        if (stage != FlipStage::ExInstall || !srv_->flip_acked(self_->id(), stage)) return;
+        const uint64_t epoch = srv_->flip_epoch();
+        const uint64_t deadline =
+            now_ns() + static_cast<uint64_t>(srv_->debug_flip_stage_hold_us()) * 1000ull;
+        while (srv_->flip_epoch() == epoch && now_ns() < deadline) __builtin_ia32_pause();
     }
 
     uint32_t flip_control_pass() {

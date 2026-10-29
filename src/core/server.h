@@ -1732,6 +1732,16 @@ public:
     uint64_t flip_stale_stage_refusals() const {
         return flip_stale_stage_refusals_.load(std::memory_order_relaxed);
     }
+    // TEST HOOK (DEBUG FLIP-STAGE-HOLD <us>). An executor that has already acknowledged ExInstall
+    // and samples it again is held before its owed test until the next FLIP is admitted or the
+    // bound expires: the hold flipfix5 measured from io_uring kernel work, made deterministic for
+    // the live directed row on both engines. Read only inside a matching non-Idle control branch.
+    void set_debug_flip_stage_hold(uint16_t microseconds) {
+        debug_flip_stage_hold_us_.store(microseconds, std::memory_order_relaxed);
+    }
+    uint16_t debug_flip_stage_hold_us() const {
+        return debug_flip_stage_hold_us_.load(std::memory_order_relaxed);
+    }
     bool flip_all_role_acked(Role role, FlipStage stage) const {
         for (uint32_t tid = 0; tid < nthreads(); tid++)
             if (thread(tid).role() == role && !flip_acked(tid, stage)) return false;
@@ -3592,9 +3602,11 @@ private:
     uint32_t flip_coordinator_ = UINT32_MAX;
     uint32_t unix_owner_tid_ = UINT32_MAX;
     std::atomic<bool> flip_failed_{false};
+    // TEST HOOK (DEBUG FLIP-STAGE-HOLD); production 0. Existing padding after flip_failed_.
+    std::atomic<uint16_t> debug_flip_stage_hold_us_{0};
     // Control-pass stage samples that the pre-flipfix5 acknowledgement test would have acted on
-    // after their stage stopped being live (flip_stage_owed). Diagnostic; wraps at 2^32. Occupies
-    // the existing padding after flip_failed_, so no Server member moves.
+    // after their stage stopped being live (flip_stage_owed). Diagnostic; wraps at 2^32. Both
+    // fields occupy the existing padding after flip_failed_, so no Server member moves.
     mutable std::atomic<uint32_t> flip_stale_stage_refusals_{0};
     mutable std::mutex flip_error_mu_;
     std::string flip_error_;
