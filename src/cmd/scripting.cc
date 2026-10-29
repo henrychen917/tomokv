@@ -211,11 +211,15 @@ private:
         const std::string_view spelling(sha.p, sha.n);
         const auto found = scripts_.find(spelling);
         if (found != scripts_.end() || sha.n != 40) return found;
+        return remember_alias(spelling);
+    }
+
+    __attribute__((cold, noinline)) Digests::const_iterator remember_alias(std::string_view spelling) const {
         // Only a new spelling takes this cold path. Canonical digests and warm
         // uppercase/mixed-case aliases use the same allocation-free lookup.
         char normalized[40];
         for (unsigned i = 0; i < 40; ++i) {
-            const char ch = sha.p[i];
+            const char ch = spelling[i];
             normalized[i] = ch >= 'A' && ch <= 'Z' ? ch + ('a' - 'A') : ch;
         }
         const auto canonical = scripts_.find(std::string_view(normalized, sizeof(normalized)));
