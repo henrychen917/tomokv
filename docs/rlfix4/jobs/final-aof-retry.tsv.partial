@@ -1,3 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=persistfix2_errors; NOT A RECEIPT
-ok	0.000000	release build (+footprint locks)
-ok	7.390000	persistfix2 AOF write-error refusal and read availability

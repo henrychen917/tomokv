@@ -439,3 +439,11 @@ the quiet box and may use its established wider instrument placement. Use
 `/home/user/Projects/cx-exec1s-d/build/benchtxn` for EXEC/depth and record its hash.
 Do not run the two snapshot arms concurrently. The measurement cell files and
 fixed anchor are hashed; append results as MEASURE-RESULT.
+
+### Maintainer note: rlfix4 excluded from the landing (2026-10-29)
+
+The maintainer's merit compared the integrated POST against `POST-without-rlfix4-current` on the quiet box:
+- **Read-local, 3 blocks.** d32g_l1 −1.30 / +3.26 / +1.78% (median +1.78%); x9_32_l1 −2.02 / +1.43 / −2.79% (median −2.02%).
+- **Contended-script storm, 3 blocks.** rlfix4 costs scripts −3.67%, EXEC −3.84% and plain INCR −2.92%. Every run with rlfix4 was below every run without it.
+
+That is no consistent read-local gain and a consistent cost, so rlfix4's merge `d53549aa4` is reverted here (merit decides; hardcode-or-delete). The revert covers its production code, Makefile budget, tests and docs. Its `tests/persistfix2.py` harness fix (arming the write-failure file limit only after the transactions are queued) is kept. The `no_stack_protector` attribute on `hash_key` leaves with it. rlfix4 stays shelved on branch `cx-rlfix4`.

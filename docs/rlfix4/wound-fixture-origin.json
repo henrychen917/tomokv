@@ -1,8 +1,0 @@
-{
-  "source_commit": "fc8528675",
-  "source_path": "tests/txnorder_wound_window.cc",
-  "local_path": "tests/rlfix4_wound_window.cc",
-  "sha256": "96fb346b797591f8c36ec72cbdc83c5d1edc8be9b4ee39a19209c167ae542616",
-  "registered_defect": "AT4-WOUND-1",
-  "register": "/home/user/Projects/round4-read/REGISTER.md:460"
-}

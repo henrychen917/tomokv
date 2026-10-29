@@ -1,7 +1,0 @@
-{
-  "change": "always_inline on the local siphash12 round lambda",
-  "source_commit": "11ae8a977",
-  "server_sha256": "a18ff3b3ae9a047f6bfd6457d6ebc5fd407c14fd3eb0917518b17de61be88173",
-  "result": "Rejected: owner DB0 GET +10/op; normal MGET/MSET +16/eight-key op",
-  "counts": "instructions/results-round-all.json"
-}

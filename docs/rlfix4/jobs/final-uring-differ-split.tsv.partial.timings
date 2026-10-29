@@ -1,3 +1,0 @@
-ok	0.000000	release build (+footprint locks)
-ok	728.310000	Redis 7.4 differential part (split, atomic 0)
-ok	586.840000	Redis 7.4 differential part (split, atomic 1)

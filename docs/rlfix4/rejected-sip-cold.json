@@ -1,8 +1,0 @@
-{
-  "change": "noinline on siphash12",
-  "source_commit": "11ae8a977",
-  "flags": "release with -g0",
-  "sha256": "79ec1f25c288e1f1889bd46d2b1bdedb99196c75992a3acc1cc49dd4dec55021",
-  "result": "Rejected: normal eight-key MGET/MSET +16, DB0 owner GET +10",
-  "counts": "instructions/results-sip-cold-all.json"
-}

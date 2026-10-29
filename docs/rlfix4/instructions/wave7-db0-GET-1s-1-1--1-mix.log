@@ -1,5 +1,0 @@
-/home/user/Projects/cx-rlfix4/build/rlfix4/trace /home/user/Projects/cx-rlfix4/build/rlfix4/commands/wave7-db0/probe /home/user/Projects/cx-rlfix4/build/rlfix4/commands/wave7-db0-GET-1s-1-1--1-mix.ranges 806aa0 806ab0 1f9e0 GET 1s 1 1 -1 mix
-TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-WITNESS reads=1 pending_writes=1 keys_per_read=1
-PASS bounded production command scope
-COUNT 925

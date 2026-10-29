@@ -7,8 +7,3 @@ exec1s-c historical request: MEASURE-REQUEST-exec1s.md (full receipt context ret
 See [MEASURE-REQUEST-wave9.md](MEASURE-REQUEST-wave9.md), section `## wave9 integration`.
 The at412c storm recipe is preserved in `docs/at412c/MEASURE-REQUEST`.
 No performance measurements run in this lane.
-
-
-rlfix4: see MEASURE-REQUEST-rlfix4.md, section "## rlfix4".
-Use the exact PRE, POST, POST-layout and PAD-A (type A) hashes recorded there.
-Performance measurements are pending maintainer execution. No throughput claim.
