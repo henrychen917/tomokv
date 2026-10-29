@@ -211,3 +211,88 @@ Final Tcl positive attempt (`final-tcl`): both modes completed, with only
 infofix’s documented promoted CLI-hint failure for unsupported MIGRATE. The
 restored isolated slowlog assertion and all other required scripting/INFO/reload
 assertions pass. This is **not a green Tcl job**. No skip was added for MIGRATE.
+
+### Additional integration repairs and artifact equivalence
+
+The source-identity gate rejected exec1s's telemetry field-name stringification.
+Commit `9bacbe2d6` replaces it with explicit literal metric labels. The rebuild
+has exactly identical executable bytes, function symbols, addresses and data
+layouts. The only allocated-data changes are two eight-byte INFO build-commit
+strings (`11f52599` to `9bacbe2d`); the GNU build ID and debug data also change.
+`source-labels-identity.json` checks every other allocated byte, with no opcode
+normalization. The frozen rebuild is `POST-source-labels`, SHA-256
+`844cf188071bae335a80e8ae15c2acaec2d1f583f235edf4bf4496421299660e`.
+The earlier `ed88bd...` correctness and instruction receipts remain valid evidence
+for the identical command code; their original hashes are preserved.
+
+The complete AUTH job exposed one stale DEBUG assertion: it still expected
+`ERR appendonly is disabled`. Commit `75cb895ab` checks the accepted offline
+LOADAOF behavior instead: Redis's exact missing-file error, destruction of a
+seeded key, and appendonly remaining disabled. The existing infofix oracle row
+independently compares this behavior with Redis. No row is removed.
+
+The named Tcl planted-error proof is now explicit in `tcl-final-proof.json`.
+`SCRIPT-ERROR-WORDING` makes the promoted no-arguments redis.call/pcall assertion
+fail in both modes; final POST passes that assertion. The mutant's later Lua GC
+timeout and known CLI-hint failure are recorded separately, and do not substitute
+for the named failure.
+
+### Maintainer measurement plan — NOT RUN
+
+Use final arm hashes and the gate's existing instrument, load plans and acceptance
+rules. Keep latency tracking off for the null and fixed-anchor races. Record the
+actual geometry; do not substitute correctness geometry for a reviewed ABBA
+geometry. Include contemporaneous byte-identical null controls. Rate at matched
+offered load decides merit; cycles/op, instructions/op, IPC and latency explain it.
+No failing cell may be averaged away.
+
+1. Wave null: POST versus headline PRE, the unchanged 28 cells in
+   `docs/wave10/cells/null28.txt`, with three blocks for `notify_exm`. Retain the
+   TTL 20M-key expiry witnesses, split GET/SET and p8 MGET/MSET cells. Also compare
+   POST-layout with PAD-A; PAD-A is **kind A: PRE behavior in the common candidate
+   control image**, not a same-size twin of the smaller release POST.
+2. EXEC merit: `/home/user/Projects/calib/exec-merit.py`, all eight
+   `x{1,2}s_a{0,1}_{unc,hot}` cells, `--conns 64 --threads 16 --cells all
+   --blocks 3 --secs 20`. Pipeline remains 4, with four plain INCR writers on hot
+   cells; databases=1, 1s read-local=1/64 shards, 2s ratio=6:2/16 shards. Key/client
+   balancing and automatic FLIP remain off as the driver specifies. Compare
+   POST/PRE and POST-layout/PAD-A. Report EXEC and competing plain-write rates
+   separately, plus retries, claim visits, eager collapses, extra passes,
+   kernel entries, WB sends/retirements, cycles/op, instructions/op and IPC.
+3. Depth sweep: `/home/user/Projects/calib/exec-depth-sweep.py`, PRE and POST; both
+   modes, atomic 0/1, placements `cross,same-owner,same-shard`, depths
+   `16x1,16x4,32x4,64x4,128x4`, `--blocks 3 --secs 10`. Retain cross/same-owner
+   64x4/16x4 >=0.90 and 128x4/16x4 >=0.85, and X2's stricter same-shard
+   64x4/16x4 >=0.95 in each mode. Exact order violations must remain zero.
+4. Fixed-anchor race against `/home/user/Projects/bench-bins/tomokv-headline-991d48f65`
+   (hash in `fixed-anchor.json`): `cells/generic14.txt`, the nine explicit
+   `rl=1` cells in `cells/readlocal9.txt` with three blocks, and the EXEC matrix
+   above. Retain this independently of the wave null. For rlfix4 inclusion, also
+   compare POST against `POST-without-rlfix4-current` on those read-local cells
+   and the null; this holds the other integrated code and selected budgets fixed.
+   The required literal `POST-minus-rlfix4` is delivered too, with its older
+   budget/cold-error difference documented.
+5. Contended-script storm: `/home/user/Projects/calib/script-storm-merit.py`,
+   POST/PRE, `--blocks 3 --secs 30`; its T6 shape is 2s ratio 6:2, 16 shards,
+   atomic 0, databases=1, two keys on distinct owners, eight EVAL clients, four
+   EXEC clients, four WATCH/EXEC clients and four plain writers. Require exact
+   final data, zero POST script refusals and zero atomic order violations; report
+   successful scripts, EXEC, plain writes and WATCH aborts separately.
+6. Sixteen-save BGSAVE curve: PRE/POST, both modes and engines, atomic 1, 16
+   shards, databases=16, read-local 1 in 1s/0 in 2s, balancing/automatic FLIP off,
+   idle one-key fixture, save rules disabled. Use `tests/snapfix.py --case
+   bgsave-loop --saves 16 --stall 300 --atomics 1 --no-oracle`, supplying each
+   frozen `--binary`, the Redis `--oracle`, assigned `--cores`/`--port`, and
+   distinct `--output` directories. Each `rss.json` must record all 16 saves
+   even if PRE exits at the RSS assertion. Compare the full RSS and command-send
+   to BGSAVE-acceptance latency curves; POST must meet the existing RSS bound.
+7. Landing `tests/gate.sh iteration`, after the owner updates EXPECT to
+   **946/963** and resolves the documented CLI-hint compatibility policy. The
+   real worktree's protected assignments remain **881/898**.
+
+For the external EXEC/depth/storm drivers, an explicitly scoped placement is
+`--server-cores 64-71 --load-cores 72-95 --port 20000`; the maintainer schedules
+the quiet box and may use its established wider instrument placement. Use
+`/home/user/Projects/cx-exec1s-d/build/benchtxn` for EXEC/depth and record its hash.
+Do not run the two snapshot arms concurrently. The measurement cell files and
+fixed anchor are hashed; append results as MEASURE-RESULT.
