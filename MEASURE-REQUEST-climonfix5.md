@@ -118,8 +118,10 @@ POST saves 1114–1138.0625 instructions per invocation across these cases.
 Completed on frozen POST: all 28 climonfix4 rows (224 directed configurations,
 including the added RESP2/RESP3 WATCH-abort assertions); all seven isolated
 regressions rejected their named Tcl assertion in both modes; and
-`python3 tests/gates_test.py` passes 73/73. The remaining whole-job campaigns
-and final freshness audit are still running.
+`python3 tests/gates_test.py` passes 73/73. All 53 production-unit targets
+built; all 58 independent build/freshness checks pass, including `make all`,
+`make -q`, and the blockfix binding ([audit](docs/climonfix5/production-units.json)).
+The remaining whole-job campaigns are still running.
 [Directed receipt](docs/climonfix5/jobs/directed-final-v11.json),
 [seven isolated controls](docs/climonfix5/isolated-regressions.json),
 [harness tests](docs/climonfix5/gates-test.json). The selected whole-job
