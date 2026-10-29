@@ -1,0 +1,20 @@
+{
+ "uring": {
+  "command": "GATE_DIFFER_NET_IO=uring GATE_LOAD_CORES=24-31 GATE_DIFFER_OUT=build/flipfix5/differ-uring tests/differ_gate.sh build/flipfix5/arms/post/tomokv 20220 20221 16-23 6:2",
+  "matrix": "DIFFER matrix: atomic={0 1} seeds={7 19 20 23 21} legs=470 logs=build/flipfix5/differ-uring",
+  "geometry": "DIFFER geometry: split (--ratio 6:2 --net-io uring)",
+  "result": "DIFFER GATE: pass=475 fail=0 runtime=18m05s",
+  "coverage": "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (2145395 recorded comparison witnesses, 474 legs)",
+  "log_sha256": "fb5e81fe888e407ebd38709296f9f128ade54bf6d35420b6f9018b85f016053e",
+  "binary_sha256": "230c841c9b313f9a2b4e82ee97536fa3593b7bc81ff9fefaacba991ca9c0363b"
+ },
+ "epoll": {
+  "command": "GATE_DIFFER_NET_IO=epoll GATE_LOAD_CORES=24-31 GATE_DIFFER_OUT=build/flipfix5/differ-epoll tests/differ_gate.sh build/flipfix5/arms/post/tomokv 20220 20221 16-23 6:2",
+  "matrix": "DIFFER matrix: atomic={0 1} seeds={7 19 20 23 22} legs=470 logs=build/flipfix5/differ-epoll",
+  "geometry": "DIFFER geometry: split (--ratio 6:2 --net-io epoll)",
+  "result": "DIFFER GATE: pass=475 fail=0 runtime=17m56s",
+  "coverage": "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (2145344 recorded comparison witnesses, 474 legs)",
+  "log_sha256": "bae0b96fb5b8559432fea35cd8c91a40cbbe8fe6552e363680939b6f89291b31",
+  "binary_sha256": "230c841c9b313f9a2b4e82ee97536fa3593b7bc81ff9fefaacba991ca9c0363b"
+ }
+}

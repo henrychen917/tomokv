@@ -1989,6 +1989,350 @@
    ]
   },
   {
+   "op": "DBSIZE-NOW",
+   "leg": "2s-uring-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 0,
+   "abort": 3,
+   "fail": 0,
+   "flips_total": 74083,
+   "aborts_per_100k_flips": 4.05,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 7.987,
+     "flips": 54917,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 1.848,
+     "flips": 5465,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 2.88,
+     "flips": 13701,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "DBSIZE-NOW",
+   "leg": "2s-uring-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 0,
+   "abort": 3,
+   "fail": 0,
+   "flips_total": 76459,
+   "aborts_per_100k_flips": 3.92,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 5.082,
+     "flips": 31311,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 1.587,
+     "flips": 3609,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 6.358,
+     "flips": 41539,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "DBSIZE-NOW",
+   "leg": "2s-epoll-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 191064,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 63228,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 63995,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 63841,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "DBSIZE-NOW",
+   "leg": "2s-epoll-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 192157,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 63503,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 63961,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 64693,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "DBSIZE-NOW",
+   "leg": "2s-uring-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 0,
+   "abort": 3,
+   "fail": 0,
+   "flips_total": 42337,
+   "aborts_per_100k_flips": 7.09,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 3.183,
+     "flips": 16353,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 3.245,
+     "flips": 16753,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 2.36,
+     "flips": 9231,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "DBSIZE-NOW",
+   "leg": "2s-uring-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 1,
+   "abort": 2,
+   "fail": 0,
+   "flips_total": 149968,
+   "aborts_per_100k_flips": 1.33,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 7.088,
+     "flips": 47089,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 63960,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "abort",
+     "seconds": 5.987,
+     "flips": 38919,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "DBSIZE-NOW",
+   "leg": "2s-epoll-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 193811,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.107,
+     "flips": 63650,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 64802,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 65359,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "DBSIZE-NOW",
+   "leg": "2s-epoll-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 193048,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 64228,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 64070,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 64750,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
    "op": "KEYS",
    "leg": "2s-uring-0-db1",
    "attempts": 3,
