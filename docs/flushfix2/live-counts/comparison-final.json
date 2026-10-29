@@ -1,0 +1,38 @@
+[
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "pre": 12771,
+    "post": 12847,
+    "delta": 76,
+    "ordinary_delta": -4,
+    "resolver_increment": 80
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "pre": 12643,
+    "post": 12719,
+    "delta": 76,
+    "ordinary_delta": -4,
+    "resolver_increment": 80
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "pre": 12835,
+    "post": 12852,
+    "delta": 17,
+    "ordinary_delta": -335,
+    "resolver_increment": 352
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "pre": 12707,
+    "post": 12724,
+    "delta": 17,
+    "ordinary_delta": -335,
+    "resolver_increment": 352
+  }
+]

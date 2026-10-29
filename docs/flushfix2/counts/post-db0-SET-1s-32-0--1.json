@@ -6,12 +6,11 @@
   "batch": 32,
   "atomic": 0,
   "threshold": -1,
-  "steps": 22168,
+  "steps": 21976,
   "clock_calls": 1,
   "excluded_calls": 32,
-  "total": 22161,
+  "total": 21969,
   "functions": {
-    "tomo_db0::atomic_tripwire_enabled()": 192,
     "tomo_db0::FlatStore::find_in(int, unsigned long, tomo_db0::Slice) const": 2912,
     "tomo_db0::Server::ClientWorkScope::ClientWorkScope(tomo_db0::Server&, unsigned int)": 704,
     "tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)": 640,
@@ -30,5 +29,5 @@
     "tomo_db0::FlatStore::publish_database_counts() const": 22,
     "tomo_db0::Shard::publish_size()": 54
   },
-  "probe_sha256": "38f1e65a625042253d5e84b55a33551af1508f4967f975538f6d216091641261"
+  "probe_sha256": "85009d1d952c7ffff8900237bc607fba3a6ca82157254b2b86a8747a08bdb551"
 }

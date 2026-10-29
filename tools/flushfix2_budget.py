@@ -55,8 +55,9 @@ def trial(item):
         subprocess.run(cmd, cwd=cwd, stdout=log, stderr=subprocess.STDOUT, check=True)
     initial = int(re.search(r'Starting with size (\d+)', dump.read_text())[1])
     dump.unlink()
-    a, b = Elf(PRE / unit), Elf(output)
-    old, new = a.functions(), b.functions()
+    a = Elf(PRE / unit) if (PRE / unit).exists() else None
+    b = Elf(output)
+    old, new = a.functions() if a else {}, b.functions()
     names = sorted(old)
     labels = subprocess.check_output(['c++filt'], input='\n'.join(names) + '\n', text=True).splitlines()
     changed, total = [], 0

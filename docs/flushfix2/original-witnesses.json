@@ -1,0 +1,14 @@
+[
+  {
+    "path": "tests/snapfix.py",
+    "sha256": "026941e50cecf02efcc2765922c2730385216106c509ebc5f08f9f7960e4ab19",
+    "source": "fccd38b77",
+    "unchanged": true
+  },
+  {
+    "path": "tests/snapfix2_flush.py",
+    "sha256": "4ab25e634bf0bacc53934bdff20f17143d2d842cf1f9c735c1641661ee4d4bca",
+    "source": "fccd38b77",
+    "unchanged": true
+  }
+]

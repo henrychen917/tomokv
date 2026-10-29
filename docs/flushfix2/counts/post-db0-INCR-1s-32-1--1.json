@@ -6,14 +6,13 @@
   "batch": 32,
   "atomic": 1,
   "threshold": -1,
-  "steps": 35017,
+  "steps": 33577,
   "clock_calls": 1,
   "excluded_calls": 96,
-  "total": 34914,
+  "total": 33474,
   "functions": {
     "unsigned long tomo_db0::kvobj_external_bytes<false>(tomo_db0::KvObj const*, void const*) [clone .isra.0]": 128,
     "tomo_db0::FlatStore::track_expire(unsigned long, tomo_db0::KvObj*) [clone .isra.0]": 800,
-    "tomo_db0::atomic_tripwire_enabled()": 192,
     "tomo_db0::kvobj_size(tomo_db0::KvObj const*)": 992,
     "tomo_db0::kvobj_free_with_capacity(tomo_db0::KvObj*, unsigned long)": 608,
     "tomo_db0::Server::ClientWorkScope::ClientWorkScope(tomo_db0::Server&, unsigned int)": 704,
@@ -22,12 +21,11 @@
     "tomo_db0::FlatStore::insert_into(int, unsigned long, tomo_db0::KvObj*, bool)": 4640,
     "tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)": 640,
     "tomo_db0::multi_task_tagged(tomo_db0::Task const&)": 128,
-    "tomo_db0::Slice::key_eq(tomo_db0::Slice const&) const": 928,
-    "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)": 3392,
+    "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)": 3200,
     "tomo_db0::FlatStore::insert(unsigned long, tomo_db0::KvObj*)": 1568,
     "tomo_db0::kvobj_init_int(void*, tomo_db0::Slice, long, long, bool) [clone .isra.0]": 2272,
     "tomo_db0::FlatStore::make_set_int(tomo_db0::Slice, long, long, bool) [clone .isra.0]": 1568,
-    "tomo_db0::(anonymous namespace)::map_insert(tomo_db0::FlatStore&, unsigned long, tomo_db0::KvObj*)": 544,
+    "tomo_db0::(anonymous namespace)::map_insert(tomo_db0::FlatStore&, unsigned long, tomo_db0::KvObj*)": 416,
     "void tomo_db0::(anonymous namespace)::incr_decr<false>(tomo_db0::Shard&, tomo_db0::Op&, long)": 3104,
     "void tomo_db0::(anonymous namespace)::cmd_incr<false>(tomo_db0::Shard&, tomo_db0::Op&)": 96,
     "tomo_db0::ExLoopT<true>::flush_notify_batch()": 435,
@@ -37,5 +35,5 @@
     "tomo_db0::FlatStore::publish_database_counts() const": 22,
     "tomo_db0::Shard::publish_size()": 54
   },
-  "probe_sha256": "38f1e65a625042253d5e84b55a33551af1508f4967f975538f6d216091641261"
+  "probe_sha256": "85009d1d952c7ffff8900237bc607fba3a6ca82157254b2b86a8747a08bdb551"
 }

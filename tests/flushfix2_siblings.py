@@ -48,6 +48,10 @@ def semantics(args, directory, mode, engine, atomic, oracle):
         result['script_flush'] = c.must('MGET', *pair)
         c.must('FUNCTION', 'FLUSH', 'SYNC')
         result['function_flush'] = c.must('MGET', *pair)
+        c.must('SCRIPT', 'FLUSH', 'ASYNC')
+        result['script_flush_async'] = c.must('MGET', *pair)
+        c.must('FUNCTION', 'FLUSH', 'ASYNC')
+        result['function_flush_async'] = c.must('MGET', *pair)
         dumped = c.must('DUMP', pair[0])
         c.must('SET', pair[0], 2)
         c.must('RESTORE', pair[0], 0, dumped, 'REPLACE')
@@ -58,6 +62,10 @@ def semantics(args, directory, mode, engine, atomic, oracle):
                 result['copy_db'] = [c.must('GET', pair[0]), other.must('GET', pair[0])]
                 c.must('MOVE', pair[1], 7)
                 result['move'] = [c.must('GET', pair[1]), other.must('GET', pair[1])]
+        else:
+            c.must('COPY', pair[0], 'flushfix2:copy:db0', 'DB', 0, 'REPLACE')
+            result['copy_db'] = c.must('MGET', pair[0], 'flushfix2:copy:db0')
+            result['move_same_db'] = c.cmd('MOVE', pair[1], 0)
         with conn(b, args) as watcher:
             watcher.must('WATCH', pair[0])
             c.must('FLUSHALL')
@@ -97,24 +105,24 @@ def semantics(args, directory, mode, engine, atomic, oracle):
 
 
 def swapdb(args, directory, mode, engine, atomic, oracle):
-    assert args.databases == 16
+    other = 7 if args.databases == 16 else 0
     with s.Boot(args, directory, mode, engine, atomic, oracle) as b:
         pair, _ = s.keys_for(b.c, 'flushfix2:swap', oracle, 2)
-        for db in (0, 7):
+        for db in (0, other):
             b.c.must('SELECT', db)
             b.c.must('MSET', pair[0], db, pair[1], db)
         counts = dict(swaps=0, observations=0, torn=0)
         def swap(stop):
             with conn(b, args) as c:
                 while not stop.is_set():
-                    c.must('SWAPDB', 0, 7)
+                    c.must('SWAPDB', 0, other)
                     counts['swaps'] += 1
         def observe(stop):
             with conn(b, args) as c:
                 while not stop.is_set():
                     values = c.must('MGET', *pair)
                     counts['observations'] += 1
-                    counts['torn'] += values not in ([b'0', b'0'], [b'7', b'7'])
+                    counts['torn'] += values not in ([b'0', b'0'], [str(other).encode()]*2)
         errors = s.run_storm(args.seconds, [swap, observe], args.stall)
         assert not errors and counts['swaps'] and counts['observations'] and not counts['torn'], (counts, errors)
         return counts

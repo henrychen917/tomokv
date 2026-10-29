@@ -21,8 +21,6 @@ def main():
     rows = []
     for case in a.cases.split(','):
         for databases in map(int, a.databases.split(',')):
-            if case == 'swapdb' and databases == 1:
-                continue
             output = base / f'{case}-{databases}'
             cmd = ['taskset', '-c', '8-15', 'python3', 'tests/flushfix2_siblings.py',
                    '--case', case, '--databases', str(databases), '--binary', str(a.binary.resolve()),

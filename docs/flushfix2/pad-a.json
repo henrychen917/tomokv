@@ -1,0 +1,35 @@
+{
+  "kind": "A: behaviour twin",
+  "source": "build/flushfix2/post-final/tomokv",
+  "output": "build/flushfix2/pad-a/tomokv",
+  "source_sha256": "e52527f40c24ed2d27033ba5fc6bd2a395922392f4e8d5c3e8a0927bec933b8b",
+  "output_sha256": "7ecfaeb7532b98400799e385dd0d71dd68191b241820586eb37426387dc9b01c",
+  "sections_and_symbols_identical": true,
+  "changes": [
+    {
+      "symbol": "_ZN4tomo20xshard_flush_commandERKNS_2OpE",
+      "offset": 316955,
+      "before": "534889",
+      "after": "31c0c3"
+    },
+    {
+      "symbol": "_ZN8tomo_db020xshard_flush_commandERKNS_2OpE",
+      "offset": 156302,
+      "before": "534889",
+      "after": "31c0c3"
+    },
+    {
+      "symbol": "_ZN4tomo30xshard_flush_snapshot_progressERNS_6ServerERNS_9ThreadCtxE",
+      "offset": 5534068,
+      "before": "415741",
+      "after": "31c0c3"
+    },
+    {
+      "symbol": "_ZN8tomo_db030xshard_flush_snapshot_progressERNS_6ServerERNS_9ThreadCtxE",
+      "offset": 1308484,
+      "before": "415741",
+      "after": "31c0c3"
+    }
+  ],
+  "residual_work": "Candidate budgets and dormant range-aware code retained; only FLUSH routing and its snapshot pump disabled."
+}

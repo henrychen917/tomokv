@@ -1,8 +1,8 @@
 {
   "unit": "src/cmd/xshard.o",
   "budget": "current",
-  "old_budget": 153471,
-  "initial": 124264,
+  "old_budget": 156000,
+  "initial": 124270,
   "changed": [
     "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
     "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int) [clone .cold]",
@@ -13,8 +13,13 @@
     "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
     "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)",
     "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&) [clone .cold]",
+    "tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)",
     "void tomo::FlatStore::atomic_visit_key_groups<tomo::(anonymous namespace)::cancel_applied_scripts(tomo::FlatStore&, unsigned long, tomo::Slice, tomo::ScatterState const*)::{lambda(auto:1&)#1}>(unsigned long, tomo::Slice, tomo::(anonymous namespace)::cancel_applied_scripts(tomo::FlatStore&, unsigned long, tomo::Slice, tomo::ScatterState const*)::{lambda(auto:1&)#1}&&)",
     "void tomo::FlatStore::atomic_visit_key_groups<tomo::(anonymous namespace)::cancel_applied_scripts(tomo::FlatStore&, unsigned long, tomo::Slice, tomo::ScatterState const*)::{lambda(auto:1&)#1}>(unsigned long, tomo::Slice, tomo::(anonymous namespace)::cancel_applied_scripts(tomo::FlatStore&, unsigned long, tomo::Slice, tomo::ScatterState const*)::{lambda(auto:1&)#1}&&) [clone .cold]",
+    "void tomo::FlatStore::atomic_for_each_unique_key<tomo::FlatStore::atomic_for_each_side_key<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}>(unsigned long, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&)::{lambda(unsigned long, tomo::Slice)#1}>(tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&) [clone .isra.0]",
+    "tomo::FlatStore::erase(unsigned long, tomo::Slice)",
+    "tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)",
+    "tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const",
     "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)::{lambda(unsigned long, tomo::Slice)#1}::operator()(unsigned long, tomo::Slice) const",
     "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)::{lambda(unsigned long, tomo::Slice)#1}::operator()(unsigned long, tomo::Slice) const [clone .cold]"
   ],
@@ -34,7 +39,9 @@
     "--param",
     "inline-unit-growth=0",
     "--param",
-    "large-unit-insns=153471",
+    "large-unit-insns=156000",
+    "--param",
+    "max-inline-insns-auto=16",
     "-DTOMO_JEMALLOC",
     "-I.",
     "-c",
@@ -44,6 +51,6 @@
     "-g0",
     "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_cmd_xshard.o-current.inline"
   ],
-  "revision": "8228424ea035579fd688e0b200e77220b6d55074:65db88d73fb103db05831d3567607671b9e5b253c434e50aa4b0d824949ec5c7",
+  "revision": "9fbab5566ee288968f0d1c1e557d5946a36357b2:ef117c609b3fc79cb64b23bc5a616bbff3f8e4e6eda1ea0befa822eaa05725de",
   "object": "/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_cmd_xshard.o-current.o"
 }
